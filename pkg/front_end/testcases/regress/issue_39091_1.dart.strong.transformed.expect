@@ -1,0 +1,16 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_39091_1.dart:5:1: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// hello
+// ^^^^^
+//
+// pkg/front_end/testcases/regress/issue_39091_1.dart:5:1: Error: Expected ';' after this.
+// hello
+// ^^^^^
+//
+import self as self;
+
+static field dynamic hello;

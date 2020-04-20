@@ -6,8 +6,10 @@
 library stream_controller_async_test;
 
 import 'dart:async';
-import "package:expect/expect.dart";
-import 'package:unittest/unittest.dart';
+
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_minitest.dart';
+
 import 'event_helper.dart';
 import 'stream_state_helper.dart';
 
@@ -31,9 +33,9 @@ testController() {
   test("StreamController.fold throws", () {
     StreamController c = new StreamController();
     Stream stream = c.stream.asBroadcastStream(onCancel: cancelSub);
-    stream.fold(0, (a, b) {
+    Future<int?>.value(stream.fold(0, (a, b) {
       throw "Fnyf!";
-    }).catchError(expectAsync((error) {
+    })).catchError(expectAsync((error) {
       Expect.equals("Fnyf!", error);
     }));
     c.add(42);
@@ -55,9 +57,9 @@ testSingleController() {
   test("Single-subscription StreamController.fold throws", () {
     StreamController c = new StreamController();
     Stream stream = c.stream;
-    stream.fold(0, (a, b) {
+    Future<int?>.value(stream.fold(0, (a, b) {
       throw "Fnyf!";
-    }).catchError(expectAsync((e) {
+    })).catchError(expectAsync((e) {
       Expect.equals("Fnyf!", e);
     }));
     c.add(42);
@@ -66,9 +68,9 @@ testSingleController() {
   test(
       "Single-subscription StreamController events are buffered when"
       " there is no subscriber", () {
-    StreamController c = new StreamController();
+    StreamController<int> c = new StreamController();
     EventSink sink = c.sink;
-    Stream stream = c.stream;
+    var stream = c.stream;
     int counter = 0;
     sink.add(1);
     sink.add(2);
@@ -153,8 +155,7 @@ testExtraMethods() {
 
   test("firstWhere 3", () {
     StreamController c = new StreamController();
-    Future f =
-        c.stream.firstWhere((x) => (x % 4) == 0, defaultValue: () => 999);
+    Future f = c.stream.firstWhere((x) => (x % 4) == 0, orElse: () => 999);
     f.then(expectAsync((v) {
       Expect.equals(999, v);
     }));
@@ -179,7 +180,7 @@ testExtraMethods() {
 
   test("lastWhere 3", () {
     StreamController c = new StreamController();
-    Future f = c.stream.lastWhere((x) => (x % 4) == 0, defaultValue: () => 999);
+    Future f = c.stream.lastWhere((x) => (x % 4) == 0, orElse: () => 999);
     f.then(expectAsync((v) {
       Expect.equals(999, v);
     }));
@@ -668,8 +669,10 @@ void testAsBroadcast() {
   });
 }
 
-void testSink({bool sync, bool broadcast, bool asBroadcast}) {
-  String type = "${sync?"S":"A"}${broadcast?"B":"S"}${asBroadcast?"aB":""}";
+void testSink(
+    {required bool sync, required bool broadcast, required bool asBroadcast}) {
+  String type =
+      "${sync ? "S" : "A"}${broadcast ? "B" : "S"}${asBroadcast ? "aB" : ""}";
   test("$type-controller-sink", () {
     var done = expectAsync(() {});
     var c = broadcast
@@ -811,7 +814,7 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
       ..error("BAD")
       ..close();
     StreamController sourceController = new StreamController();
-    c.addStream(sourceController.stream).then((_) {
+    c.addStream(sourceController.stream, cancelOnError: true).then((_) {
       c.close().then((_) {
         Expect.listEquals(expected.events, actual.events);
         done();
@@ -841,7 +844,7 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
       ..close();
 
     StreamController sourceController = new StreamController();
-    c.addStream(sourceController.stream, cancelOnError: false).then((_) {
+    c.addStream(sourceController.stream).then((_) {
       c.close().then((_) {
         Expect.listEquals(source.events, actual.events);
         done();
@@ -879,7 +882,7 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
       ..add(5);
     expected..close();
 
-    c.addStream(s1).then((_) {
+    c.addStream(s1, cancelOnError: true).then((_) {
       c.addStream(s2, cancelOnError: false).then((_) {
         c.close().then((_) {
           Expect.listEquals(expected.events, actual.events);

@@ -1,8 +1,6 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.util.glob;
 
 /**
  * A pattern that matches against filesystem path-like strings with wildcards.
@@ -20,8 +18,7 @@ class Glob {
    * The special characters are: \ ^ $ . | + [ ] ( ) { }
    * as defined here: http://ecma-international.org/ecma-262/5.1/#sec-15.10
    */
-  static final RegExp _specialChars =
-      new RegExp(r'([\\\^\$\.\|\+\[\]\(\)\{\}])');
+  static final RegExp _specialChars = RegExp(r'([\\\^\$\.\|\+\[\]\(\)\{\}])');
 
   /**
    * The path separator used to separate components in file paths.
@@ -49,6 +46,7 @@ class Glob {
   @override
   int get hashCode => _pattern.hashCode;
 
+  @override
   bool operator ==(other) => other is Glob && _pattern == other._pattern;
 
   /**
@@ -83,14 +81,14 @@ class Glob {
   static bool _hasJustPrefix(String pattern, String prefix) {
     if (pattern.startsWith(prefix)) {
       int prefixLength = prefix.length;
-      return pattern.indexOf('*', prefixLength) == -1 &&
-          pattern.indexOf('?', prefixLength) == -1;
+      return !pattern.contains('*', prefixLength) &&
+          !pattern.contains('?', prefixLength);
     }
     return false;
   }
 
   static RegExp _regexpFromGlobPattern(String pattern) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('^');
     List<String> chars = pattern.split('');
     for (int i = 0; i < chars.length; i++) {
@@ -112,6 +110,6 @@ class Glob {
       }
     }
     sb.write(r'$');
-    return new RegExp(sb.toString(), caseSensitive: false);
+    return RegExp(sb.toString(), caseSensitive: false);
   }
 }

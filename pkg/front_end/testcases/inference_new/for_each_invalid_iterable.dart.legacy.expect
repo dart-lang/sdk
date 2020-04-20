@@ -1,0 +1,19 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic async {
+  core::String* s;
+  for (core::int* x in s) {
+  }
+  await for (core::int* x in s) {
+  }
+  core::int* y;
+  for (final dynamic #t1 in s) {
+    y = #t1;
+  }
+  await for (final dynamic #t2 in s) {
+    y = #t2;
+  }
+}
+static method main() → dynamic {}

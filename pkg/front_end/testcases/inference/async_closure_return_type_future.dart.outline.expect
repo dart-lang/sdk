@@ -1,0 +1,8 @@
+library test;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static field () →* asy::Future<core::int*>* f;
+static method main() → dynamic
+  ;

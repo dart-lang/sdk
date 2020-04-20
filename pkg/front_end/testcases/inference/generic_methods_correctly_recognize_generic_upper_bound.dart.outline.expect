@@ -1,0 +1,12 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Foo<T extends core::Pattern* = core::Pattern*> extends core::Object {
+  synthetic constructor •() → self::Foo<self::Foo::T*>*
+    ;
+  method method<generic-covariant-impl U extends self::Foo::T* = self::Foo::T*>(self::Foo::method::U* u) → self::Foo::method::U*
+    ;
+}
+static method main() → dynamic
+  ;

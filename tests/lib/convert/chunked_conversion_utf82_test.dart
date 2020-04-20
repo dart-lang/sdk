@@ -9,12 +9,11 @@ import 'dart:convert';
 
 String decode(List<int> bytes, int chunkSize) {
   StringBuffer buffer = new StringBuffer();
-  ChunkedConversionSink stringSink =
-      new StringConversionSink.fromStringSink(buffer);
+  var stringSink = new StringConversionSink.fromStringSink(buffer);
   var byteSink = new Utf8Decoder().startChunkedConversion(stringSink);
   int i = 0;
   while (i < bytes.length) {
-    List nextChunk = [];
+    var nextChunk = <int>[];
     for (int j = 0; j < chunkSize; j++) {
       if (i < bytes.length) {
         nextChunk.add(bytes[i]);
@@ -29,13 +28,12 @@ String decode(List<int> bytes, int chunkSize) {
 
 String decodeAllowMalformed(List<int> bytes, int chunkSize) {
   StringBuffer buffer = new StringBuffer();
-  ChunkedConversionSink stringSink =
-      new StringConversionSink.fromStringSink(buffer);
+  var stringSink = new StringConversionSink.fromStringSink(buffer);
   var decoder = new Utf8Decoder(allowMalformed: true);
   var byteSink = decoder.startChunkedConversion(stringSink);
   int i = 0;
   while (i < bytes.length) {
-    List nextChunk = [];
+    var nextChunk = <int>[];
     for (int j = 0; j < chunkSize; j++) {
       if (i < bytes.length) {
         nextChunk.add(bytes[i]);
@@ -228,37 +226,37 @@ main() {
     return [
       [test, "\u{FFFD}"],
       [
-        new List.from([0x61])..addAll(test),
+        new List<int>.from([0x61])..addAll(test),
         "a\u{FFFD}"
       ],
       [
-        new List.from([0x61])
+        new List<int>.from([0x61])
           ..addAll(test)
           ..add(0x61),
         "a\u{FFFD}a"
       ],
-      [new List.from(test)..add(0x61), "\u{FFFD}a"],
-      [new List.from(test)..addAll(test), "\u{FFFD}\u{FFFD}"],
+      [new List<int>.from(test)..add(0x61), "\u{FFFD}a"],
+      [new List<int>.from(test)..addAll(test), "\u{FFFD}\u{FFFD}"],
       [
-        new List.from(test)
+        new List<int>.from(test)
           ..add(0x61)
           ..addAll(test),
         "\u{FFFD}a\u{FFFD}"
       ],
       [
-        new List.from([0xc3, 0xa5])..addAll(test),
+        new List<int>.from([0xc3, 0xa5])..addAll(test),
         "å\u{FFFD}"
       ],
       [
-        new List.from([0xc3, 0xa5])..addAll(test)..addAll([0xc3, 0xa5]),
+        new List<int>.from([0xc3, 0xa5])..addAll(test)..addAll([0xc3, 0xa5]),
         "å\u{FFFD}å"
       ],
       [
-        new List.from(test)..addAll([0xc3, 0xa5]),
+        new List<int>.from(test)..addAll([0xc3, 0xa5]),
         "\u{FFFD}å"
       ],
       [
-        new List.from(test)..addAll([0xc3, 0xa5])..addAll(test),
+        new List<int>.from(test)..addAll([0xc3, 0xa5])..addAll(test),
         "\u{FFFD}å\u{FFFD}"
       ]
     ];
@@ -267,16 +265,16 @@ main() {
   var allTests2 = TESTS2.map((test) {
     // Pairs of test and expected string output when malformed strings are
     // allowed. Replacement character: U+FFFD
-    String expected = test[1].replaceAll("X", "\u{FFFD}");
+    String expected = (test[1] as String).replaceAll("X", "\u{FFFD}");
     return [test[0], expected];
   });
 
   for (var test in []..addAll(allTests)..addAll(allTests2)) {
     List<int> bytes = test[0];
-    Expect.throws(() => decode(bytes, 1), (e) => e is FormatException);
-    Expect.throws(() => decode(bytes, 2), (e) => e is FormatException);
-    Expect.throws(() => decode(bytes, 3), (e) => e is FormatException);
-    Expect.throws(() => decode(bytes, 4), (e) => e is FormatException);
+    Expect.throwsFormatException(() => decode(bytes, 1));
+    Expect.throwsFormatException(() => decode(bytes, 2));
+    Expect.throwsFormatException(() => decode(bytes, 3));
+    Expect.throwsFormatException(() => decode(bytes, 4));
 
     String expected = test[1];
     Expect.equals(expected, decodeAllowMalformed(bytes, 1));

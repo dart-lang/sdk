@@ -12,11 +12,11 @@ var events = [];
 
 Future testSocketException() {
   var completer = new Completer();
-  runZoned(() {
+  runZonedGuarded(() {
     Socket.connect("4", 1).then((Socket s) {
       Expect.fail("Socket should not be able to connect");
     });
-  }, onError: (err) {
+  }, (err, s) {
     if (err is! SocketException) Expect.fail("Not expected error: $err");
     completer.complete("socket test, ok.");
     events.add("SocketException");
@@ -26,9 +26,9 @@ Future testSocketException() {
 
 Future testFileSystemException() {
   var completer = new Completer();
-  runZoned(() {
+  runZonedGuarded(() {
     new File("lol it's not a file\n").openRead().listen(null);
-  }, onError: (err) {
+  }, (err, s) {
     if (err is! FileSystemException) Expect.fail("Not expected error: $err");
     completer.complete("file test, ok.");
     events.add("FileSystemException");

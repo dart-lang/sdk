@@ -8,6 +8,7 @@ work.
 The current (working) tools are:
 
 - [results](#results)
+- [status_overlapping](#status_overlapping)
 - [compare_failures](#compare_failures)
 - [status_summary](#status_summary)
 - [current_summary](#current_summary)
@@ -139,6 +140,52 @@ output-directory is `logs`, therefore the file would be written to
 `logs/result.log`. Be aware that existing files are overwritten.
 
 To change the output directory, use the `--output-directory` option.
+
+## status_overlapping ##
+
+If a test appears in multiple sections whose conditions are simultaneously true,
+the test's expectations is the union of the applicable entries. It's often
+unintended and undesirable to have overlapping sections for this reason. To find
+overlapping sections, run:
+
+```console
+dart tools/gardening/bin/status_overlapping.dart <suite>
+```
+
+or
+
+```console
+dart tools/gardening/bin/status_overlapping.dart <suite> <test>
+```
+
+Example output can be:
+```console
+...
+~/dart-sdk/sdk/tests/lib_2/lib_2_analyzer.status
+	5: [ $compiler == dart2analyzer ]
+		9: mirrors/deferred_mirrors_metadata_test: [Fail]
+		10: mirrors/deferred_type_test: [StaticWarning, OK]
+		11: mirrors/generic_f_bounded_mixin_application_test: [StaticWarning]
+		12: mirrors/mirrors_nsm_mismatch_test: [StaticWarning, OK]
+		13: mirrors/mirrors_nsm_test: [StaticWarning, OK]
+		14: mirrors/mirrors_nsm_test/dart2js: [StaticWarning, OK]
+		17: mirrors/repeated_private_anon_mixin_app_test: [StaticWarning, OK]
+
+	19: [ $compiler == dart2analyzer && $strong ]
+		21: mirrors/deferred_mirrors_metadata_test: [StaticWarning]
+		22: mirrors/deferred_type_test: [CompileTimeError, OK]
+		23: mirrors/generic_f_bounded_mixin_application_test: [CompileTimeError]
+		24: mirrors/mirrors_nsm_mismatch_test: [CompileTimeError, OK]
+		25: mirrors/mirrors_nsm_test: [CompileTimeError, OK]
+		26: mirrors/mirrors_nsm_test/dart2js: [CompileTimeError, OK]
+		28: mirrors/repeated_private_anon_mixin_app_test: [CompileTimeError, OK]
+...
+```
+
+Notice that the sections overlap, but there may not be any relationship between
+entries in a section or file, ex. line 9 and 21. This is easier to see if
+overlapping entries are grouped by tests. To divide overlapping sections and
+entries into tests, use --print-test.
 
 ## compare_failures ##
 This tool compares a test log of a build step with previous builds. This is

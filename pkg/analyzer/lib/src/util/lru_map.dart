@@ -1,15 +1,11 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.util.lru_cache;
-
 import 'dart:collection';
 
-/**
- * This handler is notified when an item is evicted from the cache.
- */
-typedef EvictionHandler<K, V>(K key, V value);
+/// This handler is notified when an item is evicted from the cache.
+typedef EvictionHandler<K, V> = Function(K key, V value);
 
 /**
  * A hash-table based cache implementation.
@@ -18,7 +14,7 @@ typedef EvictionHandler<K, V>(K key, V value);
  * accessed (both get and put) recently is evicted.
  */
 class LRUMap<K, V> {
-  final LinkedHashMap<K, V> _map = new LinkedHashMap<K, V>();
+  final LinkedHashMap<K, V> _map = LinkedHashMap<K, V>();
   final int _maxSize;
   final EvictionHandler<K, V> _handler;
 

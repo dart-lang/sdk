@@ -1,10 +1,9 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 
-import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide ElementKind;
@@ -12,7 +11,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_refactoring.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertGetterToMethodTest);
   });
@@ -20,9 +19,10 @@ main() {
 
 @reflectiveTest
 class ConvertGetterToMethodTest extends RefactoringTest {
+  @override
   ConvertGetterToMethodRefactoring refactoring;
 
-  test_change_function() async {
+  Future<void> test_change_function() async {
     await indexTestUnit('''
 int get test => 42;
 main() {
@@ -41,7 +41,7 @@ main() {
 ''');
   }
 
-  test_change_method() async {
+  Future<void> test_change_method() async {
     await indexTestUnit('''
 class A {
   int get test => 1;
@@ -86,8 +86,8 @@ main(A a, B b, C c, D d) {
 ''');
   }
 
-  test_change_multipleFiles() async {
-    await indexUnit('/other.dart', r'''
+  Future<void> test_change_multipleFiles() async {
+    await indexUnit('/home/test/lib/other.dart', r'''
 class A {
   int get test => 1;
 }
@@ -116,7 +116,7 @@ main(A a, B b) {
 ''');
   }
 
-  test_checkInitialConditions_syntheticGetter() async {
+  Future<void> test_checkInitialConditions_syntheticGetter() async {
     await indexTestUnit('''
 int test = 42;
 main() {
@@ -124,23 +124,21 @@ main() {
 ''');
     _createRefactoring('test');
     // check conditions
-    _assertInitialConditions_fatal(
+    await _assertInitialConditions_fatal(
         'Only explicit getters can be converted to methods.');
   }
 
   Future _assertInitialConditions_fatal(String message) async {
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage: message);
   }
 
-  /**
-   * Checks that all conditions are OK and the result of applying [refactoring]
-   * change to [testUnit] is [expectedCode].
-   */
+  /// Checks that all conditions are OK and the result of applying [refactoring]
+  /// change to [testUnit] is [expectedCode].
   Future _assertSuccessfulRefactoring(String expectedCode) async {
     await assertRefactoringConditionsOK();
-    SourceChange refactoringChange = await refactoring.createChange();
+    var refactoringChange = await refactoring.createChange();
     this.refactoringChange = refactoringChange;
     assertTestChangeResult(expectedCode);
   }
@@ -152,8 +150,8 @@ main() {
   }
 
   void _createRefactoringForElement(ExecutableElement element) {
-    refactoring = new ConvertGetterToMethodRefactoring(
-        searchEngine, astProvider, element);
+    refactoring = ConvertGetterToMethodRefactoring(
+        searchEngine, testAnalysisResult.session, element);
   }
 
   void _createRefactoringForString(String search) {

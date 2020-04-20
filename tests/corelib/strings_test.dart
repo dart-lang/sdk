@@ -15,7 +15,7 @@ class StringsTest {
 
   static testCreation() {
     String s = "Hello";
-    List<int> l = new List(s.length);
+    List<int> l = new List.filled(s.length, -1);
     for (int i = 0; i < l.length; i++) {
       l[i] = s.codeUnitAt(i);
     }

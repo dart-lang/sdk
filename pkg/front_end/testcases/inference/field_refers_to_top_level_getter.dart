@@ -6,7 +6,7 @@
 library test;
 
 class C {
-  final /*@topType=int*/ x = y;
+  final x = y;
 }
 
 int get y => null;

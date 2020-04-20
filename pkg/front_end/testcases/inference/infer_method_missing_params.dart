@@ -20,9 +20,9 @@ abstract class B {
 }
 
 abstract class C implements A, B {
-  /*@topType=int*/ f(/*@topType=int*/ x, /*@topType=dynamic*/ y);
-  /*@topType=int*/ g(/*@topType=int*/ x, [/*@topType=dynamic*/ y]);
-  /*@topType=int*/ h(/*@topType=int*/ x, {/*@topType=dynamic*/ y});
+  f(x, y);
+  g(x, [y]);
+  h(x, {y});
 }
 
 main() {}

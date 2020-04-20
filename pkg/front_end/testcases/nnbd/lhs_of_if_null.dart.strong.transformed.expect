@@ -1,0 +1,11 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method f() → core::Object
+  return let final core::Object? #t1 = self::g<core::Object?>(null) in #t1.{core::Object::==}(null) ?{core::Object} 0 : #t1{core::Object};
+static method g<T extends core::Object? = dynamic>(self::g::T% t) → self::g::T%
+  return t;
+static method main() → dynamic {
+  core::print(self::f());
+}

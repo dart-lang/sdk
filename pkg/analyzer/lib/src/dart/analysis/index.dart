@@ -1,17 +1,59 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+
+Element declaredParameterElement(
+  SimpleIdentifier node,
+  Element element,
+) {
+  if (element.enclosingElement != null) {
+    return element;
+  }
+
+  /// When we instantiate the [FunctionType] of an executable, we use
+  /// synthetic [ParameterElement]s, disconnected from the rest of the
+  /// element model. But we want to index these parameter references
+  /// as references to declared parameters.
+  ParameterElement namedParameterElement(ExecutableElement executable) {
+    if (executable == null) {
+      return null;
+    }
+
+    var parameterName = node.name;
+    return executable.declaration.parameters.where((parameter) {
+      return parameter.isNamed && parameter.name == parameterName;
+    }).first;
+  }
+
+  var parent = node.parent;
+  if (parent is Label && parent.label == node) {
+    var namedExpression = parent.parent;
+    if (namedExpression is NamedExpression && namedExpression.name == parent) {
+      var argumentList = namedExpression.parent;
+      if (argumentList is ArgumentList) {
+        var invocation = argumentList.parent;
+        if (invocation is InstanceCreationExpression) {
+          return namedParameterElement(invocation.staticElement);
+        } else if (invocation is MethodInvocation) {
+          var executable = invocation.methodName.staticElement;
+          if (executable is ExecutableElement) {
+            return namedParameterElement(executable);
+          }
+        }
+      }
+    }
+  }
+
+  return element;
+}
 
 /**
  * Return the [CompilationUnitElement] that should be used for [element].
@@ -26,14 +68,14 @@ CompilationUnitElement getUnitElement(Element element) {
       return e.definingCompilationUnit;
     }
   }
-  throw new StateError('Element not contained in compilation unit: $element');
+  throw StateError('Element not contained in compilation unit: $element');
 }
 
 /**
  * Index the [unit] into a new [AnalysisDriverUnitIndexBuilder].
  */
 AnalysisDriverUnitIndexBuilder indexUnit(CompilationUnit unit) {
-  return new _IndexAssembler().assemble(unit);
+  return _IndexAssembler().assemble(unit);
 }
 
 /**
@@ -80,16 +122,23 @@ class IndexElementInfo {
               : IndexSyntheticElementKind.setter;
           element = accessor.variable;
         }
+      } else if (elementKind == ElementKind.METHOD) {
+        Element enclosing = element.enclosingElement;
+        bool isEnumMethod = enclosing is ClassElement && enclosing.isEnum;
+        if (isEnumMethod && element.name == 'toString') {
+          kind = IndexSyntheticElementKind.enumToString;
+          element = enclosing;
+        }
       } else if (elementKind == ElementKind.TOP_LEVEL_VARIABLE) {
         TopLevelVariableElement property = element;
         kind = IndexSyntheticElementKind.topLevelVariable;
         element = property.getter ?? property.setter;
       } else {
-        throw new ArgumentError(
+        throw ArgumentError(
             'Unsupported synthetic element ${element.runtimeType}');
       }
     }
-    return new IndexElementInfo._(element, kind);
+    return IndexElementInfo._(element, kind);
   }
 
   IndexElementInfo._(this.element, this.kind);
@@ -213,7 +262,7 @@ class _IndexAssembler {
   /**
    * All subtypes declared in the unit.
    */
-  final List<AnalysisDriverSubtypeBuilder> subtypes = [];
+  final List<_SubtypeInfo> subtypes = [];
 
   /**
    * The [_StringInfo] to use for `null` strings.
@@ -227,22 +276,35 @@ class _IndexAssembler {
   void addElementRelation(Element element, IndexRelationKind kind, int offset,
       int length, bool isQualified) {
     _ElementInfo elementInfo = _getElementInfo(element);
-    elementRelations.add(new _ElementRelationInfo(
-        elementInfo, kind, offset, length, isQualified));
+    elementRelations.add(
+        _ElementRelationInfo(elementInfo, kind, offset, length, isQualified));
   }
 
   void addNameRelation(
       String name, IndexRelationKind kind, int offset, bool isQualified) {
     _StringInfo nameId = _getStringInfo(name);
-    nameRelations.add(new _NameRelationInfo(nameId, kind, offset, isQualified));
+    nameRelations.add(_NameRelationInfo(nameId, kind, offset, isQualified));
+  }
+
+  void addSubtype(String name, List<String> members, List<String> supertypes) {
+    for (var supertype in supertypes) {
+      subtypes.add(
+        _SubtypeInfo(
+          _getStringInfo(supertype),
+          _getStringInfo(name),
+          members.map(_getStringInfo).toList(),
+        ),
+      );
+    }
   }
 
   /**
    * Index the [unit] and assemble a new [AnalysisDriverUnitIndexBuilder].
    */
   AnalysisDriverUnitIndexBuilder assemble(CompilationUnit unit) {
-    unit.accept(new _IndexContributor(this));
-    // sort strings end set IDs
+    unit.accept(_IndexContributor(this));
+
+    // Sort strings and set IDs.
     List<_StringInfo> stringInfoList = stringMap.values.toList();
     stringInfoList.sort((a, b) {
       return a.value.compareTo(b.value);
@@ -250,16 +312,17 @@ class _IndexAssembler {
     for (int i = 0; i < stringInfoList.length; i++) {
       stringInfoList[i].id = i;
     }
-    // sort elements and set IDs
+
+    // Sort elements and set IDs.
     List<_ElementInfo> elementInfoList = elementMap.values.toList();
     elementInfoList.sort((a, b) {
       int delta;
       delta = a.nameIdUnitMember.id - b.nameIdUnitMember.id;
-      if (delta != null) {
+      if (delta != 0) {
         return delta;
       }
       delta = a.nameIdClassMember.id - b.nameIdClassMember.id;
-      if (delta != null) {
+      if (delta != 0) {
         return delta;
       }
       return a.nameIdParameter.id - b.nameIdParameter.id;
@@ -267,6 +330,7 @@ class _IndexAssembler {
     for (int i = 0; i < elementInfoList.length; i++) {
       elementInfoList[i].id = i;
     }
+
     // Sort element and name relations.
     elementRelations.sort((a, b) {
       return a.elementInfo.id - b.elementInfo.id;
@@ -274,7 +338,13 @@ class _IndexAssembler {
     nameRelations.sort((a, b) {
       return a.nameInfo.id - b.nameInfo.id;
     });
-    return new AnalysisDriverUnitIndexBuilder(
+
+    // Sort subtypes by supertypes.
+    subtypes.sort((a, b) {
+      return a.supertype.id - b.supertype.id;
+    });
+
+    return AnalysisDriverUnitIndexBuilder(
         strings: stringInfoList.map((s) => s.value).toList(),
         nullStringId: nullString.id,
         unitLibraryUris: unitLibraryUris.map((s) => s.id).toList(),
@@ -298,7 +368,13 @@ class _IndexAssembler {
         usedNameOffsets: nameRelations.map((r) => r.offset).toList(),
         usedNameIsQualifiedFlags:
             nameRelations.map((r) => r.isQualified).toList(),
-        subtypes: subtypes);
+        supertypes: subtypes.map((subtype) => subtype.supertype.id).toList(),
+        subtypes: subtypes.map((subtype) {
+          return AnalysisDriverSubtypeBuilder(
+            name: subtype.name.id,
+            members: subtype.members.map((member) => member.id).toList(),
+          );
+        }).toList());
   }
 
   /**
@@ -306,9 +382,7 @@ class _IndexAssembler {
    * [_ElementInfo.id] is filled by [assemble] during final sorting.
    */
   _ElementInfo _getElementInfo(Element element) {
-    if (element is Member) {
-      element = (element as Member).baseElement;
-    }
+    element = element.declaration;
     return elementMap.putIfAbsent(element, () {
       CompilationUnitElement unitElement = getUnitElement(element);
       int unitId = _getUnitId(unitElement);
@@ -322,7 +396,7 @@ class _IndexAssembler {
    */
   _StringInfo _getStringInfo(String string) {
     return stringMap.putIfAbsent(string, () {
-      return new _StringInfo(string);
+      return _StringInfo(string);
     });
   }
 
@@ -355,7 +429,7 @@ class _IndexAssembler {
    * This method is static, so it cannot add any information to the index.
    */
   _ElementInfo _newElementInfo(int unitId, Element element) {
-    IndexElementInfo info = new IndexElementInfo(element);
+    IndexElementInfo info = IndexElementInfo(element);
     element = info.element;
     // Prepare name identifiers.
     _StringInfo nameIdParameter = nullString;
@@ -365,14 +439,15 @@ class _IndexAssembler {
       nameIdParameter = _getStringInfo(element.name);
       element = element.enclosingElement;
     }
-    if (element?.enclosingElement is ClassElement) {
+    if (element?.enclosingElement is ClassElement ||
+        element?.enclosingElement is ExtensionElement) {
       nameIdClassMember = _getStringInfo(element.name);
       element = element.enclosingElement;
     }
     if (element?.enclosingElement is CompilationUnitElement) {
       nameIdUnitMember = _getStringInfo(element.name);
     }
-    return new _ElementInfo(unitId, nameIdUnitMember, nameIdClassMember,
+    return _ElementInfo(unitId, nameIdUnitMember, nameIdClassMember,
         nameIdParameter, info.kind);
   }
 }
@@ -435,6 +510,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         elementKind == ElementKind.ERROR ||
         elementKind == ElementKind.LABEL ||
         elementKind == ElementKind.LOCAL_VARIABLE ||
+        elementKind == ElementKind.NEVER ||
         elementKind == ElementKind.PREFIX ||
         elementKind == ElementKind.TYPE_PARAMETER ||
         elementKind == ElementKind.FUNCTION &&
@@ -442,7 +518,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
             element.enclosingElement is ExecutableElement ||
         elementKind == ElementKind.PARAMETER &&
             element is ParameterElement &&
-            element.parameterKind != ParameterKind.NAMED ||
+            !element.isOptional ||
         false) {
       return;
     }
@@ -450,7 +526,16 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // These functions are not bound to a source, we cannot index them.
     if (elementKind == ElementKind.PARAMETER &&
         element is ParameterElement &&
-        element.enclosingElement.isSynthetic) {
+        (element.enclosingElement == null ||
+            element.enclosingElement.isSynthetic)) {
+      return;
+    }
+    // Elements for generic function types are enclosed by the compilation
+    // units, but don't have names. So, we cannot index references to their
+    // named parameters. Ignore them.
+    if (elementKind == ElementKind.PARAMETER &&
+        element is ParameterElement &&
+        element.enclosingElement is GenericFunctionTypeElement) {
       return;
     }
     // Add the relation.
@@ -491,20 +576,19 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
   }
 
-  void recordUriReference(Element element, UriBasedDirective directive) {
-    recordRelation(
-        element, IndexRelationKind.IS_REFERENCED_BY, directive.uri, true);
+  void recordUriReference(Element element, StringLiteral uri) {
+    recordRelation(element, IndexRelationKind.IS_REFERENCED_BY, uri, true);
   }
 
   @override
   visitAssignmentExpression(AssignmentExpression node) {
-    recordOperatorReference(node.operator, node.bestElement);
+    recordOperatorReference(node.operator, node.staticElement);
     super.visitAssignmentExpression(node);
   }
 
   @override
   visitBinaryExpression(BinaryExpression node) {
-    recordOperatorReference(node.operator, node.bestElement);
+    recordOperatorReference(node.operator, node.staticElement);
     super.visitBinaryExpression(node);
   }
 
@@ -512,21 +596,18 @@ class _IndexContributor extends GeneralizingAstVisitor {
   visitClassDeclaration(ClassDeclaration node) {
     _addSubtypeForClassDeclaration(node);
     if (node.extendsClause == null) {
-      ClassElement objectElement = resolutionMap
-          .elementDeclaredByClassDeclaration(node)
-          .supertype
-          ?.element;
+      ClassElement objectElement = node.declaredElement.supertype?.element;
       recordRelationOffset(objectElement, IndexRelationKind.IS_EXTENDED_BY,
           node.name.offset, 0, true);
     }
-    recordIsAncestorOf(node.element);
+    recordIsAncestorOf(node.declaredElement);
     super.visitClassDeclaration(node);
   }
 
   @override
   visitClassTypeAlias(ClassTypeAlias node) {
     _addSubtypeForClassTypeAlis(node);
-    recordIsAncestorOf(node.element);
+    recordIsAncestorOf(node.declaredElement);
     super.visitClassTypeAlias(node);
   }
 
@@ -561,8 +642,18 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   visitExportDirective(ExportDirective node) {
     ExportElement element = node.element;
-    recordUriReference(element?.exportedLibrary, node);
+    recordUriReference(element?.exportedLibrary, node.uri);
     super.visitExportDirective(node);
+  }
+
+  @override
+  visitExpression(Expression node) {
+    ParameterElement parameterElement = node.staticParameterElement;
+    if (parameterElement != null && parameterElement.isOptionalPositional) {
+      recordRelationOffset(parameterElement, IndexRelationKind.IS_REFERENCED_BY,
+          node.offset, 0, true);
+    }
+    super.visitExpression(node);
   }
 
   @override
@@ -580,13 +671,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   visitImportDirective(ImportDirective node) {
     ImportElement element = node.element;
-    recordUriReference(element?.importedLibrary, node);
+    recordUriReference(element?.importedLibrary, node.uri);
     super.visitImportDirective(node);
   }
 
   @override
   visitIndexExpression(IndexExpression node) {
-    MethodElement element = node.bestElement;
+    MethodElement element = node.staticElement;
     if (element is MethodElement) {
       Token operator = node.leftBracket;
       recordRelationToken(element, IndexRelationKind.IS_INVOKED_BY, operator);
@@ -600,7 +691,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier name = node.methodName;
-    Element element = name.bestElement;
+    Element element = name.staticElement;
     // unresolved name invocation
     bool isQualified = node.realTarget != null;
     if (element == null) {
@@ -612,27 +703,42 @@ class _IndexContributor extends GeneralizingAstVisitor {
         : IndexRelationKind.IS_INVOKED_BY;
     recordRelation(element, kind, name, isQualified);
     node.target?.accept(this);
+    node.typeArguments?.accept(this);
     node.argumentList?.accept(this);
+  }
+
+  @override
+  visitMixinDeclaration(MixinDeclaration node) {
+    _addSubtypeForMixinDeclaration(node);
+    recordIsAncestorOf(node.declaredElement);
+    super.visitMixinDeclaration(node);
+  }
+
+  @override
+  visitOnClause(OnClause node) {
+    for (TypeName typeName in node.superclassConstraints) {
+      recordSuperType(typeName, IndexRelationKind.IS_IMPLEMENTED_BY);
+    }
   }
 
   @override
   visitPartDirective(PartDirective node) {
     CompilationUnitElement element = node.element;
     if (element?.source != null) {
-      recordUriReference(element, node);
+      recordUriReference(element, node.uri);
     }
     super.visitPartDirective(node);
   }
 
   @override
   visitPostfixExpression(PostfixExpression node) {
-    recordOperatorReference(node.operator, node.bestElement);
+    recordOperatorReference(node.operator, node.staticElement);
     super.visitPostfixExpression(node);
   }
 
   @override
   visitPrefixExpression(PrefixExpression node) {
-    recordOperatorReference(node.operator, node.bestElement);
+    recordOperatorReference(node.operator, node.staticElement);
     super.visitPrefixExpression(node);
   }
 
@@ -658,7 +764,12 @@ class _IndexContributor extends GeneralizingAstVisitor {
     if (node.inDeclarationContext()) {
       return;
     }
-    Element element = node.bestElement;
+
+    Element element = node.staticElement;
+    if (node is SimpleIdentifier && element is ParameterElement) {
+      element = declaredParameterElement(node, element);
+    }
+
     // record unresolved name reference
     bool isQualified = _isQualified(node);
     if (element == null) {
@@ -729,8 +840,12 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /**
    * Record the given class as a subclass of its direct superclasses.
    */
-  void _addSubtype(String name, TypeName superclass, WithClause withClause,
-      ImplementsClause implementsClause, List<ClassMember> memberNodes) {
+  void _addSubtype(String name,
+      {TypeName superclass,
+      WithClause withClause,
+      OnClause onClause,
+      ImplementsClause implementsClause,
+      List<ClassMember> memberNodes}) {
     List<String> supertypes = [];
     List<String> members = [];
 
@@ -752,6 +867,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
     addSupertype(superclass);
     withClause?.mixinTypes?.forEach(addSupertype);
+    onClause?.superclassConstraints?.forEach(addSupertype);
     implementsClause?.interfaces?.forEach(addSupertype);
 
     void addMemberName(SimpleIdentifier identifier) {
@@ -776,24 +892,39 @@ class _IndexContributor extends GeneralizingAstVisitor {
     supertypes.sort();
     members.sort();
 
-    assembler.subtypes.add(new AnalysisDriverSubtypeBuilder(
-        name: name, supertypes: supertypes, members: members));
+    assembler.addSubtype(name, members, supertypes);
   }
 
   /**
    * Record the given class as a subclass of its direct superclasses.
    */
   void _addSubtypeForClassDeclaration(ClassDeclaration node) {
-    _addSubtype(node.name.name, node.extendsClause?.superclass, node.withClause,
-        node.implementsClause, node.members);
+    _addSubtype(node.name.name,
+        superclass: node.extendsClause?.superclass,
+        withClause: node.withClause,
+        implementsClause: node.implementsClause,
+        memberNodes: node.members);
   }
 
   /**
    * Record the given class as a subclass of its direct superclasses.
    */
   void _addSubtypeForClassTypeAlis(ClassTypeAlias node) {
-    _addSubtype(node.name.name, node.superclass, node.withClause,
-        node.implementsClause, const []);
+    _addSubtype(node.name.name,
+        superclass: node.superclass,
+        withClause: node.withClause,
+        implementsClause: node.implementsClause,
+        memberNodes: const []);
+  }
+
+  /**
+   * Record the given mixin as a subclass of its direct superclasses.
+   */
+  void _addSubtypeForMixinDeclaration(MixinDeclaration node) {
+    _addSubtype(node.name.name,
+        onClause: node.onClause,
+        implementsClause: node.implementsClause,
+        memberNodes: node.members);
   }
 
   /**
@@ -803,7 +934,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
    */
   ConstructorElement _getActualConstructorElement(
       ConstructorElement constructor) {
-    Set<ConstructorElement> seenConstructors = new Set<ConstructorElement>();
+    Set<ConstructorElement> seenConstructors = <ConstructorElement>{};
     while (constructor != null &&
         constructor.isSynthetic &&
         constructor.redirectedConstructor != null) {
@@ -853,6 +984,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
     for (InterfaceType mixinType in ancestor.mixins) {
       _recordIsAncestorOf(descendant, mixinType.element, true, visitedElements);
     }
+    for (InterfaceType type in ancestor.superclassConstraints) {
+      _recordIsAncestorOf(descendant, type.element, true, visitedElements);
+    }
     for (InterfaceType implementedType in ancestor.interfaces) {
       _recordIsAncestorOf(
           descendant, implementedType.element, true, visitedElements);
@@ -888,4 +1022,26 @@ class _StringInfo {
   int id;
 
   _StringInfo(this.value);
+}
+
+/**
+ * Information about a subtype in the index.
+ */
+class _SubtypeInfo {
+  /**
+   * The identifier of a direct supertype.
+   */
+  final _StringInfo supertype;
+
+  /**
+   * The name of the class.
+   */
+  final _StringInfo name;
+
+  /**
+   * The names of defined instance members.
+   */
+  final List<_StringInfo> members;
+
+  _SubtypeInfo(this.supertype, this.name, this.members);
 }

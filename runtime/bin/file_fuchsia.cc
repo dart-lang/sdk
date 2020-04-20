@@ -9,7 +9,7 @@
 
 #include <errno.h>           // NOLINT
 #include <fcntl.h>           // NOLINT
-#include <fdio/namespace.h>  // NOLINT
+#include <lib/fdio/namespace.h>  // NOLINT
 #include <libgen.h>          // NOLINT
 #include <sys/mman.h>        // NOLINT
 #include <sys/stat.h>        // NOLINT
@@ -19,9 +19,9 @@
 
 #include "bin/builtin.h"
 #include "bin/fdutils.h"
-#include "bin/log.h"
 #include "bin/namespace.h"
 #include "platform/signal_blocker.h"
+#include "platform/syslog.h"
 #include "platform/utils.h"
 
 namespace dart {
@@ -61,7 +61,7 @@ void File::Close() {
     if (err != 0) {
       const int kBufferSize = 1024;
       char error_buf[kBufferSize];
-      Log::PrintErr("%s\n", Utils::StrError(errno, error_buf, kBufferSize));
+      Syslog::PrintErr("%s\n", Utils::StrError(errno, error_buf, kBufferSize));
     }
   }
   handle_->set_fd(kClosedFd);
@@ -75,13 +75,37 @@ bool File::IsClosed() {
   return handle_->fd() == kClosedFd;
 }
 
-MappedMemory* File::Map(MapType type, int64_t position, int64_t length) {
-  UNIMPLEMENTED();
-  return NULL;
+MappedMemory* File::Map(MapType type,
+                        int64_t position,
+                        int64_t length,
+                        void* start) {
+  ASSERT(handle_->fd() >= 0);
+  ASSERT(length > 0);
+  int prot = PROT_NONE;
+  switch (type) {
+    case kReadOnly:
+      prot = PROT_READ;
+      break;
+    case kReadExecute:
+      prot = PROT_READ | PROT_EXEC;
+      break;
+    case kReadWrite:
+      prot = PROT_READ | PROT_WRITE;
+      break;
+  }
+  const int flags = MAP_PRIVATE | (start != nullptr ? MAP_FIXED : 0);
+  void* addr = mmap(start, length, prot, flags, handle_->fd(), position);
+  if (addr == MAP_FAILED) {
+    return NULL;
+  }
+  return new MappedMemory(addr, length, /*should_unmap=*/start == nullptr);
 }
 
 void MappedMemory::Unmap() {
-  UNIMPLEMENTED();
+  int result = munmap(address_, size_);
+  ASSERT(result == 0);
+  address_ = 0;
+  size_ = 0;
 }
 
 int64_t File::Read(void* buffer, int64_t num_bytes) {
@@ -178,11 +202,15 @@ File* File::FileOpenW(const wchar_t* system_name, FileOpenMode mode) {
   return NULL;
 }
 
+File* File::OpenFD(int fd) {
+  return new File(new FileHandle(fd));
+}
+
 File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
   NamespaceScope ns(namespc, name);
   // Report errors for non-regular files.
-  struct stat64 st;
-  if (NO_RETRY_EXPECTED(fstatat64(ns.fd(), ns.path(), &st, 0)) == 0) {
+  struct stat st;
+  if (NO_RETRY_EXPECTED(fstatat(ns.fd(), ns.path(), &st, 0)) == 0) {
     if (S_ISDIR(st.st_mode)) {
       errno = EISDIR;
       return NULL;
@@ -201,7 +229,7 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
     flags = flags | O_TRUNC;
   }
   flags |= O_CLOEXEC;
-  int fd = NO_RETRY_EXPECTED(openat64(ns.fd(), name, flags, 0666));
+  int fd = NO_RETRY_EXPECTED(openat(ns.fd(), ns.path(), flags, 0666));
   if (fd < 0) {
     return NULL;
   }
@@ -212,37 +240,66 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
       return NULL;
     }
   }
-  return new File(new FileHandle(fd));
+  return OpenFD(fd);
+}
+
+static Utils::CStringUniquePtr DecodeUri(const char* uri) {
+  const char* path = (strlen(uri) >= 8 && strncmp(uri, "file:///", 8) == 0)
+      ? uri + 7 : uri;
+  UriDecoder uri_decoder(path);
+  if (uri_decoder.decoded() == nullptr) {
+    errno = EINVAL;
+    return Utils::CreateCStringUniquePtr(nullptr);
+  }
+  return Utils::CreateCStringUniquePtr(strdup(uri_decoder.decoded()));
+}
+
+File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
+  auto path = DecodeUri(uri);
+  if (path == nullptr) {
+    return nullptr;
+  }
+  return File::Open(namespc, path.get(), mode);
 }
 
 File* File::OpenStdio(int fd) {
-  return ((fd < 0) || (2 < fd)) ? NULL : new File(new FileHandle(fd));
+  return new File(new FileHandle(fd));
 }
 
 bool File::Exists(Namespace* namespc, const char* name) {
   NamespaceScope ns(namespc, name);
-  struct stat64 st;
-  if (NO_RETRY_EXPECTED(fstatat64(ns.fd(), ns.path(), &st, 0)) == 0) {
+  struct stat st;
+  if (NO_RETRY_EXPECTED(fstatat(ns.fd(), ns.path(), &st, 0)) == 0) {
     // Everything but a directory and a link is a file to Dart.
     return !S_ISDIR(st.st_mode) && !S_ISLNK(st.st_mode);
-  } else {
+  }
+  return false;
+}
+
+bool File::ExistsUri(Namespace* namespc, const char* uri) {
+  auto path = DecodeUri(uri);
+  if (path == nullptr) {
     return false;
   }
+  return File::Exists(namespc, path.get());
 }
 
 bool File::Create(Namespace* namespc, const char* name) {
   NamespaceScope ns(namespc, name);
   const int fd = NO_RETRY_EXPECTED(
-      openat64(ns.fd(), ns.path(), O_RDONLY | O_CREAT | O_CLOEXEC, 0666));
+      openat(ns.fd(), ns.path(), O_RDONLY | O_CREAT | O_CLOEXEC, 0666));
   if (fd < 0) {
+    Syslog::PrintErr("File::Create() openat(%ld, %s) failed: %s\n", ns.fd(),
+                     ns.path(), strerror(errno));
     return false;
   }
   // File.create returns a File, so we shouldn't be giving the illusion that the
   // call has created a file or that a file already exists if there is already
   // an entity at the same path that is a directory or a link.
-  bool is_file = true;
-  struct stat64 st;
-  if (NO_RETRY_EXPECTED(fstat64(fd, &st)) == 0) {
+  bool is_file = false;
+  struct stat st;
+  if (NO_RETRY_EXPECTED(fstat(fd, &st)) == 0) {
+    is_file = true;
     if (S_ISDIR(st.st_mode)) {
       errno = EISDIR;
       is_file = false;
@@ -266,14 +323,14 @@ File::Type File::GetType(Namespace* namespc,
                          const char* name,
                          bool follow_links) {
   NamespaceScope ns(namespc, name);
-  struct stat64 entry_info;
+  struct stat entry_info;
   int stat_success;
   if (follow_links) {
     stat_success =
-        TEMP_FAILURE_RETRY(fstatat64(ns.fd(), ns.path(), &entry_info, 0));
+        TEMP_FAILURE_RETRY(fstatat(ns.fd(), ns.path(), &entry_info, 0));
   } else {
     stat_success = TEMP_FAILURE_RETRY(
-        fstatat64(ns.fd(), ns.path(), &entry_info, AT_SYMLINK_NOFOLLOW));
+        fstatat(ns.fd(), ns.path(), &entry_info, AT_SYMLINK_NOFOLLOW));
   }
   if (stat_success == -1) {
     return File::kDoesNotExist;
@@ -351,27 +408,27 @@ bool File::Copy(Namespace* namespc,
     return false;
   }
   NamespaceScope oldns(namespc, old_path);
-  struct stat64 st;
-  if (NO_RETRY_EXPECTED(fstatat64(oldns.fd(), oldns.path(), &st, 0)) != 0) {
+  struct stat st;
+  if (NO_RETRY_EXPECTED(fstatat(oldns.fd(), oldns.path(), &st, 0)) != 0) {
     return false;
   }
   const int old_fd = NO_RETRY_EXPECTED(
-      openat64(oldns.fd(), oldns.path(), O_RDONLY | O_CLOEXEC));
+      openat(oldns.fd(), oldns.path(), O_RDONLY | O_CLOEXEC));
   if (old_fd < 0) {
     return false;
   }
   NamespaceScope newns(namespc, new_path);
   const int new_fd = NO_RETRY_EXPECTED(
-      openat64(newns.fd(), newns.path(),
-               O_WRONLY | O_TRUNC | O_CREAT | O_CLOEXEC, st.st_mode));
+      openat(newns.fd(), newns.path(),
+             O_WRONLY | O_TRUNC | O_CREAT | O_CLOEXEC, st.st_mode));
   if (new_fd < 0) {
-    VOID_TEMP_FAILURE_RETRY(close(old_fd));
+    close(old_fd);
     return false;
   }
   // TODO(ZX-429): Use sendfile/copyfile or equivalent when there is one.
   intptr_t result;
   const intptr_t kBufferSize = 8 * KB;
-  uint8_t buffer[kBufferSize];
+  uint8_t* buffer = reinterpret_cast<uint8_t*>(malloc(kBufferSize));
   while ((result = NO_RETRY_EXPECTED(read(old_fd, buffer, kBufferSize))) > 0) {
     int wrote = NO_RETRY_EXPECTED(write(new_fd, buffer, result));
     if (wrote != result) {
@@ -379,6 +436,7 @@ bool File::Copy(Namespace* namespc,
       break;
     }
   }
+  free(buffer);
   FDUtils::SaveErrorAndClose(old_fd);
   FDUtils::SaveErrorAndClose(new_fd);
   if (result < 0) {
@@ -392,9 +450,9 @@ bool File::Copy(Namespace* namespc,
 
 static bool StatHelper(Namespace* namespc,
                        const char* name,
-                       struct stat64* st) {
+                       struct stat* st) {
   NamespaceScope ns(namespc, name);
-  if (NO_RETRY_EXPECTED(fstatat64(ns.fd(), ns.path(), st, 0)) != 0) {
+  if (NO_RETRY_EXPECTED(fstatat(ns.fd(), ns.path(), st, 0)) != 0) {
     return false;
   }
   // Signal an error if it's a directory.
@@ -407,7 +465,7 @@ static bool StatHelper(Namespace* namespc,
 }
 
 int64_t File::LengthFromPath(Namespace* namespc, const char* name) {
-  struct stat64 st;
+  struct stat st;
   if (!StatHelper(namespc, name, &st)) {
     return -1;
   }
@@ -427,8 +485,8 @@ static void MillisecondsToTimespec(int64_t millis, struct timespec* t) {
 
 void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
   NamespaceScope ns(namespc, name);
-  struct stat64 st;
-  if (TEMP_FAILURE_RETRY(fstatat64(ns.fd(), ns.path(), &st, 0)) == 0) {
+  struct stat st;
+  if (TEMP_FAILURE_RETRY(fstatat(ns.fd(), ns.path(), &st, 0)) == 0) {
     if (S_ISREG(st.st_mode)) {
       data[kType] = kIsFile;
     } else if (S_ISDIR(st.st_mode)) {
@@ -449,7 +507,7 @@ void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
 }
 
 time_t File::LastModified(Namespace* namespc, const char* name) {
-  struct stat64 st;
+  struct stat st;
   if (!StatHelper(namespc, name, &st)) {
     return -1;
   }
@@ -457,7 +515,7 @@ time_t File::LastModified(Namespace* namespc, const char* name) {
 }
 
 time_t File::LastAccessed(Namespace* namespc, const char* name) {
-  struct stat64 st;
+  struct stat st;
   if (!StatHelper(namespc, name, &st)) {
     return -1;
   }
@@ -468,7 +526,7 @@ bool File::SetLastAccessed(Namespace* namespc,
                            const char* name,
                            int64_t millis) {
   // First get the current times.
-  struct stat64 st;
+  struct stat st;
   if (!StatHelper(namespc, name, &st)) {
     return false;
   }
@@ -485,7 +543,7 @@ bool File::SetLastModified(Namespace* namespc,
                            const char* name,
                            int64_t millis) {
   // First get the current times.
-  struct stat64 st;
+  struct stat st;
   if (!StatHelper(namespc, name, &st)) {
     return false;
   }
@@ -498,11 +556,14 @@ bool File::SetLastModified(Namespace* namespc,
   return utimensat(ns.fd(), ns.path(), times, 0) == 0;
 }
 
-const char* File::LinkTarget(Namespace* namespc, const char* name) {
+const char* File::LinkTarget(Namespace* namespc,
+                             const char* name,
+                             char* dest,
+                             int dest_size) {
   NamespaceScope ns(namespc, name);
-  struct stat64 link_stats;
+  struct stat link_stats;
   const int status = TEMP_FAILURE_RETRY(
-      fstatat64(ns.fd(), ns.path(), &link_stats, AT_SYMLINK_NOFOLLOW));
+      fstatat(ns.fd(), ns.path(), &link_stats, AT_SYMLINK_NOFOLLOW));
   if (status != 0) {
     return NULL;
   }
@@ -520,11 +581,17 @@ const char* File::LinkTarget(Namespace* namespc, const char* name) {
   if (target_size <= 0) {
     return NULL;
   }
-  char* target_name = DartUtils::ScopedCString(target_size + 1);
-  ASSERT(target_name != NULL);
-  memmove(target_name, target, target_size);
-  target_name[target_size] = '\0';
-  return target_name;
+  if (dest == NULL) {
+    dest = DartUtils::ScopedCString(target_size + 1);
+  } else {
+    ASSERT(dest_size > 0);
+    if (dest_size <= target_size) {
+      return NULL;
+    }
+  }
+  memmove(dest, target, target_size);
+  dest[target_size] = '\0';
+  return dest;
 }
 
 bool File::IsAbsolutePath(const char* pathname) {
@@ -560,12 +627,18 @@ const char* File::StringEscapedPathSeparator() {
   return "/";
 }
 
+static int fd_is_valid(int fd) {
+    return NO_RETRY_EXPECTED(fcntl(fd, F_GETFD)) != -1 || errno != EBADF;
+}
+
 File::StdioHandleType File::GetStdioHandleType(int fd) {
-  ASSERT((0 <= fd) && (fd <= 2));
-  struct stat64 buf;
-  int result = TEMP_FAILURE_RETRY(fstat64(fd, &buf));
+  struct stat buf;
+  int result = TEMP_FAILURE_RETRY(fstat(fd, &buf));
   if (result == -1) {
-    return kOther;
+    // fstat() on fds 0, 1, 2 on Fuchsia return -1 with errno ENOTSUP,
+    // but if they are opened, then we can read/write them, so pretend they
+    // are kPipe.
+    return ((errno == ENOTSUP) && fd_is_valid(fd)) ? kPipe : kTypeError;
   }
   if (S_ISCHR(buf.st_mode)) {
     return kTerminal;
@@ -582,22 +655,28 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   return kOther;
 }
 
-File::Identical File::AreIdentical(Namespace* namespc,
+File::Identical File::AreIdentical(Namespace* namespc_1,
                                    const char* file_1,
+                                   Namespace* namespc_2,
                                    const char* file_2) {
-  NamespaceScope ns1(namespc, file_1);
-  NamespaceScope ns2(namespc, file_2);
-  struct stat64 file_1_info;
-  struct stat64 file_2_info;
-  int status = TEMP_FAILURE_RETRY(
-      fstatat64(ns1.fd(), ns1.path(), &file_1_info, AT_SYMLINK_NOFOLLOW));
-  if (status == -1) {
-    return File::kError;
+  struct stat file_1_info;
+  struct stat file_2_info;
+  int status;
+  {
+    NamespaceScope ns1(namespc_1, file_1);
+    status = TEMP_FAILURE_RETRY(
+        fstatat(ns1.fd(), ns1.path(), &file_1_info, AT_SYMLINK_NOFOLLOW));
+    if (status == -1) {
+      return File::kError;
+    }
   }
-  status = TEMP_FAILURE_RETRY(
-      fstatat64(ns2.fd(), ns2.path(), &file_2_info, AT_SYMLINK_NOFOLLOW));
-  if (status == -1) {
-    return File::kError;
+  {
+    NamespaceScope ns2(namespc_2, file_2);
+    status = TEMP_FAILURE_RETRY(
+        fstatat(ns2.fd(), ns2.path(), &file_2_info, AT_SYMLINK_NOFOLLOW));
+    if (status == -1) {
+      return File::kError;
+    }
   }
   return ((file_1_info.st_ino == file_2_info.st_ino) &&
           (file_1_info.st_dev == file_2_info.st_dev))

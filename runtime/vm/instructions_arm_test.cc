@@ -18,7 +18,7 @@ namespace dart {
 ASSEMBLER_TEST_GENERATE(Call, assembler) {
   // Code accessing pp is generated, but not executed. Uninitialized pp is OK.
   __ set_constant_pool_allowed(true);
-  __ BranchLinkPatchable(*StubCode::InvokeDartCode_entry());
+  __ BranchLinkPatchable(StubCode::InvokeDartCode());
   __ Ret();
 }
 
@@ -28,7 +28,7 @@ ASSEMBLER_TEST_RUN(Call, test) {
   // before the end of the code buffer.
   uword end = test->payload_start() + test->code().Size();
   CallPattern call(end - Instr::kInstrSize, test->code());
-  EXPECT_EQ(StubCode::InvokeDartCode_entry()->code(), call.TargetCode());
+  EXPECT_EQ(StubCode::InvokeDartCode().raw(), call.TargetCode());
 }
 
 }  // namespace dart

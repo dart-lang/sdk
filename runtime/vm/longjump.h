@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,7 +8,7 @@
 #include <setjmp.h>
 
 #include "vm/allocation.h"
-#include "vm/isolate.h"
+#include "vm/thread_state.h"
 
 namespace dart {
 
@@ -17,21 +17,19 @@ class Error;
 class LongJumpScope : public StackResource {
  public:
   LongJumpScope()
-      : StackResource(Thread::Current()),
-        top_(NULL),
-        base_(Thread::Current()->long_jump_base()) {
-    Thread::Current()->set_long_jump_base(this);
+      : StackResource(ThreadState::Current()),
+        top_(nullptr),
+        base_(thread()->long_jump_base()) {
+    thread()->set_long_jump_base(this);
   }
 
-  ~LongJumpScope() { Thread::Current()->set_long_jump_base(base_); }
+  ~LongJumpScope() {
+    ASSERT(thread() == ThreadState::Current());
+    thread()->set_long_jump_base(base_);
+  }
 
   jmp_buf* Set();
-  void Jump(int value, const Error& error);
-
-  // Would it be safe to use this longjump?
-  //
-  // Checks to make sure that the jump would not cross Dart frames.
-  bool IsSafeToJump();
+  DART_NORETURN void Jump(int value, const Error& error);
 
  private:
   jmp_buf environment_;

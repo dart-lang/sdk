@@ -5,8 +5,9 @@
 // Test merging streams.
 library dart.test.stream_from_iterable;
 
-import "dart:async";
-import 'package:unittest/unittest.dart';
+import 'dart:async';
+
+import 'package:async_helper/async_minitest.dart';
 
 watchMs(Stopwatch watch) {
   int microsecs = watch.elapsedMicroseconds;

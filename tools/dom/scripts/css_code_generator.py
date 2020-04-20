@@ -3,7 +3,6 @@
 # Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-
 """Generates CSSStyleDeclaration template file from css property definitions
 defined in WebKit."""
 
@@ -28,65 +27,74 @@ BROWSER_PATHS = [
     'cssProperties.safari-7.1.3.txt',
     'cssProperties.mobileSafari-8.2.txt',
     'cssProperties.iPad4Air.onGoogleSites.txt',
-    ]
+]
 
 # Supported annotations for any specific CSS properties.
 annotated = {
-  'transition': '''@SupportedBrowser(SupportedBrowser.CHROME)
+    'transition':
+    '''@SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)'''
 }
 
+
 class Error:
-  def __init__(self, message):
-    self.message = message
-  def __repr__(self):
-    return self.message
+
+    def __init__(self, message):
+        self.message = message
+
+    def __repr__(self):
+        return self.message
+
 
 def camelCaseName(name):
-  """Convert a CSS property name to a lowerCamelCase name."""
-  name = name.replace('-webkit-', '')
-  words = []
-  for word in name.split('-'):
-    if words:
-      words.append(word.title())
-    else:
-      words.append(word)
-  return ''.join(words)
+    """Convert a CSS property name to a lowerCamelCase name."""
+    name = name.replace('-webkit-', '')
+    words = []
+    for word in name.split('-'):
+        if words:
+            words.append(word.title())
+        else:
+            words.append(word)
+    return ''.join(words)
+
 
 def dashifyName(camelName):
-  def fix(match):
-    return '-' + match.group(0).lower()
-  return re.sub(r'[A-Z]', fix, camelName)
+
+    def fix(match):
+        return '-' + match.group(0).lower()
+
+    return re.sub(r'[A-Z]', fix, camelName)
+
 
 def isCommentLine(line):
-  return line.strip() == '' or line.startswith('#') or line.startswith('//')
+    return line.strip() == '' or line.startswith('#') or line.startswith('//')
+
 
 def readCssProperties(filename):
-  data = open(filename).readlines()
-  data = sorted([d.strip() for d in set(data) if not isCommentLine(d)])
-  return data
+    data = open(filename).readlines()
+    data = sorted([d.strip() for d in set(data) if not isCommentLine(d)])
+    return data
+
 
 def GenerateCssTemplateFile():
-  data = open(SOURCE_PATH).readlines()
+    data = open(SOURCE_PATH).readlines()
 
-  # filter CSSPropertyNames.in to only the properties
-  # TODO(efortuna): do we also want CSSPropertyNames.in?
-  data = [d.strip() for d in data
-          if not isCommentLine(d)
-          and not '=' in d]
+    # filter CSSPropertyNames.in to only the properties
+    # TODO(efortuna): do we also want CSSPropertyNames.in?
+    data = [d.strip() for d in data if not isCommentLine(d) and not '=' in d]
 
-  browser_props = [readCssProperties(file) for file in BROWSER_PATHS]
-  universal_properties = reduce(
-        lambda a, b: set(a).intersection(b), browser_props)
-  universal_properties = universal_properties.difference(['cssText'])
-  universal_properties = universal_properties.intersection(
+    browser_props = [readCssProperties(file) for file in BROWSER_PATHS]
+    universal_properties = reduce(lambda a, b: set(a).intersection(b),
+                                  browser_props)
+    universal_properties = universal_properties.difference(['cssText'])
+    universal_properties = universal_properties.intersection(
         map(camelCaseName, data))
 
-  class_file = open(TEMPLATE_FILE, 'w')
+    class_file = open(TEMPLATE_FILE, 'w')
 
-  class_file.write("""
+    class_file.write("""
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -100,8 +108,7 @@ def GenerateCssTemplateFile():
 part of $LIBRARYNAME;
 """ % SOURCE_PATH)
 
-
-  class_file.write("""
+    class_file.write("""
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
     $(CLASSNAME)Base $IMPLEMENTS {
   factory $CLASSNAME() => new CssStyleDeclaration.css('');
@@ -118,8 +125,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
   ///
   /// Please note the property name uses camelCase, not-hyphens.
   String getPropertyValue(String propertyName) {
-    var propValue = _getPropertyValueHelper(propertyName);
-    return propValue ?? '';
+    return _getPropertyValueHelper(propertyName);
   }
 
   String _getPropertyValueHelper(String propertyName) {
@@ -144,14 +150,14 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
   }
 
 
-  @DomName('CSSStyleDeclaration.setProperty')
-  void setProperty(String propertyName, String value, [String priority]) {
+  void setProperty(String propertyName, String$NULLABLE value,
+      [String$NULLABLE priority]) {
     return _setPropertyHelper(_browserPropertyName(propertyName),
       value, priority);
   }
 
   String _browserPropertyName(String propertyName) {
-    String name = _readCache(propertyName);
+    String$NULLABLE name = _readCache(propertyName);
     if (name is String) return name;
     name = _supportedBrowserPropertyName(propertyName);
     _writeCache(propertyName, name);
@@ -171,7 +177,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
   }
 
   static final _propertyCache = JS('', '{}');
-  static String _readCache(String key) =>
+  static String$NULLABLE _readCache(String key) =>
     JS('String|Null', '#[#]', _propertyCache, key);
   static void _writeCache(String key, String value) {
     JS('void', '#[#] = #', _propertyCache, key, value);
@@ -186,7 +192,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
         replacedMs);
   }
 
-  void _setPropertyHelper(String propertyName, String value, [String priority]) {
+  void _setPropertyHelper(String propertyName, String$NULLABLE value,
+                          [String$NULLABLE priority]) {
     if (value == null) value = '';
     if (priority == null) priority = '';
     JS('void', '#.setProperty(#, #, #)', this, propertyName, value, priority);
@@ -196,34 +203,36 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
    * Checks to see if CSS Transitions are supported.
    */
   static bool get supportsTransitions {
-    return document.body.style.supportsProperty('transition');
+    return document.body$NULLASSERT.style.supportsProperty('transition');
   }
 $!MEMBERS
 """)
 
-  for camelName in sorted(universal_properties):
-    property = dashifyName(camelName)
-    class_file.write("""
+    for camelName in sorted(universal_properties):
+        property = dashifyName(camelName)
+        class_file.write("""
   /** Gets the value of "%s" */
   String get %s => this._%s;
 
   /** Sets the value of "%s" */
-  set %s(String value) {
+  set %s(String$NULLABLE value) {
     _%s = value == null ? '' : value;
   }
   @Returns('String')
   @JSName('%s')
-  String _%s;
-    """ % (property, camelName, camelName,
-           property, camelName, camelName,
-           camelName, camelName))
+  String get _%s native;
 
-  class_file.write("""
+  @JSName('%s')
+  set _%s(String value) native;
+    """ % (property, camelName, camelName, property, camelName, camelName,
+           camelName, camelName, camelName, camelName))
+
+    class_file.write("""
 }
 
 class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   final Iterable<Element> _elementIterable;
-  Iterable<CssStyleDeclaration> _elementCssStyleDeclarationSetIterable;
+  Iterable<CssStyleDeclaration>$NULLABLE _elementCssStyleDeclarationSetIterable;
 
   _CssStyleDeclarationSet(this._elementIterable) {
     _elementCssStyleDeclarationSetIterable = new List.from(
@@ -231,18 +240,19 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   }
 
   String getPropertyValue(String propertyName) =>
-      _elementCssStyleDeclarationSetIterable.first.getPropertyValue(
+      _elementCssStyleDeclarationSetIterable$NULLASSERT.first.getPropertyValue(
           propertyName);
 
-  void setProperty(String propertyName, String value, [String priority]) {
-    _elementCssStyleDeclarationSetIterable.forEach((e) =>
+  void setProperty(String propertyName, String$NULLABLE value,
+      [String$NULLABLE priority]) {
+    _elementCssStyleDeclarationSetIterable$NULLASSERT.forEach((e) =>
         e.setProperty(propertyName, value, priority));
   }
 
 """)
 
-  class_file.write("""
-  void _setAll(String propertyName, String value) {
+    class_file.write("""
+  void _setAll(String propertyName, String$NULLABLE value) {
     value = value == null ? '' : value;
     for (Element element in _elementIterable) {
       JS('void', '#.style[#] = #', element, propertyName, value);
@@ -250,17 +260,16 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   }
 """)
 
-
-  for camelName in sorted(universal_properties):
-    property = dashifyName(camelName)
-    class_file.write("""
+    for camelName in sorted(universal_properties):
+        property = dashifyName(camelName)
+        class_file.write("""
   /** Sets the value of "%s" */
   set %s(String value) {
     _setAll('%s', value);
   }
     """ % (property, camelName, camelName))
 
-  class_file.write("""
+    class_file.write("""
 
   // Important note: CssStyleDeclarationSet does NOT implement every method
   // available in CssStyleDeclaration. Some of the methods don't make so much
@@ -271,42 +280,43 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
 
 abstract class CssStyleDeclarationBase {
   String getPropertyValue(String propertyName);
-  void setProperty(String propertyName, String value, [String priority]);
+  void setProperty(String propertyName, String$NULLABLE value,
+      [String$NULLABLE priority]);
 """)
 
-  class_lines = [];
+    class_lines = []
 
-  seen = set()
-  for prop in sorted(data, key=camelCaseName):
-    camel_case_name = camelCaseName(prop)
-    upper_camel_case_name = camel_case_name[0].upper() + camel_case_name[1:];
-    css_name = prop.replace('-webkit-', '')
-    base_css_name = prop.replace('-webkit-', '')
+    seen = set()
+    for prop in sorted(data, key=camelCaseName):
+        camel_case_name = camelCaseName(prop)
+        upper_camel_case_name = camel_case_name[0].upper() + camel_case_name[1:]
+        css_name = prop.replace('-webkit-', '')
+        base_css_name = prop.replace('-webkit-', '')
 
-    if base_css_name in seen or base_css_name.startswith('-internal'):
-      continue
-    seen.add(base_css_name)
+        if base_css_name in seen or base_css_name.startswith('-internal'):
+            continue
+        seen.add(base_css_name)
 
-    comment = '  /** %s the value of "' + base_css_name + '" */'
-    class_lines.append('\n');
-    class_lines.append(comment % 'Gets')
-    if base_css_name in annotated:
-      class_lines.append(annotated[base_css_name])
-    class_lines.append("""
+        comment = '  /** %s the value of "' + base_css_name + '" */'
+        class_lines.append('\n')
+        class_lines.append(comment % 'Gets')
+        if base_css_name in annotated:
+            class_lines.append(annotated[base_css_name])
+        class_lines.append("""
   String get %s =>
     getPropertyValue('%s');
 
 """ % (camel_case_name, css_name))
 
-    class_lines.append(comment % 'Sets')
-    if base_css_name in annotated:
-      class_lines.append(annotated[base_css_name])
-    class_lines.append("""
+        class_lines.append(comment % 'Sets')
+        if base_css_name in annotated:
+            class_lines.append(annotated[base_css_name])
+        class_lines.append("""
   set %s(String value) {
     setProperty('%s', value, '');
   }
 """ % (camel_case_name, css_name))
 
-  class_file.write(''.join(class_lines));
-  class_file.write('}\n')
-  class_file.close()
+    class_file.write(''.join(class_lines))
+    class_file.write('}\n')
+    class_file.close()

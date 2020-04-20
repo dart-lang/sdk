@@ -40,12 +40,12 @@ Future testCreate() {
         .create()
         .then((_) => new Link(link).create(target))
         .then((_) => FutureExpect.equals(
-            FileSystemEntityType.DIRECTORY, FileSystemEntity.type(link)))
+            FileSystemEntityType.directory, FileSystemEntity.type(link)))
         .then((_) => FutureExpect.equals(
-            FileSystemEntityType.DIRECTORY, FileSystemEntity.type(target)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.LINK,
+            FileSystemEntityType.directory, FileSystemEntity.type(target)))
+        .then((_) => FutureExpect.equals(FileSystemEntityType.link,
             FileSystemEntity.type(link, followLinks: false)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.DIRECTORY,
+        .then((_) => FutureExpect.equals(FileSystemEntityType.directory,
             FileSystemEntity.type(target, followLinks: false)))
         .then((_) => FutureExpect.isTrue(FileSystemEntity.isLink(link)))
         .then((_) => FutureExpect.isFalse(FileSystemEntity.isLink(target)))
@@ -72,14 +72,15 @@ Future testCreate() {
           .then((_) => FutureExpect.isTrue(
               new Directory(join(base, 'target', 'createdThroughLink'))
                   .exists()))
-          .then((_) => FutureExpect.equals(FileSystemEntityType.DIRECTORY,
+          .then((_) => FutureExpect.equals(FileSystemEntityType.directory,
               FileSystemEntity.type(createdThroughLink, followLinks: false)))
-          .then((_) => FutureExpect.equals(FileSystemEntityType.DIRECTORY,
+          .then((_) => FutureExpect.equals(FileSystemEntityType.directory,
               FileSystemEntity.type(createdDirectly, followLinks: false)))
 
           // Test FileSystemEntity.identical on files, directories, and links,
           // reached by different paths.
-          .then((_) => FutureExpect.isTrue(FileSystemEntity.identical(createdDirectly, createdDirectly)))
+          .then(
+              (_) => FutureExpect.isTrue(FileSystemEntity.identical(createdDirectly, createdDirectly)))
           .then((_) => FutureExpect.isFalse(FileSystemEntity.identical(createdDirectly, createdThroughLink)))
           .then((_) => FutureExpect.isTrue(FileSystemEntity.identical(createdDirectly, join(base, 'link', 'createdDirectly'))))
           .then((_) => FutureExpect.isTrue(FileSystemEntity.identical(createdThroughLink, join(base, 'target', 'createdThroughLink'))))
@@ -97,7 +98,7 @@ Future testCreate() {
           .then((_) => testDirectoryListing(base, baseDir))
           .then((_) => new Directory(target).delete(recursive: true))
           .then((_) {
-        List<Future> futures = [];
+        var futures = <Future>[];
         for (bool recursive in [true, false]) {
           for (bool followLinks in [true, false]) {
             var result = baseDir.listSync(
@@ -143,8 +144,8 @@ Future testCreateLoopingLink(_) {
 
 Future testRename(_) {
   Future testRename(String base, String target) {
-    Link link1;
-    Link link2;
+    late Link link1;
+    late Link link2;
     return new Link(join(base, 'c')).create(target).then((link) {
       link1 = link;
       Expect.isTrue(link1.existsSync());
@@ -158,7 +159,7 @@ Future testRename(_) {
   }
 
   Future testUpdate(String base, String target1, String target2) {
-    Link link1;
+    late Link link1;
     return new Link(join(base, 'c')).create(target1).then((link) {
       link1 = link;
       Expect.isTrue(link1.existsSync());
@@ -166,8 +167,7 @@ Future testRename(_) {
     }).then((Link link) {
       Expect.isTrue(link1.existsSync());
       Expect.isTrue(link.existsSync());
-      return FutureExpect
-          .equals(target2, link.target())
+      return FutureExpect.equals(target2, link.target())
           .then((_) => FutureExpect.equals(target2, link1.target()))
           .then((_) => link.delete());
     }).then((_) => Expect.isFalse(link1.existsSync()));
@@ -175,7 +175,7 @@ Future testRename(_) {
 
   return Directory.systemTemp.createTemp('dart_link_async').then((baseDir) {
     String base = baseDir.path;
-    var targetsFutures = [];
+    var targetsFutures = <Future>[];
     targetsFutures.add(new Directory(join(base, 'a')).create());
     if (Platform.isWindows) {
       // Currently only links to directories are supported on Windows.
@@ -217,7 +217,7 @@ Future testDirectoryListing(String base, Directory baseDir) {
     expected[ending] = 'Found';
   }
 
-  List futures = [];
+  var futures = <Future>[];
   for (bool recursive in [true, false]) {
     for (bool followLinks in [true, false]) {
       Map expected = makeExpected(recursive, followLinks);

@@ -11,7 +11,9 @@
 
 namespace dart {
 
+namespace compiler {
 ASSEMBLER_TEST_EXTERN(StoreIntoObject);
+}  // namespace compiler
 
 ASSEMBLER_TEST_RUN(StoreIntoObject, test) {
 #define TEST_CODE(value, growable_array, thread)                               \

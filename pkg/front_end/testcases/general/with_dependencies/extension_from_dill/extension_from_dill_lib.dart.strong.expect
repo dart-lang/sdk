@@ -1,0 +1,30 @@
+library;
+import self as self;
+import "extension_from_dill_lib2.dart" as ext;
+
+import "org-dartlang-testcase:///extension_from_dill_lib.dart";
+
+static method main() → dynamic {
+  ext::Extension|foo("");
+}
+
+library;
+import self as self2;
+import "extension_from_dill_lib2.dart" as ext;
+additionalExports = (ext::Extension)
+
+export "org-dartlang-testcase:///extension_from_dill_lib2.dart";
+
+
+library;
+import self as ext;
+import "dart:core" as core;
+
+extension Extension on core::String* {
+  method foo = ext::Extension|foo;
+  tearoff foo = ext::Extension|get#foo;
+}
+static method Extension|foo(final core::String* #this) → dynamic
+  return 42;
+static method Extension|get#foo(final core::String* #this) → () →* dynamic
+  return () → dynamic => ext::Extension|foo(#this);

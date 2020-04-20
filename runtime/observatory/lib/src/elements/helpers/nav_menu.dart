@@ -9,10 +9,10 @@ navMenu(String label, {String link, Iterable<Element> content: const []}) {
   assert(content != null);
   return new LIElement()
     ..classes = ['nav-menu']
-    ..children = [
+    ..children = <Element>[
       new SpanElement()
         ..classes = ['nav-menu_label']
-        ..children = [
+        ..children = <Element>[
           new AnchorElement(href: link)..text = label,
           new UListElement()..children = content
         ]

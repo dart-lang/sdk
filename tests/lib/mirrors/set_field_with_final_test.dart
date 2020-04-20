@@ -4,7 +4,6 @@
 
 library test.set_field_with_final;
 
-@MirrorsUsed(targets: "test.set_field_with_final")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
@@ -20,20 +19,14 @@ get toplevelGetter => 6;
 
 main() {
   InstanceMirror im = reflect(new C());
-  Expect.throws(
-      () => im.setField(#instanceField, 7), (e) => e is NoSuchMethodError);
-  Expect.throws(
-      () => im.setField(#instanceGetter, 8), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => im.setField(#instanceField, 7));
+  Expect.throwsNoSuchMethodError(() => im.setField(#instanceGetter, 8));
 
   ClassMirror cm = im.type;
-  Expect.throws(
-      () => cm.setField(#staticFinal, 9), (e) => e is NoSuchMethodError);
-  Expect.throws(
-      () => cm.setField(#staticGetter, 10), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => cm.setField(#staticFinal, 9));
+  Expect.throwsNoSuchMethodError(() => cm.setField(#staticGetter, 10));
 
-  LibraryMirror lm = cm.owner;
-  Expect.throws(
-      () => lm.setField(#toplevelFinal, 11), (e) => e is NoSuchMethodError);
-  Expect.throws(
-      () => lm.setField(#toplevelGetter, 12), (e) => e is NoSuchMethodError);
+  LibraryMirror lm = cm.owner as LibraryMirror;
+  Expect.throwsNoSuchMethodError(() => lm.setField(#toplevelFinal, 11));
+  Expect.throwsNoSuchMethodError(() => lm.setField(#toplevelGetter, 12));
 }

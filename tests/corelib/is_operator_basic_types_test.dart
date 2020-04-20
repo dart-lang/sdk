@@ -17,6 +17,7 @@ check(args) {
   Expect.isFalse(list is Pattern);
   Expect.isFalse(list is String);
 
+  Expect.isFalse(list is! Object);
   Expect.isFalse(list is! List);
   Expect.isFalse(list is! Iterable);
   Expect.isTrue(list is! Comparable);
@@ -30,19 +31,21 @@ check(args) {
   Expect.isTrue(string is Pattern);
   Expect.isTrue(string is String);
 
+  Expect.isFalse(string is! Object);
   Expect.isTrue(string is! List);
   Expect.isTrue(string is! Iterable);
   Expect.isFalse(string is! Comparable);
   Expect.isFalse(string is! Pattern);
   Expect.isFalse(string is! String);
 
-  Expect.isTrue(nullObject is Object);
+  Expect.isFalse(nullObject is Object);
   Expect.isFalse(nullObject is List);
   Expect.isFalse(nullObject is Iterable);
   Expect.isFalse(nullObject is Comparable);
   Expect.isFalse(nullObject is Pattern);
   Expect.isFalse(nullObject is String);
 
+  Expect.isTrue(nullObject is! Object);
   Expect.isTrue(nullObject is! List);
   Expect.isTrue(nullObject is! Iterable);
   Expect.isTrue(nullObject is! Comparable);

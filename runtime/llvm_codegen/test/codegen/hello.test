@@ -1,0 +1,6 @@
+; RUN: %{codegen} %p/Inputs/hello.sexp --dump-obj %t.o > %t.ll
+; RUN: diff %t.ll %p/Inputs/hello.ll.expected
+; RUN: %{clang} -g -c %p/Inputs/runtime.S -o %t.runtime.o
+; RUN: %{clang} %t.o %t.runtime.o -o %t.hello.exe
+; RUN: %t.hello.exe > %t.hello.exe.stdout
+; RUN: diff %t.hello.exe.stdout %p/Inputs/hello.expected

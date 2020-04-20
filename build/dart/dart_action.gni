@@ -1,0 +1,379 @@
+# Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../executable_suffix.gni")
+import("prebuilt_dart_sdk.gni")
+
+_is_fuchsia = defined(is_fuchsia_tree) && is_fuchsia_tree
+
+if (_is_fuchsia) {
+  import("//build/dart/dart.gni")
+}
+
+# This file defines templates for running and compiling Dart code during
+# Dart's build.
+#
+# - prebuilt_dart_action()
+#   Runs Dart scripts using the downloaded prebuilt Dart SDK. This is the
+#   preferred method of running Dart code during the build as it is much
+#   faster than using dart_action() in debug and cross builds.
+#   However, prebuilt_dart_action() should *not* be used to generate snapshots.
+#
+# - dart_action()
+#   Runs Dart scripts using the binary built for runtime/bin:dart using the
+#   host toolchain. It should only be used when an artifact agreeing exactly
+#   with the version of the Dart VM being built must be produced, for example
+#   an App-JIT snapshot. This will be slow in Debug builds, and very slow in
+#   cross builds.
+#
+# - gen_snapshot_action()
+#   Runs the binary built for runtime/bin:gen_snapshot using the host
+#   toolchain. It should only be used when an artifact agreeing exactly
+#   with the version of the Dart VM being built must be produced.
+
+# This assigns _dart_root the GN absolute path of the Dart repo. For example,
+# in a Dart checkout, this will be "//". In a client repo it might be
+# "//third_party/dart".
+_dart_root = get_path_info("../..", "abspath")
+
+template("_compiled_action") {
+  assert(defined(invoker.tool), "tool must be defined for $target_name")
+  assert(defined(invoker.outputs), "outputs must be defined for $target_name")
+  assert(defined(invoker.args), "args must be defined for $target_name")
+
+  action(target_name) {
+    if (defined(invoker.visibility)) {
+      visibility = invoker.visibility
+    }
+
+    if (defined(invoker.testonly)) {
+      testonly = invoker.testonly
+    }
+
+    script = "$_dart_root/build/gn_run_binary.py"
+
+    if (defined(invoker.inputs)) {
+      inputs = invoker.inputs
+    } else {
+      inputs = []
+    }
+    outputs = invoker.outputs
+
+    # Construct the host toolchain version of the tool.
+    host_tool = invoker.tool + "($host_toolchain)"
+
+    # Get the path to the executable. Currently, this assumes that the tool
+    # does not specify output_name so that the target name is the name to use.
+    # If that's not the case, we'll need another argument to the script to
+    # specify this, since we can't know what the output name is (it might be in
+    # another file not processed yet).
+    host_executable = get_label_info(host_tool, "root_out_dir") + "/" +
+                      get_label_info(host_tool, "name") + executable_suffix
+
+    # Add the executable itself as an input.
+    inputs += [ host_executable ]
+
+    deps = [ host_tool ]
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
+
+    if (defined(invoker.depfile)) {
+      depfile = invoker.depfile
+    }
+
+    # The "compiled_action" argument to gn_run_binary.py indicates that
+    # it will exit with a non-zero status when the target program does.
+    args = [
+             "compiled_action",
+             rebase_path(host_executable, root_build_dir),
+           ] + invoker.args
+  }
+}
+
+template("_prebuilt_tool_action") {
+  assert(defined(invoker.binary),
+         "The path to where the prebuilt binary lives must be defined")
+  assert(_is_fuchsia || prebuilt_dart_exe_works,
+         "A pre built dart executable needs to be present")
+
+  vm_args = []
+  if (defined(invoker.vm_args)) {
+    vm_args += invoker.vm_args
+  }
+
+  action(target_name) {
+    forward_variables_from(invoker,
+                           [
+                             "depfile",
+                             "deps",
+                             "outputs",
+                             "testonly",
+                             "visibility",
+                           ])
+    script = "$_dart_root/build/gn_run_binary.py"
+
+    inputs = []
+    if (defined(invoker.inputs)) {
+      inputs += invoker.inputs
+    }
+
+    if (defined(invoker.script)) {
+      inputs += [ invoker.script ]
+    }
+    if (defined(invoker.packages)) {
+      inputs += [ invoker.packages ]
+    }
+
+    args = [
+             "compiled_action",
+             rebase_path(invoker.binary),
+           ] + vm_args
+    if (defined(invoker.packages)) {
+      args += [ "--packages=" + rebase_path(invoker.packages) ]
+    }
+    if (defined(invoker.dfe)) {
+      args += [ "--dfe=" + rebase_path(invoker.dfe) ]
+    }
+    if (defined(invoker.script)) {
+      args += [ rebase_path(invoker.script) ]
+    }
+    args += invoker.args
+  }
+}
+
+# A template for running Dart scripts during the build using the prebuilt Dart
+# SDK. This should *not* be used for generating snapshots. It uses the dart
+# binary from the prebuilt Dart SDK.
+#
+# Parameters:
+#  script:
+#    The un-rebased path to the Dart script.
+#
+# vm_args (optional):
+#    Arguments to pass to the Dart VM.
+#
+#  args (optional):
+#    The arguments to pass to the Dart script.
+#
+#  packages (optional):
+#    The un-rebased path to the .packages file.
+#
+#  Forwarded to action() with the usual meaning:
+#    depfile
+#    deps
+#    inputs
+#    outputs
+#    testonly
+#    visibility
+template("prebuilt_dart_action") {
+  assert(defined(invoker.script), "script must be defined for $target_name")
+  assert(defined(invoker.outputs), "outputs must be defined for $target_name")
+  assert(defined(invoker.args), "args must be defined for $target_name")
+  assert(!defined(invoker.sources),
+         "prebuilt_dart_action doesn't take a sources arg. Use inputs instead.")
+
+  _prebuilt_tool_action(target_name) {
+    forward_variables_from(invoker, "*")
+    if (_is_fuchsia) {
+      binary = prebuilt_dart
+      dfe = "$prebuilt_dart_sdk/bin/snapshots/kernel-service.dart.snapshot"
+    } else {
+      binary = "$_dart_root/tools/sdks/dart-sdk/bin/dart$executable_suffix"
+      dfe = "$_dart_root/tools/sdks/dart-sdk/bin/snapshots/kernel-service.dart.snapshot"
+    }
+  }
+}
+
+if (_is_fuchsia) {
+  template("_prebuilt_gen_snapshot_action") {
+    _prebuilt_tool_action(target_name) {
+      forward_variables_from(invoker, "*")
+      binary = prebuilt_gen_snapshot
+    }
+  }
+}
+
+template("prebuilt_dart2js_action") {
+  assert(defined(invoker.script), "script must be defined for $target_name")
+  assert(defined(invoker.outputs), "outputs must be defined for $target_name")
+  assert(defined(invoker.args), "args must be defined for $target_name")
+
+  _prebuilt_tool_action(target_name) {
+    forward_variables_from(invoker, "*")
+
+    # TODO(zra): On Fuchsia use a prebuilt dart2js, or a prebuilt Observatory.
+    extension = ""
+    if (is_win) {
+      extension = ".bat"
+    }
+    binary = "$_dart_root/tools/sdks/dart-sdk/bin/dart2js${extension}"
+  }
+}
+
+# This template runs the specified tool produced by the in-progress build.
+#
+# Parameters:
+#  tool:
+#    The target of the tool to run.
+#
+#  script (optional):
+#    The un-rebased path to the Dart script.
+#
+#  vm_args (optional):
+#    Arguments to pass to the Dart VM.
+#
+#  args (optional):
+#    The arguments to pass to the Dart script.
+#
+#  packages (optional):
+#    The un-rebased path to the .packages file.
+#
+#  Forwarded to action() with the usual meaning:
+#    depfile
+#    deps
+#    inputs
+#    outputs
+#    testonly
+#    visibility
+template("_built_tool_action") {
+  assert(defined(invoker.tool), "tool must be defined for $target_name")
+  assert(defined(invoker.outputs), "outputs must be defined for $target_name")
+  assert(defined(invoker.args), "args must be defined for $target_name")
+  assert(!defined(invoker.sources),
+         "sources arg not supported for $target_name. Use inputs instead.")
+
+  vm_args = []
+  if (defined(invoker.vm_args)) {
+    vm_args += invoker.vm_args
+  }
+
+  _compiled_action(target_name) {
+    forward_variables_from(invoker,
+                           [
+                             "depfile",
+                             "deps",
+                             "inputs",
+                             "outputs",
+                             "tool",
+                             "testonly",
+                             "visibility",
+                           ])
+
+    if (!defined(invoker.inputs)) {
+      inputs = []
+    }
+    if (defined(invoker.script)) {
+      inputs += [ invoker.script ]
+    }
+    if (defined(invoker.packages)) {
+      inputs += [ invoker.packages ]
+    }
+
+    args = vm_args
+    if (defined(invoker.packages)) {
+      args += [ "--packages=" + rebase_path(invoker.packages) ]
+    }
+    if (defined(invoker.script)) {
+      args += [ rebase_path(invoker.script) ]
+    }
+    args += invoker.args
+  }
+}
+
+# This template runs the Dart VM produced by the in-progress build.
+#
+# Parameters:
+#  script:
+#    The un-rebased path to the Dart script.
+#
+#  vm_args (optional):
+#    Arguments to pass to the Dart VM.
+#
+#  args (optional):
+#    The arguments to pass to the Dart script.
+#
+#  packages (optional):
+#    The un-rebased path to the .packages file.
+#
+#  Forwarded to action() with the usual meaning:
+#    depfile
+#    deps
+#    inputs
+#    outputs
+#    testonly
+#    visibility
+template("dart_action") {
+  assert(defined(invoker.script), "script must be defined for $target_name")
+  if (!_is_fuchsia || !use_prebuilt_dart_sdk) {
+    _built_tool_action(target_name) {
+      tool = "$_dart_root/runtime/bin:dart"
+      forward_variables_from(invoker,
+                             [
+                               "args",
+                               "depfile",
+                               "deps",
+                               "inputs",
+                               "outputs",
+                               "packages",
+                               "script",
+                               "testonly",
+                               "tool",
+                               "visibility",
+                               "vm_args",
+                             ])
+    }
+  } else {
+    prebuilt_dart_action(target_name) {
+      forward_variables_from(invoker, "*")
+    }
+  }
+}
+
+# This template runs the gen_snapshot produced by the in-progress build.
+#
+# Parameters:
+#  vm_args (optional):
+#    Arguments to pass to the Dart VM.
+#
+#  args (optional):
+#    The arguments to pass to the Dart script.
+#
+#  packages (optional):
+#    The un-rebased path to the .packages file.
+#
+#  Forwarded to action() with the usual meaning:
+#    depfile
+#    deps
+#    inputs
+#    outputs
+#    testonly
+#    visibility
+template("gen_snapshot_action") {
+  assert(
+      !defined(invoker.script),
+      "script must not be defined for $target_name. If there is a script use args instead.")
+  if (!_is_fuchsia || !use_prebuilt_dart_sdk) {
+    _built_tool_action(target_name) {
+      tool = "$_dart_root/runtime/bin:gen_snapshot"
+      forward_variables_from(invoker,
+                             [
+                               "args",
+                               "depfile",
+                               "deps",
+                               "inputs",
+                               "outputs",
+                               "packages",
+                               "testonly",
+                               "tool",
+                               "visibility",
+                               "vm_args",
+                             ])
+    }
+  } else {
+    _prebuilt_gen_snapshot_action(target_name) {
+      forward_variables_from(invoker, "*")
+    }
+  }
+}

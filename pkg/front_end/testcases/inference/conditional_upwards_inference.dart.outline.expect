@@ -2,8 +2,8 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-class C<T extends core::Object> extends core::Object {
-  constructor •(core::List<self::C::T> x) → void
+class C<T extends core::Object* = dynamic> extends core::Object {
+  constructor •(core::List<self::C::T*>* x) → self::C<self::C::T*>*
     ;
 }
 static method main() → dynamic

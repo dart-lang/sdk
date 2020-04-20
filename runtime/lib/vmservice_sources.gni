@@ -3,4 +3,4 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # Sources that patch the library "dart:_vmservice".
-vmservice_runtime_sources = [ "vmservice.cc" ]
+vmservice_runtime_cc_files = [ "vmservice.cc" ]

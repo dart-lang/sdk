@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'test_helper.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 const int LINE = 11;
 const String file = "step_through_setter_test.dart";
@@ -14,6 +14,7 @@ code() {
   fooXYZ = 42;
 }
 
+// ignore: unused_element
 int _xyz = -1;
 
 set fooXYZ(int i) {
@@ -32,24 +33,24 @@ class Bar {
 
 List<String> stops = [];
 List<String> expected = [
-  "$file:${LINE+0}:5", // after 'code'
-  "$file:${LINE+1}:17", // on 'Bar'
+  "$file:${LINE + 0}:5", // after 'code'
+  "$file:${LINE + 1}:17", // on 'Bar'
 
-  "$file:${LINE+2}:7", // on 'barXYZ'
-  "$file:${LINE+15}:18", // on 'i'
-  "$file:${LINE+16}:14", // on '-'
-  "$file:${LINE+16}:5", // on '_xyz'
-  "$file:${LINE+17}:3", // on '}'
+  "$file:${LINE + 2}:7", // on 'barXYZ'
+  "$file:${LINE + 16}:18", // on 'i'
+  "$file:${LINE + 17}:14", // on '-'
+  "$file:${LINE + 17}:5", // on '_xyz'
+  "$file:${LINE + 18}:3", // on '}'
 
-  "$file:${LINE+3}:3", // on 'fooXYZ'
-  "$file:${LINE+8}:16", // on 'i'
-  "$file:${LINE+9}:12", // on '-'
-  "$file:${LINE+10}:1", // on '}'
+  "$file:${LINE + 3}:3", // on 'fooXYZ'
+  "$file:${LINE + 9}:16", // on 'i'
+  "$file:${LINE + 10}:12", // on '-'
+  "$file:${LINE + 11}:1", // on '}'
 
-  "$file:${LINE+4}:1" // on ending '}'
+  "$file:${LINE + 4}:1" // on ending '}'
 ];
 
-var tests = [
+var tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtLine(LINE),
   runStepIntoThroughProgramRecordingStops(stops),

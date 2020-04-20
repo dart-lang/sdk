@@ -43,6 +43,10 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_LOCATIONS_HELPERS_H_
 #define RUNTIME_VM_COMPILER_BACKEND_LOCATIONS_HELPERS_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/compiler/backend/locations.h"
 
 namespace dart {
@@ -77,6 +81,10 @@ struct LocationTrait;
 // constraint, which means that the first input needs to be in a writable
 // register and the instruction will produce output in the same register.
 struct SameAsFirstInput {};
+
+// Marker type used to signal that output has NoLocation register
+// constraint.
+struct NoLocation {};
 
 // Marker type used to signal that this input, output or temp needs to
 // be in a fixed register `reg` of type `R` (either Register or FpuRegister).
@@ -209,6 +217,15 @@ struct LocationTrait<SameAsFirstInput> {
   }
 
   static Location ToConstraint() { return Location::SameAsFirstInput(); }
+};
+
+template <>
+struct LocationTrait<NoLocation> {
+  static const bool kIsTemp = false;  // This is not a temporary.
+
+  static NoLocation Unwrap(const Location& loc) { return NoLocation(); }
+
+  static Location ToConstraint() { return Location::NoLocation(); }
 };
 
 // Auxiliary types and macro helpers to construct lists of types.
@@ -416,8 +433,6 @@ void InvokeEmitter(
 #elif defined(TARGET_ARCH_ARM)
 #include "vm/compiler/backend/locations_helpers_arm.h"
 #elif defined(TARGET_ARCH_ARM64)
-
-#elif defined(TARGET_ARCH_DBC)
 
 #else
 #error Unknown architecture.

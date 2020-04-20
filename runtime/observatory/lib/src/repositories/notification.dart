@@ -10,7 +10,7 @@ class NotificationChangeEvent implements M.NotificationChangeEvent {
 }
 
 class NotificationRepository implements M.NotificationRepository {
-  final List<M.Notification> _list = new List<M.Notification>();
+  final List<M.Notification> _list = <M.Notification>[];
 
   final StreamController<M.NotificationChangeEvent> _onChange =
       new StreamController<M.NotificationChangeEvent>.broadcast();
@@ -51,13 +51,17 @@ class NotificationRepository implements M.NotificationRepository {
     if (isolate == null) {
       deleteWhere((notification) {
         return notification is M.EventNotification &&
-            M.Event.isPauseEvent(notification.event);
+            notification.event is M.PauseEvent;
       });
     } else {
       deleteWhere((notification) {
-        return notification is M.EventNotification &&
-            M.Event.isPauseEvent(notification.event) &&
-            notification.event.isolate == isolate;
+        if (notification is M.EventNotification) {
+          var event = notification.event;
+          if (event is M.PauseEvent) {
+            return event.isolate == isolate;
+          }
+        }
+        return false;
       });
     }
   }

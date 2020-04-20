@@ -40,7 +40,7 @@ class MyListOfOneElement extends Object
 }
 
 class FileTest {
-  static Directory tempDirectory;
+  static late Directory tempDirectory;
   static int numLiveAsyncTests = 0;
 
   static void asyncTestStarted() {
@@ -74,7 +74,7 @@ class FileTest {
     File file = new File(filename);
     Expect.isTrue('$file'.contains(file.path));
     var subscription;
-    List<int> buffer = new List<int>();
+    List<int> buffer = <int>[];
     subscription = file.openRead().listen((d) {
       buffer.addAll(d);
       if (buffer.length >= 12) {
@@ -105,7 +105,7 @@ class FileTest {
     int bytesRead;
 
     var file1 = new File(inFilename);
-    List<int> buffer = new List<int>();
+    List<int> buffer = <int>[];
     file1.openRead().listen((d) {
       buffer.addAll(d);
     }, onDone: () {
@@ -118,7 +118,7 @@ class FileTest {
       output.flush().then((_) => output.close());
       output.done.then((_) {
         // Now read the contents of the file just written.
-        List<int> buffer2 = new List<int>();
+        List<int> buffer2 = <int>[];
         new File(outFilename).openRead().listen((d) {
           buffer2.addAll(d);
         }, onDone: () {
@@ -140,7 +140,7 @@ class FileTest {
   // Test for file stream buffered handling of large files.
   static void testReadWriteStreamLargeFile() {
     // Create the test data - arbitrary binary data.
-    List<int> buffer = new List<int>(100000);
+    List<int> buffer = new List<int>.filled(100000, 0);
     for (var i = 0; i < buffer.length; ++i) {
       buffer[i] = i % 256;
     }
@@ -154,7 +154,7 @@ class FileTest {
     asyncTestStarted();
     output.done
         .then((_) {
-          Stream input = file.openRead();
+          final input = file.openRead();
           int position = 0;
           final int expectedLength = 200000;
 
@@ -171,7 +171,7 @@ class FileTest {
           Future contentTest() {
             asyncTestStarted();
             var completer = new Completer();
-            input.listen((data) {
+            input.listen((List<int> data) {
               for (int i = 0; i < data.length; ++i) {
                 Expect.equals(buffer[(i + position) % buffer.length], data[i]);
               }
@@ -195,7 +195,8 @@ class FileTest {
             return completer.future;
           }
 
-          return Future.forEach([lengthTest, contentTest], (test) => test());
+          return Future.forEach<Function>(
+              [lengthTest, contentTest], (test) => test());
         })
         .whenComplete(file.delete)
         .whenComplete(() {
@@ -209,7 +210,7 @@ class FileTest {
     var input = file.openRead();
     var output = outputFile.openWrite();
     Completer done = new Completer();
-    input.pipe(output).then((_) {
+    input.cast<List<int>>().pipe(output).then((_) {
       var copy = outputFile.openRead();
       int position = 0;
       copy.listen((d) {
@@ -232,8 +233,8 @@ class FileTest {
     // Read a file and check part of it's contents.
     String filename = getFilename("file_test.txt");
     File file = new File(filename);
-    file.open(mode: READ).then((RandomAccessFile file) {
-      List<int> buffer = new List<int>(10);
+    file.open(mode: FileMode.read).then((RandomAccessFile file) {
+      List<int> buffer = new List<int>.filled(10, 0);
       file.readInto(buffer, 0, 5).then((bytes_read) {
         Expect.equals(5, bytes_read);
         file.readInto(buffer, 5, 10).then((bytes_read) {
@@ -258,7 +259,7 @@ class FileTest {
     // Read a file and check part of it's contents.
     String filename = getFilename("file_test.txt");
     RandomAccessFile raf = (new File(filename)).openSync();
-    List<int> buffer = new List<int>(42);
+    List<int> buffer = new List<int>.filled(42, 0);
     int bytes_read = 0;
     bytes_read = raf.readIntoSync(buffer, 0, 12);
     Expect.equals(12, bytes_read);
@@ -303,8 +304,8 @@ class FileTest {
     // Read a file.
     String inFilename = getFilename("fixed_length_file");
     final File file = new File(inFilename);
-    file.open(mode: READ).then((openedFile) {
-      List<int> buffer1 = new List<int>(42);
+    file.open(mode: FileMode.read).then((openedFile) {
+      List<int> buffer1 = new List<int>.filled(42, 0);
       openedFile.readInto(buffer1, 0, 42).then((bytes_read) {
         Expect.equals(42, bytes_read);
         openedFile.close().then((ignore) {
@@ -317,12 +318,12 @@ class FileTest {
               if (s[0] != '/' && s[0] != '\\' && s[1] != ':') {
                 Expect.fail("Not a full path");
               }
-              file2.open(mode: WRITE).then((openedFile2) {
+              file2.open(mode: FileMode.write).then((openedFile2) {
                 openedFile2.writeFrom(buffer1, 0, bytes_read).then((ignore) {
                   openedFile2.close().then((ignore) {
-                    List<int> buffer2 = new List<int>(bytes_read);
+                    List<int> buffer2 = new List<int>.filled(bytes_read, 0);
                     final File file3 = new File(outFilename);
-                    file3.open(mode: READ).then((openedFile3) {
+                    file3.open(mode: FileMode.read).then((openedFile3) {
                       openedFile3.readInto(buffer2, 0, 42).then((bytes_read) {
                         Expect.equals(42, bytes_read);
                         openedFile3.close().then((ignore) {
@@ -360,17 +361,17 @@ class FileTest {
     file.createSync();
     Expect.isTrue(new File(filename).existsSync());
     List<int> buffer = content.codeUnits;
-    RandomAccessFile openedFile = file.openSync(mode: WRITE);
+    RandomAccessFile openedFile = file.openSync(mode: FileMode.write);
     openedFile.writeFromSync(buffer, 0, buffer.length);
     openedFile.closeSync();
     // Reopen the file in write mode to ensure that we overwrite the content.
-    openedFile = (new File(filename)).openSync(mode: WRITE);
+    openedFile = (new File(filename)).openSync(mode: FileMode.write);
     openedFile.writeFromSync(buffer, 0, buffer.length);
     Expect.equals(content.length, openedFile.lengthSync());
     openedFile.closeSync();
     // Open the file in append mode and ensure that we do not overwrite
     // the existing content.
-    openedFile = (new File(filename)).openSync(mode: APPEND);
+    openedFile = (new File(filename)).openSync(mode: FileMode.append);
     openedFile.writeFromSync(buffer, 2, buffer.length - 2);
     Expect.equals(content.length + content.length - 4, openedFile.lengthSync());
     Expect.equals(content + content.substring(2, content.length - 2),
@@ -391,12 +392,12 @@ class FileTest {
     output.close();
     output.done.then((_) {
       File file2 = new File(filename);
-      var appendingOutput = file2.openWrite(mode: APPEND);
+      var appendingOutput = file2.openWrite(mode: FileMode.append);
       appendingOutput.add(buffer);
       appendingOutput.close();
       appendingOutput.done.then((_) {
         File file3 = new File(filename);
-        file3.open(mode: READ).then((RandomAccessFile openedFile) {
+        file3.open(mode: FileMode.read).then((RandomAccessFile openedFile) {
           openedFile.length().then((int length) {
             Expect.equals(content.length * 2, length);
             openedFile.close().then((ignore) {
@@ -420,13 +421,13 @@ class FileTest {
     List<int> buffer = content.codeUnits;
     var output = file.openWrite();
     output.write("abcdABCD");
-    output.encoding = UTF8;
+    output.encoding = utf8;
     output.write("abcdABCD");
-    output.encoding = LATIN1;
+    output.encoding = latin1;
     output.write("abcdABCD");
-    output.encoding = ASCII;
+    output.encoding = ascii;
     output.write("abcdABCD");
-    output.encoding = UTF8;
+    output.encoding = utf8;
     output.write("æøå");
     output.close();
     output.done.then((_) {
@@ -442,7 +443,7 @@ class FileTest {
     // Read a file.
     String inFilename = getFilename("fixed_length_file");
     RandomAccessFile file = (new File(inFilename)).openSync();
-    List<int> buffer1 = new List<int>(42);
+    List<int> buffer1 = new List<int>.filled(42, 0);
     int bytes_read = 0;
     int bytes_written = 0;
     bytes_read = file.readIntoSync(buffer1, 0, 42);
@@ -457,11 +458,11 @@ class FileTest {
       Expect.fail("Not a full path");
     }
     Expect.isTrue(new File(path).existsSync());
-    RandomAccessFile openedFile = outFile.openSync(mode: WRITE);
+    RandomAccessFile openedFile = outFile.openSync(mode: FileMode.write);
     openedFile.writeFromSync(buffer1, 0, bytes_read);
     openedFile.closeSync();
     // Now read the contents of the file just written.
-    List<int> buffer2 = new List<int>(bytes_read);
+    List<int> buffer2 = new List<int>.filled(bytes_read, 0);
     openedFile = (new File(outFilename)).openSync();
     bytes_read = openedFile.readIntoSync(buffer2, 0, 42);
     Expect.equals(42, bytes_read);
@@ -480,7 +481,7 @@ class FileTest {
     // Read a file.
     String inFilename = getFilename("fixed_length_file");
     RandomAccessFile file = (new File(inFilename)).openSync();
-    List<int> buffer1 = new List<int>(42);
+    List<int> buffer1 = new List<int>.filled(42, 0);
     int bytes_read = 0;
     int bytes_written = 0;
     bytes_read = file.readIntoSync(buffer1);
@@ -495,11 +496,11 @@ class FileTest {
       Expect.fail("Not a full path");
     }
     Expect.isTrue(new File(path).existsSync());
-    RandomAccessFile openedFile = outFile.openSync(mode: WRITE);
+    RandomAccessFile openedFile = outFile.openSync(mode: FileMode.write);
     openedFile.writeFromSync(buffer1);
     openedFile.closeSync();
     // Now read the contents of the file just written.
-    List<int> buffer2 = new List<int>(bytes_read);
+    List<int> buffer2 = new List<int>.filled(bytes_read, 0);
     openedFile = (new File(outFilename)).openSync();
     bytes_read = openedFile.readIntoSync(buffer2, 0);
     Expect.equals(42, bytes_read);
@@ -529,7 +530,7 @@ class FileTest {
     File file = new File(fileName);
     asyncTestStarted();
     file.create().then((ignore) {
-      file.open(mode: READ).then((RandomAccessFile openedFile) {
+      file.open(mode: FileMode.read).then((RandomAccessFile openedFile) {
         var readByteFuture = openedFile.readByte();
         readByteFuture.then((int byte) {
           Expect.equals(-1, byte);
@@ -547,19 +548,19 @@ class FileTest {
     final String fileName = "${tempDirectory.path}/testWriteVariousLists";
     final File file = new File(fileName);
     file.create().then((ignore) {
-      file.open(mode: WRITE).then((RandomAccessFile openedFile) {
+      file.open(mode: FileMode.write).then((RandomAccessFile openedFile) {
         // Write bytes from 0 to 7.
         openedFile.writeFromSync([0], 0, 1);
         openedFile.writeFromSync(const [1], 0, 1);
         openedFile.writeFromSync(new MyListOfOneElement(2), 0, 1);
-        var x = 12345678901234567890123456789012345678901234567890;
-        var y = 12345678901234567890123456789012345678901234567893;
+        var x = -259;
+        var y = 0;
         openedFile.writeFromSync([y - x], 0, 1);
         openedFile.writeFromSync([260], 0, 1); // 260 = 256 + 4 = 0x104.
         openedFile.writeFromSync(const [261], 0, 1);
         openedFile.writeFromSync(new MyListOfOneElement(262), 0, 1);
-        x = 12345678901234567890123456789012345678901234567890;
-        y = 12345678901234567890123456789012345678901234568153;
+        x = 0;
+        y = 263;
         openedFile.writeFrom([y - x], 0, 1).then((ignore) {
           openedFile.close().then((ignore) {
             // Check the written bytes.
@@ -567,7 +568,7 @@ class FileTest {
             var openedFile2 = file2.openSync();
             var length = openedFile2.lengthSync();
             Expect.equals(8, length);
-            List data = new List(length);
+            var data = new List<int>.filled(length, 0);
             openedFile2.readIntoSync(data, 0, length);
             for (var i = 0; i < data.length; i++) {
               Expect.equals(i, data[i]);
@@ -582,24 +583,21 @@ class FileTest {
   }
 
   static void testWriteFromOffset() {
-    Directory tmp;
-    RandomAccessFile raf;
+    final tmp = tempDirectory.createTempSync('write_from_offset_test_');
     try {
-      tmp = tempDirectory.createTempSync('write_from_offset_test_');
       File f = new File('${tmp.path}/file')..createSync();
       f.writeAsStringSync('pre-existing content\n', flush: true);
-      raf = f.openSync(mode: FileMode.APPEND);
-      String truth = "Hello world";
-      raf.writeFromSync(UTF8.encode('Hello world'), 2, 5);
-      raf.flushSync();
-      Expect.equals(f.readAsStringSync(), 'pre-existing content\nllo');
-    } finally {
-      if (raf != null) {
+      final raf = f.openSync(mode: FileMode.append);
+      try {
+        String truth = "Hello world";
+        raf.writeFromSync(utf8.encode('Hello world'), 2, 5);
+        raf.flushSync();
+        Expect.equals(f.readAsStringSync(), 'pre-existing content\nllo');
+      } finally {
         raf.closeSync();
       }
-      if (tmp != null) {
-        tmp.deleteSync(recursive: true);
-      }
+    } finally {
+      tmp.deleteSync(recursive: true);
     }
   }
 
@@ -685,7 +683,7 @@ class FileTest {
     RandomAccessFile input = (new File(filename)).openSync();
     input.position().then((position) {
       Expect.equals(0, position);
-      List<int> buffer = new List<int>(100);
+      List<int> buffer = new List<int>.filled(100, 0);
       input.readInto(buffer, 0, 12).then((bytes_read) {
         input.position().then((position) {
           Expect.equals(12, position);
@@ -709,7 +707,7 @@ class FileTest {
     String filename = getFilename("fixed_length_file");
     RandomAccessFile input = (new File(filename)).openSync();
     Expect.equals(0, input.positionSync());
-    List<int> buffer = new List<int>(100);
+    List<int> buffer = new List<int>.filled(100, 0);
     input.readIntoSync(buffer, 0, 12);
     Expect.equals(12, input.positionSync());
     input.readIntoSync(buffer, 12, 18);
@@ -722,8 +720,8 @@ class FileTest {
   static void testTruncate() {
     asyncTestStarted();
     File file = new File(tempDirectory.path + "/out_truncate");
-    List buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
-    file.open(mode: WRITE).then((RandomAccessFile openedFile) {
+    List<int> buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
+    file.open(mode: FileMode.write).then((RandomAccessFile openedFile) {
       openedFile.writeFrom(buffer, 0, 10).then((ignore) {
         openedFile.length().then((length) {
           Expect.equals(10, length);
@@ -747,8 +745,8 @@ class FileTest {
 
   static void testTruncateSync() {
     File file = new File(tempDirectory.path + "/out_truncate_sync");
-    List buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
-    RandomAccessFile openedFile = file.openSync(mode: WRITE);
+    List<int> buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
+    RandomAccessFile openedFile = file.openSync(mode: FileMode.write);
     openedFile.writeFromSync(buffer, 0, 10);
     Expect.equals(10, openedFile.lengthSync());
     openedFile.truncateSync(5);
@@ -773,16 +771,16 @@ class FileTest {
     asyncTestStarted();
     File file = new File(tempDirectory.path + "/out_read_into");
 
-    var openedFile = await file.open(mode: WRITE);
+    var openedFile = await file.open(mode: FileMode.write);
     await openedFile.writeFrom(const [1, 2, 3]);
 
     await openedFile.setPosition(0);
-    var list = [null, null, null];
+    var list = [-1, -1, -1];
     Expect.equals(3, await openedFile.readInto(list));
     Expect.listEquals([1, 2, 3], list);
 
     read(start, end, length, expected) async {
-      var list = [null, null, null];
+      var list = [-1, -1, -1];
       await openedFile.setPosition(0);
       Expect.equals(length, await openedFile.readInto(list, start, end));
       Expect.listEquals(expected, list);
@@ -790,11 +788,11 @@ class FileTest {
     }
 
     await read(0, 3, 3, [1, 2, 3]);
-    await read(0, 2, 2, [1, 2, null]);
-    await read(1, 2, 1, [null, 1, null]);
-    await read(1, 3, 2, [null, 1, 2]);
-    await read(2, 3, 1, [null, null, 1]);
-    await read(0, 0, 0, [null, null, null]);
+    await read(0, 2, 2, [1, 2, -1]);
+    await read(1, 2, 1, [-1, 1, -1]);
+    await read(1, 3, 2, [-1, 1, 2]);
+    await read(2, 3, 1, [-1, -1, 1]);
+    await read(0, 0, 0, [-1, -1, -1]);
 
     await openedFile.close();
 
@@ -804,16 +802,16 @@ class FileTest {
   static void testReadIntoSync() {
     File file = new File(tempDirectory.path + "/out_read_into_sync");
 
-    var openedFile = file.openSync(mode: WRITE);
+    var openedFile = file.openSync(mode: FileMode.write);
     openedFile.writeFromSync(const [1, 2, 3]);
 
     openedFile.setPositionSync(0);
-    var list = [null, null, null];
+    var list = [-1, -1, -1];
     Expect.equals(3, openedFile.readIntoSync(list));
     Expect.listEquals([1, 2, 3], list);
 
     read(start, end, length, expected) {
-      var list = [null, null, null];
+      var list = [-1, -1, -1];
       openedFile.setPositionSync(0);
       Expect.equals(length, openedFile.readIntoSync(list, start, end));
       Expect.listEquals(expected, list);
@@ -821,11 +819,11 @@ class FileTest {
     }
 
     read(0, 3, 3, [1, 2, 3]);
-    read(0, 2, 2, [1, 2, null]);
-    read(1, 2, 1, [null, 1, null]);
-    read(1, 3, 2, [null, 1, 2]);
-    read(2, 3, 1, [null, null, 1]);
-    read(0, 0, 0, [null, null, null]);
+    read(0, 2, 2, [1, 2, -1]);
+    read(1, 2, 1, [-1, 1, -1]);
+    read(1, 3, 2, [-1, 1, 2]);
+    read(2, 3, 1, [-1, -1, 1]);
+    read(0, 0, 0, [-1, -1, -1]);
 
     openedFile.closeSync();
   }
@@ -835,7 +833,7 @@ class FileTest {
     File file = new File(tempDirectory.path + "/out_write_from");
 
     var buffer = const [1, 2, 3];
-    var openedFile = await file.open(mode: WRITE);
+    var openedFile = await file.open(mode: FileMode.write);
 
     await openedFile.writeFrom(buffer);
     var result = []..addAll(buffer);
@@ -866,14 +864,14 @@ class FileTest {
     File file = new File(tempDirectory.path + "/out_write_from_sync");
 
     var buffer = const [1, 2, 3];
-    var openedFile = file.openSync(mode: WRITE);
+    var openedFile = file.openSync(mode: FileMode.write);
 
     openedFile.writeFromSync(buffer);
     var result = []..addAll(buffer);
     ;
 
     write([start, end]) {
-      var returnValue = openedFile.writeFromSync(buffer, start, end);
+      openedFile.writeFromSync(buffer, start, end);
       result.addAll(buffer.sublist(start, end));
     }
 
@@ -894,7 +892,7 @@ class FileTest {
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
     File input = new File(tempDirectory.path + "/out_close_exception");
-    RandomAccessFile openedFile = input.openSync(mode: WRITE);
+    RandomAccessFile openedFile = input.openSync(mode: FileMode.write);
     openedFile.closeSync();
     try {
       openedFile.readByteSync();
@@ -927,7 +925,7 @@ class FileTest {
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
     try {
-      List<int> buffer = new List<int>(100);
+      List<int> buffer = new List<int>.filled(100, 0);
       openedFile.readIntoSync(buffer, 0, 10);
     } on FileSystemException catch (ex) {
       exceptionCaught = true;
@@ -938,7 +936,7 @@ class FileTest {
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
     try {
-      List<int> buffer = new List<int>(100);
+      List<int> buffer = new List<int>.filled(100, 0);
       openedFile.writeFromSync(buffer, 0, 10);
     } on FileSystemException catch (ex) {
       exceptionCaught = true;
@@ -983,12 +981,14 @@ class FileTest {
   // Tests stream exception handling after file was closed.
   static void testCloseExceptionStream() {
     asyncTestStarted();
-    List<int> buffer = new List<int>(42);
+    List<int> buffer = new List<int>.filled(42, 0);
     File file = new File(tempDirectory.path + "/out_close_exception_stream");
     file.createSync();
     var output = file.openWrite();
     output.close();
-    output.add(buffer); // Ignored.
+    Expect.throws(() {
+      output.add(buffer);
+    });
     output.done.then((_) {
       file.deleteSync();
       asyncTestDone("testCloseExceptionStream");
@@ -1000,9 +1000,9 @@ class FileTest {
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
     File file = new File(tempDirectory.path + "/out_buffer_out_of_bounds");
-    RandomAccessFile openedFile = file.openSync(mode: WRITE);
+    RandomAccessFile openedFile = file.openSync(mode: FileMode.write);
     try {
-      List<int> buffer = new List<int>(10);
+      List<int> buffer = new List<int>.filled(10, 0);
       openedFile.readIntoSync(buffer, 0, 12);
     } on RangeError catch (ex) {
       exceptionCaught = true;
@@ -1013,7 +1013,7 @@ class FileTest {
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
     try {
-      List<int> buffer = new List<int>(10);
+      List<int> buffer = new List<int>.filled(10, 0);
       openedFile.readIntoSync(buffer, 6, 12);
     } on RangeError catch (ex) {
       exceptionCaught = true;
@@ -1024,7 +1024,7 @@ class FileTest {
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
     try {
-      List<int> buffer = new List<int>(10);
+      List<int> buffer = new List<int>.filled(10, 0);
       openedFile.readIntoSync(buffer, -1, 1);
     } on RangeError catch (ex) {
       exceptionCaught = true;
@@ -1035,7 +1035,7 @@ class FileTest {
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
     try {
-      List<int> buffer = new List<int>(10);
+      List<int> buffer = new List<int>.filled(10, 0);
       openedFile.readIntoSync(buffer, 0, -1);
     } on RangeError catch (ex) {
       exceptionCaught = true;
@@ -1046,7 +1046,7 @@ class FileTest {
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
     try {
-      List<int> buffer = new List<int>(10);
+      List<int> buffer = new List<int>.filled(10, 0);
       openedFile.writeFromSync(buffer, 0, 12);
     } on RangeError catch (ex) {
       exceptionCaught = true;
@@ -1057,7 +1057,7 @@ class FileTest {
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
     try {
-      List<int> buffer = new List<int>(10);
+      List<int> buffer = new List<int>.filled(10, 0);
       openedFile.writeFromSync(buffer, 6, 12);
     } on RangeError catch (ex) {
       exceptionCaught = true;
@@ -1068,7 +1068,7 @@ class FileTest {
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
     try {
-      List<int> buffer = new List<int>(10);
+      List<int> buffer = new List<int>.filled(10, 0);
       openedFile.writeFromSync(buffer, -1, 1);
     } on RangeError catch (ex) {
       exceptionCaught = true;
@@ -1079,7 +1079,7 @@ class FileTest {
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
     try {
-      List<int> buffer = new List<int>(10);
+      List<int> buffer = new List<int>.filled(10, 0);
       openedFile.writeFromSync(buffer, 0, -1);
     } on RangeError catch (ex) {
       exceptionCaught = true;
@@ -1094,7 +1094,7 @@ class FileTest {
 
   static void testOpenDirectoryAsFile() {
     var f = new File('.');
-    var future = f.open(mode: READ);
+    var future = f.open(mode: FileMode.read);
     future
         .then((r) => Expect.fail('Directory opened as file'))
         .catchError((e) {});
@@ -1148,20 +1148,20 @@ class FileTest {
     asyncTestStarted();
     var name = getFilename("fixed_length_file");
     var f = new File(name);
-    f.readAsString(encoding: UTF8).then((text) {
+    f.readAsString(encoding: utf8).then((text) {
       Expect.isTrue(text.endsWith("42 bytes."));
       Expect.equals(42, text.length);
       var name = getFilename("read_as_text.dat");
       var f = new File(name);
-      f.readAsString(encoding: UTF8).then((text) {
+      f.readAsString(encoding: utf8).then((text) {
         Expect.equals(6, text.length);
         var expected = [955, 120, 46, 32, 120, 10];
         Expect.listEquals(expected, text.codeUnits);
-        f.readAsString(encoding: LATIN1).then((text) {
+        f.readAsString(encoding: latin1).then((text) {
           Expect.equals(7, text.length);
           var expected = [206, 187, 120, 46, 32, 120, 10];
           Expect.listEquals(expected, text.codeUnits);
-          var readAsStringFuture = f.readAsString(encoding: ASCII);
+          var readAsStringFuture = f.readAsString(encoding: ascii);
           readAsStringFuture.then((text) {
             Expect.fail("Non-ascii char should cause error");
           }).catchError((e) {
@@ -1176,7 +1176,7 @@ class FileTest {
     asyncTestStarted();
     var name = getFilename("empty_file");
     var f = new File(name);
-    f.readAsString(encoding: UTF8).then((text) {
+    f.readAsString(encoding: utf8).then((text) {
       Expect.equals(0, text.length);
       asyncTestDone("testReadAsTextEmptyFile");
       return true;
@@ -1194,15 +1194,15 @@ class FileTest {
     var expected = [955, 120, 46, 32, 120, 10];
     Expect.listEquals(expected, text.codeUnits);
     // First character is not ASCII. The default ASCII decoder will throw.
-    Expect.throws(() => new File(name).readAsStringSync(encoding: ASCII),
+    Expect.throws(() => new File(name).readAsStringSync(encoding: ascii),
         (e) => e is FileSystemException);
     // We can use an ASCII decoder that inserts the replacement character.
     var lenientAscii = const AsciiCodec(allowInvalid: true);
     text = new File(name).readAsStringSync(encoding: lenientAscii);
     // Default replacement character is the Unicode replacement character.
     expected = [
-      UNICODE_REPLACEMENT_CHARACTER_RUNE,
-      UNICODE_REPLACEMENT_CHARACTER_RUNE,
+      unicodeReplacementCharacterRune,
+      unicodeReplacementCharacterRune,
       120,
       46,
       32,
@@ -1210,7 +1210,7 @@ class FileTest {
       10
     ];
     Expect.listEquals(expected, text.codeUnits);
-    text = new File(name).readAsStringSync(encoding: LATIN1);
+    text = new File(name).readAsStringSync(encoding: latin1);
     expected = [206, 187, 120, 46, 32, 120, 10];
     Expect.equals(7, text.length);
     Expect.listEquals(expected, text.codeUnits);
@@ -1226,7 +1226,7 @@ class FileTest {
     asyncTestStarted();
     var name = getFilename("fixed_length_file");
     var f = new File(name);
-    f.readAsLines(encoding: UTF8).then((lines) {
+    f.readAsLines(encoding: utf8).then((lines) {
       Expect.equals(1, lines.length);
       var line = lines[0];
       Expect.isTrue(line.endsWith("42 bytes."));
@@ -1257,11 +1257,11 @@ class FileTest {
     readAsBytesFuture
         .then((bytes) => Expect.fail("no bytes expected"))
         .catchError((e) {
-      var readAsStringFuture = f.readAsString(encoding: UTF8);
+      var readAsStringFuture = f.readAsString(encoding: utf8);
       readAsStringFuture
           .then((text) => Expect.fail("no text expected"))
           .catchError((e) {
-        var readAsLinesFuture = f.readAsLines(encoding: UTF8);
+        var readAsLinesFuture = f.readAsLines(encoding: utf8);
         readAsLinesFuture
             .then((lines) => Expect.fail("no lines expected"))
             .catchError((e) {
@@ -1296,7 +1296,7 @@ class FileTest {
     int done = 0;
     bool error = false;
     void getLength() {
-      file.length().catchError((e) {
+      Future<int?>.value(file.length()).catchError((e) {
         error = true;
       }).whenComplete(() {
         if (++done == 2) {
@@ -1452,10 +1452,10 @@ class FileTest {
   static void testAppend() {
     asyncTestStarted();
     var file = new File('${tempDirectory.path}/out_append');
-    file.open(mode: WRITE).then((openedFile) {
+    file.open(mode: FileMode.write).then((openedFile) {
       openedFile.writeString("asdf").then((ignore) {
         openedFile.close().then((ignore) {
-          file.open(mode: APPEND).then((openedFile) {
+          file.open(mode: FileMode.append).then((openedFile) {
             openedFile.length().then((length) {
               Expect.equals(4, length);
               openedFile.writeString("asdf").then((ignore) {
@@ -1480,11 +1480,11 @@ class FileTest {
 
   static void testAppendSync() {
     var file = new File('${tempDirectory.path}/out_append_sync');
-    var openedFile = file.openSync(mode: WRITE);
+    var openedFile = file.openSync(mode: FileMode.write);
     openedFile.writeStringSync("asdf");
     Expect.equals(4, openedFile.lengthSync());
     openedFile.closeSync();
-    openedFile = file.openSync(mode: WRITE);
+    openedFile = file.openSync(mode: FileMode.write);
     openedFile.setPositionSync(4);
     openedFile.writeStringSync("asdf");
     Expect.equals(8, openedFile.lengthSync());
@@ -1497,12 +1497,12 @@ class FileTest {
     asyncTestStarted();
     var file = new File('${tempDirectory.path}/out_write_string');
     var string = new String.fromCharCodes([0x192]);
-    file.open(mode: WRITE).then((openedFile) {
+    file.open(mode: FileMode.write).then((openedFile) {
       openedFile.writeString(string).then((_) {
         openedFile.length().then((l) {
           Expect.equals(2, l);
           openedFile.close().then((_) {
-            file.open(mode: APPEND).then((openedFile) {
+            file.open(mode: FileMode.append).then((openedFile) {
               openedFile.setPosition(2).then((_) {
                 openedFile.writeString(string).then((_) {
                   openedFile.length().then((l) {
@@ -1531,11 +1531,11 @@ class FileTest {
   static void testWriteStringUtf8Sync() {
     var file = new File('${tempDirectory.path}/out_write_string_sync');
     var string = new String.fromCharCodes([0x192]);
-    var openedFile = file.openSync(mode: WRITE);
+    var openedFile = file.openSync(mode: FileMode.write);
     openedFile.writeStringSync(string);
     Expect.equals(2, openedFile.lengthSync());
     openedFile.closeSync();
-    openedFile = file.openSync(mode: APPEND);
+    openedFile = file.openSync(mode: FileMode.append);
     openedFile.setPositionSync(2);
     openedFile.writeStringSync(string);
     Expect.equals(4, openedFile.lengthSync());
@@ -1546,7 +1546,7 @@ class FileTest {
     Expect.isFalse(file.existsSync());
   }
 
-  static void testRename({bool targetExists}) {
+  static void testRename({required bool targetExists}) {
     lift(Function f) => (futureValue) => futureValue.then((value) => f(value));
     asyncTestStarted();
 
@@ -1556,7 +1556,7 @@ class FileTest {
     var newfile = new File(dest);
     file
         .create()
-        .then((_) => targetExists ? newfile.create() : null)
+        .then((_) => targetExists ? newfile.create() : new Future.value(null))
         .then((_) => file.rename(dest))
         .then((_) => lift(Expect.isFalse)(file.exists()))
         .then((_) => lift(Expect.isTrue)(newfile.exists()))
@@ -1564,9 +1564,12 @@ class FileTest {
         .then((_) => lift(Expect.isFalse)(newfile.exists()))
         .then((_) {
       if (Platform.operatingSystem != "windows") {
-        new Link(source).create(dest).then((_) => file.rename("xxx")).then((_) {
+        Future<File?>.value(new Link(source)
+            .create(dest)
+            .then((_) => file.rename("xxx"))
+            .then((_) {
           throw "Rename of broken link succeeded";
-        }).catchError((e) {
+        })).catchError((e) {
           Expect.isTrue(e is FileSystemException);
           asyncTestDone("testRename$targetExists");
         });
@@ -1576,7 +1579,7 @@ class FileTest {
     });
   }
 
-  static void testRenameSync({bool targetExists}) {
+  static void testRenameSync({required bool targetExists}) {
     String source = join(tempDirectory.path, 'rename_source');
     String dest = join(tempDirectory.path, 'rename_dest');
     var file = new File(source);

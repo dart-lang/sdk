@@ -4,7 +4,6 @@
 
 library lib;
 
-@MirrorsUsed(targets: "lib")
 import "dart:mirrors";
 
 import "package:expect/expect.dart";
@@ -43,13 +42,14 @@ checkKinds(method, kinds) {
   Expect.equals(kinds[2], method.isGetter, "isGetter");
   Expect.equals(kinds[3], method.isSetter, "isSetter");
   Expect.equals(kinds[4], method.isConstructor, "isConstructor");
+  Expect.equals(false, method.isExtensionMember, "isExtension");
 }
 
 main() {
   // Top level functions should be static.
-  var closureMirror = reflect(doNothing42);
+  var closureMirror = reflect(doNothing42) as ClosureMirror;
   checkKinds(closureMirror.function, [true, false, false, false, false]);
-  var libraryMirror = reflectClass(C).owner;
+  var libraryMirror = reflectClass(C).owner as LibraryMirror;
   checkKinds(libraryMirror.declarations[#topGetter],
       [true, false, true, false, false]);
   checkKinds(libraryMirror.declarations[const Symbol("topSetter=")],

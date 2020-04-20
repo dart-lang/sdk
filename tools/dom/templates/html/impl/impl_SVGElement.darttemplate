@@ -37,9 +37,10 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   static final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 
   factory $CLASSNAME.tag(String tag) =>
-      document.createElementNS("http://www.w3.org/2000/svg", tag);
+      document.createElementNS("http://www.w3.org/2000/svg", tag) $#NULLSAFECAST(as $CLASSNAME);
   factory $CLASSNAME.svg(String svg,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
 
     if (validator == null && treeSanitizer == null) {
       validator = new NodeValidatorBuilder.common()..allowSvg();
@@ -47,7 +48,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 
     final match = _START_TAG_REGEXP.firstMatch(svg);
     var parentElement;
-    if (match != null && match.group(1).toLowerCase() == 'svg') {
+    if (match != null && match.group(1)$NULLASSERT.toLowerCase() == 'svg') {
       parentElement = document.body;
     } else {
       parentElement = new SvgSvgElement();
@@ -69,24 +70,25 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 
   String get outerHtml {
     final container = new DivElement();
-    final SvgElement cloned = this.clone(true);
+    final SvgElement cloned = this.clone(true) $#NULLSAFECAST(as SvgElement);
     container.children.add(cloned);
     return container.innerHtml;
   }
 
   String get innerHtml {
     final container = new DivElement();
-    final SvgElement cloned = this.clone(true);
+    final SvgElement cloned = this.clone(true) $#NULLSAFECAST(as SvgElement);
     container.children.addAll(cloned.children);
     return container.innerHtml;
   }
 
-  set innerHtml(String value) {
+  set innerHtml(String$NULLABLE value) {
     this.setInnerHtml(value);
   }
 
   DocumentFragment createFragment(String svg,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
 
     if (treeSanitizer == null) {
       if (validator == null) {
@@ -98,32 +100,30 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 
     // We create a fragment which will parse in the HTML parser
     var html = '<svg version="1.1">$svg</svg>';
-    var fragment = document.body.createFragment(html,
+    var fragment = document.body$NULLASSERT.createFragment(html,
         treeSanitizer: treeSanitizer);
 
     var svgFragment = new DocumentFragment();
     // The root is the <svg/> element, need to pull out the contents.
     var root = fragment.nodes.single;
     while (root.firstChild != null) {
-      svgFragment.append(root.firstChild);
+      svgFragment.append(root.firstChild$NULLASSERT);
     }
     return svgFragment;
   }
 
   // Unsupported methods inherited from Element.
 
-  @DomName('Element.insertAdjacentText')
   void insertAdjacentText(String where, String text) {
     throw new UnsupportedError("Cannot invoke insertAdjacentText on SVG.");
   }
 
-  @DomName('Element.insertAdjacentHTML')
-  void insertAdjacentHtml(String where, String text, {NodeValidator validator,
-      NodeTreeSanitizer treeSanitizer}) {
+  void insertAdjacentHtml(String where, String text,
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
     throw new UnsupportedError("Cannot invoke insertAdjacentHtml on SVG.");
   }
 
-  @DomName('Element.insertAdjacentElement')
   Element insertAdjacentElement(String where, Element element) {
     throw new UnsupportedError("Cannot invoke insertAdjacentElement on SVG.");
   }

@@ -7,7 +7,8 @@ library test;
 
 class A<T> {}
 
-main() {
-  var /*@type=A<dynamic>*/ a =
-      new /*@typeArgs=dynamic*/ A /*error:EXTRA_POSITIONAL_ARGUMENTS*/ (42);
+test() {
+  var /*@type=dynamic*/ a = new A /*error:EXTRA_POSITIONAL_ARGUMENTS*/ (42);
 }
+
+main() {}

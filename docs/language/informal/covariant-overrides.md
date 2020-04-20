@@ -1,10 +1,11 @@
 # Covariant Overrides
 
-Owner: rnystrom@, eernstg@.
+**Owner**: rnystrom@, eernst@.
 
-Status: Implemented.
+**Status**: This document is now background material.
+For normative text, please consult the language specification.
 
-Version: 1.1 (Oct 10, 2017).
+**Version**: 1.1 (Oct 10, 2017).
 
 ## Summary
 

@@ -3,10 +3,10 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  field core::List<core::num> x;
-  default constructor •() → void
+  field core::List<core::num*>* x;
+  synthetic constructor •() → self::C*
     ;
 }
-static field core::List<core::num> y;
+static field core::List<core::num*>* y;
 static method main() → dynamic
   ;

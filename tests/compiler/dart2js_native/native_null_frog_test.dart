@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import "native_testing.dart";
 
 // Test for values of some basic types.
@@ -29,7 +31,7 @@ void setup() {
 })()""");
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 staticTests() {
   A a = makeA();
   Expect.equals(null, a.returnNull());
@@ -43,7 +45,7 @@ staticTests() {
   Expect.equals(0, a.returnZero());
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 dynamicTests() {
   A a = makeA();
   Expect.equals(null, confuse(a).returnNull());

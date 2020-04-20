@@ -4,22 +4,6 @@
 
 part of repositories;
 
-String _tagToString(M.SampleProfileTag tag) {
-  switch (tag) {
-    case M.SampleProfileTag.userVM:
-      return 'UserVM';
-    case M.SampleProfileTag.userOnly:
-      return 'UserOnly';
-    case M.SampleProfileTag.vmUser:
-      return 'VMUser';
-    case M.SampleProfileTag.vmOnly:
-      return 'VMOnly';
-    case M.SampleProfileTag.none:
-      return 'None';
-  }
-  throw new Exception('Unknown SampleProfileTag: $tag');
-}
-
 class SampleProfileLoadingProgressEvent
     implements M.SampleProfileLoadingProgressEvent {
   final SampleProfileLoadingProgress progress;
@@ -28,7 +12,7 @@ class SampleProfileLoadingProgressEvent
 
 class SampleProfileLoadingProgress extends M.SampleProfileLoadingProgress {
   StreamController<SampleProfileLoadingProgressEvent> _onProgress =
-      new StreamController<SampleProfileLoadingProgressEvent>.broadcast();
+      StreamController<SampleProfileLoadingProgressEvent>.broadcast();
   Stream<SampleProfileLoadingProgressEvent> get onProgress =>
       _onProgress.stream;
 
@@ -40,8 +24,8 @@ class SampleProfileLoadingProgress extends M.SampleProfileLoadingProgress {
 
   M.SampleProfileLoadingStatus _status = M.SampleProfileLoadingStatus.fetching;
   double _progress = 0.0;
-  final Stopwatch _fetchingTime = new Stopwatch();
-  final Stopwatch _loadingTime = new Stopwatch();
+  final _fetchingTime = Stopwatch();
+  final _loadingTime = Stopwatch();
   SampleProfile _profile;
 
   M.SampleProfileLoadingStatus get status => _status;
@@ -59,21 +43,20 @@ class SampleProfileLoadingProgress extends M.SampleProfileLoadingProgress {
     _fetchingTime.start();
     try {
       if (clear && (type == M.SampleProfileType.cpu)) {
-        await owner.invokeRpc('_clearCpuProfile', {});
+        await owner.invokeRpc('clearCpuSamples', {});
       }
 
       var response;
       if (type == M.SampleProfileType.cpu) {
         response = cls != null
-            ? await cls.getAllocationSamples(_tagToString(tag))
-            : await owner
-                .invokeRpc('_getCpuProfile', {'tags': _tagToString(tag)});
+            ? await cls.getAllocationSamples()
+            : await owner.invokeRpc('getCpuSamples', {'_code': true});
       } else if (type == M.SampleProfileType.memory) {
         assert(owner is M.VM);
-        response = await owner.invokeRpc(
-            '_getNativeAllocationSamples', {'tags': _tagToString(tag)});
+        response = await owner
+            .invokeRpc('_getNativeAllocationSamples', {'_code': true});
       } else {
-        throw new Exception('Unknown M.SampleProfileType: $type');
+        throw Exception('Unknown M.SampleProfileType: $type');
       }
 
       _fetchingTime.stop();
@@ -81,8 +64,7 @@ class SampleProfileLoadingProgress extends M.SampleProfileLoadingProgress {
       _status = M.SampleProfileLoadingStatus.loading;
       _triggerOnProgress();
 
-      SampleProfile profile = new SampleProfile();
-
+      SampleProfile profile = SampleProfile();
       Stream<double> progress = profile.loadProgress(owner, response);
       progress.listen((value) {
         _progress = value;
@@ -91,6 +73,7 @@ class SampleProfileLoadingProgress extends M.SampleProfileLoadingProgress {
 
       await progress.drain();
 
+      profile.tagOrder = tag;
       profile.buildFunctionCallerAndCallees();
       _profile = profile;
 
@@ -111,16 +94,18 @@ class SampleProfileLoadingProgress extends M.SampleProfileLoadingProgress {
   }
 
   void _triggerOnProgress() {
-    _onProgress.add(new SampleProfileLoadingProgressEvent(this));
+    _onProgress.add(SampleProfileLoadingProgressEvent(this));
   }
 
-  void reuse() {
-    _onProgress =
-        new StreamController<SampleProfileLoadingProgressEvent>.broadcast();
-    (() async {
-      _triggerOnProgress();
-      _onProgress.close();
-    }());
+  void reuse(M.SampleProfileTag t) {
+    _profile.tagOrder = t;
+    final onProgress =
+        StreamController<SampleProfileLoadingProgressEvent>.broadcast();
+    Timer.run(() {
+      onProgress.add(SampleProfileLoadingProgressEvent(this));
+      onProgress.close();
+    });
+    _onProgress = onProgress;
   }
 }
 
@@ -136,9 +121,9 @@ class IsolateSampleProfileRepository
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
     if ((_last != null) && !clear && !forceFetch && (_last.owner == isolate)) {
-      _last.reuse();
+      _last.reuse(t);
     } else {
-      _last = new SampleProfileLoadingProgress(isolate, t, clear);
+      _last = SampleProfileLoadingProgress(isolate, t, clear);
     }
     return _last.onProgress;
   }
@@ -146,14 +131,13 @@ class IsolateSampleProfileRepository
 
 class ClassSampleProfileRepository implements M.ClassSampleProfileRepository {
   Stream<SampleProfileLoadingProgressEvent> get(
-      M.Isolate i, M.ClassRef c, M.SampleProfileTag t,
+      covariant M.Isolate i, M.ClassRef c, M.SampleProfileTag t,
       {bool clear: false, bool forceFetch: false}) {
     S.Isolate isolate = i as S.Isolate;
     S.Class cls = c as S.Class;
     assert(isolate != null);
     assert(cls != null);
-    return new SampleProfileLoadingProgress(isolate, t, false, cls: cls)
-        .onProgress;
+    return SampleProfileLoadingProgress(isolate, t, false, cls: cls).onProgress;
   }
 
   Future enable(M.IsolateRef i, M.ClassRef c) {
@@ -179,10 +163,10 @@ class NativeMemorySampleProfileRepository
     S.VM owner = vm as S.VM;
     assert(owner != null);
 
-    if ((_last != null) && !forceFetch) {
-      _last.reuse();
+    if ((_last != null) && (_last.profile != null) && !forceFetch) {
+      _last.reuse(t);
     } else {
-      _last = new SampleProfileLoadingProgress(owner, t, false,
+      _last = SampleProfileLoadingProgress(owner, t, false,
           type: M.SampleProfileType.memory);
     }
     return _last.onProgress;

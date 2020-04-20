@@ -10,7 +10,7 @@ class A {
 }
 
 class B implements A {
-  get /*@topType=int*/ x => 3;
+  get x => 3;
 }
 
 foo() {
@@ -18,6 +18,4 @@ foo() {
   int z = new B(). /*@target=B::x*/ x;
 }
 
-main() {
-  foo();
-}
+main() {}

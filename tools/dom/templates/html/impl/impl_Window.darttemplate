@@ -4,7 +4,6 @@
 
 part of $LIBRARYNAME;
 
-@DocsEditable()
 $(ANNOTATIONS)@Native("Window,DOMWindow")
 $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
@@ -42,10 +41,10 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    */
   Document get document => JS('Document', '#.document', this);
 
-  WindowBase _open2(url, name) =>
+  WindowBase$NULLABLE _open2(url, name) =>
       JS('Window|Null', '#.open(#,#)', this, url, name);
 
-  WindowBase _open3(url, name, options) =>
+  WindowBase$NULLABLE _open3(url, name, options) =>
       JS('Window|Null', '#.open(#,#,#)', this, url, name, options);
 
   /**
@@ -55,10 +54,8 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    *
    * * [Window.open](https://developer.mozilla.org/en-US/docs/Web/API/Window.open)
    *   from MDN.
-   * * [Window open](http://docs.webplatform.org/wiki/dom/methods/open)
-   *   from WebPlatform.org.
    */
-  WindowBase open(String url, String name, [String options]) {
+  WindowBase open(String url, String name, [String$NULLABLE options]) {
     if (options == null) {
       return _DOMWindowCrossFrame._createSafe(_open2(url, name));
     } else {
@@ -79,7 +76,7 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   // TODO: consider forcing users to do: window.location.assign('string').
   /**
    * Sets the window's location, which causes the browser to navigate to the new
-   * location. [value] may be a Location object or a String.
+   * location.
    */
   set location(value) {
     _location = value;
@@ -107,10 +104,9 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * Note: The supplied [callback] needs to call [requestAnimationFrame] again
    * for the animation to continue.
    */
-  @DomName('Window.requestAnimationFrame')
   int requestAnimationFrame(FrameRequestCallback callback) {
     _ensureRequestAnimationFrame();
-    return _requestAnimationFrame(_wrapZone(callback));
+    return _requestAnimationFrame(_wrapZone(callback)$NULLASSERT);
   }
 
   /**
@@ -133,7 +129,7 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   void _cancelAnimationFrame(int id) native;
 
   _ensureRequestAnimationFrame() {
-    if (JS('bool',
+    if (JS<bool>('bool',
            '!!(#.requestAnimationFrame && #.cancelAnimationFrame)', this, this))
       return;
 
@@ -167,23 +163,21 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
   @SupportedBrowser(SupportedBrowser.IE, '10.0')
-  @Experimental()
-  IdbFactory get indexedDB =>
+  IdbFactory$NULLABLE get indexedDB =>
       JS('IdbFactory|Null',  // If not supported, returns null.
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
          this, this, this);
 
   /// The debugging console for this window.
-  @DomName('Window.console')
   Console get console => Console._safeConsole;
 
-
   /**
-   * Access a sandboxed file system of the specified `size`. If `persistent` is
-   * true, the application will request permission from the user to create
-   * lasting storage. This storage cannot be freed without the user's
-   * permission. Returns a [Future] whose value stores a reference to the
-   * sandboxed file system for use. Because the file system is sandboxed,
+   * Access a sandboxed file system of `size` bytes.
+   *
+   * If `persistent` is true, the application will request permission from the
+   * user to create lasting storage. This storage cannot be freed without the
+   * user's permission. Returns a [Future] whose value stores a reference to
+   * the sandboxed file system for use. Because the file system is sandboxed,
    * applications cannot access file systems created in other web pages.
    */
   Future<FileSystem> requestFileSystem(int size, {bool persistent: false}) {
@@ -203,13 +197,14 @@ $!MEMBERS
    *
    * See [EventStreamProvider] for usage information.
    */
-  @DomName('Window.beforeunloadEvent')
   static const EventStreamProvider<BeforeUnloadEvent> beforeUnloadEvent =
       const _BeforeUnloadEventStreamProvider('beforeunload');
 
   /// Stream of `beforeunload` events handled by this [Window].
-  @DomName('Window.onbeforeunload')
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
+
+  /// Stream of `wheel` events handled by this [Window].
+  Stream<WheelEvent> get onWheel => Element.wheelEvent.forTarget(this);
 
   /**
    * Moves this window to a specific position.
@@ -224,16 +219,31 @@ $!MEMBERS
    *   from W3C.
    */
   void moveTo(Point p) {
-    _moveTo(p.x, p.y);
+    _moveTo(p.x.toInt(), p.y.toInt());
   }
 
-  @DomName('Window.pageXOffset')
-  @DocsEditable()
-  int get pageXOffset => JS('num', '#.pageXOffset', this).round();
+  @JSName('openDatabase')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Creates('SqlDatabase')
+  SqlDatabase openDatabase(
+      String name, String version, String displayName, int estimatedSize,
+      [DatabaseCallback$NULLABLE creationCallback]) {
+    var db;
+    if (creationCallback == null)
+      db = _openDatabase(name, version, displayName, estimatedSize);
+    else
+      db = _openDatabase(
+        name, version, displayName, estimatedSize, creationCallback);
 
-  @DomName('Window.pageYOffset')
-  @DocsEditable()
-  int get pageYOffset => JS('num', '#.pageYOffset', this).round();
+    applyExtension('Database', db);
+
+    return db;
+  }
+
+  int get pageXOffset => JS<num>('num', '#.pageXOffset', this).round();
+
+  int get pageYOffset => JS<num>('num', '#.pageYOffset', this).round();
 
   /**
    * The distance this window has been scrolled horizontally.
@@ -245,11 +255,9 @@ $!MEMBERS
    * * [scrollX](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX)
    *   from MDN.
    */
-  @DomName('Window.scrollX')
-  @DocsEditable()
-  int get scrollX => JS('bool', '("scrollX" in #)', this) ?
-      JS('num', '#.scrollX', this).round() :
-      document.documentElement.scrollLeft;
+  int get scrollX => JS<bool>('bool', '("scrollX" in #)', this) ?
+      JS<num>('num', '#.scrollX', this).round() :
+      document.documentElement$NULLASSERT.scrollLeft;
 
   /**
    * The distance this window has been scrolled vertically.
@@ -261,17 +269,21 @@ $!MEMBERS
    * * [scrollY](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY)
    *   from MDN.
    */
-  @DomName('Window.scrollY')
-  @DocsEditable()
-  int get scrollY => JS('bool', '("scrollY" in #)', this) ?
-      JS('num', '#.scrollY', this).round() :
-      document.documentElement.scrollTop;
+  int get scrollY => JS<bool>('bool', '("scrollY" in #)', this) ?
+      JS<num>('num', '#.scrollY', this).round() :
+      document.documentElement$NULLASSERT.scrollTop;
 }
 
 class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
   String _returnValue;
 
-  _BeforeUnloadEvent(Event base): super(base);
+$if NNBD
+  _BeforeUnloadEvent(Event base)
+    : _returnValue = '',
+      super(base);
+$else
+  _BeforeUnloadEvent(Event base) : super(base);
+$endif
 
   String get returnValue => _returnValue;
 
@@ -279,7 +291,7 @@ class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
     _returnValue = value;
     // FF and IE use the value as the return value, Chrome will return this from
     // the event callback function.
-    if (JS('bool', '("returnValue" in #)', wrapped)) {
+    if (JS<bool>('bool', '("returnValue" in #)', wrapped)) {
       JS('void', '#.returnValue = #', wrapped, value);
     }
   }
@@ -291,7 +303,7 @@ class _BeforeUnloadEventStreamProvider implements
 
   const _BeforeUnloadEventStreamProvider(this._eventType);
 
-  Stream<BeforeUnloadEvent> forTarget(EventTarget e, {bool useCapture: false}) {
+  Stream<BeforeUnloadEvent> forTarget(EventTarget$NULLABLE e, {bool useCapture: false}) {
     // Specify the generic type for EventStream only in dart2js.
     var stream = new _EventStream<BeforeUnloadEvent>(e, _eventType, useCapture);
     var controller = new StreamController<BeforeUnloadEvent>(sync: true);
@@ -313,7 +325,7 @@ class _BeforeUnloadEventStreamProvider implements
     return new _ElementEventStreamImpl<BeforeUnloadEvent>(e, _eventType, useCapture);
   }
 
-  ElementStream<BeforeUnloadEvent> _forElementList(ElementList e,
+  ElementStream<BeforeUnloadEvent> _forElementList(ElementList<Element> e,
       {bool useCapture: false}) {
     // Specify the generic type for _ElementEventStreamImpl only in dart2js.
     return new _ElementListEventStreamImpl<BeforeUnloadEvent>(e, _eventType, useCapture);

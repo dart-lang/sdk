@@ -4,7 +4,6 @@
 
 library lib;
 
-@MirrorsUsed(targets: "lib")
 import 'dart:mirrors';
 import 'dart:isolate';
 import 'package:expect/expect.dart';
@@ -16,13 +15,13 @@ child(SendPort port) {
 }
 
 main() {
-  var port;
-  port = new RawReceivePort((String childRootUri) {
+  final port = new RawReceivePort();
+  port.handler = (String childRootUri) {
     LibraryMirror root = currentMirrorSystem().isolate.rootLibrary;
     Expect.isNotNull(root);
     Expect.equals(root.uri.toString(), childRootUri);
     port.close();
-  });
+  };
 
   Isolate.spawn(child, port.sendPort);
 }

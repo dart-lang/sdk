@@ -6,7 +6,7 @@ library MirrorsTest;
 
 import 'dart:mirrors';
 
-import '../../light_unittest.dart';
+import 'package:expect/minitest.dart';
 
 bool isDart2js = false; // TODO(ahe): Remove this field.
 
@@ -119,7 +119,7 @@ testClosureMirrors(mirrors) {
 testInvokeConstructor(mirrors) {
   var classMirror = reflectClass(Class);
 
-  var instanceMirror = classMirror.newInstance(const Symbol(''), []);
+  var instanceMirror = classMirror.newInstance(Symbol.empty, []);
   expect(instanceMirror.reflectee is Class, equals(true));
   expect(instanceMirror.reflectee.field, equals("default value"));
 
@@ -149,7 +149,7 @@ testReflectClass(mirrors) {
   expect(classMirror is ClassMirror, equals(true));
   var symbolClassMirror = reflectClass(Symbol);
   var symbolMirror =
-      symbolClassMirror.newInstance(const Symbol(''), ['withInitialValue']);
+      symbolClassMirror.newInstance(Symbol.empty, ['withInitialValue']);
   var objectMirror = classMirror.newInstance(symbolMirror.reflectee, [1234]);
   expect(objectMirror.reflectee is Class, equals(true));
   expect(objectMirror.reflectee.field, equals(1234));
@@ -194,10 +194,10 @@ testNames(mirrors) {
       equals(const Symbol('MirrorsTest.Class.field')));
 }
 
-testLibraryUri(var value, bool check(Uri)) {
+testLibraryUri(var value, bool check(Uri uri)) {
   var valueMirror = reflect(value);
   ClassMirror valueClass = valueMirror.type;
-  LibraryMirror valueLibrary = valueClass.owner;
+  LibraryMirror valueLibrary = valueClass.owner as LibraryMirror;
   Uri uri = valueLibrary.uri;
   if (uri.scheme != "https" ||
       uri.host != "dartlang.org" ||

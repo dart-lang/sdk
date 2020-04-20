@@ -1,25 +1,21 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'dart:developer';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const alwaysInline = "AlwaysInline";
-const noInline = "NeverInline";
-
-int LINE_A = 35;
-int LINE_B = 40;
-int LINE_C = 43;
-int LINE_D = 47;
+int LINE_A = 31;
+int LINE_B = 36;
+int LINE_C = 39;
+int LINE_D = 43;
 
 int global = 0;
 
-@noInline
+@pragma('vm:never-inline')
 b3(x) {
   int sum = 0;
   try {
@@ -36,10 +32,10 @@ b3(x) {
   return sum;
 }
 
-@alwaysInline
+@pragma('vm:prefer-inline')
 b2(x) => b3(x); // Line B
 
-@alwaysInline
+@pragma('vm:prefer-inline')
 b1(x) => b2(x); // Line C
 
 test() {
@@ -48,12 +44,12 @@ test() {
   }
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   (Isolate isolate) async {
     // We are at our breakpoint with global=100.
-    var result = await isolate.rootLibrary.evaluate('global');
+    Instance result = await isolate.rootLibrary.evaluate('global');
     print('global is $result');
     expect(result.type, equals('Instance'));
     expect(result.valueAsString, equals('100'));
@@ -80,7 +76,6 @@ var tests = [
 main(args) => runIsolateTests(args, tests, testeeConcurrent: test, extraArgs: [
       '--trace-rewind',
       '--prune-dead-locals',
-      '--enable-inlining-annotations',
       '--no-background-compilation',
       '--optimization-counter-threshold=10'
     ]);

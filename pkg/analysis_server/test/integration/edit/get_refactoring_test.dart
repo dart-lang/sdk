@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetRefactoringTest);
   });
@@ -17,9 +17,9 @@ main() {
 
 @reflectiveTest
 class GetRefactoringTest extends AbstractAnalysisServerIntegrationTest {
-  test_rename() async {
-    String pathname = sourcePath('test.dart');
-    String text = r'''
+  Future<void> test_rename() async {
+    var pathname = sourcePath('test.dart');
+    var text = r'''
 void foo() { }
 
 void bar() {
@@ -34,7 +34,7 @@ void bar() {
     expect(currentAnalysisErrors[pathname], isEmpty);
 
     // expect no edits if no rename options specified
-    EditGetRefactoringResult result = await sendEditGetRefactoring(
+    var result = await sendEditGetRefactoring(
         RefactoringKind.RENAME, pathname, text.indexOf('foo('), 0, false);
     expect(result.initialProblems, isEmpty);
     expect(result.optionsProblems, isEmpty);
@@ -45,7 +45,7 @@ void bar() {
     // expect a valid rename refactoring
     result = await sendEditGetRefactoring(
         RefactoringKind.RENAME, pathname, text.indexOf('foo('), 0, false,
-        options: new RenameOptions('baz'));
+        options: RenameOptions('baz'));
     expect(result.initialProblems, isEmpty);
     expect(result.optionsProblems, isEmpty);
     expect(result.finalProblems, isEmpty);
@@ -53,12 +53,12 @@ void bar() {
     expect(result.change.edits, isNotEmpty);
 
     // apply the refactoring, expect that the new code has no errors
-    SourceChange change = result.change;
+    var change = result.change;
     expect(change.edits.first.edits, isNotEmpty);
-    for (SourceEdit edit in change.edits.first.edits) {
+    for (var edit in change.edits.first.edits) {
       text = text.replaceRange(edit.offset, edit.end, edit.replacement);
     }
-    await sendAnalysisUpdateContent({pathname: new AddContentOverlay(text)});
+    await sendAnalysisUpdateContent({pathname: AddContentOverlay(text)});
 
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);

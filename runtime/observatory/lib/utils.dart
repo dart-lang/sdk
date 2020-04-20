@@ -82,34 +82,36 @@ class Utils {
     millis = millis % millisPerSecond;
 
     if (hours > 0) {
-      return ("${zeroPad(hours,2)}"
-          ":${zeroPad(minutes,2)}"
-          ":${zeroPad(seconds,2)}"
-          ".${zeroPad(millis,3)}");
+      return ("${zeroPad(hours, 2)}"
+          ":${zeroPad(minutes, 2)}"
+          ":${zeroPad(seconds, 2)}"
+          ".${zeroPad(millis, 3)}");
     } else if (minutes > 0) {
-      return ("${zeroPad(minutes,2)}"
-          ":${zeroPad(seconds,2)}"
-          ".${zeroPad(millis,3)}");
+      return ("${zeroPad(minutes, 2)}"
+          ":${zeroPad(seconds, 2)}"
+          ".${zeroPad(millis, 3)}");
     } else {
-      return ("${zeroPad(seconds,2)}"
-          ".${zeroPad(millis,3)}");
+      return ("${zeroPad(seconds, 2)}"
+          ".${zeroPad(millis, 3)}");
     }
   }
 
-  static String formatSize(int bytes) {
+  static String formatSize(bytesDynamic) {
+    int bytes = bytesDynamic.toInt();
+    int absBytes = bytes >= 0 ? bytes : -bytes;
     const int digits = 1;
     const int bytesPerKB = 1024;
     const int bytesPerMB = 1024 * bytesPerKB;
     const int bytesPerGB = 1024 * bytesPerMB;
     const int bytesPerTB = 1024 * bytesPerGB;
 
-    if (bytes < bytesPerKB) {
+    if (absBytes < bytesPerKB) {
       return "${bytes}B";
-    } else if (bytes < bytesPerMB) {
+    } else if (absBytes < bytesPerMB) {
       return "${(bytes / bytesPerKB).toStringAsFixed(digits)}KB";
-    } else if (bytes < bytesPerGB) {
+    } else if (absBytes < bytesPerGB) {
       return "${(bytes / bytesPerMB).toStringAsFixed(digits)}MB";
-    } else if (bytes < bytesPerTB) {
+    } else if (absBytes < bytesPerTB) {
       return "${(bytes / bytesPerGB).toStringAsFixed(digits)}GB";
     } else {
       return "${(bytes / bytesPerTB).toStringAsFixed(digits)}TB";
@@ -157,19 +159,19 @@ class Utils {
     var value = duration.inMicroseconds.abs();
     switch (precision) {
       case DurationComponent.Days:
-        value = (value / Duration.MICROSECONDS_PER_DAY).round();
+        value = (value / Duration.microsecondsPerDay).round();
         break;
       case DurationComponent.Hours:
-        value = (value / Duration.MICROSECONDS_PER_HOUR).round();
+        value = (value / Duration.microsecondsPerHour).round();
         break;
       case DurationComponent.Minutes:
-        value = (value / Duration.MICROSECONDS_PER_MINUTE).round();
+        value = (value / Duration.microsecondsPerMinute).round();
         break;
       case DurationComponent.Seconds:
-        value = (value / Duration.MICROSECONDS_PER_SECOND).round();
+        value = (value / Duration.microsecondsPerSecond).round();
         break;
       case DurationComponent.Milliseconds:
-        value = (value / Duration.MICROSECONDS_PER_MILLISECOND).round();
+        value = (value / Duration.microsecondsPerMillisecond).round();
         break;
       case DurationComponent.Microseconds:
         break;
@@ -186,24 +188,24 @@ class Utils {
     }
     switch (precision) {
       case DurationComponent.Microseconds:
-        components.add('${value % Duration.MICROSECONDS_PER_MILLISECOND}μs');
-        value = (value / Duration.MICROSECONDS_PER_MILLISECOND).floor();
+        components.add('${value % Duration.microsecondsPerMillisecond}μs');
+        value = (value / Duration.microsecondsPerMillisecond).floor();
         if (value != 0) {
           continue Milliseconds;
         }
         break;
       Milliseconds:
       case DurationComponent.Milliseconds:
-        components.add('${value % Duration.MILLISECONDS_PER_SECOND}ms');
-        value = (value / Duration.MILLISECONDS_PER_SECOND).floor();
+        components.add('${value % Duration.millisecondsPerSecond}ms');
+        value = (value / Duration.millisecondsPerSecond).floor();
         if (value != 0) {
           continue Seconds;
         }
         break;
       Seconds:
       case DurationComponent.Seconds:
-        components.add('${value % Duration.SECONDS_PER_MINUTE}s');
-        value = (value / Duration.SECONDS_PER_MINUTE).floor();
+        components.add('${value % Duration.secondsPerMinute}s');
+        value = (value / Duration.secondsPerMinute).floor();
         ;
         if (value != 0) {
           continue Minutes;
@@ -211,16 +213,16 @@ class Utils {
         break;
       Minutes:
       case DurationComponent.Minutes:
-        components.add('${value % Duration.MINUTES_PER_HOUR}m');
-        value = (value / Duration.MINUTES_PER_HOUR).floor();
+        components.add('${value % Duration.minutesPerHour}m');
+        value = (value / Duration.minutesPerHour).floor();
         if (value != 0) {
           continue Hours;
         }
         break;
       Hours:
       case DurationComponent.Hours:
-        components.add('${value % Duration.HOURS_PER_DAY}h');
-        value = (value / Duration.HOURS_PER_DAY).floor();
+        components.add('${value % Duration.hoursPerDay}h');
+        value = (value / Duration.hoursPerDay).floor();
         if (value != 0) {
           continue Days;
         }
@@ -241,15 +243,15 @@ class Utils {
   }
 
   static String formatDurationInSeconds(Duration x) =>
-      formatSeconds(x.inMicroseconds / Duration.MICROSECONDS_PER_SECOND);
+      formatSeconds(x.inMicroseconds / Duration.microsecondsPerSecond);
 
   static String formatDurationInMilliseconds(Duration x) =>
-      formatMillis(x.inMicroseconds / Duration.MICROSECONDS_PER_MILLISECOND);
+      formatMillis(x.inMicroseconds / Duration.microsecondsPerMillisecond);
 
   static bool runningInJavaScript() => identical(1.0, 1);
 
   static formatStringAsLiteral(String value, [bool wasTruncated = false]) {
-    var result = new List();
+    var result = <int>[];
     result.add("'".codeUnitAt(0));
     for (int codeUnit in value.codeUnits) {
       if (codeUnit == '\n'.codeUnitAt(0))
@@ -299,7 +301,7 @@ class Task {
       // Already scheduled.
       return;
     }
-    _timer = new Timer(Duration.ZERO, () {
+    _timer = new Timer(Duration.zero, () {
       _timer = null;
       callback();
     });

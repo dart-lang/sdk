@@ -3,8 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 analyzer:
-  strong-mode: true
   errors:
     # Allow having TODOs in the code
     todo: ignore
-    uses_dynamic_as_bottom: ignore

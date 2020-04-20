@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_CPU_ARM_H_
 #define RUNTIME_VM_CPU_ARM_H_
 
+#if !defined(RUNTIME_VM_CPU_H_)
+#error Do not include cpu_arm.h directly; use cpu.h instead.
+#endif
+
 #include "vm/allocation.h"
 #include "vm/simulator.h"
 
@@ -19,7 +23,6 @@ namespace dart {
 // they may be altered for testing.
 
 enum ARMVersion {
-  ARMv5TE,
   ARMv6,
   ARMv7,
   ARMvUnknown,
@@ -27,7 +30,7 @@ enum ARMVersion {
 
 class HostCPUFeatures : public AllStatic {
  public:
-  static void InitOnce();
+  static void Init();
   static void Cleanup();
   static const char* hardware() {
     DEBUG_ASSERT(initialized_);
@@ -92,7 +95,7 @@ class HostCPUFeatures : public AllStatic {
 
 class TargetCPUFeatures : public AllStatic {
  public:
-  static void InitOnce() { HostCPUFeatures::InitOnce(); }
+  static void Init() { HostCPUFeatures::Init(); }
   static void Cleanup() { HostCPUFeatures::Cleanup(); }
   static bool double_truncate_round_supported() { return false; }
   static bool integer_division_supported() {

@@ -1,0 +1,54 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Initialize from component, where the component is linked to a sdk, and where
+# the incremental compiler (could) load another sdk.
+# Risk when doing this: Having two definitions of the same thing
+# (e.g. the class 'String'), which could lead to errors such as
+# "The argument type 'dart.core::String' can't be assigned to
+# the parameter type 'dart.core::String'".
+
+type: newworld
+omitPlatform: false
+worlds:
+  - entry: main.dart
+    errors: false
+    warnings: false
+    sources:
+      main.dart: |
+        import "b.dart";
+
+        main() {
+          useString("hello");
+        }
+      b.dart: |
+        import "dart:core";
+
+        void useString(String s) {
+          print("Hello from useString: $s");
+        }
+    expectedLibraryCount: 2
+    expectsPlatform: true
+  - entry: main.dart
+    errors: false
+    warnings: false
+    expectInitializeFromDill: false
+    fromComponent: true
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import "b.dart";
+
+        main() {
+          useString("hello");
+        }
+      b.dart: |
+        import "dart:core";
+
+        void useString(String s) {
+          print("Hello from useString: $s");
+        }
+    expectedLibraryCount: 2
+    expectsPlatform: true

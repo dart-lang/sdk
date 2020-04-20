@@ -1,14 +1,16 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:test/test.dart';
@@ -19,6 +21,7 @@ import 'base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IndexTest);
+    defineReflectiveTests(IndexWithExtensionMethodsTest);
   });
 }
 
@@ -48,20 +51,33 @@ class IndexTest extends BaseAnalysisDriverTest {
 
   _ElementIndexAssert assertThat(Element element) {
     List<_Relation> relations = _getElementRelations(element);
-    return new _ElementIndexAssert(this, element, relations);
+    return _ElementIndexAssert(this, element, relations);
   }
 
   _NameIndexAssert assertThatName(String name) {
-    return new _NameIndexAssert(this, name);
+    return _NameIndexAssert(this, name);
   }
 
   Element findElement(String name, [ElementKind kind]) {
     return findChildElement(testUnitElement, name, kind);
   }
 
-  CompilationUnitElement importedUnit({int index: 0}) {
+  CompilationUnitElement importedUnit({int index = 0}) {
     List<ImportElement> imports = testLibraryElement.imports;
     return imports[index].importedLibrary.definingCompilationUnit;
+  }
+
+  test_fieldFormalParameter_noSuchField() async {
+    await _indexTestUnit('''
+class B<T> {
+  B({this.x}) {}
+
+  foo() {
+    B<int>(x: 1);
+  }
+}
+''');
+    // No exceptions.
   }
 
   test_hasAncestor_ClassDeclaration() async {
@@ -101,19 +117,29 @@ class C2 = Object with B;
     assertThat(classElementB)..isAncestorOf('C2 = Object with B');
   }
 
-  test_isExtendedBy_ClassDeclaration() async {
+  test_hasAncestor_MixinDeclaration() async {
     await _indexTestUnit('''
-class A {} // 1
-class B extends A {} // 2
+class A {}
+class B extends A {}
+
+mixin M1 on A {}
+mixin M2 on B {}
+mixin M3 implements A {}
+mixin M4 implements B {}
+mixin M5 on M2 {}
 ''');
-    ClassElement elementA = findElement('A');
-    assertThat(elementA)
-      ..isExtendedAt('A {} // 2', false)
-      ..isReferencedAt('A {} // 2', false);
+    ClassElement classElementA = findElement('A');
+    assertThat(classElementA)
+      ..isAncestorOf('B extends A')
+      ..isAncestorOf('M1 on A')
+      ..isAncestorOf('M2 on B')
+      ..isAncestorOf('M3 implements A')
+      ..isAncestorOf('M4 implements B')
+      ..isAncestorOf('M5 on M2');
   }
 
   test_isExtendedBy_ClassDeclaration_isQualified() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
@@ -146,7 +172,7 @@ class C = A with B;
   }
 
   test_isExtendedBy_ClassTypeAlias_isQualified() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
@@ -172,7 +198,7 @@ class B implements A {} // 2
   }
 
   test_isImplementedBy_ClassDeclaration_isQualified() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
@@ -197,23 +223,30 @@ class C = Object with A implements B; // 3
       ..isReferencedAt('B; // 3', false);
   }
 
-  test_isInvokedBy_FieldElement() async {
+  test_isImplementedBy_MixinDeclaration_implementsClause() async {
     await _indexTestUnit('''
-class A {
-  var field;
-  main() {
-    this.field(); // q
-    field(); // nq
+class A {} // 1
+mixin M implements A {} // 2
+''');
+    ClassElement elementA = findElement('A');
+    assertThat(elementA)
+      ..isImplementedAt('A {} // 2', false)
+      ..isReferencedAt('A {} // 2', false);
   }
-}''');
-    FieldElement field = findElement('field');
-    assertThat(field.getter)
-      ..isInvokedAt('field(); // q', true)
-      ..isInvokedAt('field(); // nq', false);
+
+  test_isImplementedBy_MixinDeclaration_onClause() async {
+    await _indexTestUnit('''
+class A {} // 1
+mixin M on A {} // 2
+''');
+    ClassElement elementA = findElement('A');
+    assertThat(elementA)
+      ..isImplementedAt('A {} // 2', false)
+      ..isReferencedAt('A {} // 2', false);
   }
 
   test_isInvokedBy_FunctionElement() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 library lib;
 foo() {}
 ''');
@@ -323,22 +356,7 @@ main(A a) {
     assertThat(element).isInvokedAt('~a', true, length: 1);
   }
 
-  test_isInvokedBy_PropertyAccessorElement_getter() async {
-    await _indexTestUnit('''
-class A {
-  get ggg => null;
-  main() {
-    this.ggg(); // q
-    ggg(); // nq
-  }
-}''');
-    PropertyAccessorElement element = findElement('ggg', ElementKind.GETTER);
-    assertThat(element)
-      ..isInvokedAt('ggg(); // q', true)
-      ..isInvokedAt('ggg(); // nq', false);
-  }
-
-  test_isMixedInBy_ClassDeclaration() async {
+  test_isMixedInBy_ClassDeclaration_class() async {
     await _indexTestUnit('''
 class A {} // 1
 class B extends Object with A {} // 2
@@ -350,7 +368,7 @@ class B extends Object with A {} // 2
   }
 
   test_isMixedInBy_ClassDeclaration_isQualified() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
@@ -361,13 +379,63 @@ class B extends Object with p.A {} // 2
     assertThat(elementA).isMixedInAt('A {} // 2', true);
   }
 
-  test_isMixedInBy_ClassTypeAlias() async {
+  test_isMixedInBy_ClassDeclaration_mixin() async {
+    await _indexTestUnit('''
+mixin A {} // 1
+class B extends Object with A {} // 2
+''');
+    ClassElement elementA = findElement('A');
+    assertThat(elementA)
+      ..isMixedInAt('A {} // 2', false)
+      ..isReferencedAt('A {} // 2', false);
+  }
+
+  test_isMixedInBy_ClassTypeAlias_class() async {
     await _indexTestUnit('''
 class A {} // 1
 class B = Object with A; // 2
 ''');
     ClassElement elementA = findElement('A');
     assertThat(elementA).isMixedInAt('A; // 2', false);
+  }
+
+  test_isMixedInBy_ClassTypeAlias_mixin() async {
+    await _indexTestUnit('''
+mixin A {} // 1
+class B = Object with A; // 2
+''');
+    ClassElement elementA = findElement('A');
+    assertThat(elementA).isMixedInAt('A; // 2', false);
+  }
+
+  test_isReferencedAt_PropertyAccessorElement_field_call() async {
+    await _indexTestUnit('''
+class A {
+  var field;
+  main() {
+    this.field(); // q
+    field(); // nq
+  }
+}''');
+    FieldElement field = findElement('field');
+    assertThat(field.getter)
+      ..isReferencedAt('field(); // q', true)
+      ..isReferencedAt('field(); // nq', false);
+  }
+
+  test_isReferencedAt_PropertyAccessorElement_getter_call() async {
+    await _indexTestUnit('''
+class A {
+  get ggg => null;
+  main() {
+    this.ggg(); // q
+    ggg(); // nq
+  }
+}''');
+    PropertyAccessorElement element = findElement('ggg', ElementKind.GETTER);
+    assertThat(element)
+      ..isReferencedAt('ggg(); // q', true)
+      ..isReferencedAt('ggg(); // nq', false);
   }
 
   test_isReferencedBy_ClassElement() async {
@@ -402,7 +470,7 @@ main() {
   }
 
   test_isReferencedBy_ClassElement_invocation_isQualified() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
@@ -412,6 +480,18 @@ main() {
 }''');
     Element element = importedUnit().getType('A');
     assertThat(element).isReferencedAt('A();', true);
+  }
+
+  test_isReferencedBy_ClassElement_invocationTypeArgument() async {
+    await _indexTestUnit('''
+class A {}
+void f<T>() {}
+main() {
+  f<A>();
+}
+''');
+    Element element = findElement('A');
+    assertThat(element)..isReferencedAt('A>();', false);
   }
 
   test_isReferencedBy_ClassTypeAlias() async {
@@ -429,7 +509,7 @@ main(B p) {
   }
 
   test_isReferencedBy_CompilationUnitElement_export() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 library lib;
 ''');
     await _indexTestUnit('''
@@ -440,7 +520,7 @@ export 'lib.dart';
   }
 
   test_isReferencedBy_CompilationUnitElement_import() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 library lib;
 ''');
     await _indexTestUnit('''
@@ -451,7 +531,7 @@ import 'lib.dart';
   }
 
   test_isReferencedBy_CompilationUnitElement_part() async {
-    provider.newFile(_p('$testProject/my_unit.dart'), 'part of my_lib;');
+    newFile('$testProject/my_unit.dart', content: 'part of my_lib;');
     await _indexTestUnit('''
 library my_lib;
 part 'my_unit.dart';
@@ -461,8 +541,8 @@ part 'my_unit.dart';
   }
 
   test_isReferencedBy_CompilationUnitElement_part_inPart() async {
-    provider.newFile(_p('$testProject/a.dart'), 'part of lib;');
-    provider.newFile(_p('$testProject/b.dart'), '''
+    newFile('$testProject/a.dart', content: 'part of lib;');
+    newFile('$testProject/b.dart', content: '''
 library lib;
 part 'a.dart';
 ''');
@@ -728,7 +808,7 @@ main() {
   }
 
   test_isReferencedBy_FunctionElement_with_LibraryElement() async {
-    provider.newFile(_p('$testProject/foo.dart'), r'''
+    newFile('$testProject/foo.dart', content: r'''
 bar() {}
 ''');
     await _indexTestUnit('''
@@ -788,13 +868,20 @@ class A {
   }
 
   test_isReferencedBy_MultiplyDefinedElement() async {
-    provider.newFile(_p('$testProject/a1.dart'), 'class A {}');
-    provider.newFile(_p('$testProject/a2.dart'), 'class A {}');
+    newFile('$testProject/a1.dart', content: 'class A {}');
+    newFile('$testProject/a2.dart', content: 'class A {}');
     await _indexTestUnit('''
 import 'a1.dart';
 import 'a2.dart';
 A v = null;
 ''');
+  }
+
+  test_isReferencedBy_NeverElement() async {
+    await _indexTestUnit('''
+Never f() {
+}''');
+    expect(index.usedElementOffsets, isEmpty);
   }
 
   test_isReferencedBy_ParameterElement() async {
@@ -806,6 +893,90 @@ main() {
 ''');
     Element element = findElement('p');
     assertThat(element)..isReferencedAt('p: 1', true);
+  }
+
+  test_isReferencedBy_ParameterElement_genericFunctionType() async {
+    await _indexTestUnit('''
+typedef F = void Function({int p});
+
+void main(F f) {
+  f(p: 0);
+}
+''');
+    // We should not crash because of reference to "p" - a named parameter
+    // of a generic function type.
+  }
+
+  test_isReferencedBy_ParameterElement_genericFunctionType_call() async {
+    await _indexTestUnit('''
+typedef F<T> = void Function({T test});
+
+main(F<int> f) {
+  f.call(test: 0);
+}
+''');
+    // No exceptions.
+  }
+
+  test_isReferencedBy_ParameterElement_multiplyDefined_generic() async {
+    newFile('/test/lib/a.dart', content: r'''
+void foo<T>({T a}) {}
+''');
+    newFile('/test/lib/b.dart', content: r'''
+void foo<T>({T a}) {}
+''');
+    await _indexTestUnit(r"""
+import 'a.dart';
+import 'b.dart';
+
+void main() {
+  foo(a: 0);
+}
+""");
+    // No exceptions.
+  }
+
+  test_isReferencedBy_ParameterElement_named_ofConstructor_genericClass() async {
+    await _indexTestUnit('''
+class A<T> {
+  A({T test});
+}
+
+main() {
+  A(test: 0);
+}
+''');
+    Element element = findElement('test');
+    assertThat(element)..isReferencedAt('test: 0', true);
+  }
+
+  test_isReferencedBy_ParameterElement_named_ofMethod_genericClass() async {
+    await _indexTestUnit('''
+class A<T> {
+  void foo({T test}) {}
+}
+
+main(A<int> a) {
+  a.foo(test: 0);
+}
+''');
+    Element element = findElement('test');
+    assertThat(element)..isReferencedAt('test: 0', true);
+  }
+
+  test_isReferencedBy_ParameterElement_optionalPositional() async {
+    await _indexTestUnit('''
+foo([p]) {
+  p; // 1
+}
+main() {
+  foo(1); // 2
+}
+''');
+    Element element = findElement('p');
+    assertThat(element)
+      ..hasRelationCount(1)
+      ..isReferencedAt('1); // 2', true, length: 0);
   }
 
   test_isReferencedBy_synthetic_leastUpperBound() async {
@@ -821,7 +992,7 @@ main(bool b) {
   }
 
   test_isReferencedBy_TopLevelVariableElement() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 library lib;
 var V;
 ''');
@@ -845,7 +1016,7 @@ main() {
   }
 
   test_isReferencedBy_TopLevelVariableElement_synthetic_hasGetterSetter() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 int get V => 0;
 void set V(_) {}
 ''');
@@ -857,7 +1028,7 @@ import 'lib.dart' show V;
   }
 
   test_isReferencedBy_TopLevelVariableElement_synthetic_hasSetter() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 void set V(_) {}
 ''');
     await _indexTestUnit('''
@@ -892,7 +1063,7 @@ class A {
 
   test_subtypes_classDeclaration() async {
     String libP = 'package:test/lib.dart;package:test/lib.dart';
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 class A {}
 class B {}
 class C {}
@@ -924,32 +1095,25 @@ class Z implements E, D {
 }
 ''');
 
-    {
-      AnalysisDriverSubtype X =
-          index.subtypes.singleWhere((t) => t.name == 'X');
-      expect(X.supertypes, ['$libP;A']);
-      expect(X.members, ['field1', 'field2', 'getter1', 'method1', 'setter1']);
-    }
+    expect(index.supertypes, hasLength(6));
+    expect(index.subtypes, hasLength(6));
 
-    {
-      AnalysisDriverSubtype Y =
-          index.subtypes.singleWhere((t) => t.name == 'Y');
-      expect(
-          Y.supertypes, ['dart:core;dart:core;Object', '$libP;B', '$libP;C']);
-      expect(Y.members, ['methodY']);
-    }
-
-    {
-      AnalysisDriverSubtype Z =
-          index.subtypes.singleWhere((t) => t.name == 'Z');
-      expect(Z.supertypes, ['$libP;D', '$libP;E']);
-      expect(Z.members, ['methodZ']);
-    }
+    _assertSubtype(0, 'dart:core;dart:core;Object', 'Y', ['methodY']);
+    _assertSubtype(
+      1,
+      '$libP;A',
+      'X',
+      ['field1', 'field2', 'getter1', 'method1', 'setter1'],
+    );
+    _assertSubtype(2, '$libP;B', 'Y', ['methodY']);
+    _assertSubtype(3, '$libP;C', 'Y', ['methodY']);
+    _assertSubtype(4, '$libP;D', 'Z', ['methodZ']);
+    _assertSubtype(5, '$libP;E', 'Z', ['methodZ']);
   }
 
   test_subtypes_classTypeAlias() async {
     String libP = 'package:test/lib.dart;package:test/lib.dart';
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 class A {}
 class B {}
 class C {}
@@ -962,19 +1126,16 @@ class X = A with B, C;
 class Y = A with B implements C, D;
 ''');
 
-    {
-      AnalysisDriverSubtype X =
-          index.subtypes.singleWhere((t) => t.name == 'X');
-      expect(X.supertypes, ['$libP;A', '$libP;B', '$libP;C']);
-      expect(X.members, isEmpty);
-    }
+    expect(index.supertypes, hasLength(7));
+    expect(index.subtypes, hasLength(7));
 
-    {
-      AnalysisDriverSubtype Y =
-          index.subtypes.singleWhere((t) => t.name == 'Y');
-      expect(Y.supertypes, ['$libP;A', '$libP;B', '$libP;C', '$libP;D']);
-      expect(Y.members, isEmpty);
-    }
+    _assertSubtype(0, '$libP;A', 'X', []);
+    _assertSubtype(1, '$libP;A', 'Y', []);
+    _assertSubtype(2, '$libP;B', 'X', []);
+    _assertSubtype(3, '$libP;B', 'Y', []);
+    _assertSubtype(4, '$libP;C', 'X', []);
+    _assertSubtype(5, '$libP;C', 'Y', []);
+    _assertSubtype(6, '$libP;D', 'Y', []);
   }
 
   test_subtypes_dynamic() async {
@@ -984,9 +1145,35 @@ class X extends dynamic {
 }
 ''');
 
-    AnalysisDriverSubtype X = index.subtypes.singleWhere((t) => t.name == 'X');
-    expect(X.supertypes, isEmpty);
-    expect(X.members, ['foo']);
+    expect(index.supertypes, isEmpty);
+    expect(index.subtypes, isEmpty);
+  }
+
+  test_subtypes_mixinDeclaration() async {
+    String libP = 'package:test/lib.dart;package:test/lib.dart';
+    newFile('$testProject/lib.dart', content: '''
+class A {}
+class B {}
+class C {}
+class D {}
+class E {}
+''');
+    await _indexTestUnit('''
+import 'lib.dart';
+
+mixin X on A implements B, C {}
+mixin Y on A, B implements C;
+''');
+
+    expect(index.supertypes, hasLength(6));
+    expect(index.subtypes, hasLength(6));
+
+    _assertSubtype(0, '$libP;A', 'X', []);
+    _assertSubtype(1, '$libP;A', 'Y', []);
+    _assertSubtype(2, '$libP;B', 'X', []);
+    _assertSubtype(3, '$libP;B', 'Y', []);
+    _assertSubtype(4, '$libP;C', 'X', []);
+    _assertSubtype(5, '$libP;C', 'Y', []);
   }
 
   test_usedName_inLibraryIdentifier() async {
@@ -1094,6 +1281,14 @@ main() {
         'not found\n$element $expectedRelationKind at $expectedLocation');
   }
 
+  void _assertSubtype(
+      int i, String superEncoded, String subName, List<String> members) {
+    expect(index.strings[index.supertypes[i]], superEncoded);
+    var subtype = index.subtypes[i];
+    expect(index.strings[subtype.name], subName);
+    expect(_decodeStringList(subtype.members), members);
+  }
+
   void _assertUsedName(String name, IndexRelationKind kind,
       ExpectedLocation expectedLocation, bool isNot) {
     int nameId = _getStringId(name);
@@ -1114,18 +1309,22 @@ main() {
     _failWithIndexDump('Not found $name $kind at $expectedLocation');
   }
 
+  List<String> _decodeStringList(List<int> stringIds) {
+    return stringIds.map((i) => index.strings[i]).toList();
+  }
+
   ExpectedLocation _expectedLocation(String search, bool isQualified,
       {int length}) {
     int offset = findOffset(search);
     if (length == null) {
       length = getLeadingIdentifierLength(search);
     }
-    return new ExpectedLocation(testUnitElement, offset, length, isQualified);
+    return ExpectedLocation(testUnitElement, offset, length, isQualified);
   }
 
   void _failWithIndexDump(String msg) {
     String packageIndexJsonString =
-        new JsonEncoder.withIndent('  ').convert(index.toJson());
+        JsonEncoder.withIndent('  ').convert(index.toJson());
     fail('$msg in\n' + packageIndexJsonString);
   }
 
@@ -1135,7 +1334,7 @@ main() {
   int _findElementId(Element element) {
     int unitId = _getUnitId(element);
     // Prepare the element that was put into the index.
-    IndexElementInfo info = new IndexElementInfo(element);
+    IndexElementInfo info = IndexElementInfo(element);
     element = info.element;
     // Prepare element's name components.
     int unitMemberId = index.nullStringId;
@@ -1148,7 +1347,8 @@ main() {
       }
     }
     for (Element e = element; e != null; e = e.enclosingElement) {
-      if (e.enclosingElement is ClassElement) {
+      if (e.enclosingElement is ClassElement ||
+          e.enclosingElement is ExtensionElement) {
         classMemberId = _getStringId(e.name);
         break;
       }
@@ -1180,7 +1380,7 @@ main() {
     List<_Relation> relations = <_Relation>[];
     for (int i = 0; i < index.usedElementOffsets.length; i++) {
       if (index.usedElements[i] == elementId) {
-        relations.add(new _Relation(
+        relations.add(_Relation(
             index.usedElementKinds[i],
             index.usedElementOffsets[i],
             index.usedElementLengths[i],
@@ -1218,20 +1418,124 @@ main() {
     return _getStringId(str);
   }
 
-  Future<Null> _indexTestUnit(String code) async {
+  Future<void> _indexTestUnit(String code) async {
     addTestFile(code);
 
-    AnalysisResult result = await driver.getResult(testFile);
+    ResolvedUnitResult result = await driver.getResult(testFile);
     testUnit = result.unit;
-    testUnitElement = testUnit.element;
+    testUnitElement = testUnit.declaredElement;
     testLibraryElement = testUnitElement.library;
 
     AnalysisDriverUnitIndexBuilder indexBuilder = indexUnit(testUnit);
     List<int> indexBytes = indexBuilder.toBuffer();
-    index = new AnalysisDriverUnitIndex.fromBuffer(indexBytes);
+    index = AnalysisDriverUnitIndex.fromBuffer(indexBytes);
+  }
+}
+
+@reflectiveTest
+class IndexWithExtensionMethodsTest extends IndexTest {
+  @override
+  AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
+
+  test_isInvokedBy_MethodElement_ofExtension_instance() async {
+    await _indexTestUnit('''
+class A {}
+
+extension E on A {
+  void foo() {}
+}
+
+main(A a) {
+  a.foo();
+}
+''');
+    MethodElement element = findElement('foo');
+    assertThat(element)..isInvokedAt('foo();', true);
   }
 
-  String _p(String path) => provider.convertPath(path);
+  test_isInvokedBy_MethodElement_ofExtension_static() async {
+    await _indexTestUnit('''
+class A {}
+
+extension E on A {
+  static void foo() {}
+}
+
+main(A a) {
+  E.foo();
+}
+''');
+    MethodElement element = findElement('foo');
+    assertThat(element)..isInvokedAt('foo();', true);
+  }
+
+  test_isReferencedBy_ClassElement_fromExtension() async {
+    await _indexTestUnit('''
+class A<T> {}
+
+extension E on A<int> {}
+''');
+    ClassElement element = findElement('A');
+    assertThat(element)..isReferencedAt('A<int>', false);
+  }
+
+  test_isReferencedBy_ExtensionElement() async {
+    await _indexTestUnit('''
+class A {}
+
+extension E on A {
+  void foo() {}
+}
+
+main(A a) {
+  E(a).foo();
+}
+''');
+    ExtensionElement element = findElement('E');
+    assertThat(element)..isReferencedAt('E(a).foo()', false);
+  }
+
+  test_isReferencedBy_PropertyAccessor_ofExtension_instance() async {
+    await _indexTestUnit('''
+class A {}
+
+extension E on A {
+  int get foo => 0;
+  void set foo(int _) {}
+}
+
+main(A a) {
+  a.foo;
+  a.foo = 0;
+}
+''');
+    PropertyAccessorElement getter = findElement('foo', ElementKind.GETTER);
+    PropertyAccessorElement setter = findElement('foo=');
+    assertThat(getter)..isReferencedAt('foo;', true);
+    assertThat(setter)..isReferencedAt('foo = 0;', true);
+  }
+
+  test_isReferencedBy_PropertyAccessor_ofExtension_static() async {
+    await _indexTestUnit('''
+class A {}
+
+extension E on A {
+  static int get foo => 0;
+  static void set foo(int _) {}
+}
+
+main(A a) {
+  a.foo;
+  a.foo = 0;
+}
+''');
+    PropertyAccessorElement getter = findElement('foo', ElementKind.GETTER);
+    PropertyAccessorElement setter = findElement('foo=');
+    assertThat(getter)..isReferencedAt('foo;', true);
+    assertThat(setter)..isReferencedAt('foo = 0;', true);
+  }
 }
 
 class _ElementIndexAssert {

@@ -6,8 +6,7 @@ import 'package:async_helper/async_helper.dart' show asyncTest;
 
 import 'package:expect/expect.dart' show Expect;
 
-import 'package:front_end/src/fasta/builder/builder.dart'
-    show InvalidTypeBuilder;
+import 'package:front_end/src/fasta/builder/invalid_type_declaration_builder.dart';
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
@@ -17,7 +16,7 @@ import 'package:front_end/src/fasta/dill/dill_library_builder.dart'
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
 import 'package:kernel/ast.dart'
-    show Field, Library, Name, Program, StringLiteral;
+    show Field, Library, Name, Component, StringLiteral;
 
 main() async {
   await asyncTest(() async {
@@ -25,16 +24,17 @@ main() async {
     Field field = new Field(new Name("_exports#", library),
         initializer: new StringLiteral('{"main":"Problem with main"}'));
     library.addMember(field);
-    Program program = new Program(libraries: <Library>[library]);
+    Component component = new Component(libraries: <Library>[library]);
     await CompilerContext.runWithDefaultOptions((CompilerContext c) async {
-      DillTarget target =
-          new DillTarget(c.options.ticker, null, c.options.target);
-      target.loader.appendLibraries(program);
+      DillTarget target = new DillTarget(c.options.ticker,
+          await c.options.getUriTranslator(), c.options.target);
+      target.loader.appendLibraries(component);
       DillLibraryBuilder builder = target.loader.read(library.importUri, -1);
       await target.loader.buildOutline(builder);
-      builder.finalizeExports();
-      var mainExport = builder.exportScope.local["main"];
-      Expect.isTrue(mainExport is InvalidTypeBuilder);
+      builder.markAsReadyToFinalizeExports();
+      var mainExport =
+          builder.exportScope.lookupLocalMember("main", setter: false);
+      Expect.isTrue(mainExport is InvalidTypeDeclarationBuilder);
     });
   });
 }

@@ -35,8 +35,9 @@ SecurityContext clientContext(String certType, String password) =>
           password: password);
 
 Future<HttpServer> startServer(String certType, String password) {
-  return HttpServer
-      .bindSecure("localhost", 0, serverContext(certType, password), backlog: 5)
+  return HttpServer.bindSecure(
+          "localhost", 0, serverContext(certType, password),
+          backlog: 5)
       .then((server) {
     server.listen((HttpRequest request) {
       request.listen((_) {}, onDone: () {
@@ -55,8 +56,7 @@ Future test(String certType, String password) {
   List<int> body = <int>[];
   Completer completer = new Completer();
   startServer(certType, password).then((server) {
-    SecureSocket
-        .connect("localhost", server.port,
+    SecureSocket.connect("localhost", server.port,
             context: clientContext(certType, password))
         .then((socket) {
       socket.write("GET / HTTP/1.0\r\nHost: localhost\r\n\r\n");

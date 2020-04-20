@@ -18,16 +18,7 @@ import "package:async_helper/async_helper.dart";
 // within +/- 2 <= seconds.
 
 const SECONDS = 4;
-
-List<String> packageOptions() {
-  if (Platform.packageRoot != null) {
-    return <String>['--package-root=${Platform.packageRoot}'];
-  } else if (Platform.packageConfig != null) {
-    return <String>['--packages=${Platform.packageConfig}'];
-  } else {
-    return <String>[];
-  }
-}
+const SLACK = 60;
 
 void runServerProcess() {
   asyncStart();
@@ -37,7 +28,7 @@ void runServerProcess() {
     server.idleTimeout = const Duration(hours: 1);
 
     var subscription = server.listen((HttpRequest request) {
-      return request.response
+      request.response
         ..write('hello world')
         ..close();
     });
@@ -46,7 +37,10 @@ void runServerProcess() {
     var script = Platform.script
         .resolve('http_client_stays_alive_test.dart')
         .toFilePath();
-    var arguments = packageOptions()..add(script)..add(url);
+    var arguments = <String>[]
+      ..addAll(Platform.executableArguments)
+      ..add(script)
+      ..add(url);
     Process.run(Platform.executable, arguments).then((res) {
       subscription.cancel();
       if (res.exitCode != 0) {
@@ -57,9 +51,9 @@ void runServerProcess() {
       // NOTE: There is a slight chance this will cause flakiness, but there is
       // no other good way of testing correctness of timing-dependent code
       // form the outside.
-      if (seconds < SECONDS || (SECONDS + 30) < seconds) {
+      if (seconds < SECONDS || (SECONDS + SLACK) < seconds) {
         throw "Child did exit within $seconds seconds, but expected it to take "
-            "roughly $SECONDS seconds.";
+            "roughly between $SECONDS and ${SECONDS + SLACK} seconds.";
       }
 
       asyncEnd();

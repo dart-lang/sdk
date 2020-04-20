@@ -1,0 +1,18 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object /*hasConstConstructor*/  {
+  const constructor •(core::List<core::String*>* l) → self::Foo*
+    : super core::Object::•()
+    ;
+}
+static method test() → void {
+  function f(@#C1 dynamic x) → void {}
+  (dynamic) →* core::Null? x = (@#C1 dynamic x) → core::Null? {};
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = self::Foo {}
+}

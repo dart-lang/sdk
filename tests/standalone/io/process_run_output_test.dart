@@ -26,29 +26,27 @@ checkOutput(String encoding, output) {
 test(scriptFile, String encoding, stream) {
   var enc;
   if (encoding == 'ascii') {
-    enc = ASCII;
+    enc = ascii;
   } else if (encoding == 'latin1') {
-    enc = LATIN1;
+    enc = latin1;
   } else if (encoding == 'utf8') {
-    enc = UTF8;
+    enc = utf8;
   } else if (encoding == 'binary') {
     enc = null;
   }
 
+  var args = <String>[]
+    ..addAll(Platform.executableArguments)
+    ..addAll([scriptFile, encoding, stream]);
+
   if (stream == 'stdout') {
-    Process
-        .run(Platform.executable, [scriptFile, encoding, stream],
-            stdoutEncoding: enc)
-        .then((result) {
+    Process.run(Platform.executable, args, stdoutEncoding: enc).then((result) {
       Expect.equals(result.exitCode, 0);
       Expect.equals(result.stderr, '');
       checkOutput(encoding, result.stdout);
     });
   } else {
-    Process
-        .run(Platform.executable, [scriptFile, encoding, stream],
-            stderrEncoding: enc)
-        .then((result) {
+    Process.run(Platform.executable, args, stderrEncoding: enc).then((result) {
       Expect.equals(result.exitCode, 0);
       Expect.equals(result.stdout, '');
       checkOutput(encoding, result.stderr);

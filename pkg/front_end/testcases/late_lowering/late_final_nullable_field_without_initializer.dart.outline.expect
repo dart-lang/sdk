@@ -1,0 +1,59 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  static field core::int? _#lateStaticField1;
+  static field core::bool _#lateStaticField1#isSet;
+  static field core::int? _#lateStaticField2;
+  static field core::bool _#lateStaticField2#isSet;
+  field core::int? _#Class#lateInstanceField;
+  field core::bool _#Class#lateInstanceField#isSet;
+  field self::Class::T? _#Class#lateGenericInstanceField;
+  field core::bool _#Class#lateGenericInstanceField#isSet;
+  synthetic constructor •() → self::Class<self::Class::T%>
+    ;
+  static get lateStaticField1() → core::int?;
+  static set lateStaticField1(core::int? #t1) → void;
+  static get lateStaticField2() → core::int?;
+  static set lateStaticField2(core::int? #t2) → void;
+  static method staticMethod() → dynamic
+    ;
+  get lateInstanceField() → core::int?;
+  set lateInstanceField(core::int? #t3) → void;
+  get lateGenericInstanceField() → self::Class::T?;
+  set lateGenericInstanceField(self::Class::T? #t4) → void;
+  method instanceMethod(generic-covariant-impl self::Class::T% value) → dynamic
+    ;
+}
+extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {
+  static field lateExtensionField1 = self::_#Extension|lateExtensionField1;
+  static field lateExtensionField1 = self::_#Extension|lateExtensionField1#isSet;
+  static get lateExtensionField1 = get self::Extension|lateExtensionField1;
+  static set lateExtensionField1 = set self::Extension|lateExtensionField1;
+  static field lateExtensionField2 = self::_#Extension|lateExtensionField2;
+  static field lateExtensionField2 = self::_#Extension|lateExtensionField2#isSet;
+  static get lateExtensionField2 = get self::Extension|lateExtensionField2;
+  static set lateExtensionField2 = set self::Extension|lateExtensionField2;
+  static method staticMethod = self::Extension|staticMethod;
+}
+static field core::int? _#lateTopLevelField;
+static field core::bool _#lateTopLevelField#isSet;
+static field core::int? _#Extension|lateExtensionField1;
+static field core::bool _#Extension|lateExtensionField1#isSet;
+static field core::int? _#Extension|lateExtensionField2;
+static field core::bool _#Extension|lateExtensionField2#isSet;
+static get lateTopLevelField() → core::int?;
+static set lateTopLevelField(core::int? #t5) → void;
+static get Extension|lateExtensionField1() → core::int?;
+static set Extension|lateExtensionField1(core::int? #t6) → void;
+static get Extension|lateExtensionField2() → core::int?;
+static set Extension|lateExtensionField2(core::int? #t7) → void;
+static method Extension|staticMethod() → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method throws(() → dynamic f, core::String message) → dynamic
+  ;

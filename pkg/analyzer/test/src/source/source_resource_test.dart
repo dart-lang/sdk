@@ -1,21 +1,18 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.source.source_resource_test;
-
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../context/mock_sdk.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -24,28 +21,26 @@ main() {
 }
 
 @reflectiveTest
-class FileSourceTest {
-  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-
+class FileSourceTest with ResourceProviderMixin {
   void test_equals_false_differentFiles() {
-    File file1 = resourceProvider.getFile("/does/not/exist1.dart");
-    File file2 = resourceProvider.getFile("/does/not/exist2.dart");
-    FileSource source1 = new FileSource(file1);
-    FileSource source2 = new FileSource(file2);
+    File file1 = getFile("/does/not/exist1.dart");
+    File file2 = getFile("/does/not/exist2.dart");
+    FileSource source1 = FileSource(file1);
+    FileSource source2 = FileSource(file2);
     expect(source1 == source2, isFalse);
   }
 
   void test_equals_false_null() {
-    File file = resourceProvider.getFile("/does/not/exist1.dart");
-    FileSource source1 = new FileSource(file);
+    File file = getFile("/does/not/exist1.dart");
+    FileSource source1 = FileSource(file);
     expect(source1 == null, isFalse);
   }
 
   void test_equals_true() {
-    File file1 = resourceProvider.getFile("/does/not/exist.dart");
-    File file2 = resourceProvider.getFile("/does/not/exist.dart");
-    FileSource source1 = new FileSource(file1);
-    FileSource source2 = new FileSource(file2);
+    File file1 = getFile("/does/not/exist.dart");
+    File file2 = getFile("/does/not/exist.dart");
+    FileSource source1 = FileSource(file1);
+    FileSource source2 = FileSource(file2);
     expect(source1 == source2, isTrue);
   }
 
@@ -90,40 +85,30 @@ class FileSourceTest {
     FileSource.fileReadMode = (String s) => s;
   }
 
-  void test_getEncoding() {
-    SourceFactory factory =
-        new SourceFactory([new ResourceUriResolver(resourceProvider)]);
-    String fullPath = resourceProvider.convertPath("/does/not/exist.dart");
-    File file = resourceProvider.getFile(fullPath);
-    FileSource source = new FileSource(file);
-    expect(factory.fromEncoding(source.encoding), source);
-  }
-
   void test_getFullName() {
-    String fullPath = "/does/not/exist.dart";
-    File file = resourceProvider.getFile(fullPath);
-    FileSource source = new FileSource(file);
+    File file = getFile("/does/not/exist.dart");
+    FileSource source = FileSource(file);
     expect(source.fullName, file.path);
   }
 
   void test_getShortName() {
-    File file = resourceProvider.getFile("/does/not/exist.dart");
-    FileSource source = new FileSource(file);
+    File file = getFile("/does/not/exist.dart");
+    FileSource source = FileSource(file);
     expect(source.shortName, "exist.dart");
   }
 
   void test_hashCode() {
-    File file1 = resourceProvider.getFile("/does/not/exist.dart");
-    File file2 = resourceProvider.getFile("/does/not/exist.dart");
-    FileSource source1 = new FileSource(file1);
-    FileSource source2 = new FileSource(file2);
+    File file1 = getFile("/does/not/exist.dart");
+    File file2 = getFile("/does/not/exist.dart");
+    FileSource source1 = FileSource(file1);
+    FileSource source2 = FileSource(file2);
     expect(source2.hashCode, source1.hashCode);
   }
 
   void test_isInSystemLibrary_contagious() {
     DartSdk sdk = _createSdk();
-    UriResolver resolver = new DartUriResolver(sdk);
-    SourceFactory factory = new SourceFactory([resolver]);
+    UriResolver resolver = DartUriResolver(sdk);
+    SourceFactory factory = SourceFactory([resolver]);
     // resolve dart:core
     Source result = resolver.resolveAbsolute(Uri.parse("dart:async"));
     expect(result, isNotNull);
@@ -135,8 +120,8 @@ class FileSourceTest {
   }
 
   void test_isInSystemLibrary_false() {
-    File file = resourceProvider.getFile("/does/not/exist.dart");
-    FileSource source = new FileSource(file);
+    File file = getFile("/does/not/exist.dart");
+    FileSource source = FileSource(file);
     expect(source, isNotNull);
     expect(source.fullName, file.path);
     expect(source.isInSystemLibrary, isFalse);
@@ -144,8 +129,7 @@ class FileSourceTest {
 
   void test_issue14500() {
     // see https://code.google.com/p/dart/issues/detail?id=14500
-    FileSource source =
-        new FileSource(resourceProvider.getFile("/some/packages/foo:bar.dart"));
+    FileSource source = FileSource(getFile("/some/packages/foo:bar.dart"));
     expect(source, isNotNull);
     expect(source.exists(), isFalse);
   }
@@ -157,8 +141,8 @@ class FileSourceTest {
       // this test.
       return;
     }
-    File file = resourceProvider.getFile("/a/b/test.dart");
-    FileSource source = new FileSource(file);
+    File file = getFile("/a/b/test.dart");
+    FileSource source = FileSource(file);
     expect(source, isNotNull);
     Uri relative = resolveRelativeUri(source.uri, Uri.parse("lib.dart"));
     expect(relative, isNotNull);
@@ -172,8 +156,8 @@ class FileSourceTest {
       // this test.
       return;
     }
-    File file = resourceProvider.getFile("/a/b/test.dart");
-    FileSource source = new FileSource(file);
+    File file = getFile("/a/b/test.dart");
+    FileSource source = FileSource(file);
     expect(source, isNotNull);
     Uri relative = resolveRelativeUri(source.uri, Uri.parse("c/lib.dart"));
     expect(relative, isNotNull);
@@ -186,8 +170,8 @@ class FileSourceTest {
       // believe is not consistent across all machines that might run this test.
       return;
     }
-    File file = resourceProvider.getFile("/a/b/test.dart");
-    FileSource source = new FileSource(file);
+    File file = getFile("/a/b/test.dart");
+    FileSource source = FileSource(file);
     expect(source, isNotNull);
     Uri relative = resolveRelativeUri(source.uri, Uri.parse("../c/lib.dart"));
     expect(relative, isNotNull);
@@ -195,14 +179,14 @@ class FileSourceTest {
   }
 
   void test_system() {
-    File file = resourceProvider.getFile("/does/not/exist.dart");
-    FileSource source = new FileSource(file, Uri.parse("dart:core"));
+    File file = getFile("/does/not/exist.dart");
+    FileSource source = FileSource(file, Uri.parse("dart:core"));
     expect(source, isNotNull);
     expect(source.fullName, file.path);
     expect(source.isInSystemLibrary, isTrue);
   }
 
   DartSdk _createSdk() {
-    return new MockSdk(resourceProvider: resourceProvider);
+    return MockSdk(resourceProvider: resourceProvider);
   }
 }

@@ -11,5 +11,5 @@ class C<T> {
 }
 
 main() {
-  var /*@type=C<int>*/ x = const /*@typeArgs=int*/ C(42);
+  var /*@ type=C<int*>* */ x = const /*@ typeArgs=int* */ C(42);
 }

@@ -75,6 +75,12 @@ bool containsTypeVariable(DartType type, Set<TypeParameter> variables) {
   return new _OccurrenceVisitor(variables).visit(type);
 }
 
+/// Returns `true` if [type] contains any free type variables, that is, type
+/// variable for function types whose function type is part of [type].
+bool containsFreeFunctionTypeVariables(DartType type) {
+  return new _FreeFunctionTypeVariableVisitor().visit(type);
+}
+
 /// Given a set of type variables, finds a substitution of those variables such
 /// that the two given types becomes equal, or returns `null` if no such
 /// substitution exists.
@@ -107,8 +113,22 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
       growable: true);
   var map = <TypeParameter, DartType>{};
   for (int i = 0; i < typeParameters.length; ++i) {
-    map[typeParameters[i]] = new TypeParameterType(freshParameters[i]);
-    freshParameters[i].bound = substitute(typeParameters[i].bound, map);
+    map[typeParameters[i]] = new TypeParameterType.forAlphaRenaming(
+        typeParameters[i], freshParameters[i]);
+  }
+  for (int i = 0; i < typeParameters.length; ++i) {
+    TypeParameter typeParameter = typeParameters[i];
+    TypeParameter freshTypeParameter = freshParameters[i];
+
+    freshTypeParameter.bound = substitute(typeParameter.bound, map);
+    freshTypeParameter.defaultType = typeParameter.defaultType != null
+        ? substitute(typeParameter.defaultType, map)
+        : null;
+    freshTypeParameter.variance =
+        typeParameter.isLegacyCovariant ? null : typeParameter.variance;
+    // Annotations on a type parameter are specific to the declaration of the
+    // type parameter, rather than the type parameter as such, and therefore
+    // should not be copied here.
   }
   return new FreshTypeParameters(freshParameters, Substitution.fromMap(map));
 }
@@ -119,7 +139,21 @@ class FreshTypeParameters {
 
   FreshTypeParameters(this.freshTypeParameters, this.substitution);
 
+  FunctionType applyToFunctionType(FunctionType type) => new FunctionType(
+      type.positionalParameters.map(substitute).toList(),
+      substitute(type.returnType),
+      type.nullability,
+      namedParameters: type.namedParameters.map(substituteNamed).toList(),
+      typeParameters: freshTypeParameters,
+      requiredParameterCount: type.requiredParameterCount,
+      typedefType:
+          type.typedefType == null ? null : substitute(type.typedefType));
+
   DartType substitute(DartType type) => substitution.substituteType(type);
+
+  NamedType substituteNamed(NamedType type) =>
+      new NamedType(type.name, substitute(type.type),
+          isRequired: type.isRequired);
 
   Supertype substituteSuper(Supertype type) {
     return substitution.substituteSupertype(type);
@@ -223,8 +257,8 @@ abstract class Substitution {
   /// [first] if they overlap.
   ///
   /// Neither substitution is applied to the results of the other, so this does
-  /// *not* correspond to a sequence of two subsitutions. For example, combining
-  /// `{T -> List<G>}` with `{G -> String}` does not correspond to
+  /// *not* correspond to a sequence of two substitutions. For example,
+  /// combining `{T -> List<G>}` with `{G -> String}` does not correspond to
   /// `{T -> List<String>}` because the result from substituting `T` is not
   /// searched for occurences of `G`.
   static Substitution combine(Substitution first, Substitution second) {
@@ -250,7 +284,7 @@ class _NullSubstitution extends Substitution {
   const _NullSubstitution();
 
   DartType getSubstitute(TypeParameter parameter, bool upperBound) {
-    return new TypeParameterType(parameter);
+    return new TypeParameterType.forAlphaRenaming(parameter, parameter);
   }
 
   @override
@@ -258,6 +292,9 @@ class _NullSubstitution extends Substitution {
 
   @override
   Supertype substituteSupertype(Supertype node) => node;
+
+  @override
+  String toString() => "Substitution.empty";
 }
 
 class _MapSubstitution extends Substitution {
@@ -269,6 +306,9 @@ class _MapSubstitution extends Substitution {
   DartType getSubstitute(TypeParameter parameter, bool upperBound) {
     return upperBound ? upper[parameter] : lower[parameter];
   }
+
+  @override
+  String toString() => "_MapSubstitution($upper, $lower)";
 }
 
 class _TopSubstitutor extends _TypeSubstitutor {
@@ -339,10 +379,57 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
 
   TypeParameter freshTypeParameter(TypeParameter node) {
     var fresh = new TypeParameter(node.name);
-    substitution[node] = new TypeParameterType(fresh);
+    substitution[node] = new TypeParameterType.forAlphaRenaming(node, fresh);
     fresh.bound = visit(node.bound);
+    if (node.defaultType != null) {
+      fresh.defaultType = visit(node.defaultType);
+    }
     return fresh;
   }
+}
+
+/// Combines nullabilities of types during type substitution.
+///
+/// In a type substitution, for example, when `int` is substituted for `T` in
+/// `List<T?>`, the nullability of the occurrence of the type parameter should
+/// be combined with the nullability of the type that is being substituted for
+/// that type parameter.  In the example above it's the nullability of `T?`
+/// and `int`.  The function computes the nullability for the replacement as
+/// per the following table:
+///
+/// | arg \ var |  !  |  ?  |  *  |  %  |
+/// |-----------|-----|-----|-----|-----|
+/// |     !     |  !  |  ?  |  *  |  !  |
+/// |     ?     | N/A |  ?  |  ?  |  ?  |
+/// |     *     |  *  |  ?  |  *  |  *  |
+/// |     %     | N/A |  ?  |  *  |  %  |
+///
+/// Here `!` denotes `Nullability.nonNullable`, `?` denotes
+/// `Nullability.nullable`, `*` denotes `Nullability.legacy`, and `%` denotes
+/// `Nullability.neither`.  The table elements marked with N/A denote the
+/// cases that should yield a type error before the substitution is performed.
+Nullability combineNullabilitiesForSubstitution(Nullability a, Nullability b) {
+  // In the table above we may extend the function given by it, replacing N/A
+  // with whatever is easier to implement.  In this implementation, we extend
+  // the table function as follows:
+  //
+  // | arg \ var |  !  |  ?  |  *  |  %  |
+  // |-----------|-----|-----|-----|-----|
+  // |     !     |  !  |  ?  |  *  |  !  |
+  // |     ?     |  ?  |  ?  |  ?  |  ?  |
+  // |     *     |  *  |  ?  |  *  |  *  |
+  // |     %     |  %  |  ?  |  *  |  %  |
+  //
+
+  if (a == Nullability.nullable || b == Nullability.nullable) {
+    return Nullability.nullable;
+  }
+
+  if (a == Nullability.legacy || b == Nullability.legacy) {
+    return Nullability.legacy;
+  }
+
+  return a;
 }
 
 abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
@@ -383,7 +470,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     int before = useCounter;
     var type = visit(node.type);
     if (useCounter == before) return node;
-    return new NamedType(node.name, type);
+    return new NamedType(node.name, type, isRequired: node.isRequired);
   }
 
   DartType visit(DartType node) => node.accept(this);
@@ -392,14 +479,14 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   DartType visitDynamicType(DynamicType node) => node;
   DartType visitVoidType(VoidType node) => node;
   DartType visitBottomType(BottomType node) => node;
-  DartType visitVector(VectorType node) => node;
+  DartType visitNeverType(NeverType node) => node;
 
   DartType visitInterfaceType(InterfaceType node) {
     if (node.typeArguments.isEmpty) return node;
     int before = useCounter;
     var typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
-    return new InterfaceType(node.classNode, typeArguments);
+    return new InterfaceType(node.classNode, node.nullability, typeArguments);
   }
 
   DartType visitTypedefType(TypedefType node) {
@@ -407,7 +494,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     int before = useCounter;
     var typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
-    return new TypedefType(node.typedefNode, typeArguments);
+    return new TypedefType(node.typedefNode, node.nullability, typeArguments);
   }
 
   List<TypeParameter> freshTypeParameters(List<TypeParameter> parameters) {
@@ -429,6 +516,13 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     // any uses, but does not tell if the resulting function type is distinct.
     // Our own use counter will get incremented if something from our
     // environment has been used inside the function.
+    assert(
+        node.typeParameters.every((TypeParameter parameter) =>
+            lookup(parameter, true) == null &&
+            lookup(parameter, false) == null),
+        "Function type variables cannot be substituted while still attached "
+        "to the function. Perform substitution on "
+        "`FunctionType.withoutTypeParameters` instead.");
     var inner = node.typeParameters.isEmpty ? this : newInnerEnvironment();
     int before = this.useCounter;
     // Invert the variance when translating parameters.
@@ -442,11 +536,14 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
         : node.namedParameters.map(inner.visitNamedType).toList();
     inner.invertVariance();
     var returnType = inner.visit(node.returnType);
+    DartType typedefType =
+        node.typedefType == null ? null : inner.visit(node.typedefType);
     if (this.useCounter == before) return node;
-    return new FunctionType(positionalParameters, returnType,
+    return new FunctionType(positionalParameters, returnType, node.nullability,
         namedParameters: namedParameters,
         typeParameters: typeParameters,
-        requiredParameterCount: node.requiredParameterCount);
+        requiredParameterCount: node.requiredParameterCount,
+        typedefType: typedefType);
   }
 
   void bumpCountersUntil(_TypeSubstitutor target) {
@@ -461,7 +558,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   DartType getSubstitute(TypeParameter variable) {
     var environment = this;
     while (environment != null) {
-      var replacement = environment.lookup(variable, covariantContext);
+      DartType replacement = environment.lookup(variable, covariantContext);
       if (replacement != null) {
         bumpCountersUntil(environment);
         return replacement;
@@ -472,7 +569,13 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   }
 
   DartType visitTypeParameterType(TypeParameterType node) {
-    return getSubstitute(node.parameter) ?? node;
+    DartType replacement = getSubstitute(node.parameter);
+    if (replacement is InvalidType) return replacement;
+    if (replacement != null) {
+      return replacement.withNullability(combineNullabilitiesForSubstitution(
+          replacement.nullability, node.nullability));
+    }
+    return node;
   }
 }
 
@@ -575,9 +678,11 @@ class _TypeUnification {
     if (type1 is VoidType && type2 is VoidType) return true;
     if (type1 is InvalidType && type2 is InvalidType) return true;
     if (type1 is BottomType && type2 is BottomType) return true;
-    if (type1 is VectorType && type2 is VectorType) return true;
     if (type1 is InterfaceType && type2 is InterfaceType) {
-      if (type1.classNode != type2.classNode) return _fail();
+      if (type1.classNode != type2.classNode ||
+          type1.nullability != type2.nullability) {
+        return _fail();
+      }
       assert(type1.typeArguments.length == type2.typeArguments.length);
       for (int i = 0; i < type1.typeArguments.length; ++i) {
         if (!_unify(type1.typeArguments[i], type2.typeArguments[i])) {
@@ -591,7 +696,8 @@ class _TypeUnification {
           type1.positionalParameters.length !=
               type2.positionalParameters.length ||
           type1.namedParameters.length != type2.namedParameters.length ||
-          type1.requiredParameterCount != type2.requiredParameterCount) {
+          type1.requiredParameterCount != type2.requiredParameterCount ||
+          type1.nullability != type2.nullability) {
         return _fail();
       }
       // When unifying two generic functions, transform the equation like this:
@@ -608,7 +714,8 @@ class _TypeUnification {
       var rightInstance = <TypeParameter, DartType>{};
       for (int i = 0; i < type1.typeParameters.length; ++i) {
         var instantiator = new TypeParameter(type1.typeParameters[i].name);
-        var instantiatorType = new TypeParameterType(instantiator);
+        var instantiatorType = new TypeParameterType.forAlphaRenaming(
+            type1.typeParameters[i], instantiator);
         leftInstance[type1.typeParameters[i]] = instantiatorType;
         rightInstance[type2.typeParameters[i]] = instantiatorType;
         _universallyQuantifiedVariables.add(instantiator);
@@ -638,7 +745,9 @@ class _TypeUnification {
     }
     if (type1 is TypeParameterType &&
         type2 is TypeParameterType &&
-        type1.parameter == type2.parameter) {
+        type1.parameter == type2.parameter &&
+        type1.typeParameterTypeNullability ==
+            type2.typeParameterTypeNullability) {
       return true;
     }
     if (type1 is TypeParameterType &&
@@ -670,7 +779,7 @@ class _TypeUnification {
   }
 }
 
-class _OccurrenceVisitor extends DartTypeVisitor<bool> {
+class _OccurrenceVisitor implements DartTypeVisitor<bool> {
   final Set<TypeParameter> variables;
 
   _OccurrenceVisitor(this.variables);
@@ -681,10 +790,15 @@ class _OccurrenceVisitor extends DartTypeVisitor<bool> {
     return visit(node.type);
   }
 
+  bool defaultDartType(DartType node) {
+    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
+  }
+
+  bool visitBottomType(BottomType node) => false;
+  bool visitNeverType(NeverType node) => false;
   bool visitInvalidType(InvalidType node) => false;
   bool visitDynamicType(DynamicType node) => false;
   bool visitVoidType(VoidType node) => false;
-  bool visitVectorType(VectorType node) => false;
 
   bool visitInterfaceType(InterfaceType node) {
     return node.typeArguments.any(visit);
@@ -707,6 +821,59 @@ class _OccurrenceVisitor extends DartTypeVisitor<bool> {
 
   bool handleTypeParameter(TypeParameter node) {
     assert(!variables.contains(node));
-    return node.bound.accept(this);
+    if (node.bound.accept(this)) return true;
+    if (node.defaultType == null) return false;
+    return node.defaultType.accept(this);
+  }
+}
+
+class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
+  final Set<TypeParameter> variables = new Set<TypeParameter>();
+
+  _FreeFunctionTypeVariableVisitor();
+
+  bool visit(DartType node) => node.accept(this);
+
+  bool defaultDartType(DartType node) {
+    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
+  }
+
+  bool visitNamedType(NamedType node) {
+    return visit(node.type);
+  }
+
+  bool visitBottomType(BottomType node) => false;
+  bool visitNeverType(NeverType node) => false;
+  bool visitInvalidType(InvalidType node) => false;
+  bool visitDynamicType(DynamicType node) => false;
+  bool visitVoidType(VoidType node) => false;
+
+  bool visitInterfaceType(InterfaceType node) {
+    return node.typeArguments.any(visit);
+  }
+
+  bool visitTypedefType(TypedefType node) {
+    return node.typeArguments.any(visit);
+  }
+
+  bool visitFunctionType(FunctionType node) {
+    variables.addAll(node.typeParameters);
+    bool result = node.typeParameters.any(handleTypeParameter) ||
+        node.positionalParameters.any(visit) ||
+        node.namedParameters.any(visitNamedType) ||
+        visit(node.returnType);
+    variables.removeAll(node.typeParameters);
+    return result;
+  }
+
+  bool visitTypeParameterType(TypeParameterType node) {
+    return node.parameter.parent == null && !variables.contains(node.parameter);
+  }
+
+  bool handleTypeParameter(TypeParameter node) {
+    assert(variables.contains(node));
+    if (node.bound.accept(this)) return true;
+    if (node.defaultType == null) return false;
+    return node.defaultType.accept(this);
   }
 }

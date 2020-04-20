@@ -1,0 +1,22 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/function_type_recovery.dart:8:31: Error: Inline function types cannot be used for parameters in a generic function type.
+// Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f').
+// typedef F = int Function(int f(String x));
+//                               ^
+//
+// pkg/front_end/testcases/general/function_type_recovery.dart:12:27: Error: Inline function types cannot be used for parameters in a generic function type.
+// Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f').
+//   String Function(String g(int y)) g = null;
+//                           ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F = ((core::String*) →* core::int*) →* core::int*;
+static method main() → dynamic {
+  ((core::String*) →* core::int*) →* core::int* f = null;
+  ((core::int*) →* core::String*) →* core::String* g = null;
+}

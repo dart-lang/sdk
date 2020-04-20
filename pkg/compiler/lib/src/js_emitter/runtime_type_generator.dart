@@ -4,47 +4,26 @@
 
 library dart2js.js_emitter.runtime_type_generator;
 
-import '../closure.dart'
-    show
-        ClosureRepresentationInfo,
-        ClosureFieldElement,
-        ClosureConversionTask,
-        ScopeInfo;
-import '../common.dart';
-import '../common/names.dart' show Identifiers;
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
-import '../deferred_load.dart' show DeferredLoadTask, OutputUnit;
-import '../elements/elements.dart'
-    show ClassElement, MethodElement, MixinApplicationElement;
+import '../common_elements.dart' show CommonElements;
+import '../deferred_load.dart' show OutputUnit, OutputUnitData;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/js_interop_analysis.dart';
-import '../js_backend/native_data.dart';
+import '../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
 import '../js_backend/namer.dart' show Namer;
 import '../js_backend/runtime_types.dart'
-    show
-        RuntimeTypesChecks,
-        RuntimeTypesNeed,
-        RuntimeTypesEncoder,
-        RuntimeTypesSubstitutions,
-        Substitution,
-        TypeCheck,
-        TypeChecks;
+    show RuntimeTypesChecks, RuntimeTypesEncoder, OnVariableCallback;
+import '../js_backend/runtime_types_codegen.dart'
+    show ClassChecks, ClassFunctionType, Substitution, TypeCheck;
 import '../js_emitter/sorter.dart';
-import '../js_model/closure.dart' show JClosureField;
+import '../options.dart';
 import '../util/util.dart' show Setlet;
-import '../world.dart';
 
-import 'code_emitter_task.dart' show CodeEmitterTask;
-import 'type_test_registry.dart' show TypeTestRegistry;
+import 'code_emitter_task.dart' show CodeEmitterTask, Emitter;
 
 // Function signatures used in the generation of runtime type information.
-typedef void FunctionTypeSignatureEmitter(
-    FunctionEntity method, FunctionType methodType);
-
-typedef void SubstitutionEmitter(ClassEntity element, {bool emitNull});
+typedef void FunctionTypeSignatureEmitter(ClassFunctionType classFunctionType);
 
 class TypeTest {
   final jsAst.Name name;
@@ -107,46 +86,26 @@ class TypeTestProperties {
 }
 
 class RuntimeTypeGenerator {
-  final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
-  final DartTypes _types;
-  final ClosedWorld _closedWorld;
-  final ClosureConversionTask _closureDataLookup;
-  final DeferredLoadTask _deferredLoadTask;
+  final OutputUnitData _outputUnitData;
   final CodeEmitterTask emitterTask;
   final Namer _namer;
-  final NativeData _nativeData;
   final RuntimeTypesChecks _rtiChecks;
   final RuntimeTypesEncoder _rtiEncoder;
-  final RuntimeTypesNeed _rtiNeed;
-  final RuntimeTypesSubstitutions _rtiSubstitutions;
-  final JsInteropAnalysis _jsInteropAnalysis;
+  final _TypeContainedInOutputUnitVisitor _outputUnitVisitor;
 
-  RuntimeTypeGenerator(
-      this._elementEnvironment,
-      this._commonElements,
-      this._types,
-      this._closedWorld,
-      this._closureDataLookup,
-      this._deferredLoadTask,
-      this.emitterTask,
-      this._namer,
-      this._nativeData,
-      this._rtiChecks,
-      this._rtiEncoder,
-      this._rtiNeed,
-      this._rtiSubstitutions,
-      this._jsInteropAnalysis);
+  CompilerOptions get _options => emitterTask.options;
 
-  TypeTestRegistry get _typeTestRegistry => emitterTask.typeTestRegistry;
+  RuntimeTypeGenerator(this._commonElements, this._outputUnitData,
+      this.emitterTask, this._namer, this._rtiChecks, this._rtiEncoder)
+      : _outputUnitVisitor = new _TypeContainedInOutputUnitVisitor(
+            _commonElements, _outputUnitData);
 
-  Set<ClassEntity> get checkedClasses => _typeTestRegistry.checkedClasses;
-
-  Iterable<ClassEntity> get classesUsingTypeVariableTests =>
-      _typeTestRegistry.classesUsingTypeVariableTests;
-
-  Set<FunctionType> get checkedFunctionTypes =>
-      _typeTestRegistry.checkedFunctionTypes;
+  /// Generate "is tests" for [cls] itself, and the "is tests" for the
+  /// classes it implements and type argument substitution functions for these
+  /// tests.   We don't need to add the "is tests" of the super class because
+  /// they will be inherited at runtime, but we may need to generate the
+  /// substitutions, because they may have changed.
 
   /// Generates all properties necessary for is-checks on the [classElement].
   ///
@@ -159,251 +118,276 @@ class RuntimeTypeGenerator {
   /// the result. This is only possible for function types that do not contain
   /// type variables.
   TypeTestProperties generateIsTests(ClassEntity classElement,
+      Map<MemberEntity, jsAst.Expression> generatedCode,
       {bool storeFunctionTypeInMetadata: true}) {
     TypeTestProperties result = new TypeTestProperties();
 
-    assert(!(classElement is ClassElement && !classElement.isDeclaration),
-        failedAt(classElement));
+    // TODO(johnniwinther): Include function signatures in [ClassChecks].
+    void generateFunctionTypeSignature(ClassFunctionType classFunctionType) {
+      FunctionEntity method = classFunctionType.callFunction;
+      FunctionType type = classFunctionType.callType;
 
-    /// Generates an is-test if the test is not inherited from a superclass
-    /// This assumes that for every class an is-tests is generated
-    /// dynamically at runtime. We also always generate tests against
-    /// native classes.
-    /// TODO(herhut): Generate tests for native classes dynamically, as well.
-    void generateIsTest(ClassEntity other) {
-      if (_nativeData.isNativeClass(classElement) ||
-          !_closedWorld.isSubclassOf(classElement, other)) {
-        result.addIsTest(other, _namer.operatorIs(other), js('1'));
-      }
-    }
-
-    void generateFunctionTypeSignature(
-        FunctionEntity method, FunctionType type) {
-      assert(!(method is MethodElement && !method.isImplementation));
-      jsAst.Expression thisAccess = new jsAst.This();
-      if (!method.isAbstract) {
-        ScopeInfo scopeInfo = _closureDataLookup.getScopeInfo(method);
-        if (scopeInfo is ClosureRepresentationInfo) {
-          FieldEntity thisLocal = scopeInfo.thisFieldEntity;
-          if (thisLocal != null) {
-            assert(
-                thisLocal is ClosureFieldElement || thisLocal is JClosureField);
-            jsAst.Name thisName = _namer.instanceFieldPropertyName(thisLocal);
-            thisAccess = js('this.#', thisName);
-          }
+      // TODO(johnniwinther): Avoid unneeded function type indices or
+      // signatures. We either need them for mirrors or because [type] is
+      // potentially a subtype of a checked function. Currently we eagerly
+      // generate a function type index or signature for all callable classes.
+      jsAst.Expression functionTypeIndex;
+      bool isDeferred = false;
+      if (!type.containsTypeVariables) {
+        // TODO(sigmund): use output unit of [method] when the classes mentioned
+        // in [type] aren't in the main output unit. (Issue #31032)
+        OutputUnit mainOutputUnit = _outputUnitData.mainOutputUnit;
+        if (_outputUnitVisitor.isTypeContainedIn(type, mainOutputUnit)) {
+          functionTypeIndex =
+              emitterTask.metadataCollector.reifyType(type, mainOutputUnit);
+        } else if (!storeFunctionTypeInMetadata) {
+          // TODO(johnniwinther): Support sharing deferred signatures with the
+          // full emitter.
+          isDeferred = true;
+          functionTypeIndex = emitterTask.metadataCollector
+              .reifyType(type, _outputUnitData.outputUnitForMember(method));
         }
       }
-
-      if (storeFunctionTypeInMetadata && !type.containsTypeVariables) {
-        // TODO(sigmund): use output unit of `method` (Issue #31032)
-        OutputUnit outputUnit = _deferredLoadTask.mainOutputUnit;
-        result.functionTypeIndex =
-            emitterTask.metadataCollector.reifyType(type, outputUnit);
+      if (storeFunctionTypeInMetadata && functionTypeIndex != null) {
+        result.functionTypeIndex = functionTypeIndex;
       } else {
-        jsAst.Expression encoding = _rtiEncoder.getSignatureEncoding(
-            emitterTask.emitter, type, thisAccess);
-        jsAst.Name operatorSignature = _namer.asName(_namer.operatorSignature);
-        result.addSignature(classElement, operatorSignature, encoding);
-      }
-    }
-
-    void generateSubstitution(ClassEntity cls, {bool emitNull: false}) {
-      if (!_elementEnvironment.isGenericClass(cls)) return;
-      jsAst.Expression expression;
-      bool needsNativeCheck =
-          emitterTask.nativeEmitter.requiresNativeIsCheck(cls);
-      Substitution substitution =
-          _rtiSubstitutions.getSubstitution(classElement, cls);
-      if (substitution != null) {
-        expression =
-            _rtiEncoder.getSubstitutionCode(emitterTask.emitter, substitution);
-      }
-      if (expression == null && (emitNull || needsNativeCheck)) {
-        expression = new jsAst.LiteralNull();
-      }
-      if (expression != null) {
-        result.addSubstitution(cls, _namer.substitutionName(cls), expression);
+        jsAst.Expression encoding =
+            generatedCode[classFunctionType.signatureFunction];
+        if (classFunctionType.signatureFunction == null) {
+          // The signature function isn't live.
+          return;
+        }
+        if (functionTypeIndex != null) {
+          if (isDeferred) {
+            // The function type index must be offset by the number of types
+            // already loaded.
+            encoding = new jsAst.Binary(
+                '+',
+                new jsAst.VariableUse(_namer.typesOffsetName),
+                functionTypeIndex);
+          } else {
+            encoding = functionTypeIndex;
+          }
+        }
+        if (encoding != null) {
+          jsAst.Name operatorSignature =
+              _namer.asName(_namer.fixedNames.operatorSignature);
+          result.addSignature(classElement, operatorSignature, encoding);
+        }
       }
     }
 
     void generateTypeCheck(TypeCheck check) {
       ClassEntity checkedClass = check.cls;
-      generateIsTest(checkedClass);
+      if (check.needsIs) {
+        result.addIsTest(
+            checkedClass, _namer.operatorIs(checkedClass), js('1'));
+      }
       Substitution substitution = check.substitution;
-      if (substitution != null) {
+      if (substitution != null && !_options.useNewRti) {
         jsAst.Expression body =
-            _rtiEncoder.getSubstitutionCode(emitterTask.emitter, substitution);
+            _getSubstitutionCode(emitterTask.emitter, substitution);
         result.addSubstitution(
             checkedClass, _namer.substitutionName(checkedClass), body);
       }
     }
 
     _generateIsTestsOn(
-        classElement,
-        generateIsTest,
-        generateFunctionTypeSignature,
-        (ClassEntity e, {bool emitNull: false}) =>
-            generateSubstitution(e, emitNull: emitNull),
-        generateTypeCheck);
+        classElement, generateFunctionTypeSignature, generateTypeCheck);
 
     if (classElement == _commonElements.jsJavaScriptFunctionClass) {
-      var type = _jsInteropAnalysis.buildJsFunctionType();
+      var type =
+          jsInteropAnalysis.buildJsFunctionType(_commonElements.dartTypes);
       if (type != null) {
         jsAst.Expression thisAccess = new jsAst.This();
         jsAst.Expression encoding = _rtiEncoder.getSignatureEncoding(
-            emitterTask.emitter, type, thisAccess);
-        jsAst.Name operatorSignature = _namer.asName(_namer.operatorSignature);
+            _namer, emitterTask.emitter, type, thisAccess);
+        jsAst.Name operatorSignature =
+            _namer.asName(_namer.fixedNames.operatorSignature);
         result.addSignature(classElement, operatorSignature, encoding);
       }
     }
     return result;
   }
 
-  /**
-   * Generate "is tests" for [cls] itself, and the "is tests" for the
-   * classes it implements and type argument substitution functions for these
-   * tests.   We don't need to add the "is tests" of the super class because
-   * they will be inherited at runtime, but we may need to generate the
-   * substitutions, because they may have changed.
-   */
-  void _generateIsTestsOn(
-      ClassEntity cls,
-      void generateIsTest(ClassEntity element),
-      FunctionTypeSignatureEmitter generateFunctionTypeSignature,
-      SubstitutionEmitter generateSubstitution,
-      void emitTypeCheck(TypeCheck check)) {
-    Setlet<ClassEntity> generated = new Setlet<ClassEntity>();
-
-    if (checkedClasses.contains(cls)) {
-      generateIsTest(cls);
-      generateSubstitution(cls);
-      generated.add(cls);
+  /// Compute a JavaScript expression that describes the necessary substitution
+  /// for type arguments in a subtype test.
+  ///
+  /// The result can be:
+  ///  1) `null`, if no substituted check is necessary, because the type
+  ///     variables are the same or there are no type variables in the class
+  ///     that is checked for.
+  ///  2) A list expression describing the type arguments to be used in the
+  ///     subtype check, if the type arguments to be used in the check do not
+  ///     depend on the type arguments of the object.
+  ///  3) A function mapping the type variables of the object to be checked to
+  ///     a list expression.
+  jsAst.Expression _getSubstitutionCode(
+      Emitter emitter, Substitution substitution) {
+    if (substitution.isTrivial) {
+      return new jsAst.LiteralNull();
     }
 
-    // Precomputed is checks.
-    TypeChecks typeChecks = _rtiChecks.requiredChecks;
-    Iterable<TypeCheck> classChecks = typeChecks[cls];
-    if (classChecks != null) {
-      for (TypeCheck check in classChecks) {
-        if (!generated.contains(check.cls)) {
-          emitTypeCheck(check);
-          generated.add(check.cls);
-        }
+    if (substitution.isJsInterop) {
+      return js('function() { return # }',
+          _rtiEncoder.getJsInteropTypeArguments(substitution.length));
+    }
+
+    jsAst.Expression declaration(TypeVariableType variable) {
+      return new jsAst.Parameter(_getVariableName(variable.element.name));
+    }
+
+    jsAst.Expression use(TypeVariableType variable) {
+      return new jsAst.VariableUse(_getVariableName(variable.element.name));
+    }
+
+    if (substitution.arguments.every((DartType type) => type is DynamicType)) {
+      return emitter.generateFunctionThatReturnsNull();
+    } else {
+      jsAst.Expression value =
+          _getSubstitutionRepresentation(emitter, substitution.arguments, use);
+      if (substitution.isFunction) {
+        Iterable<jsAst.Expression> formals =
+            // TODO(johnniwinther): Pass [declaration] directly to `map` when
+            // `substitution.parameters` can no longer be a
+            // `List<ResolutionDartType>`.
+            substitution.parameters.map((type) => declaration(type));
+        return js('function(#) { return # }', [formals, value]);
+      } else {
+        return js('function() { return # }', value);
       }
-    }
-
-    ClassEntity superclass = _elementEnvironment.getSuperClass(cls);
-
-    bool haveSameTypeVariables(ClassEntity a, ClassEntity b) {
-      if (a.isClosure) return true;
-      return _rtiSubstitutions.isTrivialSubstitution(a, b);
-    }
-
-    bool supertypesNeedSubstitutions = false;
-
-    if (superclass != null &&
-        superclass != _commonElements.objectClass &&
-        !haveSameTypeVariables(cls, superclass)) {
-      // We cannot inherit the generated substitutions, because the type
-      // variable layout for this class is different.  Instead we generate
-      // substitutions for all checks and make emitSubstitution a NOP for the
-      // rest of this function.
-
-      // TODO(karlklose): move the computation of these checks to
-      // RuntimeTypeInformation.
-      while (superclass != null) {
-        if (_rtiNeed.classNeedsRti(superclass)) {
-          generateSubstitution(superclass, emitNull: true);
-          generated.add(superclass);
-        }
-        superclass = _elementEnvironment.getSuperClass(superclass);
-      }
-      supertypesNeedSubstitutions = true;
-    }
-
-    if (cls is MixinApplicationElement) {
-      supertypesNeedSubstitutions = true;
-    }
-
-    if (supertypesNeedSubstitutions) {
-      _elementEnvironment.forEachSupertype(cls, (InterfaceType supertype) {
-        ClassEntity superclass = supertype.element;
-        if (generated.contains(superclass)) return;
-
-        if (classesUsingTypeVariableTests.contains(superclass) ||
-            _rtiNeed.classUsesTypeVariableExpression(superclass) ||
-            checkedClasses.contains(superclass)) {
-          // Generate substitution.  If no substitution is necessary, emit
-          // `null` to overwrite a (possibly) existing substitution from the
-          // super classes.
-          generateSubstitution(superclass, emitNull: true);
-        }
-      });
-
-      void emitNothing(_, {emitNull}) {}
-
-      generateSubstitution = emitNothing;
-    }
-
-    // A class that defines a `call` method implicitly implements
-    // [Function] and needs checks for all typedefs that are used in is-checks.
-    if (checkedClasses.contains(_commonElements.functionClass) ||
-        checkedFunctionTypes.isNotEmpty) {
-      MemberEntity call =
-          _elementEnvironment.lookupLocalClassMember(cls, Identifiers.call);
-      if (call != null && call.isFunction) {
-        FunctionEntity callFunction = call;
-        // A superclass might already implement the Function interface. In such
-        // a case, we can avoid emitting the is test here.
-        ClassEntity superclass = _elementEnvironment.getSuperClass(cls);
-        if (!_closedWorld.isSubtypeOf(
-            superclass, _commonElements.functionClass)) {
-          _generateInterfacesIsTests(_commonElements.functionClass,
-              generateIsTest, generateSubstitution, generated);
-        }
-        FunctionType callType =
-            _elementEnvironment.getFunctionType(callFunction);
-        generateFunctionTypeSignature(callFunction, callType);
-      }
-    }
-
-    for (InterfaceType interfaceType in _types.getInterfaces(cls)) {
-      _generateInterfacesIsTests(interfaceType.element, generateIsTest,
-          generateSubstitution, generated);
     }
   }
 
-  /**
-   * Generate "is tests" where [cls] is being implemented.
-   */
-  void _generateInterfacesIsTests(
+  jsAst.Expression _getSubstitutionRepresentation(
+      Emitter emitter, List<DartType> types, OnVariableCallback onVariable) {
+    List<jsAst.Expression> elements = types
+        .map((DartType type) =>
+            _rtiEncoder.getTypeRepresentation(emitter, type, onVariable))
+        .toList(growable: false);
+    return new jsAst.ArrayInitializer(elements);
+  }
+
+  String _getVariableName(String name) {
+    // Kernel type variable names for anonymous mixin applications have names
+    // canonicalized to a non-identified, e.g. '#U0'.
+    name = name.replaceAll('#', '_');
+    return _namer.safeVariableName(name);
+  }
+
+  void _generateIsTestsOn(
       ClassEntity cls,
-      void generateIsTest(ClassEntity element),
-      SubstitutionEmitter generateSubstitution,
-      Set<ClassEntity> alreadyGenerated) {
-    void tryEmitTest(ClassEntity check) {
-      if (!alreadyGenerated.contains(check) && checkedClasses.contains(check)) {
-        alreadyGenerated.add(check);
-        generateIsTest(check);
-        generateSubstitution(check);
+      FunctionTypeSignatureEmitter generateFunctionTypeSignature,
+      void emitTypeCheck(TypeCheck check)) {
+    Setlet<ClassEntity> generated = new Setlet<ClassEntity>();
+
+    // Precomputed is checks.
+    ClassChecks classChecks = _rtiChecks.requiredChecks[cls];
+    Iterable<TypeCheck> typeChecks = classChecks.checks;
+    if (typeChecks != null) {
+      for (TypeCheck typeCheck in typeChecks) {
+        if (!generated.contains(typeCheck.cls)) {
+          emitTypeCheck(typeCheck);
+          generated.add(typeCheck.cls);
+        }
       }
     }
 
-    tryEmitTest(cls);
-
-    for (InterfaceType interfaceType in _types.getInterfaces(cls)) {
-      ClassEntity element = interfaceType.element;
-      tryEmitTest(element);
-      _generateInterfacesIsTests(
-          element, generateIsTest, generateSubstitution, alreadyGenerated);
+    if (classChecks.functionType != null) {
+      generateFunctionTypeSignature(classChecks.functionType);
     }
+  }
+}
 
-    // We need to also emit "is checks" for the superclass and its supertypes.
-    ClassEntity superclass = _elementEnvironment.getSuperClass(cls);
-    if (superclass != null) {
-      tryEmitTest(superclass);
-      _generateInterfacesIsTests(
-          superclass, generateIsTest, generateSubstitution, alreadyGenerated);
+/// Visitor that checks whether a type is contained within one output unit.
+class _TypeContainedInOutputUnitVisitor
+    implements DartTypeVisitor<bool, OutputUnit> {
+  final CommonElements _commonElements;
+  final OutputUnitData _outputUnitData;
+
+  _TypeContainedInOutputUnitVisitor(this._commonElements, this._outputUnitData);
+
+  /// Returns `true` if all classes mentioned in [type] are in [outputUnit].
+  bool isTypeContainedIn(DartType type, OutputUnit outputUnit) =>
+      visit(type, outputUnit);
+
+  @override
+  bool visit(DartType type, OutputUnit argument) => type.accept(this, argument);
+
+  bool visitList(List<DartType> types, OutputUnit argument) {
+    for (DartType type in types) {
+      if (!visit(type, argument)) {
+        return false;
+      }
     }
+    return true;
+  }
+
+  @override
+  bool visitLegacyType(LegacyType type, OutputUnit argument) =>
+      visit(type.baseType, argument);
+
+  @override
+  bool visitNullableType(NullableType type, OutputUnit argument) =>
+      visit(type.baseType, argument);
+
+  @override
+  bool visitNeverType(NeverType type, OutputUnit argument) => true;
+
+  @override
+  bool visitFutureOrType(FutureOrType type, OutputUnit argument) {
+    if (_outputUnitData.outputUnitForClass(_commonElements.functionClass) !=
+        argument) {
+      return false;
+    }
+    return visit(type.typeArgument, argument);
+  }
+
+  @override
+  bool visitDynamicType(DynamicType type, OutputUnit argument) => true;
+
+  @override
+  bool visitErasedType(ErasedType type, OutputUnit argument) => true;
+
+  @override
+  bool visitAnyType(AnyType type, OutputUnit argument) => true;
+
+  @override
+  bool visitInterfaceType(InterfaceType type, OutputUnit argument) {
+    if (_outputUnitData.outputUnitForClass(type.element) != argument) {
+      return false;
+    }
+    return visitList(type.typeArguments, argument);
+  }
+
+  @override
+  bool visitFunctionType(FunctionType type, OutputUnit argument) {
+    bool result = visit(type.returnType, argument) &&
+        visitList(type.parameterTypes, argument) &&
+        visitList(type.optionalParameterTypes, argument) &&
+        visitList(type.namedParameterTypes, argument);
+    if (!result) return false;
+    for (FunctionTypeVariable typeVariable in type.typeVariables) {
+      if (!visit(typeVariable.bound, argument)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  bool visitFunctionTypeVariable(
+      FunctionTypeVariable type, OutputUnit argument) {
+    return true;
+  }
+
+  @override
+  bool visitTypeVariableType(TypeVariableType type, OutputUnit argument) {
+    return false;
+  }
+
+  @override
+  bool visitVoidType(VoidType type, OutputUnit argument) {
+    return true;
   }
 }

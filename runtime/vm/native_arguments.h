@@ -13,8 +13,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, trace_natives);
-
 // Forward declarations.
 class BootstrapNatives;
 class Object;
@@ -24,10 +22,7 @@ class Thread;
 
 #if defined(TESTING) || defined(DEBUG)
 
-#if defined(TARGET_ARCH_DBC)
-// C-stack is always aligned on DBC because we don't have any native code.
-#define CHECK_STACK_ALIGNMENT
-#elif defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR)
 #define CHECK_STACK_ALIGNMENT                                                  \
   {                                                                            \
     uword current_sp = Simulator::Current()->get_register(SPREG);              \
@@ -41,7 +36,7 @@ class Thread;
 #define CHECK_STACK_ALIGNMENT                                                  \
   {                                                                            \
     uword (*func)() = reinterpret_cast<uword (*)()>(                           \
-        StubCode::GetCStackPointer_entry()->EntryPoint());                     \
+        StubCode::GetCStackPointer().EntryPoint());                            \
     uword current_sp = func();                                                 \
     ASSERT(Utils::IsAligned(current_sp, OS::ActivationFrameAlignment()));      \
   }
@@ -49,10 +44,6 @@ class Thread;
 
 void VerifyOnTransition();
 
-#define VERIFY_ON_TRANSITION                                                   \
-  if (FLAG_verify_on_transition) {                                             \
-    VerifyOnTransition();                                                      \
-  }
 #define DEOPTIMIZE_ALOT                                                        \
   if (FLAG_deoptimize_alot) {                                                  \
     DeoptimizeFunctionsOnStack();                                              \
@@ -61,8 +52,6 @@ void VerifyOnTransition();
 #else
 
 #define CHECK_STACK_ALIGNMENT                                                  \
-  {}
-#define VERIFY_ON_TRANSITION                                                   \
   {}
 #define DEOPTIMIZE_ALOT                                                        \
   {}
@@ -77,8 +66,11 @@ void VerifyOnTransition();
 // following signature:
 //   void function_name(NativeArguments arguments);
 // Inside the function, arguments are accessed as follows:
-//   const Instance& arg0 = Instance::CheckedHandle(arguments.ArgAt(0));
-//   const Smi& arg1 = Smi::CheckedHandle(arguments.ArgAt(1));
+//   const Instance& arg0 = Instance::CheckedHandle(arguments.NativeArgAt(0));
+//   const Smi& arg1 = Smi::CheckedHandle(arguments.NativeArgAt(1));
+// If the function is generic, type arguments are accessed as follows:
+//   const TypeArguments& type_args =
+//       TypeArguments::Handle(arguments.NativeTypeArgs());
 // The return value is set as follows:
 //   arguments.SetReturn(result);
 // NOTE: Since we pass 'this' as a pass-by-value argument in the stubs we don't
@@ -87,22 +79,28 @@ void VerifyOnTransition();
 class NativeArguments {
  public:
   Thread* thread() const { return thread_; }
+
+  // Includes type arguments vector.
   int ArgCount() const { return ArgcBits::decode(argc_tag_); }
 
   RawObject* ArgAt(int index) const {
     ASSERT((index >= 0) && (index < ArgCount()));
-#if defined(TARGET_ARCH_DBC)
-    // On DBC stack is growing upwards, in reverse direction from all other
-    // architectures.
-    RawObject** arg_ptr = &(argv_[index]);
-#else
-    RawObject** arg_ptr = &(argv_[-index]);
-#endif
+    RawObject** arg_ptr =
+        &(argv_[ReverseArgOrderBit::decode(argc_tag_) ? index : -index]);
     // Tell MemorySanitizer the RawObject* was initialized (by generated code).
     MSAN_UNPOISON(arg_ptr, kWordSize);
     return *arg_ptr;
   }
 
+  void SetArgAt(int index, const Object& value) const {
+    ASSERT(thread_->execution_state() == Thread::kThreadInVM);
+    ASSERT((index >= 0) && (index < ArgCount()));
+    RawObject** arg_ptr =
+        &(argv_[ReverseArgOrderBit::decode(argc_tag_) ? index : -index]);
+    *arg_ptr = value.raw();
+  }
+
+  // Does not include hidden type arguments vector.
   int NativeArgCount() const {
     int function_bits = FunctionBits::decode(argc_tag_);
     return ArgCount() - NumHiddenArgs(function_bits);
@@ -110,9 +108,12 @@ class NativeArguments {
 
   RawObject* NativeArg0() const {
     int function_bits = FunctionBits::decode(argc_tag_);
-    if (function_bits == (kClosureFunctionBit | kInstanceFunctionBit)) {
+    if ((function_bits & (kClosureFunctionBit | kInstanceFunctionBit)) ==
+        (kClosureFunctionBit | kInstanceFunctionBit)) {
       // Retrieve the receiver from the context.
-      const Object& closure = Object::Handle(ArgAt(0));
+      const int closure_index =
+          (function_bits & kGenericFunctionBit) != 0 ? 1 : 0;
+      const Object& closure = Object::Handle(ArgAt(closure_index));
       const Context& context =
           Context::Handle(Closure::Cast(closure).context());
       return context.At(0);
@@ -130,7 +131,37 @@ class NativeArguments {
     return ArgAt(actual_index);
   }
 
-  void SetReturn(const Object& value) const { *retval_ = value.raw(); }
+  RawTypeArguments* NativeTypeArgs() const {
+    ASSERT(ToGenericFunction());
+    return TypeArguments::RawCast(ArgAt(0));
+  }
+
+  int NativeTypeArgCount() const {
+    if (ToGenericFunction()) {
+      TypeArguments& type_args = TypeArguments::Handle(NativeTypeArgs());
+      if (type_args.IsNull()) {
+        // null vector represents infinite list of dynamics
+        return INT_MAX;
+      }
+      return type_args.Length();
+    }
+    return 0;
+  }
+
+  RawAbstractType* NativeTypeArgAt(int index) const {
+    ASSERT((index >= 0) && (index < NativeTypeArgCount()));
+    TypeArguments& type_args = TypeArguments::Handle(NativeTypeArgs());
+    if (type_args.IsNull()) {
+      // null vector represents infinite list of dynamics
+      return Type::dynamic_type().raw();
+    }
+    return type_args.TypeAt(index);
+  }
+
+  void SetReturn(const Object& value) const {
+    ASSERT(thread_->execution_state() == Thread::kThreadInVM);
+    *retval_ = value.raw();
+  }
 
   RawObject* ReturnValue() const {
     // Tell MemorySanitizer the retval_ was initialized (by generated code).
@@ -166,7 +197,7 @@ class NativeArguments {
   static int ComputeArgcTag(const Function& function) {
     ASSERT(function.is_native());
     ASSERT(!function.IsGenerativeConstructor());  // Not supported.
-    int tag = ArgcBits::encode(function.NumParameters());
+    int argc = function.NumParameters();
     int function_bits = 0;
     if (!function.is_static()) {
       function_bits |= kInstanceFunctionBit;
@@ -174,6 +205,11 @@ class NativeArguments {
     if (function.IsClosureFunction()) {
       function_bits |= kClosureFunctionBit;
     }
+    if (function.IsGeneric()) {
+      function_bits |= kGenericFunctionBit;
+      argc++;
+    }
+    int tag = ArgcBits::encode(argc);
     tag = FunctionBits::update(function_bits, tag);
     return tag;
   }
@@ -182,54 +218,74 @@ class NativeArguments {
   enum {
     kInstanceFunctionBit = 1,
     kClosureFunctionBit = 2,
+    kGenericFunctionBit = 4,
   };
   enum ArgcTagBits {
     kArgcBit = 0,
     kArgcSize = 24,
-    kFunctionBit = 24,
-    kFunctionSize = 2,
+    kFunctionBit = kArgcBit + kArgcSize,
+    kFunctionSize = 3,
+    kReverseArgOrderBit = kFunctionBit + kFunctionSize,
+    kReverseArgOrderSize = 1,
   };
   class ArgcBits : public BitField<intptr_t, int32_t, kArgcBit, kArgcSize> {};
   class FunctionBits
       : public BitField<intptr_t, int, kFunctionBit, kFunctionSize> {};
+  class ReverseArgOrderBit
+      : public BitField<intptr_t, bool, kReverseArgOrderBit, 1> {};
   friend class Api;
-  friend class BootstrapNatives;
+  friend class NativeEntry;
+  friend class Interpreter;
   friend class Simulator;
 
-#if defined(TARGET_ARCH_DBC)
-  // Allow simulator to create NativeArguments on the stack.
+  // Allow simulator and interpreter to create NativeArguments in reverse order
+  // on the stack.
   NativeArguments(Thread* thread,
                   int argc_tag,
                   RawObject** argv,
                   RawObject** retval)
-      : thread_(thread), argc_tag_(argc_tag), argv_(argv), retval_(retval) {}
-#endif
+      : thread_(thread),
+        argc_tag_(ReverseArgOrderBit::update(true, argc_tag)),
+        argv_(argv),
+        retval_(retval) {}
 
   // Since this function is passed a RawObject directly, we need to be
   // exceedingly careful when we use it.  If there are any other side
   // effects in the statement that may cause GC, it could lead to
   // bugs.
-  void SetReturnUnsafe(RawObject* value) const { *retval_ = value; }
+  void SetReturnUnsafe(RawObject* value) const {
+    ASSERT(thread_->execution_state() == Thread::kThreadInVM);
+    *retval_ = value;
+  }
 
   // Returns true if the arguments are those of an instance function call.
   bool ToInstanceFunction() const {
-    return (FunctionBits::decode(argc_tag_) & kInstanceFunctionBit);
+    return (FunctionBits::decode(argc_tag_) & kInstanceFunctionBit) != 0;
   }
 
   // Returns true if the arguments are those of a closure function call.
   bool ToClosureFunction() const {
-    return (FunctionBits::decode(argc_tag_) & kClosureFunctionBit);
+    return (FunctionBits::decode(argc_tag_) & kClosureFunctionBit) != 0;
+  }
+
+  // Returns true if the arguments are those of a generic function call.
+  bool ToGenericFunction() const {
+    return (FunctionBits::decode(argc_tag_) & kGenericFunctionBit) != 0;
   }
 
   int NumHiddenArgs(int function_bits) const {
+    int num_hidden_args = 0;
     // For static closure functions, the closure at index 0 is hidden.
     // In the instance closure function case, the receiver is accessed from
     // the context and the closure at index 0 is hidden, so the apparent
     // argument count remains unchanged.
-    if (function_bits == kClosureFunctionBit) {
-      return 1;
+    if ((function_bits & kClosureFunctionBit) == kClosureFunctionBit) {
+      num_hidden_args++;
     }
-    return 0;
+    if ((function_bits & kGenericFunctionBit) == kGenericFunctionBit) {
+      num_hidden_args++;
+    }
+    return num_hidden_args;
   }
 
   Thread* thread_;      // Current thread pointer.

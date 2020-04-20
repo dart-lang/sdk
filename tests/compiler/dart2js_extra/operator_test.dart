@@ -2,20 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import "package:expect/expect.dart";
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 confuse(x) => x;
 
-@NoInline()
+@pragma('dart2js:noInline')
 asNum(x) {
   var result = confuse(x);
   if (result is num) return result;
   throw new ArgumentError.value(x);
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 uint31(x) {
   var result = confuse(x);
   if (x is int) {
@@ -25,7 +27,7 @@ uint31(x) {
   throw new ArgumentError('Not uint31: $x');
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 uint32(x) {
   var result = confuse(x);
   if (x is int) {
@@ -35,67 +37,67 @@ uint32(x) {
   throw new ArgumentError('Not uint32: $x');
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 int zero() {
   return 0;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 int one() {
   return 1;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 int minus1() {
   return 0 - 1;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 int minus2() {
   return 0 - 2;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 int two() {
   return 2;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 int three() {
   return 3;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 int five() {
   return 5;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 int minus5() {
   return 0 - 5;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 int ninetyNine() {
   return 99;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 int four99() {
   return 499;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 int four99times99() {
   return 499 * 99;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 int four99times99plus1() {
   return 499 * 99 + 1;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 void addTest() {
   var m1 = 0 - 1;
   Expect.equals(0, 0 + 0);
@@ -111,7 +113,7 @@ void addTest() {
   Expect.equals(2, one() + one());
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 void subTest() {
   var m1 = 0 - 1;
   Expect.equals(0, 0 - 0);
@@ -123,7 +125,7 @@ void subTest() {
   Expect.equals(0, one() - one());
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 void mulTest() {
   var m1 = 0 - 1;
   Expect.equals(0, 0 * 0);
@@ -135,7 +137,7 @@ void mulTest() {
   Expect.equals(49401, four99() * 99);
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 void divTest() {
   var m1 = 0.0 - 1.0;
   var m2 = 0 - 2;
@@ -158,7 +160,7 @@ void divTest() {
   Expect.equals(1.5, confuse(150) / confuse(100));
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 void tdivTest() {
   var m1 = 0 - 1;
   var m2 = 0 - 2;
@@ -229,10 +231,10 @@ void tdivTest() {
   Expect.throws(() => -1e200 ~/ 1e-200);
   Expect.throws(() => 1e200 ~/ -1e-200);
   Expect.throws(() => -1e200 ~/ -1e-200);
-  Expect.throws(() => double.NAN ~/ 2);
+  Expect.throws(() => double.nan ~/ 2);
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 void modTest() {
   var m5 = 0 - 5;
   var m3 = 0 - 3;
@@ -250,7 +252,7 @@ void modTest() {
   Expect.equals(2, five() % m3);
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 void remainderTest() {
   var m5 = 0 - 5;
   Expect.equals(2, confuse(5).remainder(3));
@@ -279,7 +281,7 @@ void remainderTest() {
   Expect.equals(2, five().remainder(-3));
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 void shlTest() {
   Expect.equals(2, 1 << 1);
   Expect.equals(8, 1 << 3);
@@ -298,7 +300,7 @@ void shlTest() {
   Expect.equals(24, 3 << asNum(3));
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 void shrTest() {
   Expect.equals(1, 2 >> 1);
   Expect.equals(1, 8 >> 3);
@@ -318,7 +320,7 @@ void shrTest() {
   Expect.equals(0, asNum(0xffffffff) >> 32);
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 void andTest() {
   Expect.equals(2, 10 & 3);
   Expect.equals(7, 15 & 7);
@@ -332,7 +334,7 @@ void andTest() {
   Expect.equals(0, asNum(0x7ffffffe) & asNum(1));
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 void orTest() {
   Expect.equals(11, 10 | 3);
   Expect.equals(15, 15 | 7);
@@ -346,7 +348,7 @@ void orTest() {
   Expect.equals(10, asNum(10) | 10);
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 void xorTest() {
   Expect.equals(9, 10 ^ 3);
   Expect.equals(8, 15 ^ 7);
@@ -358,12 +360,12 @@ void xorTest() {
   Expect.equals(6, minus5() ^ -3);
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 void notTest() {
   Expect.equals(4, ~minus5());
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 void negateTest() {
   Expect.equals(minus5(), -5);
   Expect.equals(-5, -five());
@@ -377,7 +379,7 @@ void negateTest() {
   Expect.equals(3, -asNum(-3));
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 void equalsTest() {
   // Equality of normal numbers is already well tested with "Expect.equals".
   Expect.equals(true, true == true);
@@ -421,7 +423,7 @@ void equalsTest() {
   Expect.equals(false, null == falseValue);
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 void lessTest() {
   var m1 = minus1();
   Expect.equals(true, 1 < 2);
@@ -449,7 +451,7 @@ void lessTest() {
   Expect.equals(false, minus1() < minus1());
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 void lessEqualTest() {
   var m1 = minus1();
   Expect.equals(true, 1 <= 2);
@@ -485,7 +487,7 @@ void lessEqualTest() {
   Expect.equals(true, minus1() <= minus1());
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 void greaterTest() {
   var m1 = minus1();
   Expect.equals(false, 1 > 2);
@@ -513,7 +515,7 @@ void greaterTest() {
   Expect.equals(false, minus1() > minus1());
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 void greaterEqualTest() {
   var m1 = minus1();
   Expect.equals(false, 1 >= 2);

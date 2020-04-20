@@ -63,16 +63,6 @@ typedef void Dart_BreakpointResolvedHandler(Dart_IsolateId isolate_id,
                                             const Dart_CodeLocation& location);
 
 /**
- * Returns a list of ids (integers) of all the libraries loaded in the
- * current isolate.
- *
- * Requires there to be a current isolate.
- *
- * \return A handle to a list of library ids.
- */
-DART_EXPORT Dart_Handle Dart_GetLibraryIds();
-
-/**
  * Returns true if the debugger can step into code of the given library.
  *
  * Requires there to be a current isolate.
@@ -103,14 +93,6 @@ DART_EXPORT Dart_Handle Dart_SetLibraryDebuggable(intptr_t library_id,
  */
 DART_EXPORT Dart_Handle Dart_SetBreakpoint(Dart_Handle script_url,
                                            intptr_t line_number);
-
-/**
- * Installs a handler callback function that gets called by the VM
- * when a breakpoint location has been reached or when stepping.
- *
- * Requires there to be a current isolate.
- */
-DART_EXPORT void Dart_SetPausedEventHandler(Dart_PausedEventHandler handler);
 
 /**
  * Returns in \trace the current stack trace, or NULL if the
@@ -180,32 +162,16 @@ Dart_ActivationFrameInfo(Dart_ActivationFrame activation_frame,
 
 /**
  * Execute the expression given in string \expr in the context
- * of \target.
+ * of \lib_handle library, as if it were a top-level function in it.
  *
  * Requires there to be a current isolate.
- *
- * The expression is evaluated in the context of \target.
- * If \target is a Dart object, the expression is evaluated as if
- * it were an instance method of the class of the object.
- * If \target is a Class, the expression is evaluated as if it
- * were a static method of that class.
- * If \target is a Library, the expression is evaluated as if it
- * were a top-level function in that library.
  *
  * \return A handle to the computed value, or an error object if
  * the compilation of the expression fails, or if the evaluation throws
  * an error.
  */
-DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target, Dart_Handle expr);
-
-/**
- * Returns a handle to the library \library_id.
- *
- * Requires there to be a current isolate.
- *
- * \return A library handle if the id is valid.
- */
-DART_EXPORT Dart_Handle Dart_GetLibraryFromId(intptr_t library_id);
+DART_EXPORT Dart_Handle Dart_EvaluateStaticExpr(Dart_Handle lib_handle,
+                                                Dart_Handle expr);
 
 /**
  * Returns in \library_id the library id of the given \library.

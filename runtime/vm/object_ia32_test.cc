@@ -16,11 +16,11 @@ namespace dart {
 
 // Generate a simple dart code sequence.
 // This is used to test Code and Instruction object creation.
-void GenerateIncrement(Assembler* assembler) {
-  __ movl(EAX, Immediate(0));
+void GenerateIncrement(compiler::Assembler* assembler) {
+  __ movl(EAX, compiler::Immediate(0));
   __ pushl(EAX);
-  __ incl(Address(ESP, 0));
-  __ movl(ECX, Address(ESP, 0));
+  __ incl(compiler::Address(ESP, 0));
+  __ movl(ECX, compiler::Address(ESP, 0));
   __ incl(ECX);
   __ popl(EAX);
   __ movl(EAX, ECX);
@@ -29,7 +29,8 @@ void GenerateIncrement(Assembler* assembler) {
 
 // Generate a dart code sequence that embeds a string object in it.
 // This is used to test Embedded String objects in the instructions.
-void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
+void GenerateEmbedStringInCode(compiler::Assembler* assembler,
+                               const char* str) {
   const String& string_object =
       String::ZoneHandle(String::New(str, Heap::kOld));
   __ LoadObject(EAX, string_object);
@@ -38,7 +39,7 @@ void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
 
 // Generate a dart code sequence that embeds a smi object in it.
 // This is used to test Embedded Smi objects in the instructions.
-void GenerateEmbedSmiInCode(Assembler* assembler, intptr_t value) {
+void GenerateEmbedSmiInCode(compiler::Assembler* assembler, intptr_t value) {
   const Smi& smi_object = Smi::ZoneHandle(Smi::New(value));
   __ LoadObject(EAX, smi_object);
   __ ret();

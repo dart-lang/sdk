@@ -33,12 +33,12 @@ class Server {
 
     var nonce = "12345678"; // No need for random nonce in test.
 
-    var completer = new Completer();
+    var completer = new Completer<Server>();
     HttpServer.bind("127.0.0.1", 0).then((s) {
       server = s;
       server.listen((HttpRequest request) {
         sendUnauthorizedResponse(HttpResponse response, {stale: false}) {
-          response.statusCode = HttpStatus.UNAUTHORIZED;
+          response.statusCode = HttpStatus.unauthorized;
           StringBuffer authHeader = new StringBuffer();
           authHeader.write('Digest');
           authHeader.write(', realm="$realm"');
@@ -49,14 +49,16 @@ class Server {
           }
           authHeader.write(', domain="/digest/"');
           if (serverQop != null) authHeader.write(', qop="$serverQop"');
-          response.headers.set(HttpHeaders.WWW_AUTHENTICATE, authHeader);
+          response.headers.set(HttpHeaders.wwwAuthenticateHeader, authHeader);
           unauthCount++;
         }
 
         var response = request.response;
-        if (request.headers[HttpHeaders.AUTHORIZATION] != null) {
-          Expect.equals(1, request.headers[HttpHeaders.AUTHORIZATION].length);
-          String authorization = request.headers[HttpHeaders.AUTHORIZATION][0];
+        if (request.headers[HttpHeaders.authorizationHeader] != null) {
+          Expect.equals(
+              1, request.headers[HttpHeaders.authorizationHeader].length);
+          String authorization =
+              request.headers[HttpHeaders.authorizationHeader][0];
           HeaderValue header =
               HeaderValue.parse(authorization, parameterSeparator: ",");
           if (header.value.toLowerCase() == "basic") {
@@ -152,7 +154,7 @@ void testNoCredentials(String algorithm, String qop) {
           .getUrl(url)
           .then((HttpClientRequest request) => request.close())
           .then((HttpClientResponse response) {
-        Expect.equals(HttpStatus.UNAUTHORIZED, response.statusCode);
+        Expect.equals(HttpStatus.unauthorized, response.statusCode);
         return response.fold(null, (x, y) {});
       });
     }
@@ -178,7 +180,7 @@ void testCredentials(String algorithm, String qop) {
           .getUrl(url)
           .then((HttpClientRequest request) => request.close())
           .then((HttpClientResponse response) {
-        Expect.equals(HttpStatus.OK, response.statusCode);
+        Expect.equals(HttpStatus.ok, response.statusCode);
         Expect.equals(1, response.headers["Authentication-Info"].length);
         return response.fold(null, (x, y) {});
       });
@@ -208,7 +210,7 @@ void testAuthenticateCallback(String algorithm, String qop) {
     client.authenticate = (Uri url, String scheme, String realm) {
       Expect.equals("Digest", scheme);
       Expect.equals("test", realm);
-      Completer completer = new Completer();
+      Completer completer = new Completer<bool>();
       new Timer(const Duration(milliseconds: 10), () {
         client.addCredentials(
             Uri.parse("http://127.0.0.1:${server.port}/digest"),
@@ -224,7 +226,7 @@ void testAuthenticateCallback(String algorithm, String qop) {
           .getUrl(url)
           .then((HttpClientRequest request) => request.close())
           .then((HttpClientResponse response) {
-        Expect.equals(HttpStatus.OK, response.statusCode);
+        Expect.equals(HttpStatus.ok, response.statusCode);
         Expect.equals(1, response.headers["Authentication-Info"].length);
         return response.fold(null, (x, y) {});
       });
@@ -251,7 +253,7 @@ void testStaleNonce() {
           .getUrl(url)
           .then((HttpClientRequest request) => request.close())
           .then((HttpClientResponse response) {
-        Expect.equals(HttpStatus.OK, response.statusCode);
+        Expect.equals(HttpStatus.ok, response.statusCode);
         Expect.equals(1, response.headers["Authentication-Info"].length);
         return response.fold(null, (x, y) {});
       });
@@ -275,8 +277,7 @@ void testStaleNonce() {
 }
 
 void testNextNonce() {
-  Server
-      .start("MD5", "auth", nonceStaleAfter: 2, useNextNonce: true)
+  Server.start("MD5", "auth", nonceStaleAfter: 2, useNextNonce: true)
       .then((server) {
     HttpClient client = new HttpClient();
 
@@ -285,7 +286,7 @@ void testNextNonce() {
           .getUrl(url)
           .then((HttpClientRequest request) => request.close())
           .then((HttpClientResponse response) {
-        Expect.equals(HttpStatus.OK, response.statusCode);
+        Expect.equals(HttpStatus.ok, response.statusCode);
         Expect.equals(1, response.headers["Authentication-Info"].length);
         return response.fold(null, (x, y) {});
       });
@@ -339,7 +340,7 @@ void testLocalServerDigest() {
         .then((HttpClientResponse response) {
       count++;
       if (count % 100 == 0) print(count);
-      Expect.equals(HttpStatus.OK, response.statusCode);
+      Expect.equals(HttpStatus.ok, response.statusCode);
       return response.fold(null, (x, y) {});
     });
   }

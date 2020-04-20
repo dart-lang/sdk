@@ -1,35 +1,41 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 import 'dart:io' show WebSocket;
-import 'dart:convert' show JSON;
-import 'dart:async' show Future, StreamController;
+import 'dart:convert' show jsonDecode, jsonEncode;
+import 'dart:async' show Future, Stream, StreamController;
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     VM vm = isolate.owner;
 
     final serviceEvents =
-        (await vm.getEventStream('_Service')).asBroadcastStream();
+        (await vm.getEventStream('Service')).asBroadcastStream();
 
     WebSocket _socket =
         await WebSocket.connect((vm as WebSocketVM).target.networkAddress);
     WebSocket _socket_invoker =
         await WebSocket.connect((vm as WebSocketVM).target.networkAddress);
 
-    final socket = new StreamController();
-    final socket_invoker = new StreamController();
+    final socket = new StreamController<Map>();
+    final socket_invoker = new StreamController<Map>();
 
     // Avoid to manually encode and decode messages from the stream
-    socket.stream.map(JSON.encode).pipe(_socket);
-    socket_invoker.stream.map(JSON.encode).pipe(_socket_invoker);
-    final client = _socket.map(JSON.decode).asBroadcastStream();
-    final client_invoker = _socket_invoker.map(JSON.decode).asBroadcastStream();
+    Stream<String> socket_stream = socket.stream.map(jsonEncode);
+    socket_stream.cast<Object>().pipe(_socket);
+    Stream<String> socket_invoker_stream =
+        socket_invoker.stream.map(jsonEncode);
+    socket_invoker_stream.cast<Object>().pipe(_socket_invoker);
+    dynamic _decoder(dynamic obj) {
+      return jsonDecode(obj);
+    }
+
+    final client = _socket.map(_decoder).asBroadcastStream();
+    final client_invoker = _socket_invoker.map(_decoder).asBroadcastStream();
 
     const serviceName = 'successService';
     const serviceAlias = 'serviceAlias';
@@ -40,7 +46,7 @@ var tests = [
     socket.add({
       'jsonrpc': '2.0',
       'id': 1,
-      'method': '_registerService',
+      'method': 'registerService',
       'params': {'service': serviceName, 'alias': serviceAlias}
     });
 
@@ -51,7 +57,7 @@ var tests = [
 
     client_invoker.first.then((_) {
       expect(false, isTrue, reason: 'shouldn\'t get here');
-    }).catchError((e) => e);
+    }).catchError((_) => null);
 
     // Testing serial invocation of service which succedes
     for (var iteration = 0; iteration < repetition; iteration++) {
@@ -77,4 +83,9 @@ var tests = [
   },
 ];
 
-main(args) => runIsolateTests(args, tests);
+main(args) => runIsolateTests(
+      args,
+      tests,
+      // TODO(bkonyi): service extensions are not yet supported in DDS.
+      enableDds: false,
+    );

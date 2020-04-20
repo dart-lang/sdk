@@ -1,6 +1,8 @@
 library;
 import self as self;
 
+import "package:expect/expect.dart";
+
 static field dynamic global;
 static method fact4() → dynamic
   ;

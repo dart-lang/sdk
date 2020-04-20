@@ -103,7 +103,8 @@ class Template {
     if (arguments is List) {
       if (arguments.length != positionalArgumentCount) {
         throw 'Wrong number of template arguments, given ${arguments.length}, '
-            'expected $positionalArgumentCount';
+            'expected $positionalArgumentCount'
+            ', source: "$source"';
       }
       return instantiator(arguments);
     }
@@ -129,7 +130,7 @@ class Template {
  * trees. [arguments] is a List for positional templates, or Map for
  * named templates.
  */
-typedef Node Instantiator(var arguments);
+typedef /*Node|Iterable<Node>*/ Instantiator(var arguments);
 
 /**
  * InstantiatorGeneratorVisitor compiles a template.  This class compiles a tree
@@ -198,7 +199,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       var value = arguments[nameOrPosition];
       if (value is Expression) return value;
       if (value is String) return convertStringToVariableUse(value);
-      error('Interpolated value #$nameOrPosition is not an Expression: $value');
+      throw error(
+          'Interpolated value #$nameOrPosition is not an Expression: $value');
     };
   }
 
@@ -208,7 +210,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       var value = arguments[nameOrPosition];
       if (value is Declaration) return value;
       if (value is String) return convertStringToVariableDeclaration(value);
-      error('Interpolated value #$nameOrPosition is not a declaration: $value');
+      throw error(
+          'Interpolated value #$nameOrPosition is not a declaration: $value');
     };
   }
 
@@ -220,7 +223,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         Expression toExpression(item) {
           if (item is Expression) return item;
           if (item is String) return convertStringToVariableUse(item);
-          return error('Interpolated value #$nameOrPosition is not '
+          throw error('Interpolated value #$nameOrPosition is not '
               'an Expression or List of Expressions: $value');
         }
 
@@ -235,7 +238,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
       var value = arguments[nameOrPosition];
-      if (value is Literal) return value;
+      if (value is Literal || value is DeferredExpression) return value;
       error('Interpolated value #$nameOrPosition is not a Literal: $value');
     };
   }
@@ -248,7 +251,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       Parameter toParameter(item) {
         if (item is Parameter) return item;
         if (item is String) return new Parameter(item);
-        return error('Interpolated value #$nameOrPosition is not a Parameter or'
+        throw error('Interpolated value #$nameOrPosition is not a Parameter or'
             ' List of Parameters: $value');
       }
 
@@ -266,7 +269,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       var value = arguments[nameOrPosition];
       if (value is Expression) return value;
       if (value is String) return new LiteralString('"$value"');
-      error('Interpolated value #$nameOrPosition is not a selector: $value');
+      throw error(
+          'Interpolated value #$nameOrPosition is not a selector: $value');
     };
   }
 
@@ -275,7 +279,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return (arguments) {
       var value = arguments[nameOrPosition];
       if (value is Node) return value.toStatement();
-      error('Interpolated value #$nameOrPosition is not a Statement: $value');
+      throw error(
+          'Interpolated value #$nameOrPosition is not a Statement: $value');
     };
   }
 
@@ -287,8 +292,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         Statement toStatement(item) {
           if (item is Statement) return item;
           if (item is Expression) return item.toStatement();
-          ;
-          return error('Interpolated value #$nameOrPosition is not '
+          throw error('Interpolated value #$nameOrPosition is not '
               'a Statement or List of Statements: $value');
         }
 
@@ -300,7 +304,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   }
 
   Instantiator visitProgram(Program node) {
-    List instantiators = node.body.map(visitSplayableStatement).toList();
+    List<Instantiator> instantiators =
+        node.body.map(visitSplayableStatement).toList();
     return (arguments) {
       List<Statement> statements = <Statement>[];
       void add(node) {
@@ -320,7 +325,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   }
 
   Instantiator visitBlock(Block node) {
-    List instantiators = node.statements.map(visitSplayableStatement).toList();
+    List<Instantiator> instantiators =
+        node.statements.map(visitSplayableStatement).toList();
     return (arguments) {
       List<Statement> statements = <Statement>[];
       void add(node) {
@@ -368,8 +374,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         if (value is bool) return value;
         if (value is Expression) return value;
         if (value is String) return convertStringToVariableUse(value);
-        ;
-        error('Interpolated value #$nameOrPosition '
+        throw error('Interpolated value #$nameOrPosition '
             'is not an Expression: $value');
       };
     }
@@ -485,7 +490,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       return new Switch(
           makeKey(arguments),
           makeCases
-              .map((Instantiator makeCase) => makeCase(arguments))
+              .map<SwitchClause>((Instantiator makeCase) => makeCase(arguments))
               .toList());
     };
   }
@@ -685,13 +690,22 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   Instantiator visitName(Name node) => same(node);
 
+  Instantiator visitParentheses(Parentheses node) {
+    Instantiator makeEnclosed = visit(node.enclosed);
+    return (arguments) {
+      Expression enclosed = makeEnclosed(arguments);
+      return Parentheses(enclosed);
+    };
+  }
+
   Instantiator visitArrayInitializer(ArrayInitializer node) {
     // TODO(sra): Implement splicing?
     List<Instantiator> elementMakers =
         node.elements.map(visit).toList(growable: false);
     return (arguments) {
       List<Expression> elements = elementMakers
-          .map((Instantiator instantiator) => instantiator(arguments))
+          .map<Expression>(
+              (Instantiator instantiator) => instantiator(arguments))
           .toList(growable: false);
       return new ArrayInitializer(elements);
     };

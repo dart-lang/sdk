@@ -56,7 +56,7 @@ List<int> encode5(String str) {
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(false);
-  List<int> tmpBytes = UTF8.encode(str);
+  List<int> tmpBytes = utf8.encode(str);
   inputByteSink.add(tmpBytes);
   inputByteSink.close();
   return bytes;
@@ -68,7 +68,7 @@ List<int> encode6(String str) {
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(false);
-  List<int> tmpBytes = UTF8.encode(str);
+  List<int> tmpBytes = utf8.encode(str);
   tmpBytes.forEach((b) => inputByteSink.addSlice([0, b, 1], 1, 2, false));
   inputByteSink.close();
   return bytes;
@@ -117,7 +117,6 @@ main() {
   const CHAR_A = 0x61;
 
   // Test surrogates at all kinds of locations.
-  var tests = [];
   var codeUnits = <int>[];
   for (int i = 0; i < 2049; i++) {
     // Invariant: codeUnits[0..i - 1] is filled with CHAR_A (character 'a').

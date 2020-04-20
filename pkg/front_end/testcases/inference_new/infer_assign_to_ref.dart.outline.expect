@@ -3,13 +3,13 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  field core::int f;
-  default constructor •() → void
+  field core::int* f;
+  synthetic constructor •() → self::A*
     ;
 }
-static field self::A a;
-static field dynamic b;
-static field dynamic c;
-static field dynamic d;
+static field self::A* a;
+static field core::int* b;
+static field core::int* c;
+static field core::int* d;
 static method main() → dynamic
   ;

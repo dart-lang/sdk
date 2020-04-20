@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,26 +10,14 @@ import 'package:analyzer/src/lint/linter.dart';
 /**
  * Registry of lint rules.
  */
-class Registry extends Object with IterableMixin<LintRule> {
+class Registry with IterableMixin<LintRule> {
   /**
    * The default registry to be used by clients.
    */
-  static final Registry ruleRegistry = new Registry();
+  static final Registry ruleRegistry = Registry();
 
-  /**
-   * A table mapping rule names to rules.
-   */
-  Map<String, LintRule> _ruleMap = <String, LintRule>{};
-
-  /**
-   * A list of the default lint rules.
-   */
-  List<LintRule> _defaultRules = <LintRule>[];
-
-  /**
-   * Return a list of the default lint rules.
-   */
-  List<LintRule> get defaultRules => _defaultRules;
+  /// A table mapping rule names to rules.
+  final Map<String, LintRule> _ruleMap = <String, LintRule>{};
 
   @override
   Iterator<LintRule> get iterator => _ruleMap.values.iterator;
@@ -67,14 +55,5 @@ class Registry extends Object with IterableMixin<LintRule> {
    */
   void register(LintRule rule) {
     _ruleMap[rule.name] = rule;
-  }
-
-  /**
-   * Add the given lint [rule] to this registry and mark it as being a default
-   * lint (one that will be run if lints are requested but no rules are enabled.
-   */
-  void registerDefault(LintRule rule) {
-    register(rule);
-    _defaultRules.add(rule);
   }
 }

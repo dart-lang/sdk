@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Check that exception messages for truncating operations contains the
 // operands.
 
 import 'package:expect/expect.dart';
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 confuse(x) => x;
 
 void find1(expected, thunk) {
@@ -20,8 +22,8 @@ void find1(expected, thunk) {
     exceptionText = '$e';
   }
   if (exceptionText == null) {
-    Expect
-        .fail('Expected exception containing "$expected", returned: $returned');
+    Expect.fail(
+        'Expected exception containing "$expected", returned: $returned');
   }
   Expect.isTrue(exceptionText.contains(expected),
       'Expected "$expected" in "$exceptionText"');
@@ -35,8 +37,8 @@ void find(expected, [thunk1, thunk2, thunk3, thunk4]) {
 }
 
 main() {
-  var NaN = double.NAN;
-  var Infinity = double.INFINITY;
+  var NaN = double.nan;
+  var Infinity = double.infinity;
 
   find(' Infinity: 123 ~/ 0', () => confuse(123) ~/ confuse(0),
       () => confuse(123) ~/ 0, () => 123 ~/ confuse(0), () => 123 ~/ 0);

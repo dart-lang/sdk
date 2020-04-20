@@ -4,7 +4,6 @@
 
 library test.superclass;
 
-@MirrorsUsed(targets: "test.superclass")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
@@ -17,5 +16,5 @@ main() {
   Expect.isNotNull(superclass, 'Failed to obtain superclass of MyClass.');
   Expect.equals(
       reflectClass(Object), superclass, 'Superclass of MyClass is not Object.');
-  Expect.isNull(superclass.superclass, 'Superclass of Object is not null.');
+  Expect.isNull(superclass!.superclass, 'Superclass of Object is not null.');
 }

@@ -1,0 +1,32 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue40093.dart:6:8: Error: Can't have modifier 'late' here.
+// Try removing 'late'.
+//   for (late int i = 0; i < 10; ++i) {
+//        ^^^^
+//
+// pkg/front_end/testcases/nnbd/issue40093.dart:9:8: Error: Can't have modifier 'late' here.
+// Try removing 'late'.
+//   for (late int i in <int>[]) {
+//        ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method error() → dynamic {
+  for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
+    core::print(i);
+  }
+  {
+    core::Iterator<core::int*> :sync-for-iterator = <core::int>[].{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      core::int i = :sync-for-iterator.{core::Iterator::current};
+      {
+        core::print(i);
+      }
+    }
+  }
+}
+static method main() → dynamic {}

@@ -16,7 +16,7 @@ class A extends IterableBase {
 
 class AIterator implements Iterator {
   int _count;
-  int _current;
+  int? _current;
 
   AIterator(this._count);
 

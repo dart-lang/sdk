@@ -10,7 +10,6 @@
 #
 # "pub" must be in PATH.
 
-
 import os
 import os.path
 import shutil
@@ -18,57 +17,57 @@ import sys
 import subprocess
 import tempfile
 
+
 def Main(argv):
-  HOME = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    HOME = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
-  pkgName = os.path.basename(os.path.normpath(argv[1]))
+    pkgName = os.path.basename(os.path.normpath(argv[1]))
 
-  pubspec = os.path.join(HOME, argv[1], 'pubspec.yaml')
-  if not os.path.exists(pubspec):
-    print 'Error: did not find pubspec.yaml at ' + pubspec
-    return -1
-
-  with open(pubspec) as pubspecFile:
-    lines = pubspecFile.readlines()
-
-  version = None
-  foundSdkConstraint = False
-  inDependencies = False
-  for line in lines:
-    if line.startswith('dependencies:'):
-      inDependencies = True
-    elif line.startswith('environment:'):
-      foundSdkConstraint = True
-    elif line[0].isalpha():
-      inDependencies = False
-    if line.startswith('version:'):
-      version = line[len('version:'):].strip()
-    if inDependencies:
-      if line.endswith(': any'):
-        print 'Error in %s: should not use "any" version constraint: %s' % (
-            pubspec, line)
+    pubspec = os.path.join(HOME, argv[1], 'pubspec.yaml')
+    if not os.path.exists(pubspec):
+        print 'Error: did not find pubspec.yaml at ' + pubspec
         return -1
 
-  if not version:
-    print 'Error in %s: did not find package version.' % pubspec
-    return -1
+    with open(pubspec) as pubspecFile:
+        lines = pubspecFile.readlines()
 
-  if not foundSdkConstraint:
-    print 'Error in %s: did not find SDK version constraint.' % pubspec
-    return -1
+    version = None
+    foundSdkConstraint = False
+    inDependencies = False
+    for line in lines:
+        if line.startswith('dependencies:'):
+            inDependencies = True
+        elif line.startswith('environment:'):
+            foundSdkConstraint = True
+        elif line[0].isalpha():
+            inDependencies = False
+        if line.startswith('version:'):
+            version = line[len('version:'):].strip()
+        if inDependencies:
+            if line.endswith(': any'):
+                print 'Error in %s: should not use "any" version constraint: %s' % (
+                    pubspec, line)
+                return -1
 
-  tmpDir = tempfile.mkdtemp()
+    if not version:
+        print 'Error in %s: did not find package version.' % pubspec
+        return -1
 
-  #
-  # If pubspec.yaml exists, check that the SDK's version constraint is valid
-  #
-  shutil.copytree(os.path.join(HOME, argv[1]),
-                  os.path.join(tmpDir, pkgName))
+    if not foundSdkConstraint:
+        print 'Error in %s: did not find SDK version constraint.' % pubspec
+        return -1
 
-  if not os.path.exists(os.path.join(tmpDir, pkgName, 'LICENSE')):
-    with open(os.path.join(tmpDir, pkgName, 'LICENSE'), 'w') as licenseFile:
-      licenseFile.write(
-'''Copyright 2014, the Dart project authors. All rights reserved.
+    tmpDir = tempfile.mkdtemp()
+
+    #
+    # If pubspec.yaml exists, check that the SDK's version constraint is valid
+    #
+    shutil.copytree(os.path.join(HOME, argv[1]), os.path.join(tmpDir, pkgName))
+
+    if not os.path.exists(os.path.join(tmpDir, pkgName, 'LICENSE')):
+        with open(os.path.join(tmpDir, pkgName, 'LICENSE'), 'w') as licenseFile:
+            licenseFile.write(
+                '''Copyright 2014, the Dart project authors. All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
 met:
@@ -96,18 +95,19 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ''')
 
-  print 'publishing version ' + version + ' of ' + argv[1] + ' to pub.\n'
+    print 'publishing version ' + version + ' of ' + argv[1] + ' to pub.\n'
 
-  # TODO(jmesserly): this code puts things in the pub cache. Useful for testing
-  # without actually uploading.
-  #cacheDir = os.path.join(
-  #    os.path.expanduser('~/.pub-cache/hosted/pub.dartlang.org'),
-  #    pkgName + '-' + version)
-  #print 'Moving to ' + cacheDir
-  #shutil.move(os.path.join(tmpDir, pkgName), cacheDir)
+    # TODO(jmesserly): this code puts things in the pub cache. Useful for testing
+    # without actually uploading.
+    #cacheDir = os.path.join(
+    #    os.path.expanduser('~/.pub-cache/hosted/pub.dartlang.org'),
+    #    pkgName + '-' + version)
+    #print 'Moving to ' + cacheDir
+    #shutil.move(os.path.join(tmpDir, pkgName), cacheDir)
 
-  subprocess.call(['pub', 'publish'], cwd=os.path.join(tmpDir, pkgName))
-  shutil.rmtree(tmpDir)
+    subprocess.call(['pub', 'publish'], cwd=os.path.join(tmpDir, pkgName))
+    shutil.rmtree(tmpDir)
+
 
 if __name__ == '__main__':
-  sys.exit(Main(sys.argv))
+    sys.exit(Main(sys.argv))

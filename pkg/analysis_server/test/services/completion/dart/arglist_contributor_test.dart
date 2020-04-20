@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,10 +8,9 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../src/utilities/flutter_util.dart';
 import 'completion_contributor_util.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArgListContributorTest);
   });
@@ -20,7 +19,7 @@ main() {
 @reflectiveTest
 class ArgListContributorTest extends DartCompletionContributorTest {
   void assertNoOtherSuggestions(Iterable<CompletionSuggestion> expected) {
-    for (CompletionSuggestion suggestion in suggestions) {
+    for (var suggestion in suggestions) {
       if (!expected.contains(suggestion)) {
         failedCompletion('did not expect completion: '
             '${suggestion.completion}\n  $suggestion');
@@ -28,35 +27,15 @@ class ArgListContributorTest extends DartCompletionContributorTest {
     }
   }
 
-  /**
-   * Assert that there is a suggestion with the given parameter [name] that has
-   * the given [completion], [selectionOffset] and [selectionLength].
-   */
+  /// Assert that there is a suggestion with the given parameter [name] that has
+  /// the given [completion], [selectionOffset] and [selectionLength].
   void assertSuggestArgumentAndCompletion(String name,
-      {String completion, int selectionOffset, int selectionLength: 0}) {
-    CompletionSuggestion suggestion =
-        suggestions.firstWhere((s) => s.parameterName == name);
+      {String completion, int selectionOffset, int selectionLength = 0}) {
+    var suggestion = suggestions.firstWhere((s) => s.parameterName == name);
     expect(suggestion, isNotNull);
     expect(suggestion.completion, completion);
     expect(suggestion.selectionOffset, selectionOffset);
     expect(suggestion.selectionLength, selectionLength);
-  }
-
-  void assertSuggestArgumentList(
-      List<String> paramNames, List<String> paramTypes) {
-    // DEPRECATED... argument lists are no longer suggested.
-    // See https://github.com/dart-lang/sdk/issues/25197
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
-
-    // CompletionSuggestionKind csKind = CompletionSuggestionKind.ARGUMENT_LIST;
-    // CompletionSuggestion cs = getSuggest(csKind: csKind);
-    // if (cs == null) {
-    //   failedCompletion('expected completion $csKind', suggestions);
-    // }
-    // assertSuggestArgumentList_params(
-    //     paramNames, paramTypes, cs.parameterNames, cs.parameterTypes);
-    // expect(cs.relevance, DART_RELEVANCE_HIGH);
-    // assertNoOtherSuggestions([cs]);
   }
 
   void assertSuggestArgumentList_params(
@@ -68,7 +47,7 @@ class ArgListContributorTest extends DartCompletionContributorTest {
         actualNames.length == expectedNames.length &&
         actualTypes != null &&
         actualTypes.length == expectedTypes.length) {
-      int index = 0;
+      var index = 0;
       while (index < expectedNames.length) {
         if (actualNames[index] != expectedNames[index] ||
             actualTypes[index] != expectedTypes[index]) {
@@ -80,7 +59,7 @@ class ArgListContributorTest extends DartCompletionContributorTest {
         return;
       }
     }
-    StringBuffer msg = new StringBuffer();
+    var msg = StringBuffer();
     msg.writeln('Argument list not the same');
     msg.writeln('  Expected names: $expectedNames');
     msg.writeln('           found: $actualNames');
@@ -89,25 +68,23 @@ class ArgListContributorTest extends DartCompletionContributorTest {
     fail(msg.toString());
   }
 
-  /**
-   * Assert that the specified named argument suggestions with their types are
-   * the only suggestions.
-   */
+  /// Assert that the specified named argument suggestions with their types are
+  /// the only suggestions.
   void assertSuggestArgumentsAndTypes(
       {Map<String, String> namedArgumentsWithTypes,
-      List<int> requiredParamIndices: const <int>[],
-      bool includeColon: true,
-      bool includeComma: false}) {
-    List<CompletionSuggestion> expected = new List<CompletionSuggestion>();
-    int paramIndex = 0;
+      List<int> requiredParamIndices = const <int>[],
+      bool includeColon = true,
+      bool includeComma = false}) {
+    var expected = <CompletionSuggestion>[];
+    var paramIndex = 0;
     namedArgumentsWithTypes.forEach((String name, String type) {
-      String completion = includeColon ? '$name: ' : name;
+      var completion = includeColon ? '$name: ' : name;
       // Selection should be before any trailing commas.
-      int selectionOffset = completion.length;
+      var selectionOffset = completion.length;
       if (includeComma) {
         completion = '$completion,';
       }
-      int relevance = requiredParamIndices.contains(paramIndex++)
+      var relevance = requiredParamIndices.contains(paramIndex++)
           ? DART_RELEVANCE_NAMED_PARAMETER_REQUIRED
           : DART_RELEVANCE_NAMED_PARAMETER;
       expected.add(assertSuggest(completion,
@@ -120,14 +97,12 @@ class ArgListContributorTest extends DartCompletionContributorTest {
     assertNoOtherSuggestions(expected);
   }
 
-  /**
-   * Assert that the specified suggestions are the only suggestions.
-   */
+  /// Assert that the specified suggestions are the only suggestions.
   void assertSuggestions(List<String> suggestions) {
-    List<CompletionSuggestion> expected = new List<CompletionSuggestion>();
-    for (String suggestion in suggestions) {
+    var expected = <CompletionSuggestion>[];
+    for (var suggestion in suggestions) {
       // Selection offset should be before any trailing commas.
-      int selectionOffset =
+      var selectionOffset =
           suggestion.endsWith(',') ? suggestion.length - 1 : suggestion.length;
       expected.add(assertSuggest('$suggestion',
           csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
@@ -139,35 +114,34 @@ class ArgListContributorTest extends DartCompletionContributorTest {
 
   @override
   DartCompletionContributor createContributor() {
-    return new ArgListContributor();
+    return ArgListContributor();
   }
 
-  fail_test_Annotation_local_constructor_named_param_10() async {
-    addTestSource('''
-class A { const A({int one, String two: 'defaultValue'}); }
-@A(two: '2' ^) main() { }''');
-    await computeSuggestions();
-    assertSuggestions([', one: ']);
-  }
-
-  fail_test_Annotation_local_constructor_named_param_9() async {
-    addTestSource('''
-class A { const A({int one, String two: 'defaultValue'}); }
-@A(two: '2'^) main() { }''');
-    await computeSuggestions();
-    assertSuggestions([', one: ']);
-  }
-
-  test_Annotation_imported_constructor_named_param() async {
-    addSource('/libA.dart', '''
+  Future<void> test_Annotation_imported_constructor_named_param() async {
+    addSource('/home/test/lib/a.dart', '''
 library libA; class A { const A({int one, String two: 'defaultValue'}); }''');
-    addTestSource('import "/libA.dart"; @A(^) main() { }');
+    addTestSource('import "a.dart"; @A(^) main() { }');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(
         namedArgumentsWithTypes: {'one': 'int', 'two': 'String'});
   }
 
-  test_Annotation_local_constructor_named_param() async {
+  Future<void> test_Annotation_importedConstructor_prefixed() async {
+    addSource('/home/test/lib/a.dart', '''
+class A {
+  const A({int value});
+}
+''');
+    addTestSource('''
+import "a.dart" as p;
+@p.A(^)
+main() {}
+''');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'value': 'int'});
+  }
+
+  Future<void> test_Annotation_local_constructor_named_param() async {
     addTestSource('''
 class A { const A({int one, String two: 'defaultValue'}); }
 @A(^) main() { }''');
@@ -176,7 +150,16 @@ class A { const A({int one, String two: 'defaultValue'}); }
         namedArgumentsWithTypes: {'one': 'int', 'two': 'String'});
   }
 
-  test_Annotation_local_constructor_named_param_11() async {
+  @failingTest
+  Future<void> test_Annotation_local_constructor_named_param_10() async {
+    addTestSource('''
+class A { const A({int one, String two: 'defaultValue'}); }
+@A(two: '2' ^) main() { }''');
+    await computeSuggestions();
+    assertSuggestions([', one: ']);
+  }
+
+  Future<void> test_Annotation_local_constructor_named_param_11() async {
     addTestSource('''
 class A { const A({int one, String two: 'defaultValue'}); }
 @A(two: '2', ^) main() { }''');
@@ -184,7 +167,7 @@ class A { const A({int one, String two: 'defaultValue'}); }
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
   }
 
-  test_Annotation_local_constructor_named_param_2() async {
+  Future<void> test_Annotation_local_constructor_named_param_2() async {
     addTestSource('''
 class A { const A({int one, String two: 'defaultValue'}); }
 @A(^ two: '2') main() { }''');
@@ -192,7 +175,7 @@ class A { const A({int one, String two: 'defaultValue'}); }
     assertSuggestions(['one: ,']);
   }
 
-  test_Annotation_local_constructor_named_param_3() async {
+  Future<void> test_Annotation_local_constructor_named_param_3() async {
     addTestSource('''
 class A { const A({int one, String two: 'defaultValue'}); }
 @A(^two: '2') main() { }''');
@@ -200,7 +183,7 @@ class A { const A({int one, String two: 'defaultValue'}); }
     assertSuggestions(['one: ,']);
   }
 
-  test_Annotation_local_constructor_named_param_4() async {
+  Future<void> test_Annotation_local_constructor_named_param_4() async {
     addTestSource('''
 class A { const A({int one, String two: 'defaultValue'}); }
 @A(^, two: '2') main() { }''');
@@ -208,7 +191,7 @@ class A { const A({int one, String two: 'defaultValue'}); }
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
   }
 
-  test_Annotation_local_constructor_named_param_5() async {
+  Future<void> test_Annotation_local_constructor_named_param_5() async {
     addTestSource('''
 class A { const A({int one, String two: 'defaultValue'}); }
 @A(^ , two: '2') main() { }''');
@@ -216,7 +199,7 @@ class A { const A({int one, String two: 'defaultValue'}); }
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
   }
 
-  test_Annotation_local_constructor_named_param_6() async {
+  Future<void> test_Annotation_local_constructor_named_param_6() async {
     addTestSource('''
 class A { const A(int zero, {int one, String two: 'defaultValue'}); }
 @A(0, ^, two: '2') main() { }''');
@@ -224,7 +207,7 @@ class A { const A(int zero, {int one, String two: 'defaultValue'}); }
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
   }
 
-  test_Annotation_local_constructor_named_param_7() async {
+  Future<void> test_Annotation_local_constructor_named_param_7() async {
     addTestSource('''
 class A { const A(int zero, {int one, String two: 'defaultValue'}); }
 @A(0, ^ two: '2') main() { }''');
@@ -232,7 +215,7 @@ class A { const A(int zero, {int one, String two: 'defaultValue'}); }
     assertSuggestions(['one: ,']);
   }
 
-  test_Annotation_local_constructor_named_param_8() async {
+  Future<void> test_Annotation_local_constructor_named_param_8() async {
     addTestSource('''
 class A { const A(int zero, {int one, String two: 'defaultValue'}); }
 @A(0, ^two: '2') main() { }''');
@@ -240,7 +223,16 @@ class A { const A(int zero, {int one, String two: 'defaultValue'}); }
     assertSuggestions(['one: ,']);
   }
 
-  test_Annotation_local_constructor_named_param_negative() async {
+  @failingTest
+  Future<void> test_Annotation_local_constructor_named_param_9() async {
+    addTestSource('''
+class A { const A({int one, String two: 'defaultValue'}); }
+@A(two: '2'^) main() { }''');
+    await computeSuggestions();
+    assertSuggestions([', one: ']);
+  }
+
+  Future<void> test_Annotation_local_constructor_named_param_negative() async {
     addTestSource('''
 class A { const A(int one, int two, int three, {int four, String five:
   'defaultValue'}); }
@@ -249,114 +241,160 @@ class A { const A(int one, int two, int three, {int four, String five:
     assertNoSuggestions();
   }
 
-  test_ArgumentList_Flutter_InstanceCreationExpression_0() async {
-    configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+  Future<void> test_ArgumentList_closureFunction_namedParameter() async {
+    addTestSource(r'''
+void f({void Function(int a, String b) closure}) {}
+
+void main() {
+  f(closure: ^);
+}
+''');
+    await computeSuggestions();
+
+    assertSuggest(
+      '(a, b) => ,',
+      relevance: DART_RELEVANCE_HIGH,
+      selectionOffset: 10,
+    );
+
+    assertSuggest(
+      '''
+(a, b) {
+${' ' * 4}
+${' ' * 2}},''',
+      selectionOffset: 13,
+    );
+  }
+
+  Future<void>
+      test_ArgumentList_closureFunction_namedParameter_hasComma() async {
+    addTestSource(r'''
+void f({void Function(int a, String b) closure}) {}
+
+void main() {
+  f(
+    closure: ^,
+  );
+}
+''');
+    await computeSuggestions();
+
+    assertSuggest(
+      '(a, b) => ',
+      selectionOffset: 10,
+    );
+
+    assertSuggest(
+      '''
+(a, b) {
+${' ' * 6}
+${' ' * 4}}''',
+      selectionOffset: 15,
+    );
+  }
+
+  /// todo (pq): implement positional functional parameters
+  @failingTest
+  Future<void> test_ArgumentList_closureFunction_positionalParameter() async {
+    addTestSource(r'''
+void f(void Function(int a, int b) closure) {}
+
+void main() {
+  f(^);
+}
+''');
+    await computeSuggestions();
+
+    assertSuggest(
+      '(a, b, c) => ,',
+      selectionOffset: 13,
+    );
+  }
+
+  Future<void> test_ArgumentList_closureMethod_namedParameter() async {
+    addTestSource(r'''
+class C {
+  void f({void Function(int a, String b) closure}) {}
+
+  void main() {
+    f(closure: ^);
+  }
+}
+''');
+    await computeSuggestions();
+
+    assertSuggest(
+      '(a, b) => ,',
+      selectionOffset: 10,
+    );
+
+    assertSuggest(
+      '''
+(a, b) {
+${' ' * 6}
+${' ' * 4}},''',
+      selectionOffset: 15,
+    );
+  }
+
+  Future<void> test_ArgumentList_closureParam() async {
+    addTestSource(r'''
+void f({void Function(int a, {int b, int c}) closure}) {}
+
+void main() {
+  f(closure: ^);
+}
+''');
+    await computeSuggestions();
+
+    assertSuggest(
+      '(a, {b, c}) => ,',
+      relevance: DART_RELEVANCE_HIGH,
+      selectionOffset: 15,
+    );
+  }
+
+  Future<void> test_ArgumentList_closureParameterOptionalNamed() async {
+    addTestSource(r'''
+void f({void Function(int a, {int b, int c}) closure}) {}
+
+void main() {
+  f(closure: ^);
+}
+''');
+    await computeSuggestions();
+
+    assertSuggest(
+      '(a, {b, c}) => ,',
+      selectionOffset: 15,
+    );
+  }
+
+  Future<void> test_ArgumentList_closureParameterOptionalPositional() async {
+    addTestSource(r'''
+void f({void Function(int a, [int b, int c]) closure]) {}
+
+void main() {
+  f(closure: ^);
+}
+''');
+    await computeSuggestions();
+
+    assertSuggest(
+      '(a, [b, c]) => ,',
+      relevance: DART_RELEVANCE_HIGH,
+      selectionOffset: 15,
+    );
+  }
+
+  Future<void> test_ArgumentList_Flutter_InstanceCreationExpression_0() async {
+    addFlutterPackage();
 
     addTestSource('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 
 build() => new Row(
     ^
-  );
-''');
-
-    await computeSuggestions();
-
-    assertSuggest('children: <Widget>[],',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
-        defaultArgListString: null,
-        selectionOffset: 19,
-        defaultArgumentListTextRanges: null);
-  }
-
-  test_ArgumentList_Flutter_InstanceCreationExpression_01() async {
-    configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-
-    addTestSource('''
-import 'package:flutter/src/widgets/framework.dart';
-
-  build() => new Scaffold(
-        appBar: new AppBar(
-          ^
-        ),
-  );
-''');
-
-    await computeSuggestions();
-
-    assertSuggest('color: ,',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
-        defaultArgListString: null, // No default values.
-        selectionOffset: 7);
-  }
-
-  test_ArgumentList_Flutter_InstanceCreationExpression_1() async {
-    configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-
-    addTestSource('''
-import 'package:flutter/src/widgets/framework.dart';
-
-build() => new Row(
-    key: null,
-    ^
-  );
-''');
-
-    await computeSuggestions();
-
-    assertSuggest('children: <Widget>[],',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
-        defaultArgListString: null,
-        selectionOffset: 19,
-        defaultArgumentListTextRanges: null);
-  }
-
-  test_ArgumentList_Flutter_InstanceCreationExpression_2() async {
-    configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-
-    addTestSource('''
-import 'package:flutter/src/widgets/framework.dart';
-
-build() => new Row(
-    ^
-    key: null,
-  );
-''');
-
-    await computeSuggestions();
-
-    assertSuggest('children: <Widget>[],',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
-        defaultArgListString: null,
-        selectionOffset: 19,
-        defaultArgumentListTextRanges: null);
-  }
-
-  test_ArgumentList_Flutter_InstanceCreationExpression_children_dynamic() async {
-    // Ensure we don't generate unneeded <dynamic> param if a future API doesn't
-    // type it's children.
-    configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code +
-          '\nclass DynamicRow extends Widget { DynamicRow({List children: null}){}}'
-    });
-
-    addTestSource('''
-import 'package:flutter/src/widgets/framework.dart';
-
-build() => new Container(
-    child: new DynamicRow(^);
   );
 ''');
 
@@ -370,19 +408,115 @@ build() => new Container(
         defaultArgumentListTextRanges: null);
   }
 
-  test_ArgumentList_Flutter_InstanceCreationExpression_children_Map() async {
-    // Ensure we don't generate Map params for a future API
-    configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code +
-          '\nclass MapRow extends Widget { MapRow({Map<Object,Object> children: null}){}}'
-    });
+  Future<void> test_ArgumentList_Flutter_InstanceCreationExpression_01() async {
+    addFlutterPackage();
 
     addTestSource('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
+
+  build() => new Scaffold(
+        appBar: new AppBar(
+          ^
+        ),
+  );
+''');
+
+    await computeSuggestions();
+
+    assertSuggest('backgroundColor: ,',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        relevance: DART_RELEVANCE_NAMED_PARAMETER,
+        defaultArgListString: null, // No default values.
+        selectionOffset: 17);
+  }
+
+  Future<void> test_ArgumentList_Flutter_InstanceCreationExpression_1() async {
+    addFlutterPackage();
+
+    addTestSource('''
+import 'package:flutter/material.dart';
+
+build() => new Row(
+    key: null,
+    ^
+  );
+''');
+
+    await computeSuggestions();
+
+    assertSuggest('children: [],',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        relevance: DART_RELEVANCE_NAMED_PARAMETER,
+        defaultArgListString: null,
+        selectionOffset: 11,
+        defaultArgumentListTextRanges: null);
+  }
+
+  Future<void> test_ArgumentList_Flutter_InstanceCreationExpression_2() async {
+    addFlutterPackage();
+
+    addTestSource('''
+import 'package:flutter/material.dart';
+
+build() => new Row(
+    ^
+    key: null,
+  );
+''');
+
+    await computeSuggestions();
+
+    assertSuggest('children: [],',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        relevance: DART_RELEVANCE_NAMED_PARAMETER,
+        defaultArgListString: null,
+        selectionOffset: 11,
+        defaultArgumentListTextRanges: null);
+  }
+
+  Future<void>
+      test_ArgumentList_Flutter_InstanceCreationExpression_children_dynamic() async {
+    // Ensure we don't generate unneeded <dynamic> param if a future API doesn't
+    // type it's children.
+    addFlutterPackage();
+
+    addTestSource('''
+import 'package:flutter/material.dart';
+
+build() => new Container(
+    child: new DynamicRow(^);
+  );
+
+class DynamicRow extends Widget {
+  DynamicRow({List children: null});
+}
+''');
+
+    await computeSuggestions();
+
+    assertSuggest('children: [],',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        relevance: DART_RELEVANCE_NAMED_PARAMETER,
+        defaultArgListString: null,
+        selectionOffset: 11,
+        defaultArgumentListTextRanges: null);
+  }
+
+  Future<void>
+      test_ArgumentList_Flutter_InstanceCreationExpression_children_Map() async {
+    // Ensure we don't generate Map params for a future API
+    addFlutterPackage();
+
+    addTestSource('''
+import 'package:flutter/material.dart';
 
 build() => new Container(
     child: new MapRow(^);
   );
+
+class MapRow extends Widget {
+  MapRow({Map<Object, Object> children: null});
+}
 ''');
 
     await computeSuggestions();
@@ -394,18 +528,47 @@ build() => new Container(
         defaultArgListString: null);
   }
 
-  test_ArgumentList_Flutter_MethodExpression_children() async {
-    // Ensure we don't generate params for a method call
-    configureFlutterPkg({
-      'src/widgets/framework.dart':
-          flutter_framework_code + '\nfoo({String children})'
-    });
+  Future<void>
+      test_ArgumentList_Flutter_InstanceCreationExpression_slivers() async {
+    addFlutterPackage();
 
     addTestSource('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
+
+build() => new CustomScrollView(
+    ^
+  );
+
+class CustomScrollView extends Widget {
+  CustomScrollView({List<Widget> slivers});
+}
+''');
+
+    await computeSuggestions();
+
+    assertSuggest('slivers: [],',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        relevance: DART_RELEVANCE_NAMED_PARAMETER,
+        defaultArgListString: null,
+        selectionOffset: 10,
+        defaultArgumentListTextRanges: null);
+  }
+
+  Future<void> test_ArgumentList_Flutter_MethodExpression_children() async {
+    // Ensure we don't generate params for a method call
+    // TODO(brianwilkerson) This test has been changed so that it no longer has
+    // anything to do with Flutter (by moving the declaration of `foo` out of
+    // the 'material' library). Determine whether the test is still valid.
+    addFlutterPackage();
+
+    addTestSource('''
+import 'package:flutter/material.dart';
 
 main() {
-foo(^);
+  foo(^);
+}
+
+foo({String children}) {}
 ''');
 
     await computeSuggestions();
@@ -416,75 +579,77 @@ foo(^);
         defaultArgListString: null);
   }
 
-  test_ArgumentList_getter() async {
+  Future<void> test_ArgumentList_getter() async {
     addTestSource('class A {int get foo => 7; main() {foo(^)}');
     await computeSuggestions();
     assertNoSuggestions();
   }
 
-  test_ArgumentList_imported_constructor_named_param() async {
+  Future<void> test_ArgumentList_imported_constructor_named_param() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement
-    addSource('/libA.dart', 'library libA; class A{A({int one}); }');
-    addTestSource('import "/libA.dart"; main() { new A(^);}');
+    addSource('/home/test/lib/a.dart', 'library libA; class A{A({int one}); }');
+    addTestSource('import "a.dart"; main() { new A(^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
   }
 
-  test_ArgumentList_imported_constructor_named_param2() async {
+  Future<void> test_ArgumentList_imported_constructor_named_param2() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement
-    addSource('/libA.dart', 'library libA; class A{A.foo({int one}); }');
-    addTestSource('import "/libA.dart"; main() { new A.foo(^);}');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
-  }
-
-  test_ArgumentList_imported_constructor_named_typed_param() async {
-    // ArgumentList  InstanceCreationExpression  VariableDeclaration
     addSource(
-        '/libA.dart', 'library libA; class A { A({int i, String s, d}) {} }}');
-    addTestSource('import "/libA.dart"; main() { var a = new A(^);}');
+        '/home/test/lib/a.dart', 'library libA; class A{A.foo({int one}); }');
+    addTestSource('import "a.dart"; main() { new A.foo(^);}');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
+  }
+
+  Future<void>
+      test_ArgumentList_imported_constructor_named_typed_param() async {
+    // ArgumentList  InstanceCreationExpression  VariableDeclaration
+    addSource('/home/test/lib/a.dart',
+        'library libA; class A { A({int i, String s, d}) {} }}');
+    addTestSource('import "a.dart"; main() { var a = new A(^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(
         namedArgumentsWithTypes: {'i': 'int', 's': 'String', 'd': 'dynamic'});
   }
 
-  test_ArgumentList_imported_factory_named_param() async {
+  Future<void> test_ArgumentList_imported_factory_named_param() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement
-    addSource(
-        '/libA.dart', 'library libA; class A{factory A({int one}) => null;}');
-    addTestSource('import "/libA.dart"; main() { new A(^);}');
+    addSource('/home/test/lib/a.dart',
+        'library libA; class A{factory A({int one}) => throw 0;}');
+    addTestSource('import "a.dart"; main() { new A(^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
   }
 
-  test_ArgumentList_imported_factory_named_param2() async {
+  Future<void> test_ArgumentList_imported_factory_named_param2() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement
-    addSource('/libA.dart',
+    addSource('/home/test/lib/a.dart',
         'library libA; abstract class A{factory A.foo({int one});}');
-    addTestSource('import "/libA.dart"; main() { new A.foo(^);}');
+    addTestSource('import "a.dart"; main() { new A.foo(^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
   }
 
-  test_ArgumentList_imported_factory_named_typed_param() async {
+  Future<void> test_ArgumentList_imported_factory_named_typed_param() async {
     // ArgumentList  InstanceCreationExpression  VariableDeclaration
-    addSource('/libA.dart',
+    addSource('/home/test/lib/a.dart',
         'library libA; class A {factory A({int i, String s, d}) {} }}');
-    addTestSource('import "/libA.dart"; main() { var a = new A(^);}');
+    addTestSource('import "a.dart"; main() { var a = new A(^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(
         namedArgumentsWithTypes: {'i': 'int', 's': 'String', 'd': 'dynamic'});
   }
 
-  test_ArgumentList_imported_function_0() async {
+  Future<void> test_ArgumentList_imported_function_0() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect() { }
       void baz() { }''');
     addTestSource('''
-      import '/libA.dart'
+      import 'a.dart'
       class B { }
       String bar() => true;
       void main() {expect(a^)}''');
@@ -492,63 +657,15 @@ foo(^);
     assertNoSuggestions();
   }
 
-  test_ArgumentList_imported_function_1() async {
+  Future<void> test_ArgumentList_imported_function_3a() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
-      library A;
-      bool hasLength(int expected) { }
-      expect(String arg) { }
-      void baz() { }''');
-    addTestSource('''
-      import '/libA.dart'
-      class B { }
-      String bar() => true;
-      void main() {expect(^)}''');
-    await computeSuggestions();
-    assertSuggestArgumentList(['arg'], ['String']);
-  }
-
-  test_ArgumentList_imported_function_2() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
-      library A;
-      bool hasLength(int expected) { }
-      expect(String arg1, int arg2) { }
-      void baz() { }''');
-    addTestSource('''
-      import '/libA.dart'
-      class B { }
-      String bar() => true;
-      void main() {expect(^)}''');
-    await computeSuggestions();
-    assertSuggestArgumentList(['arg1', 'arg2'], ['String', 'int']);
-  }
-
-  test_ArgumentList_imported_function_3() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg1, int arg2, {bool arg3}) { }
       void baz() { }''');
     addTestSource('''
-      import '/libA.dart'
-      class B { }
-      String bar() => true;
-      void main() {expect(^)}''');
-    await computeSuggestions();
-    assertSuggestArgumentList(['arg1', 'arg2'], ['String', 'int']);
-  }
-
-  test_ArgumentList_imported_function_3a() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
-      library A;
-      bool hasLength(int expected) { }
-      expect(String arg1, int arg2, {bool arg3}) { }
-      void baz() { }''');
-    addTestSource('''
-      import '/libA.dart'
+      import 'a.dart'
       class B { }
       String bar() => true;
       void main() {expect('hello', ^)}''');
@@ -556,15 +673,15 @@ foo(^);
     assertNoSuggestions();
   }
 
-  test_ArgumentList_imported_function_3b() async {
+  Future<void> test_ArgumentList_imported_function_3b() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg1, int arg2, {bool arg3}) { }
       void baz() { }''');
     addTestSource('''
-      import '/libA.dart'
+      import 'a.dart'
       class B { }
       String bar() => true;
       void main() {expect('hello', ^x)}''');
@@ -572,15 +689,15 @@ foo(^);
     assertNoSuggestions();
   }
 
-  test_ArgumentList_imported_function_3c() async {
+  Future<void> test_ArgumentList_imported_function_3c() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg1, int arg2, {bool arg3}) { }
       void baz() { }''');
     addTestSource('''
-      import '/libA.dart'
+      import 'a.dart'
       class B { }
       String bar() => true;
       void main() {expect('hello', x^)}''');
@@ -588,15 +705,15 @@ foo(^);
     assertNoSuggestions();
   }
 
-  test_ArgumentList_imported_function_3d() async {
+  Future<void> test_ArgumentList_imported_function_3d() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg1, int arg2, {bool arg3}) { }
       void baz() { }''');
     addTestSource('''
-      import '/libA.dart'
+      import 'a.dart'
       class B { }
       String bar() => true;
       void main() {expect('hello', x ^)}''');
@@ -604,63 +721,71 @@ foo(^);
     assertNoSuggestions();
   }
 
-  test_ArgumentList_imported_function_named_param() async {
+  Future<void> test_ArgumentList_imported_function_named_param() async {
     //
     addTestSource('main() { int.parse("16", ^);}');
     await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'radix': 'int', 'onError': '(String) → int'});
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'radix': 'int',
+      'onError': 'int Function(String)'
+    });
   }
 
-  test_ArgumentList_imported_function_named_param1() async {
+  Future<void> test_ArgumentList_imported_function_named_param1() async {
     //
     addTestSource('main() { int.parse("16", r^);}');
     await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'radix': 'int', 'onError': '(String) → int'});
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'radix': 'int',
+      'onError': 'int Function(String)'
+    });
   }
 
-  test_ArgumentList_imported_function_named_param2() async {
+  Future<void> test_ArgumentList_imported_function_named_param2() async {
     //
     addTestSource('main() { int.parse("16", radix: 7, ^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'onError': '(String) → int'});
+        namedArgumentsWithTypes: {'onError': 'int Function(String)'});
   }
 
-  test_ArgumentList_imported_function_named_param2a() async {
+  Future<void> test_ArgumentList_imported_function_named_param2a() async {
     //
     addTestSource('main() { int.parse("16", radix: ^);}');
     await computeSuggestions();
     assertNoSuggestions();
   }
 
-  test_ArgumentList_imported_function_named_param_label1() async {
+  Future<void> test_ArgumentList_imported_function_named_param_label1() async {
     //
     addTestSource('main() { int.parse("16", r^: 16);}');
     await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'radix': 'int', 'onError': '(String) → int'},
-        includeColon: false);
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'radix': 'int',
+      'onError': 'int Function(String)'
+    }, includeColon: false);
   }
 
-  test_ArgumentList_imported_function_named_param_label2() async {
+  Future<void> test_ArgumentList_imported_function_named_param_label2() async {
     //
     addTestSource('main() { int.parse("16", ^r: 16);}');
     await computeSuggestions();
     assertSuggestions(['radix: ,', 'onError: ,']);
   }
 
-  test_ArgumentList_imported_function_named_param_label3() async {
+  Future<void> test_ArgumentList_imported_function_named_param_label3() async {
     //
     addTestSource('main() { int.parse("16", ^: 16);}');
     await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'radix': 'int', 'onError': '(String) → int'});
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'radix': 'int',
+      'onError': 'int Function(String)'
+    });
   }
 
-  test_ArgumentList_local_constructor_named_fieldFormal_documentation() async {
-    String content = '''
+  Future<void>
+      test_ArgumentList_local_constructor_named_fieldFormal_documentation() async {
+    var content = '''
 class A {
   /// aaa
   ///
@@ -677,19 +802,20 @@ main() {
     await computeSuggestions();
     expect(suggestions, hasLength(1));
 
-    CompletionSuggestion suggestion = suggestions[0];
+    var suggestion = suggestions[0];
     expect(suggestion.docSummary, 'aaa');
     expect(suggestion.docComplete, 'aaa\n\nbbb\nccc');
 
-    Element element = suggestion.element;
+    var element = suggestion.element;
     expect(element, isNotNull);
     expect(element.kind, ElementKind.PARAMETER);
     expect(element.name, 'fff');
     expect(element.location.offset, content.indexOf('fff})'));
   }
 
-  test_ArgumentList_local_constructor_named_fieldFormal_noDocumentation() async {
-    String content = '''
+  Future<void>
+      test_ArgumentList_local_constructor_named_fieldFormal_noDocumentation() async {
+    var content = '''
 class A {
   int fff;
   A({this.fff});
@@ -702,18 +828,18 @@ main() {
     await computeSuggestions();
     expect(suggestions, hasLength(1));
 
-    CompletionSuggestion suggestion = suggestions[0];
+    var suggestion = suggestions[0];
     expect(suggestion.docSummary, isNull);
     expect(suggestion.docComplete, isNull);
 
-    Element element = suggestion.element;
+    var element = suggestion.element;
     expect(element, isNotNull);
     expect(element.kind, ElementKind.PARAMETER);
     expect(element.name, 'fff');
     expect(element.location.offset, content.indexOf('fff})'));
   }
 
-  test_ArgumentList_local_constructor_named_param() async {
+  Future<void> test_ArgumentList_local_constructor_named_param() async {
     //
     addTestSource('''
 class A { A({int one, String two: 'defaultValue'}) { } }
@@ -726,7 +852,7 @@ main() { new A(^);}''');
         completion: 'one: ', selectionOffset: 5);
   }
 
-  test_ArgumentList_local_constructor_named_param_1() async {
+  Future<void> test_ArgumentList_local_constructor_named_param_1() async {
     //
     addTestSource('''
 class A { A({int one, String two: 'defaultValue'}) { } }
@@ -739,7 +865,7 @@ main() { new A(o^);}''');
         completion: 'one: ', selectionOffset: 5);
   }
 
-  test_ArgumentList_local_constructor_named_param_2() async {
+  Future<void> test_ArgumentList_local_constructor_named_param_2() async {
     //
     addTestSource('''
 class A { A({int one, String two: 'defaultValue'}) { } }
@@ -752,7 +878,7 @@ main() { new A(^o,);}''');
         completion: 'one: ', selectionOffset: 5);
   }
 
-  test_ArgumentList_local_constructor_named_param_3() async {
+  Future<void> test_ArgumentList_local_constructor_named_param_3() async {
     //
     addTestSource('''
 class A { A({int one, String two: 'defaultValue'}) { } }
@@ -764,7 +890,7 @@ main() { new A(two: 'foo', ^);}''');
         completion: 'one: ', selectionOffset: 5);
   }
 
-  test_ArgumentList_local_constructor_named_param_4() async {
+  Future<void> test_ArgumentList_local_constructor_named_param_4() async {
     //
     addTestSource('''
 class A { A({int one, String two: 'defaultValue'}) { } }
@@ -776,7 +902,7 @@ main() { new A(two: 'foo', o^);}''');
         completion: 'one: ', selectionOffset: 5);
   }
 
-  test_ArgumentList_local_constructor_named_param_5() async {
+  Future<void> test_ArgumentList_local_constructor_named_param_5() async {
     //
     addTestSource('''
 class A { A({int one, String two: 'defaultValue'}) { } }
@@ -788,7 +914,7 @@ main() { new A(two: 'foo', o^,);}''');
         completion: 'one: ', selectionOffset: 5);
   }
 
-  test_ArgumentList_local_constructor_named_param_6() async {
+  Future<void> test_ArgumentList_local_constructor_named_param_6() async {
     //
     addTestSource('''
 class A { A.foo({int one, String two: 'defaultValue'}) { } }
@@ -798,7 +924,8 @@ main() { new A.foo(^);}''');
         namedArgumentsWithTypes: {'one': 'int', 'two': 'String'});
   }
 
-  test_ArgumentList_local_constructor_named_param_prefixed_prepend() async {
+  Future<void>
+      test_ArgumentList_local_constructor_named_param_prefixed_prepend() async {
     //
     addTestSource('''
 class A { A({int one, String two: 'defaultValue'}) { } }
@@ -811,7 +938,7 @@ main() { new A(o^ two: 'foo');}''');
         completion: 'one: ,', selectionOffset: 5);
   }
 
-  test_ArgumentList_local_constructor_named_param_prepend() async {
+  Future<void> test_ArgumentList_local_constructor_named_param_prepend() async {
     //
     addTestSource('''
 class A { A({int one, String two: 'defaultValue'}) { } }
@@ -824,7 +951,8 @@ main() { new A(^ two: 'foo');}''');
         completion: 'one: ,', selectionOffset: 5);
   }
 
-  test_ArgumentList_local_constructor_named_param_prepend_1() async {
+  Future<void>
+      test_ArgumentList_local_constructor_named_param_prepend_1() async {
     //
     addTestSource('''
 class A { A({int one, String two: 'defaultValue'}) { } }
@@ -837,7 +965,8 @@ main() { new A(o^, two: 'foo');}''');
         completion: 'one: ', selectionOffset: 5);
   }
 
-  test_ArgumentList_local_constructor_named_param_prepend_2() async {
+  Future<void>
+      test_ArgumentList_local_constructor_named_param_prepend_2() async {
     //
     addTestSource('''
 class A { A({int one, String two: 'defaultValue'}) { } }
@@ -850,8 +979,8 @@ main() { new A(^, two: 'foo');}''');
         completion: 'one: ', selectionOffset: 5);
   }
 
-  test_ArgumentList_local_constructor_required_param_0() async {
-    addMetaPackageSource();
+  Future<void> test_ArgumentList_local_constructor_required_param_0() async {
+    addMetaPackage();
     addTestSource('''
 import 'package:meta/meta.dart';
 class A { A({int one, @required String two: 'defaultValue'}) { } }
@@ -862,46 +991,9 @@ main() { new A(^);}''');
         requiredParamIndices: [1]);
   }
 
-  test_ArgumentList_local_function_1() async {
+  Future<void> test_ArgumentList_local_function_3a() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
-      import '/libA.dart'
-      expect(arg) { }
-      class B { }
-      String bar() => true;
-      void main() {expect(^)}''');
-    await computeSuggestions();
-    assertSuggestArgumentList(['arg'], ['dynamic']);
-  }
-
-  test_ArgumentList_local_function_2() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addTestSource('''
-      import '/libA.dart'
-      expect(arg1, int arg2) { }
-      class B { }
-      String bar() => true;
-      void main() {expect(^)}''');
-    await computeSuggestions();
-    assertSuggestArgumentList(['arg1', 'arg2'], ['dynamic', 'int']);
-  }
-
-  test_ArgumentList_local_function_3() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addTestSource('''
-      import '/libA.dart'
-      expect(arg1, int arg2) { }
-      class B { }
-      String bar() => true;
-      void main() {expect(^)}''');
-    await computeSuggestions();
-    assertSuggestArgumentList(['arg1', 'arg2'], ['dynamic', 'int']);
-  }
-
-  test_ArgumentList_local_function_3a() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addTestSource('''
-      import '/libA.dart'
       expect(arg1, int arg2, {bool arg3}) { }
       class B { }
       String bar() => true;
@@ -910,10 +1002,9 @@ main() { new A(^);}''');
     assertNoSuggestions();
   }
 
-  test_ArgumentList_local_function_3b() async {
+  Future<void> test_ArgumentList_local_function_3b() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
-      import '/libA.dart'
       expect(arg1, int arg2, {bool arg3}) { }
       class B { }
       String bar() => true;
@@ -922,10 +1013,9 @@ main() { new A(^);}''');
     assertNoSuggestions();
   }
 
-  test_ArgumentList_local_function_3c() async {
+  Future<void> test_ArgumentList_local_function_3c() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
-      import '/libA.dart'
       expect(arg1, int arg2, {bool arg3}) { }
       class B { }
       String bar() => true;
@@ -934,10 +1024,9 @@ main() { new A(^);}''');
     assertNoSuggestions();
   }
 
-  test_ArgumentList_local_function_3d() async {
+  Future<void> test_ArgumentList_local_function_3d() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
-      import '/libA.dart'
       expect(arg1, int arg2, {bool arg3}) { }
       class B { }
       String bar() => true;
@@ -946,37 +1035,41 @@ main() { new A(^);}''');
     assertNoSuggestions();
   }
 
-  test_ArgumentList_local_function_named_param() async {
+  Future<void> test_ArgumentList_local_function_named_param() async {
     //
     addTestSource('''
 f(v,{int radix, int onError(String s)}){}
 main() { f("16", ^);}''');
     await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'radix': 'int', 'onError': '(String) → int'});
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'radix': 'int',
+      'onError': 'int Function(String)'
+    });
   }
 
-  test_ArgumentList_local_function_named_param1() async {
+  Future<void> test_ArgumentList_local_function_named_param1() async {
     //
     addTestSource('''
 f(v,{int radix, int onError(String s)}){}
 main() { f("16", r^);}''');
     await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'radix': 'int', 'onError': '(String) → int'});
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'radix': 'int',
+      'onError': 'int Function(String)'
+    });
   }
 
-  test_ArgumentList_local_function_named_param2() async {
+  Future<void> test_ArgumentList_local_function_named_param2() async {
     //
     addTestSource('''
 f(v,{int radix, int onError(String s)}){}
 main() { f("16", radix: 7, ^);}''');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'onError': '(String) → int'});
+        namedArgumentsWithTypes: {'onError': 'int Function(String)'});
   }
 
-  test_ArgumentList_local_function_named_param2a() async {
+  Future<void> test_ArgumentList_local_function_named_param2a() async {
     //
     addTestSource('''
 f(v,{int radix, int onError(String s)}){}
@@ -985,35 +1078,19 @@ main() { f("16", radix: ^);}''');
     assertNoSuggestions();
   }
 
-  test_ArgumentList_local_method_0() async {
+  Future<void> test_ArgumentList_local_method_0() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
       library A;
       bool hasLength(int expected) { }
       void baz() { }''');
     addTestSource('''
-      import '/libA.dart'
+      import 'a.dart'
       class B {
         expect() { }
         void foo() {expect(^)}}
       String bar() => true;''');
     await computeSuggestions();
     assertNoSuggestions();
-  }
-
-  test_ArgumentList_local_method_2() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
-      library A;
-      bool hasLength(int expected) { }
-      void baz() { }''');
-    addTestSource('''
-      import '/libA.dart'
-      class B {
-        expect(arg, int blat) { }
-        void foo() {expect(^)}}
-      String bar() => true;''');
-    await computeSuggestions();
-    assertSuggestArgumentList(['arg', 'blat'], ['dynamic', 'int']);
   }
 }

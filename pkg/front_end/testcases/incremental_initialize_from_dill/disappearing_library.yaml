@@ -1,0 +1,39 @@
+# Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with n libraries, then
+# compile "the same" application, but with m < n libraries,
+# where (at least one) of the missing libraries are "in the middle"
+# of the library list --- initializing from the dill with n libraries.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        library mainLibrary;
+        import "b.dart" as b;
+
+        main() {
+          b.foo();
+        }
+      b.dart: |
+        library bLibrary;
+
+        foo() {
+          print("hello from b.dart foo!");
+        }
+    expectedLibraryCount: 2
+  - entry: b.dart
+    invalidate:
+      - main.dart
+      - b.dart
+    sources:
+      b.dart: |
+        library bLibrary;
+
+        main() {
+          print("hello from b!");
+        }
+    expectedLibraryCount: 1

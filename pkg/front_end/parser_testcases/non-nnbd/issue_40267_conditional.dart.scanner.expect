@@ -1,0 +1,23 @@
+f() {
+var a, b, c;
+
+a?[b]:c;
+a ? [b] : c;
+a?[b].toString() : c;
+a ? [b].toString() : c;
+
+a ? <dynamic>[b] : <dynamic>[c];
+a ? ([b]) : ([c]);
+}
+
+f[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] a[StringToken],[SimpleToken] b[StringToken],[SimpleToken] c[StringToken];[SimpleToken]
+
+a[StringToken]?[SimpleToken][[BeginToken]b[StringToken]][SimpleToken]:[SimpleToken]c[StringToken];[SimpleToken]
+a[StringToken] ?[SimpleToken] [[BeginToken]b[StringToken]][SimpleToken] :[SimpleToken] c[StringToken];[SimpleToken]
+a[StringToken]?[SimpleToken][[BeginToken]b[StringToken]][SimpleToken].[SimpleToken]toString[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] c[StringToken];[SimpleToken]
+a[StringToken] ?[SimpleToken] [[BeginToken]b[StringToken]][SimpleToken].[SimpleToken]toString[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] c[StringToken];[SimpleToken]
+
+a[StringToken] ?[SimpleToken] <[BeginToken]dynamic[KeywordToken]>[SimpleToken][[BeginToken]b[StringToken]][SimpleToken] :[SimpleToken] <[BeginToken]dynamic[KeywordToken]>[SimpleToken][[BeginToken]c[StringToken]][SimpleToken];[SimpleToken]
+a[StringToken] ?[SimpleToken] ([BeginToken][[BeginToken]b[StringToken]][SimpleToken])[SimpleToken] :[SimpleToken] ([BeginToken][[BeginToken]c[StringToken]][SimpleToken])[SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

@@ -114,20 +114,6 @@ void testWriteAll() {
   Expect.equals("asb", bf4.toString());
 }
 
-void testWriteAll2() {
-  // Passing `null` for separator is an error that is checked when the iterable
-  // is not empty.  This is not specified in the documentation but we want
-  // implementations to be consistent.
-  StringBuffer bf1 = new StringBuffer("");
-  bf1.writeAll([], null);
-  Expect.equals("", bf1.toString());
-
-  StringBuffer bf2 = new StringBuffer("");
-  Expect.throws(() {
-    bf2.writeAll([1], null);
-  });
-}
-
 void testWriteln() {
   StringBuffer bf1 = new StringBuffer("");
   bf1.writeln("Hello");
@@ -232,7 +218,6 @@ void main() {
   testWrite();
   testWriteCharCode();
   testWriteAll();
-  testWriteAll2();
   testWriteln();
   testClear();
   testChaining();

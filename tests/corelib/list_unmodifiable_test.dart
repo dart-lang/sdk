@@ -7,7 +7,7 @@ import "dart:collection";
 import "dart:typed_data";
 
 main() {
-  var intTest = new Test<int>();
+  var intTest = new Test<int>(0);
   intTest.run("ConstList", createConstList);
   intTest.run("FixedList", createFixedList);
   intTest.run("GrowableList", createGrowableList);
@@ -25,13 +25,17 @@ main() {
   intTest.run("CodeUnits", createCodeUnits);
   intTest.run("TypedList", createTypedList);
 
-  new Test<String>().test("strings", ["a", "b", "c"]);
+  new Test<String>("").test("strings", ["a", "b", "c"]);
 
-  new Test<num>().test("superclass", <int>[1, 2, 3]);
-  new Test<int>().test("subclass", <num>[1, 2, 3]);
+  new Test<num>(0).test("superclass", <int>[1, 2, 3]);
+  new Test<int>(0).test("subclass", <num>[1, 2, 3]);
 }
 
 class Test<E> {
+  final E element;
+
+  Test(this.element);
+
   run(name, Iterable create(int size)) {
     test(name, create(0));
     test(name, create(1));
@@ -79,7 +83,7 @@ class Test<E> {
     }
 
     throws("[]=", () {
-      list[0] = null;
+      list[0] = element;
     });
     throws("length=", () {
       list.length = length + 1;
@@ -91,10 +95,10 @@ class Test<E> {
       list.setAll(0, []);
     });
     throws("add", () {
-      list.add(null);
+      list.add(element);
     });
     throws("insert", () {
-      list.insert(0, null);
+      list.insert(0, element);
     });
     throws("insertAll", () {
       list.insertAll(0, []);
@@ -103,7 +107,7 @@ class Test<E> {
       list.addAll([]);
     });
     throws("remove", () {
-      list.remove(null);
+      list.remove(element);
     });
     throws("removeWhere", () {
       list.removeWhere((x) => true);
@@ -136,26 +140,28 @@ class Test<E> {
       list.replaceRange(0, 1, []);
     });
     throws("fillRange", () {
-      list.fillRange(0, 1, null);
+      list.fillRange(0, 1, element);
     });
 
-    success(opName, op(list)) {
-      var expect;
-      try {
-        expect = op(elements);
-      } catch (e) {
-        try {
-          op(list);
-        } catch (e2) {
-          Expect.equals(
-              e.runtimeType,
-              e2.runtimeType,
-              "$name :: $opName threw different exceptions: "
-              "${e.runtimeType} vs ${e2.runtimeType}");
-          return;
-        }
-        Expect.fail("$name-$opName didn't throw, expected: $e");
+    success(opName, op(List list), [bool throws = false]) {
+      if (throws) {
+        var e1, e2;
+        Expect.throws(() => op(elements), (e) {
+          e1 = e;
+          return true;
+        }, '$name :: $opName should throw for $elements');
+        Expect.throws(() => op(list), (e) {
+          e2 = e;
+          return true;
+        }, '$name :: $opName should throw for $list');
+        Expect.equals(
+            e1.runtimeType,
+            e2.runtimeType,
+            "$name :: $opName threw different errors for $elements and $list: "
+            "${e1.runtimeType} vs ${e2.runtimeType}");
+        return;
       }
+      var expect = op(elements);
       var actual = op(list);
       checkElements();
       if (expect is List) {
@@ -168,13 +174,13 @@ class Test<E> {
       }
     }
 
-    success("indexOf", (l) => l.indexOf(null));
-    success("lastIndexOf", (l) => l.lastIndexOf(null));
+    success("indexOf", (l) => l.indexOf(element));
+    success("lastIndexOf", (l) => l.lastIndexOf(element));
     success("contains", (l) => l.contains(2));
-    success("elementAt", (l) => l.elementAt[1]);
+    success("elementAt", (l) => l.elementAt(1), list.length < 2);
     success("reversed", (l) => l.reversed);
-    success("sublist0-1", (l) => l.sublist(0, 1));
-    success("getRange0-1", (l) => l.getRange(0, 1));
+    success("sublist0-1", (l) => l.sublist(0, 1), list.isEmpty);
+    success("getRange0-1", (l) => l.getRange(0, 1), list.isEmpty);
     success("asMap-keys", (l) => l.asMap().keys);
     success("asMap-values", (l) => l.asMap().values);
     success("where", (l) => l.where((x) => true));
@@ -184,17 +190,22 @@ class Test<E> {
     success("take", (l) => l.take(1));
     success("skipWhile", (l) => l.skipWhile((x) => false));
     success("takeWhile", (l) => l.takeWhile((x) => true));
-    success("first", (l) => l.first);
-    success("last", (l) => l.last);
-    success("single", (l) => l.single);
-    success("firstWhere", (l) => l.firstWhere((x) => true));
-    success("lastWhere", (l) => l.lastWhere((x) => true));
-    success("singleWhere", (l) => l.singleWhere((x) => true));
+    success("first", (l) => l.first, list.isEmpty);
+    success("last", (l) => l.last, list.isEmpty);
+    success("single", (l) => l.single, list.length != 1);
+    success("firstWhere", (l) => l.firstWhere((x) => true), list.isEmpty);
+    success("lastWhere", (l) => l.lastWhere((x) => true), list.isEmpty);
+    success("singleWhere", (l) => l.singleWhere((x) => true), list.length != 1);
     success("isEmpty", (l) => l.isEmpty);
     success("isNotEmpty", (l) => l.isNotEmpty);
     success("join", (l) => l.join("/"));
     success("fold", (l) => l.fold("--", (a, b) => "$a/$b"));
-    success("reduce", (l) => l.reduce((a, b) => a + b));
+    if (elements is List<num> && list is List<num>) {
+      success(
+          "reduce",
+          (l) => (l as List<num>).reduce((a, b) => (a + b).floor()),
+          list.isEmpty);
+    }
     success("every", (l) => l.every((x) => x == 0));
     success("any", (l) => l.any((x) => x == 2));
     success("toList", (l) => l.toList());
@@ -209,95 +220,92 @@ class Test<E> {
     Expect.isFalse(it.moveNext());
 
     if (elements is List<int> && list is List<int>) {
-      success("String.fromCharCodes", (l) => new String.fromCharCodes(l));
+      success("String.fromCharCodes",
+          (l) => new String.fromCharCodes(l as List<int>));
     }
   }
 }
 
-createConstList(n) {
+List<int> createConstList(int n) {
   if (n == 0) return const <int>[];
   return const <int>[1, 2, 3];
 }
 
-createFixedList(n) {
-  var result = new List<int>(n);
-  for (int i = 0; i < n; i++) result[i] = n;
-  return result;
+List<int> createFixedList(int n) {
+  return new List<int>.filled(n, n);
 }
 
-createGrowableList(n) {
-  var result = new List<int>()..length = n;
-  for (int i = 0; i < n; i++) result[i] = n;
-  return result;
+List<int> createGrowableList(int n) {
+  return new List<int>.filled(n, n, growable: true);
 }
 
-createIterable(n) => new Iterable.generate(n);
-createConstMapKeys(n) {
+Iterable createIterable(int n) => new Iterable.generate(n);
+Iterable createConstMapKeys(int n) {
   if (n == 0) return const <int, int>{}.keys;
   return const <int, int>{0: 0, 1: 1, 2: 2}.keys;
 }
 
-createConstMapValues(n) {
+Iterable createConstMapValues(int n) {
   if (n == 0) return const <int, int>{}.values;
   return const <int, int>{0: 0, 1: 1, 2: 2}.values;
 }
 
-createMapKeys(n) {
+Iterable createMapKeys(int n) {
   var map = <int, int>{};
   for (int i = 0; i < n; i++) map[i] = i;
   return map.keys;
 }
 
-createMapValues(n) {
+Iterable createMapValues(int n) {
   var map = <int, int>{};
   for (int i = 0; i < n; i++) map[i] = i;
   return map.values;
 }
 
-createSplayMapKeys(n) {
+Iterable createSplayMapKeys(int n) {
   var map = new SplayTreeMap<int, int>();
   for (int i = 0; i < n; i++) map[i] = i;
   return map.keys;
 }
 
-createSplayMapValues(n) {
+Iterable createSplayMapValues(int n) {
   var map = new SplayTreeMap<int, int>();
   for (int i = 0; i < n; i++) map[i] = i;
   return map.values;
 }
 
-createSet(n) {
+Set<int> createSet(int n) {
   var set = new Set<int>();
   for (int i = 0; i < n; i++) set.add(i);
   return set;
 }
 
-createSplaySet(n) {
+SplayTreeSet<int> createSplaySet(int n) {
   var set = new SplayTreeSet<int>();
   for (int i = 0; i < n; i++) set.add(i);
   return set;
 }
 
-createQueue(n) {
+Queue<int> createQueue(int n) {
   var queue = new Queue<int>();
   for (int i = 0; i < n; i++) queue.add(i);
   return queue;
 }
 
-createListMapKeys(n) {
+Iterable createListMapKeys(int n) {
   return createGrowableList(n).asMap().keys;
 }
 
-createListMapValues(n) {
+Iterable createListMapValues(int n) {
   return createGrowableList(n).asMap().values;
 }
 
-createCodeUnits(n) {
+Iterable createCodeUnits(int n) {
   var string = new String.fromCharCodes(new Iterable.generate(n));
   return string.codeUnits;
 }
 
-createTypedList(n) {
+Uint8List createTypedList(int n) {
   var tl = new Uint8List(n);
   for (int i = 0; i < n; i++) tl[i] = i;
   return tl;

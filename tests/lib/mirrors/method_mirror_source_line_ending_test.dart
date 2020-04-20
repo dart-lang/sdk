@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Note: These test relies on specific line endings in the source files.
-// They requirs entries in the .gitattributes file.
+// Note: These tests rely on specific line endings in the source files.
 
 import "dart:mirrors";
 import "package:expect/expect.dart";
@@ -13,7 +12,7 @@ import "method_mirror_source_line_ending_cr.dart";
 import "method_mirror_source_line_ending_crlf.dart";
 
 main() {
-  String sourceOf(Function f) => (reflect(f) as ClosureMirror).function.source;
+  String sourceOf(Function f) => (reflect(f) as ClosureMirror).function.source!;
 
   // Source does not cross line breaks.
   Expect.stringEquals('oneLineLF(x) => x;', sourceOf(oneLineLF));

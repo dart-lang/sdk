@@ -1,4 +1,14 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/super.dart:27:7: Error: 'n' is already declared in this scope.
+//   set n(_) {}
+//       ^
+// pkg/front_end/testcases/rasta/super.dart:26:8: Context: Previous declaration of 'n'.
+//   void n() {}
+//        ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -8,48 +18,48 @@ class A extends core::Object {
   field dynamic c;
   field dynamic d;
   final field dynamic f;
-  default constructor •() → void
+  synthetic constructor •() → self::A*
     ;
   get e() → dynamic
     ;
-  set g(dynamic _) → dynamic
+  set g(dynamic _) → void
     ;
   get h() → dynamic
     ;
-  set h(dynamic _) → dynamic
+  set h(dynamic _) → void
     ;
   get i() → dynamic
     ;
   operator [](dynamic _) → dynamic
     ;
-  operator []=(dynamic a, dynamic b) → dynamic
+  operator []=(dynamic a, dynamic b) → void
     ;
   operator ~() → dynamic
     ;
   operator unary-() → dynamic
     ;
-  operator ==(dynamic other) → dynamic
+  operator ==(dynamic other) → core::bool*
     ;
   method m() → void
     ;
   method n() → void
     ;
-  set n(dynamic _) → dynamic
+  set n(dynamic _) → void
     ;
 }
 class B extends self::A {
   final field dynamic d;
-  default constructor •() → void
+  synthetic constructor •() → self::B*
     ;
   get b() → dynamic
     ;
-  set c(dynamic x) → dynamic
+  set c(dynamic x) → void
     ;
-  set i(dynamic x) → dynamic
+  set i(dynamic x) → void
     ;
 }
 class C extends self::B {
-  default constructor •() → void
+  synthetic constructor •() → self::C*
     ;
   method test() → dynamic
     ;

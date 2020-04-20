@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12,67 +12,72 @@ import 'package:analysis_server/src/services/refactoring/naming_conventions.dart
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
+import 'package:analysis_server/src/services/refactoring/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/source.dart';
 
-/**
- * Checks if creating a method with the given [name] in [classElement] will
- * cause any conflicts.
- */
-Future<RefactoringStatus> validateCreateMethod(SearchEngine searchEngine,
-    AstProvider astProvider, ClassElement classElement, String name) {
-  return new _ClassMemberValidator.forCreate(
-          searchEngine, astProvider, classElement, name)
+/// Checks if creating a method with the given [name] in [classElement] will
+/// cause any conflicts.
+Future<RefactoringStatus> validateCreateMethod(
+    SearchEngine searchEngine,
+    AnalysisSessionHelper sessionHelper,
+    ClassElement classElement,
+    String name) {
+  return _ClassMemberValidator.forCreate(
+          searchEngine, sessionHelper, classElement, name)
       .validate();
 }
 
-/**
- * A [Refactoring] for renaming class member [Element]s.
- */
+/// A [Refactoring] for renaming class member [Element]s.
 class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
-  final AstProvider astProvider;
+  final AnalysisSessionHelper sessionHelper;
 
   _ClassMemberValidator _validator;
 
   RenameClassMemberRefactoringImpl(
-      SearchEngine searchEngine, this.astProvider, Element element)
-      : super(searchEngine, element);
+      RefactoringWorkspace workspace, AnalysisSession session, Element element)
+      : sessionHelper = AnalysisSessionHelper(session),
+        super(workspace, element);
 
   @override
   String get refactoringName {
     if (element is TypeParameterElement) {
-      return "Rename Type Parameter";
+      return 'Rename Type Parameter';
     }
     if (element is FieldElement) {
-      return "Rename Field";
+      return 'Rename Field';
     }
-    return "Rename Method";
+    return 'Rename Method';
   }
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    _validator = new _ClassMemberValidator.forRename(
-        searchEngine, astProvider, element, newName);
+    _validator = _ClassMemberValidator.forRename(
+        searchEngine, sessionHelper, element, newName);
     return _validator.validate();
   }
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
-    RefactoringStatus result = await super.checkInitialConditions();
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    var result = await super.checkInitialConditions();
     if (element is MethodElement && (element as MethodElement).isOperator) {
       result.addFatalError('Cannot rename operator.');
     }
-    return new Future<RefactoringStatus>.value(result);
+    return Future<RefactoringStatus>.value(result);
   }
 
   @override
   RefactoringStatus checkNewName() {
-    RefactoringStatus result = super.checkNewName();
+    var result = super.checkNewName();
     if (element is FieldElement) {
       result.addStatus(validateFieldName(newName));
     }
@@ -83,30 +88,30 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future fillChange() async {
+  Future<void> fillChange() async {
+    var processor = RenameProcessor(workspace, change, newName);
     // update declarations
-    for (Element renameElement in _validator.elements) {
+    for (var renameElement in _validator.elements) {
       if (renameElement.isSynthetic && renameElement is FieldElement) {
-        addDeclarationEdit(renameElement.getter);
-        addDeclarationEdit(renameElement.setter);
+        processor.addDeclarationEdit(renameElement.getter);
+        processor.addDeclarationEdit(renameElement.setter);
       } else {
-        addDeclarationEdit(renameElement);
+        processor.addDeclarationEdit(renameElement);
       }
     }
     // update references
-    addReferenceEdits(_validator.references);
+    processor.addReferenceEdits(_validator.references);
     // potential matches
-    List<SearchMatch> nameMatches =
-        await searchEngine.searchMemberReferences(oldName);
-    List<SourceReference> nameRefs = getSourceReferences(nameMatches);
-    for (SourceReference reference in nameRefs) {
+    var nameMatches = await searchEngine.searchMemberReferences(oldName);
+    var nameRefs = getSourceReferences(nameMatches);
+    for (var reference in nameRefs) {
       // ignore references from SDK and pub cache
-      if (isElementInSdkOrPubCache(reference.element)) {
+      if (!workspace.containsElement(reference.element)) {
         continue;
       }
       // check the element being renamed is accessible
       {
-        LibraryElement whereLibrary = reference.element.library;
+        var whereLibrary = reference.element.library;
         if (!element.isAccessibleIn(whereLibrary)) {
           continue;
         }
@@ -117,18 +122,17 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   String _newPotentialId() {
-    String id = potentialEditIds.length.toString();
+    var id = potentialEditIds.length.toString();
     potentialEditIds.add(id);
     return id;
   }
 }
 
-/**
- * Helper to check if the created or renamed [Element] will cause any conflicts.
- */
+/// Helper to check if the created or renamed [Element] will cause any
+/// conflicts.
 class _ClassMemberValidator {
   final SearchEngine searchEngine;
-  final ResolvedUnitCache unitCache;
+  final AnalysisSessionHelper sessionHelper;
   final LibraryElement library;
   final Element element;
   final ClassElement elementClass;
@@ -136,30 +140,30 @@ class _ClassMemberValidator {
   final String name;
   final bool isRename;
 
-  final RefactoringStatus result = new RefactoringStatus();
-  Set<Element> elements = new Set<Element>();
+  final RefactoringStatus result = RefactoringStatus();
+  Set<Element> elements = <Element>{};
   List<SearchMatch> references = <SearchMatch>[];
 
   _ClassMemberValidator.forCreate(
-      this.searchEngine, AstProvider astProvider, this.elementClass, this.name)
-      : unitCache = new ResolvedUnitCache(astProvider),
-        isRename = false,
+      this.searchEngine, this.sessionHelper, this.elementClass, this.name)
+      : isRename = false,
         library = null,
         element = null,
         elementKind = ElementKind.METHOD;
 
   _ClassMemberValidator.forRename(
-      this.searchEngine, AstProvider astProvider, Element element, this.name)
-      : unitCache = new ResolvedUnitCache(astProvider),
-        isRename = true,
+      this.searchEngine, this.sessionHelper, Element element, this.name)
+      : isRename = true,
         library = element.library,
         element = element,
         elementClass = element.enclosingElement,
         elementKind = element.kind;
 
   Future<RefactoringStatus> validate() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     // check if there is a member with "newName" in the same ClassElement
-    for (Element newNameMember in getChildren(elementClass, name)) {
+    for (var newNameMember in getChildren(elementClass, name)) {
       result.addError(
           format(
               "Class '{0}' already declares {1} with name '{2}'.",
@@ -169,13 +173,12 @@ class _ClassMemberValidator {
           newLocation_fromElement(newNameMember));
     }
     // do chained computations
-    Set<ClassElement> superClasses = getSuperClasses(elementClass);
+    var superClasses = getSuperClasses(elementClass);
     await _prepareReferences();
-    Set<ClassElement> subClasses =
-        await searchEngine.searchAllSubtypes(elementClass);
+    var subClasses = await searchEngine.searchAllSubtypes(elementClass);
     // check shadowing of class names
     if (element != null) {
-      for (Element element in elements) {
+      for (var element in elements) {
         ClassElement clazz = element.enclosingElement;
         if (clazz.name == name) {
           result.addError(
@@ -198,9 +201,9 @@ class _ClassMemberValidator {
     }
     // usage of the renamed Element is shadowed by a local element
     {
-      _MatchShadowedByLocal conflict = await _getShadowingLocalElement();
+      var conflict = await _getShadowingLocalElement();
       if (conflict != null) {
-        LocalElement localElement = conflict.localElement;
+        var localElement = conflict.localElement;
         result.addError(
             format(
                 "Usage of renamed {0} will be shadowed by {1} '{2}'.",
@@ -211,11 +214,10 @@ class _ClassMemberValidator {
       }
     }
     // check shadowing in the hierarchy
-    List<SearchMatch> declarations =
-        await searchEngine.searchMemberDeclarations(name);
-    for (SearchMatch declaration in declarations) {
-      Element nameElement = getSyntheticAccessorVariable(declaration.element);
-      Element nameClass = nameElement.enclosingElement;
+    var declarations = await searchEngine.searchMemberDeclarations(name);
+    for (var declaration in declarations) {
+      var nameElement = getSyntheticAccessorVariable(declaration.element);
+      var nameClass = nameElement.enclosingElement;
       // the renamed Element shadows a member of a superclass
       if (superClasses.contains(nameClass)) {
         result.addError(
@@ -249,73 +251,82 @@ class _ClassMemberValidator {
 
   Future<_MatchShadowedByLocal> _getShadowingLocalElement() async {
     var localElementMap = <CompilationUnitElement, List<LocalElement>>{};
+    var visibleRangeMap = <LocalElement, SourceRange>{};
+
     Future<List<LocalElement>> getLocalElements(Element element) async {
-      var unitElement = unitCache.getUnitElement(element);
+      var unitElement = element.thisOrAncestorOfType<CompilationUnitElement>();
       var localElements = localElementMap[unitElement];
+
       if (localElements == null) {
-        var unit = await unitCache.getUnit(unitElement);
-        var collector = new _LocalElementsCollector(name);
+        var result = await sessionHelper.getResolvedUnitByElement(element);
+        var unit = result.unit;
+
+        var collector = _LocalElementsCollector(name);
         unit.accept(collector);
         localElements = collector.elements;
         localElementMap[unitElement] = localElements;
+
+        visibleRangeMap.addAll(VisibleRangesComputer.forNode(unit));
       }
+
       return localElements;
     }
 
-    for (SearchMatch match in references) {
+    for (var match in references) {
       // Qualified reference cannot be shadowed by local elements.
       if (match.isQualified) {
         continue;
       }
       // Check local elements that might shadow the reference.
       var localElements = await getLocalElements(match.element);
-      for (LocalElement localElement in localElements) {
-        if (localElement.visibleRange.intersects(match.sourceRange)) {
-          return new _MatchShadowedByLocal(match, localElement);
+      for (var localElement in localElements) {
+        var elementRange = visibleRangeMap[localElement];
+        if (elementRange != null &&
+            elementRange.intersects(match.sourceRange)) {
+          return _MatchShadowedByLocal(match, localElement);
         }
       }
     }
     return null;
   }
 
-  /**
-   * Fills [elements] with [Element]s to rename.
-   */
+  /// Fills [elements] with [Element]s to rename.
   Future _prepareElements() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (element is ClassMemberElement) {
       elements = await getHierarchyMembers(searchEngine, element);
     } else {
-      elements = new Set.from([element]);
+      elements = {element};
     }
   }
 
-  /**
-   * Fills [references] with all references to [elements].
-   */
+  /// Fills [references] with all references to [elements].
   Future _prepareReferences() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (!isRename) {
-      return new Future.value();
+      return Future.value();
     }
     await _prepareElements();
     await Future.forEach(elements, (Element element) async {
-      List<SearchMatch> elementReferences =
-          await searchEngine.searchReferences(element);
+      // TODO(brianwilkerson) Determine whether this await is necessary.
+      await null;
+      var elementReferences = await searchEngine.searchReferences(element);
       references.addAll(elementReferences);
     });
   }
 
-  /**
-   * Validates if any usage of [element] renamed to [name] will be invisible.
-   */
+  /// Validates if any usage of [element] renamed to [name] will be invisible.
   void _validateWillBeInvisible() {
     if (!Identifier.isPrivateName(name)) {
       return;
     }
-    for (SearchMatch reference in references) {
-      Element refElement = reference.element;
-      LibraryElement refLibrary = refElement.library;
+    for (var reference in references) {
+      var refElement = reference.element;
+      var refLibrary = refElement.library;
       if (refLibrary != library) {
-        String message = format("Renamed {0} will be invisible in '{1}'.",
+        var message = format("Renamed {0} will be invisible in '{1}'.",
             getElementKindName(element), getElementQualifiedName(refLibrary));
         result.addError(message, newLocation_fromMatch(reference));
       }
@@ -323,14 +334,15 @@ class _ClassMemberValidator {
   }
 }
 
-class _LocalElementsCollector extends GeneralizingAstVisitor<Null> {
+class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   final String name;
   final List<LocalElement> elements = [];
 
   _LocalElementsCollector(this.name);
 
-  visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.staticElement;
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    var element = node.staticElement;
     if (element is LocalElement && element.name == name) {
       elements.add(element);
     }

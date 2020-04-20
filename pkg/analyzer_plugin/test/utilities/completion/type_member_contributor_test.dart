@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion_contributor_util.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeMemberContributorTest);
   });
@@ -21,16 +21,11 @@ main() {
 
 @reflectiveTest
 class TypeMemberContributorTest extends DartCompletionContributorTest {
-  @override
-  bool get enableStrongMode => true;
-
-  /**
-   * Check whether a declaration of the form [shadower] in a derived class
-   * shadows a declaration of the form [shadowee] in a base class, for the
-   * purposes of what is shown during completion.  [shouldBeShadowed] indicates
-   * whether shadowing is expected.
-   */
-  Future check_shadowing(
+  /// Check whether a declaration of the form [shadower] in a derived class
+  /// shadows a declaration of the form [shadowee] in a base class, for the
+  /// purposes of what is shown during completion. [shouldBeShadowed] indicates
+  /// whether shadowing is expected.
+  Future<void> check_shadowing(
       String shadower, String shadowee, bool shouldBeShadowed) async {
     addTestSource('''
 class Base {
@@ -44,7 +39,7 @@ void f(Derived d) {
 }
 ''');
     await computeSuggestions();
-    List<CompletionSuggestion> suggestionsForX = suggestions
+    var suggestionsForX = suggestions
         .where((CompletionSuggestion s) => s.completion == 'x')
         .toList();
     expect(suggestionsForX, hasLength(1));
@@ -57,10 +52,10 @@ void f(Derived d) {
 
   @override
   CompletionContributor createContributor() {
-    return new TypeMemberContributor();
+    return TypeMemberContributor();
   }
 
-  test_ArgDefaults_method() async {
+  Future<void> test_ArgDefaults_method() async {
     addTestSource('''
 class A {
   bool a(int b, bool c) => false;
@@ -72,7 +67,7 @@ void main() {new A().a^}''');
     assertSuggestMethod('a', 'A', 'bool', defaultArgListString: 'b, c');
   }
 
-  test_ArgDefaults_method_none() async {
+  Future<void> test_ArgDefaults_method_none() async {
     addTestSource('''
 class A {
   bool a() => false;
@@ -84,8 +79,8 @@ void main() {new A().a^}''');
     assertSuggestMethod('a', 'A', 'bool', defaultArgListString: null);
   }
 
-  test_ArgDefaults_method_with_optional_positional() async {
-    addMetaPackageSource();
+  Future<void> test_ArgDefaults_method_with_optional_positional() async {
+    addMetaPackage();
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -99,8 +94,8 @@ void main() {new A().f^}''');
     assertSuggestMethod('foo', 'A', 'bool', defaultArgListString: 'bar');
   }
 
-  test_ArgDefaults_method_with_required_named() async {
-    addMetaPackageSource();
+  Future<void> test_ArgDefaults_method_with_required_named() async {
+    addMetaPackage();
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -115,21 +110,20 @@ void main() {new A().f^}''');
         defaultArgListString: 'bar, baz: null');
   }
 
-  test_ArgumentList() async {
+  Future<void> test_ArgumentList() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         library A;
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
-        import '/libA.dart';
+        import 'a.dart';;
         class B { }
         String bar() => true;
         void main() {expect(^)}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
@@ -140,22 +134,21 @@ void main() {new A().f^}''');
     assertNotSuggested('print');
   }
 
-  test_ArgumentList_imported_function() async {
+  Future<void> test_ArgumentList_imported_function() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         library A;
         bool hasLength(int expected) { }
         expect(arg) { }
         void baz() { }''');
     addTestSource('''
-        import '/libA.dart'
+        import 'a.dart';
         class B { }
         String bar() => true;
         void main() {expect(^)}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
@@ -166,23 +159,23 @@ void main() {new A().f^}''');
     assertNotSuggested('print');
   }
 
-  test_ArgumentList_InstanceCreationExpression_functionalArg() async {
+  Future<void>
+      test_ArgumentList_InstanceCreationExpression_functionalArg() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         library A;
         class A { A(f()) { } }
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
         import 'dart:async';
-        import '/libA.dart';
+        import 'a.dart';;
         class B { }
         String bar() => true;
         void main() {new A(^)}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
@@ -194,9 +187,9 @@ void main() {new A().f^}''');
     assertNotSuggested('print');
   }
 
-  test_ArgumentList_InstanceCreationExpression_typedefArg() async {
+  Future<void> test_ArgumentList_InstanceCreationExpression_typedefArg() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         library A;
         typedef Funct();
         class A { A(Funct f) { } }
@@ -204,14 +197,13 @@ void main() {new A().f^}''');
         void baz() { }''');
     addTestSource('''
         import 'dart:async';
-        import '/libA.dart';
+        import 'a.dart';;
         class B { }
         String bar() => true;
         void main() {new A(^)}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
@@ -223,14 +215,14 @@ void main() {new A().f^}''');
     assertNotSuggested('print');
   }
 
-  test_ArgumentList_local_function() async {
+  Future<void> test_ArgumentList_local_function() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         library A;
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
-        import '/libA.dart'
+        import 'a.dart';
         expect(arg) { }
         class B { }
         String bar() => true;
@@ -238,7 +230,6 @@ void main() {new A().f^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
@@ -249,14 +240,14 @@ void main() {new A().f^}''');
     assertNotSuggested('print');
   }
 
-  test_ArgumentList_local_method() async {
+  Future<void> test_ArgumentList_local_method() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         library A;
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
-        import '/libA.dart'
+        import 'a.dart';
         class B {
           expect(arg) { }
           void foo() {expect(^)}}
@@ -264,7 +255,6 @@ void main() {new A().f^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
@@ -275,23 +265,22 @@ void main() {new A().f^}''');
     assertNotSuggested('print');
   }
 
-  test_ArgumentList_MethodInvocation_functionalArg() async {
+  Future<void> test_ArgumentList_MethodInvocation_functionalArg() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         library A;
         class A { A(f()) { } }
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
         import 'dart:async';
-        import '/libA.dart';
+        import 'a.dart';;
         class B { }
         String bar(f()) => true;
         void main() {bar(^);}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
@@ -303,22 +292,21 @@ void main() {new A().f^}''');
     assertNotSuggested('print');
   }
 
-  test_ArgumentList_MethodInvocation_methodArg() async {
+  Future<void> test_ArgumentList_MethodInvocation_methodArg() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         library A;
         class A { A(f()) { } }
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
         import 'dart:async';
-        import '/libA.dart';
+        import 'a.dart';;
         class B { String bar(f()) => true; }
         void main() {new B().bar(^);}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
     assertNotSuggested('B');
@@ -329,14 +317,14 @@ void main() {new A().f^}''');
     assertNotSuggested('print');
   }
 
-  test_ArgumentList_namedParam() async {
+  Future<void> test_ArgumentList_namedParam() async {
     // SimpleIdentifier  NamedExpression  ArgumentList  MethodInvocation
     // ExpressionStatement
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         library A;
         bool hasLength(int expected) { }''');
     addTestSource('''
-        import '/libA.dart'
+        import 'a.dart';
         String bar() => true;
         void main() {expect(foo: ^)}''');
     await computeSuggestions();
@@ -347,7 +335,7 @@ void main() {new A().f^}''');
     assertNotSuggested('main');
   }
 
-  test_AsExpression() async {
+  Future<void> test_AsExpression() async {
     // SimpleIdentifier  TypeName  AsExpression
     addTestSource('''
         class A {var b; X _c; foo() {var a; (a as ^).foo();}''');
@@ -361,7 +349,7 @@ void main() {new A().f^}''');
     assertNotSuggested('==');
   }
 
-  test_AssignmentExpression_name() async {
+  Future<void> test_AssignmentExpression_name() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('class A {} main() {int a; int ^b = 1;}');
@@ -369,7 +357,7 @@ void main() {new A().f^}''');
     assertNoSuggestions();
   }
 
-  test_AssignmentExpression_RHS() async {
+  Future<void> test_AssignmentExpression_RHS() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('class A {} main() {int a; int b = ^}');
@@ -382,7 +370,7 @@ void main() {new A().f^}''');
     assertNotSuggested('Object');
   }
 
-  test_AssignmentExpression_type() async {
+  Future<void> test_AssignmentExpression_type() async {
     // SimpleIdentifier  TypeName  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('''
@@ -404,7 +392,7 @@ void main() {new A().f^}''');
     //assertNotSuggested('identical');
   }
 
-  test_AssignmentExpression_type_newline() async {
+  Future<void> test_AssignmentExpression_type_newline() async {
     // SimpleIdentifier  TypeName  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('''
@@ -425,7 +413,7 @@ void main() {new A().f^}''');
     assertNotSuggested('identical');
   }
 
-  test_AssignmentExpression_type_partial() async {
+  Future<void> test_AssignmentExpression_type_partial() async {
     // SimpleIdentifier  TypeName  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('''
@@ -447,7 +435,7 @@ void main() {new A().f^}''');
     //assertNotSuggested('identical');
   }
 
-  test_AssignmentExpression_type_partial_newline() async {
+  Future<void> test_AssignmentExpression_type_partial_newline() async {
     // SimpleIdentifier  TypeName  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('''
@@ -468,7 +456,7 @@ void main() {new A().f^}''');
     assertNotSuggested('identical');
   }
 
-  test_AwaitExpression() async {
+  Future<void> test_AwaitExpression() async {
     // SimpleIdentifier  AwaitExpression  ExpressionStatement
     addTestSource('''
         class A {int x; int y() => 0;}
@@ -482,7 +470,7 @@ void main() {new A().f^}''');
     assertNotSuggested('Object');
   }
 
-  test_BinaryExpression_LHS() async {
+  Future<void> test_BinaryExpression_LHS() async {
     // SimpleIdentifier  BinaryExpression  VariableDeclaration
     // VariableDeclarationList  VariableDeclarationStatement
     addTestSource('main() {int a = 1, b = ^ + 2;}');
@@ -494,7 +482,7 @@ void main() {new A().f^}''');
     assertNotSuggested('b');
   }
 
-  test_BinaryExpression_RHS() async {
+  Future<void> test_BinaryExpression_RHS() async {
     // SimpleIdentifier  BinaryExpression  VariableDeclaration
     // VariableDeclarationList  VariableDeclarationStatement
     addTestSource('main() {int a = 1, b = 2 + ^;}');
@@ -507,7 +495,7 @@ void main() {new A().f^}''');
     assertNotSuggested('==');
   }
 
-  test_Block() async {
+  Future<void> test_Block() async {
     // Block  BlockFunctionBody  MethodDeclaration
     addSource('/testAB.dart', '''
         export "dart:math" hide max;
@@ -599,7 +587,7 @@ void main() {new A().f^}''');
     assertNotSuggested('parseHex');
   }
 
-  test_Block_final() async {
+  Future<void> test_Block_final() async {
     // Block  BlockFunctionBody  MethodDeclaration
     addSource('/testAB.dart', '''
         export "dart:math" hide max;
@@ -697,21 +685,21 @@ void main() {new A().f^}''');
     assertNotSuggested('parseHex');
   }
 
-  test_Block_final2() async {
+  Future<void> test_Block_final2() async {
     addTestSource('main() {final S^ v;}');
     await computeSuggestions();
 
     assertNotSuggested('String');
   }
 
-  test_Block_final3() async {
+  Future<void> test_Block_final3() async {
     addTestSource('main() {final ^ v;}');
     await computeSuggestions();
 
     assertNotSuggested('String');
   }
 
-  test_Block_final_final() async {
+  Future<void> test_Block_final_final() async {
     // Block  BlockFunctionBody  MethodDeclaration
     addSource('/testAB.dart', '''
         export "dart:math" hide max;
@@ -809,7 +797,7 @@ void main() {new A().f^}''');
     assertNotSuggested('parseHex');
   }
 
-  test_Block_final_var() async {
+  Future<void> test_Block_final_var() async {
     // Block  BlockFunctionBody  MethodDeclaration
     addSource('/testAB.dart', '''
         export "dart:math" hide max;
@@ -907,7 +895,7 @@ void main() {new A().f^}''');
     assertNotSuggested('parseHex');
   }
 
-  test_Block_identifier_partial() async {
+  Future<void> test_Block_identifier_partial() async {
     addSource('/testAB.dart', '''
         export "dart:math" hide max;
         class A {int x;}
@@ -985,16 +973,16 @@ void main() {new A().f^}''');
     assertNotSuggested('HtmlElement');
   }
 
-  test_Block_inherited_imported() async {
+  Future<void> test_Block_inherited_imported() async {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         class F { var f1; f2() { } get f3 => 0; set f4(fx) { } var _pf; }
         class E extends F { var e1; e2() { } }
         class I { int i1; i2() { } }
         class M { var m1; int m2() { } }''');
     addTestSource('''
-        import "testB.dart";
+        import 'b.dart';
         class A extends E implements I with M {a() {^}}''');
     await computeSuggestions();
 
@@ -1016,7 +1004,7 @@ void main() {new A().f^}''');
     assertNotSuggested('==');
   }
 
-  test_Block_inherited_local() async {
+  Future<void> test_Block_inherited_local() async {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
     addTestSource('''
         class F { var f1; f2() { } get f3 => 0; set f4(fx) { } }
@@ -1039,7 +1027,7 @@ void main() {new A().f^}''');
     assertNotSuggested('m2');
   }
 
-  test_Block_local_function() async {
+  Future<void> test_Block_local_function() async {
     addSource('/testAB.dart', '''
         export "dart:math" hide max;
         class A {int x;}
@@ -1088,11 +1076,11 @@ void main() {new A().f^}''');
     assertNotSuggested('parseHex');
   }
 
-  test_Block_unimported() async {
-    addPackageSource('myBar', 'bar.dart', 'class Foo2 { Foo2() { } }');
+  Future<void> test_Block_unimported() async {
+    addPackageFile('myBar', 'bar.dart', 'class Foo2 { Foo2() { } }');
     addSource(
         '/proj/testAB.dart', 'import "package:myBar/bar.dart"; class Foo { }');
-    testFile = provider.convertPath('/proj/completionTest.dart');
+    testFile = convertPath('/proj/completionTest.dart');
     addTestSource('class C {foo(){F^}}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);
@@ -1103,12 +1091,12 @@ void main() {new A().f^}''');
     assertNotSuggested('Future');
   }
 
-  test_CascadeExpression_method1() async {
+  Future<void> test_CascadeExpression_method1() async {
     // PropertyAccess  CascadeExpression  ExpressionStatement  Block
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         class B { }''');
     addTestSource('''
-        import "testB.dart";
+        import 'b.dart';
         class A {var b; X _c;}
         class X{}
         // looks like a cascade to the parser
@@ -1127,12 +1115,12 @@ void main() {new A().f^}''');
     assertNotSuggested('==');
   }
 
-  test_CascadeExpression_selector1() async {
+  Future<void> test_CascadeExpression_selector1() async {
     // PropertyAccess  CascadeExpression  ExpressionStatement  Block
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         class B { }''');
     addTestSource('''
-        import "testB.dart";
+        import 'b.dart';
         class A {var b; X _c;}
         class X{}
         // looks like a cascade to the parser
@@ -1151,12 +1139,12 @@ void main() {new A().f^}''');
     assertNotSuggested('==');
   }
 
-  test_CascadeExpression_selector2() async {
+  Future<void> test_CascadeExpression_selector2() async {
     // SimpleIdentifier  PropertyAccess  CascadeExpression  ExpressionStatement
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         class B { }''');
     addTestSource('''
-        import "testB.dart";
+        import 'b.dart';
         class A {var b; X _c;}
         class X{}
         main() {A a; a..^z}''');
@@ -1173,12 +1161,12 @@ void main() {new A().f^}''');
     assertNotSuggested('==');
   }
 
-  test_CascadeExpression_selector2_withTrailingReturn() async {
+  Future<void> test_CascadeExpression_selector2_withTrailingReturn() async {
     // PropertyAccess  CascadeExpression  ExpressionStatement  Block
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         class B { }''');
     addTestSource('''
-        import "testB.dart";
+        import 'b.dart';
         class A {var b; X _c;}
         class X{}
         main() {A a; a..^ return}''');
@@ -1195,7 +1183,7 @@ void main() {new A().f^}''');
     assertNotSuggested('==');
   }
 
-  test_CascadeExpression_target() async {
+  Future<void> test_CascadeExpression_target() async {
     // SimpleIdentifier  CascadeExpression  ExpressionStatement
     addTestSource('''
         class A {var b; X _c;}
@@ -1214,7 +1202,7 @@ void main() {new A().f^}''');
     assertNotSuggested('==');
   }
 
-  test_CatchClause_onType() async {
+  Future<void> test_CatchClause_onType() async {
     // TypeName  CatchClause  TryStatement
     addTestSource('class A {a() {try{var x;} on ^ {}}}');
     await computeSuggestions();
@@ -1226,7 +1214,7 @@ void main() {new A().f^}''');
     assertNotSuggested('x');
   }
 
-  test_CatchClause_onType_noBrackets() async {
+  Future<void> test_CatchClause_onType_noBrackets() async {
     // TypeName  CatchClause  TryStatement
     addTestSource('class A {a() {try{var x;} on ^}}');
     await computeSuggestions();
@@ -1237,7 +1225,7 @@ void main() {new A().f^}''');
     assertNotSuggested('x');
   }
 
-  test_CatchClause_typed() async {
+  Future<void> test_CatchClause_typed() async {
     // Block  CatchClause  TryStatement
     addTestSource('class A {a() {try{var x;} on E catch (e) {^}}}');
     await computeSuggestions();
@@ -1249,7 +1237,7 @@ void main() {new A().f^}''');
     assertNotSuggested('x');
   }
 
-  test_CatchClause_untyped() async {
+  Future<void> test_CatchClause_untyped() async {
     // Block  CatchClause  TryStatement
     addTestSource('class A {a() {try{var x;} catch (e, s) {^}}}');
     await computeSuggestions();
@@ -1262,12 +1250,12 @@ void main() {new A().f^}''');
     assertNotSuggested('x');
   }
 
-  test_ClassDeclaration_body() async {
+  Future<void> test_ClassDeclaration_body() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         class B { }''');
     addTestSource('''
-        import "testB.dart" as x;
+        import 'b.dart'; as x;
         @deprecated class A {^}
         class _B {}
         A T;''');
@@ -1281,12 +1269,12 @@ void main() {new A().f^}''');
     assertNotSuggested('x');
   }
 
-  test_ClassDeclaration_body_final() async {
+  Future<void> test_ClassDeclaration_body_final() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         class B { }''');
     addTestSource('''
-        import "testB.dart" as x;
+        import 'b.dart'; as x;
         class A {final ^}
         class _B {}
         A T;''');
@@ -1300,12 +1288,12 @@ void main() {new A().f^}''');
     assertNotSuggested('x');
   }
 
-  test_ClassDeclaration_body_final_field() async {
+  Future<void> test_ClassDeclaration_body_final_field() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         class B { }''');
     addTestSource('''
-        import "testB.dart" as x;
+        import 'b.dart'; as x;
         class A {final ^ A(){}}
         class _B {}
         A T;''');
@@ -1319,12 +1307,12 @@ void main() {new A().f^}''');
     assertNotSuggested('x');
   }
 
-  test_ClassDeclaration_body_final_field2() async {
+  Future<void> test_ClassDeclaration_body_final_field2() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         class B { }''');
     addTestSource('''
-        import "testB.dart" as Soo;
+        import 'b.dart'; as Soo;
         class A {final S^ A();}
         class _B {}
         A Sew;''');
@@ -1338,12 +1326,12 @@ void main() {new A().f^}''');
     assertNotSuggested('Soo');
   }
 
-  test_ClassDeclaration_body_final_final() async {
+  Future<void> test_ClassDeclaration_body_final_final() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         class B { }''');
     addTestSource('''
-        import "testB.dart" as x;
+        import 'b.dart'; as x;
         class A {final ^ final foo;}
         class _B {}
         A T;''');
@@ -1357,12 +1345,12 @@ void main() {new A().f^}''');
     assertNotSuggested('x');
   }
 
-  test_ClassDeclaration_body_final_var() async {
+  Future<void> test_ClassDeclaration_body_final_var() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         class B { }''');
     addTestSource('''
-        import "testB.dart" as x;
+        import 'b.dart'; as x;
         class A {final ^ var foo;}
         class _B {}
         A T;''');
@@ -1376,11 +1364,11 @@ void main() {new A().f^}''');
     assertNotSuggested('x');
   }
 
-  test_Combinator_hide() async {
+  Future<void> test_Combinator_hide() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
     addSource('/testAB.dart', '''
         library libAB;
-        part '/partAB.dart';
+        part 'partAB.dart';
         class A { }
         class B { }''');
     addSource('/partAB.dart', '''
@@ -1399,11 +1387,11 @@ void main() {new A().f^}''');
     assertNoSuggestions();
   }
 
-  test_Combinator_show() async {
+  Future<void> test_Combinator_show() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
     addSource('/testAB.dart', '''
         library libAB;
-        part '/partAB.dart';
+        part 'partAB.dart';
         class A { }
         class B { }''');
     addSource('/partAB.dart', '''
@@ -1424,14 +1412,14 @@ void main() {new A().f^}''');
     assertNoSuggestions();
   }
 
-  test_ConditionalExpression_elseExpression() async {
+  Future<void> test_ConditionalExpression_elseExpression() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         int T2;
         F2() { }
         class B {int x;}
@@ -1443,14 +1431,14 @@ void main() {new A().f^}''');
     //assertSuggestImportedTopLevelVar('T1', 'int');
   }
 
-  test_ConditionalExpression_elseExpression_empty() async {
+  Future<void> test_ConditionalExpression_elseExpression_empty() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         int T2;
         F2() { }
         class B {int x;}
@@ -1468,14 +1456,14 @@ void main() {new A().f^}''');
     //assertSuggestImportedTopLevelVar('T1', 'int');
   }
 
-  test_ConditionalExpression_partial_thenExpression() async {
+  Future<void> test_ConditionalExpression_partial_thenExpression() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         int T2;
         F2() { }
         class B {int x;}
@@ -1487,14 +1475,14 @@ void main() {new A().f^}''');
     //assertSuggestImportedTopLevelVar('T1', 'int');
   }
 
-  test_ConditionalExpression_partial_thenExpression_empty() async {
+  Future<void> test_ConditionalExpression_partial_thenExpression_empty() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         int T2;
         F2() { }
         class B {int x;}
@@ -1512,14 +1500,14 @@ void main() {new A().f^}''');
     //assertSuggestImportedTopLevelVar('T1', 'int');
   }
 
-  test_ConditionalExpression_thenExpression() async {
+  Future<void> test_ConditionalExpression_thenExpression() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         int T2;
         F2() { }
         class B {int x;}
@@ -1531,16 +1519,16 @@ void main() {new A().f^}''');
     //assertSuggestImportedTopLevelVar('T1', 'int');
   }
 
-  test_ConstructorName_importedClass() async {
+  Future<void> test_ConstructorName_importedClass() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "testB.dart";
+        import 'b.dart';
         var m;
         main() {new X.^}''');
     await computeSuggestions();
@@ -1555,16 +1543,16 @@ void main() {new A().f^}''');
     assertNotSuggested('m');
   }
 
-  test_ConstructorName_importedFactory() async {
+  Future<void> test_ConstructorName_importedFactory() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {factory X.c(); factory X._d(); z() {}}''');
     addTestSource('''
-        import "testB.dart";
+        import 'b.dart';
         var m;
         main() {new X.^}''');
     await computeSuggestions();
@@ -1579,7 +1567,7 @@ void main() {new A().f^}''');
     assertNotSuggested('m');
   }
 
-  test_ConstructorName_importedFactory2() async {
+  Future<void> test_ConstructorName_importedFactory2() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
     addTestSource('''
@@ -1596,7 +1584,7 @@ void main() {new A().f^}''');
     assertNotSuggested('String');
   }
 
-  test_ConstructorName_localClass() async {
+  Future<void> test_ConstructorName_localClass() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
     addTestSource('''
@@ -1616,7 +1604,7 @@ void main() {new A().f^}''');
     assertNotSuggested('m');
   }
 
-  test_ConstructorName_localFactory() async {
+  Future<void> test_ConstructorName_localFactory() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
     addTestSource('''
@@ -1636,7 +1624,7 @@ void main() {new A().f^}''');
     assertNotSuggested('m');
   }
 
-  test_DefaultFormalParameter_named_expression() async {
+  Future<void> test_DefaultFormalParameter_named_expression() async {
     // DefaultFormalParameter FormalParameterList MethodDeclaration
     addTestSource('''
         foo() { }
@@ -1653,7 +1641,7 @@ void main() {new A().f^}''');
     assertNotSuggested('bar');
   }
 
-  test_enumConst() async {
+  Future<void> test_enumConst() async {
     addTestSource('enum E { one, two } main() {E.^}');
     await computeSuggestions();
     assertNotSuggested('E');
@@ -1664,7 +1652,7 @@ void main() {new A().f^}''');
     assertNotSuggested('values');
   }
 
-  test_enumConst2() async {
+  Future<void> test_enumConst2() async {
     addTestSource('enum E { one, two } main() {E.o^}');
     await computeSuggestions();
     assertNotSuggested('E');
@@ -1675,7 +1663,7 @@ void main() {new A().f^}''');
     assertNotSuggested('values');
   }
 
-  test_enumConst3() async {
+  Future<void> test_enumConst3() async {
     addTestSource('enum E { one, two } main() {E.^ int g;}');
     await computeSuggestions();
     assertNotSuggested('E');
@@ -1686,7 +1674,7 @@ void main() {new A().f^}''');
     assertNotSuggested('values');
   }
 
-  test_enumConst_index() async {
+  Future<void> test_enumConst_index() async {
     addTestSource('enum E { one, two } main() {E.one.^}');
     await computeSuggestions();
     assertNotSuggested('E');
@@ -1696,7 +1684,7 @@ void main() {new A().f^}''');
     assertNotSuggested('values');
   }
 
-  test_enumConst_index2() async {
+  Future<void> test_enumConst_index2() async {
     addTestSource('enum E { one, two } main() {E.one.i^}');
     await computeSuggestions();
     assertNotSuggested('E');
@@ -1706,7 +1694,7 @@ void main() {new A().f^}''');
     assertNotSuggested('values');
   }
 
-  test_enumConst_index3() async {
+  Future<void> test_enumConst_index3() async {
     addTestSource('enum E { one, two } main() {E.one.^ int g;}');
     await computeSuggestions();
     assertNotSuggested('E');
@@ -1716,14 +1704,14 @@ void main() {new A().f^}''');
     assertNotSuggested('values');
   }
 
-  test_ExpressionStatement_identifier() async {
+  Future<void> test_ExpressionStatement_identifier() async {
     // SimpleIdentifier  ExpressionStatement  Block
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         _B F1() { }
         class A {int x;}
         class _B { }''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         typedef int F2(int blat);
         class Clz = Object with Object;
         class C {foo(){^} void bar() {}}''');
@@ -1742,41 +1730,41 @@ void main() {new A().f^}''');
     assertNotSuggested('_B');
   }
 
-  test_ExpressionStatement_name() async {
+  Future<void> test_ExpressionStatement_name() async {
     // ExpressionStatement  Block  BlockFunctionBody  MethodDeclaration
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         B T1;
         class B{}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         class C {a() {C ^}}''');
     await computeSuggestions();
     assertNoSuggestions();
   }
 
-  test_FieldDeclaration_name_typed() async {
+  Future<void> test_FieldDeclaration_name_typed() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // FieldDeclaration
-    addSource('/testA.dart', 'class A { }');
+    addSource('/home/test/lib/a.dart', 'class A { }');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         class C {A ^}''');
     await computeSuggestions();
     assertNoSuggestions();
   }
 
-  test_FieldDeclaration_name_var() async {
+  Future<void> test_FieldDeclaration_name_var() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // FieldDeclaration
-    addSource('/testA.dart', 'class A { }');
+    addSource('/home/test/lib/a.dart', 'class A { }');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         class C {var ^}''');
     await computeSuggestions();
     assertNoSuggestions();
   }
 
-  test_FieldFormalParameter_in_non_constructor() async {
+  Future<void> test_FieldFormalParameter_in_non_constructor() async {
     // SimpleIdentifer  FieldFormalParameter  FormalParameterList
     addTestSource('class A {B(this.^foo) {}}');
     await computeSuggestions();
@@ -1785,7 +1773,7 @@ void main() {new A().f^}''');
     assertNoSuggestions();
   }
 
-  test_ForEachStatement_body_typed() async {
+  Future<void> test_ForEachStatement_body_typed() async {
     // Block  ForEachStatement
     addTestSource('main(args) {for (int foo in bar) {^}}');
     await computeSuggestions();
@@ -1796,7 +1784,7 @@ void main() {new A().f^}''');
     assertNotSuggested('Object');
   }
 
-  test_ForEachStatement_body_untyped() async {
+  Future<void> test_ForEachStatement_body_untyped() async {
     // Block  ForEachStatement
     addTestSource('main(args) {for (foo in bar) {^}}');
     await computeSuggestions();
@@ -1807,7 +1795,7 @@ void main() {new A().f^}''');
     assertNotSuggested('Object');
   }
 
-  test_ForEachStatement_iterable() async {
+  Future<void> test_ForEachStatement_iterable() async {
     // SimpleIdentifier  ForEachStatement  Block
     addTestSource('main(args) {for (int foo in ^) {}}');
     await computeSuggestions();
@@ -1817,7 +1805,7 @@ void main() {new A().f^}''');
     assertNotSuggested('Object');
   }
 
-  test_ForEachStatement_loopVariable() async {
+  Future<void> test_ForEachStatement_loopVariable() async {
     // SimpleIdentifier  ForEachStatement  Block
     addTestSource('main(args) {for (^ in args) {}}');
     await computeSuggestions();
@@ -1827,7 +1815,7 @@ void main() {new A().f^}''');
     assertNotSuggested('String');
   }
 
-  test_ForEachStatement_loopVariable_type() async {
+  Future<void> test_ForEachStatement_loopVariable_type() async {
     // SimpleIdentifier  ForEachStatement  Block
     addTestSource('main(args) {for (^ foo in args) {}}');
     await computeSuggestions();
@@ -1838,7 +1826,7 @@ void main() {new A().f^}''');
     assertNotSuggested('String');
   }
 
-  test_ForEachStatement_loopVariable_type2() async {
+  Future<void> test_ForEachStatement_loopVariable_type2() async {
     // DeclaredIdentifier  ForEachStatement  Block
     addTestSource('main(args) {for (S^ foo in args) {}}');
     await computeSuggestions();
@@ -1849,7 +1837,7 @@ void main() {new A().f^}''');
     assertNotSuggested('String');
   }
 
-  test_FormalParameterList() async {
+  Future<void> test_FormalParameterList() async {
     // FormalParameterList MethodDeclaration
     addTestSource('''
         foo() { }
@@ -1866,7 +1854,7 @@ void main() {new A().f^}''');
     assertNotSuggested('bar');
   }
 
-  test_ForStatement_body() async {
+  Future<void> test_ForStatement_body() async {
     // Block  ForStatement
     addTestSource('main(args) {for (int i; i < 10; ++i) {^}}');
     await computeSuggestions();
@@ -1876,7 +1864,7 @@ void main() {new A().f^}''');
     assertNotSuggested('Object');
   }
 
-  test_ForStatement_condition() async {
+  Future<void> test_ForStatement_condition() async {
     // SimpleIdentifier  ForStatement
     addTestSource('main() {for (int index = 0; i^)}');
     await computeSuggestions();
@@ -1885,7 +1873,7 @@ void main() {new A().f^}''');
     assertNotSuggested('index');
   }
 
-  test_ForStatement_initializer() async {
+  Future<void> test_ForStatement_initializer() async {
     // SimpleIdentifier  ForStatement
     addTestSource('main() {List a; for (^)}');
     await computeSuggestions();
@@ -1896,7 +1884,7 @@ void main() {new A().f^}''');
     assertNotSuggested('int');
   }
 
-  test_ForStatement_updaters() async {
+  Future<void> test_ForStatement_updaters() async {
     // SimpleIdentifier  ForStatement
     addTestSource('main() {for (int index = 0; index < 10; i^)}');
     await computeSuggestions();
@@ -1905,7 +1893,7 @@ void main() {new A().f^}''');
     assertNotSuggested('index');
   }
 
-  test_ForStatement_updaters_prefix_expression() async {
+  Future<void> test_ForStatement_updaters_prefix_expression() async {
     // SimpleIdentifier  PrefixExpression  ForStatement
     addTestSource('''
         void bar() { }
@@ -1918,15 +1906,15 @@ void main() {new A().f^}''');
     assertNotSuggested('bar');
   }
 
-  test_FunctionDeclaration_returnType_afterComment() async {
+  Future<void> test_FunctionDeclaration_returnType_afterComment() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -1947,15 +1935,15 @@ void main() {new A().f^}''');
     assertNotSuggested('name');
   }
 
-  test_FunctionDeclaration_returnType_afterComment2() async {
+  Future<void> test_FunctionDeclaration_returnType_afterComment2() async {
     // FunctionDeclaration  ClassDeclaration  CompilationUnit
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -1976,15 +1964,15 @@ void main() {new A().f^}''');
     assertNotSuggested('name');
   }
 
-  test_FunctionDeclaration_returnType_afterComment3() async {
+  Future<void> test_FunctionDeclaration_returnType_afterComment3() async {
     // FunctionDeclaration  ClassDeclaration  CompilationUnit
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -2006,7 +1994,7 @@ void main() {new A().f^}''');
     assertNotSuggested('name');
   }
 
-  test_FunctionExpression_body_function() async {
+  Future<void> test_FunctionExpression_body_function() async {
     // Block  BlockFunctionBody  FunctionExpression
     addTestSource('''
         void bar() { }
@@ -2022,7 +2010,7 @@ void main() {new A().f^}''');
     assertNotSuggested('Object');
   }
 
-  test_generic_field() async {
+  Future<void> test_generic_field() async {
     addTestSource('''
 class C<T> {
   T t;
@@ -2035,7 +2023,7 @@ void f(C<int> c) {
     assertSuggestField('t', 'int');
   }
 
-  test_generic_getter() async {
+  Future<void> test_generic_getter() async {
     addTestSource('''
 class C<T> {
   T get t => null;
@@ -2048,7 +2036,7 @@ void f(C<int> c) {
     assertSuggestGetter('t', 'int');
   }
 
-  test_generic_method() async {
+  Future<void> test_generic_method() async {
     addTestSource('''
 class C<T> {
   T m(T t) {}
@@ -2058,13 +2046,13 @@ void f(C<int> c) {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'int');
+    var suggestion = assertSuggestMethod('m', 'C', 'int');
     expect(suggestion.parameterTypes[0], 'int');
     expect(suggestion.element.returnType, 'int');
     expect(suggestion.element.parameters, '(int t)');
   }
 
-  test_generic_setter() async {
+  Future<void> test_generic_setter() async {
     addTestSource('''
 class C<T> {
   set t(T value) {}
@@ -2077,11 +2065,19 @@ void f(C<int> c) {
     // TODO(paulberry): modify assertSuggestSetter so that we can pass 'int'
     // as a parmeter to it, and it will check the appropriate field in
     // the suggestion object.
-    CompletionSuggestion suggestion = assertSuggestSetter('t');
+    var suggestion = assertSuggestSetter('t');
     expect(suggestion.element.parameters, '(int value)');
   }
 
-  test_IfStatement() async {
+  Future<void> test_genericTypeAlias_noFunctionType() async {
+    addTestSource('''
+typedef F=;
+g(F.^
+''');
+    await computeSuggestions();
+  }
+
+  Future<void> test_IfStatement() async {
     // SimpleIdentifier  IfStatement
     addTestSource('''
         class A {var b; X _c; foo() {A a; if (true) ^}}''');
@@ -2095,7 +2091,7 @@ void f(C<int> c) {
     assertNotSuggested('==');
   }
 
-  test_IfStatement_condition() async {
+  Future<void> test_IfStatement_condition() async {
     // SimpleIdentifier  IfStatement  Block  BlockFunctionBody
     addTestSource('''
         class A {int x; int y() => 0;}
@@ -2109,7 +2105,7 @@ void f(C<int> c) {
     assertNotSuggested('Object');
   }
 
-  test_IfStatement_empty() async {
+  Future<void> test_IfStatement_empty() async {
     // SimpleIdentifier  IfStatement
     addTestSource('''
         class A {var b; X _c; foo() {A a; if (^) something}}''');
@@ -2123,7 +2119,7 @@ void f(C<int> c) {
     assertNotSuggested('==');
   }
 
-  test_IfStatement_invocation() async {
+  Future<void> test_IfStatement_invocation() async {
     // SimpleIdentifier  PrefixIdentifier  IfStatement
     addTestSource('''
         main() {var a; if (a.^) something}''');
@@ -2136,7 +2132,7 @@ void f(C<int> c) {
     assertNotSuggested('==');
   }
 
-  test_ImportDirective_dart() async {
+  Future<void> test_ImportDirective_dart() async {
     // SimpleStringLiteral  ImportDirective
     addTestSource('''
         import "dart^";
@@ -2145,14 +2141,14 @@ void f(C<int> c) {
     assertNoSuggestions();
   }
 
-  test_IndexExpression() async {
+  Future<void> test_IndexExpression() async {
     // ExpressionStatement  Block
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         int T2;
         F2() { }
         class B {int x;}
@@ -2170,14 +2166,14 @@ void f(C<int> c) {
     //assertSuggestImportedTopLevelVar('T1', 'int');
   }
 
-  test_IndexExpression2() async {
+  Future<void> test_IndexExpression2() async {
     // SimpleIdentifier IndexExpression ExpressionStatement  Block
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         int T2;
         F2() { }
         class B {int x;}
@@ -2189,14 +2185,14 @@ void f(C<int> c) {
     //assertSuggestImportedTopLevelVar('T1', 'int');
   }
 
-  test_InstanceCreationExpression_imported() async {
+  Future<void> test_InstanceCreationExpression_imported() async {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         class A {A(this.x) { } int x;}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         import "dart:async";
         int T2;
         F2() { }
@@ -2219,7 +2215,7 @@ void f(C<int> c) {
     assertNotSuggested('T2');
   }
 
-  test_InstanceCreationExpression_unimported() async {
+  Future<void> test_InstanceCreationExpression_unimported() async {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
     addSource('/testAB.dart', 'class Foo { }');
     addTestSource('class C {foo(){new F^}}');
@@ -2230,15 +2226,15 @@ void f(C<int> c) {
     assertNotSuggested('Foo');
   }
 
-  test_InterpolationExpression() async {
+  Future<void> test_InterpolationExpression() async {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -2259,15 +2255,15 @@ void f(C<int> c) {
     assertNotSuggested('name');
   }
 
-  test_InterpolationExpression_block() async {
+  Future<void> test_InterpolationExpression_block() async {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -2287,7 +2283,7 @@ void f(C<int> c) {
     assertNotSuggested('name');
   }
 
-  test_InterpolationExpression_block2() async {
+  Future<void> test_InterpolationExpression_block2() async {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
     addTestSource('main() {String name; print("hello \${n^}");}');
     await computeSuggestions();
@@ -2296,7 +2292,7 @@ void f(C<int> c) {
     //assertNotSuggested('Object');
   }
 
-  test_InterpolationExpression_prefix_selector() async {
+  Future<void> test_InterpolationExpression_prefix_selector() async {
     // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
     addTestSource('main() {String name; print("hello \${name.^}");}');
     await computeSuggestions();
@@ -2308,14 +2304,14 @@ void f(C<int> c) {
     assertNotSuggested('==');
   }
 
-  test_InterpolationExpression_prefix_selector2() async {
+  Future<void> test_InterpolationExpression_prefix_selector2() async {
     // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
     addTestSource('main() {String name; print("hello \$name.^");}');
     await computeSuggestions();
     assertNoSuggestions();
   }
 
-  test_InterpolationExpression_prefix_target() async {
+  Future<void> test_InterpolationExpression_prefix_target() async {
     // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
     addTestSource('main() {String name; print("hello \${nam^e.length}");}');
     await computeSuggestions();
@@ -2325,14 +2321,14 @@ void f(C<int> c) {
     assertNotSuggested('length');
   }
 
-  test_IsExpression() async {
+  Future<void> test_IsExpression() async {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         foo() { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "testB.dart";
+        import 'b.dart';
         class Y {Y.c(); Y._d(); z() {}}
         main() {var x; if (x is ^) { }}''');
     await computeSuggestions();
@@ -2345,7 +2341,7 @@ void f(C<int> c) {
     assertNotSuggested('foo');
   }
 
-  test_IsExpression_target() async {
+  Future<void> test_IsExpression_target() async {
     // IfStatement  Block  BlockFunctionBody
     addTestSource('''
         foo() { }
@@ -2363,7 +2359,7 @@ void f(C<int> c) {
     assertNotSuggested('Object');
   }
 
-  test_IsExpression_type() async {
+  Future<void> test_IsExpression_type() async {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
     addTestSource('''
         class A {int x; int y() => 0;}
@@ -2377,7 +2373,7 @@ void f(C<int> c) {
     assertNotSuggested('Object');
   }
 
-  test_IsExpression_type_partial() async {
+  Future<void> test_IsExpression_type_partial() async {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
     addTestSource('''
         class A {int x; int y() => 0;}
@@ -2391,22 +2387,22 @@ void f(C<int> c) {
     assertNotSuggested('Object');
   }
 
-  test_keyword() async {
+  Future<void> test_keyword() async {
     addTestSource('class C { static C get instance => null; } main() {C.in^}');
     await computeSuggestions();
     // Suggested by StaticMemberContributor
     assertNotSuggested('instance');
   }
 
-  test_keyword2() async {
-    addSource('/testB.dart', '''
+  Future<void> test_keyword2() async {
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         int newT1;
         int T1;
         nowIsIt() { }
         class X {factory X.c(); factory X._d(); z() {}}''');
     addTestSource('''
-        import "testB.dart";
+        import 'b.dart';
         String newer() {}
         var m;
         main() {new^ X.c();}''');
@@ -2423,7 +2419,7 @@ void f(C<int> c) {
     assertNotSuggested('newer');
   }
 
-  test_libraryPrefix() async {
+  Future<void> test_libraryPrefix() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('import "dart:async" as bar; foo() {bar.^}');
     await computeSuggestions();
@@ -2432,7 +2428,7 @@ void f(C<int> c) {
     assertNotSuggested('loadLibrary');
   }
 
-  test_libraryPrefix2() async {
+  Future<void> test_libraryPrefix2() async {
     // SimpleIdentifier  MethodInvocation  ExpressionStatement
     addTestSource('import "dart:async" as bar; foo() {bar.^ print("f")}');
     await computeSuggestions();
@@ -2440,7 +2436,7 @@ void f(C<int> c) {
     assertNotSuggested('Future');
   }
 
-  test_libraryPrefix3() async {
+  Future<void> test_libraryPrefix3() async {
     // SimpleIdentifier  MethodInvocation  ExpressionStatement
     addTestSource('import "dart:async" as bar; foo() {new bar.F^ print("f")}');
     await computeSuggestions();
@@ -2449,7 +2445,7 @@ void f(C<int> c) {
     assertNotSuggested('Future.delayed');
   }
 
-  test_libraryPrefix_deferred() async {
+  Future<void> test_libraryPrefix_deferred() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('import "dart:async" deferred as bar; foo() {bar.^}');
     await computeSuggestions();
@@ -2458,17 +2454,17 @@ void f(C<int> c) {
     assertNotSuggested('loadLibrary');
   }
 
-  test_libraryPrefix_with_exports() async {
-    addSource('/libA.dart', 'library libA; class A { }');
-    addSource('/libB.dart', 'library libB; export "/libA.dart"; class B { }');
-    addTestSource('import "libB.dart" as foo; main() {foo.^} class C { }');
+  Future<void> test_libraryPrefix_with_exports() async {
+    addSource('/home/test/lib/a.dart', 'class A { }');
+    addSource('/home/test/lib/b.dart', 'export "a.dart"; class B { }');
+    addTestSource('import "b.dart" as foo; main() {foo.^} class C { }');
     await computeSuggestions();
     // Suggested by LibraryMemberContributor
     assertNotSuggested('B');
     assertNotSuggested('A');
   }
 
-  test_Literal_list() async {
+  Future<void> test_Literal_list() async {
     // ']'  ListLiteral  ArgumentList  MethodInvocation
     addTestSource('main() {var Some; print([^]);}');
     await computeSuggestions();
@@ -2476,7 +2472,7 @@ void f(C<int> c) {
     assertNotSuggested('String');
   }
 
-  test_Literal_list2() async {
+  Future<void> test_Literal_list2() async {
     // SimpleIdentifier ListLiteral  ArgumentList  MethodInvocation
     addTestSource('main() {var Some; print([S^]);}');
     await computeSuggestions();
@@ -2484,47 +2480,47 @@ void f(C<int> c) {
     assertNotSuggested('String');
   }
 
-  test_Literal_string() async {
+  Future<void> test_Literal_string() async {
     // SimpleStringLiteral  ExpressionStatement  Block
     addTestSource('class A {a() {"hel^lo"}}');
     await computeSuggestions();
     assertNoSuggestions();
   }
 
-  test_local() async {
+  Future<void> test_local() async {
     addTestSource('foo() {String x = "bar"; x.^}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
   }
 
-  test_local_is() async {
+  Future<void> test_local_is() async {
     addTestSource('foo() {var x; if (x is String) x.^}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
   }
 
-  test_local_propogatedType() async {
+  Future<void> test_local_propogatedType() async {
     addTestSource('foo() {var x = "bar"; x.^}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
   }
 
-  test_localVariableDeclarationName() async {
+  Future<void> test_localVariableDeclarationName() async {
     addTestSource('main() {String m^}');
     await computeSuggestions();
     assertNotSuggested('main');
     assertNotSuggested('min');
   }
 
-  test_MapLiteralEntry() async {
+  Future<void> test_MapLiteralEntry() async {
     // MapLiteralEntry  MapLiteral  VariableDeclaration
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -2543,15 +2539,15 @@ void f(C<int> c) {
     assertNotSuggested('C2');
   }
 
-  test_MapLiteralEntry1() async {
+  Future<void> test_MapLiteralEntry1() async {
     // MapLiteralEntry  MapLiteral  VariableDeclaration
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -2563,15 +2559,15 @@ void f(C<int> c) {
     assertNotSuggested('T2');
   }
 
-  test_MapLiteralEntry2() async {
+  Future<void> test_MapLiteralEntry2() async {
     // SimpleIdentifier  MapLiteralEntry  MapLiteral  VariableDeclaration
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -2583,14 +2579,14 @@ void f(C<int> c) {
     assertNotSuggested('T2');
   }
 
-  test_method_parameters_mixed_required_and_named() async {
+  Future<void> test_method_parameters_mixed_required_and_named() async {
     addTestSource('''
 class C {
   void m(x, {int y}) {}
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -2600,14 +2596,14 @@ void main() {new C().^}''');
     expect(suggestion.hasNamedParameters, true);
   }
 
-  test_method_parameters_mixed_required_and_positional() async {
+  Future<void> test_method_parameters_mixed_required_and_positional() async {
     addTestSource('''
 class C {
   void m(x, [int y]) {}
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -2617,14 +2613,14 @@ void main() {new C().^}''');
     expect(suggestion.hasNamedParameters, false);
   }
 
-  test_method_parameters_named() async {
+  Future<void> test_method_parameters_named() async {
     addTestSource('''
 class C {
   void m({x, int y}) {}
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -2634,28 +2630,28 @@ void main() {new C().^}''');
     expect(suggestion.hasNamedParameters, true);
   }
 
-  test_method_parameters_none() async {
+  Future<void> test_method_parameters_none() async {
     addTestSource('''
 class C {
   void m() {}
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, isEmpty);
     expect(suggestion.parameterTypes, isEmpty);
     expect(suggestion.requiredParameterCount, 0);
     expect(suggestion.hasNamedParameters, false);
   }
 
-  test_method_parameters_positional() async {
+  Future<void> test_method_parameters_positional() async {
     addTestSource('''
 class C {
   void m([x, int y]) {}
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -2665,14 +2661,14 @@ void main() {new C().^}''');
     expect(suggestion.hasNamedParameters, false);
   }
 
-  test_method_parameters_required() async {
+  Future<void> test_method_parameters_required() async {
     addTestSource('''
 class C {
   void m(x, int y) {}
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -2682,7 +2678,7 @@ void main() {new C().^}''');
     expect(suggestion.hasNamedParameters, false);
   }
 
-  test_MethodDeclaration_body_getters() async {
+  Future<void> test_MethodDeclaration_body_getters() async {
     // Block  BlockFunctionBody  MethodDeclaration
     addTestSource('class A {@deprecated X get f => 0; Z a() {^} get _g => 1;}');
     await computeSuggestions();
@@ -2693,7 +2689,7 @@ void main() {new C().^}''');
     assertNotSuggested('_g');
   }
 
-  test_MethodDeclaration_body_static() async {
+  Future<void> test_MethodDeclaration_body_static() async {
     // Block  BlockFunctionBody  MethodDeclaration
     addSource('/testC.dart', '''
         class C {
@@ -2729,7 +2725,7 @@ void main() {new C().^}''');
     assertNotSuggested('c4');
   }
 
-  test_MethodDeclaration_members() async {
+  Future<void> test_MethodDeclaration_members() async {
     // Block  BlockFunctionBody  MethodDeclaration
     addTestSource('class A {@deprecated X f; Z _a() {^} var _g;}');
     await computeSuggestions();
@@ -2741,7 +2737,7 @@ void main() {new C().^}''');
     assertNotSuggested('bool');
   }
 
-  test_MethodDeclaration_parameters_named() async {
+  Future<void> test_MethodDeclaration_parameters_named() async {
     // Block  BlockFunctionBody  MethodDeclaration
     addTestSource('class A {@deprecated Z a(X x, _, b, {y: boo}) {^}}');
     await computeSuggestions();
@@ -2755,7 +2751,7 @@ void main() {new C().^}''');
     assertNotSuggested('_');
   }
 
-  test_MethodDeclaration_parameters_positional() async {
+  Future<void> test_MethodDeclaration_parameters_positional() async {
     // Block  BlockFunctionBody  MethodDeclaration
     addTestSource('''
         foo() { }
@@ -2772,15 +2768,15 @@ void main() {new C().^}''');
     assertNotSuggested('String');
   }
 
-  test_MethodDeclaration_returnType() async {
+  Future<void> test_MethodDeclaration_returnType() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -2800,15 +2796,15 @@ void main() {new C().^}''');
     assertNotSuggested('name');
   }
 
-  test_MethodDeclaration_returnType_afterComment() async {
+  Future<void> test_MethodDeclaration_returnType_afterComment() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -2828,15 +2824,15 @@ void main() {new C().^}''');
     assertNotSuggested('name');
   }
 
-  test_MethodDeclaration_returnType_afterComment2() async {
+  Future<void> test_MethodDeclaration_returnType_afterComment2() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -2856,15 +2852,15 @@ void main() {new C().^}''');
     assertNotSuggested('name');
   }
 
-  test_MethodDeclaration_returnType_afterComment3() async {
+  Future<void> test_MethodDeclaration_returnType_afterComment3() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -2886,7 +2882,7 @@ void main() {new C().^}''');
     assertNotSuggested('name');
   }
 
-  test_MethodInvocation_no_semicolon() async {
+  Future<void> test_MethodInvocation_no_semicolon() async {
     // MethodInvocation  ExpressionStatement  Block
     addTestSource(r'''
         main() { }
@@ -2920,7 +2916,7 @@ void main() {new C().^}''');
     assertNotSuggested('==');
   }
 
-  test_new_instance() async {
+  Future<void> test_new_instance() async {
     addTestSource('import "dart:math"; class A {x() {new Random().^}}');
     await computeSuggestions();
     assertSuggestMethod('nextBool', 'Random', 'bool');
@@ -2931,40 +2927,40 @@ void main() {new C().^}''');
     assertNotSuggested('A');
   }
 
-  test_no_parameters_field() async {
+  Future<void> test_no_parameters_field() async {
     addTestSource('''
 class C {
   int x;
 }
 void main() {new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestField('x', 'int');
+    var suggestion = assertSuggestField('x', 'int');
     assertHasNoParameterInfo(suggestion);
   }
 
-  test_no_parameters_getter() async {
+  Future<void> test_no_parameters_getter() async {
     addTestSource('''
 class C {
   int get x => null;
 }
 void main() {int y = new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestGetter('x', 'int');
+    var suggestion = assertSuggestGetter('x', 'int');
     assertHasNoParameterInfo(suggestion);
   }
 
-  test_no_parameters_setter() async {
+  Future<void> test_no_parameters_setter() async {
     addTestSource('''
 class C {
   set x(int value) {};
 }
 void main() {int y = new C().^}''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestSetter('x');
+    var suggestion = assertSuggestSetter('x');
     assertHasNoParameterInfo(suggestion);
   }
 
-  test_only_instance() async {
+  Future<void> test_only_instance() async {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement
     addTestSource('''
 class C {
@@ -2981,7 +2977,7 @@ void main() {new C().^}''');
     assertNotSuggested('m2');
   }
 
-  test_only_instance2() async {
+  Future<void> test_only_instance2() async {
     // SimpleIdentifier  MethodInvocation  ExpressionStatement
     addTestSource('''
 class C {
@@ -2998,7 +2994,7 @@ void main() {new C().^ print("something");}''');
     assertNotSuggested('m2');
   }
 
-  test_only_static() async {
+  Future<void> test_only_static() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('''
 class C {
@@ -3016,7 +3012,7 @@ void main() {C.^}''');
     assertNotSuggested('m2');
   }
 
-  test_only_static2() async {
+  Future<void> test_only_static2() async {
     // SimpleIdentifier  MethodInvocation  ExpressionStatement
     addTestSource('''
 class C {
@@ -3034,41 +3030,41 @@ void main() {C.^ print("something");}''');
     assertNotSuggested('m2');
   }
 
-  test_param() async {
+  Future<void> test_param() async {
     addTestSource('foo(String x) {x.^}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
   }
 
-  test_param_is() async {
+  Future<void> test_param_is() async {
     addTestSource('foo(x) {if (x is String) x.^}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
   }
 
-  test_parameterName_excludeTypes() async {
+  Future<void> test_parameterName_excludeTypes() async {
     addTestSource('m(int ^) {}');
     await computeSuggestions();
     assertNotSuggested('int');
     assertNotSuggested('bool');
   }
 
-  test_partFile_TypeName() async {
+  Future<void> test_partFile_TypeName() async {
     // SimpleIdentifier  TypeName  ConstructorName
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         library libA;
-        import "testB.dart";
+        import 'b.dart';
         part "$testFile";
         class A { }
         var m;''');
     addTestSource('''
         part of libA;
-        class B { factory B.bar(int x) => null; }
+        class B { B.bar(int x); }
         main() {new ^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -3085,20 +3081,20 @@ void main() {C.^ print("something");}''');
     assertNotSuggested('m');
   }
 
-  test_partFile_TypeName2() async {
+  Future<void> test_partFile_TypeName2() async {
     // SimpleIdentifier  TypeName  ConstructorName
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         part of libA;
         class B { }''');
     addTestSource('''
         library libA;
-        import "testB.dart";
-        part "/testA.dart";
+        import 'b.dart';
+        part "a.dart";
         class A { A({String boo: 'hoo'}) { } }
         main() {new ^}
         var m;''');
@@ -3117,9 +3113,9 @@ void main() {C.^ print("something");}''');
     assertNotSuggested('m');
   }
 
-  test_PrefixedIdentifier_class_const() async {
+  Future<void> test_PrefixedIdentifier_class_const() async {
     // SimpleIdentifier PrefixedIdentifier ExpressionStatement Block
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         class I {
           static const scI = 'boo';
@@ -3133,7 +3129,7 @@ void main() {C.^ print("something");}''');
           m(X x) {} I _n(X x) {}}
         class X{}''');
     addTestSource('''
-        import "testB.dart";
+        import 'b.dart';
         class A extends B {
           static const String scA = 'foo';
           w() { }}
@@ -3163,9 +3159,9 @@ void main() {C.^ print("something");}''');
     assertNotSuggested('==');
   }
 
-  test_PrefixedIdentifier_class_imported() async {
+  Future<void> test_PrefixedIdentifier_class_imported() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         class I {X get f => new A();get _g => new A();}
         class A implements I {
@@ -3176,7 +3172,7 @@ void main() {C.^ print("something");}''');
           m(X x) {} I _n(X x) {}}
         class X{}''');
     addTestSource('''
-        import "testB.dart";
+        import 'b.dart';
         main() {A a; a.^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -3199,7 +3195,7 @@ void main() {C.^ print("something");}''');
     assertNotSuggested('==');
   }
 
-  test_PrefixedIdentifier_class_local() async {
+  Future<void> test_PrefixedIdentifier_class_local() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('''
         main() {A a; a.^}
@@ -3232,22 +3228,22 @@ void main() {C.^ print("something");}''');
     assertNotSuggested('==');
   }
 
-  test_PrefixedIdentifier_getter() async {
+  Future<void> test_PrefixedIdentifier_getter() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('String get g => "one"; f() {g.^}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
   }
 
-  test_PrefixedIdentifier_library() async {
+  Future<void> test_PrefixedIdentifier_library() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         var T1;
         class X { }
         class Y { }''');
     addTestSource('''
-        import "testB.dart" as b;
+        import 'b.dart'; as b;
         var T2;
         class A { }
         main() {b.^}''');
@@ -3265,15 +3261,15 @@ void main() {C.^ print("something");}''');
     assertNotSuggested('==');
   }
 
-  test_PrefixedIdentifier_library_typesOnly() async {
+  Future<void> test_PrefixedIdentifier_library_typesOnly() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         var T1;
         class X { }
         class Y { }''');
     addTestSource('''
-        import "testB.dart" as b;
+        import 'b.dart'; as b;
         var T2;
         class A { }
         foo(b.^ f) {}''');
@@ -3291,15 +3287,15 @@ void main() {C.^ print("something");}''');
     assertNotSuggested('==');
   }
 
-  test_PrefixedIdentifier_library_typesOnly2() async {
+  Future<void> test_PrefixedIdentifier_library_typesOnly2() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         var T1;
         class X { }
         class Y { }''');
     addTestSource('''
-        import "testB.dart" as b;
+        import 'b.dart'; as b;
         var T2;
         class A { }
         foo(b.^) {}''');
@@ -3317,15 +3313,15 @@ void main() {C.^ print("something");}''');
     assertNotSuggested('==');
   }
 
-  test_PrefixedIdentifier_parameter() async {
+  Future<void> test_PrefixedIdentifier_parameter() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         class _W {M y; var _z;}
         class X extends _W {}
         class M{}''');
     addTestSource('''
-        import "testB.dart";
+        import 'b.dart';
         foo(X x) {x.^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -3335,13 +3331,13 @@ void main() {C.^ print("something");}''');
     assertNotSuggested('==');
   }
 
-  test_PrefixedIdentifier_prefix() async {
+  Future<void> test_PrefixedIdentifier_prefix() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         class A {static int bar = 10;}
         _B() {}''');
     addTestSource('''
-        import "testA.dart";
+        import "a.dart";
         class X {foo(){A^.bar}}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);
@@ -3353,7 +3349,7 @@ void main() {C.^ print("something");}''');
     assertNotSuggested('_B');
   }
 
-  test_PrefixedIdentifier_propertyAccess() async {
+  Future<void> test_PrefixedIdentifier_propertyAccess() async {
     // PrefixedIdentifier  ExpressionStatement  Block  BlockFunctionBody
     addTestSource('class A {String x; int get foo {x.^}');
     await computeSuggestions();
@@ -3363,7 +3359,7 @@ void main() {C.^ print("something");}''');
     assertSuggestMethod('compareTo', 'Comparable', 'int');
   }
 
-  test_PrefixedIdentifier_propertyAccess_newStmt() async {
+  Future<void> test_PrefixedIdentifier_propertyAccess_newStmt() async {
     // PrefixedIdentifier  ExpressionStatement  Block  BlockFunctionBody
     addTestSource('class A {String x; int get foo {x.^ int y = 0;}');
     await computeSuggestions();
@@ -3373,14 +3369,14 @@ void main() {C.^ print("something");}''');
     assertSuggestMethod('compareTo', 'Comparable', 'int');
   }
 
-  test_PrefixedIdentifier_trailingStmt_const() async {
+  Future<void> test_PrefixedIdentifier_trailingStmt_const() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('const String g = "hello"; f() {g.^ int y = 0;}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
   }
 
-  test_PrefixedIdentifier_trailingStmt_const_untyped() async {
+  Future<void> test_PrefixedIdentifier_trailingStmt_const_untyped() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('const g = "hello"; f() {g.^ int y = 0;}');
     await computeSuggestions();
@@ -3388,77 +3384,77 @@ void main() {C.^ print("something");}''');
     assertSuggestGetter('length', 'int');
   }
 
-  test_PrefixedIdentifier_trailingStmt_field() async {
+  Future<void> test_PrefixedIdentifier_trailingStmt_field() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('class A {String g; f() {g.^ int y = 0;}}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
   }
 
-  test_PrefixedIdentifier_trailingStmt_function() async {
+  Future<void> test_PrefixedIdentifier_trailingStmt_function() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('String g() => "one"; f() {g.^ int y = 0;}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
   }
 
-  test_PrefixedIdentifier_trailingStmt_functionTypeAlias() async {
+  Future<void> test_PrefixedIdentifier_trailingStmt_functionTypeAlias() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('typedef String g(); f() {g.^ int y = 0;}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
   }
 
-  test_PrefixedIdentifier_trailingStmt_getter() async {
+  Future<void> test_PrefixedIdentifier_trailingStmt_getter() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('String get g => "one"; f() {g.^ int y = 0;}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
   }
 
-  test_PrefixedIdentifier_trailingStmt_local_typed() async {
+  Future<void> test_PrefixedIdentifier_trailingStmt_local_typed() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('f() {String g; g.^ int y = 0;}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
   }
 
-  test_PrefixedIdentifier_trailingStmt_local_untyped() async {
+  Future<void> test_PrefixedIdentifier_trailingStmt_local_untyped() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('f() {var g = "hello"; g.^ int y = 0;}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
   }
 
-  test_PrefixedIdentifier_trailingStmt_method() async {
+  Future<void> test_PrefixedIdentifier_trailingStmt_method() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('class A {String g() {}; f() {g.^ int y = 0;}}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
   }
 
-  test_PrefixedIdentifier_trailingStmt_param() async {
+  Future<void> test_PrefixedIdentifier_trailingStmt_param() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('class A {f(String g) {g.^ int y = 0;}}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
   }
 
-  test_PrefixedIdentifier_trailingStmt_param2() async {
+  Future<void> test_PrefixedIdentifier_trailingStmt_param2() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('f(String g) {g.^ int y = 0;}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
   }
 
-  test_PrefixedIdentifier_trailingStmt_topLevelVar() async {
+  Future<void> test_PrefixedIdentifier_trailingStmt_topLevelVar() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('String g; f() {g.^ int y = 0;}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
   }
 
-  test_PropertyAccess_expression() async {
+  Future<void> test_PropertyAccess_expression() async {
     // SimpleIdentifier  MethodInvocation  PropertyAccess  ExpressionStatement
     addTestSource('class A {a() {"hello".to^String().length}}');
     await computeSuggestions();
@@ -3471,7 +3467,7 @@ void main() {C.^ print("something");}''');
     assertNotSuggested('==');
   }
 
-  test_PropertyAccess_noTarget() async {
+  Future<void> test_PropertyAccess_noTarget() async {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement
     addSource('/testAB.dart', 'class Foo { }');
     addTestSource('class C {foo(){.^}}');
@@ -3479,7 +3475,7 @@ void main() {C.^ print("something");}''');
     assertNoSuggestions();
   }
 
-  test_PropertyAccess_noTarget2() async {
+  Future<void> test_PropertyAccess_noTarget2() async {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement
     addSource('/testAB.dart', 'class Foo { }');
     addTestSource('main() {.^}');
@@ -3487,7 +3483,7 @@ void main() {C.^ print("something");}''');
     assertNoSuggestions();
   }
 
-  test_PropertyAccess_selector() async {
+  Future<void> test_PropertyAccess_selector() async {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement  Block
     addTestSource('class A {a() {"hello".length.^}}');
     await computeSuggestions();
@@ -3500,43 +3496,43 @@ void main() {C.^ print("something");}''');
     assertNotSuggested('==');
   }
 
-  test_shadowing_field_over_field() =>
+  Future<void> test_shadowing_field_over_field() =>
       check_shadowing('int x;', 'int x;', true);
 
-  test_shadowing_field_over_getter() =>
+  Future<void> test_shadowing_field_over_getter() =>
       check_shadowing('int x;', 'int get x => null;', true);
 
-  test_shadowing_field_over_method() =>
+  Future<void> test_shadowing_field_over_method() =>
       check_shadowing('int x;', 'void x() {}', true);
 
-  test_shadowing_field_over_setter() =>
+  Future<void> test_shadowing_field_over_setter() =>
       check_shadowing('int x;', 'set x(int value) {}', true);
 
-  test_shadowing_getter_over_field() =>
+  Future<void> test_shadowing_getter_over_field() =>
       check_shadowing('int get x => null;', 'int x;', false);
 
-  test_shadowing_getter_over_getter() =>
+  Future<void> test_shadowing_getter_over_getter() =>
       check_shadowing('int get x => null;', 'int get x => null;', true);
 
-  test_shadowing_getter_over_method() =>
+  Future<void> test_shadowing_getter_over_method() =>
       check_shadowing('int get x => null;', 'void x() {}', true);
 
-  test_shadowing_getter_over_setter() =>
+  Future<void> test_shadowing_getter_over_setter() =>
       check_shadowing('int get x => null;', 'set x(int value) {}', false);
 
-  test_shadowing_method_over_field() =>
+  Future<void> test_shadowing_method_over_field() =>
       check_shadowing('void x() {}', 'int x;', true);
 
-  test_shadowing_method_over_getter() =>
+  Future<void> test_shadowing_method_over_getter() =>
       check_shadowing('void x() {}', 'int get x => null;', true);
 
-  test_shadowing_method_over_method() =>
+  Future<void> test_shadowing_method_over_method() =>
       check_shadowing('void x() {}', 'void x() {}', true);
 
-  test_shadowing_method_over_setter() =>
+  Future<void> test_shadowing_method_over_setter() =>
       check_shadowing('void x() {}', 'set x(int value) {}', true);
 
-  test_shadowing_mixin_order() async {
+  Future<void> test_shadowing_mixin_order() async {
     addTestSource('''
 class Base {
 }
@@ -3554,14 +3550,14 @@ void test(Derived d) {
 ''');
     await computeSuggestions();
     // Note: due to dartbug.com/22069, analyzer currently analyzes mixins in
-    // reverse order.  The correct order is that Derived inherits from
+    // reverse order. The correct order is that Derived inherits from
     // "Base with Mixin1, Mixin2", which inherits from "Base with Mixin1",
-    // which inherits from "Base".  So the definition of f in Mixin2 should
+    // which inherits from "Base". So the definition of f in Mixin2 should
     // shadow the definition in Mixin1.
     assertSuggestMethod('f', 'Mixin2', 'void');
   }
 
-  test_shadowing_mixin_over_superclass() async {
+  Future<void> test_shadowing_mixin_over_superclass() async {
     addTestSource('''
 class Base {
   void f() {}
@@ -3579,19 +3575,19 @@ void test(Derived d) {
     assertSuggestMethod('f', 'Mixin', 'void');
   }
 
-  test_shadowing_setter_over_field() =>
+  Future<void> test_shadowing_setter_over_field() =>
       check_shadowing('set x(int value) {}', 'int x;', false);
 
-  test_shadowing_setter_over_getter() =>
+  Future<void> test_shadowing_setter_over_getter() =>
       check_shadowing('set x(int value) {}', 'int get x => null;', false);
 
-  test_shadowing_setter_over_method() =>
+  Future<void> test_shadowing_setter_over_method() =>
       check_shadowing('set x(int value) {}', 'void x() {}', true);
 
-  test_shadowing_setter_over_setter() =>
+  Future<void> test_shadowing_setter_over_setter() =>
       check_shadowing('set x(int value) {}', 'set x(int value) {}', true);
 
-  test_shadowing_superclass_over_interface() async {
+  Future<void> test_shadowing_superclass_over_interface() async {
     addTestSource('''
 class Base {
   void f() {}
@@ -3609,7 +3605,7 @@ void test(Derived d) {
     assertSuggestMethod('f', 'Base', 'void');
   }
 
-  test_super() async {
+  Future<void> test_super() async {
     // SimpleIdentifier  MethodInvocation  ExpressionStatement
     addTestSource('''
 class C3 {
@@ -3649,14 +3645,14 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('ms3');
   }
 
-  test_SwitchStatement_c() async {
+  Future<void> test_SwitchStatement_c() async {
     // SwitchStatement  Block  BlockFunctionBody  MethodDeclaration
     addTestSource('class A {String g(int x) {switch(x) {c^}}}');
     await computeSuggestions();
     assertNoSuggestions();
   }
 
-  test_SwitchStatement_case() async {
+  Future<void> test_SwitchStatement_case() async {
     // SwitchStatement  Block  BlockFunctionBody  MethodDeclaration
     addTestSource('class A {String g(int x) {var t; switch(x) {case 0: ^}}}');
     await computeSuggestions();
@@ -3666,14 +3662,14 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('String');
   }
 
-  test_SwitchStatement_empty() async {
+  Future<void> test_SwitchStatement_empty() async {
     // SwitchStatement  Block  BlockFunctionBody  MethodDeclaration
     addTestSource('class A {String g(int x) {switch(x) {^}}}');
     await computeSuggestions();
     assertNoSuggestions();
   }
 
-  test_ThisExpression_block() async {
+  Future<void> test_ThisExpression_block() async {
     // MethodInvocation  ExpressionStatement  Block
     addTestSource('''
         main() { }
@@ -3708,7 +3704,7 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('==');
   }
 
-  test_ThisExpression_constructor() async {
+  Future<void> test_ThisExpression_constructor() async {
     // MethodInvocation  ExpressionStatement  Block
     addTestSource('''
         main() { }
@@ -3743,7 +3739,7 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('==');
   }
 
-  test_ThisExpression_constructor_param() async {
+  Future<void> test_ThisExpression_constructor_param() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
         main() { }
@@ -3780,7 +3776,7 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('==');
   }
 
-  test_ThisExpression_constructor_param2() async {
+  Future<void> test_ThisExpression_constructor_param2() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
         main() { }
@@ -3816,7 +3812,7 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('==');
   }
 
-  test_ThisExpression_constructor_param3() async {
+  Future<void> test_ThisExpression_constructor_param3() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
         main() { }
@@ -3852,7 +3848,7 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('==');
   }
 
-  test_ThisExpression_constructor_param4() async {
+  Future<void> test_ThisExpression_constructor_param4() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
         main() { }
@@ -3888,7 +3884,7 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('==');
   }
 
-  test_TopLevelVariableDeclaration_typed_name() async {
+  Future<void> test_TopLevelVariableDeclaration_typed_name() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // TopLevelVariableDeclaration
     addTestSource('class A {} B ^');
@@ -3896,7 +3892,7 @@ class C1 extends C2 implements C3 {
     assertNoSuggestions();
   }
 
-  test_TopLevelVariableDeclaration_untyped_name() async {
+  Future<void> test_TopLevelVariableDeclaration_untyped_name() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // TopLevelVariableDeclaration
     addTestSource('class A {} var ^');
@@ -3904,14 +3900,14 @@ class C1 extends C2 implements C3 {
     assertNoSuggestions();
   }
 
-  test_TypeArgumentList() async {
+  Future<void> test_TypeArgumentList() async {
     // SimpleIdentifier  BinaryExpression  ExpressionStatement
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         class C1 {int x;}
         F1() => 0;
         typedef String T1(int blat);''');
     addTestSource('''
-        import "testA.dart";'
+        import "a.dart";'
         class C2 {int x;}
         F2() => 0;
         typedef int T2(int blat);
@@ -3929,14 +3925,14 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('F2');
   }
 
-  test_TypeArgumentList2() async {
+  Future<void> test_TypeArgumentList2() async {
     // TypeName  TypeArgumentList  TypeName
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         class C1 {int x;}
         F1() => 0;
         typedef String T1(int blat);''');
     addTestSource('''
-        import "testA.dart";'
+        import "a.dart";'
         class C2 {int x;}
         F2() => 0;
         typedef int T2(int blat);
@@ -3949,23 +3945,23 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('C2');
   }
 
-  test_VariableDeclaration_name() async {
+  Future<void> test_VariableDeclaration_name() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         foo() { }
         class _B { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "testB.dart";
+        import 'b.dart';
         class Y {Y.c(); Y._d(); z() {}}
         main() {var ^}''');
     await computeSuggestions();
     assertNoSuggestions();
   }
 
-  test_VariableDeclarationList_final() async {
+  Future<void> test_VariableDeclarationList_final() async {
     // VariableDeclarationList  VariableDeclarationStatement  Block
     addTestSource('main() {final ^} class C { }');
     await computeSuggestions();
@@ -3974,16 +3970,16 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('==');
   }
 
-  test_VariableDeclarationStatement_RHS() async {
+  Future<void> test_VariableDeclarationStatement_RHS() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         foo() { }
         class _B { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "testB.dart";
+        import 'b.dart';
         class Y {Y.c(); Y._d(); z() {}}
         class C {bar(){var f; {var x;} var e = ^}}''');
     await computeSuggestions();
@@ -3998,17 +3994,17 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('e');
   }
 
-  test_VariableDeclarationStatement_RHS_missing_semicolon() async {
+  Future<void> test_VariableDeclarationStatement_RHS_missing_semicolon() async {
     // VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         foo1() { }
         void bar1() { }
         class _B { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "testB.dart";
+        import 'b.dart';
         foo2() { }
         void bar2() { }
         class Y {Y.c(); Y._d(); z() {}}

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Note: This test relies on LF line endings in the source file.
-// It requires an entry in the .gitattributes file.
 
 import "dart:mirrors";
 import "package:expect/expect.dart";
@@ -37,8 +36,8 @@ class C extends S {
     : _y = y,
       super();
 
-  factory C.other(num z) {}
-  factory C.other2() {}
+  factory C.other(num z) => C(z, z);
+  factory C.other2() => C(0, 0);
   factory C.other3() = C.other2;
 
   static dynamic foo() {
@@ -56,40 +55,40 @@ class C extends S {
     // Discard this one.
   }
 }
-    
+
 
 main() {
   // Top-level members
-  LibraryMirror lib = reflectClass(C).owner;
-  expectSource(lib.declarations[#foo1],
+  LibraryMirror lib = reflectClass(C).owner as LibraryMirror;
+  expectSource(lib.declarations[#foo1]!,
       "foo1() {}");
-  expectSource(lib.declarations[#x],
+  expectSource(lib.declarations[#x]!,
       "int get x => 42;");
-  expectSource(lib.declarations[const Symbol("x=")],
+  expectSource(lib.declarations[const Symbol("x=")]!,
       "set x(value) { }");
 
   // Class members
   ClassMirror cm = reflectClass(C);
-  expectSource(cm.declarations[#foo],
+  expectSource(cm.declarations[#foo]!,
       "static dynamic foo() {\n"
       "    // Happy foo.\n"
       "  }");
-  expectSource(cm.declarations[#bar],
+  expectSource(cm.declarations[#bar]!,
       "void bar() { /* Not so happy bar. */ }");
-  expectSource(cm.declarations[#someX],
+  expectSource(cm.declarations[#someX]!,
       "num get someX =>\n"
       "    181;");
-  expectSource(cm.declarations[const Symbol("someX=")],
+  expectSource(cm.declarations[const Symbol("someX=")]!,
       "set someX(v) {\n"
       "    // Discard this one.\n"
       "  }");
-  expectSource(cm.declarations[#C],
+  expectSource(cm.declarations[#C]!,
       "C(this._x, y)\n"
       "    : _y = y,\n"
       "      super();");
-  expectSource(cm.declarations[#C.other],
-      "factory C.other(num z) {}");
-  expectSource(cm.declarations[#C.other3],
+  expectSource(cm.declarations[#C.other]!,
+      "factory C.other(num z) => C(z, z);");
+  expectSource(cm.declarations[#C.other3]!,
       "factory C.other3() = C.other2;");
 
   // Closures
@@ -103,8 +102,8 @@ main() {
   expectSource(reflect(a), "() {}");
 
   // Function at first line.
-  LibraryMirror otherLib = reflectClass(SomethingInOther).owner;
-  expectSource(otherLib.declarations[#main],
+  LibraryMirror otherLib = reflectClass(SomethingInOther).owner as LibraryMirror;
+  expectSource(otherLib.declarations[#main]!,
 """main() {
   print("Blah");
 }""");

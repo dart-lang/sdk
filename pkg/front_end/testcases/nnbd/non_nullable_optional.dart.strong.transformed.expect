@@ -1,0 +1,33 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/non_nullable_optional.dart:9:14: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
+// method1({int a}) {}
+//              ^
+//
+// pkg/front_end/testcases/nnbd/non_nullable_optional.dart:11:14: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
+// method2([int a]) {}
+//              ^
+//
+// pkg/front_end/testcases/nnbd/non_nullable_optional_part.dart:7:14: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
+// method3({int a}) {}
+//              ^
+//
+// pkg/front_end/testcases/nnbd/non_nullable_optional_part.dart:9:14: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
+// method4([int a]) {}
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+
+part non_nullable_optional_part.dart;
+static method main() → dynamic {}
+static method method1({core::int a = #C1}) → dynamic {}
+static method method2([core::int a = #C1]) → dynamic {}
+static method /* from org-dartlang-testcase:///non_nullable_optional_part.dart */ method3({core::int a = #C1}) → dynamic {}
+static method /* from org-dartlang-testcase:///non_nullable_optional_part.dart */ method4([core::int a = #C1]) → dynamic {}
+
+constants  {
+  #C1 = null
+}

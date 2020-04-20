@@ -1,0 +1,106 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/optional.dart:47:21: Error: The argument type 'InvalidListener' can't be assigned to the parameter type 'Listener'.
+//  - 'InvalidListener' is from 'pkg/front_end/testcases/general/optional.dart'.
+//  - 'Listener' is from 'pkg/front_end/testcases/general/optional.dart'.
+//   extern.listen(new InvalidListener());
+//                     ^
+//
+// pkg/front_end/testcases/general/optional.dart:49:28: Error: Too few positional arguments: 1 required, 0 given.
+//   var nothing1 = foo.method();
+//                            ^
+//
+// pkg/front_end/testcases/general/optional.dart:50:28: Error: Too many positional arguments: 3 allowed, but 4 found.
+// Try removing the extra positional arguments.
+//   var nothing2 = foo.method(1, 2, 3, 4);
+//                            ^
+//
+// pkg/front_end/testcases/general/optional.dart:51:39: Error: Too few positional arguments: 1 required, 0 given.
+//   var nothing3 = extern.externalMethod();
+//                                       ^
+//
+// pkg/front_end/testcases/general/optional.dart:52:39: Error: Too many positional arguments: 3 allowed, but 4 found.
+// Try removing the extra positional arguments.
+//   var nothing4 = extern.externalMethod(1, 2, 3, 4);
+//                                       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → self::Foo*
+    : super core::Object::•()
+    ;
+  method method(dynamic x, [dynamic y = #C1, dynamic z = #C1]) → dynamic {
+    return "string";
+  }
+}
+abstract class External extends core::Object {
+  synthetic constructor •() → self::External*
+    : super core::Object::•()
+    ;
+  abstract method externalMethod(core::int* x, [core::int* y = #C1, core::int* z = #C1]) → core::String*;
+  abstract method listen(self::Listener* listener) → void;
+}
+abstract class Listener extends core::Object {
+  synthetic constructor •() → self::Listener*
+    : super core::Object::•()
+    ;
+  abstract method event(core::String* input, [core::int* x = #C1, core::int* y = #C1]) → void;
+}
+class TestListener extends self::Listener {
+  synthetic constructor •() → self::TestListener*
+    : super self::Listener::•()
+    ;
+  method event(core::String* input, [core::int* x = #C1, core::int* y = #C1]) → void {}
+}
+class ExtendedListener extends self::Listener {
+  synthetic constructor •() → self::ExtendedListener*
+    : super self::Listener::•()
+    ;
+  method event(core::String* input, [core::int* x = #C1, core::int* y = #C1, dynamic z = #C1]) → void {}
+}
+class InvalidListener extends core::Object {
+  synthetic constructor •() → self::InvalidListener*
+    : super core::Object::•()
+    ;
+  method event(dynamic input, [dynamic x = #C1]) → void {}
+}
+external static abstract method createExternal() → self::External*;
+static method main() → dynamic {
+  self::Foo* foo = new self::Foo::•();
+  dynamic string1 = foo.{self::Foo::method}(1);
+  dynamic string2 = foo.{self::Foo::method}(1, 2);
+  dynamic string3 = foo.{self::Foo::method}(1, 2, 3);
+  self::External* extern = self::createExternal();
+  core::String* string4 = extern.{self::External::externalMethod}(1);
+  core::String* string5 = extern.{self::External::externalMethod}(1, 2);
+  core::String* string6 = extern.{self::External::externalMethod}(1, 2, 3);
+  extern.{self::External::listen}(new self::TestListener::•());
+  extern.{self::External::listen}(new self::ExtendedListener::•());
+  extern.{self::External::listen}(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/optional.dart:47:21: Error: The argument type 'InvalidListener' can't be assigned to the parameter type 'Listener'.
+ - 'InvalidListener' is from 'pkg/front_end/testcases/general/optional.dart'.
+ - 'Listener' is from 'pkg/front_end/testcases/general/optional.dart'.
+  extern.listen(new InvalidListener());
+                    ^" in new self::InvalidListener::•() as{TypeError} self::Listener*);
+  invalid-type nothing1 = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/general/optional.dart:49:28: Error: Too few positional arguments: 1 required, 0 given.
+  var nothing1 = foo.method();
+                           ^" in foo.{self::Foo::method}();
+  invalid-type nothing2 = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/general/optional.dart:50:28: Error: Too many positional arguments: 3 allowed, but 4 found.
+Try removing the extra positional arguments.
+  var nothing2 = foo.method(1, 2, 3, 4);
+                           ^" in foo.{self::Foo::method}(1, 2, 3, 4);
+  invalid-type nothing3 = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/general/optional.dart:51:39: Error: Too few positional arguments: 1 required, 0 given.
+  var nothing3 = extern.externalMethod();
+                                      ^" in extern.{self::External::externalMethod}();
+  invalid-type nothing4 = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/general/optional.dart:52:39: Error: Too many positional arguments: 3 allowed, but 4 found.
+Try removing the extra positional arguments.
+  var nothing4 = extern.externalMethod(1, 2, 3, 4);
+                                      ^" in extern.{self::External::externalMethod}(1, 2, 3, 4);
+}
+
+constants  {
+  #C1 = null
+}

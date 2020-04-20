@@ -1,0 +1,19 @@
+# Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile. Invalidate a file so type inferrer starts
+# on something compiled from source and (potentially) goes into
+# something loaded from dill.
+
+type: basic
+entry: a.dart
+invalidate:
+  - a.dart
+sources:
+  a.dart: |
+    import 'b.dart';
+    class A extends Object with B<Object>, C {}
+  b.dart: |
+    abstract class C<T extends Object> extends Object with B<T> {}
+    abstract class B<ChildType extends Object> extends Object {}

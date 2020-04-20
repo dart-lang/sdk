@@ -5,7 +5,6 @@
 /// Test operators.
 library test.operator_test;
 
-@MirrorsUsed(targets: "test.operator_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -13,26 +12,26 @@ import 'package:expect/expect.dart';
 import 'stringify.dart';
 
 class Foo {
-  Foo operator ~() {}
-  Foo operator -() {}
+  Foo operator ~() => this;
+  Foo operator -() => this;
 
-  bool operator ==(a) {}
-  Foo operator [](int a) {}
-  Foo operator *(Foo a) {}
-  Foo operator /(Foo a) {}
-  Foo operator %(Foo a) {}
-  Foo operator ~/(Foo a) {}
-  Foo operator +(Foo a) {}
-  Foo operator <<(Foo a) {}
-  Foo operator >>(Foo a) {}
-  Foo operator >=(Foo a) {}
-  Foo operator >(Foo a) {}
-  Foo operator <=(Foo a) {}
-  Foo operator <(Foo a) {}
-  Foo operator &(Foo a) {}
-  Foo operator ^(Foo a) {}
-  Foo operator |(Foo a) {}
-  Foo operator -(Foo a) {}
+  bool operator ==(a) => false;
+  Foo operator [](int a) => this;
+  Foo operator *(Foo a) => this;
+  Foo operator /(Foo a) => this;
+  Foo operator %(Foo a) => this;
+  Foo operator ~/(Foo a) => this;
+  Foo operator +(Foo a) => this;
+  Foo operator <<(Foo a) => this;
+  Foo operator >>(Foo a) => this;
+  Foo operator >=(Foo a) => this;
+  Foo operator >(Foo a) => this;
+  Foo operator <=(Foo a) => this;
+  Foo operator <(Foo a) => this;
+  Foo operator &(Foo a) => this;
+  Foo operator ^(Foo a) => this;
+  Foo operator |(Foo a) => this;
+  Foo operator -(Foo a) => this;
 
   // TODO(ahe): use void when dart2js reifies that type.
   operator []=(int a, Foo b) {}
@@ -43,16 +42,19 @@ void main() {
   var operators = new Map<Symbol, MethodMirror>();
   var operatorParameters = new Map<Symbol, List>();
   var returnTypes = new Map<Symbol, Mirror>();
-  for (MethodMirror method in cls.declarations.values
-      .where((d) => d is MethodMirror && !d.isConstructor)) {
-    Expect.isTrue(method.isRegularMethod);
-    Expect.isTrue(method.isOperator);
-    Expect.isFalse(method.isGetter);
-    Expect.isFalse(method.isSetter);
-    Expect.isFalse(method.isAbstract);
-    operators[method.simpleName] = method;
-    operatorParameters[method.simpleName] = method.parameters;
-    returnTypes[method.simpleName] = method.returnType;
+  for (var method in cls.declarations.values) {
+    if (method is MethodMirror) {
+      if (!method.isConstructor) {
+        Expect.isTrue(method.isRegularMethod);
+        Expect.isTrue(method.isOperator);
+        Expect.isFalse(method.isGetter);
+        Expect.isFalse(method.isSetter);
+        Expect.isFalse(method.isAbstract);
+        operators[method.simpleName] = method;
+        operatorParameters[method.simpleName] = method.parameters;
+        returnTypes[method.simpleName] = method.returnType;
+      }
+    }
   }
   expect(OPERATORS, operators);
   expect(PARAMETERS, operatorParameters);

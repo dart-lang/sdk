@@ -7,6 +7,7 @@ part of js_backend.namer;
 class FrequencyBasedNamer extends Namer
     with _MinifiedFieldNamer, _MinifiedOneShotInterceptorNamer
     implements jsAst.TokenFinalizer {
+  @override
   _FieldNamingRegistry fieldRegistry;
   List<TokenName> tokens = new List<TokenName>();
 
@@ -14,23 +15,23 @@ class FrequencyBasedNamer extends Namer
       new Maplet<NamingScope, TokenScope>();
 
   // Some basic settings for smaller names
+  @override
   String get isolateName => 'I';
+  @override
   String get isolatePropertiesName => 'p';
+  @override
   bool get shouldMinify => true;
 
-  final String getterPrefix = 'g';
-  final String setterPrefix = 's';
-  final String callPrefix = ''; // this will create function names $<n>
-  String get requiredParameterField => r'$R';
-  String get defaultValuesField => r'$D';
-  String get operatorSignature => r'$S';
+  @override
+  String get genericInstantiationPrefix => r'$I';
 
+  @override
   jsAst.Name get staticsPropertyName =>
       _staticsPropertyName ??= getFreshName(instanceScope, 'static');
 
   FrequencyBasedNamer(
-      ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder)
-      : super(closedWorld, codegenWorldBuilder) {
+      JClosedWorld closedWorld, RuntimeTypeTags rtiTags, FixedNames fixedNames)
+      : super(closedWorld, rtiTags, fixedNames) {
     fieldRegistry = new _FieldNamingRegistry(this);
   }
 

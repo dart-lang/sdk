@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
+
 // Dart test program for testing serialization of messages.
 // VMOptions=--enable_type_checks --enable_asserts
 
@@ -57,7 +60,11 @@ class D extends C with M {
 }
 
 class E {
+  // Make sure E.fun is not removed by the tree shaker, as this test verifies
+  // that an object with a tear-off in E.fun cannot be sent.
+  @pragma("vm:entry-point")
   Function fun;
+
   E(this.fun);
 
   static fooFun() => 499;
@@ -191,8 +198,8 @@ void runTests(SendPort ping, Queue checks) {
   Int32x4List list32x4 = new Int32x4List(2);
   list32x4[0] = new Int32x4(1, 2, 3, 4);
   list32x4[1] = new Int32x4(5, 6, 7, 8);
-  ping.send(list32x4); //   //# int32x4: ok
-  checks.add( //            //# int32x4: ok
+  ping.send(list32x4);
+  checks.add(
   (x) {
     Expect.isTrue(x is Int32x4List);
     Expect.equals(2, x.length);
@@ -206,9 +213,43 @@ void runTests(SendPort ping, Queue checks) {
     Expect.equals(6, entry2.y);
     Expect.equals(7, entry2.z);
     Expect.equals(8, entry2.w);
-  }
-  ) //                    //# int32x4: ok
-      ;
+  });
+
+  Float32x4List flist32x4 = new Float32x4List(2);
+  flist32x4[0] = new Float32x4(1.5, 2.5, 3.5, 4.5);
+  flist32x4[1] = new Float32x4(5.5, 6.5, 7.5, 8.5);
+  ping.send(flist32x4);
+  checks.add(
+  (x) {
+    Expect.isTrue(x is Float32x4List);
+    Expect.equals(2, x.length);
+    Float32x4 entry1 = x[0];
+    Float32x4 entry2 = x[1];
+    Expect.equals(1.5, entry1.x);
+    Expect.equals(2.5, entry1.y);
+    Expect.equals(3.5, entry1.z);
+    Expect.equals(4.5, entry1.w);
+    Expect.equals(5.5, entry2.x);
+    Expect.equals(6.5, entry2.y);
+    Expect.equals(7.5, entry2.z);
+    Expect.equals(8.5, entry2.w);
+  });
+
+  Float64x2List flist64x2 = new Float64x2List(2);
+  flist64x2[0] = new Float64x2(1.5, 2.5);
+  flist64x2[1] = new Float64x2(5.5, 6.5);
+  ping.send(flist64x2);
+  checks.add(
+  (x) {
+    Expect.isTrue(x is Float64x2List);
+    Expect.equals(2, x.length);
+    Float64x2 entry1 = x[0];
+    Float64x2 entry2 = x[1];
+    Expect.equals(1.5, entry1.x);
+    Expect.equals(2.5, entry1.y);
+    Expect.equals(5.5, entry2.x);
+    Expect.equals(6.5, entry2.y);
+  });
 
   ping.send({"foo": 499, "bar": 32});
   checks.add((x) {
@@ -256,8 +297,8 @@ void runTests(SendPort ping, Queue checks) {
     x[0] = 22;
     Expect.equals(22, x[0]);
     // Must be extendable.
-    x["gee"] = 499;
-    Expect.equals(499, x["gee"]);
+    x[123] = 499;
+    Expect.equals(499, x[123]);
   });
 
   Map cyclicMap = {};
@@ -457,7 +498,8 @@ void main() {
   Isolate
       .spawn(echoMain, [initialReplyPort.sendPort, testPort.sendPort])
       .then((_) => initialReplyPort.first)
-      .then((SendPort ping) {
+      .then((_ping) {
+        SendPort ping = _ping;
         runTests(ping, checks);
         Expect.isTrue(checks.length > 0);
         completer.future.then((_) => ping.send("halt")).then((_) => asyncEnd());

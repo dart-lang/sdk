@@ -51,8 +51,8 @@ void testInts(Set create()) {
 
   // Test Set.forEach.
   int sum = 0;
-  testForEach(int val) {
-    sum += (val + 1);
+  testForEach(Object val) {
+    sum += ((val as int) + 1);
   }
 
   set.forEach(testForEach);
@@ -61,8 +61,8 @@ void testInts(Set create()) {
   Expect.isTrue(set.containsAll(set));
 
   // Test Set.map.
-  testMap(int val) {
-    return val * val;
+  testMap(Object val) {
+    return (val as int) * (val as int);
   }
 
   Set mapped = set.map(testMap).toSet();
@@ -89,8 +89,8 @@ void testInts(Set create()) {
   Expect.equals(1 + 2 + 5 + 10 + 17 + 26 + 37 + 50 + 65 + 82, sum);
 
   // Test Set.filter.
-  testFilter(int val) {
-    return val.isEven;
+  testFilter(Object val) {
+    return (val as int).isEven;
   }
 
   Set filtered = set.where(testFilter).toSet();
@@ -110,8 +110,8 @@ void testInts(Set create()) {
   Expect.isTrue(set.containsAll(filtered));
 
   // Test Set.every.
-  testEvery(int val) {
-    return (val < 10);
+  testEvery(Object val) {
+    return ((val as int) < 10);
   }
 
   Expect.isTrue(set.every(testEvery));
@@ -121,7 +121,7 @@ void testInts(Set create()) {
   Expect.isFalse(filtered.every(testEvery));
 
   // Test Set.some.
-  testSome(int val) {
+  testSome(Object val) {
     return (val == 4);
   }
 

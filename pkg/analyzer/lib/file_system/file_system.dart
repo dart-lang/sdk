@@ -1,15 +1,14 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.file_system.file_system;
 
 import 'dart:async';
 
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
+
+export 'package:analyzer/src/file_system/file_system.dart';
 
 /**
  * [File]s are leaf [Resource]s which contain data.
@@ -55,6 +54,8 @@ abstract class File implements Resource {
   /**
    * Synchronously rename this file.
    * Return a [File] instance for the renamed file.
+   *
+   * The [newPath] must be absolute and normalized.
    *
    * If [newPath] identifies an existing file, that file is replaced.
    * If [newPath] identifies an existing resource the operation might fail and
@@ -113,7 +114,9 @@ abstract class Folder implements Resource {
   String canonicalizePath(String path);
 
   /**
-   * Return `true` if absolute [path] references a resource in this folder.
+   * Return `true` if the [path] references a resource in this folder.
+   *
+   * The [path] must be absolute and normalized.
    */
   bool contains(String path);
 
@@ -205,6 +208,8 @@ abstract class Resource {
   /**
    * Return `true` if absolute [path] references this resource or a resource in
    * this folder.
+   *
+   * The [path] must be absolute and normalized.
    */
   bool isOrContains(String path);
 
@@ -226,11 +231,6 @@ abstract class Resource {
  */
 abstract class ResourceProvider {
   /**
-   * Get the absolute path context used by this resource provider.
-   */
-  AbsolutePathContext get absolutePathContext;
-
-  /**
    * Get the path context used by this resource provider.
    */
   Context get pathContext;
@@ -238,12 +238,16 @@ abstract class ResourceProvider {
   /**
    * Return a [File] that corresponds to the given [path].
    *
+   * The [path] must be absolute and normalized.
+   *
    * A file may or may not exist at this location.
    */
   File getFile(String path);
 
   /**
    * Return a [Folder] that corresponds to the given [path].
+   *
+   * The [path] must be absolute and normalized.
    *
    * A folder may or may not exist at this location.
    */
@@ -259,6 +263,8 @@ abstract class ResourceProvider {
 
   /**
    * Return the [Resource] that corresponds to the given [path].
+   *
+   * The [path] must be absolute and normalized.
    */
   Resource getResource(String path);
 
@@ -270,42 +276,4 @@ abstract class ResourceProvider {
    * the plugin ids are unique. The plugin ids must be valid folder names.
    */
   Folder getStateLocation(String pluginId);
-}
-
-/**
- * A [UriResolver] for [Resource]s.
- */
-class ResourceUriResolver extends UriResolver {
-  /**
-   * The name of the `file` scheme.
-   */
-  static final String FILE_SCHEME = "file";
-
-  final ResourceProvider _provider;
-
-  ResourceUriResolver(this._provider);
-
-  ResourceProvider get provider => _provider;
-
-  @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    if (!isFileUri(uri)) {
-      return null;
-    }
-    String path = _provider.pathContext.fromUri(uri);
-    Resource resource = _provider.getResource(path);
-    if (resource is File) {
-      return resource.createSource(actualUri ?? uri);
-    }
-    return null;
-  }
-
-  @override
-  Uri restoreAbsolute(Source source) =>
-      _provider.pathContext.toUri(source.fullName);
-
-  /**
-   * Return `true` if the given [uri] is a `file` URI.
-   */
-  static bool isFileUri(Uri uri) => uri.scheme == FILE_SCHEME;
 }

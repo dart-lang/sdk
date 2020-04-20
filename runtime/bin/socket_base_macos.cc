@@ -25,11 +25,19 @@
 namespace dart {
 namespace bin {
 
-SocketAddress::SocketAddress(struct sockaddr* sa) {
-  ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
-  if (!SocketBase::FormatNumericAddress(*reinterpret_cast<RawAddr*>(sa),
-                                        as_string_, INET6_ADDRSTRLEN)) {
+SocketAddress::SocketAddress(struct sockaddr* sa, bool unnamed_unix_socket) {
+  if (unnamed_unix_socket) {
+    // This is an unnamed unix domain socket.
     as_string_[0] = 0;
+  } else if (sa->sa_family == AF_UNIX) {
+    struct sockaddr_un* un = ((struct sockaddr_un*)sa);
+    memmove(as_string_, un->sun_path, sizeof(un->sun_path));
+  } else {
+    ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
+    if (!SocketBase::FormatNumericAddress(*reinterpret_cast<RawAddr*>(sa),
+                                          as_string_, INET6_ADDRSTRLEN)) {
+      as_string_[0] = 0;
+    }
   }
   socklen_t salen = GetAddrLength(*reinterpret_cast<RawAddr*>(sa));
   memmove(reinterpret_cast<void*>(&addr_), sa, salen);
@@ -89,6 +97,15 @@ intptr_t SocketBase::RecvFrom(intptr_t fd,
   return read_bytes;
 }
 
+bool SocketBase::AvailableDatagram(intptr_t fd,
+                                   void* buffer,
+                                   intptr_t num_bytes) {
+  ASSERT(fd >= 0);
+  ssize_t read_bytes =
+      TEMP_FAILURE_RETRY(recvfrom(fd, buffer, num_bytes, MSG_PEEK, NULL, NULL));
+  return read_bytes >= 0;
+}
+
 intptr_t SocketBase::Write(intptr_t fd,
                            const void* buffer,
                            intptr_t num_bytes,
@@ -138,6 +155,13 @@ SocketAddress* SocketBase::GetRemotePeer(intptr_t fd, intptr_t* port) {
   socklen_t size = sizeof(raw);
   if (NO_RETRY_EXPECTED(getpeername(fd, &raw.addr, &size))) {
     return NULL;
+  }
+  // sockaddr_un contains sa_family_t sun_familty and char[] sun_path.
+  // If size is the size of sa_familty_t, this is an unnamed socket and
+  // sun_path contains garbage.
+  if (size == sizeof(sa_family_t)) {
+    *port = 0;
+    return new SocketAddress(&raw.addr, true);
   }
   *port = SocketAddress::GetAddrPort(raw);
   return new SocketAddress(&raw.addr);
@@ -236,6 +260,16 @@ bool SocketBase::ParseAddress(int type, const char* address, RawAddr* addr) {
   return (result == 1);
 }
 
+bool SocketBase::RawAddrToString(RawAddr* addr, char* str) {
+  if (addr->addr.sa_family == AF_INET) {
+    return inet_ntop(AF_INET, &addr->in.sin_addr, str, INET_ADDRSTRLEN) != NULL;
+  } else {
+    ASSERT(addr->addr.sa_family == AF_INET6);
+    return inet_ntop(AF_INET6, &addr->in6.sin6_addr, str, INET6_ADDRSTRLEN) !=
+           NULL;
+  }
+}
+
 static bool ShouldIncludeIfaAddrs(struct ifaddrs* ifa, int lookup_family) {
   if (ifa->ifa_addr == NULL) {
     // OpenVPN's virtual device tun0.
@@ -291,7 +325,7 @@ AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
 
 void SocketBase::Close(intptr_t fd) {
   ASSERT(fd >= 0);
-  VOID_TEMP_FAILURE_RETRY(close(fd));
+  close(fd);
 }
 
 bool SocketBase::GetNoDelay(intptr_t fd, bool* enabled) {
@@ -379,6 +413,22 @@ bool SocketBase::SetBroadcast(intptr_t fd, bool enabled) {
   return NO_RETRY_EXPECTED(setsockopt(fd, SOL_SOCKET, SO_BROADCAST,
                                       reinterpret_cast<char*>(&on),
                                       sizeof(on))) == 0;
+}
+
+bool SocketBase::SetOption(intptr_t fd,
+                           int level,
+                           int option,
+                           const char* data,
+                           int length) {
+  return NO_RETRY_EXPECTED(setsockopt(fd, level, option, data, length)) == 0;
+}
+
+bool SocketBase::GetOption(intptr_t fd,
+                           int level,
+                           int option,
+                           char* data,
+                           unsigned int* length) {
+  return NO_RETRY_EXPECTED(getsockopt(fd, level, option, data, length)) == 0;
 }
 
 static bool JoinOrLeaveMulticast(intptr_t fd,

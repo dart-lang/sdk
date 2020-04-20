@@ -1,0 +1,25 @@
+//
+// Problems in component:
+//
+// pkg/front_end/testcases/agnostic/map.dart:7:11: Error: Constant evaluation error:
+// const c = {a: 0, b: 1};
+//           ^
+// pkg/front_end/testcases/agnostic/map.dart:7:18: Context: The key '<int>[]' conflicts with another existing key in the map.
+// const c = {a: 0, b: 1};
+//                  ^
+// pkg/front_end/testcases/agnostic/map.dart:7:7: Context: While analyzing:
+// const c = {a: 0, b: 1};
+//       ^
+//
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::List<core::int> a = #C1;
+static const field core::List<core::int?> b = #C1;
+static const field core::Map<core::List<core::int?>, core::int> c = invalid-expression "The key '<int>[]' conflicts with another existing key in the map.";
+static method main() → dynamic {}
+
+constants  {
+  #C1 = <core::int*>[]
+}

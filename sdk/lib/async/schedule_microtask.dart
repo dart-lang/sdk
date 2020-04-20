@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.async;
 
 typedef void _AsyncCallback();
@@ -131,15 +133,15 @@ void _schedulePriorityAsyncCallback(_AsyncCallback callback) {
  */
 void scheduleMicrotask(void callback()) {
   _Zone currentZone = Zone.current;
-  if (identical(_ROOT_ZONE, currentZone)) {
+  if (identical(_rootZone, currentZone)) {
     // No need to bind the callback. We know that the root's scheduleMicrotask
     // will be invoked in the root zone.
-    _rootScheduleMicrotask(null, null, _ROOT_ZONE, callback);
+    _rootScheduleMicrotask(null, null, _rootZone, callback);
     return;
   }
   _ZoneFunction implementation = currentZone._scheduleMicrotask;
-  if (identical(_ROOT_ZONE, implementation.zone) &&
-      _ROOT_ZONE.inSameErrorZone(currentZone)) {
+  if (identical(_rootZone, implementation.zone) &&
+      _rootZone.inSameErrorZone(currentZone)) {
     _rootScheduleMicrotask(
         null, null, currentZone, currentZone.registerCallback(callback));
     return;

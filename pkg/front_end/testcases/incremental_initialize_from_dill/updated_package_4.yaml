@@ -1,0 +1,34 @@
+# Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with a .packages.
+# Then delete the content of .packages, still using the package in code.
+# This should be an error.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "package:example/b.dart";
+        main() {
+          print("hello");
+          b();
+        }
+      package/b.dart: |
+        b() {
+          print("hello from package");
+        }
+      .packages: example:package
+    expectedLibraryCount: 2
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    checkInvalidatedFiles: false
+    invalidate:
+      - .packages
+    sources:
+      .packages:
+    errors: true
+    expectedLibraryCount: 1

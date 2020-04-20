@@ -27,22 +27,13 @@ class StringBaseTest {
 
   static testCreation() {
     String s = "Hello";
-    List<int> a = new List(s.length);
-    List<int> ga = new List();
+    List<int> a = new List<int>.filled(s.length, -1);
+    List<int> ga = [];
     bool exception_caught = false;
     for (int i = 0; i < a.length; i++) {
       a[i] = s.codeUnitAt(i);
       ga.add(s.codeUnitAt(i));
     }
-    try {
-      String s4 = new String.fromCharCodes([0.0]);
-    } on ArgumentError catch (ex) {
-      exception_caught = true;
-    } on TypeError catch (ex) {
-      exception_caught = true;
-    }
-    Expect.equals(true, exception_caught);
-    exception_caught = false;
     try {
       String s4 = new String.fromCharCodes([-1]);
     } on ArgumentError catch (ex) {

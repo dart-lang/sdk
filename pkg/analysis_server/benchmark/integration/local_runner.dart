@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,23 +10,24 @@ import 'main.dart' as performance;
 
 // Local driver for performance measurement
 
-main(List<String> args) {
+void main(List<String> args) {
   /*
    * Parse arguments
    */
   if (args.length < 3) printHelp('Expected 3 arguments');
-  var gitDir = new Directory(args[0]);
+  var gitDir = Directory(args[0]);
   if (!gitDir.existsSync()) printHelp('${gitDir.path} does not exist');
-  if (!new Directory(join(gitDir.path, '.git')).existsSync())
+  if (!Directory(join(gitDir.path, '.git')).existsSync()) {
     printHelp('${gitDir.path} does not appear to be a local git repository');
+  }
   var branch = args[1];
-  var inputFile = new File(args[2]);
+  var inputFile = File(args[2]);
   if (!inputFile.existsSync()) printHelp('${inputFile.path} does not exist');
   /*
    * Create a new temp directory
    */
-  var tmpDir = new Directory(
-      join(Directory.systemTemp.path, 'analysis_server_perf_target'));
+  var tmpDir =
+      Directory(join(Directory.systemTemp.path, 'analysis_server_perf_target'));
   if (!tmpDir.path.contains('tmp')) throw 'invalid tmp directory\n  $tmpDir';
   print('Extracting target analysis environment into\n  ${tmpDir.path}');
   if (tmpDir.existsSync()) tmpDir.deleteSync(recursive: true);
@@ -39,7 +40,7 @@ main(List<String> args) {
       workingDirectory: gitDir.path);
   if (result.exitCode != 0) throw 'failed to obtain target source: $result';
   var tmpSrcDirPath = join(tmpDir.path, 'targetSrc');
-  new Directory(tmpSrcDirPath).createSync();
+  Directory(tmpSrcDirPath).createSync();
   result = Process.runSync('tar', ['-xf', tarFilePath],
       workingDirectory: tmpSrcDirPath);
   if (result.exitCode != 0) throw 'failed to extract target source: $result';
@@ -47,10 +48,10 @@ main(List<String> args) {
    * Symlink the out or xcodebuild directory
    */
   var outDirName = 'out';
-  if (!new Directory(join(gitDir.path, outDirName)).existsSync()) {
+  if (!Directory(join(gitDir.path, outDirName)).existsSync()) {
     outDirName = 'xcodebuild';
   }
-  if (!new Directory(join(gitDir.path, outDirName)).existsSync()) {
+  if (!Directory(join(gitDir.path, outDirName)).existsSync()) {
     throw 'failed to find out or xcodebuild directory';
   }
   result = Process.runSync('ln',
@@ -63,7 +64,7 @@ main(List<String> args) {
     '-i${inputFile.path}',
     '-t$tmpSrcDirPath',
   ];
-  for (int index = 3; index < args.length; ++index) {
+  for (var index = 3; index < args.length; ++index) {
     perfArgs.add(args[index].replaceAll('@tmpSrcDir@', tmpSrcDirPath));
   }
   perfArgs.add('-m${gitDir.path},$tmpSrcDirPath');

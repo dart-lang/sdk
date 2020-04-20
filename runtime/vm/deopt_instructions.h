@@ -4,10 +4,10 @@
 
 #ifndef RUNTIME_VM_DEOPT_INSTRUCTIONS_H_
 #define RUNTIME_VM_DEOPT_INSTRUCTIONS_H_
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/allocation.h"
 #include "vm/code_descriptors.h"
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/deferred_objects.h"
@@ -51,23 +51,16 @@ class DeoptContext {
   intptr_t* GetSourceFrameAddressAt(intptr_t index) const {
     ASSERT(source_frame_ != NULL);
     ASSERT((0 <= index) && (index < source_frame_size_));
-#if !defined(TARGET_ARCH_DBC)
     // Convert FP relative index to SP relative one.
     index = source_frame_size_ - 1 - index;
-#endif  // !defined(TARGET_ARCH_DBC)
     return &source_frame_[index];
   }
 
   // Returns index in stack slot notation where -1 is the first argument
-  // For DBC returns index directly relative to FP.
   intptr_t GetStackSlot(intptr_t index) const {
     ASSERT((0 <= index) && (index < source_frame_size_));
     index -= num_args_;
-#if defined(TARGET_ARCH_DBC)
-    return index < 0 ? index - kDartFrameFixedSize : index;
-#else
     return index < 0 ? index : index - kDartFrameFixedSize;
-#endif  // defined(TARGET_ARCH_DBC)
   }
 
   intptr_t GetSourceFp() const;
@@ -85,28 +78,16 @@ class DeoptContext {
   intptr_t RegisterValue(Register reg) const {
     ASSERT(reg >= 0);
     ASSERT(reg < kNumberOfCpuRegisters);
-#if !defined(TARGET_ARCH_DBC)
     ASSERT(cpu_registers_ != NULL);
     return cpu_registers_[reg];
-#else
-    // On DBC registers and stack slots are the same.
-    const intptr_t stack_index = num_args_ + kDartFrameFixedSize + reg;
-    return *GetSourceFrameAddressAt(stack_index);
-#endif  // !defined(TARGET_ARCH_DBC)
   }
 
   double FpuRegisterValue(FpuRegister reg) const {
     ASSERT(FlowGraphCompiler::SupportsUnboxedDoubles());
     ASSERT(fpu_registers_ != NULL);
     ASSERT(reg >= 0);
-#if !defined(TARGET_ARCH_DBC)
     ASSERT(reg < kNumberOfFpuRegisters);
     return *reinterpret_cast<double*>(&fpu_registers_[reg]);
-#else
-    // On DBC registers and stack slots are the same.
-    const intptr_t stack_index = num_args_ + kDartFrameFixedSize + reg;
-    return *reinterpret_cast<double*>(GetSourceFrameAddressAt(stack_index));
-#endif
   }
 
   simd128_value_t FpuRegisterValueAsSimd128(FpuRegister reg) const {
@@ -126,16 +107,10 @@ class DeoptContext {
   // part of the frame because it contains saved caller PC and FP that
   // deoptimization will fill in.
   intptr_t* FrameBase(const StackFrame* frame) {
-#if !defined(TARGET_ARCH_DBC)
     // SP of the deoptimization frame is the lowest slot because
     // stack is growing downwards.
     return reinterpret_cast<intptr_t*>(frame->sp() -
                                        (kDartFrameFixedSize * kWordSize));
-#else
-    // First argument is the lowest slot because stack is growing upwards.
-    return reinterpret_cast<intptr_t*>(
-        frame->fp() - (kDartFrameFixedSize + num_args_) * kWordSize);
-#endif  // !defined(TARGET_ARCH_DBC)
   }
 
   void set_dest_frame(const StackFrame* frame) {
@@ -166,8 +141,10 @@ class DeoptContext {
   // objects.
   void FillDestFrame();
 
-  // Allocate and prepare exceptions metadata for TrySync
-  intptr_t* CatchEntryState(intptr_t num_vars);
+  // Convert deoptimization instructions to a list of moves that need
+  // to be executed when entering catch entry block from this deoptimization
+  // point.
+  const CatchEntryMoves* ToCatchEntryMoves(intptr_t num_vars);
 
   // Materializes all deferred objects.  Returns the total number of
   // artificial arguments used during deoptimization.
@@ -233,12 +210,6 @@ class DeoptContext {
   intptr_t* GetDestFrameAddressAt(intptr_t index) const {
     ASSERT(dest_frame_ != NULL);
     ASSERT((0 <= index) && (index < dest_frame_size_));
-#if defined(TARGET_ARCH_DBC)
-    // Stack on DBC is growing upwards but we record deopt commands
-    // in the same order we record them on other architectures as if
-    // the stack was growing downwards.
-    index = dest_frame_size_ - 1 - index;
-#endif  // defined(TARGET_ARCH_DBC)
     return &dest_frame_[index];
   }
 
@@ -334,11 +305,10 @@ class DeoptInstr : public ZoneAllocated {
 
   virtual void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) = 0;
 
-  // Convert DeoptInstr to TrySync metadata entry.
-  virtual CatchEntryStatePair ToCatchEntryStatePair(DeoptContext* deopt_context,
-                                                    intptr_t dest_slot) {
+  virtual CatchEntryMove ToCatchEntryMove(DeoptContext* deopt_context,
+                                          intptr_t dest_slot) {
     UNREACHABLE();
-    return CatchEntryStatePair();
+    return CatchEntryMove();
   }
 
   virtual DeoptInstr::Kind kind() const = 0;
@@ -432,11 +402,8 @@ class RegisterSource {
   }
 
   intptr_t StackSlot(DeoptContext* context) const {
-    if (is_register()) {
-      return raw_index();  // in DBC stack slots are registers.
-    } else {
-      return context->GetStackSlot(raw_index());
-    }
+    ASSERT(!is_register());
+    return context->GetStackSlot(raw_index());
   }
 
   intptr_t source_index() const { return source_index_; }
@@ -461,10 +428,12 @@ class RegisterSource {
 
   RegisterType reg() const { return static_cast<RegisterType>(raw_index()); }
 
-  static const char* Name(Register reg) { return Assembler::RegisterName(reg); }
+  static const char* Name(Register reg) {
+    return RegisterNames::RegisterName(reg);
+  }
 
   static const char* Name(FpuRegister fpu_reg) {
-    return Assembler::FpuRegisterName(fpu_reg);
+    return RegisterNames::FpuRegisterName(fpu_reg);
   }
 
   const intptr_t source_index_;
@@ -480,7 +449,9 @@ typedef RegisterSource<FpuRegister> FpuRegisterSource;
 // the heap and reset the builder's internal state for the next DeoptInfo.
 class DeoptInfoBuilder : public ValueObject {
  public:
-  DeoptInfoBuilder(Zone* zone, const intptr_t num_args, Assembler* assembler);
+  DeoptInfoBuilder(Zone* zone,
+                   const intptr_t num_args,
+                   compiler::Assembler* assembler);
 
   // Return address before instruction.
   void AddReturnAddress(const Function& function,
@@ -547,7 +518,7 @@ class DeoptInfoBuilder : public ValueObject {
 
   GrowableArray<DeoptInstr*> instructions_;
   const intptr_t num_args_;
-  Assembler* assembler_;
+  compiler::Assembler* assembler_;
 
   // Used to compress entries by sharing suffixes.
   TrieNode* trie_root_;
@@ -600,7 +571,6 @@ class DeoptTable : public AllStatic {
   static const intptr_t kEntrySize = 3;
 };
 
-
 // Holds deopt information at one deoptimization point. The information consists
 // of two parts:
 //  - first a prefix consisting of kMaterializeObject instructions describing
@@ -637,7 +607,6 @@ class DeoptInfo : public AllStatic {
                                   const Array& deopt_table,
                                   const TypedData& packed);
 
-
  private:
   static void UnpackInto(const Array& table,
                          const TypedData& packed,
@@ -647,4 +616,5 @@ class DeoptInfo : public AllStatic {
 
 }  // namespace dart
 
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // RUNTIME_VM_DEOPT_INSTRUCTIONS_H_

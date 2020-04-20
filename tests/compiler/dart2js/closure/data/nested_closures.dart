@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /// Test boxing/captures for nested closures.
 
-/*element: useOne:box=(box0 which holds [b1])*/ useOne(/*boxed*/ b1) {
+/*member: useOne:box=(box0 which holds [b1])*/ useOne(/*boxed*/ b1) {
   /*box=(box1 which holds [b2]),fields=[box0],free=[b1,box0]*/ () {
     var /*boxed*/ b2 = (b1 = 1);
 
@@ -17,7 +19,7 @@
   return b1;
 }
 
-/*element: useBoth:box=(box0 which holds [b1])*/ useBoth(/*boxed*/ b1) {
+/*member: useBoth:box=(box0 which holds [b1])*/ useBoth(/*boxed*/ b1) {
   /*box=(box1 which holds [b2]),fields=[box0],free=[b1,box0]*/ () {
     var /*boxed*/ b2 = (b1 = 1);
 
@@ -30,7 +32,7 @@
   return b1;
 }
 
-/*element: useMany:box=(box0 which holds [b1,b2,b3])*/
+/*member: useMany:box=(box0 which holds [b1,b2,b3])*/
 useMany(c1, /*boxed*/ b1) {
   var /*boxed*/ b2 = 2;
   var /*boxed*/ b3 = 3;

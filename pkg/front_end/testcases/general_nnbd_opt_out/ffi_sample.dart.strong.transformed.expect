@@ -1,0 +1,49 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "package:ffi/src/allocation.dart" as all;
+
+import "dart:ffi";
+import "package:ffi/ffi.dart";
+
+@#C3
+class Coordinate extends ffi::Struct {
+  @#C3
+  static final field core::int* #sizeOf = (#C6).{core::List::[]}(ffi::_abi());
+  @#C3
+  constructor #fromPointer(dynamic #pointer) → dynamic
+    : super ffi::Struct::_fromPointer(#pointer)
+    ;
+  static factory allocate(core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate* {
+    return let final self::Coordinate* #t1 = ffi::StructPointer|get#ref<self::Coordinate*>(all::allocate<self::Coordinate*>()) in let final void #t2 = #t1.{self::Coordinate::x} = x in let final void #t3 = #t1.{self::Coordinate::y} = y in let final void #t4 = #t1.{self::Coordinate::next} = next in #t1;
+  }
+  get x() → core::double*
+    return ffi::_loadDouble(this.{ffi::Struct::_addressOf}, (#C8).{core::List::[]}(ffi::_abi()));
+  set x(core::double* #v) → void
+    return ffi::_storeDouble(this.{ffi::Struct::_addressOf}, (#C8).{core::List::[]}(ffi::_abi()), #v);
+  get y() → core::double*
+    return ffi::_loadDouble(this.{ffi::Struct::_addressOf}, (#C10).{core::List::[]}(ffi::_abi()));
+  set y(core::double* #v) → void
+    return ffi::_storeDouble(this.{ffi::Struct::_addressOf}, (#C10).{core::List::[]}(ffi::_abi()), #v);
+  get next() → ffi::Pointer<self::Coordinate*>*
+    return ffi::_fromAddress<self::Coordinate*>(ffi::_loadIntPtr(this.{ffi::Struct::_addressOf}, (#C12).{core::List::[]}(ffi::_abi())));
+  set next(ffi::Pointer<self::Coordinate*>* #v) → void
+    return ffi::_storeIntPtr(this.{ffi::Struct::_addressOf}, (#C12).{core::List::[]}(ffi::_abi()), #v.{=ffi::Pointer::address});
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = "vm:entry-point"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = 24
+  #C5 = 20
+  #C6 = <core::int*>[#C4, #C5, #C4]
+  #C7 = 0
+  #C8 = <core::int*>[#C7, #C7, #C7]
+  #C9 = 8
+  #C10 = <core::int*>[#C9, #C9, #C9]
+  #C11 = 16
+  #C12 = <core::int*>[#C11, #C11, #C11]
+}

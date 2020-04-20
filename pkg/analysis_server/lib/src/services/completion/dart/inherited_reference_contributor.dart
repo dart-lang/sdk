@@ -1,134 +1,162 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol_server.dart'
+    show CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analysis_server/src/services/completion/dart/utilities.dart';
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
-import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
-import '../../../protocol_server.dart'
-    show CompletionSuggestion, CompletionSuggestionKind;
+/// A contributor that produces suggestions based on the instance members from
+/// the supertypes of a given type. More concretely, this class produces
+/// suggestions for places where an inherited instance member might be invoked
+/// via an implicit target of `this`.
+class InheritedReferenceContributor extends DartCompletionContributor {
+  /// The builder used to build the suggestions.
+  MemberSuggestionBuilder memberBuilder;
 
-/**
- * Return the class containing the target
- * or `null` if the target is in a static method or field
- * or not in a class.
- */
-ClassDeclaration _enclosingClass(CompletionTarget target) {
-  AstNode node = target.containingNode;
-  while (node != null) {
-    if (node is ClassDeclaration) {
-      return node;
-    }
-    if (node is MethodDeclaration) {
-      if (node.isStatic) {
-        return null;
-      }
-    }
-    if (node is FieldDeclaration) {
-      if (node.isStatic) {
-        return null;
-      }
-    }
-    node = node.parent;
-  }
-  return null;
-}
-
-/**
- * A contributor for calculating suggestions for inherited references.
- */
-class InheritedReferenceContributor extends DartCompletionContributor
-    with ElementSuggestionBuilder {
-  @override
-  LibraryElement containingLibrary;
-
-  @override
+  /// The kind of suggestion to make.
   CompletionSuggestionKind kind;
 
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     if (!request.includeIdentifiers) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
 
-    ClassDeclaration classDecl = _enclosingClass(request.target);
-    if (classDecl == null || classDecl.element == null) {
-      return EMPTY_LIST;
+    var member = _enclosingMember(request.target);
+    if (member == null) {
+      return const <CompletionSuggestion>[];
     }
-    containingLibrary = request.libraryElement;
-    return _computeSuggestionsForClass2(
-        resolutionMap.elementDeclaredByClassDeclaration(classDecl), request);
+    var classOrMixin = member.parent;
+    if (classOrMixin is ClassOrMixinDeclaration &&
+        classOrMixin.declaredElement != null) {
+      memberBuilder = MemberSuggestionBuilder(request);
+      return _computeSuggestionsForClass(classOrMixin.declaredElement, request);
+    }
+    return const <CompletionSuggestion>[];
   }
 
-  List<CompletionSuggestion> computeSuggestionsForClass(
-      ClassElement classElement, DartCompletionRequest request,
-      {bool skipChildClass: true}) {
-    if (!request.includeIdentifiers) {
-      return EMPTY_LIST;
-    }
-    containingLibrary = request.libraryElement;
-
-    return _computeSuggestionsForClass2(classElement, request,
-        skipChildClass: skipChildClass);
-  }
-
-  _addSuggestionsForType(InterfaceType type, OpType optype,
-      {bool isFunctionalArgument: false}) {
+  void _addSuggestionsForType(InterfaceType type, DartCompletionRequest request,
+      double inheritanceDistance,
+      {bool isFunctionalArgument = false}) {
+    var opType = request.opType;
     if (!isFunctionalArgument) {
-      for (PropertyAccessorElement elem in type.accessors) {
-        if (elem.isGetter) {
-          if (optype.includeReturnValueSuggestions) {
-            addSuggestion(elem);
+      for (var accessor in type.accessors) {
+        if (accessor.isGetter) {
+          if (opType.includeReturnValueSuggestions) {
+            memberBuilder.addSuggestionForAccessor(
+                accessor: accessor, inheritanceDistance: inheritanceDistance);
           }
         } else {
-          if (optype.includeVoidReturnSuggestions) {
-            addSuggestion(elem);
+          if (opType.includeVoidReturnSuggestions) {
+            memberBuilder.addSuggestionForAccessor(
+                accessor: accessor, inheritanceDistance: inheritanceDistance);
           }
         }
       }
     }
-    for (MethodElement elem in type.methods) {
-      if (elem.returnType == null) {
-        addSuggestion(elem);
-      } else if (!elem.returnType.isVoid) {
-        if (optype.includeReturnValueSuggestions) {
-          addSuggestion(elem);
+    for (var method in type.methods) {
+      if (method.returnType == null) {
+        memberBuilder.addSuggestionForMethod(
+            method: method,
+            inheritanceDistance: inheritanceDistance,
+            kind: kind);
+      } else if (!method.returnType.isVoid) {
+        if (opType.includeReturnValueSuggestions) {
+          memberBuilder.addSuggestionForMethod(
+              method: method,
+              inheritanceDistance: inheritanceDistance,
+              kind: kind);
         }
       } else {
-        if (optype.includeVoidReturnSuggestions) {
-          addSuggestion(elem);
+        if (opType.includeVoidReturnSuggestions) {
+          var suggestion = memberBuilder.addSuggestionForMethod(
+              method: method,
+              inheritanceDistance: inheritanceDistance,
+              kind: kind);
+          _updateFlutterSuggestions(request, method, suggestion);
         }
       }
     }
   }
 
-  List<CompletionSuggestion> _computeSuggestionsForClass2(
-      ClassElement classElement, DartCompletionRequest request,
-      {bool skipChildClass: true}) {
-    bool isFunctionalArgument = request.target.isFunctionalArgument();
+  List<CompletionSuggestion> _computeSuggestionsForClass(
+      ClassElement classElement, DartCompletionRequest request) {
+    var isFunctionalArgument = request.target.isFunctionalArgument();
     kind = isFunctionalArgument
         ? CompletionSuggestionKind.IDENTIFIER
         : CompletionSuggestionKind.INVOCATION;
-    OpType optype = request.opType;
-
-    if (!skipChildClass) {
-      _addSuggestionsForType(classElement.type, optype,
+    for (var type in classElement.allSupertypes) {
+      double inheritanceDistance;
+      if (request.useNewRelevance) {
+        inheritanceDistance = request.featureComputer
+            .inheritanceDistanceFeature(classElement, type.element);
+      }
+      _addSuggestionsForType(type, request, inheritanceDistance,
           isFunctionalArgument: isFunctionalArgument);
     }
+    return memberBuilder.suggestions.toList();
+  }
 
-    for (InterfaceType type in classElement.allSupertypes) {
-      _addSuggestionsForType(type, optype,
-          isFunctionalArgument: isFunctionalArgument);
+  /// Return the class member containing the target or `null` if the target is
+  /// in a static method or static field or not in a class member.
+  ClassMember _enclosingMember(CompletionTarget target) {
+    var node = target.containingNode;
+    while (node != null) {
+      if (node is MethodDeclaration) {
+        if (!node.isStatic) {
+          return node;
+        }
+      } else if (node is FieldDeclaration) {
+        if (!node.isStatic) {
+          return node;
+        }
+      } else if (node is ConstructorDeclaration) {
+        return node;
+      }
+      node = node.parent;
     }
-    return suggestions;
+    return null;
+  }
+
+  void _updateFlutterSuggestions(DartCompletionRequest request, Element element,
+      CompletionSuggestion suggestion) {
+    if (suggestion == null) {
+      return;
+    }
+    if (element is MethodElement &&
+        element.name == 'setState' &&
+        Flutter.of(request.result).isExactState(element.enclosingElement)) {
+      // Find the line indentation.
+      var indent = getRequestLineIndent(request);
+
+      // Let the user know that we are going to insert a complete statement.
+      suggestion.displayText = 'setState(() {});';
+
+      // Build the completion and the selection offset.
+      var buffer = StringBuffer();
+      buffer.writeln('setState(() {');
+      buffer.write('$indent  ');
+      suggestion.selectionOffset = buffer.length;
+      buffer.writeln();
+      buffer.write('$indent});');
+      suggestion.completion = buffer.toString();
+
+      // There are no arguments to fill.
+      suggestion.parameterNames = null;
+      suggestion.parameterTypes = null;
+      suggestion.requiredParameterCount = null;
+      suggestion.hasNamedParameters = null;
+    }
   }
 }

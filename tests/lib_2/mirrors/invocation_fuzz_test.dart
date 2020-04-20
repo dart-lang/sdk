@@ -11,6 +11,7 @@ library test.invoke_natives;
 
 import 'dart:mirrors';
 import 'dart:async';
+import 'dart:io';
 
 // Methods to be skipped, by qualified name.
 var blacklist = [
@@ -30,22 +31,8 @@ var blacklist = [
   'dart.developer.debugger',
 
   // Don't run blocking io calls.
-  new RegExp(r".*Sync$"),
-
-  // These prevent the test from exiting.
   'dart.io.sleep',
-  'dart._http.HttpServer.HttpServer.listenOn',
-
-  // These either cause the VM to segfault or throw uncatchable API errors.
-  // TODO(15274): Fix them and remove from blacklist.
-  'dart.io.SystemEncoding.decode', // Windows only
-  'dart.io.SystemEncoding.encode', // Windows only
-
-  // These construct an object with an uninitialized native field.
-  // TODO(23869): We could make this safer, but making the failure non-fatal
-  //   would we worthless aside from this test.
-  'dart.io.X509Certificate.X509Certificate._',
-  'dart.io._X509Impl._X509Impl',
+  new RegExp(r".*Sync$"),
 
   // Don't call private methods in dart.async as they may circumvent the zoned
   // error handling below.
@@ -64,8 +51,8 @@ bool isBlacklisted(Symbol qualifiedSymbol) {
 }
 
 class Task {
-  var name;
-  var action;
+  dynamic name;
+  dynamic action;
 }
 
 var queue = new List<Task>();
@@ -141,7 +128,8 @@ var testZone;
 doOneTask() {
   if (queue.length == 0) {
     print('Done');
-    return;
+    // Forcibly exit as we likely opened sockets and timers during the fuzzing.
+    exit(0);
   }
 
   var task = queue.removeLast();
@@ -154,7 +142,7 @@ doOneTask() {
   // scheduled in the current task. This isn't necessary for the test itself,
   // but is helpful when trying to figure out which function is responsible for
   // a crash.
-  testZone.createTimer(Duration.ZERO, doOneTask);
+  testZone.createTimer(Duration.zero, doOneTask);
 }
 
 var fuzzArgument;
@@ -195,5 +183,5 @@ main() {
   var zoneSpec =
       new ZoneSpecification(handleUncaughtError: uncaughtErrorHandler);
   testZone = Zone.current.fork(specification: zoneSpec);
-  testZone.createTimer(Duration.ZERO, doOneTask);
+  testZone.createTimer(Duration.zero, doOneTask);
 }

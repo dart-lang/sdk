@@ -26,35 +26,35 @@ SecurityContext serverContext = new SecurityContext()
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
 
-InternetAddress HOST;
+late InternetAddress HOST;
 Future<RawSecureServerSocket> startEchoServer() {
   return RawSecureServerSocket.bind(HOST, 0, serverContext).then((server) {
     server.listen((RawSecureSocket client) {
       List<List<int>> readChunks = <List<int>>[];
-      List<int> dataToWrite = null;
+      List<int>? dataToWrite = null;
       int bytesWritten = 0;
       client.writeEventsEnabled = false;
       client.listen((event) {
         switch (event) {
-          case RawSocketEvent.READ:
+          case RawSocketEvent.read:
             Expect.isTrue(bytesWritten == 0);
             Expect.isTrue(client.available() > 0);
-            readChunks.add(client.read());
+            readChunks.add(client.read()!);
             break;
-          case RawSocketEvent.WRITE:
+          case RawSocketEvent.write:
             Expect.isFalse(client.writeEventsEnabled);
             Expect.isNotNull(dataToWrite);
             bytesWritten += client.write(
-                dataToWrite, bytesWritten, dataToWrite.length - bytesWritten);
-            if (bytesWritten < dataToWrite.length) {
+                dataToWrite!, bytesWritten, dataToWrite!.length - bytesWritten);
+            if (bytesWritten < dataToWrite!.length) {
               client.writeEventsEnabled = true;
             }
-            if (bytesWritten == dataToWrite.length) {
-              client.shutdown(SocketDirection.SEND);
+            if (bytesWritten == dataToWrite!.length) {
+              client.shutdown(SocketDirection.send);
             }
             break;
-          case RawSocketEvent.READ_CLOSED:
-            dataToWrite = readChunks.fold(<int>[], (list, x) {
+          case RawSocketEvent.readClosed:
+            dataToWrite = readChunks.fold<List<int>>(<int>[], (list, x) {
               list.addAll(x);
               return list;
             });
@@ -70,8 +70,7 @@ Future<RawSecureServerSocket> startEchoServer() {
 Future testClient(server) {
   Completer success = new Completer();
   List<String> chunks = <String>[];
-  SecureSocket
-      .connect(HOST, server.port, context: clientContext)
+  SecureSocket.connect(HOST, server.port, context: clientContext)
       .then((socket) {
     socket.write("Hello server.");
     socket.close();
@@ -89,8 +88,7 @@ Future testClient(server) {
 
 void main() {
   asyncStart();
-  InternetAddress
-      .lookup("localhost")
+  InternetAddress.lookup("localhost")
       .then((hosts) => HOST = hosts.first)
       .then((_) => startEchoServer())
       .then(testClient)

@@ -14,8 +14,7 @@ void testInvalidUrl() {
       (e) => e.toString().contains("Unsupported scheme"));
   Expect.throws(() => client.getUrl(Uri.parse('httpx://www.google.com')),
       (e) => e.toString().contains("Unsupported scheme"));
-  Expect.throws(() => client.getUrl(Uri.parse('http://::1')),
-      (e) => e is FormatException);
+  Expect.throwsFormatException(() => client.getUrl(Uri.parse('http://::1')));
   Expect.throws(() => client.getUrl(Uri.parse('http://user@:1')),
       (e) => e.toString().contains("No host specified"));
   Expect.throws(() => client.getUrl(Uri.parse('http:///')),

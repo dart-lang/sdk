@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'native_testing.dart';
 
 // Negative constant numbers must be generated as negation, not just a literal
@@ -17,7 +19,7 @@ import 'native_testing.dart';
 // `"5"`, then converts it to a number for negation, giving a number result
 // instead of a string result.
 
-@NoInline()
+@pragma('dart2js:noInline')
 checkString(r) {
   Expect.isTrue(
       r is String, 'Expected string, found ${r} of type ${r.runtimeType}');

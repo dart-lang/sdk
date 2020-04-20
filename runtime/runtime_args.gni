@@ -28,23 +28,79 @@ declare_args() {
   dart_runtime_mode = "develop"
 
   # Explicitly set the target architecture to use a simulator.
-  # Available options are: arm, arm64, x64, ia32, and dbc.
+  # Available options are: arm, arm64, x64, ia32.
   dart_target_arch = target_cpu
 
-  # The optimization level to use for debug builds.
+  # The optimization level to use for debug builds. Defaults to 0 for builds with
+  # code coverage enabled.
   dart_debug_optimization_level = "2"
+
+  # Whether to enable code coverage for the standalone VM.
+  dart_vm_code_coverage = false
 
   # Whether to fall back to built-in root certificates when they cannot be
   # verified at the operating system level.
   dart_use_fallback_root_certificates = false
 
-  # The BUILD.gn file that we pull from chromium as part of zlib has a
-  # dependence on //base, which we don't pull in. In a standalone build of the
-  # VM, we set this to //runtime/bin/zlib where we have a BUILD.gn file without
-  # a dependence on //base.
-  dart_zlib_path = "//third_party/zlib"
-
   # Whether to link the standalone VM against tcmalloc. The standalone build of
   # the VM enables this only for Linux builds.
   dart_use_tcmalloc = false
+
+  # Whether to link Crashpad library for crash handling. Only supported on
+  # Windows for now.
+  dart_use_crashpad = false
+
+  # Controls the kind of core snapshot linked into the standalone VM. Using a
+  # core-jit snapshot breaks the ability to change various flags that affect
+  # code generation.
+  dart_core_snapshot_kind = "core"
+
+  # Whether the Dart binary version string should include the git hash and
+  # git commit time.
+  dart_version_git_info = true
+
+  # When this argument is a non-empty string, the version repoted by the
+  # Dart VM will be one that is compatible with pub's interpretation of
+  # semantic version strings. The version string will also include the values
+  # of the argument. In particular the version string will read:
+  #
+  #     "M.m.p-dev.x.x-$(dart_custom_version_for_pub)-$(short_git_hash)"
+  #
+  # Where 'M', 'm', and 'p' are the major, minor and patch version numbers,
+  # and 'dev.x.x' is the dev version tag most recently preceeding the current
+  # revision. The short git hash can be omitted by setting
+  # dart_version_git_info=false
+  dart_custom_version_for_pub = ""
+
+  # Controls whether the VM is built as a static library or a shared library.
+  if (is_fuchsia) {
+    # Allow for deduping the VM between standalone, flutter_runner and dart_runner.
+    dart_component_kind = "shared_library"
+  } else {
+    dart_component_kind = "static_library"
+  }
+
+  # Controls whether the VM uses bytecode.
+  dart_platform_bytecode = false
+
+  # Whether the VM includes the kernel service in all modes (debug, release,
+  # product).
+  exclude_kernel_service = false
+
+  # Whether libdart should export the symbols of the Dart API.
+  dart_lib_export_symbols = true
+
+  # Whether dart:wasm should be enabled.
+  dart_enable_wasm = false
+}
+
+declare_args() {
+  # We create a kernel service app-jit snapshot only for when the target
+  # architecture is x64 for other cases we will use the '.dill' file
+  # which is already linked in the VM.
+  if (dart_target_arch == "x64") {
+    create_kernel_service_snapshot = true
+  } else {
+    create_kernel_service_snapshot = false
+  }
 }

@@ -1,13 +1,12 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     bool caughtException;
     try {
@@ -38,4 +37,11 @@ var tests = [
   },
 ];
 
-main(args) => runIsolateTests(args, tests);
+main(args) => runIsolateTests(
+      args,
+      tests,
+      // This test hangs with DDS as package:json_rpc_2 can't parse the JSON
+      // response and is unable to determine the request ID, so the malformed
+      // JSON request will never complete.
+      enableDds: false,
+    );

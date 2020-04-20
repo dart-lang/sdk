@@ -1,11 +1,17 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--causal_async_stacks
+// VMOptions=--causal_async_stacks --no-lazy-async-stacks
+// VMOptions=--no-causal_async_stacks --lazy-async-stacks
 
 import "package:expect/expect.dart";
 
+noop() async => Future.value(null);
+
 baz() async {
+  // Throw exception after the first continuation, when there is no
+  // original stack trace.
+  await noop();
   throw "Bad!";
 }
 

@@ -1,17 +1,16 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override --vm-name=Walter
+// VMOptions=--vm-name=Walter
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 import 'dart:async';
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
-    expect(isolate.name, equals('set_name_rpc_test.dart:main()'));
-
+    expect(isolate.name == 'main', isTrue);
     Completer completer = new Completer();
     var stream = await isolate.vm.getEventStream(VM.kIsolateStream);
     var subscription;

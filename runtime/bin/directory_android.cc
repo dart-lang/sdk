@@ -142,8 +142,8 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
         if (!listing->follow_links()) {
           return kListLink;
         }
-      // Else fall through to next case.
-      // Fall through.
+        // Else fall through to next case.
+        FALL_THROUGH;
       case DT_UNKNOWN: {
         // On some file systems the entry type is not determined by
         // readdir. For those and for links we use stat to determine

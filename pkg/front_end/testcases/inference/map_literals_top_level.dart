@@ -5,10 +5,7 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=Map<int, String>*/ x1 = /*@typeArgs=int, String*/ {
-  1: 'x',
-  2: 'y'
-};
+var x1 = /*@ typeArgs=int*, String* */ {1: 'x', 2: 'y'};
 test1() {
   x1 /*@target=Map::[]=*/ [3] = 'z';
   x1 /*@target=Map::[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
@@ -17,11 +14,7 @@ test1() {
   Map<num, String> y = x1;
 }
 
-var /*@topType=Map<num, Pattern>*/ x2 = /*@typeArgs=num, Pattern*/ {
-  1: 'x',
-  2: 'y',
-  3.0: new RegExp('.')
-};
+var x2 = /*@ typeArgs=num*, Pattern* */ {1: 'x', 2: 'y', 3.0: new RegExp('.')};
 test2() {
   x2 /*@target=Map::[]=*/ [3] = 'z';
   x2 /*@target=Map::[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';

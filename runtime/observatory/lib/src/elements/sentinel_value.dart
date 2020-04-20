@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
 import 'package:observatory/models.dart' as M show Sentinel, SentinelKind;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 
-class SentinelValueElement extends HtmlElement implements Renderable {
+class SentinelValueElement extends CustomElement implements Renderable {
   static const tag = const Tag<SentinelValueElement>('sentinel-value');
 
   RenderingScheduler<SentinelValueElement> _r;
@@ -21,13 +21,13 @@ class SentinelValueElement extends HtmlElement implements Renderable {
 
   factory SentinelValueElement(M.Sentinel sentinel, {RenderingQueue queue}) {
     assert(sentinel != null);
-    SentinelValueElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    SentinelValueElement e = new SentinelValueElement.created();
+    e._r = new RenderingScheduler<SentinelValueElement>(e, queue: queue);
     e._sentinel = sentinel;
     return e;
   }
 
-  SentinelValueElement.created() : super.created();
+  SentinelValueElement.created() : super.created(tag);
 
   @override
   void attached() {

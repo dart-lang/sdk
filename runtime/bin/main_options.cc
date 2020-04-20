@@ -8,9 +8,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bin/log.h"
+#include "bin/abi_version.h"
+#include "bin/dartdev_utils.h"
+#include "bin/error_exit.h"
 #include "bin/options.h"
 #include "bin/platform.h"
+#include "platform/syslog.h"
 #if !defined(DART_IO_SECURE_SOCKET_DISABLED)
 #include "bin/security_context.h"
 #endif  // !defined(DART_IO_SECURE_SOCKET_DISABLED)
@@ -25,7 +28,10 @@ namespace bin {
 
 // These strings must match the enum SnapshotKind in main_options.h.
 static const char* kSnapshotKindNames[] = {
-    "none", "script", "app-aot", "app-jit", NULL,
+    "none",
+    "kernel",
+    "app-jit",
+    NULL,
 };
 
 SnapshotKind Options::gen_snapshot_kind_ = kNone;
@@ -42,6 +48,9 @@ STRING_OPTIONS_LIST(STRING_OPTION_DEFINITION)
   bool OPTION_FIELD(variable) = false;                                         \
   DEFINE_BOOL_OPTION(name, OPTION_FIELD(variable))
 BOOL_OPTIONS_LIST(BOOL_OPTION_DEFINITION)
+#if defined(DEBUG)
+DEBUG_BOOL_OPTIONS_LIST(BOOL_OPTION_DEFINITION)
+#endif
 #undef BOOL_OPTION_DEFINITION
 
 #define SHORT_BOOL_OPTION_DEFINITION(short_name, long_name, variable)          \
@@ -67,12 +76,9 @@ CB_OPTIONS_LIST(CB_OPTION_DEFINITION)
 DFE* Options::dfe_ = NULL;
 
 DEFINE_STRING_OPTION_CB(dfe, { Options::dfe()->set_frontend_filename(value); });
-
-DEFINE_STRING_OPTION_CB(kernel_binaries,
-                        { Options::dfe()->SetKernelBinaries(value); });
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-DEFINE_BOOL_OPTION_CB(hot_reload_test_mode, {
+static void hot_reload_test_mode_callback(CommandLineOptions* vm_options) {
   // Identity reload.
   vm_options->AddArgument("--identity_reload");
   // Start reloading quickly.
@@ -83,9 +89,15 @@ DEFINE_BOOL_OPTION_CB(hot_reload_test_mode, {
   vm_options->AddArgument("--reload_every_back_off");
   // Ensure that every isolate has reloaded once before exiting.
   vm_options->AddArgument("--check_reloaded");
-});
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Options::dfe()->set_use_incremental_compiler(true);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+}
 
-DEFINE_BOOL_OPTION_CB(hot_reload_rollback_test_mode, {
+DEFINE_BOOL_OPTION_CB(hot_reload_test_mode, hot_reload_test_mode_callback);
+
+static void hot_reload_rollback_test_mode_callback(
+    CommandLineOptions* vm_options) {
   // Identity reload.
   vm_options->AddArgument("--identity_reload");
   // Start reloading quickly.
@@ -98,24 +110,31 @@ DEFINE_BOOL_OPTION_CB(hot_reload_rollback_test_mode, {
   vm_options->AddArgument("--check_reloaded");
   // Force all reloads to fail and execute the rollback code.
   vm_options->AddArgument("--reload_force_rollback");
-});
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Options::dfe()->set_use_incremental_compiler(true);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+}
+
+DEFINE_BOOL_OPTION_CB(hot_reload_rollback_test_mode,
+                      hot_reload_rollback_test_mode_callback);
 
 void Options::PrintVersion() {
-  Log::PrintErr("Dart VM version: %s\n", Dart_VersionString());
+  Syslog::PrintErr("Dart VM version: %s\n", Dart_VersionString());
 }
 
 // clang-format off
 void Options::PrintUsage() {
-  Log::PrintErr(
-      "Usage: dart [<vm-flags>] <dart-script-file> [<dart-options>]\n"
+  Syslog::PrintErr(
+      "Usage: dart [<vm-flags>] <dart-script-file> [<script-arguments>]\n"
       "\n"
-      "Executes the Dart script passed as <dart-script-file>.\n"
+      "Executes the Dart script <dart-script-file> with "
+      "the given list of <script-arguments>.\n"
       "\n");
   if (!Options::verbose_option()) {
-    Log::PrintErr(
-"Common options:\n"
-"--checked or -c\n"
-"  Insert runtime type checks and enable assertions (checked mode).\n"
+    Syslog::PrintErr(
+"Common VM flags:\n"
+"--enable-asserts\n"
+"  Enable assert statements.\n"
 "--help or -h\n"
 "  Display this message (add -v or --verbose for information about\n"
 "  all VM options).\n"
@@ -133,20 +152,24 @@ void Options::PrintUsage() {
 "      --warn-on-pause-with-no-debugger\n"
 "  This set is subject to change.\n"
 "  Please see these options (--help --verbose) for further documentation.\n"
+"--write-service-info=<file_uri>\n"
+"  Outputs information necessary to connect to the VM service to the\n"
+"  specified file in JSON format. Useful for clients which are unable to\n"
+"  listen to stdout for the Observatory listening message.\n"
 "--snapshot-kind=<snapshot_kind>\n"
 "--snapshot=<file_name>\n"
 "  These snapshot options are used to generate a snapshot of the loaded\n"
 "  Dart script:\n"
 "    <snapshot-kind> controls the kind of snapshot, it could be\n"
-"                    script(default), app-aot or app-jit\n"
+"                    kernel(default) or app-jit\n"
 "    <file_name> specifies the file into which the snapshot is written\n"
 "--version\n"
 "  Print the VM version.\n");
   } else {
-    Log::PrintErr(
+    Syslog::PrintErr(
 "Supported options:\n"
-"--checked or -c\n"
-"  Insert runtime type checks and enable assertions (checked mode).\n"
+"--enable-asserts\n"
+"  Enable assert statements.\n"
 "--help or -h\n"
 "  Display this message (add -v or --verbose for information about\n"
 "  all VM options).\n"
@@ -164,12 +187,16 @@ void Options::PrintUsage() {
 "      --warn-on-pause-with-no-debugger\n"
 "  This set is subject to change.\n"
 "  Please see these options for further documentation.\n"
+"--write-service-info=<file_uri>\n"
+"  Outputs information necessary to connect to the VM service to the\n"
+"  specified file in JSON format. Useful for clients which are unable to\n"
+"  listen to stdout for the Observatory listening message.\n"
 "--snapshot-kind=<snapshot_kind>\n"
 "--snapshot=<file_name>\n"
 "  These snapshot options are used to generate a snapshot of the loaded\n"
 "  Dart script:\n"
 "    <snapshot-kind> controls the kind of snapshot, it could be\n"
-"                    script(default), app-aot or app-jit\n"
+"                    kernel(default) or app-jit\n"
 "    <file_name> specifies the file into which the snapshot is written\n"
 "--version\n"
 "  Print the VM version.\n"
@@ -178,8 +205,18 @@ void Options::PrintUsage() {
 "  enables tracing of library and script loading\n"
 "\n"
 "--enable-vm-service[=<port>[/<bind-address>]]\n"
-"  enables the VM service and listens on specified port for connections\n"
+"  Enables the VM service and listens on specified port for connections\n"
 "  (default port number is 8181, default bind address is localhost).\n"
+"\n"
+"--disable-service-auth-codes\n"
+"  Disables the requirement for an authentication code to communicate with\n"
+"  the VM service. Authentication codes help protect against CSRF attacks,\n"
+"  so it is not recommended to disable them unless behind a firewall on a\n"
+"  secure device.\n"
+"\n"
+"--enable-service-port-fallback\n"
+"  When the VM service is told to bind to a particular port, fallback to 0 if\n"
+"  it fails to bind instead of failing to start.\n"
 "\n"
 "--root-certs-file=<path>\n"
 "  The path to a file containing the trusted root certificates to use for\n"
@@ -198,12 +235,13 @@ void Options::PrintUsage() {
 "The following options are only used for VM development and may\n"
 "be changed in any future version:\n");
     const char* print_flags = "--print_flags";
-    Dart_SetVMFlags(1, &print_flags);
+    char* error = Dart_SetVMFlags(1, &print_flags);
+    ASSERT(error == NULL);
   }
 }
 // clang-format on
 
-dart::HashMap* Options::environment_ = NULL;
+dart::SimpleHashMap* Options::environment_ = NULL;
 bool Options::ProcessEnvironmentOption(const char* arg,
                                        CommandLineOptions* vm_options) {
   return OptionProcessor::ProcessEnvironmentOption(arg, vm_options,
@@ -212,7 +250,7 @@ bool Options::ProcessEnvironmentOption(const char* arg,
 
 void Options::DestroyEnvironment() {
   if (environment_ != NULL) {
-    for (HashMap::Entry* p = environment_->Start(); p != NULL;
+    for (SimpleHashMap::Entry* p = environment_->Start(); p != NULL;
          p = environment_->Next(p)) {
       free(p->key);
       free(p->value);
@@ -273,11 +311,14 @@ bool Options::ProcessEnableVmServiceOption(const char* arg,
   if (!ExtractPortAndAddress(
           value, &vm_service_server_port_, &vm_service_server_ip_,
           DEFAULT_VM_SERVICE_SERVER_PORT, DEFAULT_VM_SERVICE_SERVER_IP)) {
-    Log::PrintErr(
+    Syslog::PrintErr(
         "unrecognized --enable-vm-service option syntax. "
         "Use --enable-vm-service[=<port number>[/<bind address>]]\n");
     return false;
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  dfe()->set_use_incremental_compiler(true);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   return true;
 }
@@ -291,7 +332,7 @@ bool Options::ProcessObserveOption(const char* arg,
   if (!ExtractPortAndAddress(
           value, &vm_service_server_port_, &vm_service_server_ip_,
           DEFAULT_VM_SERVICE_SERVER_PORT, DEFAULT_VM_SERVICE_SERVER_IP)) {
-    Log::PrintErr(
+    Syslog::PrintErr(
         "unrecognized --observe option syntax. "
         "Use --observe[=<port number>[/<bind address>]]\n");
     return false;
@@ -302,6 +343,36 @@ bool Options::ProcessObserveOption(const char* arg,
   vm_options->AddArgument("--pause-isolates-on-unhandled-exceptions");
   vm_options->AddArgument("--profiler");
   vm_options->AddArgument("--warn-on-pause-with-no-debugger");
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  dfe()->set_use_incremental_compiler(true);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  return true;
+}
+
+int Options::target_abi_version_ = Options::kAbiVersionUnset;
+bool Options::ProcessAbiVersionOption(const char* arg,
+                                      CommandLineOptions* vm_options) {
+  const char* value = OptionProcessor::ProcessOption(arg, "--use_abi_version=");
+  if (value == NULL) {
+    return false;
+  }
+  int ver = 0;
+  for (int i = 0; value[i] != '\0'; ++i) {
+    if (value[i] >= '0' && value[i] <= '9') {
+      ver = (ver * 10) + value[i] - '0';
+    } else {
+      Syslog::PrintErr("--use_abi_version must be an int\n");
+      return false;
+    }
+  }
+  if (ver < AbiVersion::GetOldestSupported() ||
+      ver > AbiVersion::GetCurrent()) {
+    Syslog::PrintErr("--use_abi_version must be between %d and %d inclusive\n",
+                     AbiVersion::GetOldestSupported(),
+                     AbiVersion::GetCurrent());
+    return false;
+  }
+  target_abi_version_ = ver;
   return true;
 }
 
@@ -328,29 +399,7 @@ int Options::ParseArguments(int argc,
       i++;
     } else {
       // Check if this flag is a potentially valid VM flag.
-      const char* kChecked = "-c";
-      const char* kPackageRoot = "-p";
-      if (strncmp(argv[i], kPackageRoot, strlen(kPackageRoot)) == 0) {
-        // If argv[i] + strlen(kPackageRoot) is \0, then look in argv[i + 1]
-        // Otherwise set Option::package_root_ = argv[i] + strlen(kPackageRoot)
-        const char* opt = argv[i] + strlen(kPackageRoot);
-        if (opt[0] == '\0') {
-          i++;
-          opt = argv[i];
-          if ((opt == NULL) || (opt[0] == '-')) {
-            Log::PrintErr("Invalid option specification : '%s'\n", argv[i - 1]);
-            i++;
-            break;
-          }
-        }
-        package_root_ = opt;
-        i++;
-        continue;  // '-p' is not a VM flag so don't add to vm options.
-      } else if (strncmp(argv[i], kChecked, strlen(kChecked)) == 0) {
-        vm_options->AddArgument("--checked");
-        i++;
-        continue;  // '-c' is not a VM flag so don't add to vm options.
-      } else if (!OptionProcessor::IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
+      if (!OptionProcessor::IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
         break;
       }
       // The following two flags are processed by both the embedder and
@@ -373,6 +422,14 @@ int Options::ParseArguments(int argc,
     }
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Options::dfe()->set_use_dfe();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  if (Options::deterministic()) {
+    // Both an embedder and VM flag.
+    vm_options->AddArgument("--deterministic");
+  }
+
   Socket::set_short_socket_read(Options::short_socket_read());
   Socket::set_short_socket_write(Options::short_socket_write());
 #if !defined(DART_IO_SECURE_SOCKET_DISABLED)
@@ -385,8 +442,18 @@ int Options::ParseArguments(int argc,
 
   // Get the script name.
   if (i < argc) {
-    *script_name = argv[i];
-    i++;
+    // If the script name isn't a valid file or a URL, this might be a DartDev
+    // command. Try to find the DartDev snapshot so we can forward the command
+    // and its arguments.
+    if (!DartDevUtils::ShouldParseCommand(argv[i])) {
+      *script_name = strdup(argv[i]);
+      i++;
+    } else if (!DartDevUtils::TryResolveDartDevSnapshotPath(script_name)) {
+      Syslog::PrintErr(
+          "Could not find DartDev snapshot and '%s' is not a valid script.\n",
+          argv[i]);
+      Platform::Exit(kErrorExitCode);
+    }
   } else {
     return -1;
   }
@@ -398,28 +465,46 @@ int Options::ParseArguments(int argc,
   }
 
   // Verify consistency of arguments.
+
+  // snapshot_depfile is an alias for depfile. Passing them both is an error.
+  if ((snapshot_deps_filename_ != NULL) && (depfile_ != NULL)) {
+    Syslog::PrintErr("Specify only one of --depfile and --snapshot_depfile\n");
+    return -1;
+  }
+  if (snapshot_deps_filename_ != NULL) {
+    depfile_ = snapshot_deps_filename_;
+    snapshot_deps_filename_ = NULL;
+  }
+
   if ((Options::package_root() != NULL) && (packages_file_ != NULL)) {
-    Log::PrintErr(
+    Syslog::PrintErr(
         "Specifying both a packages directory and a packages "
         "file is invalid.\n");
     return -1;
   }
   if ((Options::package_root() != NULL) &&
       (strlen(Options::package_root()) == 0)) {
-    Log::PrintErr("Empty package root specified.\n");
+    Syslog::PrintErr("Empty package root specified.\n");
     return -1;
   }
   if ((packages_file_ != NULL) && (strlen(packages_file_) == 0)) {
-    Log::PrintErr("Empty package file name specified.\n");
+    Syslog::PrintErr("Empty package file name specified.\n");
     return -1;
   }
-  if (((gen_snapshot_kind_ != kNone) || (snapshot_deps_filename_ != NULL)) &&
-      (snapshot_filename_ == NULL)) {
-    Log::PrintErr("Generating a snapshot requires a filename (--snapshot).\n");
+  if ((gen_snapshot_kind_ != kNone) && (snapshot_filename_ == NULL)) {
+    Syslog::PrintErr(
+        "Generating a snapshot requires a filename (--snapshot).\n");
+    return -1;
+  }
+  if ((gen_snapshot_kind_ == kNone) && (depfile_ != NULL) &&
+      (snapshot_filename_ == NULL) && (depfile_output_filename_ == NULL)) {
+    Syslog::PrintErr(
+        "Generating a depfile requires an output filename"
+        " (--depfile-output-filename or --snapshot).\n");
     return -1;
   }
   if ((gen_snapshot_kind_ != kNone) && vm_run_app_snapshot) {
-    Log::PrintErr(
+    Syslog::PrintErr(
         "Specifying an option to generate a snapshot and"
         " run using a snapshot is invalid.\n");
     return -1;
@@ -427,7 +512,7 @@ int Options::ParseArguments(int argc,
 
   // If --snapshot is given without --snapshot-kind, default to script snapshot.
   if ((snapshot_filename_ != NULL) && (gen_snapshot_kind_ == kNone)) {
-    gen_snapshot_kind_ = kScript;
+    gen_snapshot_kind_ = kKernel;
   }
 
   return 0;

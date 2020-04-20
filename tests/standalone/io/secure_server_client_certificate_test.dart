@@ -21,7 +21,7 @@ import "dart:io";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-InternetAddress HOST;
+late InternetAddress HOST;
 
 String localFile(path) => Platform.script.resolve(path).toFilePath();
 
@@ -55,7 +55,10 @@ SecurityContext clientNoCertContext(String certType, String password) =>
           password: password);
 
 Future testClientCertificate(
-    {bool required, bool sendCert, String certType, String password}) async {
+    {required bool required,
+    required bool sendCert,
+    required String certType,
+    required String password}) async {
   var server = await SecureServerSocket.bind(
       HOST, 0, serverContext(certType, password),
       requestClientCertificate: true, requireClientCertificate: required);
@@ -79,16 +82,15 @@ Future testClientCertificate(
   var serverEnd = await server.first;
   var clientEnd = await clientEndFuture;
 
-  X509Certificate clientCertificate = serverEnd.peerCertificate;
+  X509Certificate? clientCertificate = serverEnd.peerCertificate;
   if (sendCert) {
     Expect.isNotNull(clientCertificate);
-    Expect.isTrue(clientCertificate.subject.contains("user1"));
+    Expect.isTrue(clientCertificate!.subject.contains("user1"));
     Expect.isTrue(clientCertificate.issuer.contains("clientauthority"));
   } else {
     Expect.isNull(clientCertificate);
   }
-  X509Certificate serverCertificate = clientEnd.peerCertificate;
-  Expect.isNotNull(serverCertificate);
+  X509Certificate serverCertificate = clientEnd.peerCertificate!;
   Expect.isTrue(serverCertificate.subject.contains("localhost"));
   Expect.isTrue(serverCertificate.issuer.contains("intermediateauthority"));
   clientEnd.close();

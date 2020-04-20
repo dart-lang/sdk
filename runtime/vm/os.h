@@ -13,7 +13,6 @@ struct tm;
 namespace dart {
 
 // Forward declarations.
-class Isolate;
 class Zone;
 
 // Interface to the underlying OS platform.
@@ -68,14 +67,6 @@ class OS {
   // the platform doesn't care. Guaranteed to be a power of two.
   static intptr_t ActivationFrameAlignment();
 
-  // This constant is guaranteed to be greater or equal to the
-  // preferred code alignment on all platforms.
-  static const int kMaxPreferredCodeAlignment = 32;
-
-  // Returns the preferred code alignment or zero if
-  // the platform doesn't care. Guaranteed to be a power of two.
-  static intptr_t PreferredCodeAlignment();
-
   // Returns number of available processor cores.
   static int NumberOfAvailableProcessors();
 
@@ -91,33 +82,13 @@ class OS {
   // Returns the current program counter.
   static uintptr_t GetProgramCounter();
 
-  // Not all platform support strndup.
-  static char* StrNDup(const char* s, intptr_t n);
-  static intptr_t StrNLen(const char* s, intptr_t n);
-
   // Print formatted output to stdout/stderr for debugging.
+  // Tracing and debugging prints from the VM should strongly prefer to use
+  // PrintErr to avoid interfering with the application's output, which may
+  // be parsed by another program.
   static void Print(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
   static void PrintErr(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
   static void VFPrint(FILE* stream, const char* format, va_list args);
-  // Print formatted output info a buffer.
-  //
-  // Does not write more than size characters (including the trailing '\0').
-  //
-  // Returns the number of characters (excluding the trailing '\0')
-  // that would been written if the buffer had been big enough.  If
-  // the return value is greater or equal than the given size then the
-  // output has been truncated.  The return value is never negative.
-  //
-  // The buffer will always be terminated by a '\0', unless the buffer
-  // is of size 0.  The buffer might be NULL if the size is 0.
-  //
-  // This specification conforms to C99 standard which is implemented
-  // by glibc 2.1+ with one exception: the C99 standard allows a
-  // negative return value.  We will terminate the vm rather than let
-  // that occur.
-  static int SNPrint(char* str, size_t size, const char* format, ...)
-      PRINTF_ATTRIBUTE(3, 4);
-  static int VSNPrint(char* str, size_t size, const char* format, va_list args);
 
   // Allocate a string and print formatted output into the buffer.
   // Uses the zone for allocation if one if provided, and otherwise uses
@@ -138,14 +109,17 @@ class OS {
   static void RegisterCodeObservers();
 
   // Initialize the OS class.
-  static void InitOnce();
+  static void Init();
 
-  // Shut down the OS class.
-  static void Shutdown();
+  // Cleanup the OS class.
+  static void Cleanup();
 
-  static void Abort();
+  // Only implemented on Windows, prevents cleanup code from running.
+  static void PrepareToAbort();
 
-  static void Exit(int code);
+  DART_NORETURN static void Abort();
+
+  DART_NORETURN static void Exit(int code);
 };
 
 }  // namespace dart

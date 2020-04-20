@@ -15,10 +15,10 @@ class ReloadEvent {
   ReloadEvent(this.element);
 }
 
-class NavReloadElement extends HtmlElement implements Renderable {
+class NavReloadElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavReloadElement>('nav-reload');
 
-  RenderingScheduler _r;
+  RenderingScheduler<NavReloadElement> _r;
 
   Stream<RenderedEvent<NavReloadElement>> get onRendered => _r.onRendered;
 
@@ -35,18 +35,18 @@ class NavReloadElement extends HtmlElement implements Renderable {
   factory NavReloadElement(M.IsolateRef isolate, M.IsolateRepository isolates,
       M.EventRepository events,
       {RenderingQueue queue}) {
-    assert(isolate == null);
-    assert(isolates == null);
-    assert(events == null);
-    NavReloadElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    assert(isolate != null);
+    assert(isolates != null);
+    assert(events != null);
+    NavReloadElement e = new NavReloadElement.created();
+    e._r = new RenderingScheduler<NavReloadElement>(e, queue: queue);
     e._isolate = isolate;
     e._isolates = isolates;
     e._events = events;
     return e;
   }
 
-  NavReloadElement.created() : super.created();
+  NavReloadElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -58,17 +58,17 @@ class NavReloadElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _sub.cancel();
     _sub = null;
     _r.disable(notify: true);
   }
 
   void render() {
-    final children = [];
+    final children = <Element>[];
     if (_isolates.reloadSourcesServices.isEmpty) {
       children.add(new LIElement()
-        ..children = [
+        ..children = <Element>[
           new ButtonElement()
             ..text = 'Reload Source'
             ..disabled = _disabled
@@ -76,7 +76,7 @@ class NavReloadElement extends HtmlElement implements Renderable {
         ]);
     } else if (_isolates.reloadSourcesServices.length == 1) {
       children.add(new LIElement()
-        ..children = [
+        ..children = <Element>[
           new ButtonElement()
             ..text = 'Reload Source'
             ..disabled = _disabled
@@ -85,7 +85,7 @@ class NavReloadElement extends HtmlElement implements Renderable {
         ]);
     } else {
       final content = _isolates.reloadSourcesServices.map((s) => new LIElement()
-        ..children = [
+        ..children = <Element>[
           new ButtonElement()
             ..text = s.alias
             ..disabled = _disabled

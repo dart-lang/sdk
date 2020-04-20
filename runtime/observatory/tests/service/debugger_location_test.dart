@@ -1,19 +1,18 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
 import 'package:observatory/debugger.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 import 'dart:async';
 import 'dart:developer';
 
-const int LINE_A = 22;
-const int LINE_B = 112;
-const int LINE_C = 12;
+const int LINE_A = 21;
+const int LINE_B = 111;
+const int LINE_C = 11;
 
 void testFunction() {
   int i = 0;
@@ -53,7 +52,7 @@ Future<Debugger> initDebugger(Isolate isolate) {
   });
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
 
 // Parse '' => current position
@@ -83,17 +82,19 @@ var tests = [
 // Parse script + line
   (Isolate isolate) async {
     var debugger = await initDebugger(isolate);
-    var loc = await DebuggerLocation.parse(debugger, 'unittest.dart:15');
+    var loc = await DebuggerLocation.parse(
+        debugger, 'debugger_location_test.dart:16');
     expect(loc.valid, isTrue);
-    expect(loc.toString(), equals('unittest.dart:15'));
+    expect(loc.toString(), equals('debugger_location_test.dart:16'));
   },
 
 // Parse script + line + col
   (Isolate isolate) async {
     var debugger = await initDebugger(isolate);
-    var loc = await DebuggerLocation.parse(debugger, 'unittest.dart:15:10');
+    var loc = await DebuggerLocation.parse(
+        debugger, 'debugger_location_test.dart:16:11');
     expect(loc.valid, isTrue);
-    expect(loc.toString(), equals('unittest.dart:15:10'));
+    expect(loc.toString(), equals('debugger_location_test.dart:16:11'));
   },
 
 // Parse bad script

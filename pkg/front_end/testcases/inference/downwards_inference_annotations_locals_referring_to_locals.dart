@@ -10,10 +10,15 @@ class Foo {
 }
 
 void test() {
-  const /*@type=int*/ x = 0;
+  const /*@ type=int* */ x = 0;
 
-  @Foo(/*@typeArgs=int*/ const [x])
-  var /*@type=dynamic*/ y;
+  @Foo(/*@ typeArgs=int* */ const [x])
+  var /*@ type=dynamic */ y;
+
+  @Foo(/*@ typeArgs=int* */ const [x])
+  void bar() {}
+
+  void baz(@Foo(/*@ typeArgs=int* */ const [x]) dynamic formal) {}
 }
 
 main() {}

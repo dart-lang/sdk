@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'unicode_tests.dart';
 
 List<int> encode(String str) => new Utf8Encoder().convert(str);
-List<int> encode2(String str) => UTF8.encode(str);
+List<int> encode2(String str) => utf8.encode(str);
 
 void main() {
   for (var test in UNICODE_TESTS) {
@@ -21,7 +21,7 @@ void main() {
 }
 
 void testEncodeSlice() {
-  var encoder = UTF8.encoder;
+  var encoder = utf8.encoder;
   String ascii = "ABCDE";
   Expect.listEquals([0x41, 0x42, 0x43, 0x44, 0x45], encoder.convert(ascii));
   Expect.listEquals([0x41, 0x42, 0x43, 0x44, 0x45], encoder.convert(ascii, 0));

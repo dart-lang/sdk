@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.core;
 
 /**
@@ -18,7 +20,7 @@ part of dart.core;
  * * zero if [a] is equal to [b], and
  * * a positive integer if [a] is greater than [b].
  */
-typedef int Comparator<T>(T a, T b);
+typedef Comparator<T> = int Function(T a, T b);
 
 /**
  * Interface used by types that have an intrinsic ordering.
@@ -33,10 +35,10 @@ typedef int Comparator<T>(T a, T b);
  * and to provide separate [Comparator]s instead.
  *
  * It is recommended that the order of a [Comparable] agrees
- * with its operator [==] equality (`a.compareTo(b) == 0` iff `a == b`),
+ * with its operator [operator ==] equality (`a.compareTo(b) == 0` iff `a == b`),
  * but this is not a requirement.
  * For example, [double] and [DateTime] have `compareTo` methods
- * that do not agree with operator [==].
+ * that do not agree with operator [operator ==].
  * For doubles the [compareTo] method is more precise than the equality,
  * and for [DateTime] it is less precise.
  *

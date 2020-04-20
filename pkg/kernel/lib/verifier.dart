@@ -5,9 +5,11 @@ library kernel.checks;
 
 import 'ast.dart';
 import 'transformations/flags.dart';
+import 'type_environment.dart' show StatefulStaticTypeContext, TypeEnvironment;
 
-void verifyProgram(Program program) {
-  VerifyingVisitor.check(program);
+void verifyComponent(Component component, {bool isOutline, bool afterConst}) {
+  VerifyingVisitor.check(component,
+      isOutline: isOutline, afterConst: afterConst);
 }
 
 class VerificationError {
@@ -27,7 +29,7 @@ class VerificationError {
       // TODO(ahe): Fix the compiler instead.
     }
     if (location != null) {
-      String file = location.file ?? "";
+      String file = location.file?.toString() ?? "";
       return "$file:${location.line}:${location.column}: Verification error:"
           " $details";
     } else {
@@ -40,22 +42,30 @@ class VerificationError {
 
 enum TypedefState { Done, BeingChecked }
 
-/// Checks that a kernel program is well-formed.
+/// Checks that a kernel component is well-formed.
 ///
 /// This does not include any kind of type checking.
-class VerifyingVisitor extends RecursiveVisitor {
+class VerifyingVisitor extends RecursiveVisitor<void> {
   final Set<Class> classes = new Set<Class>();
   final Set<Typedef> typedefs = new Set<Typedef>();
   Set<TypeParameter> typeParametersInScope = new Set<TypeParameter>();
   final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
   final Map<Typedef, TypedefState> typedefState = <Typedef, TypedefState>{};
+  final Set<Constant> seenConstants = <Constant>{};
   bool classTypeParametersAreInScope = false;
 
   /// If true, relax certain checks for *outline* mode. For example, don't
   /// attempt to validate constructor initializers.
-  bool isOutline = false;
+  final bool isOutline;
+
+  /// If true, assume that constant evaluation has been performed (with a
+  /// target that did not opt out of any of the constant inlining) and report
+  /// a verification error for anything that should have been removed by it.
+  final bool afterConst;
 
   bool inCatchBlock = false;
+
+  bool inUnevaluatedConstant = false;
 
   Library currentLibrary;
 
@@ -67,12 +77,30 @@ class VerifyingVisitor extends RecursiveVisitor {
 
   TreeNode get context => currentMember ?? currentClass;
 
-  static void check(Program program) {
-    program.accept(new VerifyingVisitor());
+  static void check(Component component, {bool isOutline, bool afterConst}) {
+    component.accept(
+        new VerifyingVisitor(isOutline: isOutline, afterConst: afterConst));
   }
 
+  VerifyingVisitor({bool isOutline, bool afterConst})
+      : isOutline = isOutline ?? false,
+        afterConst = afterConst ?? !(isOutline ?? false);
+
+  @override
   defaultTreeNode(TreeNode node) {
     visitChildren(node);
+  }
+
+  @override
+  defaultConstantReference(Constant constant) {
+    if (seenConstants.add(constant)) {
+      constant.accept(this);
+    }
+  }
+
+  @override
+  defaultConstant(Constant constant) {
+    constant.visitChildren(this);
   }
 
   problem(TreeNode node, String details, {TreeNode context}) {
@@ -86,7 +114,8 @@ class VerifyingVisitor extends RecursiveVisitor {
           node,
           "Incorrect parent pointer on ${node.runtimeType}:"
           " expected '${currentParent.runtimeType}',"
-          " but found: '${node.parent.runtimeType}'.");
+          " but found: '${node.parent.runtimeType}'.",
+          context: currentParent);
     }
     var oldParent = currentParent;
     currentParent = node;
@@ -145,6 +174,10 @@ class VerifyingVisitor extends RecursiveVisitor {
   void declareTypeParameters(List<TypeParameter> parameters) {
     for (int i = 0; i < parameters.length; ++i) {
       var parameter = parameters[i];
+      if (parameter.bound == null) {
+        problem(
+            currentParent, "Missing bound for type parameter '$parameter'.");
+      }
       if (!typeParametersInScope.add(parameter)) {
         problem(parameter, "Type parameter '$parameter' redeclared.");
       }
@@ -161,9 +194,9 @@ class VerifyingVisitor extends RecursiveVisitor {
     }
   }
 
-  visitProgram(Program program) {
+  visitComponent(Component component) {
     try {
-      for (var library in program.libraries) {
+      for (var library in component.libraries) {
         for (var class_ in library.classes) {
           if (!classes.add(class_)) {
             problem(class_, "Class '$class_' declared more than once.");
@@ -179,9 +212,9 @@ class VerifyingVisitor extends RecursiveVisitor {
           class_.members.forEach(declareMember);
         }
       }
-      visitChildren(program);
+      visitChildren(component);
     } finally {
-      for (var library in program.libraries) {
+      for (var library in component.libraries) {
         library.members.forEach(undeclareMember);
         for (var class_ in library.classes) {
           class_.members.forEach(undeclareMember);
@@ -195,6 +228,14 @@ class VerifyingVisitor extends RecursiveVisitor {
     currentLibrary = node;
     super.visitLibrary(node);
     currentLibrary = null;
+  }
+
+  visitExtension(Extension node) {
+    declareTypeParameters(node.typeParameters);
+    final oldParent = enterParent(node);
+    node.visitChildren(this);
+    exitParent(oldParent);
+    undeclareTypeParameters(node.typeParameters);
   }
 
   void checkTypedef(Typedef node) {
@@ -310,6 +351,10 @@ class VerifyingVisitor extends RecursiveVisitor {
     declareTypeParameters(node.typeParameters);
     for (var typeParameter in node.typeParameters) {
       typeParameter.bound?.accept(this);
+      if (typeParameter.annotations.isNotEmpty) {
+        problem(
+            typeParameter, "Annotation on type parameter in function type.");
+      }
     }
     visitList(node.positionalParameters, this);
     visitList(node.namedParameters, this);
@@ -331,6 +376,21 @@ class VerifyingVisitor extends RecursiveVisitor {
 
   visitLet(Let node) {
     visitWithLocalScope(node);
+  }
+
+  visitBlockExpression(BlockExpression node) {
+    int stackHeight = enterLocalScope();
+    // Do not visit the block directly because the value expression needs to
+    // be in its scope.
+    TreeNode oldParent = enterParent(node);
+    enterParent(node.body);
+    for (int i = 0; i < node.body.statements.length; ++i) {
+      node.body.statements[i].accept(this);
+    }
+    exitParent(node);
+    node.value.accept(this);
+    exitParent(oldParent);
+    exitLocalScope(stackHeight);
   }
 
   visitCatch(Catch node) {
@@ -364,11 +424,22 @@ class VerifyingVisitor extends RecursiveVisitor {
     }
     visitChildren(node);
     declareVariable(node);
+    if (afterConst && node.isConst) {
+      Expression initializer = node.initializer;
+      if (!(initializer is InvalidExpression ||
+          initializer is ConstantExpression &&
+              initializer.constant is UnevaluatedConstant)) {
+        problem(node, "Constant VariableDeclaration");
+      }
+    }
   }
 
   visitVariableGet(VariableGet node) {
     checkVariableInScope(node.variable, node);
     visitChildren(node);
+    if (afterConst && node.variable.isConst) {
+      problem(node, "VariableGet of const variable '${node.variable}'.");
+    }
   }
 
   visitVariableSet(VariableSet node) {
@@ -382,11 +453,22 @@ class VerifyingVisitor extends RecursiveVisitor {
     if (node.target == null) {
       problem(node, "StaticGet without target.");
     }
-    if (!node.target.hasGetter) {
+    // Currently Constructor.hasGetter returns `false` even though fasta uses it
+    // as a getter for internal purposes:
+    //
+    // Fasta is letting all call site of a redirecting constructor be resolved
+    // to the real target.  In order to resolve it, it seems to add a body into
+    // the redirecting-factory constructor which caches the target constructor.
+    // That cache is via a `StaticGet(real-constructor)` node, which we make
+    // here pass the verifier.
+    if (!node.target.hasGetter && node.target is! Constructor) {
       problem(node, "StaticGet of '${node.target}' without getter.");
     }
     if (node.target.isInstanceMember) {
       problem(node, "StaticGet of '${node.target}' that's an instance member.");
+    }
+    if (afterConst && node.target is Field && node.target.isConst) {
+      problem(node, "StaticGet of const field '${node.target}'.");
     }
   }
 
@@ -419,6 +501,9 @@ class VerifyingVisitor extends RecursiveVisitor {
           node,
           "Constant StaticInvocation of '${node.target}' that isn't"
           " a const external factory.");
+    }
+    if (afterConst && node.isConst && !inUnevaluatedConstant) {
+      problem(node, "Constant StaticInvocation.");
     }
   }
 
@@ -496,6 +581,9 @@ class VerifyingVisitor extends RecursiveVisitor {
           "Constant ConstructorInvocation fo '${node.target}' that"
           " isn't const.");
     }
+    if (afterConst && node.isConst) {
+      problem(node, "Invocation of const constructor '${node.target}'.");
+    }
   }
 
   bool areArgumentsCompatible(Arguments arguments, FunctionNode function) {
@@ -518,6 +606,37 @@ class VerifyingVisitor extends RecursiveVisitor {
   }
 
   @override
+  visitListLiteral(ListLiteral node) {
+    visitChildren(node);
+    if (afterConst && node.isConst) {
+      problem(node, "Constant list literal.");
+    }
+  }
+
+  @override
+  visitSetLiteral(SetLiteral node) {
+    visitChildren(node);
+    if (afterConst && node.isConst) {
+      problem(node, "Constant set literal.");
+    }
+  }
+
+  @override
+  visitMapLiteral(MapLiteral node) {
+    visitChildren(node);
+    if (afterConst && node.isConst) {
+      problem(node, "Constant map literal.");
+    }
+  }
+
+  @override
+  visitSymbolLiteral(SymbolLiteral node) {
+    if (afterConst) {
+      problem(node, "Symbol literal.");
+    }
+  }
+
+  @override
   visitContinueSwitchStatement(ContinueSwitchStatement node) {
     if (node.target == null) {
       problem(node, "No target.");
@@ -530,6 +649,57 @@ class VerifyingVisitor extends RecursiveVisitor {
       }
       problem(node, "Switch case isn't child of parent.");
     }
+  }
+
+  @override
+  visitInstanceConstant(InstanceConstant constant) {
+    constant.visitChildren(this);
+    if (constant.typeArguments.length !=
+        constant.classNode.typeParameters.length) {
+      problem(
+          currentParent,
+          "Constant $constant provides ${constant.typeArguments.length}"
+          " type arguments, but the class declares"
+          " ${constant.classNode.typeParameters.length} parameters.");
+    }
+    Set<Class> superClasses = <Class>{};
+    int fieldCount = 0;
+    for (Class cls = constant.classNode; cls != null; cls = cls.superclass) {
+      superClasses.add(cls);
+      for (Field f in cls.fields) {
+        if (!f.isStatic && !f.isConst) fieldCount++;
+      }
+    }
+    if (constant.fieldValues.length != fieldCount) {
+      problem(
+          currentParent,
+          "Constant $constant provides ${constant.fieldValues.length}"
+          " field values, but the class declares"
+          " $fieldCount fields.");
+    }
+    constant.fieldValues.forEach((Reference fieldRef, Constant value) {
+      Field field = fieldRef.asField;
+      if (!superClasses.contains(field.enclosingClass)) {
+        problem(
+            currentParent,
+            "Constant $constant refers to field $field,"
+            " which does not belong to the right class.");
+      }
+    });
+  }
+
+  @override
+  visitUnevaluatedConstant(UnevaluatedConstant constant) {
+    if (inUnevaluatedConstant) {
+      problem(currentParent, "UnevaluatedConstant in UnevaluatedConstant.");
+    }
+    bool savedInUnevaluatedConstant = inUnevaluatedConstant;
+    inUnevaluatedConstant = true;
+    TreeNode oldParent = currentParent;
+    currentParent = null;
+    constant.expression.accept(this);
+    currentParent = oldParent;
+    inUnevaluatedConstant = savedInUnevaluatedConstant;
   }
 
   @override
@@ -569,7 +739,7 @@ class VerifyingVisitor extends RecursiveVisitor {
       problem(
           currentParent,
           "Type parameter '$parameter' referenced from"
-          " static context, parent is '${parameter.parent}'.");
+          " static context, parent is: '${parameter.parent}'.");
     }
   }
 
@@ -580,7 +750,7 @@ class VerifyingVisitor extends RecursiveVisitor {
       problem(
           currentParent,
           "Type $node provides ${node.typeArguments.length}"
-          " type arguments but the class declares"
+          " type arguments, but the class declares"
           " ${node.classNode.typeParameters.length} parameters.");
     }
   }
@@ -593,9 +763,68 @@ class VerifyingVisitor extends RecursiveVisitor {
       problem(
           currentParent,
           "The typedef type $node provides ${node.typeArguments.length}"
-          " type arguments but the typedef declares"
+          " type arguments, but the typedef declares"
           " ${node.typedefNode.typeParameters.length} parameters.");
     }
+  }
+}
+
+void verifyGetStaticType(TypeEnvironment env, Component component) {
+  component.accept(new VerifyGetStaticType(env));
+}
+
+class VerifyGetStaticType extends RecursiveVisitor {
+  final TypeEnvironment env;
+  Member currentMember;
+  final StatefulStaticTypeContext _staticTypeContext;
+
+  VerifyGetStaticType(this.env)
+      : _staticTypeContext = new StatefulStaticTypeContext.stacked(env);
+
+  @override
+  visitLibrary(Library node) {
+    _staticTypeContext.enterLibrary(node);
+    super.visitLibrary(node);
+    _staticTypeContext.leaveLibrary(node);
+  }
+
+  @override
+  visitField(Field node) {
+    currentMember = node;
+    _staticTypeContext.enterMember(node);
+    super.visitField(node);
+    _staticTypeContext.leaveMember(node);
+    currentMember = node;
+  }
+
+  @override
+  visitProcedure(Procedure node) {
+    currentMember = node;
+    _staticTypeContext.enterMember(node);
+    super.visitProcedure(node);
+    _staticTypeContext.leaveMember(node);
+    currentMember = node;
+  }
+
+  @override
+  visitConstructor(Constructor node) {
+    currentMember = node;
+    _staticTypeContext.enterMember(node);
+    super.visitConstructor(node);
+    _staticTypeContext.leaveMember(node);
+    currentMember = null;
+  }
+
+  @override
+  defaultExpression(Expression node) {
+    try {
+      node.getStaticType(_staticTypeContext);
+    } catch (_) {
+      print('Error in $currentMember in ${currentMember?.fileUri}: '
+          '$node (${node.runtimeType})');
+      rethrow;
+    }
+    super.defaultExpression(node);
   }
 }
 

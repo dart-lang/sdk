@@ -6,12 +6,9 @@
 // and decisions which parts of the instruction to emit use the same
 // range information for instruction inputs.
 
-// VMOptions=--enable-inlining-annotations --optimization_counter_threshold=10 --no-use-osr --no-background-compilation
+// VMOptions=--optimization_counter_threshold=10 --no-use-osr --no-background-compilation
 
 import "package:expect/expect.dart";
-
-const alwaysInline = "AlwaysInline";
-const neverInline = "NeverInline";
 
 class Flag {
   var value;
@@ -20,14 +17,14 @@ class Flag {
   static final FLAG = new Flag(0);
 }
 
-@alwaysInline
+@pragma('vm:prefer-inline')
 void checkRange(bit) {
   if (bit < 0 || bit > 31) {
     throw "bit must be in [0, 31]";
   }
 }
 
-@alwaysInline
+@pragma('vm:prefer-inline')
 bool isSet(flags, bit) {
   checkRange(bit);
   // Note: > 0 here instead of == 0 to prevent merging into
@@ -35,7 +32,7 @@ bool isSet(flags, bit) {
   return (flags & (1 << bit)) > 0;
 }
 
-@neverInline
+@pragma('vm:never-inline')
 bool bug(flags) {
   var bit = Flag.FLAG.value;
   checkRange(bit);

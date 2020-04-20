@@ -14,36 +14,62 @@ num topLevelNum;
 double topLevelDouble;
 
 void test1() {
-  var /*@type=int*/ v1 = topLevelInt = getInt();
-  var /*@type=int*/ v4 = topLevelInt ??= getInt();
-  var /*@type=int*/ v7 = topLevelInt += getInt();
-  var /*@type=num*/ v8 = topLevelInt += getNum();
-  var /*@type=int*/ v10 = ++topLevelInt;
-  var /*@type=int*/ v11 = topLevelInt++;
+  var /*@ type=int* */ v1 = topLevelInt = getInt();
+
+  var /*@ type=int* */ v4 = topLevelInt /*@ target=num::== */ ??= getInt();
+
+  var /*@ type=int* */ v7 = topLevelInt /*@ target=num::+ */ += getInt();
+
+  var /*@ type=int* */ v10 = /*@ target=num::+ */ ++topLevelInt;
+
+  var /*@ type=int* */ v11 = /*@ type=int* */ topLevelInt
+      /*@ type=int* */ /*@ target=num::+ */ ++;
 }
 
 void test2() {
-  var /*@type=int*/ v1 = topLevelNum = getInt();
-  var /*@type=num*/ v2 = topLevelNum = getNum();
-  var /*@type=double*/ v3 = topLevelNum = getDouble();
-  var /*@type=num*/ v4 = topLevelNum ??= getInt();
-  var /*@type=num*/ v5 = topLevelNum ??= getNum();
-  var /*@type=num*/ v6 = topLevelNum ??= getDouble();
-  var /*@type=num*/ v7 = topLevelNum += getInt();
-  var /*@type=num*/ v8 = topLevelNum += getNum();
-  var /*@type=num*/ v9 = topLevelNum += getDouble();
-  var /*@type=num*/ v10 = ++topLevelNum;
-  var /*@type=num*/ v11 = topLevelNum++;
+  var /*@ type=int* */ v1 = topLevelNum = getInt();
+
+  var /*@ type=num* */ v2 = topLevelNum = getNum();
+
+  var /*@ type=double* */ v3 = topLevelNum = getDouble();
+
+  var /*@ type=num* */ v4 = topLevelNum /*@ target=num::== */ ??= getInt();
+
+  var /*@ type=num* */ v5 = topLevelNum /*@ target=num::== */ ??= getNum();
+
+  var /*@ type=num* */ v6 = topLevelNum /*@ target=num::== */ ??= getDouble();
+
+  var /*@ type=num* */ v7 = topLevelNum /*@ target=num::+ */ += getInt();
+
+  var /*@ type=num* */ v8 = topLevelNum /*@ target=num::+ */ += getNum();
+
+  var /*@ type=num* */ v9 = topLevelNum /*@ target=num::+ */ += getDouble();
+
+  var /*@ type=num* */ v10 = /*@ target=num::+ */ ++topLevelNum;
+
+  var /*@ type=num* */ v11 = /*@ type=num* */ topLevelNum
+      /*@ type=num* */ /*@ target=num::+ */ ++;
 }
 
 void test3() {
-  var /*@type=double*/ v3 = topLevelDouble = getDouble();
-  var /*@type=double*/ v6 = topLevelDouble ??= getDouble();
-  var /*@type=double*/ v7 = topLevelDouble += getInt();
-  var /*@type=double*/ v8 = topLevelDouble += getNum();
-  var /*@type=double*/ v9 = topLevelDouble += getDouble();
-  var /*@type=double*/ v10 = ++topLevelDouble;
-  var /*@type=double*/ v11 = topLevelDouble++;
+  var /*@ type=double* */ v3 = topLevelDouble = getDouble();
+
+  var /*@ type=double* */ v6 =
+      topLevelDouble /*@ target=num::== */ ??= getDouble();
+
+  var /*@ type=double* */ v7 =
+      topLevelDouble /*@ target=double::+ */ += getInt();
+
+  var /*@ type=double* */ v8 =
+      topLevelDouble /*@ target=double::+ */ += getNum();
+
+  var /*@ type=double* */ v9 =
+      topLevelDouble /*@ target=double::+ */ += getDouble();
+
+  var /*@ type=double* */ v10 = /*@ target=double::+ */ ++topLevelDouble;
+
+  var /*@ type=double* */ v11 = /*@ type=double* */ topLevelDouble
+      /*@ type=double* */ /*@ target=double::+ */ ++;
 }
 
 main() {}

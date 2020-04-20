@@ -6,19 +6,19 @@
 library test;
 
 class C<T> {
-  void set x(T /*@covariance=genericInterface, genericImpl*/ t) {}
-  T /*@covariance=genericInterface, genericImpl*/ y;
+  void set x(T t) {}
+  T y;
 }
 
 class D implements C<num> {
-  num /*@covariance=genericImpl*/ x;
-  num /*@covariance=genericImpl*/ y;
+  num x;
+  num y;
 }
 
 class E implements C<num> {
-  void set x(num /*@covariance=genericImpl*/ t) {}
+  void set x(num t) {}
   num get y => null;
-  void set y(num /*@covariance=genericImpl*/ t) {}
+  void set y(num t) {}
 }
 
 void main() {}

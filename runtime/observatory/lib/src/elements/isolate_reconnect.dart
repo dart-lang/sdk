@@ -15,7 +15,7 @@ import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class IsolateReconnectElement extends HtmlElement implements Renderable {
+class IsolateReconnectElement extends CustomElement implements Renderable {
   static const tag = const Tag<IsolateReconnectElement>('isolate-reconnect',
       dependencies: const [
         NavTopMenuElement.tag,
@@ -23,7 +23,7 @@ class IsolateReconnectElement extends HtmlElement implements Renderable {
         ViewFooterElement.tag
       ]);
 
-  RenderingScheduler _r;
+  RenderingScheduler<IsolateReconnectElement> _r;
 
   Stream<RenderedEvent<IsolateReconnectElement>> get onRendered =>
       _r.onRendered;
@@ -47,8 +47,8 @@ class IsolateReconnectElement extends HtmlElement implements Renderable {
     assert(missing != null);
     assert(uri != null);
     assert(notifications != null);
-    IsolateReconnectElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    IsolateReconnectElement e = new IsolateReconnectElement.created();
+    e._r = new RenderingScheduler<IsolateReconnectElement>(e, queue: queue);
     e._vm = vm;
     e._events = events;
     e._missing = missing;
@@ -57,7 +57,7 @@ class IsolateReconnectElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  IsolateReconnectElement.created() : super.created();
+  IsolateReconnectElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -72,32 +72,32 @@ class IsolateReconnectElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
     _subscription.cancel();
   }
 
   void render() {
-    children = [
-      navBar([
-        new NavTopMenuElement(queue: _r.queue),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+    children = <Element>[
+      navBar(<Element>[
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h1()..text = 'Isolate $_missing no longer exists',
           new HRElement(),
           new BRElement(),
           new DivElement()
             ..classes = ['memberList']
-            ..children = (_vm.isolates.map((isolate) {
-              final query = new Map.from(_uri.queryParameters);
+            ..children = (_vm.isolates.map<Element>((isolate) {
+              final query = new Map<String, dynamic>.from(_uri.queryParameters);
               query['isolateId'] = isolate.id;
               final href = new Uri(path: _uri.path, queryParameters: query);
               return new DivElement()
                 ..classes = ['memberItem', 'doubleSpaced']
-                ..children = [
+                ..children = <Element>[
                   new SpanElement()..text = 'Continue in ',
                   new AnchorElement(href: '#$href')
                     ..classes = ['isolate-link']
@@ -106,12 +106,12 @@ class IsolateReconnectElement extends HtmlElement implements Renderable {
             }).toList()
               ..add(new DivElement()
                 ..classes = ['memberItem', 'doubleSpaced']
-                ..children = [
+                ..children = <Element>[
                   new SpanElement()..text = 'Go to ',
                   new AnchorElement(href: Uris.vm())..text = 'isolates summary',
                 ]))
         ],
-      new ViewFooterElement(queue: _r.queue)
+      new ViewFooterElement(queue: _r.queue).element
     ];
   }
 }

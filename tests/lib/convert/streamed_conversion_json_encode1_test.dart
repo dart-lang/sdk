@@ -59,9 +59,9 @@ final TESTS = [
   [r'\foo', r'"\\foo"'],
 ];
 
-Stream<String> encode(Object o) {
+Stream<String> encode(Object? o) {
   var encoder = new JsonEncoder();
-  StreamController controller;
+  late StreamController controller;
   controller = new StreamController(onListen: () {
     controller.add(o);
     controller.close();
@@ -69,7 +69,7 @@ Stream<String> encode(Object o) {
   return controller.stream.transform(encoder);
 }
 
-void testNoPause(String expected, Object o) {
+void testNoPause(String expected, Object? o) {
   asyncStart();
   Stream stream = encode(o);
   stream.toList().then((list) {
@@ -80,14 +80,14 @@ void testNoPause(String expected, Object o) {
   });
 }
 
-void testWithPause(String expected, Object o) {
+void testWithPause(String expected, Object? o) {
   asyncStart();
   Stream stream = encode(o);
   StringBuffer buffer = new StringBuffer();
   var sub;
   sub = stream.listen((x) {
     buffer.write(x);
-    sub.pause(new Future.delayed(Duration.ZERO));
+    sub.pause(new Future.delayed(Duration.zero));
   }, onDone: () {
     Expect.stringEquals(expected, buffer.toString());
     asyncEnd();
@@ -97,7 +97,7 @@ void testWithPause(String expected, Object o) {
 void main() {
   for (var test in TESTS) {
     var o = test[0];
-    var expected = test[1];
+    var expected = test[1] as String;
     testNoPause(expected, o);
     testWithPause(expected, o);
   }

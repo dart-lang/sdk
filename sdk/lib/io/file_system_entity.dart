@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.io;
 
 /**
@@ -13,22 +15,34 @@ part of dart.io;
  */
 
 class FileSystemEntityType {
-  static const FILE = const FileSystemEntityType._internal(0);
-  static const DIRECTORY = const FileSystemEntityType._internal(1);
-  static const LINK = const FileSystemEntityType._internal(2);
-  static const NOT_FOUND = const FileSystemEntityType._internal(3);
+  static const file = const FileSystemEntityType._internal(0);
+  @Deprecated("Use file instead")
+  static const FILE = file;
+
+  static const directory = const FileSystemEntityType._internal(1);
+  @Deprecated("Use directory instead")
+  static const DIRECTORY = directory;
+
+  static const link = const FileSystemEntityType._internal(2);
+  @Deprecated("Use link instead")
+  static const LINK = link;
+
+  static const notFound = const FileSystemEntityType._internal(3);
+  @Deprecated("Use notFound instead")
+  static const NOT_FOUND = notFound;
+
   static const _typeList = const [
-    FileSystemEntityType.FILE,
-    FileSystemEntityType.DIRECTORY,
-    FileSystemEntityType.LINK,
-    FileSystemEntityType.NOT_FOUND
+    FileSystemEntityType.file,
+    FileSystemEntityType.directory,
+    FileSystemEntityType.link,
+    FileSystemEntityType.notFound,
   ];
   final int _type;
 
   const FileSystemEntityType._internal(this._type);
 
   static FileSystemEntityType _lookup(int type) => _typeList[type];
-  String toString() => const ['FILE', 'DIRECTORY', 'LINK', 'NOT_FOUND'][_type];
+  String toString() => const ['file', 'directory', 'link', 'notFound'][_type];
 }
 
 /**
@@ -38,14 +52,16 @@ class FileSystemEntityType {
  */
 class FileStat {
   // These must agree with enum FileStat in file.h.
-  static const _TYPE = 0;
-  static const _CHANGED_TIME = 1;
-  static const _MODIFIED_TIME = 2;
-  static const _ACCESSED_TIME = 3;
-  static const _MODE = 4;
-  static const _SIZE = 5;
+  static const _type = 0;
+  static const _changedTime = 1;
+  static const _modifiedTime = 2;
+  static const _accessedTime = 3;
+  static const _mode = 4;
+  static const _size = 5;
 
-  static const _notFound = const FileStat._internalNotFound();
+  static final _epoch = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+  static final _notFound = new FileStat._internal(
+      _epoch, _epoch, _epoch, FileSystemEntityType.notFound, 0, -1);
 
   /**
    * The time of the last change to the data or metadata of the file system
@@ -69,9 +85,9 @@ class FileStat {
   final DateTime accessed;
 
   /**
-   * The type of the object (file, directory, or link).
+   * The type of the underlying file system object.
    *
-   * If the call to stat() fails, the type of the returned object is NOT_FOUND.
+   * [FileSystemEntityType.notFound] if [stat] or [statSync] failed.
    */
   final FileSystemEntityType type;
 
@@ -91,22 +107,14 @@ class FileStat {
   FileStat._internal(this.changed, this.modified, this.accessed, this.type,
       this.mode, this.size);
 
-  const FileStat._internalNotFound()
-      : changed = null,
-        modified = null,
-        accessed = null,
-        type = FileSystemEntityType.NOT_FOUND,
-        mode = 0,
-        size = -1;
-
   external static _statSync(_Namespace namespace, String path);
 
   /**
-   * Calls the operating system's stat() function on [path].
+   * Calls the operating system's `stat()` function (or equivalent) on [path].
    *
-   * Returns a [FileStat] object containing the data returned by stat().
-   * If the call fails, returns a [FileStat] object with .type set to
-   * FileSystemEntityType.NOT_FOUND and the other fields invalid.
+   * Returns a [FileStat] object containing the data returned by `stat()`.
+   * If the call fails, returns a [FileStat] object with [FileStat.type] set to
+   * [FileSystemEntityType.notFound] and the other fields invalid.
    */
   static FileStat statSync(String path) {
     final IOOverrides overrides = IOOverrides.current;
@@ -124,21 +132,19 @@ class FileStat {
     var data = _statSync(_Namespace._namespace, path);
     if (data is OSError) return FileStat._notFound;
     return new FileStat._internal(
-        new DateTime.fromMillisecondsSinceEpoch(data[_CHANGED_TIME]),
-        new DateTime.fromMillisecondsSinceEpoch(data[_MODIFIED_TIME]),
-        new DateTime.fromMillisecondsSinceEpoch(data[_ACCESSED_TIME]),
-        FileSystemEntityType._lookup(data[_TYPE]),
-        data[_MODE],
-        data[_SIZE]);
+        new DateTime.fromMillisecondsSinceEpoch(data[_changedTime]),
+        new DateTime.fromMillisecondsSinceEpoch(data[_modifiedTime]),
+        new DateTime.fromMillisecondsSinceEpoch(data[_accessedTime]),
+        FileSystemEntityType._lookup(data[_type]),
+        data[_mode],
+        data[_size]);
   }
 
   /**
-   * Asynchronously calls the operating system's stat() function on [path].
+   * Asynchronously calls the operating system's `stat()` function (or
+   * equivalent) on [path].
    *
-   * Returns a Future which completes with a [FileStat] object containing
-   * the data returned by stat(). If the call fails, completes the future with a
-   * [FileStat] object with `.type` set to FileSystemEntityType.NOT_FOUND and
-   * the other fields invalid.
+   * Returns a [Future] which completes with the same results as [statSync].
    */
   static Future<FileStat> stat(String path) {
     final IOOverrides overrides = IOOverrides.current;
@@ -153,20 +159,20 @@ class FileStat {
     if (Platform.isWindows) {
       path = FileSystemEntity._trimTrailingPathSeparators(path);
     }
-    return _File
-        ._dispatchWithNamespace(_FILE_STAT, [null, path]).then((response) {
+    return _File._dispatchWithNamespace(_IOService.fileStat, [null, path])
+        .then((response) {
       if (_isErrorResponse(response)) {
         return FileStat._notFound;
       }
       // Unwrap the real list from the "I'm not an error" wrapper.
       List data = response[1];
       return new FileStat._internal(
-          new DateTime.fromMillisecondsSinceEpoch(data[_CHANGED_TIME]),
-          new DateTime.fromMillisecondsSinceEpoch(data[_MODIFIED_TIME]),
-          new DateTime.fromMillisecondsSinceEpoch(data[_ACCESSED_TIME]),
-          FileSystemEntityType._lookup(data[_TYPE]),
-          data[_MODE],
-          data[_SIZE]);
+          new DateTime.fromMillisecondsSinceEpoch(data[_changedTime]),
+          new DateTime.fromMillisecondsSinceEpoch(data[_modifiedTime]),
+          new DateTime.fromMillisecondsSinceEpoch(data[_accessedTime]),
+          FileSystemEntityType._lookup(data[_type]),
+          data[_mode],
+          data[_size]);
     });
   }
 
@@ -243,6 +249,9 @@ FileStat: type $type
  *   files and directories.
  */
 abstract class FileSystemEntity {
+  String _path;
+  Uint8List _rawPath;
+
   String get path;
 
   /**
@@ -339,7 +348,7 @@ abstract class FileSystemEntity {
    */
   Future<String> resolveSymbolicLinks() {
     return _File._dispatchWithNamespace(
-        _FILE_RESOLVE_SYMBOLIC_LINKS, [null, path]).then((response) {
+        _IOService.fileResolveSymbolicLinks, [null, _rawPath]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
             response, "Cannot resolve symbolic links", path);
@@ -378,7 +387,7 @@ abstract class FileSystemEntity {
    * behavior.
    */
   String resolveSymbolicLinksSync() {
-    var result = _resolveSymbolicLinks(_Namespace._namespace, path);
+    var result = _resolveSymbolicLinks(_Namespace._namespace, _rawPath);
     _throwIfError(result, "Cannot resolve symbolic links", path);
     return result;
   }
@@ -393,8 +402,8 @@ abstract class FileSystemEntity {
    * stat().
    *
    * If the call fails, completes the future with a [FileStat] object
-   * with .type set to
-   * FileSystemEntityType.NOT_FOUND and the other fields invalid.
+   * with `.type` set to [FileSystemEntityType.notFound] and the other fields
+   * invalid.
    */
   Future<FileStat> stat() => FileStat.stat(path);
 
@@ -406,8 +415,8 @@ abstract class FileSystemEntity {
    *
    * Returns a [FileStat] object containing the data returned by stat().
    *
-   * If the call fails, returns a [FileStat] object with .type set to
-   * FileSystemEntityType.NOT_FOUND and the other fields invalid.
+   * If the call fails, returns a [FileStat] object with `.type` set to
+   * [FileSystemEntityType.notFound] and the other fields invalid.
    */
   FileStat statSync() => FileStat.statSync(path);
 
@@ -473,7 +482,9 @@ abstract class FileSystemEntity {
    *
    *   * The [Stream] is canceled, e.g. by calling `cancel` on the
    *      [StreamSubscription].
-   *   * The [FileSystemEntity] being watches, is deleted.
+   *   * The [FileSystemEntity] being watched, is deleted.
+   *   * System Watcher exits unexpectedly. e.g. On `Windows` this happens when
+   *     buffer that receive events from `ReadDirectoryChangesW` overflows.
    *
    * Use `events` to specify what events to listen for. The constants in
    * [FileSystemEvent] can be or'ed together to mix events. Default is
@@ -482,7 +493,8 @@ abstract class FileSystemEntity {
    * A move event may be reported as seperate delete and create events.
    */
   Stream<FileSystemEvent> watch(
-      {int events: FileSystemEvent.ALL, bool recursive: false}) {
+      {int events: FileSystemEvent.all, bool recursive: false}) {
+    // FIXME(bkonyi): find a way to do this using the raw path.
     final String trimmedPath = _trimTrailingPathSeparators(path);
     final IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
@@ -496,7 +508,7 @@ abstract class FileSystemEntity {
 
   static Future<bool> _identical(String path1, String path2) {
     return _File._dispatchWithNamespace(
-        _FILE_IDENTICAL, [null, path1, path2]).then((response) {
+        _IOService.fileIdentical, [null, path1, path2]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
             "Error in FileSystemEntity.identical($path1, $path2)", "");
@@ -567,6 +579,22 @@ abstract class FileSystemEntity {
     }
   }
 
+  Uint8List get _rawAbsolutePath {
+    if (isAbsolute) return _rawPath;
+    var current = Directory.current._rawPath.toList();
+    assert(current.last == 0);
+    current.removeLast(); // Remove null terminator.
+    if ((current.last == '/'.codeUnitAt(0)) ||
+        (Platform.isWindows && (current.last == '\\'.codeUnitAt(0)))) {
+      current.addAll(_rawPath);
+      return new Uint8List.fromList(current);
+    } else {
+      current.addAll(utf8.encode(Platform.pathSeparator));
+      current.addAll(_rawPath);
+      return new Uint8List.fromList(current);
+    }
+  }
+
   static bool _identicalSync(String path1, String path2) {
     var result = _identicalNative(_Namespace._namespace, path1, path2);
     _throwIfError(result, 'Error in FileSystemEntity.identicalSync');
@@ -606,22 +634,45 @@ abstract class FileSystemEntity {
     return overrides.fsWatchIsSupported();
   }
 
+  // The native methods which determine type of the FileSystemEntity require
+  // that the buffer provided is null terminated.
+  static Uint8List _toUtf8Array(String s) =>
+      _toNullTerminatedUtf8Array(utf8.encode(s));
+
+  static Uint8List _toNullTerminatedUtf8Array(Uint8List l) {
+    if (l == null) {
+      return null;
+    }
+    if (l.isNotEmpty && l.last != 0) {
+      final tmp = new Uint8List(l.length + 1);
+      tmp.setRange(0, l.length, l);
+      return tmp;
+    } else {
+      return l;
+    }
+  }
+
+  static String _toStringFromUtf8Array(Uint8List l) {
+    if (l == null) {
+      return '';
+    }
+    Uint8List nonNullTerminated = l;
+    if (l.last == 0) {
+      nonNullTerminated =
+          new Uint8List.view(l.buffer, l.offsetInBytes, l.length - 1);
+    }
+    return utf8.decode(nonNullTerminated, allowMalformed: true);
+  }
+
   /**
    * Finds the type of file system object that a path points to.
    *
-   * Returns a [:Future<FileSystemEntityType>:] that completes with the result.
-   *
-   * [FileSystemEntityType] has the constant instances FILE, DIRECTORY,
-   * LINK, and NOT_FOUND.  [type] will return LINK only if the optional
-   * named argument [followLinks] is false, and [path] points to a link.
-   * If the path does not point to a file system object, or any other error
-   * occurs in looking up the path, NOT_FOUND is returned.  The only
-   * error or exception that may be put on the returned future is ArgumentError,
-   * caused by passing the wrong type of arguments to the function.
+   * Returns a [:Future<FileSystemEntityType>:] that completes with the same
+   * results as [typeSync].
    */
   static Future<FileSystemEntityType> type(String path,
       {bool followLinks: true}) {
-    return _getType(path, followLinks);
+    return _getType(_toUtf8Array(path), followLinks);
   }
 
   /**
@@ -629,62 +680,66 @@ abstract class FileSystemEntity {
    *
    * Returns a [FileSystemEntityType].
    *
-   * [FileSystemEntityType] has the constant instances FILE, DIRECTORY,
-   * LINK, and NOT_FOUND.  [type] will return LINK only if the optional
-   * named argument [followLinks] is false, and [path] points to a link.
-   * If the path does not point to a file system object, or any other error
-   * occurs in looking up the path, NOT_FOUND is returned.  The only
-   * error or exception that may be thrown is ArgumentError,
-   * caused by passing the wrong type of arguments to the function.
+   * Returns [FileSystemEntityType.link] only if [followLinks] is false and if
+   * [path] points to a link.
+   *
+   * Returns [FileSystemEntityType.notFound] if [path] does not point to a file
+   * system object or if any other error occurs in looking up the path.
    */
   static FileSystemEntityType typeSync(String path, {bool followLinks: true}) {
-    return _getTypeSync(path, followLinks);
+    return _getTypeSync(_toUtf8Array(path), followLinks);
   }
 
   /**
-   * Checks if type(path, followLinks: false) returns FileSystemEntityType.LINK.
+   * Checks if type(path, followLinks: false) returns FileSystemEntityType.link.
    */
-  static Future<bool> isLink(String path) =>
-      _getType(path, false).then((type) => (type == FileSystemEntityType.LINK));
+  static Future<bool> isLink(String path) => _isLinkRaw(_toUtf8Array(path));
+
+  static Future<bool> _isLinkRaw(Uint8List rawPath) => _getType(rawPath, false)
+      .then((type) => (type == FileSystemEntityType.link));
 
   /**
-   * Checks if type(path) returns FileSystemEntityType.FILE.
+   * Checks if type(path) returns FileSystemEntityType.file.
    */
-  static Future<bool> isFile(String path) =>
-      _getType(path, true).then((type) => (type == FileSystemEntityType.FILE));
+  static Future<bool> isFile(String path) => _getType(_toUtf8Array(path), true)
+      .then((type) => (type == FileSystemEntityType.file));
 
   /**
-   * Checks if type(path) returns FileSystemEntityType.DIRECTORY.
+   * Checks if type(path) returns FileSystemEntityType.directory.
    */
-  static Future<bool> isDirectory(String path) => _getType(path, true)
-      .then((type) => (type == FileSystemEntityType.DIRECTORY));
+  static Future<bool> isDirectory(String path) =>
+      _getType(_toUtf8Array(path), true)
+          .then((type) => (type == FileSystemEntityType.directory));
 
   /**
    * Synchronously checks if typeSync(path, followLinks: false) returns
-   * FileSystemEntityType.LINK.
+   * FileSystemEntityType.link.
    */
-  static bool isLinkSync(String path) =>
-      (_getTypeSync(path, false) == FileSystemEntityType.LINK);
+  static bool isLinkSync(String path) => _isLinkRawSync(_toUtf8Array(path));
+
+  static bool _isLinkRawSync(rawPath) =>
+      (_getTypeSync(rawPath, false) == FileSystemEntityType.link);
 
   /**
    * Synchronously checks if typeSync(path) returns
-   * FileSystemEntityType.FILE.
+   * FileSystemEntityType.file.
    */
   static bool isFileSync(String path) =>
-      (_getTypeSync(path, true) == FileSystemEntityType.FILE);
+      (_getTypeSync(_toUtf8Array(path), true) == FileSystemEntityType.file);
 
   /**
    * Synchronously checks if typeSync(path) returns
-   * FileSystemEntityType.DIRECTORY.
+   * FileSystemEntityType.directory.
    */
   static bool isDirectorySync(String path) =>
-      (_getTypeSync(path, true) == FileSystemEntityType.DIRECTORY);
+      (_getTypeSync(_toUtf8Array(path), true) ==
+          FileSystemEntityType.directory);
 
   external static _getTypeNative(
-      _Namespace namespace, String path, bool followLinks);
+      _Namespace namespace, Uint8List rawPath, bool followLinks);
   external static _identicalNative(
       _Namespace namespace, String path1, String path2);
-  external static _resolveSymbolicLinks(_Namespace namespace, String path);
+  external static _resolveSymbolicLinks(_Namespace namespace, Uint8List path);
 
   // Finds the next-to-last component when dividing at path separators.
   static final RegExp _parentRegExp = Platform.isWindows
@@ -730,37 +785,42 @@ abstract class FileSystemEntity {
   Directory get parent => new Directory(parentOf(path));
 
   static FileSystemEntityType _getTypeSyncHelper(
-      String path, bool followLinks) {
-    var result = _getTypeNative(_Namespace._namespace, path, followLinks);
+      Uint8List rawPath, bool followLinks) {
+    var result = _getTypeNative(_Namespace._namespace, rawPath, followLinks);
     _throwIfError(result, 'Error getting type of FileSystemEntity');
     return FileSystemEntityType._lookup(result);
   }
 
-  static FileSystemEntityType _getTypeSync(String path, bool followLinks) {
+  static FileSystemEntityType _getTypeSync(
+      Uint8List rawPath, bool followLinks) {
     IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
-      return _getTypeSyncHelper(path, followLinks);
+      return _getTypeSyncHelper(rawPath, followLinks);
     }
-    return overrides.fseGetTypeSync(path, followLinks);
+    return overrides.fseGetTypeSync(
+        utf8.decode(rawPath, allowMalformed: true), followLinks);
   }
 
   static Future<FileSystemEntityType> _getTypeRequest(
-      String path, bool followLinks) {
+      Uint8List rawPath, bool followLinks) {
     return _File._dispatchWithNamespace(
-        _FILE_TYPE, [null, path, followLinks]).then((response) {
+        _IOService.fileType, [null, rawPath, followLinks]).then((response) {
       if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response, "Error getting type", path);
+        throw _exceptionFromResponse(response, "Error getting type",
+            utf8.decode(rawPath, allowMalformed: true));
       }
       return FileSystemEntityType._lookup(response);
     });
   }
 
-  static Future<FileSystemEntityType> _getType(String path, bool followLinks) {
+  static Future<FileSystemEntityType> _getType(
+      Uint8List rawPath, bool followLinks) {
     IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
-      return _getTypeRequest(path, followLinks);
+      return _getTypeRequest(rawPath, followLinks);
     }
-    return overrides.fseGetType(path, followLinks);
+    return overrides.fseGetType(
+        utf8.decode(rawPath, allowMalformed: true), followLinks);
   }
 
   static _throwIfError(Object result, String msg, [String path]) {
@@ -771,9 +831,10 @@ abstract class FileSystemEntity {
     }
   }
 
+  // TODO(bkonyi): find a way to do this with raw paths.
   static String _trimTrailingPathSeparators(String path) {
     // Don't handle argument errors here.
-    if (path is! String) return path;
+    if (path == null) return path;
     if (Platform.isWindows) {
       while (path.length > 1 &&
           (path.endsWith(Platform.pathSeparator) || path.endsWith('/'))) {
@@ -787,9 +848,10 @@ abstract class FileSystemEntity {
     return path;
   }
 
+  // TODO(bkonyi): find a way to do this with raw paths.
   static String _ensureTrailingPathSeparators(String path) {
     // Don't handle argument errors here.
-    if (path is! String) return path;
+    if (path == null) return path;
     if (path.isEmpty) path = '.';
     if (Platform.isWindows) {
       while (!path.endsWith(Platform.pathSeparator) && !path.endsWith('/')) {
@@ -811,32 +873,42 @@ class FileSystemEvent {
   /**
    * Bitfield for [FileSystemEntity.watch], to enable [FileSystemCreateEvent]s.
    */
+  static const int create = 1 << 0;
+  @Deprecated("Use create instead")
   static const int CREATE = 1 << 0;
 
   /**
    * Bitfield for [FileSystemEntity.watch], to enable [FileSystemModifyEvent]s.
    */
+  static const int modify = 1 << 1;
+  @Deprecated("Use modify instead")
   static const int MODIFY = 1 << 1;
 
   /**
    * Bitfield for [FileSystemEntity.watch], to enable [FileSystemDeleteEvent]s.
    */
+  static const int delete = 1 << 2;
+  @Deprecated("Use delete instead")
   static const int DELETE = 1 << 2;
 
   /**
    * Bitfield for [FileSystemEntity.watch], to enable [FileSystemMoveEvent]s.
    */
+  static const int move = 1 << 3;
+  @Deprecated("Use move instead")
   static const int MOVE = 1 << 3;
 
   /**
-   * Bitfield for [FileSystemEntity.watch], for enabling all of [CREATE],
-   * [MODIFY], [DELETE] and [MOVE].
+   * Bitfield for [FileSystemEntity.watch], for enabling all of [create],
+   * [modify], [delete] and [move].
    */
-  static const int ALL = CREATE | MODIFY | DELETE | MOVE;
+  static const int all = create | modify | delete | move;
+  @Deprecated("Use all instead")
+  static const int ALL = create | modify | delete | move;
 
-  static const int _MODIFY_ATTRIBUTES = 1 << 4;
-  static const int _DELETE_SELF = 1 << 5;
-  static const int _IS_DIR = 1 << 6;
+  static const int _modifyAttributes = 1 << 4;
+  static const int _deleteSelf = 1 << 5;
+  static const int _isDir = 1 << 6;
 
   /**
    * The type of event. See [FileSystemEvent] for a list of events.
@@ -856,7 +928,7 @@ class FileSystemEvent {
    *
    * Note that if the file has been deleted by the time the event has arrived,
    * this will always be `false` on Windows. In particular, it will always be
-   * `false` for `DELETE` events.
+   * `false` for `delete` events.
    */
   final bool isDirectory;
 
@@ -868,7 +940,7 @@ class FileSystemEvent {
  */
 class FileSystemCreateEvent extends FileSystemEvent {
   FileSystemCreateEvent._(path, isDirectory)
-      : super._(FileSystemEvent.CREATE, path, isDirectory);
+      : super._(FileSystemEvent.create, path, isDirectory);
 
   String toString() => "FileSystemCreateEvent('$path')";
 }
@@ -884,7 +956,7 @@ class FileSystemModifyEvent extends FileSystemEvent {
   final bool contentChanged;
 
   FileSystemModifyEvent._(path, isDirectory, this.contentChanged)
-      : super._(FileSystemEvent.MODIFY, path, isDirectory);
+      : super._(FileSystemEvent.modify, path, isDirectory);
 
   String toString() =>
       "FileSystemModifyEvent('$path', contentChanged=$contentChanged)";
@@ -895,7 +967,7 @@ class FileSystemModifyEvent extends FileSystemEvent {
  */
 class FileSystemDeleteEvent extends FileSystemEvent {
   FileSystemDeleteEvent._(path, isDirectory)
-      : super._(FileSystemEvent.DELETE, path, isDirectory);
+      : super._(FileSystemEvent.delete, path, isDirectory);
 
   String toString() => "FileSystemDeleteEvent('$path')";
 }
@@ -911,7 +983,7 @@ class FileSystemMoveEvent extends FileSystemEvent {
   final String destination;
 
   FileSystemMoveEvent._(path, isDirectory, this.destination)
-      : super._(FileSystemEvent.MOVE, path, isDirectory);
+      : super._(FileSystemEvent.move, path, isDirectory);
 
   String toString() {
     var buffer = new StringBuffer();

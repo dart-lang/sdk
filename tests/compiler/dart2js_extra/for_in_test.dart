@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import "dart:collection";
 import "package:expect/expect.dart";
 
@@ -29,8 +31,8 @@ testIterator(List expect, Iterable input) {
 class MyIterable<T> extends IterableBase<T> {
   final List<T> values;
   MyIterable(List<T> values) : this.values = values;
-  Iterator get iterator {
-    return new MyListIterator(values);
+  Iterator<T> get iterator {
+    return new MyListIterator<T>(values);
   }
 }
 

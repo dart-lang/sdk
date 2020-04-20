@@ -6,13 +6,10 @@ library interactive_test;
 
 import 'dart:async';
 import 'dart:html';
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
+import 'package:expect/minitest.dart';
 import 'utils.dart';
 
 main() {
-  useHtmlIndividualConfiguration();
-
   group('KeyEvent', () {
     keydownHandlerTest(KeyEvent e) {
       document.body.innerHtml =

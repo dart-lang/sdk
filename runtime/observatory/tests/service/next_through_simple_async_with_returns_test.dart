@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--no-causal-async-stacks --lazy-async-stacks
+// VMOptions=--causal-async-stacks --no-lazy-async-stacks
+
 import 'test_helper.dart';
 import 'service_test_common.dart';
 import 'dart:io';
 
-const int LINE_A = 13;
+const int LINE_A = 16;
 const String file = "next_through_simple_async_with_returns_test.dart";
 
 // line A is at the "code() async" line
@@ -34,7 +37,7 @@ List<String> expected = [
   "$file:${LINE_A+4}:5" // on 'return'
 ];
 
-var tests = [
+var tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtLine(LINE_A),
   runStepThroughProgramRecordingStops(stops),

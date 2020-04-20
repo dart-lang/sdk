@@ -5,35 +5,48 @@
 #ifndef RUNTIME_VM_THREAD_H_
 #define RUNTIME_VM_THREAD_H_
 
+#if defined(SHOULD_NOT_INCLUDE_RUNTIME)
+#error "Should not include runtime"
+#endif
+
 #include "include/dart_api.h"
 #include "platform/assert.h"
-#include "vm/atomic.h"
+#include "platform/atomic.h"
+#include "platform/safe_stack.h"
 #include "vm/bitfield.h"
+#include "vm/compiler/runtime_api.h"
+#include "vm/constants.h"
 #include "vm/globals.h"
 #include "vm/handles.h"
+#include "vm/heap/pointer_block.h"
 #include "vm/os_thread.h"
+#include "vm/random.h"
 #include "vm/runtime_entry_list.h"
-#include "vm/store_buffer.h"
+#include "vm/thread_stack_resource.h"
+#include "vm/thread_state.h"
 namespace dart {
 
 class AbstractType;
 class ApiLocalScope;
 class Array;
-class CHA;
+class CompilerState;
 class Class;
 class Code;
-class CompilerStats;
+class Bytecode;
 class Error;
 class ExceptionHandlers;
 class Field;
+class FieldTable;
 class Function;
 class GrowableObjectArray;
 class HandleScope;
 class Heap;
+class HierarchyInfo;
 class Instance;
+class Interpreter;
 class Isolate;
+class IsolateGroup;
 class Library;
-class LongJumpScope;
 class Object;
 class OSThread;
 class JSONObject;
@@ -43,6 +56,7 @@ class RawObject;
 class RawCode;
 class RawError;
 class RawGrowableObjectArray;
+class RawObjectPool;
 class RawStackTrace;
 class RawString;
 class RuntimeEntry;
@@ -53,13 +67,21 @@ class String;
 class TimelineStream;
 class TypeArguments;
 class TypeParameter;
+class TypeUsageInfo;
 class Zone;
+
+namespace compiler {
+namespace target {
+class Thread;
+}  // namespace target
+}  // namespace compiler
 
 #define REUSABLE_HANDLE_LIST(V)                                                \
   V(AbstractType)                                                              \
   V(Array)                                                                     \
   V(Class)                                                                     \
   V(Code)                                                                      \
+  V(Bytecode)                                                                  \
   V(Error)                                                                     \
   V(ExceptionHandlers)                                                         \
   V(Field)                                                                     \
@@ -74,37 +96,72 @@ class Zone;
   V(TypeArguments)                                                             \
   V(TypeParameter)
 
-#if defined(TARGET_ARCH_DBC)
-#define CACHED_VM_STUBS_LIST(V)
-#else
 #define CACHED_VM_STUBS_LIST(V)                                                \
-  V(RawCode*, update_store_buffer_code_,                                       \
-    StubCode::UpdateStoreBuffer_entry()->code(), NULL)                         \
-  V(RawCode*, fix_callers_target_code_,                                        \
-    StubCode::FixCallersTarget_entry()->code(), NULL)                          \
-  V(RawCode*, fix_allocation_stub_code_,                                       \
-    StubCode::FixAllocationStubTarget_entry()->code(), NULL)                   \
-  V(RawCode*, invoke_dart_code_stub_,                                          \
-    StubCode::InvokeDartCode_entry()->code(), NULL)                            \
-  V(RawCode*, call_to_runtime_stub_, StubCode::CallToRuntime_entry()->code(),  \
+  V(RawCode*, write_barrier_code_, StubCode::WriteBarrier().raw(), NULL)       \
+  V(RawCode*, array_write_barrier_code_, StubCode::ArrayWriteBarrier().raw(),  \
     NULL)                                                                      \
-  V(RawCode*, monomorphic_miss_stub_,                                          \
-    StubCode::MonomorphicMiss_entry()->code(), NULL)                           \
-  V(RawCode*, ic_lookup_through_code_stub_,                                    \
-    StubCode::ICCallThroughCode_entry()->code(), NULL)                         \
+  V(RawCode*, fix_callers_target_code_, StubCode::FixCallersTarget().raw(),    \
+    NULL)                                                                      \
+  V(RawCode*, fix_allocation_stub_code_,                                       \
+    StubCode::FixAllocationStubTarget().raw(), NULL)                           \
+  V(RawCode*, invoke_dart_code_stub_, StubCode::InvokeDartCode().raw(), NULL)  \
+  V(RawCode*, invoke_dart_code_from_bytecode_stub_,                            \
+    StubCode::InvokeDartCodeFromBytecode().raw(), NULL)                        \
+  V(RawCode*, call_to_runtime_stub_, StubCode::CallToRuntime().raw(), NULL)    \
+  V(RawCode*, null_error_shared_without_fpu_regs_stub_,                        \
+    StubCode::NullErrorSharedWithoutFPURegs().raw(), NULL)                     \
+  V(RawCode*, null_error_shared_with_fpu_regs_stub_,                           \
+    StubCode::NullErrorSharedWithFPURegs().raw(), NULL)                        \
+  V(RawCode*, null_arg_error_shared_without_fpu_regs_stub_,                    \
+    StubCode::NullArgErrorSharedWithoutFPURegs().raw(), nullptr)               \
+  V(RawCode*, null_arg_error_shared_with_fpu_regs_stub_,                       \
+    StubCode::NullArgErrorSharedWithFPURegs().raw(), nullptr)                  \
+  V(RawCode*, range_error_shared_without_fpu_regs_stub_,                       \
+    StubCode::RangeErrorSharedWithoutFPURegs().raw(), nullptr)                 \
+  V(RawCode*, range_error_shared_with_fpu_regs_stub_,                          \
+    StubCode::RangeErrorSharedWithFPURegs().raw(), nullptr)                    \
+  V(RawCode*, allocate_mint_with_fpu_regs_stub_,                               \
+    StubCode::AllocateMintSharedWithFPURegs().raw(), NULL)                     \
+  V(RawCode*, allocate_mint_without_fpu_regs_stub_,                            \
+    StubCode::AllocateMintSharedWithoutFPURegs().raw(), NULL)                  \
+  V(RawCode*, allocate_object_stub_, StubCode::AllocateObject().raw(),         \
+    nullptr)                                                                   \
+  V(RawCode*, allocate_object_parameterized_stub_,                             \
+    StubCode::AllocateObjectParameterized().raw(), nullptr)                    \
+  V(RawCode*, allocate_object_slow_stub_,                                      \
+    StubCode::AllocateObjectSlow().raw(), nullptr)                             \
+  V(RawCode*, stack_overflow_shared_without_fpu_regs_stub_,                    \
+    StubCode::StackOverflowSharedWithoutFPURegs().raw(), NULL)                 \
+  V(RawCode*, stack_overflow_shared_with_fpu_regs_stub_,                       \
+    StubCode::StackOverflowSharedWithFPURegs().raw(), NULL)                    \
+  V(RawCode*, switchable_call_miss_stub_,                                      \
+    StubCode::SwitchableCallMiss().raw(), NULL)                                \
+  V(RawCode*, throw_stub_, StubCode::Throw().raw(), NULL)                      \
+  V(RawCode*, re_throw_stub_, StubCode::Throw().raw(), NULL)                   \
+  V(RawCode*, assert_boolean_stub_, StubCode::AssertBoolean().raw(), NULL)     \
+  V(RawCode*, optimize_stub_, StubCode::OptimizeFunction().raw(), NULL)        \
+  V(RawCode*, deoptimize_stub_, StubCode::Deoptimize().raw(), NULL)            \
   V(RawCode*, lazy_deopt_from_return_stub_,                                    \
-    StubCode::DeoptimizeLazyFromReturn_entry()->code(), NULL)                  \
+    StubCode::DeoptimizeLazyFromReturn().raw(), NULL)                          \
   V(RawCode*, lazy_deopt_from_throw_stub_,                                     \
-    StubCode::DeoptimizeLazyFromThrow_entry()->code(), NULL)
+    StubCode::DeoptimizeLazyFromThrow().raw(), NULL)                           \
+  V(RawCode*, slow_type_test_stub_, StubCode::SlowTypeTest().raw(), NULL)      \
+  V(RawCode*, lazy_specialize_type_test_stub_,                                 \
+    StubCode::LazySpecializeTypeTest().raw(), NULL)                            \
+  V(RawCode*, enter_safepoint_stub_, StubCode::EnterSafepoint().raw(), NULL)   \
+  V(RawCode*, exit_safepoint_stub_, StubCode::ExitSafepoint().raw(), NULL)     \
+  V(RawCode*, call_native_through_safepoint_stub_,                             \
+    StubCode::CallNativeThroughSafepoint().raw(), NULL)
 
-#endif
+#define CACHED_NON_VM_STUB_LIST(V)                                             \
+  V(RawObject*, object_null_, Object::null(), NULL)                            \
+  V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
+  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)
 
 // List of VM-global objects/addresses cached in each Thread object.
 // Important: constant false must immediately follow constant true.
 #define CACHED_VM_OBJECTS_LIST(V)                                              \
-  V(RawObject*, object_null_, Object::null(), NULL)                            \
-  V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
-  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)                   \
+  CACHED_NON_VM_STUB_LIST(V)                                                   \
   CACHED_VM_STUBS_LIST(V)
 
 // This assertion marks places which assume that boolean false immediate
@@ -113,29 +170,51 @@ class Zone;
   ASSERT((Thread::bool_true_offset() + kWordSize) ==                           \
          Thread::bool_false_offset());
 
-#if defined(TARGET_ARCH_DBC)
-#define CACHED_VM_STUBS_ADDRESSES_LIST(V)
-#else
 #define CACHED_VM_STUBS_ADDRESSES_LIST(V)                                      \
-  V(uword, update_store_buffer_entry_point_,                                   \
-    StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)                      \
+  V(uword, write_barrier_entry_point_, StubCode::WriteBarrier().EntryPoint(),  \
+    0)                                                                         \
+  V(uword, array_write_barrier_entry_point_,                                   \
+    StubCode::ArrayWriteBarrier().EntryPoint(), 0)                             \
   V(uword, call_to_runtime_entry_point_,                                       \
-    StubCode::CallToRuntime_entry()->EntryPoint(), 0)                          \
+    StubCode::CallToRuntime().EntryPoint(), 0)                                 \
+  V(uword, allocate_mint_with_fpu_regs_entry_point_,                           \
+    StubCode::AllocateMintSharedWithFPURegs().EntryPoint(), 0)                 \
+  V(uword, allocate_mint_without_fpu_regs_entry_point_,                        \
+    StubCode::AllocateMintSharedWithoutFPURegs().EntryPoint(), 0)              \
+  V(uword, allocate_object_entry_point_,                                       \
+    StubCode::AllocateObject().EntryPoint(), 0)                                \
+  V(uword, allocate_object_parameterized_entry_point_,                         \
+    StubCode::AllocateObjectParameterized().EntryPoint(), 0)                   \
+  V(uword, allocate_object_slow_entry_point_,                                  \
+    StubCode::AllocateObjectSlow().EntryPoint(), 0)                            \
+  V(uword, stack_overflow_shared_without_fpu_regs_entry_point_,                \
+    StubCode::StackOverflowSharedWithoutFPURegs().EntryPoint(), 0)             \
+  V(uword, stack_overflow_shared_with_fpu_regs_entry_point_,                   \
+    StubCode::StackOverflowSharedWithFPURegs().EntryPoint(), 0)                \
   V(uword, megamorphic_call_checked_entry_,                                    \
-    StubCode::MegamorphicCall_entry()->EntryPoint(), 0)                        \
-  V(uword, monomorphic_miss_entry_,                                            \
-    StubCode::MonomorphicMiss_entry()->EntryPoint(), 0)
-
-#endif
+    StubCode::MegamorphicCall().EntryPoint(), 0)                               \
+  V(uword, switchable_call_miss_entry_,                                        \
+    StubCode::SwitchableCallMiss().EntryPoint(), 0)                            \
+  V(uword, optimize_entry_, StubCode::OptimizeFunction().EntryPoint(), 0)      \
+  V(uword, deoptimize_entry_, StubCode::Deoptimize().EntryPoint(), 0)          \
+  V(uword, call_native_through_safepoint_entry_point_,                         \
+    StubCode::CallNativeThroughSafepoint().EntryPoint(), 0)                    \
+  V(uword, slow_type_test_entry_point_, StubCode::SlowTypeTest().EntryPoint(), \
+    0)
 
 #define CACHED_ADDRESSES_LIST(V)                                               \
   CACHED_VM_STUBS_ADDRESSES_LIST(V)                                            \
+  V(uword, bootstrap_native_wrapper_entry_point_,                              \
+    NativeEntry::BootstrapNativeCallWrapperEntry(), 0)                         \
   V(uword, no_scope_native_wrapper_entry_point_,                               \
     NativeEntry::NoScopeNativeCallWrapperEntry(), 0)                           \
   V(uword, auto_scope_native_wrapper_entry_point_,                             \
     NativeEntry::AutoScopeNativeCallWrapperEntry(), 0)                         \
+  V(uword, interpret_call_entry_point_, RuntimeEntry::InterpretCallEntry(), 0) \
   V(RawString**, predefined_symbols_address_, Symbols::PredefinedAddress(),    \
     NULL)                                                                      \
+  V(uword, double_nan_address_, reinterpret_cast<uword>(&double_nan_constant), \
+    0)                                                                         \
   V(uword, double_negate_address_,                                             \
     reinterpret_cast<uword>(&double_negate_constant), 0)                       \
   V(uword, double_abs_address_, reinterpret_cast<uword>(&double_abs_constant), \
@@ -153,20 +232,27 @@ class Zone;
   CACHED_VM_OBJECTS_LIST(V)                                                    \
   CACHED_ADDRESSES_LIST(V)
 
+enum class ValidationPolicy {
+  kValidateFrames = 0,
+  kDontValidateFrames = 1,
+};
+
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation. The Thread structure associated with
 // a thread is allocated by EnsureInit before entering an isolate, and destroyed
 // automatically when the underlying OS thread exits. NOTE: On Windows, CleanUp
 // must currently be called manually (issue 23474).
-class Thread : public BaseThread {
+class Thread : public ThreadState {
  public:
   // The kind of task this thread is performing. Sampled by the profiler.
   enum TaskKind {
     kUnknownTask = 0x0,
     kMutatorTask = 0x1,
     kCompilerTask = 0x2,
-    kSweeperTask = 0x4,
-    kMarkerTask = 0x8,
+    kMarkerTask = 0x4,
+    kSweeperTask = 0x8,
+    kCompactorTask = 0x10,
+    kScavengerTask = 0x20,
   };
   // Converts a TaskKind to its corresponding C-String name.
   static const char* TaskKindToCString(TaskKind kind);
@@ -175,11 +261,15 @@ class Thread : public BaseThread {
 
   // The currently executing thread, or NULL if not yet initialized.
   static Thread* Current() {
+#if defined(HAS_C11_THREAD_LOCAL)
+    return static_cast<Thread*>(OSThread::CurrentVMThread());
+#else
     BaseThread* thread = OSThread::GetCurrentTLS();
     if (thread == NULL || thread->is_os_thread()) {
       return NULL;
     }
-    return reinterpret_cast<Thread*>(thread);
+    return static_cast<Thread*>(thread);
+#endif
   }
 
   // Makes the current thread enter 'isolate'.
@@ -196,21 +286,22 @@ class Thread : public BaseThread {
                                    bool bypass_safepoint = false);
   static void ExitIsolateAsHelper(bool bypass_safepoint = false);
 
+  static bool EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
+                                        TaskKind kind,
+                                        bool bypass_safepoint);
+  static void ExitIsolateGroupAsHelper(bool bypass_safepoint);
+
   // Empties the store buffer block into the isolate.
-  void PrepareForGC();
+  void ReleaseStoreBuffer();
+  void AcquireMarkingStack();
+  void ReleaseMarkingStack();
 
   void SetStackLimit(uword value);
-  void SetStackLimitFromStackBase(uword stack_base);
   void ClearStackLimit();
 
-  // Returns the current C++ stack pointer. Equivalent taking the address of a
-  // stack allocated local, but plays well with AddressSanitizer and SafeStack.
-  // Accurate enough for stack overflow checks but not accurate enough for
-  // alignment checks.
-  static uword GetCurrentStackPointer();
-
-  // Access to the current stack limit for generated code.  This may be
-  // overwritten with a special value to trigger interrupts.
+  // Access to the current stack limit for generated code. Either the true OS
+  // thread's stack limit minus some headroom, or a special value to trigger
+  // interrupts.
   uword stack_limit_address() const {
     return reinterpret_cast<uword>(&stack_limit_);
   }
@@ -218,21 +309,31 @@ class Thread : public BaseThread {
     return OFFSET_OF(Thread, stack_limit_);
   }
 
-  // The true stack limit for this isolate.
+  // The true stack limit for this OS thread.
+  static intptr_t saved_stack_limit_offset() {
+    return OFFSET_OF(Thread, saved_stack_limit_);
+  }
   uword saved_stack_limit() const { return saved_stack_limit_; }
 
-#if defined(TARGET_ARCH_DBC)
-  // Access to the current stack limit for DBC interpreter.
-  uword stack_limit() const { return stack_limit_; }
+#if defined(USING_SAFE_STACK)
+  uword saved_safestack_limit() const { return saved_safestack_limit_; }
+  void set_saved_safestack_limit(uword limit) {
+    saved_safestack_limit_ = limit;
+  }
 #endif
+  static uword saved_shadow_call_stack_offset() {
+    return OFFSET_OF(Thread, saved_shadow_call_stack_);
+  }
 
   // Stack overflow flags
   enum {
     kOsrRequest = 0x1,  // Current stack overflow caused by OSR request.
   };
 
-  uword stack_overflow_flags_address() const {
-    return reinterpret_cast<uword>(&stack_overflow_flags_);
+  uword write_barrier_mask() const { return write_barrier_mask_; }
+
+  static intptr_t write_barrier_mask_offset() {
+    return OFFSET_OF(Thread, write_barrier_mask_);
   }
   static intptr_t stack_overflow_flags_offset() {
     return OFFSET_OF(Thread, stack_overflow_flags_);
@@ -240,6 +341,20 @@ class Thread : public BaseThread {
 
   int32_t IncrementAndGetStackOverflowCount() {
     return ++stack_overflow_count_;
+  }
+
+  static uword stack_overflow_shared_stub_entry_point_offset(bool fpu_regs) {
+    return fpu_regs
+               ? stack_overflow_shared_with_fpu_regs_entry_point_offset()
+               : stack_overflow_shared_without_fpu_regs_entry_point_offset();
+  }
+
+  static intptr_t safepoint_state_offset() {
+    return OFFSET_OF(Thread, safepoint_state_);
+  }
+
+  static intptr_t callback_code_offset() {
+    return OFFSET_OF(Thread, ffi_callback_code_);
   }
 
   TaskKind task_kind() const { return task_kind_; }
@@ -261,36 +376,12 @@ class Thread : public BaseThread {
   void ScheduleInterruptsLocked(uword interrupt_bits);
   RawError* HandleInterrupts();
   uword GetAndClearInterrupts();
-
-  // OSThread corresponding to this thread.
-  OSThread* os_thread() const { return os_thread_; }
-  void set_os_thread(OSThread* os_thread) { os_thread_ = os_thread; }
+  bool HasScheduledInterrupts() const {
+    return (stack_limit_ & kInterruptsMask) != 0;
+  }
 
   // Monitor corresponding to this thread.
-  Monitor* thread_lock() const { return thread_lock_; }
-
-  // The topmost zone used for allocation in this thread.
-  Zone* zone() const { return zone_; }
-
-  bool ZoneIsOwnedByThread(Zone* zone) const;
-
-  void IncrementMemoryCapacity(uintptr_t value) {
-    current_zone_capacity_ += value;
-    if (current_zone_capacity_ > zone_high_watermark_) {
-      zone_high_watermark_ = current_zone_capacity_;
-    }
-  }
-
-  void DecrementMemoryCapacity(uintptr_t value) {
-    ASSERT(current_zone_capacity_ >= value);
-    current_zone_capacity_ -= value;
-  }
-
-  uintptr_t current_zone_capacity() { return current_zone_capacity_; }
-
-  uintptr_t zone_high_watermark() const { return zone_high_watermark_; }
-
-  void ResetHighWatermark() { zone_high_watermark_ = current_zone_capacity_; }
+  Monitor* thread_lock() const { return &thread_lock_; }
 
   // The reusable api local scope for this thread.
   ApiLocalScope* api_reusable_scope() const { return api_reusable_scope_; }
@@ -304,9 +395,20 @@ class Thread : public BaseThread {
   ApiLocalScope* api_top_scope() const { return api_top_scope_; }
   void set_api_top_scope(ApiLocalScope* value) { api_top_scope_ = value; }
 
-  // The isolate that this thread is operating on, or NULL if none.
+  void EnterApiScope();
+  void ExitApiScope();
+
+  // The isolate that this thread is operating on, or nullptr if none.
   Isolate* isolate() const { return isolate_; }
   static intptr_t isolate_offset() { return OFFSET_OF(Thread, isolate_); }
+
+  // The isolate group that this thread is operating on, or nullptr if none.
+  IsolateGroup* isolate_group() const { return isolate_group_; }
+
+  static intptr_t field_table_values_offset() {
+    return OFFSET_OF(Thread, field_table_values_);
+  }
+
   bool IsMutatorThread() const;
   bool CanCollectGarbage() const;
 
@@ -321,16 +423,39 @@ class Thread : public BaseThread {
   // Has |this| exited Dart code?
   bool HasExitedDartCode() const;
 
-  // The (topmost) CHA for the compilation in this thread.
-  CHA* cha() const {
-    ASSERT(isolate_ != NULL);
-    return cha_;
+  CompilerState& compiler_state() {
+    ASSERT(compiler_state_ != nullptr);
+    return *compiler_state_;
   }
 
-  void set_cha(CHA* value) {
+  HierarchyInfo* hierarchy_info() const {
     ASSERT(isolate_ != NULL);
-    cha_ = value;
+    return hierarchy_info_;
   }
+
+  void set_hierarchy_info(HierarchyInfo* value) {
+    ASSERT(isolate_ != NULL);
+    ASSERT((hierarchy_info_ == NULL && value != NULL) ||
+           (hierarchy_info_ != NULL && value == NULL));
+    hierarchy_info_ = value;
+  }
+
+  TypeUsageInfo* type_usage_info() const {
+    ASSERT(isolate_ != NULL);
+    return type_usage_info_;
+  }
+
+  void set_type_usage_info(TypeUsageInfo* value) {
+    ASSERT(isolate_ != NULL);
+    ASSERT((type_usage_info_ == NULL && value != NULL) ||
+           (type_usage_info_ != NULL && value == NULL));
+    type_usage_info_ = value;
+  }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Interpreter* interpreter() const { return interpreter_; }
+  void set_interpreter(Interpreter* value) { interpreter_ = value; }
+#endif
 
   int32_t no_callback_scope_depth() const { return no_callback_scope_depth_; }
 
@@ -356,6 +481,15 @@ class Thread : public BaseThread {
     return OFFSET_OF(Thread, store_buffer_block_);
   }
 
+  bool is_marking() const { return marking_stack_block_ != NULL; }
+  void MarkingStackAddObject(RawObject* obj);
+  void DeferredMarkingStackAddObject(RawObject* obj);
+  void MarkingStackBlockProcess();
+  void DeferredMarkingStackBlockProcess();
+  static intptr_t marking_stack_block_offset() {
+    return OFFSET_OF(Thread, marking_stack_block_);
+  }
+
   uword top_exit_frame_info() const { return top_exit_frame_info_; }
   void set_top_exit_frame_info(uword top_exit_frame_info) {
     top_exit_frame_info_ = top_exit_frame_info;
@@ -364,66 +498,20 @@ class Thread : public BaseThread {
     return OFFSET_OF(Thread, top_exit_frame_info_);
   }
 
-  StackResource* top_resource() const { return top_resource_; }
-  void set_top_resource(StackResource* value) { top_resource_ = value; }
-  static intptr_t top_resource_offset() {
-    return OFFSET_OF(Thread, top_resource_);
-  }
-
   // Heap of the isolate that this thread is operating on.
   Heap* heap() const { return heap_; }
   static intptr_t heap_offset() { return OFFSET_OF(Thread, heap_); }
 
-  void set_top(uword value) {
-    ASSERT(heap_ != NULL);
-    top_ = value;
-  }
-  void set_end(uword value) {
-    ASSERT(heap_ != NULL);
-    end_ = value;
-  }
+  void set_top(uword value) { top_ = value; }
+  void set_end(uword value) { end_ = value; }
 
   uword top() { return top_; }
   uword end() { return end_; }
 
+  bool HasActiveTLAB() { return end_ > 0; }
+
   static intptr_t top_offset() { return OFFSET_OF(Thread, top_); }
   static intptr_t end_offset() { return OFFSET_OF(Thread, end_); }
-
-  int32_t no_handle_scope_depth() const {
-#if defined(DEBUG)
-    return no_handle_scope_depth_;
-#else
-    return 0;
-#endif
-  }
-
-  void IncrementNoHandleScopeDepth() {
-#if defined(DEBUG)
-    ASSERT(no_handle_scope_depth_ < INT_MAX);
-    no_handle_scope_depth_ += 1;
-#endif
-  }
-
-  void DecrementNoHandleScopeDepth() {
-#if defined(DEBUG)
-    ASSERT(no_handle_scope_depth_ > 0);
-    no_handle_scope_depth_ -= 1;
-#endif
-  }
-
-  HandleScope* top_handle_scope() const {
-#if defined(DEBUG)
-    return top_handle_scope_;
-#else
-    return 0;
-#endif
-  }
-
-  void set_top_handle_scope(HandleScope* handle_scope) {
-#if defined(DEBUG)
-    top_handle_scope_ = handle_scope;
-#endif
-  }
 
   int32_t no_safepoint_scope_depth() const {
 #if defined(DEBUG)
@@ -454,6 +542,34 @@ class Thread : public BaseThread {
   CACHED_CONSTANTS_LIST(DEFINE_OFFSET_METHOD)
 #undef DEFINE_OFFSET_METHOD
 
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
+    defined(TARGET_ARCH_X64)
+  static intptr_t write_barrier_wrappers_thread_offset(Register reg) {
+    ASSERT((kDartAvailableCpuRegs & (1 << reg)) != 0);
+    intptr_t index = 0;
+    for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+      if ((kDartAvailableCpuRegs & (1 << i)) == 0) continue;
+      if (i == reg) break;
+      ++index;
+    }
+    return OFFSET_OF(Thread, write_barrier_wrappers_entry_points_) +
+           index * sizeof(uword);
+  }
+
+  static intptr_t WriteBarrierWrappersOffsetForRegister(Register reg) {
+    intptr_t index = 0;
+    for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+      if ((kDartAvailableCpuRegs & (1 << i)) == 0) continue;
+      if (i == reg) {
+        return index * kStoreBufferWrapperSize;
+      }
+      ++index;
+    }
+    UNREACHABLE();
+    return 0;
+  }
+#endif
+
 #define DEFINE_OFFSET_METHOD(name)                                             \
   static intptr_t name##_entry_point_offset() {                                \
     return OFFSET_OF(Thread, name##_entry_point_);                             \
@@ -468,49 +584,52 @@ class Thread : public BaseThread {
   LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
 #undef DEFINE_OFFSET_METHOD
 
+  RawObjectPool* global_object_pool() const { return global_object_pool_; }
+  void set_global_object_pool(RawObjectPool* raw_value) {
+    global_object_pool_ = raw_value;
+  }
+
+  const uword* dispatch_table_array() const { return dispatch_table_array_; }
+  void set_dispatch_table_array(const uword* array) {
+    dispatch_table_array_ = array;
+  }
+
   static bool CanLoadFromThread(const Object& object);
   static intptr_t OffsetFromThread(const Object& object);
   static bool ObjectAtOffset(intptr_t offset, Object* object);
   static intptr_t OffsetFromThread(const RuntimeEntry* runtime_entry);
 
-  static const intptr_t kNoDeoptId = -1;
-  static const intptr_t kDeoptIdStep = 2;
-  static const intptr_t kDeoptIdBeforeOffset = 0;
-  static const intptr_t kDeoptIdAfterOffset = 1;
-  intptr_t deopt_id() const { return deopt_id_; }
-  void set_deopt_id(int value) {
-    ASSERT(value >= 0);
-    deopt_id_ = value;
-  }
-  intptr_t GetNextDeoptId() {
-    ASSERT(deopt_id_ != kNoDeoptId);
-    const intptr_t id = deopt_id_;
-    deopt_id_ += kDeoptIdStep;
-    return id;
-  }
-
-  static intptr_t ToDeoptAfter(intptr_t deopt_id) {
-    ASSERT(IsDeoptBefore(deopt_id));
-    return deopt_id + kDeoptIdAfterOffset;
-  }
-
-  static bool IsDeoptBefore(intptr_t deopt_id) {
-    return (deopt_id % kDeoptIdStep) == kDeoptIdBeforeOffset;
-  }
-
-  static bool IsDeoptAfter(intptr_t deopt_id) {
-    return (deopt_id % kDeoptIdStep) == kDeoptIdAfterOffset;
-  }
-
-  LongJumpScope* long_jump_base() const { return long_jump_base_; }
-  void set_long_jump_base(LongJumpScope* value) { long_jump_base_ = value; }
+#if defined(DEBUG)
+  // For asserts only. Has false positives when running with a simulator or
+  // SafeStack.
+  bool TopErrorHandlerIsSetJump() const;
+  bool TopErrorHandlerIsExitFrame() const;
+#endif
 
   uword vm_tag() const { return vm_tag_; }
   void set_vm_tag(uword tag) { vm_tag_ = tag; }
   static intptr_t vm_tag_offset() { return OFFSET_OF(Thread, vm_tag_); }
 
+  int64_t unboxed_int64_runtime_arg() const {
+    return unboxed_int64_runtime_arg_;
+  }
+  void set_unboxed_int64_runtime_arg(int64_t value) {
+    unboxed_int64_runtime_arg_ = value;
+  }
+  static intptr_t unboxed_int64_runtime_arg_offset() {
+    return OFFSET_OF(Thread, unboxed_int64_runtime_arg_);
+  }
+
   RawGrowableObjectArray* pending_functions();
   void clear_pending_functions();
+
+  static intptr_t global_object_pool_offset() {
+    return OFFSET_OF(Thread, global_object_pool_);
+  }
+
+  static intptr_t dispatch_table_array_offset() {
+    return OFFSET_OF(Thread, dispatch_table_array_);
+  }
 
   RawObject* active_exception() const { return active_exception_; }
   void set_active_exception(const Object& value);
@@ -530,8 +649,8 @@ class Thread : public BaseThread {
 
   RawError* sticky_error() const;
   void set_sticky_error(const Error& value);
-  void clear_sticky_error();
-  RawError* get_and_clear_sticky_error();
+  void ClearStickyError();
+  DART_WARN_UNUSED_RESULT RawError* StealStickyError();
 
   RawStackTrace* async_stack_trace() const;
   void set_async_stack_trace(const StackTrace& stack_trace);
@@ -540,8 +659,6 @@ class Thread : public BaseThread {
   static intptr_t async_stack_trace_offset() {
     return OFFSET_OF(Thread, async_stack_trace_);
   }
-
-  CompilerStats* compiler_stats() { return compiler_stats_; }
 
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
@@ -590,16 +707,13 @@ class Thread : public BaseThread {
    *   kThreadInNative - The thread is running native code.
    *   kThreadInBlockedState - The thread is blocked waiting for a resource.
    */
-  static intptr_t safepoint_state_offset() {
-    return OFFSET_OF(Thread, safepoint_state_);
-  }
-  static bool IsAtSafepoint(uint32_t state) {
+  static bool IsAtSafepoint(uword state) {
     return AtSafepointField::decode(state);
   }
   bool IsAtSafepoint() const {
     return AtSafepointField::decode(safepoint_state_);
   }
-  static uint32_t SetAtSafepoint(bool value, uint32_t state) {
+  static uword SetAtSafepoint(bool value, uword state) {
     return AtSafepointField::update(value, state);
   }
   void SetAtSafepoint(bool value) {
@@ -609,21 +723,22 @@ class Thread : public BaseThread {
   bool IsSafepointRequested() const {
     return SafepointRequestedField::decode(safepoint_state_);
   }
-  static uint32_t SetSafepointRequested(bool value, uint32_t state) {
+  static uword SetSafepointRequested(bool value, uword state) {
     return SafepointRequestedField::update(value, state);
   }
-  uint32_t SetSafepointRequested(bool value) {
+  uword SetSafepointRequested(bool value) {
     ASSERT(thread_lock()->IsOwnedByCurrentThread());
-    uint32_t old_state;
-    uint32_t new_state;
-    do {
-      old_state = safepoint_state_;
-      new_state = SafepointRequestedField::update(value, old_state);
-    } while (AtomicOperations::CompareAndSwapUint32(
-                 &safepoint_state_, old_state, new_state) != old_state);
-    return old_state;
+    if (value) {
+      // acquire pulls from the release in TryEnterSafepoint.
+      return safepoint_state_.fetch_or(SafepointRequestedField::encode(true),
+                                       std::memory_order_acquire);
+    } else {
+      // release pushes to the acquire in TryExitSafepoint.
+      return safepoint_state_.fetch_and(~SafepointRequestedField::encode(true),
+                                        std::memory_order_release);
+    }
   }
-  static bool IsBlockedForSafepoint(uint32_t state) {
+  static bool IsBlockedForSafepoint(uword state) {
     return BlockedForSafepointField::decode(state);
   }
   bool IsBlockedForSafepoint() const {
@@ -633,6 +748,12 @@ class Thread : public BaseThread {
     ASSERT(thread_lock()->IsOwnedByCurrentThread());
     safepoint_state_ =
         BlockedForSafepointField::update(value, safepoint_state_);
+  }
+  bool BypassSafepoints() const {
+    return BypassSafepointsField::decode(safepoint_state_);
+  }
+  static uword SetBypassSafepoints(bool value, uword state) {
+    return BypassSafepointsField::update(value, state);
   }
 
   enum ExecutionState {
@@ -645,33 +766,55 @@ class Thread : public BaseThread {
   ExecutionState execution_state() const {
     return static_cast<ExecutionState>(execution_state_);
   }
+  // Normally execution state is only accessed for the current thread.
+  NO_SANITIZE_THREAD
+  ExecutionState execution_state_cross_thread_for_testing() const {
+    return static_cast<ExecutionState>(execution_state_);
+  }
   void set_execution_state(ExecutionState state) {
-    execution_state_ = static_cast<uint32_t>(state);
+    execution_state_ = static_cast<uword>(state);
   }
   static intptr_t execution_state_offset() {
     return OFFSET_OF(Thread, execution_state_);
   }
 
+  virtual bool MayAllocateHandles() {
+    return (execution_state() == kThreadInVM) ||
+           (execution_state() == kThreadInGenerated);
+  }
+
+  static uword safepoint_state_unacquired() { return SetAtSafepoint(false, 0); }
+  static uword safepoint_state_acquired() { return SetAtSafepoint(true, 0); }
+
+  bool TryEnterSafepoint() {
+    uword old_state = 0;
+    uword new_state = SetAtSafepoint(true, 0);
+    return safepoint_state_.compare_exchange_strong(old_state, new_state,
+                                                    std::memory_order_release);
+  }
+
   void EnterSafepoint() {
+    ASSERT(no_safepoint_scope_depth() == 0);
     // First try a fast update of the thread state to indicate it is at a
     // safepoint.
-    uint32_t new_state = SetAtSafepoint(true, 0);
-    uword addr = reinterpret_cast<uword>(this) + safepoint_state_offset();
-    if (AtomicOperations::CompareAndSwapUint32(
-            reinterpret_cast<uint32_t*>(addr), 0, new_state) != 0) {
+    if (!TryEnterSafepoint()) {
       // Fast update failed which means we could potentially be in the middle
       // of a safepoint operation.
       EnterSafepointUsingLock();
     }
   }
 
+  bool TryExitSafepoint() {
+    uword old_state = SetAtSafepoint(true, 0);
+    uword new_state = 0;
+    return safepoint_state_.compare_exchange_strong(old_state, new_state,
+                                                    std::memory_order_acquire);
+  }
+
   void ExitSafepoint() {
     // First try a fast update of the thread state to indicate it is not at a
     // safepoint anymore.
-    uint32_t old_state = SetAtSafepoint(true, 0);
-    uword addr = reinterpret_cast<uword>(this) + safepoint_state_offset();
-    if (AtomicOperations::CompareAndSwapUint32(
-            reinterpret_cast<uint32_t*>(addr), old_state, 0) != old_state) {
+    if (!TryExitSafepoint()) {
       // Fast update failed which means we could potentially be in the middle
       // of a safepoint operation.
       ExitSafepointUsingLock();
@@ -679,27 +822,55 @@ class Thread : public BaseThread {
   }
 
   void CheckForSafepoint() {
+    ASSERT(no_safepoint_scope_depth() == 0);
     if (IsSafepointRequested()) {
       BlockForSafepoint();
     }
   }
 
+  int32_t AllocateFfiCallbackId();
+
+  // Store 'code' for the native callback identified by 'callback_id'.
+  //
+  // Expands the callback code array as necessary to accomodate the callback ID.
+  void SetFfiCallbackCode(int32_t callback_id, const Code& code);
+
+  // Ensure that 'callback_id' refers to a valid callback in this isolate.
+  //
+  // If "entry != 0", additionally checks that entry is inside the instructions
+  // of this callback.
+  //
+  // Aborts if any of these conditions fails.
+  void VerifyCallbackIsolate(int32_t callback_id, uword entry);
+
   Thread* next() const { return next_; }
 
   // Visit all object pointers.
-  void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
+  void VisitObjectPointers(ObjectPointerVisitor* visitor,
+                           ValidationPolicy validate_frames);
+  void RememberLiveTemporaries();
+  void DeferredMarkLiveTemporaries();
 
   bool IsValidHandle(Dart_Handle object) const;
   bool IsValidLocalHandle(Dart_Handle object) const;
   intptr_t CountLocalHandles() const;
-  bool IsValidZoneHandle(Dart_Handle object) const;
-  intptr_t CountZoneHandles() const;
-  bool IsValidScopedHandle(Dart_Handle object) const;
-  intptr_t CountScopedHandles() const;
   int ZoneSizeInBytes() const;
   void UnwindScopes(uword stack_marker);
 
   void InitVMConstants();
+
+  uint64_t GetRandomUInt64() { return thread_random_.NextUInt64(); }
+
+  uint64_t* GetFfiMarshalledArguments(intptr_t size) {
+    if (ffi_marshalled_arguments_size_ < size) {
+      if (ffi_marshalled_arguments_size_ > 0) {
+        free(ffi_marshalled_arguments_);
+      }
+      ffi_marshalled_arguments_ =
+          reinterpret_cast<uint64_t*>(malloc(size * sizeof(uint64_t)));
+    }
+    return ffi_marshalled_arguments_;
+  }
 
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream) const;
@@ -709,23 +880,51 @@ class Thread : public BaseThread {
   template <class T>
   T* AllocateReusableHandle();
 
+  enum class RestoreWriteBarrierInvariantOp {
+    kAddToRememberedSet,
+    kAddToDeferredMarkingStack
+  };
+  friend class RestoreWriteBarrierInvariantVisitor;
+  void RestoreWriteBarrierInvariant(RestoreWriteBarrierInvariantOp op);
+
+  // Set the current compiler state and return the previous compiler state.
+  CompilerState* SetCompilerState(CompilerState* state) {
+    CompilerState* previous = compiler_state_;
+    compiler_state_ = state;
+    return previous;
+  }
+
   // Accessed from generated code.
   // ** This block of fields must come first! **
   // For AOT cross-compilation, we rely on these members having the same offsets
   // in SIMARM(IA32) and ARM, and the same offsets in SIMARM64(X64) and ARM64.
   // We use only word-sized fields to avoid differences in struct packing on the
   // different architectures. See also CheckOffsets in dart.cc.
-  uword stack_limit_;
-  uword stack_overflow_flags_;
+  RelaxedAtomic<uword> stack_limit_;
+  uword write_barrier_mask_;
   Isolate* isolate_;
-  Heap* heap_;
+  const uword* dispatch_table_array_;
   uword top_;
   uword end_;
-  uword top_exit_frame_info_;
+  // Offsets up to this point can all fit in a byte on X64. All of the above
+  // fields are very abundantly accessed from code. Thus, keeping them first
+  // is important for code size (although code size on X64 is not a priority).
+  uword saved_stack_limit_;
+  uword stack_overflow_flags_;
+  RawInstance** field_table_values_;
+  Heap* heap_;
+  uword volatile top_exit_frame_info_;
   StoreBufferBlock* store_buffer_block_;
-  uword vm_tag_;
-  TaskKind task_kind_;
+  MarkingStackBlock* marking_stack_block_;
+  MarkingStackBlock* deferred_marking_stack_block_;
+  uword volatile vm_tag_;
   RawStackTrace* async_stack_trace_;
+  // Memory location dedicated for passing unboxed int64 values from
+  // generated code to runtime.
+  // TODO(dartbug.com/33549): Clean this up when unboxed values
+  // could be passed as arguments.
+  ALIGN8 int64_t unboxed_int64_runtime_arg_;
+
 // State that is cached in the TLS for fast access in generated code.
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
   type_name member_name;
@@ -740,42 +939,58 @@ class Thread : public BaseThread {
   LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #undef DECLARE_MEMBERS
 
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
+    defined(TARGET_ARCH_X64)
+  uword write_barrier_wrappers_entry_points_[kNumberOfDartAvailableCpuRegs];
+#endif
+
+  // JumpToExceptionHandler state:
+  RawObject* active_exception_;
+  RawObject* active_stacktrace_;
+  RawObjectPool* global_object_pool_;
+  uword resume_pc_;
+  uword saved_shadow_call_stack_ = 0;
+  uword execution_state_;
+  std::atomic<uword> safepoint_state_;
+  RawGrowableObjectArray* ffi_callback_code_;
+
+  // ---- End accessed from generated code. ----
+
+  // The layout of Thread object up to this point should not depend
+  // on DART_PRECOMPILED_RUNTIME, as it is accessed from generated code.
+  // The code is generated without DART_PRECOMPILED_RUNTIME, but used with
+  // DART_PRECOMPILED_RUNTIME.
+
+  TaskKind task_kind_;
   TimelineStream* dart_stream_;
-  OSThread* os_thread_;
-  Monitor* thread_lock_;
-  Zone* zone_;
-  uintptr_t current_zone_capacity_;
-  uintptr_t zone_high_watermark_;
+  IsolateGroup* isolate_group_ = nullptr;
+  mutable Monitor thread_lock_;
   ApiLocalScope* api_reusable_scope_;
   ApiLocalScope* api_top_scope_;
-  StackResource* top_resource_;
-  LongJumpScope* long_jump_base_;
   int32_t no_callback_scope_depth_;
 #if defined(DEBUG)
-  HandleScope* top_handle_scope_;
-  int32_t no_handle_scope_depth_;
   int32_t no_safepoint_scope_depth_;
 #endif
   VMHandles reusable_handles_;
-  uword saved_stack_limit_;
   intptr_t defer_oob_messages_count_;
   uint16_t deferred_interrupts_mask_;
   uint16_t deferred_interrupts_;
   int32_t stack_overflow_count_;
 
   // Compiler state:
-  CHA* cha_;
-  intptr_t deopt_id_;  // Compilation specific counter.
+  CompilerState* compiler_state_ = nullptr;
+  HierarchyInfo* hierarchy_info_;
+  TypeUsageInfo* type_usage_info_;
   RawGrowableObjectArray* pending_functions_;
-
-  // JumpToExceptionHandler state:
-  RawObject* active_exception_;
-  RawObject* active_stacktrace_;
-  uword resume_pc_;
 
   RawError* sticky_error_;
 
-  CompilerStats* compiler_stats_;
+  Random thread_random_;
+
+  intptr_t ffi_marshalled_arguments_size_ = 0;
+  uint64_t* ffi_marshalled_arguments_;
+
+  RawInstance** field_table_values() const { return field_table_values_; }
 
 // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object) object* object##_handle_;
@@ -789,30 +1004,43 @@ class Thread : public BaseThread {
 #undef REUSABLE_HANDLE_SCOPE_VARIABLE
 #endif  // defined(DEBUG)
 
-  class AtSafepointField : public BitField<uint32_t, bool, 0, 1> {};
-  class SafepointRequestedField : public BitField<uint32_t, bool, 1, 1> {};
-  class BlockedForSafepointField : public BitField<uint32_t, bool, 2, 1> {};
-  uint32_t safepoint_state_;
-  uint32_t execution_state_;
+  // Generated code assumes that AtSafepointField is the LSB.
+  class AtSafepointField : public BitField<uword, bool, 0, 1> {};
+  class SafepointRequestedField : public BitField<uword, bool, 1, 1> {};
+  class BlockedForSafepointField : public BitField<uword, bool, 2, 1> {};
+  class BypassSafepointsField : public BitField<uword, bool, 3, 1> {};
+
+#if defined(USING_SAFE_STACK)
+  uword saved_safestack_limit_;
+#endif
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Interpreter* interpreter_;
+#endif
 
   Thread* next_;  // Used to chain the thread structures in an isolate.
+  bool is_mutator_thread_ = false;
 
-  explicit Thread(Isolate* isolate);
+  explicit Thread(bool is_vm_isolate);
 
   void StoreBufferRelease(
       StoreBuffer::ThresholdPolicy policy = StoreBuffer::kCheckThreshold);
   void StoreBufferAcquire();
 
-  void set_zone(Zone* zone) { zone_ = zone; }
+  void MarkingStackRelease();
+  void MarkingStackAcquire();
+  void DeferredMarkingStackRelease();
+  void DeferredMarkingStackAcquire();
 
   void set_safepoint_state(uint32_t value) { safepoint_state_ = value; }
   void EnterSafepointUsingLock();
   void ExitSafepointUsingLock();
   void BlockForSafepoint();
 
-  static void SetCurrent(Thread* current) {
-    OSThread::SetCurrentTLS(reinterpret_cast<uword>(current));
-  }
+  void FinishEntering(TaskKind kind);
+  void PrepareLeaving();
+
+  static void SetCurrent(Thread* current) { OSThread::SetCurrentTLS(current); }
 
   void DeferOOBMessageInterrupts();
   void RestoreOOBMessageInterrupts();
@@ -823,13 +1051,22 @@ class Thread : public BaseThread {
 #undef REUSABLE_FRIEND_DECLARATION
 
   friend class ApiZone;
+  friend class Interpreter;
   friend class InterruptChecker;
   friend class Isolate;
+  friend class IsolateGroup;
   friend class IsolateTestHelper;
   friend class NoOOBMessageScope;
   friend class Simulator;
   friend class StackZone;
   friend class ThreadRegistry;
+  friend class NoActiveIsolateScope;
+  friend class CompilerState;
+  friend class compiler::target::Thread;
+  friend class FieldTable;
+  friend Isolate* CreateWithinExistingIsolateGroup(IsolateGroup*,
+                                                   const char*,
+                                                   char**);
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 
@@ -844,6 +1081,30 @@ class DisableThreadInterruptsScope : public StackResource {
   explicit DisableThreadInterruptsScope(Thread* thread);
   ~DisableThreadInterruptsScope();
 };
+
+// Within a NoSafepointScope, the thread must not reach any safepoint. Used
+// around code that manipulates raw object pointers directly without handles.
+#if defined(DEBUG)
+class NoSafepointScope : public ThreadStackResource {
+ public:
+  explicit NoSafepointScope(Thread* thread = nullptr)
+      : ThreadStackResource(thread != nullptr ? thread : Thread::Current()) {
+    this->thread()->IncrementNoSafepointScopeDepth();
+  }
+  ~NoSafepointScope() { thread()->DecrementNoSafepointScopeDepth(); }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
+};
+#else   // defined(DEBUG)
+class NoSafepointScope : public ValueObject {
+ public:
+  explicit NoSafepointScope(Thread* thread = nullptr) {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
+};
+#endif  // defined(DEBUG)
 
 }  // namespace dart
 

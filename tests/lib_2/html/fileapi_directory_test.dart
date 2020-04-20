@@ -3,8 +3,8 @@ library fileapi;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
+import 'package:async_helper/async_helper.dart';
+import 'package:async_helper/async_minitest.dart';
 
 class FileAndDir {
   FileEntry file;
@@ -14,29 +14,29 @@ class FileAndDir {
 
 FileSystem fs;
 
-main() {
-  useHtmlIndividualConfiguration();
-
-  getFileSystem() {
-    return window.requestFileSystem(100).then((FileSystem fileSystem) {
-      fs = fileSystem;
-    });
+main() async {
+  getFileSystem() async {
+    var fileSystem = await window.requestFileSystem(100);
+    fs = fileSystem;
   }
 
   if (FileSystem.supported) {
-    test('getFileSystem', getFileSystem);
+    await getFileSystem();
 
-    test('directoryDoesntExist', () {
-      return fs.root.getDirectory('directory2').catchError((error) {
-        expect(error.code, equals(FileError.NOT_FOUND_ERR));
-      }, test: (e) => e is FileError);
+    test('directoryDoesntExist', () async {
+      try {
+        await fs.root.getDirectory('directory2');
+      } catch (error) {
+        expect(true, error is DomException);
+        expect(DomException.NOT_FOUND, error.name);
+      }
     });
 
-    test('directoryCreate', () {
-      return fs.root.createDirectory('directory3').then((Entry e) {
-        expect(e.name, equals('directory3'));
-      });
+    test('directoryCreate', () async {
+      var entry = await fs.root.createDirectory('directory3');
+      expect(entry.name, equals('directory3'));
     });
   }
+
 }
 

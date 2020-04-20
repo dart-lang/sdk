@@ -1,0 +1,50 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method main() → dynamic {
+  core::int? lateLocal;
+  core::bool #lateLocal#isSet = false;
+  function #lateLocal#get() → core::int?
+    return #lateLocal#isSet ?{core::int?} lateLocal : throw new _in::LateInitializationErrorImpl::•("Local 'lateLocal' has not been initialized.");
+  function #lateLocal#set(core::int? #t1) → dynamic {
+    #lateLocal#isSet = true;
+    return lateLocal = #t1;
+  }
+  self::throws(() → core::int? => #lateLocal#get.call(), "Read value from uninitialized lateLocal");
+  self::expect(123, #lateLocal#set.call(123));
+  self::expect(123, #lateLocal#get.call());
+  function local<T extends core::Object? = dynamic>(T? value) → core::Null? {
+    T? lateGenericLocal;
+    core::bool #lateGenericLocal#isSet = false;
+    function #lateGenericLocal#get() → T?
+      return #lateGenericLocal#isSet ?{T?} lateGenericLocal : throw new _in::LateInitializationErrorImpl::•("Local 'lateGenericLocal' has not been initialized.");
+    function #lateGenericLocal#set(T? #t2) → dynamic {
+      #lateGenericLocal#isSet = true;
+      return lateGenericLocal = #t2;
+    }
+    self::throws(() → T? => #lateGenericLocal#get.call(), "Read value from uninitialized lateGenericLocal");
+    self::expect(value, #lateGenericLocal#set.call(value));
+    self::expect(value, #lateGenericLocal#get.call());
+  }
+  local.call<core::int?>(null);
+  local.call<core::int?>(0);
+  local.call<core::int>(null);
+  local.call<core::int>(0);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → dynamic f, core::String message) → dynamic {
+  dynamic value;
+  try {
+    value = f.call();
+  }
+  on core::LateInitializationError catch(final core::LateInitializationError e) {
+    core::print(e);
+    return;
+  }
+  throw "${message}: ${value}";
+}

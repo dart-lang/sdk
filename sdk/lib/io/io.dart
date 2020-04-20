@@ -2,23 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 /**
- * File, socket, HTTP, and other I/O support for server applications.
+ * File, socket, HTTP, and other I/O support for non-web applications.
  *
- * The I/O library is used for Dart server applications,
- * which run on a stand-alone Dart VM from the command line.
- * *This library does not work in browser-based applications.*
+ * **Important:** Browser-based applications can't use this library.
+ * Only servers, command-line scripts, and Flutter mobile apps can import
+ * and use dart:io.
  *
  * This library allows you to work with files, directories,
  * sockets, processes, HTTP servers and clients, and more.
+ * Many operations related to input and output are asynchronous
+ * and are handled using [Future]s or [Stream]s, both of which
+ * are defined in the [dart:async
+ * library](../dart-async/dart-async-library.html).
  *
- * To use this library in your code:
+ * To use the dart:io library in your code:
  *
  *     import 'dart:io';
  *
- * *Note:* Many operations related to input and output are asynchronous
- * and are handled using [Future]s or [Stream]s, both of which
- * are defined in the `dart:async` library.
+ * For an introduction to I/O in Dart, see the [dart:io library
+ * tour](https://www.dartlang.org/dart-vm/io-library-tour).
  *
  * ## File, Directory, and Link
  *
@@ -62,7 +67,7 @@
  * The [HttpServer] class provides the basic functionality for
  * implementing an HTTP server.
  * For some higher-level building-blocks, we recommend that you try
- * the [shelf](https://pub.dartlang.org/packages/shelf)
+ * the [shelf](https://pub.dev/packages/shelf)
  * pub package, which contains
  * a set of high-level classes that, together with the [HttpServer] class
  * in this library, make it easier to implement HTTP servers.
@@ -104,32 +109,27 @@
  * For example, here's a mini server that listens for 'ws' data
  * on a WebSocket:
  *
- *     runZoned(() {
- *       HttpServer.bind('127.0.0.1', 4040).then((server) {
- *         server.listen((HttpRequest req) {
- *           if (req.uri.path == '/ws') {
- *             WebSocketTransformer.upgrade(req).then((socket) {
- *               socket.listen(handleMsg);
- *             });
- *           }
- *         });
+ *     runZoned(() async {
+ *       var server = await HttpServer.bind('127.0.0.1', 4040);
+ *       server.listen((HttpRequest req) async {
+ *         if (req.uri.path == '/ws') {
+ *           var socket = await WebSocketTransformer.upgrade(req);
+ *           socket.listen(handleMsg);
+ *         }
  *       });
- *     },
- *     onError: (e) => print("An error occurred."));
+ *     }, onError: (e) => print("An error occurred."));
  *
  * The client connects to the WebSocket using the `connect()` method
  * and a URI that uses the Web Socket protocol.
  * The client can write to the WebSocket with the `add()` method.
  * For example,
  *
- *     WebSocket.connect('ws://127.0.0.1:4040/ws').then((socket) {
- *       socket.add('Hello, World!');
- *     });
+ *     var socket = await WebSocket.connect('ws://127.0.0.1:4040/ws');
+ *     socket.add('Hello, World!');
  *
  * Check out the
- * [dartiverse_search](https://github.com/dart-lang/sample-dartiverse-search)
- * sample for a client/server pair that uses
- * WebSockets to communicate.
+ * [websocket_sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/websockets/basics)
+ * app, which uses WebSockets to communicate with a server.
  *
  * ## Socket and ServerSocket
  *
@@ -141,7 +141,7 @@
  *     ServerSocket.bind('127.0.0.1', 4041)
  *       .then((serverSocket) {
  *         serverSocket.listen((socket) {
- *           socket.transform(UTF8.decoder).listen(print);
+ *           socket.transform(utf8.decoder).listen(print);
  *         });
  *       });
  *
@@ -183,27 +183,23 @@
  *
  *      String inputText = stdin.readLineSync();
  *
- * ## Other resources
- *
- * For an introduction to I/O in Dart, see the [dart:io section of the library
- * tour](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#dartio---io-for-command-line-apps).
- *
- * To learn more about I/O in Dart, refer to the [tutorial about writing
- * command-line apps](https://www.dartlang.org/docs/tutorials/cmdline/).
+ * {@category VM}
  */
 library dart.io;
 
 import 'dart:async';
 import 'dart:_internal' hide Symbol;
 import 'dart:collection'
-    show HashMap, HashSet, Queue, ListQueue, UnmodifiableMapView;
+    show HashMap, HashSet, Queue, ListQueue, MapBase, UnmodifiableMapView;
 import 'dart:convert';
 import 'dart:developer' hide log;
+import 'dart:_http' show HttpClient;
 import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
 
 export 'dart:_http';
+export 'dart:_internal' show HttpStatus;
 
 part 'bytes_builder.dart';
 part 'common.dart';
@@ -220,6 +216,7 @@ part 'io_sink.dart';
 part 'io_service.dart';
 part 'link.dart';
 part 'namespace_impl.dart';
+part 'network_profiling.dart';
 part 'overrides.dart';
 part 'platform.dart';
 part 'platform_impl.dart';

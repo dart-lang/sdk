@@ -1,8 +1,6 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.services.lint;
 
 import 'dart:collection';
 
@@ -12,7 +10,10 @@ import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
 /// Shared lint registry.
-LintRegistry lintRegistry = new LintRegistry();
+LintRegistry lintRegistry = LintRegistry();
+
+/// Current linter version.
+String linterVersion;
 
 /// Return lints associated with this [context], or an empty list if there are
 /// none.
@@ -22,7 +23,7 @@ List<Linter> getLints(AnalysisContext context) =>
 /// Associate these [lints] with the given [context].
 void setLints(AnalysisContext context, List<Linter> lints) {
   AnalysisOptionsImpl options =
-      new AnalysisOptionsImpl.from(context.analysisOptions);
+      AnalysisOptionsImpl.from(context.analysisOptions);
   options.lintRules = lints;
   context.analysisOptions = options;
 }
@@ -50,10 +51,10 @@ abstract class Linter {
 /// Manages lint timing.
 class LintRegistry {
   /// Dictionary mapping lints (by name) to timers.
-  final Map<String, Stopwatch> timers = new HashMap<String, Stopwatch>();
+  final Map<String, Stopwatch> timers = HashMap<String, Stopwatch>();
 
   /// Get a timer associated with the given lint rule (or create one if none
   /// exists).
   Stopwatch getTimer(Linter linter) =>
-      timers.putIfAbsent(linter.name, () => new Stopwatch());
+      timers.putIfAbsent(linter.name, () => Stopwatch());
 }

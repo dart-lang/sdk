@@ -11,10 +11,10 @@ class A {
   A(this.foo);
 
   bool operator ==(Object other) {
-    if (other is A && /*@promotedType=A*/ other
+    if (other is A && /*@ promotedType=A* */ other
             . /*@target=A::foo*/ foo /*@target=String::==*/ ==
         this. /*@target=A::foo*/ foo) {
-      if (/*@promotedType=A*/ other
+      if (/*@ promotedType=A* */ other
               . /*@target=A::foo*/ foo /*@target=String::==*/ ==
           this. /*@target=A::foo*/ foo) {}
     }

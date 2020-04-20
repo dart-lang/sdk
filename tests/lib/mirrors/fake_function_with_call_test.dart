@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library lib;
-
-@MirrorsUsed(targets: "lib")
 import "dart:mirrors";
 
 import "package:expect/expect.dart";
@@ -26,16 +23,14 @@ class WannabeFunction {
 main() {
   Expect.isTrue(new WannabeFunction() is Function);
 
-  ClosureMirror cm = reflect(new WannabeFunction());
+  ClosureMirror cm = reflect(new WannabeFunction()) as ClosureMirror;
   Expect.equals(7, cm.invoke(#call, [3, 4]).reflectee);
-  Expect.throws(() => cm.invoke(#call, [3]), (e) => e is NoSuchMethodError,
-      "Wrong arity");
+  Expect.throwsNoSuchMethodError(() => cm.invoke(#call, [3]), "Wrong arity");
   Expect.equals(49, cm.invoke(#method, [7]).reflectee);
-  Expect.throws(() => cm.invoke(#method, [3, 4]), (e) => e is NoSuchMethodError,
+  Expect.throwsNoSuchMethodError(() => cm.invoke(#method, [3, 4]),
       "Wrong arity");
   Expect.equals(7, cm.apply([3, 4]).reflectee);
-  Expect.throws(
-      () => cm.apply([3]), (e) => e is NoSuchMethodError, "Wrong arity");
+  Expect.throwsNoSuchMethodError(() => cm.apply([3]), "Wrong arity");
 
   MethodMirror mm = cm.function;
   Expect.equals(#call, mm.simpleName);
@@ -48,6 +43,6 @@ main() {
   ClassMirror km = cm.type;
   Expect.equals(reflectClass(WannabeFunction), km);
   Expect.equals(#WannabeFunction, km.simpleName);
-  Expect.equals(mm, km.declarations[#call]);
+  Expect.equals(mm.hashCode, km.declarations[#call].hashCode);
   Expect.setEquals([#call, #method], membersOf(km).keys);
 }

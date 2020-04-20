@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="27.846457 27.846457 426.19686 227.77166" width="426.19686" height="227.77166">
+  <defs>
+    <font-face font-family="Helvetica Neue" font-size="16" panose-1="2 0 5 3 0 0 0 2 0 4" units-per-em="1000" underline-position="-100" underline-thickness="50" slope="0" x-height="517" cap-height="714" ascent="951.9958" descent="-212.99744" font-weight="400">
+      <font-face-src>
+        <font-face-name name="HelveticaNeue"/>
+      </font-face-src>
+    </font-face>
+    <font-face font-family="Helvetica Neue" font-size="10" panose-1="2 0 5 3 0 0 0 2 0 4" units-per-em="1000" underline-position="-100" underline-thickness="50" slope="0" x-height="517" cap-height="714" ascent="951.9958" descent="-212.99744" font-weight="400">
+      <font-face-src>
+        <font-face-name name="HelveticaNeue"/>
+      </font-face-src>
+    </font-face>
+  </defs>
+  <metadata> Produced by OmniGraffle 7.9.4 
+    <dc:date>2019-03-13 09:56:08 +0000</dc:date>
+  </metadata>
+  <g id="Canvas_1" fill="none" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1">
+    <title>Canvas 1</title>
+    <rect fill="white" x="27.846457" y="27.846457" width="426.19686" height="227.77166"/>
+    <g id="Canvas_1: Layer 1">
+      <title>Layer 1</title>
+      <g id="Graphic_3">
+        <rect x="28.346457" y="85.03937" width="85.03937" height="141.73229" fill="white"/>
+        <rect x="28.346457" y="85.03937" width="85.03937" height="141.73229" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(33.346457 110.00952)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x="14.703685" y="15">Flutter </tspan>
+          <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x="22.847685" y="33.448">App</tspan>
+          <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x="8.031685" y="69.896">(Imports </tspan>
+          <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x="4.775685" y="88.34399">package)</tspan>
+        </text>
+      </g>
+      <g id="Graphic_5">
+        <rect x="368.50395" y="85.03937" width="85.03937" height="141.73229" fill="white"/>
+        <rect x="368.50395" y="85.03937" width="85.03937" height="141.73229" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(373.50395 137.45752)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x="14.855685" y="15">Native </tspan>
+          <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x="12.927685" y="33.448">Library</tspan>
+        </text>
+      </g>
+      <g id="Graphic_6">
+        <rect x="311.81103" y="85.03937" width="56.692915" height="141.73229" fill="white"/>
+        <rect x="311.81103" y="85.03937" width="56.692915" height="141.73229" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(316.81103 146.68152)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x=".5064575" y="15">dart:ffi</tspan>
+        </text>
+      </g>
+      <g id="Graphic_7">
+        <rect x="113.38583" y="85.03937" width="56.692915" height="141.73229" fill="white"/>
+        <rect x="113.38583" y="85.03937" width="56.692915" height="141.73229" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(118.38583 119.20552)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="10" font-weight="400" fill="black" x="3.9014575" y="10">Package </tspan>
+          <tspan font-family="Helvetica Neue" font-size="10" font-weight="400" fill="black" x="15.571457" y="22.28">API</tspan>
+          <tspan font-family="Helvetica Neue" font-size="10" font-weight="400" fill="black" x="1.8614575" y="46.56">(Does not </tspan>
+          <tspan font-family="Helvetica Neue" font-size="10" font-weight="400" fill="black" x="7.0514575" y="58.839996">expose </tspan>
+          <tspan font-family="Helvetica Neue" font-size="10" font-weight="400" fill="black" x="7.7764575" y="71.119995">dart:ffi)</tspan>
+        </text>
+      </g>
+      <g id="Graphic_8">
+        <rect x="28.346457" y="226.77166" width="311.81103" height="28.346457" fill="white"/>
+        <rect x="28.346457" y="226.77166" width="311.81103" height="28.346457" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(33.346457 231.7209)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x="135.79352" y="15">Dart</tspan>
+        </text>
+      </g>
+      <g id="Graphic_9">
+        <rect x="340.1575" y="226.77166" width="113.38583" height="28.346457" fill="white"/>
+        <rect x="340.1575" y="226.77166" width="113.38583" height="28.346457" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(345.1575 231.7209)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x="23.428915" y="15">C / C++</tspan>
+        </text>
+      </g>
+      <g id="Graphic_10">
+        <rect x="28.346457" y="28.346457" width="85.03937" height="56.692915" fill="white"/>
+        <rect x="28.346457" y="28.346457" width="85.03937" height="56.692915" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(33.346457 38.244917)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x="22.847685" y="15">App </tspan>
+          <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x="1.2236848" y="33.448">Developer</tspan>
+        </text>
+      </g>
+      <g id="Graphic_11">
+        <rect x="113.38583" y="28.346457" width="198.4252" height="56.692915" fill="white"/>
+        <rect x="113.38583" y="28.346457" width="198.4252" height="56.692915" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(118.38583 38.244917)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x="63.1006" y="15">Package</tspan>
+          <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x="57.9166" y="33.448">Developer</tspan>
+        </text>
+      </g>
+      <g id="Graphic_12">
+        <rect x="311.81103" y="28.346457" width="56.692915" height="56.692915" fill="white"/>
+        <rect x="311.81103" y="28.346457" width="56.692915" height="56.692915" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(316.81103 29.020918)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x="8.234457" y="15">Dart </tspan>
+          <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x="11.490457" y="33.448">VM </tspan>
+          <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x="4.2264575" y="51.895996">Team</tspan>
+        </text>
+      </g>
+      <g id="Graphic_13">
+        <rect x="255.11812" y="85.03937" width="56.692915" height="141.73229" fill="white"/>
+        <rect x="255.11812" y="85.03937" width="56.692915" height="141.73229" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(260.11812 149.76552)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="10" font-weight="400" fill="black" x="3.8064575" y="10">Bindings</tspan>
+        </text>
+      </g>
+      <g id="Graphic_14">
+        <rect x="368.50395" y="28.346457" width="85.03937" height="56.692915" fill="white"/>
+        <rect x="368.50395" y="28.346457" width="85.03937" height="56.692915" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(373.50395 29.020918)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x="14.855686" y="15">Native </tspan>
+          <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x="12.927686" y="33.448">Library </tspan>
+          <tspan font-family="Helvetica Neue" font-size="16" font-weight="400" fill="black" x="1.2236862" y="51.895996">Developer</tspan>
+        </text>
+      </g>
+      <g id="Graphic_15">
+        <rect x="170.07874" y="85.03937" width="85.03937" height="141.73229" fill="white"/>
+        <rect x="170.07874" y="85.03937" width="85.03937" height="141.73229" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(175.07874 106.92552)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="10" font-weight="400" fill="black" x="18.074685" y="10">Package </tspan>
+          <tspan font-family="Helvetica Neue" font-size="10" font-weight="400" fill="black" x="2.8746848" y="22.28">Implementation</tspan>
+          <tspan font-family="Helvetica Neue" font-size="10" font-weight="400" fill="black" x="9.559685" y="46.56">(Code which </tspan>
+          <tspan font-family="Helvetica Neue" font-size="10" font-weight="400" fill="black" x="7.259685" y="58.839996">converts C++ </tspan>
+          <tspan font-family="Helvetica Neue" font-size="10" font-weight="400" fill="black" x=".1996848" y="71.119995">abstractions into </tspan>
+          <tspan font-family="Helvetica Neue" font-size="10" font-weight="400" fill="black" x="28.074685" y="83.39999">Dart </tspan>
+          <tspan font-family="Helvetica Neue" font-size="10" font-weight="400" fill="black" x="8.629685" y="95.67999">abstractions)</tspan>
+        </text>
+      </g>
+    </g>
+  </g>
+</svg>

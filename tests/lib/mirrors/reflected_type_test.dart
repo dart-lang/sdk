@@ -4,7 +4,6 @@
 
 library test.reflected_type_test;
 
-@MirrorsUsed(targets: "test.reflected_type_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -13,7 +12,7 @@ class A<T> {}
 
 class B extends A {}
 
-class C extends A<num, int> {} // //# 01: static type warning
+class C extends A<num, int> {} // //# 01: compile-time error
 class D extends A<int> {}
 
 class E<S> extends A<S> {}
@@ -28,8 +27,7 @@ expectReflectedType(classMirror, expectedType) {
   if (expectedType == null) {
     Expect.isFalse(classMirror.hasReflectedType,
         "$classMirror should not have a reflected type");
-    Expect.throws(
-        () => classMirror.reflectedType, (e) => e is UnsupportedError);
+    Expect.throwsUnsupportedError(() => classMirror.reflectedType);
   } else {
     Expect.isTrue(classMirror.hasReflectedType,
         "$classMirror should have a reflected type");
@@ -68,11 +66,11 @@ main() {
   expectReflectedType(reflect(new H()).type, new H().runtimeType);
 
   expectReflectedType(reflect(new A<num>()).type, new A<num>().runtimeType);
-  expectReflectedType(reflect(new B<num>()).type.superclass, // //# 02: static type warning
+  expectReflectedType(reflect(new B<num>()).type.superclass, // //# 02: compile-time error
                       new A<dynamic>().runtimeType); //         //# 02: continued
   expectReflectedType(reflect(new C<num>()).type.superclass, // //# 01: continued
                       new A<dynamic>().runtimeType); //         //# 01: continued
-  expectReflectedType(reflect(new D<num>()).type.superclass, // //# 03: static type warning
+  expectReflectedType(reflect(new D<num>()).type.superclass, // //# 03: compile-time error
                       new A<int>().runtimeType); //             //# 03: continued
   expectReflectedType(reflect(new E<num>()).type, new E<num>().runtimeType);
   expectReflectedType(

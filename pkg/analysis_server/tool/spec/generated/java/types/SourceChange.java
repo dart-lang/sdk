@@ -1,17 +1,9 @@
 /*
- * Copyright (c) 2015, the Dart project authors.
+ * Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+ * for details. All rights reserved. Use of this source code is governed by a
+ * BSD-style license that can be found in the LICENSE file.
  *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
- *
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
- *
- * This file has been automatically generated.  Please do not edit it manually.
+ * This file has been automatically generated. Please do not edit it manually.
  * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
  */
 package org.dartlang.analysis.server.protocol;
@@ -64,13 +56,20 @@ public class SourceChange {
   private final Position selection;
 
   /**
+   * The optional identifier of the change kind. The identifier remains stable even if the message
+   * changes, or is parameterized.
+   */
+  private final String id;
+
+  /**
    * Constructor for {@link SourceChange}.
    */
-  public SourceChange(String message, List<SourceFileEdit> edits, List<LinkedEditGroup> linkedEditGroups, Position selection) {
+  public SourceChange(String message, List<SourceFileEdit> edits, List<LinkedEditGroup> linkedEditGroups, Position selection, String id) {
     this.message = message;
     this.edits = edits;
     this.linkedEditGroups = linkedEditGroups;
     this.selection = selection;
+    this.id = id;
   }
 
   @Override
@@ -81,7 +80,8 @@ public class SourceChange {
         ObjectUtilities.equals(other.message, message) &&
         ObjectUtilities.equals(other.edits, edits) &&
         ObjectUtilities.equals(other.linkedEditGroups, linkedEditGroups) &&
-        ObjectUtilities.equals(other.selection, selection);
+        ObjectUtilities.equals(other.selection, selection) &&
+        ObjectUtilities.equals(other.id, id);
     }
     return false;
   }
@@ -91,7 +91,8 @@ public class SourceChange {
     List<SourceFileEdit> edits = SourceFileEdit.fromJsonArray(jsonObject.get("edits").getAsJsonArray());
     List<LinkedEditGroup> linkedEditGroups = LinkedEditGroup.fromJsonArray(jsonObject.get("linkedEditGroups").getAsJsonArray());
     Position selection = jsonObject.get("selection") == null ? null : Position.fromJson(jsonObject.get("selection").getAsJsonObject());
-    return new SourceChange(message, edits, linkedEditGroups, selection);
+    String id = jsonObject.get("id") == null ? null : jsonObject.get("id").getAsString();
+    return new SourceChange(message, edits, linkedEditGroups, selection, id);
   }
 
   public static List<SourceChange> fromJsonArray(JsonArray jsonArray) {
@@ -111,6 +112,14 @@ public class SourceChange {
    */
   public List<SourceFileEdit> getEdits() {
     return edits;
+  }
+
+  /**
+   * The optional identifier of the change kind. The identifier remains stable even if the message
+   * changes, or is parameterized.
+   */
+  public String getId() {
+    return id;
   }
 
   /**
@@ -141,6 +150,7 @@ public class SourceChange {
     builder.append(edits);
     builder.append(linkedEditGroups);
     builder.append(selection);
+    builder.append(id);
     return builder.toHashCode();
   }
 
@@ -160,6 +170,9 @@ public class SourceChange {
     if (selection != null) {
       jsonObject.add("selection", selection.toJson());
     }
+    if (id != null) {
+      jsonObject.addProperty("id", id);
+    }
     return jsonObject;
   }
 
@@ -174,7 +187,9 @@ public class SourceChange {
     builder.append("linkedEditGroups=");
     builder.append(StringUtils.join(linkedEditGroups, ", ") + ", ");
     builder.append("selection=");
-    builder.append(selection);
+    builder.append(selection + ", ");
+    builder.append("id=");
+    builder.append(id);
     builder.append("]");
     return builder.toString();
   }

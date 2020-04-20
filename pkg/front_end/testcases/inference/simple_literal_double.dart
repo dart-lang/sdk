@@ -5,8 +5,8 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=double*/ a = 1.2;
+var a = 1.2;
 
 main() {
-  var /*@type=double*/ b = 3.4;
+  var /*@ type=double* */ b = 3.4;
 }

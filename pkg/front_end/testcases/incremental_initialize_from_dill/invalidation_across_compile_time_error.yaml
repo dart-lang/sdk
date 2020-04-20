@@ -1,0 +1,68 @@
+# Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application that's fine.
+# Invalidate a file that's been updated and fine (and would pull in another
+# library). Also invalidate another file that's been updated to produce a
+# compile time error.
+# Update again, fixing the error.
+# The invalidation of the good file should still apply, i.e. the new library
+# that it pulled in should be included.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "b.dart";
+        main() {
+          print("hello");
+          b();
+        }
+      b.dart: |
+        b() {
+          print("hello from b");
+        }
+      c.dart: |
+        c() {
+          print("hello from c");
+        }
+    expectedLibraryCount: 2
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    checkInvalidatedFiles: false
+    invalidate:
+      - b.dart
+      - main.dart
+    sources:
+      main.dart: |
+        import "b.dart";
+        import "nonexisting.dart";
+        main() {
+          print("hello");
+          b();
+        }
+      b.dart: |
+        import "c.dart";
+        b() {
+          print("hello from b");
+          c();
+        }
+    errors: true
+    expectedLibraryCount: 3
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    checkInvalidatedFiles: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import "b.dart";
+        main() {
+          print("hello");
+          b();
+        }
+    expectedLibraryCount: 3

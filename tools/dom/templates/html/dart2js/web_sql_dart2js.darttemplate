@@ -11,6 +11,8 @@
  * for more information.
  *
  * The [dart:indexed_db] APIs is a recommended alternatives.
+ *
+ * {@category Web}
  */
 library dart.dom.web_sql;
 
@@ -19,8 +21,8 @@ import 'dart:collection' hide LinkedList, LinkedListEntry;
 import 'dart:_internal' show FixedLengthListMixin;
 import 'dart:html';
 import 'dart:html_common';
-import 'dart:_js_helper' show convertDartClosureToJS, Creates, JSName, Native,
-    JavaScriptIndexingBehavior;
+import 'dart:_js_helper' show applyExtension, convertDartClosureToJS, Creates,
+    JSName, Native, JavaScriptIndexingBehavior, Returns;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show Interceptor;
 

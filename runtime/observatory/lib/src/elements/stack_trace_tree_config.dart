@@ -18,7 +18,7 @@ class StackTraceTreeConfigChangedEvent {
   StackTraceTreeConfigChangedEvent(this.element);
 }
 
-class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
+class StackTraceTreeConfigElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<StackTraceTreeConfigElement>('stack-trace-tree-config');
 
@@ -78,8 +78,8 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
     assert(mode != null);
     assert(direction != null);
     assert(filter != null);
-    StackTraceTreeConfigElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    StackTraceTreeConfigElement e = new StackTraceTreeConfigElement.created();
+    e._r = new RenderingScheduler<StackTraceTreeConfigElement>(e, queue: queue);
     e._showMode = showMode;
     e._showDirection = showDirection;
     e._showFilter = showFilter;
@@ -89,7 +89,7 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  StackTraceTreeConfigElement.created() : super.created();
+  StackTraceTreeConfigElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -105,15 +105,15 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = 'Tree display',
           new HRElement(),
           new DivElement()
             ..classes = ['row']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberList']
                 ..children = _createMembers()
@@ -127,7 +127,7 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
     if (_showMode) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'Mode',
@@ -139,7 +139,7 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
     if (_showDirection) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'Call Tree Direction',
@@ -151,7 +151,7 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
     if (showFilter) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'Call Tree Filter'

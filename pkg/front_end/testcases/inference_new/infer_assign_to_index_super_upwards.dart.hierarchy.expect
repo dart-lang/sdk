@@ -1,0 +1,247 @@
+Object:
+  superclasses:
+  interfaces:
+  classMembers:
+    Object._haveSameRuntimeType
+    Object.toString
+    Object.runtimeType
+    Object._toString
+    Object._simpleInstanceOf
+    Object._hashCodeRnd
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._objectHashCode
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+Base:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    Base.[]=
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Base.getValue
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Base.setValue
+    Base.[]
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+Test1:
+  superclasses:
+    Object
+      -> Base<int, int>
+  interfaces:
+  classMembers:
+    Base.[]=
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Base.getValue
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Base.setValue
+    Base.[]
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+    Test1.test
+  classSetters:
+
+Test2:
+  superclasses:
+    Object
+      -> Base<int, num>
+  interfaces:
+  classMembers:
+    Base.[]=
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Base.getValue
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Base.setValue
+    Base.[]
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+    Test2.test
+  classSetters:
+
+Test3:
+  superclasses:
+    Object
+      -> Base<int, double>
+  interfaces:
+  classMembers:
+    Base.[]=
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Base.getValue
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Base.setValue
+    Base.[]
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+    Test3.test
+  classSetters:
+
+Test4:
+  superclasses:
+    Object
+      -> Base<num, int>
+  interfaces:
+  classMembers:
+    Base.[]=
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Base.getValue
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Base.setValue
+    Base.[]
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+    Test4.test
+  classSetters:
+
+Test5:
+  superclasses:
+    Object
+      -> Base<num, num>
+  interfaces:
+  classMembers:
+    Base.[]=
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Base.getValue
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Base.setValue
+    Base.[]
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+    Test5.test
+  classSetters:
+
+Test6:
+  superclasses:
+    Object
+      -> Base<num, double>
+  interfaces:
+  classMembers:
+    Base.[]=
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Base.getValue
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Base.setValue
+    Base.[]
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+    Test6.test
+  classSetters:
+
+Test7:
+  superclasses:
+    Object
+      -> Base<double, int>
+  interfaces:
+  classMembers:
+    Base.[]=
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Base.getValue
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Base.setValue
+    Base.[]
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+    Test7.test
+  classSetters:
+
+Test8:
+  superclasses:
+    Object
+      -> Base<double, num>
+  interfaces:
+  classMembers:
+    Base.[]=
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Base.getValue
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Base.setValue
+    Base.[]
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+    Test8.test
+  classSetters:
+
+Test9:
+  superclasses:
+    Object
+      -> Base<double, double>
+  interfaces:
+  classMembers:
+    Base.[]=
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Base.getValue
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Base.setValue
+    Base.[]
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+    Test9.test
+  classSetters:

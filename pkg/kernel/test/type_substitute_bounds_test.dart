@@ -30,6 +30,7 @@ final List<TestCase> testCases = <TestCase>[
       '(<F>(String) => int) => int'),
   testCase('<E>((T) => int) => int', {'T': bound('_', 'String')},
       '<E>((String) => int) => int'),
+  testCase('(T?) =>* String', {'T': bound('int', 'int')}, '(int?) =>* String'),
 ];
 
 class TestCase {
@@ -72,9 +73,9 @@ main() {
         upperBounds[parameter] = environment.parse(bounds.upper);
         lowerBounds[parameter] = environment.parse(bounds.lower);
       });
-      var substituted = Substitution
-          .fromUpperAndLowerBounds(upperBounds, lowerBounds)
-          .substituteType(type);
+      var substituted =
+          Substitution.fromUpperAndLowerBounds(upperBounds, lowerBounds)
+              .substituteType(type);
       var expected = environment.parse(testCase.expected);
       if (substituted != expected) {
         fail('Expected `$expected` but got `$substituted`');

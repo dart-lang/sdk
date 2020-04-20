@@ -203,9 +203,9 @@ testTypedListFromTypedList() {
 testTypedListView() {
   var l = [1.0, 2.0, 3.0, 4.0];
   Expect.equals(4, l.length);
-  l = new Float64List.fromList(l);
-  Expect.equals(4, l.length);
-  var m = new Float64x2List.view(l.buffer);
+  var fl = new Float64List.fromList(l);
+  Expect.equals(4, fl.length);
+  var m = new Float64x2List.view(fl.buffer);
   Expect.equals(2, m.length);
   Expect.equals(1.0, m[0].x);
   Expect.equals(2.0, m[0].y);

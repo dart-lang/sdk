@@ -7,8 +7,8 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
 import "dart:io";
+import "package:expect/expect.dart";
 
 void main() {
   final int REQUEST_COUNT = 100;

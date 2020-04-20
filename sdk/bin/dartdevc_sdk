@@ -20,12 +20,19 @@ PROG_NAME="$(follow_links "$BASH_SOURCE")"
 
 # Handle the case where dart-sdk/bin has been symlinked to.
 BIN_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
-SDK_DIR="$(cd "${BIN_DIR}/.." ; pwd -P)"
-
-SDK_ARG="--dart-sdk=$SDK_DIR"
 
 SNAPSHOT="$BIN_DIR/snapshots/dartdevc.dart.snapshot"
 
 # We are running the snapshot in the built SDK.
 DART="$BIN_DIR/dart"
-exec "$DART" "$SNAPSHOT" "$SDK_ARG" "$@"
+
+unset EXTRA_VM_OPTIONS
+declare -a EXTRA_VM_OPTIONS
+
+# We allow extra vm options to be passed in through an environment variable.
+if [[ $DART_VM_OPTIONS ]]; then
+  read -a OPTIONS <<< "$DART_VM_OPTIONS"
+  EXTRA_VM_OPTIONS+=("${OPTIONS[@]}")
+fi
+
+exec "$DART" "${EXTRA_VM_OPTIONS[@]}" "$SNAPSHOT" "$@"

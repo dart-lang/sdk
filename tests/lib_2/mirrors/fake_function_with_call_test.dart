@@ -23,7 +23,7 @@ class WannabeFunction {
 main() {
   Expect.isTrue(new WannabeFunction() is Function);
 
-  ClosureMirror cm = reflect(new WannabeFunction());
+  ClosureMirror cm = reflect(new WannabeFunction()) as ClosureMirror;
   Expect.equals(7, cm.invoke(#call, [3, 4]).reflectee);
   Expect.throwsNoSuchMethodError(() => cm.invoke(#call, [3]), "Wrong arity");
   Expect.equals(49, cm.invoke(#method, [7]).reflectee);

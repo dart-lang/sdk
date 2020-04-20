@@ -4,12 +4,10 @@
 
 import 'dart:html';
 import 'dart:async';
-import 'package:charted/charted.dart';
-import "package:charted/charts/charts.dart";
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 
-class IsolateCounterChartElement extends HtmlElement implements Renderable {
+class IsolateCounterChartElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<IsolateCounterChartElement>('isolate-counter-chart');
 
@@ -23,13 +21,13 @@ class IsolateCounterChartElement extends HtmlElement implements Renderable {
 
   factory IsolateCounterChartElement(Map counters, {RenderingQueue queue}) {
     assert(counters != null);
-    IsolateCounterChartElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    IsolateCounterChartElement e = new IsolateCounterChartElement.created();
+    e._r = new RenderingScheduler<IsolateCounterChartElement>(e, queue: queue);
     e._counters = counters;
     return e;
   }
 
-  IsolateCounterChartElement.created() : super.created();
+  IsolateCounterChartElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -41,39 +39,30 @@ class IsolateCounterChartElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
     _subscription.cancel();
   }
 
-  static final _columns = [
-    new ChartColumnSpec(label: 'Type', type: ChartColumnSpec.TYPE_STRING),
-    new ChartColumnSpec(label: 'Percent', formatter: (v) => v.toString())
-  ];
-
   void render() {
-    final _series = [
-      new ChartSeries(
-          "Work", const [1], new PieChartRenderer(sortDataByValue: false))
-    ];
-    final areaHost = new DivElement()..classes = ['host'];
-    final legendHost = new DivElement()..classes = ['legend'];
-    children = [areaHost, legendHost];
-    final rect = areaHost.getBoundingClientRect();
-    final minSize = new Rect.size(rect.width, rect.height);
-    final config = new ChartConfig(_series, const [0])
-      ..minimumSize = minSize
-      ..legend = new ChartLegend(legendHost, showValues: true);
-    final data = new ChartData(
-        _columns,
-        _counters.keys
-            .map((key) => [key, double.parse(_counters[key].split('%')[0])])
-            .toList());
+    var members = <Element>[];
+    _counters.forEach((key, value) {
+      members.add(new DivElement()
+        ..classes = ['memberItem']
+        ..children = <Element>[
+          new DivElement()
+            ..classes = ['memberName']
+            ..text = key,
+          new DivElement()
+            ..classes = ['memberValue']
+            ..text = value,
+        ]);
+    });
 
-    new LayoutArea(areaHost, data, config,
-        state: new ChartState(), autoUpdate: false)
-      ..addChartBehavior(new Hovercard())
-      ..addChartBehavior(new AxisLabelTooltip())
-      ..draw();
+    children = <Element>[
+      new DivElement()
+        ..classes = ['memberList']
+        ..children = members
+    ];
   }
 }

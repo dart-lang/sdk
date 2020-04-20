@@ -19,7 +19,7 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class SubtypeTestCacheViewElement extends HtmlElement implements Renderable {
+class SubtypeTestCacheViewElement extends CustomElement implements Renderable {
   static const tag = const Tag<SubtypeTestCacheViewElement>(
       'subtypetestcache-view',
       dependencies: const [
@@ -79,8 +79,8 @@ class SubtypeTestCacheViewElement extends HtmlElement implements Renderable {
     assert(references != null);
     assert(retainingPaths != null);
     assert(objects != null);
-    SubtypeTestCacheViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    SubtypeTestCacheViewElement e = new SubtypeTestCacheViewElement.created();
+    e._r = new RenderingScheduler<SubtypeTestCacheViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -95,7 +95,7 @@ class SubtypeTestCacheViewElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  SubtypeTestCacheViewElement.created() : super.created();
+  SubtypeTestCacheViewElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -107,52 +107,54 @@ class SubtypeTestCacheViewElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
-      navBar([
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+    children = <Element>[
+      navBar(<Element>[
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
         navMenu('subtypeTestCache'),
-        new NavRefreshElement(queue: _r.queue)
-          ..onRefresh.listen((e) async {
-            e.element.disabled = true;
-            _subtypeTestCache =
-                await _subtypeTestCaches.get(_isolate, _subtypeTestCache.id);
-            _r.dirty();
-          }),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        (new NavRefreshElement(queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                _subtypeTestCache = await _subtypeTestCaches.get(
+                    _isolate, _subtypeTestCache.id);
+                _r.dirty();
+              }))
+            .element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = 'SubtypeTestCache',
           new HRElement(),
           new ObjectCommonElement(_isolate, _subtypeTestCache, _retainedSizes,
-              _reachableSizes, _references, _retainingPaths, _objects,
-              queue: _r.queue),
+                  _reachableSizes, _references, _retainingPaths, _objects,
+                  queue: _r.queue)
+              .element,
           new DivElement()
             ..classes = ['memberList']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'cache',
                   new DivElement()
                     ..classes = ['memberName']
-                    ..children = [
+                    ..children = <Element>[
                       anyRef(_isolate, _subtypeTestCache.cache, _objects,
                           queue: _r.queue)
                     ]
                 ]
             ],
           new HRElement(),
-          new ViewFooterElement(queue: _r.queue)
+          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }

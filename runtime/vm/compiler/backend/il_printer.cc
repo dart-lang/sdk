@@ -2,73 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/backend/il_printer.h"
 
+#include "vm/compiler/api/print_filter.h"
 #include "vm/compiler/backend/il.h"
+#include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/range_analysis.h"
+#include "vm/compiler/ffi/native_calling_convention.h"
 #include "vm/os.h"
 #include "vm/parser.h"
 
 namespace dart {
 
-#ifndef PRODUCT
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 DEFINE_FLAG(bool,
             display_sorted_ic_data,
             false,
             "Calls display a unary, sorted-by count form of ICData");
 DEFINE_FLAG(bool, print_environments, false, "Print SSA environments.");
-DEFINE_FLAG(charp,
-            print_flow_graph_filter,
-            NULL,
-            "Print only IR of functions with matching names");
 
 DECLARE_FLAG(bool, trace_inlining_intervals);
 
-// Checks whether function's name matches the given filter, which is
-// a comma-separated list of strings.
-bool FlowGraphPrinter::PassesFilter(const char* filter,
-                                    const Function& function) {
-  if (filter == NULL) {
-    return true;
-  }
-
-  char* save_ptr;  // Needed for strtok_r.
-  const char* function_name = function.ToFullyQualifiedCString();
-  intptr_t function_name_len = strlen(function_name);
-
-  intptr_t len = strlen(filter) + 1;  // Length with \0.
-  char* filter_buffer = new char[len];
-  strncpy(filter_buffer, filter, len);  // strtok modifies arg 1.
-  char* token = strtok_r(filter_buffer, ",", &save_ptr);
-  bool found = false;
-  while (token != NULL) {
-    if (strstr(function_name, token) != NULL) {
-      found = true;
-      break;
-    }
-    const intptr_t token_len = strlen(token);
-    if (token[token_len - 1] == '%') {
-      if (function_name_len > token_len) {
-        const char* suffix =
-            function_name + (function_name_len - token_len + 1);
-        if (strncmp(suffix, token, token_len - 1) == 0) {
-          found = true;
-          break;
-        }
-      }
-    }
-    token = strtok_r(NULL, ",", &save_ptr);
-  }
-  delete[] filter_buffer;
-
-  return found;
-}
-
 bool FlowGraphPrinter::ShouldPrint(const Function& function) {
-  return PassesFilter(FLAG_print_flow_graph_filter, function);
+  return compiler::PrintFilter::ShouldPrint(function);
 }
 
 void FlowGraphPrinter::PrintGraph(const char* phase, FlowGraph* flow_graph) {
@@ -118,8 +75,8 @@ void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
   if (print_locations && (instr->HasLocs())) {
     instr->locs()->PrintTo(&f);
   }
-  if (instr->lifetime_position() != -1) {
-    THR_Print("%3" Pd ": ", instr->lifetime_position());
+  if (FlowGraphAllocator::HasLifetimePosition(instr)) {
+    THR_Print("%3" Pd ": ", FlowGraphAllocator::GetLifetimePosition(instr));
   }
   if (!instr->IsBlockEntry()) THR_Print("    ");
   THR_Print("%s", str);
@@ -146,32 +103,10 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
       String::Handle(dst_type.Name()).ToCString(), dst_name.ToCString());
 }
 
-void CompileType::PrintTo(BufferFormatter* f) const {
-  const char* type_name = "?";
-  if ((cid_ != kIllegalCid) && (cid_ != kDynamicCid)) {
-    const Class& cls =
-        Class::Handle(Isolate::Current()->class_table()->At(cid_));
-    type_name = String::Handle(cls.ScrubbedName()).ToCString();
-  } else if (type_ != NULL && !type_->IsDynamicType()) {
-    type_name = type_->ToCString();
-  } else if (!is_nullable()) {
-    type_name = "!null";
-  }
-
-  f->Print("T{%s%s}", type_name, is_nullable_ ? "?" : "");
-}
-
-const char* CompileType::ToCString() const {
-  char buffer[1024];
-  BufferFormatter f(buffer, sizeof(buffer));
-  PrintTo(&f);
-  return Thread::Current()->zone()->MakeCopyOfString(buffer);
-}
-
 static void PrintTargetsHelper(BufferFormatter* f,
                                const CallTargets& targets,
                                intptr_t num_checks_to_print) {
-  f->Print(" IC[");
+  f->Print(" Targets[");
   f->Print("%" Pd ": ", targets.length());
   Function& target = Function::Handle();
   if ((num_checks_to_print == FlowGraphPrinter::kPrintAll) ||
@@ -180,8 +115,9 @@ static void PrintTargetsHelper(BufferFormatter* f,
   }
   for (intptr_t i = 0; i < num_checks_to_print; i++) {
     const CidRange& range = targets[i];
-    const intptr_t count = targets.TargetAt(i)->count;
-    target ^= targets.TargetAt(i)->target->raw();
+    const auto target_info = targets.TargetAt(i);
+    const intptr_t count = target_info->count;
+    target = target_info->target->raw();
     if (i > 0) {
       f->Print(" | ");
     }
@@ -196,6 +132,10 @@ static void PrintTargetsHelper(BufferFormatter* f,
       f->Print("cid %" Pd "-%" Pd " %s", range.cid_start, range.cid_end,
                String::Handle(cls.Name()).ToCString());
       f->Print(" cnt:%" Pd " trgt:'%s'", count, target.ToQualifiedCString());
+    }
+
+    if (target_info->exactness.IsTracking()) {
+      f->Print(" %s", target_info->exactness.ToCString());
     }
   }
   if (num_checks_to_print < targets.length()) {
@@ -237,6 +177,10 @@ static void PrintICDataHelper(BufferFormatter* f,
                               const ICData& ic_data,
                               intptr_t num_checks_to_print) {
   f->Print(" IC[");
+  if (ic_data.is_tracking_exactness()) {
+    f->Print("(%s) ",
+             AbstractType::Handle(ic_data.receivers_static_type()).ToCString());
+  }
   f->Print("%" Pd ": ", ic_data.NumberOfChecks());
   Function& target = Function::Handle();
   if ((num_checks_to_print == FlowGraphPrinter::kPrintAll) ||
@@ -259,6 +203,9 @@ static void PrintICDataHelper(BufferFormatter* f,
       f->Print("%s", String::Handle(cls.Name()).ToCString());
     }
     f->Print(" cnt:%" Pd " trgt:'%s'", count, target.ToQualifiedCString());
+    if (ic_data.is_tracking_exactness()) {
+      f->Print(" %s", ic_data.GetExactnessAt(i).ToCString());
+    }
   }
   if (num_checks_to_print < ic_data.NumberOfChecks()) {
     f->Print("...");
@@ -321,7 +268,7 @@ const char* Instruction::ToCString() const {
 }
 
 void Instruction::PrintTo(BufferFormatter* f) const {
-  if (GetDeoptId() != Thread::kNoDeoptId) {
+  if (GetDeoptId() != DeoptId::kNone) {
     f->Print("%s:%" Pd "(", DebugName(), GetDeoptId());
   } else {
     f->Print("%s(", DebugName());
@@ -340,7 +287,7 @@ void Instruction::PrintOperandsTo(BufferFormatter* f) const {
 void Definition::PrintTo(BufferFormatter* f) const {
   PrintUse(f, *this);
   if (HasSSATemp() || HasTemp()) f->Print(" <- ");
-  if (GetDeoptId() != Thread::kNoDeoptId) {
+  if (GetDeoptId() != DeoptId::kNone) {
     f->Print("%s:%" Pd "(", DebugName(), GetDeoptId());
   } else {
     f->Print("%s(", DebugName());
@@ -352,12 +299,15 @@ void Definition::PrintTo(BufferFormatter* f) const {
     range_->PrintTo(f);
   }
 
-  if (type_ != NULL &&
-      ((type_->ToNullableCid() != kDynamicCid) ||
-       !type_->ToAbstractType()->IsDynamicType() || !type_->is_nullable())) {
+  if (type_ != NULL) {
     f->Print(" ");
     type_->PrintTo(f);
   }
+}
+
+void CheckNullInstr::PrintOperandsTo(BufferFormatter* f) const {
+  Definition::PrintOperandsTo(f);
+  f->Print(IsArgumentCheck() ? ", ArgumentError" : ", NoSuchMethodError");
 }
 
 void Definition::PrintOperandsTo(BufferFormatter* f) const {
@@ -367,6 +317,17 @@ void Definition::PrintOperandsTo(BufferFormatter* f) const {
       InputAt(i)->PrintTo(f);
     }
   }
+}
+
+void RedefinitionInstr::PrintOperandsTo(BufferFormatter* f) const {
+  Definition::PrintOperandsTo(f);
+  if (constrained_type_ != nullptr) {
+    f->Print(" ^ %s", constrained_type_->ToCString());
+  }
+}
+
+void ReachabilityFenceInstr::PrintOperandsTo(BufferFormatter* f) const {
+  value()->PrintTo(f);
 }
 
 void Value::PrintTo(BufferFormatter* f) const {
@@ -444,6 +405,8 @@ const char* RangeBoundary::ToCString() const {
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
+void MakeTempInstr::PrintOperandsTo(BufferFormatter* f) const {}
+
 void DropTempsInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%" Pd "", num_temps());
   if (value() != NULL) {
@@ -452,9 +415,24 @@ void DropTempsInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
 }
 
+static const char* TypeToUserVisibleName(const AbstractType& type) {
+  return String::Handle(type.UserVisibleName()).ToCString();
+}
+
 void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  f->Print(", %s, '%s',", dst_type().ToCString(), dst_name().ToCString());
+  f->Print(", %s, '%s',", TypeToUserVisibleName(dst_type()),
+           dst_name().ToCString());
+  f->Print(" instantiator_type_args(");
+  instantiator_type_arguments()->PrintTo(f);
+  f->Print("), function_type_args(");
+  function_type_arguments()->PrintTo(f);
+  f->Print(")");
+}
+
+void AssertSubtypeInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, %s, '%s',", TypeToUserVisibleName(sub_type()),
+           TypeToUserVisibleName(super_type()), dst_name().ToCString());
   f->Print(" instantiator_type_args(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print("), function_type_args(");
@@ -468,11 +446,14 @@ void AssertBooleanInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void ClosureCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" function=");
-  InputAt(0)->PrintTo(f);
+  InputAt(InputCount() - 1)->PrintTo(f);
   f->Print("<%" Pd ">", type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
+    ArgumentValueAt(i)->PrintTo(f);
+  }
+  if (entry_kind() == Code::EntryKind::kUnchecked) {
+    f->Print(" using unchecked entrypoint");
   }
 }
 
@@ -480,7 +461,7 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" %s<%" Pd ">", function_name().ToCString(), type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
+    ArgumentValueAt(i)->PrintTo(f);
   }
   if (HasICData()) {
     if (FLAG_display_sorted_ic_data) {
@@ -489,18 +470,38 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
       PrintICDataHelper(f, *ic_data(), FlowGraphPrinter::kPrintAll);
     }
   }
+  if (result_type() != nullptr) {
+    f->Print(", result_type = %s", result_type()->ToCString());
+  }
+  if (entry_kind() == Code::EntryKind::kUnchecked) {
+    f->Print(" using unchecked entrypoint");
+  }
 }
 
 void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print(" %s<%" Pd ">", instance_call()->function_name().ToCString(),
-           instance_call()->type_args_len());
+  f->Print(" %s<%" Pd ">", function_name().ToCString(), type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
+    ArgumentValueAt(i)->PrintTo(f);
   }
   PrintTargetsHelper(f, targets_, FlowGraphPrinter::kPrintAll);
   if (complete()) {
     f->Print(" COMPLETE");
+  }
+  if (entry_kind() == Code::EntryKind::kUnchecked) {
+    f->Print(" using unchecked entrypoint");
+  }
+}
+
+void DispatchTableCallInstr::PrintOperandsTo(BufferFormatter* f) const {
+  const String& name =
+      String::Handle(interface_target().QualifiedUserVisibleName());
+  f->Print(" cid=");
+  class_id()->PrintTo(f);
+  f->Print(" %s<%" Pd ">", name.ToCString(), type_args_len());
+  for (intptr_t i = 0; i < ArgumentCount(); ++i) {
+    f->Print(", ");
+    ArgumentValueAt(i)->PrintTo(f);
   }
 }
 
@@ -524,10 +525,10 @@ void TestCidsInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
   f->Print("] ");
   if (CanDeoptimize()) {
-    ASSERT(deopt_id() != Thread::kNoDeoptId);
+    ASSERT(deopt_id() != DeoptId::kNone);
     f->Print("else deoptimize ");
   } else {
-    ASSERT(deopt_id() == Thread::kNoDeoptId);
+    ASSERT(deopt_id() == DeoptId::kNone);
     f->Print("else %s ", cid_results()[length - 1] != 0 ? "false" : "true");
   }
 }
@@ -543,16 +544,26 @@ void StaticCallInstr::PrintOperandsTo(BufferFormatter* f) const {
            type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     if (i > 0) f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
+    ArgumentValueAt(i)->PrintTo(f);
+  }
+  if (entry_kind() == Code::EntryKind::kUnchecked) {
+    f->Print(", using unchecked entrypoint");
+  }
+  if (function().recognized_kind() != MethodRecognizer::kUnknown) {
+    f->Print(", recognized_kind = %s",
+             MethodRecognizer::KindToCString(function().recognized_kind()));
+  }
+  if (result_type() != nullptr) {
+    f->Print(", result_type = %s", result_type()->ToCString());
   }
 }
 
 void LoadLocalInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s @%d", local().name().ToCString(), local().index());
+  f->Print("%s @%d", local().name().ToCString(), local().index().value());
 }
 
 void StoreLocalInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s @%d, ", local().name().ToCString(), local().index());
+  f->Print("%s @%d, ", local().name().ToCString(), local().index().value());
   value()->PrintTo(f);
 }
 
@@ -567,15 +578,16 @@ void GuardFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void StoreInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  if (field().IsNull()) {
-    f->Print("{%" Pd "}, ", offset_in_bytes());
-  } else {
-    f->Print("%s {%" Pd "}, ", String::Handle(field().name()).ToCString(),
-             field().Offset());
-  }
   instance()->PrintTo(f);
-  f->Print(", ");
+  f->Print(" . %s = ", slot().Name());
   value()->PrintTo(f);
+
+  // Here, we just print the value of the enum field. We would prefer to get
+  // the final decision on whether a store barrier will be emitted by calling
+  // ShouldEmitStoreBarrier(), but that can change parts of the flow graph.
+  if (emit_store_barrier_ == kNoStoreBarrier) {
+    f->Print(", NoStoreBarrier");
+  }
 }
 
 void IfThenElseInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -584,7 +596,7 @@ void IfThenElseInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void LoadStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  field_value()->PrintTo(f);
+  f->Print("%s", String::Handle(StaticField().name()).ToCString());
 }
 
 void StoreStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -611,11 +623,10 @@ void RelationalOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void AllocateObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", String::Handle(cls().ScrubbedName()).ToCString());
-  for (intptr_t i = 0; i < ArgumentCount(); i++) {
+  for (intptr_t i = 0; i < InputCount(); ++i) {
     f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
+    InputAt(i)->PrintTo(f);
   }
-
   if (Identity().IsNotAliased()) {
     f->Print(" <not-aliased>");
   }
@@ -625,29 +636,19 @@ void MaterializeObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", String::Handle(cls_.ScrubbedName()).ToCString());
   for (intptr_t i = 0; i < InputCount(); i++) {
     f->Print(", ");
-    f->Print("%s: ", slots_[i]->ToCString());
+    f->Print("%s: ", slots_[i]->Name());
     InputAt(i)->PrintTo(f);
   }
 }
 
 void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
-  f->Print(", %" Pd, offset_in_bytes());
+  f->Print(" . %s%s", slot().Name(), slot().is_immutable() ? " {final}" : "");
+}
 
-  if (field() != NULL) {
-    f->Print(" {%s}", String::Handle(field()->name()).ToCString());
-    const char* expected = "?";
-    if (field()->guarded_cid() != kIllegalCid) {
-      const Class& cls = Class::Handle(
-          Isolate::Current()->class_table()->At(field()->guarded_cid()));
-      expected = String::Handle(cls.Name()).ToCString();
-    }
-
-    f->Print(" [%s %s]", field()->is_nullable() ? "nullable" : "non-nullable",
-             expected);
-  }
-
-  f->Print(", immutable=%d", immutable_);
+void LoadUntaggedInstr::PrintOperandsTo(BufferFormatter* f) const {
+  object()->PrintTo(f);
+  f->Print(", %" Pd, offset());
 }
 
 void InstantiateTypeInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -667,7 +668,7 @@ void InstantiateTypeArgumentsInstr::PrintOperandsTo(BufferFormatter* f) const {
   instantiator_type_arguments()->PrintTo(f);
   f->Print("), function_type_args(");
   function_type_arguments()->PrintTo(f);
-  f->Print(")");
+  f->Print("), instantiator_class(%s)", instantiator_class().ToCString());
 }
 
 void AllocateContextInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -799,14 +800,18 @@ void CheckClassInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
 }
 
+void CheckConditionInstr::PrintOperandsTo(BufferFormatter* f) const {
+  comparison()->PrintOperandsTo(f);
+}
+
 void InvokeMathCFunctionInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", MethodRecognizer::KindToCString(recognized_kind_));
   Definition::PrintOperandsTo(f);
 }
 
-void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
+void BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(
+    BufferFormatter* f) const {
   const GrowableArray<Definition*>& defns = initial_definitions_;
-  f->Print("B%" Pd "[graph]:%" Pd, block_id(), GetDeoptId());
   if (defns.length() > 0) {
     f->Print(" {");
     for (intptr_t i = 0; i < defns.length(); ++i) {
@@ -818,8 +823,13 @@ void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
   }
 }
 
+void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("B%" Pd "[graph]:%" Pd, block_id(), GetDeoptId());
+  BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
+}
+
 void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
-  if (try_index() != CatchClauseNode::kInvalidTryIndex) {
+  if (try_index() != kInvalidTryIndex) {
     f->Print("B%" Pd "[join try_idx %" Pd "]:%" Pd " pred(", block_id(),
              try_index(), GetDeoptId());
   } else {
@@ -846,8 +856,11 @@ void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 void IndirectEntryInstr::PrintTo(BufferFormatter* f) const {
-  ASSERT(try_index() == CatchClauseNode::kInvalidTryIndex);
-  f->Print("B%" Pd "[join indirect]:%" Pd " pred(", block_id(), GetDeoptId());
+  f->Print("B%" Pd "[join indirect", block_id());
+  if (try_index() != kInvalidTryIndex) {
+    f->Print(" try_idx %" Pd, try_index());
+  }
+  f->Print("]:%" Pd " pred(", GetDeoptId());
   for (intptr_t i = 0; i < predecessors_.length(); ++i) {
     if (i > 0) f->Print(", ");
     f->Print("B%" Pd, predecessors_[i]->block_id());
@@ -868,7 +881,7 @@ void IndirectEntryInstr::PrintTo(BufferFormatter* f) const {
   }
 }
 
-static const char* RepresentationToCString(Representation rep) {
+const char* RepresentationToCString(Representation rep) {
   switch (rep) {
     case kTagged:
       return "tagged";
@@ -876,6 +889,8 @@ static const char* RepresentationToCString(Representation rep) {
       return "untagged";
     case kUnboxedDouble:
       return "double";
+    case kUnboxedFloat:
+      return "float";
     case kUnboxedInt32:
       return "int32";
     case kUnboxedUint32:
@@ -924,9 +939,8 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
     f->Print(" %s", RepresentationToCString(representation()));
   }
 
-  if (type_ != NULL) {
-    f->Print(" ");
-    type_->PrintTo(f);
+  if (HasType()) {
+    f->Print(" %s", TypeAsCString());
   }
 }
 
@@ -937,22 +951,39 @@ void UnboxIntegerInstr::PrintOperandsTo(BufferFormatter* f) const {
   Definition::PrintOperandsTo(f);
 }
 
-void UnboxedIntConverterInstr::PrintOperandsTo(BufferFormatter* f) const {
+void IntConverterInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s->%s%s, ", RepresentationToCString(from()),
            RepresentationToCString(to()), is_truncating() ? "[tr]" : "");
   Definition::PrintOperandsTo(f);
+}
+
+void BitCastInstr::PrintOperandsTo(BufferFormatter* f) const {
+  Definition::PrintOperandsTo(f);
+  f->Print(" (%s -> %s)", RepresentationToCString(from()),
+           RepresentationToCString(to()));
 }
 
 void ParameterInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%" Pd, index());
 }
 
+void SpecialParameterInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s", KindToCString(kind()));
+}
+
+const char* SpecialParameterInstr::ToCString() const {
+  char buffer[1024];
+  BufferFormatter bf(buffer, 1024);
+  PrintTo(&bf);
+  return Thread::Current()->zone()->MakeCopyOfString(buffer);
+}
+
 void CheckStackOverflowInstr::PrintOperandsTo(BufferFormatter* f) const {
-  if (in_loop()) f->Print("depth %" Pd, loop_depth());
+  f->Print("stack=%" Pd ", loop=%" Pd, stack_depth(), loop_depth());
 }
 
 void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
-  if (try_index() != CatchClauseNode::kInvalidTryIndex) {
+  if (try_index() != kInvalidTryIndex) {
     f->Print("B%" Pd "[target try_idx %" Pd "]:%" Pd, block_id(), try_index(),
              GetDeoptId());
   } else {
@@ -964,6 +995,68 @@ void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
   }
 }
 
+void OsrEntryInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("B%" Pd "[osr entry]:%" Pd " stack_depth=%" Pd, block_id(),
+           GetDeoptId(), stack_depth());
+  if (HasParallelMove()) {
+    f->Print("\n");
+    parallel_move()->PrintTo(f);
+  }
+  BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
+}
+
+void FunctionEntryInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("B%" Pd "[function entry]:%" Pd, block_id(), GetDeoptId());
+  if (HasParallelMove()) {
+    f->Print("\n");
+    parallel_move()->PrintTo(f);
+  }
+  BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
+}
+
+void NativeEntryInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("B%" Pd "[native function entry]:%" Pd, block_id(), GetDeoptId());
+  if (HasParallelMove()) {
+    f->Print("\n");
+    parallel_move()->PrintTo(f);
+  }
+  BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
+}
+
+void ReturnInstr::PrintOperandsTo(BufferFormatter* f) const {
+  Instruction::PrintOperandsTo(f);
+  if (yield_index() != RawPcDescriptors::kInvalidYieldIndex) {
+    f->Print(", yield_index = %" Pd "", yield_index());
+  }
+}
+
+void FfiCallInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print(" pointer=");
+  InputAt(TargetAddressIndex())->PrintTo(f);
+  for (intptr_t i = 0, n = InputCount(); i < n - 1; ++i) {
+    f->Print(", ");
+    InputAt(i)->PrintTo(f);
+    f->Print(" (@");
+    marshaller_.Location(i).PrintTo(f);
+    f->Print(")");
+  }
+}
+
+void NativeReturnInstr::PrintOperandsTo(BufferFormatter* f) const {
+  value()->PrintTo(f);
+  f->Print(" (@");
+  marshaller_.Location(compiler::ffi::kResultIndex).PrintTo(f);
+  f->Print(")");
+}
+
+void NativeParameterInstr::PrintOperandsTo(BufferFormatter* f) const {
+  // Where the calling convention puts it.
+  marshaller_.Location(index_).PrintTo(f);
+  f->Print(" at ");
+  // Where the arguments are when pushed on the stack.
+  marshaller_.NativeLocationOfNativeParameter(index_).PrintTo(f);
+}
+
 void CatchBlockEntryInstr::PrintTo(BufferFormatter* f) const {
   f->Print("B%" Pd "[target catch try_idx %" Pd " catch_try_idx %" Pd "]",
            block_id(), try_index(), catch_try_index());
@@ -972,16 +1065,43 @@ void CatchBlockEntryInstr::PrintTo(BufferFormatter* f) const {
     parallel_move()->PrintTo(f);
   }
 
-  const GrowableArray<Definition*>& defns = initial_definitions_;
-  if (defns.length() > 0) {
-    f->Print(" {");
-    for (intptr_t i = 0; i < defns.length(); ++i) {
-      Definition* def = defns[i];
-      f->Print("\n      ");
-      def->PrintTo(f);
-    }
-    f->Print("\n}");
+  BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
+}
+
+void LoadIndexedUnsafeInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s[", RegisterNames::RegisterName(base_reg()));
+  index()->PrintTo(f);
+  f->Print(" + %" Pd "]", offset());
+}
+
+void StoreIndexedUnsafeInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s[", RegisterNames::RegisterName(base_reg()));
+  index()->PrintTo(f);
+  f->Print(" + %" Pd "], ", offset());
+  value()->PrintTo(f);
+}
+
+void StoreIndexedInstr::PrintOperandsTo(BufferFormatter* f) const {
+  Instruction::PrintOperandsTo(f);
+  if (!ShouldEmitStoreBarrier()) {
+    f->Print(", NoStoreBarrier");
   }
+}
+
+void TailCallInstr::PrintOperandsTo(BufferFormatter* f) const {
+  const char* name = "<unknown code>";
+  if (code_.IsStubCode()) {
+    name = StubCode::NameOfStub(code_.EntryPoint());
+  } else {
+    const Object& owner = Object::Handle(code_.owner());
+    if (owner.IsFunction()) {
+      name = Function::Handle(Function::RawCast(owner.raw()))
+                 .ToFullyQualifiedCString();
+    }
+  }
+  f->Print("%s(", name);
+  InputAt(0)->PrintTo(f);
+  f->Print(")");
 }
 
 void PushArgumentInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -993,7 +1113,7 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
     parallel_move()->PrintTo(f);
     f->Print(" ");
   }
-  if (GetDeoptId() != Thread::kNoDeoptId) {
+  if (GetDeoptId() != DeoptId::kNone) {
     f->Print("goto:%" Pd " B%" Pd "", GetDeoptId(), successor()->block_id());
   } else {
     f->Print("goto: B%" Pd "", successor()->block_id());
@@ -1001,7 +1121,7 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
 }
 
 void IndirectGotoInstr::PrintTo(BufferFormatter* f) const {
-  if (GetDeoptId() != Thread::kNoDeoptId) {
+  if (GetDeoptId() != DeoptId::kNone) {
     f->Print("igoto:%" Pd "(", GetDeoptId());
   } else {
     f->Print("igoto:(");
@@ -1056,7 +1176,7 @@ const char* Environment::ToCString() const {
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
-#else  // PRODUCT
+#else  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 const char* Instruction::ToCString() const {
   return DebugName();
@@ -1094,8 +1214,6 @@ bool FlowGraphPrinter::ShouldPrint(const Function& function) {
   return false;
 }
 
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

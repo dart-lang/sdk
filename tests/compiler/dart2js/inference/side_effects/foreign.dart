@@ -2,65 +2,58 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /// ignore: IMPORT_INTERNAL_LIBRARY
 import 'dart:_foreign_helper';
 
 /// ignore: IMPORT_INTERNAL_LIBRARY
 import 'dart:_js_embedded_names';
 
-/// ignore: IMPORT_INTERNAL_LIBRARY
-/// ignore: UNUSED_IMPORT
+/// ignore: IMPORT_INTERNAL_LIBRARY, UNUSED_IMPORT
 import 'dart:_interceptors';
 
-/*element: jsCallEmpty:Depends on nothing, Changes nothing.*/
+/*member: jsCallEmpty:SideEffects(reads nothing; writes nothing)*/
 jsCallEmpty() => JS('', '#', 0);
 
-/*element: jsCallInt:Depends on nothing, Changes nothing.*/
+/*member: jsCallInt:SideEffects(reads nothing; writes nothing)*/
 jsCallInt() => JS('int', '#', 0);
 
-/*element: jsCallEffectsAllDependsNoIndex:Depends on field store static store, Changes [] field static.*/
+/*member: jsCallEffectsAllDependsNoIndex:SideEffects(reads field, static; writes anything)*/
 jsCallEffectsAllDependsNoIndex() => JS('effects:all;depends:no-index', '#', 0);
 
-/*element: jsCallEffectsNoInstanceDependsNoStatic:Depends on [] field store, Changes [] static.*/
+/*member: jsCallEffectsNoInstanceDependsNoStatic:SideEffects(reads index, field; writes index, static)*/
 jsCallEffectsNoInstanceDependsNoStatic() =>
     JS('effects:no-instance;depends:no-static', '#', 0);
 
-/*element: jsBuiltin_createFunctionTypeRti:Depends on static store, Changes nothing.*/
-jsBuiltin_createFunctionTypeRti() {
-  // TODO(johnniwinther): Why doesn't this have `Depends on nothing`?
-  return JS_BUILTIN('returns:=Object;effects:none;depends:none',
-      JsBuiltin.createFunctionTypeRti);
-}
-
-/*element: jsBuiltin_rawRtiToJsConstructorName:Depends on [] field store static store, Changes [] field static.*/
+/*member: jsBuiltin_rawRtiToJsConstructorName:SideEffects(reads anything; writes anything)*/
 jsBuiltin_rawRtiToJsConstructorName() {
   return JS_BUILTIN('String', JsBuiltin.rawRtiToJsConstructorName, null);
 }
 
-/*element: jsEmbeddedGlobal_getTypeFromName:Depends on static store, Changes nothing.*/
+/*member: jsEmbeddedGlobal_getTypeFromName:SideEffects(reads nothing; writes nothing)*/
 jsEmbeddedGlobal_getTypeFromName() {
   return JS_EMBEDDED_GLOBAL('', GET_TYPE_FROM_NAME);
 }
 
-/*element: jsEmbeddedGlobal_libraries:Depends on static store, Changes nothing.*/
+/*member: jsEmbeddedGlobal_libraries:SideEffects(reads nothing; writes nothing)*/
 jsEmbeddedGlobal_libraries() {
   return JS_EMBEDDED_GLOBAL('JSExtendableArray|Null', LIBRARIES);
 }
 
-/*element: jsStringConcat:Depends on nothing, Changes nothing.*/
+/*member: jsStringConcat:SideEffects(reads nothing; writes nothing)*/
 jsStringConcat() => JS_STRING_CONCAT('a', 'b');
 
-/*element: jsGetStaticState:Depends on nothing, Changes [] field static.*/
+/*member: jsGetStaticState:SideEffects(reads nothing; writes anything)*/
 jsGetStaticState() => JS_GET_STATIC_STATE();
 
-/*element: main:Depends on [] field store static store, Changes [] field static.*/
+/*member: main:SideEffects(reads anything; writes anything)*/
 main() {
   jsCallInt();
   jsCallEmpty();
   jsCallEffectsAllDependsNoIndex();
   jsCallEffectsNoInstanceDependsNoStatic();
 
-  jsBuiltin_createFunctionTypeRti();
   jsBuiltin_rawRtiToJsConstructorName();
 
   jsEmbeddedGlobal_getTypeFromName();

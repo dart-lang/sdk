@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion_contributor_util.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CombinatorContributorTest);
   });
@@ -19,10 +19,10 @@ main() {
 class CombinatorContributorTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
-    return new CombinatorContributor();
+    return CombinatorContributor();
   }
 
-  test_Block_inherited_local() async {
+  Future<void> test_Block_inherited_local() async {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
     addTestSource('''
       class F { var f1; f2() { } }
@@ -34,24 +34,24 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertNoSuggestions();
   }
 
-  test_Combinator_hide() async {
+  Future<void> test_Combinator_hide() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    addSource('/testAB.dart', '''
+    addSource('/home/test/lib/ab.dart', '''
       library libAB;
-      part '/partAB.dart';
+      part "ab_part.dart";
       class A { }
       class B { }''');
-    addSource('/partAB.dart', '''
+    addSource('/home/test/lib/ab_part.dart', '''
       part of libAB;
       var T1;
       PB F1() => new PB();
       class PB { }''');
-    addSource('/testCD.dart', '''
+    addSource('/home/test/lib/cd.dart', '''
       class C { }
       class D { }''');
     addTestSource('''
-      import "/testAB.dart" hide ^;
-      import "/testCD.dart";
+      import "ab.dart" hide ^;
+      import "cd.dart";
       class X {}''');
 
     await computeSuggestions();
@@ -74,27 +74,27 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('Object');
   }
 
-  test_Combinator_show() async {
+  Future<void> test_Combinator_show() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    addSource('/testAB.dart', '''
+    addSource('/home/test/lib/ab.dart', '''
       library libAB;
-      part '/partAB.dart';
+      part "ab_part.dart";
       class A { }
       class B { }
       class _AB''');
-    addSource('/partAB.dart', '''
+    addSource('/home/test/lib/ab_part.dart', '''
       part of libAB;
       var T1;
       PB F1() => new PB();
       typedef PB2 F2(int blat);
       class Clz = Object with Object;
       class PB { }''');
-    addSource('/testCD.dart', '''
+    addSource('/home/test/lib/cd.dart', '''
       class C { }
       class D { }''');
     addTestSource('''
-      import "/testAB.dart" show ^;
-      import "/testCD.dart";
+      import "ab.dart" show ^;
+      import "cd.dart";
       class X {}''');
 
     await computeSuggestions();
@@ -123,24 +123,42 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('Object');
   }
 
-  test_Combinator_show_PI() async {
+  Future<void> test_Combinator_show_export_withShow() async {
+    addSource('/home/test/lib/a.dart', r'''
+class A {}
+class B {}
+''');
+    addSource('/home/test/lib/b.dart', r'''
+export 'a.dart' show A;
+''');
+    addTestSource(r'''
+import 'b.dart' show ^;
+''');
+    await computeSuggestions();
+    assertSuggestClass('A',
+        relevance: DART_RELEVANCE_DEFAULT,
+        kind: CompletionSuggestionKind.IDENTIFIER);
+    assertNotSuggested('B');
+  }
+
+  Future<void> test_Combinator_show_PI() async {
     addTestSource('import "dart:math" show ^;');
     await computeSuggestions();
     assertSuggestTopLevelVar('PI', 'double',
         kind: CompletionSuggestionKind.IDENTIFIER);
   }
 
-  test_Combinator_show_recursive() async {
-    addSource('/testA.dart', '''
+  Future<void> test_Combinator_show_recursive() async {
+    addSource('/home/test/lib/a.dart', '''
 class A {}
 ''');
-    addSource('/testB.dart', '''
-export 'testA.dart';
-export 'testB.dart';
+    addSource('/home/test/lib/b.dart', '''
+export 'a.dart';
+export 'b.dart';
 class B {}
 ''');
     addTestSource('''
-import "/testB.dart" show ^;
+import "b.dart" show ^;
 ''');
     await computeSuggestions();
     assertSuggestClass('A',

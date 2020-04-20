@@ -36,6 +36,7 @@ class EfficientTestIterable extends TestIterableBase implements Set<int> {
       : super(length, count, callbackIndex, callback);
   // Avoid warnings because we don't actually implement Set.
   noSuchMethod(i) => super.noSuchMethod(i);
+  Set<R> cast<R>() => throw "not used by test";
 }
 
 class CallbackIterator implements Iterator<int> {
@@ -78,13 +79,8 @@ void testConstructor() {
     Expect.equals(length, list.length);
   }
 
-  // TODO(rnystrom): Checked-mode specific behavior does not apply to Dart 2.0.
-  // Revisit this.
-  bool checked = false;
-  assert((checked = true));
-  testThrowsOrTypeError(fn, test, [name]) {
-    Expect.throws(
-        fn, checked ? null : test, checked ? name : "$name w/ TypeError");
+  testThrowsOrTypeError(fn, [name]) {
+    Expect.throws(fn, null, name);
   }
 
   testFixedLength(new List<int>(0));
@@ -94,15 +90,14 @@ void testConstructor() {
   testGrowable(new List<int>()..length = 5);
   testGrowable(new List<int>.filled(5, null, growable: true));
   Expect.throwsArgumentError(() => new List<int>(-1), "-1");
-  // There must be limits. Fix this test if we ever allow 10^30 elements.
-  Expect.throwsArgumentError(() => new List<int>(0x7fffffffffffffff), "bignum");
+  // There must be limits. Fix this test if we ever allow 2^63 elements.
+  Expect.throws(() => new List<int>(0x7ffffffffffff000),
+      (e) => e is OutOfMemoryError || e is ArgumentError, "bignum");
   Expect.throwsArgumentError(() => new List<int>(null), "null");
   testThrowsOrTypeError(
       () => new List([] as Object), // Cast to avoid warning.
-      (e) => e is ArgumentError,
       'list');
-  testThrowsOrTypeError(
-      () => new List([42] as Object), (e) => e is ArgumentError, "list2");
+  testThrowsOrTypeError(() => new List([42] as Object), "list2");
 }
 
 void testConcurrentModification() {

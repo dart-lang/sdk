@@ -18,13 +18,13 @@ void main(args) {
     print("ready");
   }
 
-  sub1 = ProcessSignal.SIGUSR1.watch().listen((signal) {
-    if (signal != ProcessSignal.SIGUSR1) exit(1);
+  sub1 = ProcessSignal.sigusr1.watch().listen((signal) {
+    if (signal != ProcessSignal.sigusr1) exit(1);
     usr1Count--;
     check();
   });
-  sub2 = ProcessSignal.SIGUSR2.watch().listen((signal) {
-    if (signal != ProcessSignal.SIGUSR2) exit(1);
+  sub2 = ProcessSignal.sigusr2.watch().listen((signal) {
+    if (signal != ProcessSignal.sigusr2) exit(1);
     usr2Count--;
     check();
   });

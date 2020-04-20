@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import "native_testing.dart";
 
 foreign1(var a, var b) {
@@ -35,5 +37,5 @@ void main() {
   var NaN = called ? 52 : 54;
   Expect.isFalse(JS('bool', 'isNaN(#)', isNaN));
   Expect.isFalse(JS('bool', 'isNaN(#)', NaN));
-  Expect.isTrue(JS('bool', 'isNaN(#)', double.NAN));
+  Expect.isTrue(JS('bool', 'isNaN(#)', double.nan));
 }

@@ -2,66 +2,64 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:async";
 import "dart:io";
 import "package:expect/expect.dart";
 
-RawServerSocket server;
-RawSocket client;
+/// Creates a callback that listens for incomming connections.
+/// If [remotePorts] is not null then callback would add remote port of each
+/// new connection to the given list.
+makeListener([List<int>? remotePorts]) {
+  return (RawSocket serverSide) {
+    serveData(RawSocketEvent event) {
+      serverSide.shutdown(SocketDirection.send);
+    }
 
-serverListen(RawSocket serverSide) {
-  serveData(RawSocketEvent event) {
-    serverSide.shutdown(SocketDirection.SEND);
-  }
-
-  serverSide.listen(serveData);
+    remotePorts?.add(serverSide.remotePort);
+    serverSide.listen(serveData);
+  };
 }
 
-IPv4ToIPv6FailureTest() async {
-  server = await RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V6, 0);
-  server.listen(serverListen);
-  bool testFailure = false;
+/// Verify that you can't connect to loopback via mismatching protocol, e.g.
+/// if the server is listening to IPv4 then you can't connect via IPv6.
+Future<void> failureTest(
+    InternetAddress serverAddr, InternetAddress clientAddr) async {
+  final remotePorts = <int>[];
+  final server = await RawServerSocket.bind(serverAddr, 0);
+  server.listen(makeListener(remotePorts));
+
+  bool success = false;
   try {
-    client =
-        await RawSocket.connect(InternetAddress.LOOPBACK_IP_V4, server.port);
+    final client = await RawSocket.connect(clientAddr, server.port);
+    final clientPort = client.port;
+
+    // We might actually succeed in connecting somewhere (e.g. to another test
+    // which by chance started listening to the same port).
+    // To make this test more robust we add a check that verifies that we did
+    // not connect to our server by checking if clientPort is within
+    // the list of remotePorts observed by the server. It should not be there.
+    await Future.delayed(Duration(seconds: 2));
+    success = !remotePorts.contains(clientPort);
     await client.close();
-    testFailure = true;
   } on SocketException catch (e) {
-    // We shouldn't be able to connect to the IPv6 loopback adapter using the
-    // IPv4 loopback address.
+    // We expect that we fail to connect to IPv4 server via IPv6 client and
+    // vice versa.
+    success = true;
   } catch (e) {
-    testFailure = true;
+    Expect.fail('Unexpected exception: $e');
   } finally {
-    Expect.equals(testFailure, false);
+    Expect.isTrue(success,
+        'Unexpected connection to $serverAddr via $clientAddr address!');
     await server.close();
   }
 }
 
-IPv6ToIPv4FailureTest() async {
-  server = await RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0);
-  server.listen(serverListen);
+Future<void> successTest(InternetAddress address) async {
+  final server = await RawServerSocket.bind(address, 0);
+  server.listen(makeListener());
   bool testFailure = false;
   try {
-    client =
-        await RawSocket.connect(InternetAddress.LOOPBACK_IP_V6, server.port);
-    await client.close();
-    testFailure = true;
-  } on SocketException catch (e) {
-    // We shouldn't be able to connect to the IPv4 loopback adapter using the
-    // IPv6 loopback address.
-  } catch (e) {
-    testFailure = true;
-  } finally {
-    Expect.equals(testFailure, false);
-    await server.close();
-  }
-}
-
-loopbackSuccessTest(InternetAddress address) async {
-  server = await RawServerSocket.bind(address, 0);
-  server.listen(serverListen);
-  bool testFailure = false;
-  try {
-    client = await RawSocket.connect(address, server.port);
+    final client = await RawSocket.connect(address, server.port);
     await client.close();
   } catch (e) {
     testFailure = true;
@@ -72,8 +70,8 @@ loopbackSuccessTest(InternetAddress address) async {
 }
 
 main() async {
-  await IPv4ToIPv6FailureTest();
-  await IPv6ToIPv4FailureTest();
-  await loopbackSuccessTest(InternetAddress.LOOPBACK_IP_V4);
-  await loopbackSuccessTest(InternetAddress.LOOPBACK_IP_V6);
+  await failureTest(InternetAddress.loopbackIPv4, InternetAddress.loopbackIPv6);
+  await failureTest(InternetAddress.loopbackIPv6, InternetAddress.loopbackIPv4);
+  await successTest(InternetAddress.loopbackIPv4);
+  await successTest(InternetAddress.loopbackIPv6);
 }

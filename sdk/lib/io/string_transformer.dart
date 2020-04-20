@@ -2,22 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.io;
 
 /// The current system encoding.
 ///
-/// This us used for converting from bytes to/from String when
+/// This is used for converting from bytes to and from Strings when
 /// communicating on stdin, stdout and stderr.
 ///
-/// On Windows this will use the currently active code page for the
-/// conversion. On all other systems it will always use UTF-8.
+/// On Windows this will use the currently active code page for the conversion.
+/// On all other systems it will always use UTF-8.
+const SystemEncoding systemEncoding = const SystemEncoding();
+@Deprecated("Use systemEncoding instead")
 const SystemEncoding SYSTEM_ENCODING = const SystemEncoding();
 
-/**
- * The system encoding is the current code page on Windows and UTF-8 on
- * Linux and Mac.
- */
+/// The system encoding is the current code page on Windows and UTF-8 on Linux
+/// and Mac.
 class SystemEncoding extends Encoding {
+  /// Creates a const SystemEncoding.
+  ///
+  /// Users should use the top-level constant, [systemEncoding].
   const SystemEncoding();
 
   String get name => 'system';

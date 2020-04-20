@@ -12,22 +12,19 @@
 namespace dart {
 
 // Forward declaration.
-class Array;
 class Code;
-class ExternalLabel;
-class Function;
 class ICData;
 class RawArray;
 class RawCode;
 class RawFunction;
-class RawICData;
 class RawObject;
-class String;
 
+#if defined(TARGET_ARCH_IA32)
 // Stack-allocated class to create a scope where the specified region
 // [address, address + size] has write access enabled. This is used
 // when patching generated code. Access is reset to read-execute in
 // the destructor of this scope.
+// Dual mapping of instructions pages is not supported on these target arch.
 class WritableInstructionsScope : public ValueObject {
  public:
   WritableInstructionsScope(uword address, intptr_t size);
@@ -37,6 +34,7 @@ class WritableInstructionsScope : public ValueObject {
   const uword address_;
   const intptr_t size_;
 };
+#endif  // defined(TARGET_ARCH_IA32)
 
 class CodePatcher : public AllStatic {
  public:
@@ -51,20 +49,29 @@ class CodePatcher : public AllStatic {
   // in given code.
   static RawCode* GetStaticCallTargetAt(uword return_address, const Code& code);
 
-  // Get instance call information.  Returns the call target and sets each
-  // of the output parameters ic_data and arguments_descriptor if they are
-  // non-NULL.
+  // Get instance call information. Returns the call target and sets the output
+  // parameter data if non-NULL.
   static RawCode* GetInstanceCallAt(uword return_address,
-                                    const Code& code,
-                                    ICData* ic_data);
+                                    const Code& caller_code,
+                                    Object* data);
+
+  // Change the state of an instance call by patching the corresponding object
+  // pool entries (non-IA32) or instructions (IA32).
+  static void PatchInstanceCallAt(uword return_address,
+                                  const Code& caller_code,
+                                  const Object& data,
+                                  const Code& target);
+  static void PatchInstanceCallAtWithMutatorsStopped(Thread* thread,
+                                                     uword return_address,
+                                                     const Code& caller_code,
+                                                     const Object& data,
+                                                     const Code& target);
 
   // Return target of an unoptimized static call and its ICData object
   // (calls target via a stub).
   static RawFunction* GetUnoptimizedStaticCallAt(uword return_address,
                                                  const Code& code,
                                                  ICData* ic_data);
-
-  static intptr_t InstanceCallSizeInBytes();
 
   static void InsertDeoptimizationCallAt(uword start);
 
@@ -76,19 +83,44 @@ class CodePatcher : public AllStatic {
                                     const Code& caller_code,
                                     const Object& data,
                                     const Code& target);
+  static void PatchSwitchableCallAtWithMutatorsStopped(Thread* thread,
+                                                       uword return_address,
+                                                       const Code& caller_code,
+                                                       const Object& data,
+                                                       const Code& target);
   static RawObject* GetSwitchableCallDataAt(uword return_address,
                                             const Code& caller_code);
   static RawCode* GetSwitchableCallTargetAt(uword return_address,
                                             const Code& caller_code);
 
   static RawCode* GetNativeCallAt(uword return_address,
-                                  const Code& code,
+                                  const Code& caller_code,
                                   NativeFunction* target);
 
   static void PatchNativeCallAt(uword return_address,
-                                const Code& code,
+                                const Code& caller_code,
                                 NativeFunction target,
                                 const Code& trampoline);
+
+  static intptr_t GetSubtypeTestCachePoolIndex(uword return_address);
+};
+
+// Beginning from [end - size] we compare [size] bytes with [pattern]. All
+// [0..255] values in [pattern] have to match, negative values are skipped.
+//
+// Example pattern: `[0x3d, 0x8b, -1, -1]`.
+bool MatchesPattern(uword end, const int16_t* pattern, intptr_t size);
+
+class KBCPatcher : public AllStatic {
+ public:
+  static NativeFunctionWrapper GetNativeCallAt(uword return_address,
+                                               const Bytecode& bytecode,
+                                               NativeFunction* function);
+
+  static void PatchNativeCallAt(uword return_address,
+                                const Bytecode& bytecode,
+                                NativeFunction function,
+                                NativeFunctionWrapper trampoline);
 };
 
 }  // namespace dart

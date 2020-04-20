@@ -6,5 +6,5 @@
 library test;
 
 main() {
-  var /*@type=() -> Null*/ f = /*@returnType=Null*/ () {};
+  var /*@ type=() ->* Null? */ f = /*@ returnType=Null? */ () {};
 }

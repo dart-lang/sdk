@@ -5,14 +5,6 @@
 #ifndef RUNTIME_PLATFORM_ASSERT_H_
 #define RUNTIME_PLATFORM_ASSERT_H_
 
-// TODO(5411406): include sstream for now, once we have a Utils::toString()
-// implemented for all the primitive types we can replace the usage of
-// sstream by Utils::toString()
-#if defined(TESTING)
-#include <sstream>
-#include <string>
-#endif
-
 #include "platform/globals.h"
 #include "platform/memory_sanitizer.h"
 
@@ -22,18 +14,45 @@
 #error both DEBUG and NDEBUG defined
 #endif
 
+// TODO(5411406): include sstream for now, once we have a Utils::toString()
+// implemented for all the primitive types we can replace the usage of
+// sstream by Utils::toString()
+#if defined(DEBUG) || defined(TESTING)
+#include <sstream>
+#include <string>
+#endif
+
 namespace dart {
 
 class DynamicAssertionHelper {
  public:
-  enum Kind { ASSERT, EXPECT };
+  DynamicAssertionHelper(const char* file, int line)
+      : file_(file), line_(line) {}
 
-  DynamicAssertionHelper(const char* file, int line, Kind kind)
-      : file_(file), line_(line), kind_(kind) {}
+ protected:
+  void Print(const char* format, va_list arguments);
+
+  const char* const file_;
+  const int line_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(DynamicAssertionHelper);
+};
+
+class Assert : public DynamicAssertionHelper {
+ public:
+  Assert(const char* file, int line) : DynamicAssertionHelper(file, line) {}
+
+  DART_NORETURN void Fail(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+
+  template <typename T>
+  T NotNull(const T p);
+};
+
+class Expect : public DynamicAssertionHelper {
+ public:
+  Expect(const char* file, int line) : DynamicAssertionHelper(file, line) {}
 
   void Fail(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
-
-  static bool failed() { return failed_; }
 
 #if defined(TESTING)
   template <typename E, typename A>
@@ -45,14 +64,11 @@ class DynamicAssertionHelper {
   template <typename E, typename A, typename T>
   void FloatEquals(const E& expected, const A& actual, const T& tol);
 
-  template <typename E, typename A>
-  void StringEquals(const E& expected, const A& actual);
+  void StringEquals(const char* expected, const char* actual);
 
-  template <typename E, typename A>
-  void IsSubstring(const E& needle, const A& haystack);
+  void IsSubstring(const char* needle, const char* haystack);
 
-  template <typename E, typename A>
-  void IsNotSubstring(const E& needle, const A& haystack);
+  void IsNotSubstring(const char* needle, const char* haystack);
 
   template <typename E, typename A>
   void LessThan(const E& left, const A& right);
@@ -65,38 +81,32 @@ class DynamicAssertionHelper {
 
   template <typename E, typename A>
   void GreaterEqual(const E& left, const A& right);
-#endif
 
   template <typename T>
-  T NotNull(const T p);
+  void NotNull(const T p);
+
+  template <typename T>
+  void Null(const T p);
+#endif
+
+  static bool failed() { return failed_; }
 
  private:
   static bool failed_;
-
-  const char* const file_;
-  const int line_;
-  const Kind kind_;
-
-  DISALLOW_IMPLICIT_CONSTRUCTORS(DynamicAssertionHelper);
 };
 
-class Assert : public DynamicAssertionHelper {
- public:
-  Assert(const char* file, int line)
-      : DynamicAssertionHelper(file, line, ASSERT) {}
-};
-
-class Expect : public DynamicAssertionHelper {
- public:
-  Expect(const char* file, int line)
-      : DynamicAssertionHelper(file, line, EXPECT) {}
-};
+template <typename T>
+T Assert::NotNull(const T p) {
+  if (p != NULL) return p;
+  Fail("expected: not NULL, found NULL");
+  return NULL;
+}
 
 #if defined(TESTING)
 // Only allow the expensive (with respect to code size) assertions
 // in testing code.
 template <typename E, typename A>
-void DynamicAssertionHelper::Equals(const E& expected, const A& actual) {
+void Expect::Equals(const E& expected, const A& actual) {
   if (actual == expected) return;
   std::ostringstream ess, ass;
   ess << expected;
@@ -106,7 +116,7 @@ void DynamicAssertionHelper::Equals(const E& expected, const A& actual) {
 }
 
 template <typename E, typename A>
-void DynamicAssertionHelper::NotEquals(const E& not_expected, const A& actual) {
+void Expect::NotEquals(const E& not_expected, const A& actual) {
   if (actual != not_expected) return;
   std::ostringstream ness;
   ness << not_expected;
@@ -115,9 +125,7 @@ void DynamicAssertionHelper::NotEquals(const E& not_expected, const A& actual) {
 }
 
 template <typename E, typename A, typename T>
-void DynamicAssertionHelper::FloatEquals(const E& expected,
-                                         const A& actual,
-                                         const T& tol) {
+void Expect::FloatEquals(const E& expected, const A& actual, const T& tol) {
   if (((expected - tol) <= actual) && (actual <= (expected + tol))) {
     return;
   }
@@ -130,44 +138,23 @@ void DynamicAssertionHelper::FloatEquals(const E& expected,
        tols.c_str());
 }
 
-template <typename E, typename A>
-NO_SANITIZE_MEMORY void DynamicAssertionHelper::StringEquals(const E& expected,
-                                                             const A& actual) {
-  std::ostringstream ess, ass;
-  ess << expected;
-  ass << actual;
-  std::string es = ess.str(), as = ass.str();
-  if (as == es) return;
-  Fail("expected:\n<\"%s\">\nbut was:\n<\"%s\">", es.c_str(), as.c_str());
+inline void Expect::StringEquals(const char* expected, const char* actual) {
+  if (strcmp(expected, actual) == 0) return;
+  Fail("expected:\n<\"%s\">\nbut was:\n<\"%s\">", expected, actual);
+}
+
+inline void Expect::IsSubstring(const char* needle, const char* haystack) {
+  if (strstr(haystack, needle) != nullptr) return;
+  Fail("expected <\"%s\"> to be a substring of <\"%s\">", needle, haystack);
+}
+
+inline void Expect::IsNotSubstring(const char* needle, const char* haystack) {
+  if (strstr(haystack, needle) == nullptr) return;
+  Fail("expected <\"%s\"> to not be a substring of <\"%s\">", needle, haystack);
 }
 
 template <typename E, typename A>
-NO_SANITIZE_MEMORY void DynamicAssertionHelper::IsSubstring(const E& needle,
-                                                            const A& haystack) {
-  std::ostringstream ess, ass;
-  ess << needle;
-  ass << haystack;
-  std::string es = ess.str(), as = ass.str();
-  if (as.find(es) != std::string::npos) return;
-  Fail("expected <\"%s\"> to be a substring of <\"%s\">", es.c_str(),
-       as.c_str());
-}
-
-template <typename E, typename A>
-NO_SANITIZE_MEMORY void DynamicAssertionHelper::IsNotSubstring(
-    const E& needle,
-    const A& haystack) {
-  std::ostringstream ess, ass;
-  ess << needle;
-  ass << haystack;
-  std::string es = ess.str(), as = ass.str();
-  if (as.find(es) == std::string::npos) return;
-  Fail("expected <\"%s\"> to not be a substring of <\"%s\">", es.c_str(),
-       as.c_str());
-}
-
-template <typename E, typename A>
-void DynamicAssertionHelper::LessThan(const E& left, const A& right) {
+void Expect::LessThan(const E& left, const A& right) {
   if (left < right) return;
   std::ostringstream ess, ass;
   ess << left;
@@ -177,7 +164,7 @@ void DynamicAssertionHelper::LessThan(const E& left, const A& right) {
 }
 
 template <typename E, typename A>
-void DynamicAssertionHelper::LessEqual(const E& left, const A& right) {
+void Expect::LessEqual(const E& left, const A& right) {
   if (left <= right) return;
   std::ostringstream ess, ass;
   ess << left;
@@ -187,7 +174,7 @@ void DynamicAssertionHelper::LessEqual(const E& left, const A& right) {
 }
 
 template <typename E, typename A>
-void DynamicAssertionHelper::GreaterThan(const E& left, const A& right) {
+void Expect::GreaterThan(const E& left, const A& right) {
   if (left > right) return;
   std::ostringstream ess, ass;
   ess << left;
@@ -197,7 +184,7 @@ void DynamicAssertionHelper::GreaterThan(const E& left, const A& right) {
 }
 
 template <typename E, typename A>
-void DynamicAssertionHelper::GreaterEqual(const E& left, const A& right) {
+void Expect::GreaterEqual(const E& left, const A& right) {
   if (left >= right) return;
   std::ostringstream ess, ass;
   ess << left;
@@ -205,14 +192,19 @@ void DynamicAssertionHelper::GreaterEqual(const E& left, const A& right) {
   std::string es = ess.str(), as = ass.str();
   Fail("expected: %s >= %s", es.c_str(), as.c_str());
 }
-#endif
 
 template <typename T>
-T DynamicAssertionHelper::NotNull(const T p) {
-  if (p != NULL) return p;
+void Expect::NotNull(const T p) {
+  if (p != NULL) return;
   Fail("expected: not NULL, found NULL");
-  return NULL;
 }
+
+template <typename T>
+void Expect::Null(const T p) {
+  if (p == nullptr) return;
+  Fail("expected: nullptr, found not null pointer");
+}
+#endif
 
 }  // namespace dart
 
@@ -243,6 +235,17 @@ T DynamicAssertionHelper::NotNull(const T p) {
     if (!(cond)) dart::Assert(__FILE__, __LINE__).Fail("expected: %s", #cond); \
   } while (false)
 
+#define ASSERT_EQUAL(actual, expected)                                         \
+  do {                                                                         \
+    if ((expected) != (actual)) {                                              \
+      const std::string actual_str = std::to_string(actual);                   \
+      const std::string expected_str = std::to_string(expected);               \
+      dart::Assert(__FILE__, __LINE__)                                         \
+          .Fail("expected \"%s\" = %s, actual \"%s\" = %s", #expected,         \
+                expected_str.c_str(), #actual, actual_str.c_str());            \
+    }                                                                          \
+  } while (false)
+
 // DEBUG_ASSERT allows identifiers in condition to be undeclared in release
 // mode.
 #define DEBUG_ASSERT(cond) ASSERT(cond)
@@ -260,6 +263,10 @@ T DynamicAssertionHelper::NotNull(const T p) {
   do {                                                                         \
   } while (false && (condition))
 
+#define ASSERT_EQUAL(expected, actual)                                         \
+  do {                                                                         \
+  } while (false && (expected) != (actual))
+
 #define DEBUG_ASSERT(cond)
 
 #define ASSERT_NOTNULL(ptr) (ptr)
@@ -271,29 +278,7 @@ T DynamicAssertionHelper::NotNull(const T p) {
     if (!(cond)) dart::Assert(__FILE__, __LINE__).Fail("expected: %s", #cond); \
   } while (false)
 
-// The COMPILE_ASSERT macro can be used to verify that a compile time
-// expression is true. For example, you could use it to verify the
-// size of a static array:
-//
-//   COMPILE_ASSERT(ARRAYSIZE(content_type_names) == CONTENT_NUM_TYPES);
-//
-// or to make sure a struct is smaller than a certain size:
-//
-//   COMPILE_ASSERT(sizeof(foo) < 128);
-//
-
-template <bool>
-struct CompileAssert {};
-// Macro to concatenate two tokens. The helper is need to proper expansion
-// in case an argument is a macro itself.
-#if !defined(COMPILE_ASSERT)
-#define COMPILE_ASSERT_JOIN(a, b) COMPILE_ASSERT_JOIN_HELPER(a, b)
-#define COMPILE_ASSERT_JOIN_HELPER(a, b) a##b
-#define COMPILE_ASSERT(expr)                                                   \
-  DART_UNUSED typedef CompileAssert<(static_cast<bool>(expr))>                 \
-      COMPILE_ASSERT_JOIN(CompileAssertTypeDef,                                \
-                          __LINE__)[static_cast<bool>(expr) ? 1 : -1]
-#endif  // !defined(COMPILE_ASSERT)
+#define COMPILE_ASSERT(expr) static_assert(expr, "")
 
 #if defined(TESTING)
 
@@ -338,6 +323,8 @@ struct CompileAssert {};
   dart::Expect(__FILE__, __LINE__).GreaterEqual((left), (right))
 
 #define EXPECT_NOTNULL(ptr) dart::Expect(__FILE__, __LINE__).NotNull((ptr))
+
+#define EXPECT_NULLPTR(ptr) dart::Expect(__FILE__, __LINE__).Null((ptr))
 
 #define FAIL(error) dart::Expect(__FILE__, __LINE__).Fail("%s", error)
 

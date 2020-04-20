@@ -1,20 +1,21 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
 //
 // VMOptions=
 // VMOptions=--short_socket_read
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
 import "dart:isolate";
 import "dart:io";
+import "package:expect/expect.dart";
 
 class IsolatedHttpServer {
-  IsolatedHttpServer()
-      : _statusPort = new ReceivePort(),
-        _serverPort = null;
+  IsolatedHttpServer();
 
   void setServerStartedHandler(void startedCallback(int port)) {
     _startedCallback = startedCallback;
@@ -54,8 +55,9 @@ class IsolatedHttpServer {
     _statusPort.close();
   }
 
-  ReceivePort _statusPort; // Port for receiving messages from the server.
-  SendPort _serverPort; // Port for sending messages to the server.
+  final _statusPort =
+      new ReceivePort(); // Port for receiving messages from the server.
+  late SendPort _serverPort; // Port for sending messages to the server.
   var _startedCallback;
 }
 
@@ -91,10 +93,11 @@ class IsolatedHttpServerStatus {
   int get port => _port;
 
   int _state;
-  int _port;
+  int _port = 0;
 }
 
-void startIsolatedHttpServer(SendPort replyTo) {
+void startIsolatedHttpServer(Object replyToObj) {
+  final replyTo = replyToObj as SendPort;
   var server = new TestServer();
   server.init();
   replyTo.send(server.dispatchSendPort);
@@ -106,13 +109,13 @@ class TestServer {
     var response = request.response;
     Expect.equals("POST", request.method);
     response.contentLength = request.contentLength;
-    request.pipe(response);
+    request.cast<List<int>>().pipe(response);
   }
 
   // Return a 404.
   void _notFoundHandler(HttpRequest request) {
     var response = request.response;
-    response.statusCode = HttpStatus.NOT_FOUND;
+    response.statusCode = HttpStatus.notFound;
     response.headers.set("Content-Type", "text/html; charset=UTF-8");
     response.write("Page not found");
     response.close();
@@ -120,9 +123,7 @@ class TestServer {
 
   void init() {
     // Setup request handlers.
-    _requestHandlers = new Map();
     _requestHandlers["/echo"] = _echoHandler;
-    _dispatchPort = new ReceivePort();
     _dispatchPort.listen(dispatch);
   }
 
@@ -159,9 +160,9 @@ class TestServer {
     }
   }
 
-  HttpServer _server; // HTTP server instance.
-  ReceivePort _dispatchPort;
-  Map _requestHandlers;
+  late HttpServer _server; // HTTP server instance.
+  final _dispatchPort = new ReceivePort();
+  final _requestHandlers = {};
   bool _chunkedEncoding = false;
 }
 
@@ -185,8 +186,8 @@ void testRead(bool chunkedEncoding) {
         }
         return request.close();
       }).then((response) {
-        Expect.equals(HttpStatus.OK, response.statusCode);
-        List<int> body = new List<int>();
+        Expect.equals(HttpStatus.ok, response.statusCode);
+        List<int> body = <int>[];
         response.listen(body.addAll, onDone: () {
           Expect.equals(data, new String.fromCharCodes(body));
           count++;

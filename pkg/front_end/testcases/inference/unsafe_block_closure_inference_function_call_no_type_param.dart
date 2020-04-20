@@ -6,7 +6,7 @@
 library test;
 
 main() {
-  var /*@type=double*/ v = f(/*@returnType=int*/ () {
+  var /*@ type=double* */ v = f(/*@ returnType=int* */ () {
     return 1;
   });
 }

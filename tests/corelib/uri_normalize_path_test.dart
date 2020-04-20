@@ -17,9 +17,9 @@ test(String path, String normalizedPath) {
         for (var fragment in [null, "fragment"]) {
           var base = new Uri(
               scheme: scheme,
-              userInfo: auth[0],
-              host: auth[1],
-              port: auth[2],
+              userInfo: auth[0] as String?,
+              host: auth[1] as String?,
+              port: auth[2] as int?,
               path: path,
               query: query,
               fragment: fragment);

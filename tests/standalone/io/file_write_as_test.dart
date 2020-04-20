@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
@@ -13,7 +14,7 @@ testWriteAsBytesSync(dir) {
   var data = [50, 50, 50];
   f.writeAsBytesSync(data);
   Expect.listEquals(data, f.readAsBytesSync());
-  f.writeAsBytesSync(data, mode: FileMode.APPEND, flush: true);
+  f.writeAsBytesSync(data, mode: FileMode.append, flush: true);
   var expected = [50, 50, 50, 50, 50, 50];
   Expect.listEquals(expected, f.readAsBytesSync());
 }
@@ -23,8 +24,27 @@ testWriteAsStringSync(dir) {
   var data = 'asdf';
   f.writeAsStringSync(data);
   Expect.equals(data, f.readAsStringSync());
-  f.writeAsStringSync(data, mode: FileMode.APPEND, flush: true);
+  f.writeAsStringSync(data, mode: FileMode.append, flush: true);
   Expect.equals('$data$data', f.readAsStringSync());
+}
+
+testWriteWithLargeList(dir) {
+  // 0x100000000 exceeds the maximum of unsigned long.
+  // This should no longer hang.
+  // Issue: https://github.com/dart-lang/sdk/issues/40339
+  var bytes;
+  try {
+    bytes = Uint8List(0x100000000);
+  } catch (e) {
+    // Create a big Uint8List may lead to OOM. This is acceptable.
+    Expect.isTrue(e.toString().contains('Out of Memory'));
+    return;
+  }
+  if (Platform.isWindows) {
+    File('NUL').writeAsBytesSync(bytes);
+  } else {
+    File('/dev/null').writeAsBytesSync(bytes);
+  }
 }
 
 Future testWriteAsBytes(dir) {
@@ -35,7 +55,7 @@ Future testWriteAsBytes(dir) {
     Expect.equals(f, file);
     f.readAsBytes().then((bytes) {
       Expect.listEquals(data, bytes);
-      f.writeAsBytes(data, mode: FileMode.APPEND, flush: true).then((file) {
+      f.writeAsBytes(data, mode: FileMode.append, flush: true).then((file) {
         Expect.equals(f, file);
         f.readAsBytes().then((bytes) {
           var expected = [50, 50, 50, 50, 50, 50];
@@ -56,7 +76,7 @@ Future testWriteAsString(dir) {
     Expect.equals(f, file);
     f.readAsString().then((str) {
       Expect.equals(data, str);
-      f.writeAsString(data, mode: FileMode.APPEND, flush: true).then((file) {
+      f.writeAsString(data, mode: FileMode.append, flush: true).then((file) {
         Expect.equals(f, file);
         f.readAsString().then((str) {
           Expect.equals('$data$data', str);
@@ -73,6 +93,7 @@ main() {
   var tempDir = Directory.systemTemp.createTempSync('dart_file_write_as');
   testWriteAsBytesSync(tempDir);
   testWriteAsStringSync(tempDir);
+  testWriteWithLargeList(tempDir);
   testWriteAsBytes(tempDir).then((_) {
     return testWriteAsString(tempDir);
   }).then((_) {

@@ -12,7 +12,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class CodeRefElement extends HtmlElement implements Renderable {
+class CodeRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<CodeRefElement>('code-ref');
 
   RenderingScheduler<CodeRefElement> _r;
@@ -28,14 +28,14 @@ class CodeRefElement extends HtmlElement implements Renderable {
   factory CodeRefElement(M.IsolateRef isolate, M.CodeRef code,
       {RenderingQueue queue}) {
     assert(code != null);
-    CodeRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    CodeRefElement e = new CodeRefElement.created();
+    e._r = new RenderingScheduler<CodeRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._code = code;
     return e;
   }
 
-  CodeRefElement.created() : super.created();
+  CodeRefElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -46,12 +46,12 @@ class CodeRefElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new AnchorElement(
           href: ((M.isSyntheticCode(_code.kind)) || (_isolate == null))
               ? null

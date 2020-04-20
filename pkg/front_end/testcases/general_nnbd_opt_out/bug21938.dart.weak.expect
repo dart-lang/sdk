@@ -1,0 +1,48 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/bug21938.dart:10:4: Error: The method 'call' isn't defined for the class 'Object'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the name to the name of an existing method, or defining a method named 'call'.
+//   x();
+//    ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/bug21938.dart:11:4: Error: The method 'call' isn't defined for the class 'Object'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the name to the name of an existing method, or defining a method named 'call'.
+//   x(3);
+//    ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/bug21938.dart:13:5: Error: The method 'call' isn't defined for the class 'Object'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the name to the name of an existing method, or defining a method named 'call'.
+//   x.call();
+//     ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  core::Object* x;
+  core::Function* f;
+  invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/bug21938.dart:10:4: Error: The method 'call' isn't defined for the class 'Object'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing method, or defining a method named 'call'.
+  x();
+   ^";
+  invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/bug21938.dart:11:4: Error: The method 'call' isn't defined for the class 'Object'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing method, or defining a method named 'call'.
+  x(3);
+   ^";
+  f.call(5, 2);
+  invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/bug21938.dart:13:5: Error: The method 'call' isn't defined for the class 'Object'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing method, or defining a method named 'call'.
+  x.call();
+    ^^^^";
+  f.call;
+  f.call(5, 2);
+}
+static method main() → dynamic {}

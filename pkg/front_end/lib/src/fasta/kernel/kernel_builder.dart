@@ -4,70 +4,27 @@
 
 library fasta.kernel_builder;
 
-export 'kernel_class_builder.dart' show KernelClassBuilder;
-
-export 'kernel_enum_builder.dart' show KernelEnumBuilder;
-
-export 'kernel_field_builder.dart' show KernelFieldBuilder;
-
-export 'kernel_formal_parameter_builder.dart' show KernelFormalParameterBuilder;
-
-export 'kernel_function_type_builder.dart' show KernelFunctionTypeBuilder;
-
-export 'kernel_function_type_alias_builder.dart'
-    show KernelFunctionTypeAliasBuilder;
-
-export 'kernel_named_type_builder.dart' show KernelNamedTypeBuilder;
-
-export 'kernel_library_builder.dart' show KernelLibraryBuilder;
-
-export 'kernel_mixin_application_builder.dart'
-    show KernelMixinApplicationBuilder;
-
-export 'kernel_procedure_builder.dart'
-    show
-        KernelConstructorBuilder,
-        KernelFunctionBuilder,
-        KernelProcedureBuilder;
-
-export 'kernel_type_builder.dart' show KernelTypeBuilder;
-
-export 'kernel_type_variable_builder.dart' show KernelTypeVariableBuilder;
-
-export '../builder/builder.dart';
-
-export 'kernel_variable_builder.dart' show KernelVariableBuilder;
-
-export 'kernel_invalid_type_builder.dart' show KernelInvalidTypeBuilder;
-
 import 'package:kernel/ast.dart'
     show
         Combinator,
         Constructor,
-        DartType,
-        DynamicType,
         Initializer,
         Procedure,
-        RedirectingInitializer,
-        TypeParameter;
-
-import '../builder/builder.dart' show LibraryBuilder;
+        RedirectingInitializer;
 
 import '../combinator.dart' as fasta;
 
-List<DartType> computeDefaultTypeArguments(LibraryBuilder library,
-    List<TypeParameter> typeParameters, List<DartType> arguments) {
-  // TODO(scheglov): Use TypeSchemaEnvironment.instantiateToBounds
-  if (arguments == null || arguments.length != typeParameters.length) {
-    // TODO(scheglov): Check that we report a warning.
-    return new List<DartType>.filled(
-        typeParameters.length, const DynamicType());
-  }
-  return arguments;
-}
+export 'class_hierarchy_builder.dart'
+    show ClassHierarchyBuilder, ClassMember, DelayedOverrideCheck;
+
+export 'implicit_field_type.dart' show ImplicitFieldType;
+
+export 'kernel_variable_builder.dart' show VariableBuilderImpl;
+
+export 'load_library_builder.dart' show LoadLibraryBuilder;
 
 int compareProcedures(Procedure a, Procedure b) {
-  int i = a.fileUri.compareTo(b.fileUri);
+  int i = "${a.fileUri}".compareTo("${b.fileUri}");
   if (i != 0) return i;
   return a.fileOffset.compareTo(b.fileOffset);
 }

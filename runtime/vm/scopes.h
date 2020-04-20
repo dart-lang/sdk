@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_SCOPES_H_
 #define RUNTIME_VM_SCOPES_H_
 
+#include <limits>
+
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/allocation.h"
@@ -16,26 +18,84 @@
 
 namespace dart {
 
+class CompileType;
 class LocalScope;
+class Slot;
+
+// Indices of [LocalVariable]s are abstract and have little todo with the
+// actual frame layout!
+//
+// There are generally 4 different kinds of [LocalVariable]s:
+//
+//    a) [LocalVariable]s refering to a parameter: The indices for those
+//       variables are assigned by the flow graph builder. Parameter n gets
+//       assigned the index (function.num_parameters - n - 1). I.e. the last
+//       parameter has index 1.
+//
+//    b) [LocalVariable]s referring to actual variables in the body of a
+//       function (either from Dart code or specially injected ones. The
+//       indices of those variables are assigned by the scope builder
+//       from 0, -1, ... -(M-1) for M local variables.
+//
+//       -> These variables participate in full SSA renaming and can therefore
+//          be used with [StoreLocalInstr]s (in addition to [LoadLocal]s).
+//
+//    c) [LocalVariable]s referring to values on the expression stack. Those are
+//       assigned by the flow graph builder. The indices of those variables are
+//       assigned by the flow graph builder (it simulates the expression stack
+//       height), they go from -NumVariables - ExpressionHeight.
+//
+//       -> These variables participate only partially in SSA renaming and can
+//          therefore only be used with [LoadLocalInstr]s and with
+//          [StoreLocalInstr]s **where no phis are necessary**.
+//
+//    b) [LocalVariable]s referring to captured variables.  Those are never
+//       loaded/stored directly. Their only purpose is to tell the flow graph
+//       builder how many parent links to follow and into which context index to
+//       store.  The indices of those variables are assigned by the scope
+//       builder and they refer to indices into context objects.
+class VariableIndex {
+ public:
+  static const int kInvalidIndex = std::numeric_limits<int>::min();
+
+  explicit VariableIndex(int value = kInvalidIndex) : value_(value) {}
+
+  bool operator==(const VariableIndex& other) { return value_ == other.value_; }
+
+  bool IsValid() const { return value_ != kInvalidIndex; }
+
+  int value() const { return value_; }
+
+ private:
+  int value_;
+};
 
 class LocalVariable : public ZoneAllocated {
  public:
   LocalVariable(TokenPosition declaration_pos,
                 TokenPosition token_pos,
                 const String& name,
-                const AbstractType& type)
+                const AbstractType& type,
+                CompileType* parameter_type = nullptr,
+                const Object* parameter_value = nullptr)
       : declaration_pos_(declaration_pos),
         token_pos_(token_pos),
         name_(name),
         owner_(NULL),
         type_(type),
+        parameter_type_(parameter_type),
+        parameter_value_(parameter_value),
         const_value_(NULL),
         is_final_(false),
         is_captured_(false),
         is_invisible_(false),
         is_captured_parameter_(false),
         is_forced_stack_(false),
-        index_(LocalVariable::kUninitializedIndex) {
+        is_explicit_covariant_parameter_(false),
+        is_late_(false),
+        late_init_offset_(0),
+        type_check_mode_(kDoTypeCheck),
+        index_() {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     ASSERT(type.IsFinalized());
     ASSERT(name.IsSymbol());
@@ -52,6 +112,9 @@ class LocalVariable : public ZoneAllocated {
 
   const AbstractType& type() const { return type_; }
 
+  CompileType* parameter_type() const { return parameter_type_; }
+  const Object* parameter_value() const { return parameter_value_; }
+
   bool is_final() const { return is_final_; }
   void set_is_final() { is_final_ = true; }
 
@@ -65,15 +128,52 @@ class LocalVariable : public ZoneAllocated {
   bool is_forced_stack() const { return is_forced_stack_; }
   void set_is_forced_stack() { is_forced_stack_ = true; }
 
-  bool HasIndex() const { return index_ != kUninitializedIndex; }
-  int index() const {
+  bool is_late() const { return is_late_; }
+  void set_is_late() { is_late_ = true; }
+
+  intptr_t late_init_offset() const { return late_init_offset_; }
+  void set_late_init_offset(intptr_t late_init_offset) {
+    late_init_offset_ = late_init_offset;
+  }
+
+  bool is_explicit_covariant_parameter() const {
+    return is_explicit_covariant_parameter_;
+  }
+  void set_is_explicit_covariant_parameter() {
+    is_explicit_covariant_parameter_ = true;
+  }
+
+  enum TypeCheckMode {
+    kDoTypeCheck,
+    kSkipTypeCheck,
+    kTypeCheckedByCaller,
+  };
+
+  // Returns true if this local variable represents a parameter that needs type
+  // check when we enter the function.
+  bool needs_type_check() const {
+    return (type_check_mode_ == kDoTypeCheck) &&
+           Isolate::Current()->should_emit_strong_mode_checks();
+  }
+
+  // Returns true if this local variable represents a parameter which type is
+  // guaranteed by the caller.
+  bool was_type_checked_by_caller() const {
+    return type_check_mode_ == kTypeCheckedByCaller;
+  }
+
+  TypeCheckMode type_check_mode() const { return type_check_mode_; }
+  void set_type_check_mode(TypeCheckMode mode) { type_check_mode_ = mode; }
+
+  bool HasIndex() const { return index_.IsValid(); }
+  VariableIndex index() const {
     ASSERT(HasIndex());
     return index_;
   }
 
   // Assign an index to a local.
-  void set_index(int index) {
-    ASSERT(index != kUninitializedIndex);
+  void set_index(VariableIndex index) {
+    ASSERT(index.IsValid());
     index_ = index;
   }
 
@@ -100,12 +200,6 @@ class LocalVariable : public ZoneAllocated {
 
   bool Equals(const LocalVariable& other) const;
 
-  // Map the frame index to a bit-vector index.  Assumes the variable is
-  // allocated to the frame.
-  // var_count is the total number of stack-allocated variables including
-  // all parameters.
-  int BitIndexIn(intptr_t var_count) const;
-
  private:
   static const int kUninitializedIndex = INT_MIN;
 
@@ -116,6 +210,9 @@ class LocalVariable : public ZoneAllocated {
 
   const AbstractType& type_;  // Declaration type of local variable.
 
+  CompileType* const parameter_type_;  // NULL or incoming parameter type.
+  const Object* parameter_value_;      // NULL or incoming parameter value.
+
   const Instance* const_value_;  // NULL or compile-time const value.
 
   bool is_final_;     // If true, this variable is readonly.
@@ -124,11 +221,44 @@ class LocalVariable : public ZoneAllocated {
   bool is_invisible_;
   bool is_captured_parameter_;
   bool is_forced_stack_;
-  int index_;  // Allocation index in words relative to frame pointer (if not
-               // captured), or relative to the context pointer (if captured).
+  bool is_explicit_covariant_parameter_;
+  bool is_late_;
+  intptr_t late_init_offset_;
+  TypeCheckMode type_check_mode_;
+  VariableIndex index_;
 
   friend class LocalScope;
   DISALLOW_COPY_AND_ASSIGN(LocalVariable);
+};
+
+// Accumulates local variable descriptors while building
+// LocalVarDescriptors object.
+class LocalVarDescriptorsBuilder : public ValueObject {
+ public:
+  struct VarDesc {
+    const String* name;
+    RawLocalVarDescriptors::VarInfo info;
+  };
+
+  LocalVarDescriptorsBuilder() : vars_(8) {}
+
+  // Add variable descriptor.
+  void Add(const VarDesc& var_desc) { vars_.Add(var_desc); }
+
+  // Add all variable descriptors from given [LocalVarDescriptors] object.
+  void AddAll(Zone* zone, const LocalVarDescriptors& var_descs);
+
+  // Record deopt-id -> context-level mappings, using ranges of deopt-ids with
+  // the same context-level. [context_level_array] contains (deopt_id,
+  // context_level) tuples.
+  void AddDeoptIdToContextLevelMappings(
+      ZoneGrowableArray<intptr_t>* context_level_array);
+
+  // Finish building LocalVarDescriptor object.
+  RawLocalVarDescriptors* Done();
+
+ private:
+  GrowableArray<VarDesc> vars_;
 };
 
 class NameReference : public ZoneAllocated {
@@ -212,7 +342,7 @@ class LocalScope : public ZoneAllocated {
   // The context level is only set in a scope that is either the owner scope of
   // a captured variable or that is the owner scope of a context.
   bool HasContextLevel() const {
-    return context_level_ != kUnitializedContextLevel;
+    return context_level_ != kUninitializedContextLevel;
   }
   int context_level() const {
     ASSERT(HasContextLevel());
@@ -220,7 +350,7 @@ class LocalScope : public ZoneAllocated {
   }
   void set_context_level(int context_level) {
     ASSERT(!HasContextLevel());
-    ASSERT(context_level != kUnitializedContextLevel);
+    ASSERT(context_level != kUninitializedContextLevel);
     context_level_ = context_level;
   }
 
@@ -230,13 +360,28 @@ class LocalScope : public ZoneAllocated {
   TokenPosition end_token_pos() const { return end_token_pos_; }
   void set_end_token_pos(TokenPosition value) { end_token_pos_ = value; }
 
+  // Return the list of variables allocated in the context and belonging to this
+  // scope and to its children at the same loop level.
+  const GrowableArray<LocalVariable*>& context_variables() const {
+    return context_variables_;
+  }
+
+  const ZoneGrowableArray<const Slot*>& context_slots() const {
+    return *context_slots_;
+  }
+
   // The number of variables allocated in the context and belonging to this
   // scope and to its children at the same loop level.
-  int num_context_variables() const { return num_context_variables_; }
+  int num_context_variables() const { return context_variables().length(); }
 
   // Add a variable to the scope. Returns false if a variable with the
   // same name is already present.
   bool AddVariable(LocalVariable* variable);
+
+  // Add a variable to the scope as a context allocated variable and assigns
+  // it an index within the context. Does not check if the scope already
+  // contains this variable or a variable with the same name.
+  void AddContextVariable(LocalVariable* var);
 
   // Insert a formal parameter variable to the scope at the given position,
   // possibly in front of aliases already added with AddVariable.
@@ -307,12 +452,13 @@ class LocalScope : public ZoneAllocated {
   // and not in its children (we do not yet handle register parameters).
   // Locals must be listed after parameters in top scope and in its children.
   // Two locals in different sibling scopes may share the same frame slot.
+  //
   // Return the index of the next available frame slot.
-  int AllocateVariables(int first_parameter_index,
-                        int num_parameters,
-                        int first_frame_index,
-                        LocalScope* context_owner,
-                        bool* found_captured_variables);
+  VariableIndex AllocateVariables(VariableIndex first_parameter_index,
+                                  int num_parameters,
+                                  VariableIndex first_local_index,
+                                  LocalScope* context_owner,
+                                  bool* found_captured_variables);
 
   // Creates variable info for the scope and all its nested scopes.
   // Must be called after AllocateVariables() has been called.
@@ -339,11 +485,6 @@ class LocalScope : public ZoneAllocated {
   static RawContextScope* CreateImplicitClosureScope(const Function& func);
 
  private:
-  struct VarDesc {
-    const String* name;
-    RawLocalVarDescriptors::VarInfo info;
-  };
-
   // Allocate the variable in the current context, possibly updating the current
   // context owner scope, if the variable is the first one to be allocated at
   // this loop level.
@@ -352,22 +493,27 @@ class LocalScope : public ZoneAllocated {
   void AllocateContextVariable(LocalVariable* variable,
                                LocalScope** context_owner);
 
-  void CollectLocalVariables(GrowableArray<VarDesc>* vars, int16_t* scope_id);
+  void CollectLocalVariables(LocalVarDescriptorsBuilder* vars,
+                             int16_t* scope_id);
 
   NameReference* FindReference(const String& name) const;
 
-  static const int kUnitializedContextLevel = INT_MIN;
+  static const int kUninitializedContextLevel = INT_MIN;
   LocalScope* parent_;
   LocalScope* child_;
   LocalScope* sibling_;
   int function_level_;         // Reflects the nesting level of local functions.
   int loop_level_;             // Reflects the loop nesting level.
   int context_level_;          // Reflects the level of the runtime context.
-  int num_context_variables_;  // Only set if this scope is a context owner.
   TokenPosition begin_token_pos_;  // Token index of beginning of scope.
   TokenPosition end_token_pos_;    // Token index of end of scope.
   GrowableArray<LocalVariable*> variables_;
   GrowableArray<SourceLabel*> labels_;
+
+  // List of variables allocated into the context which is owned by this scope,
+  // and their corresponding Slots.
+  GrowableArray<LocalVariable*> context_variables_;
+  ZoneGrowableArray<const Slot*>* context_slots_;
 
   // List of names referenced in this scope and its children that
   // are not resolved to local variables.

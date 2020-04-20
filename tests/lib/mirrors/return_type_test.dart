@@ -5,16 +5,15 @@
 /// Test of [MethodMirror.returnType].
 library test.return_type_test;
 
-@MirrorsUsed(targets: 'test.return_type_test', override: '*')
 import 'dart:mirrors';
 
 import 'stringify.dart';
 
 class B {
   f() {}
-  int g() {}
-  List h() {}
-  B i() {}
+  int g() => 0;
+  List h() => [];
+  B i() => new B();
 
   // TODO(ahe): Test this when dart2js handles parameterized types.
   // List<int> j() {}

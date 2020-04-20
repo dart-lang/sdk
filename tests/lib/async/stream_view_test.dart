@@ -39,4 +39,4 @@ Future runTest() async {
   asyncEnd();
 }
 
-Future flushMicrotasks() => new Future.delayed(Duration.ZERO);
+Future flushMicrotasks() => new Future.delayed(Duration.zero);

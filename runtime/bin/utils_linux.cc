@@ -18,11 +18,11 @@ namespace dart {
 namespace bin {
 
 OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
-  set_sub_system(kSystem);
-  set_code(errno);
-  const int kBufferSize = 1024;
-  char error_buf[kBufferSize];
-  SetMessage(Utils::StrError(errno, error_buf, kBufferSize));
+  Reload();
+}
+
+void OSError::Reload() {
+  SetCodeAndMessage(kSystem, errno);
 }
 
 void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
@@ -65,10 +65,6 @@ char* StringUtils::Utf8ToConsoleString(char* utf8,
                                        intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
-}
-
-char* StringUtils::StrNDup(const char* s, intptr_t n) {
-  return strndup(s, n);
 }
 
 bool ShellUtils::GetUtf8Argv(int argc, char** argv) {

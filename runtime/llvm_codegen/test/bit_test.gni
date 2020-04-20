@@ -1,0 +1,38 @@
+# Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../../../build/executable_suffix.gni")
+
+# This file defines a template for running bit tests.
+#
+# - bit_test()
+#   Runs bit on the specified file.
+
+# A template for running bit. This lets bit commands be run as ninja commands.
+#
+# Parameters:
+#   tests:
+#     The list of files to input into bit
+template("bit_test") {
+  assert(defined(invoker.tests), "tests must be defined for $target_name")
+
+  action_foreach(target_name) {
+    script = "//runtime/llvm_codegen/test/run_bit.py"
+    sources = invoker.tests
+
+    deps = [ "../../bit" ]
+    inputs = [ "${root_out_dir}/bit$executable_suffix" ]
+
+    # This output is always dirty so ninja will always run this step when asked to.
+    outputs = [ "$target_gen_dir/{{source_name_part}}}" ]
+    args = [
+      "--bit",
+      rebase_path("${root_out_dir}/bit"),
+      "--test",
+      "{{source}}",
+      "--out",
+      rebase_path(target_gen_dir),
+    ]
+  }
+}

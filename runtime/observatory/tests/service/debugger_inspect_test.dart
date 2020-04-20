@@ -1,10 +1,9 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 import 'dart:async';
 import 'dart:developer';
@@ -18,7 +17,7 @@ void testeeDo() {
   inspect(new Point(3, 4));
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     Completer completer = new Completer();
     var stream = await isolate.vm.getEventStream(VM.kDebugStream);
@@ -32,7 +31,7 @@ var tests = [
     });
 
     // Start listening for events first.
-    await isolate.rootLibrary.evaluate('testeeDo();');
+    await isolate.rootLibrary.evaluate('testeeDo()');
     return completer.future;
   },
 ];

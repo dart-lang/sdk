@@ -20,8 +20,8 @@ class PagedContentView extends CompositeView {
   final PageState pages;
 
   PagedContentView(this.content)
-      : super('paged-content'),
-        pages = new PageState() {
+      : pages = new PageState(),
+        super('paged-content') {
     addChild(new PagedColumnView(pages, content));
     addChild(new PageNumberView(pages));
   }
@@ -33,7 +33,7 @@ class PageNumberView extends View {
   Element _label;
   Element _left, _right;
 
-  PageNumberView(this.pages) : super();
+  PageNumberView(this.pages);
 
   Element render() {
     // TODO(jmesserly): this was supposed to use the somewhat flatter unicode
@@ -95,7 +95,7 @@ class PagedColumnView extends View {
   int _viewportSize;
   Scroller scroller;
 
-  PagedColumnView(this.pages, this.contentView) : super();
+  PagedColumnView(this.pages, this.contentView);
 
   Element render() {
     final node = new Element.html('''

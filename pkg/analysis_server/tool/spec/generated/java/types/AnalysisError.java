@@ -1,17 +1,9 @@
 /*
- * Copyright (c) 2015, the Dart project authors.
+ * Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+ * for details. All rights reserved. Use of this source code is governed by a
+ * BSD-style license that can be found in the LICENSE file.
  *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
- *
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
- *
- * This file has been automatically generated.  Please do not edit it manually.
+ * This file has been automatically generated. Please do not edit it manually.
  * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
  */
 package org.dartlang.analysis.server.protocol;
@@ -77,6 +69,17 @@ public class AnalysisError {
   private final String code;
 
   /**
+   * The URL of a page containing documentation associated with this error.
+   */
+  private final String url;
+
+  /**
+   * Additional messages associated with this diagnostic that provide context to help the user
+   * understand the diagnostic.
+   */
+  private final List<DiagnosticMessage> contextMessages;
+
+  /**
    * A hint to indicate to interested clients that this error has an associated fix (or fixes). The
    * absence of this field implies there are not known to be fixes. Note that since the operation to
    * calculate whether fixes apply needs to be performant it is possible that complicated tests will
@@ -90,13 +93,15 @@ public class AnalysisError {
   /**
    * Constructor for {@link AnalysisError}.
    */
-  public AnalysisError(String severity, String type, Location location, String message, String correction, String code, Boolean hasFix) {
+  public AnalysisError(String severity, String type, Location location, String message, String correction, String code, String url, List<DiagnosticMessage> contextMessages, Boolean hasFix) {
     this.severity = severity;
     this.type = type;
     this.location = location;
     this.message = message;
     this.correction = correction;
     this.code = code;
+    this.url = url;
+    this.contextMessages = contextMessages;
     this.hasFix = hasFix;
   }
 
@@ -111,6 +116,8 @@ public class AnalysisError {
         ObjectUtilities.equals(other.message, message) &&
         ObjectUtilities.equals(other.correction, correction) &&
         ObjectUtilities.equals(other.code, code) &&
+        ObjectUtilities.equals(other.url, url) &&
+        ObjectUtilities.equals(other.contextMessages, contextMessages) &&
         ObjectUtilities.equals(other.hasFix, hasFix);
     }
     return false;
@@ -123,8 +130,10 @@ public class AnalysisError {
     String message = jsonObject.get("message").getAsString();
     String correction = jsonObject.get("correction") == null ? null : jsonObject.get("correction").getAsString();
     String code = jsonObject.get("code").getAsString();
+    String url = jsonObject.get("url") == null ? null : jsonObject.get("url").getAsString();
+    List<DiagnosticMessage> contextMessages = jsonObject.get("contextMessages") == null ? null : DiagnosticMessage.fromJsonArray(jsonObject.get("contextMessages").getAsJsonArray());
     Boolean hasFix = jsonObject.get("hasFix") == null ? null : jsonObject.get("hasFix").getAsBoolean();
-    return new AnalysisError(severity, type, location, message, correction, code, hasFix);
+    return new AnalysisError(severity, type, location, message, correction, code, url, contextMessages, hasFix);
   }
 
   public static List<AnalysisError> fromJsonArray(JsonArray jsonArray) {
@@ -144,6 +153,14 @@ public class AnalysisError {
    */
   public String getCode() {
     return code;
+  }
+
+  /**
+   * Additional messages associated with this diagnostic that provide context to help the user
+   * understand the diagnostic.
+   */
+  public List<DiagnosticMessage> getContextMessages() {
+    return contextMessages;
   }
 
   /**
@@ -197,6 +214,13 @@ public class AnalysisError {
     return type;
   }
 
+  /**
+   * The URL of a page containing documentation associated with this error.
+   */
+  public String getUrl() {
+    return url;
+  }
+
   @Override
   public int hashCode() {
     HashCodeBuilder builder = new HashCodeBuilder();
@@ -206,6 +230,8 @@ public class AnalysisError {
     builder.append(message);
     builder.append(correction);
     builder.append(code);
+    builder.append(url);
+    builder.append(contextMessages);
     builder.append(hasFix);
     return builder.toHashCode();
   }
@@ -220,6 +246,16 @@ public class AnalysisError {
       jsonObject.addProperty("correction", correction);
     }
     jsonObject.addProperty("code", code);
+    if (url != null) {
+      jsonObject.addProperty("url", url);
+    }
+    if (contextMessages != null) {
+      JsonArray jsonArrayContextMessages = new JsonArray();
+      for (DiagnosticMessage elt : contextMessages) {
+        jsonArrayContextMessages.add(elt.toJson());
+      }
+      jsonObject.add("contextMessages", jsonArrayContextMessages);
+    }
     if (hasFix != null) {
       jsonObject.addProperty("hasFix", hasFix);
     }
@@ -242,6 +278,10 @@ public class AnalysisError {
     builder.append(correction + ", ");
     builder.append("code=");
     builder.append(code + ", ");
+    builder.append("url=");
+    builder.append(url + ", ");
+    builder.append("contextMessages=");
+    builder.append(StringUtils.join(contextMessages, ", ") + ", ");
     builder.append("hasFix=");
     builder.append(hasFix);
     builder.append("]");

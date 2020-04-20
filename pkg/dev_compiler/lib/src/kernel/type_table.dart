@@ -4,12 +4,12 @@
 
 import 'package:kernel/kernel.dart';
 
-import '../js_ast/js_ast.dart' as JS;
+import '../compiler/js_names.dart' as js_ast;
+import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
-import '../compiler/js_names.dart' as JS;
 
 Set<TypeParameter> freeTypeParameters(DartType t) {
-  var result = new Set<TypeParameter>();
+  var result = <TypeParameter>{};
   void find(DartType t) {
     if (t is TypeParameterType) {
       result.add(t.parameter);
@@ -37,10 +37,10 @@ class _CacheTable {
   // Use a LinkedHashMap to maintain key insertion order so the generated code
   // is stable under slight perturbation.  (If this is not good enough we could
   // sort by name to canonicalize order.)
-  final _names = <DartType, JS.TemporaryId>{};
+  final _names = <DartType, js_ast.TemporaryId>{};
   Iterable<DartType> get keys => _names.keys.toList();
 
-  JS.Statement _dischargeType(DartType type) {
+  js_ast.Statement _dischargeType(DartType type) {
     var name = _names.remove(type);
     if (name != null) {
       return js.statement('let #;', [name]);
@@ -51,8 +51,8 @@ class _CacheTable {
   /// Emit a list of statements declaring the cache variables for
   /// types tracked by this table.  If [typeFilter] is given,
   /// only emit the types listed in the filter.
-  List<JS.Statement> discharge([Iterable<DartType> typeFilter]) {
-    var decls = <JS.Statement>[];
+  List<js_ast.Statement> discharge([Iterable<DartType> typeFilter]) {
+    var decls = <js_ast.Statement>[];
     var types = typeFilter ?? keys;
     for (var t in types) {
       var stmt = _dischargeType(t);
@@ -63,76 +63,76 @@ class _CacheTable {
 
   bool isNamed(DartType type) => _names.containsKey(type);
 
-  /// If [type] is not already in the table, choose a new canonical
-  /// variable to contain it. Emit an expression which uses [typeRep] to
-  /// lazily initialize the cache in place.
-  JS.Expression nameType(DartType type, JS.Expression typeRep) {
-    var temp = _names[type];
-    if (temp == null) {
-      _names[type] = temp = chooseTypeName(type);
-    }
-    return js.call('# || (# = #)', [temp, temp, typeRep]);
-  }
-
-  String _typeString(DartType type, {bool flat: false}) {
+  /// A name for a type made of JS identifier safe characters.
+  ///
+  /// 'L' and 'N' are prepended to a type name to represent a legacy or nullable
+  /// flavor of a type.
+  String _typeString(DartType type, {bool flat = false}) {
+    var nullability = type.nullability == Nullability.legacy
+        ? 'L'
+        : type.nullability == Nullability.nullable ? 'N' : '';
     if (type is InterfaceType) {
-      var name = type.classNode.name;
+      var name = '${type.classNode.name}$nullability';
       var typeArgs = type.typeArguments;
       if (typeArgs == null) return name;
       if (typeArgs.every((p) => p == const DynamicType())) return name;
       return "${name}Of${typeArgs.map(_typeString).join("\$")}";
     }
     if (type is TypedefType) {
-      var name = type.typedefNode.name;
+      var name = '${type.typedefNode.name}$nullability';
       var typeArgs = type.typeArguments;
       if (typeArgs == null) return name;
       if (typeArgs.every((p) => p == const DynamicType())) return name;
       return "${name}Of${typeArgs.map(_typeString).join("\$")}";
     }
     if (type is FunctionType) {
-      if (flat) return "Fn";
+      if (flat) return 'Fn';
       var rType = _typeString(type.returnType, flat: true);
       var params = type.positionalParameters
           .take(3)
           .map((p) => _typeString(p, flat: true));
-      var paramList = params.join("And");
+      var paramList = params.join('And');
       var count = type.positionalParameters.length;
       if (count > 3 || type.namedParameters.isNotEmpty) {
-        paramList = "${paramList}__";
+        paramList = '${paramList}__';
       } else if (count == 0) {
-        paramList = "Void";
+        paramList = 'Void';
       }
-      return "${paramList}To${rType}";
+      return '${paramList}To$nullability$rType';
     }
-    if (type is TypeParameterType) return type.parameter.name;
-    if (type == const DynamicType()) return 'dynamic';
-    if (type == const VoidType()) return 'void';
-    if (type == const BottomType()) return 'bottom';
+    if (type is TypeParameterType) return '${type.parameter.name}$nullability';
+    if (type is DynamicType) return 'dynamic';
+    if (type is VoidType) return 'void';
+    if (type is NeverType) return 'Never$nullability';
+    if (type is BottomType) return 'bottom';
     return 'invalid';
   }
 
   /// Heuristically choose a good name for the cache and generator
   /// variables.
-  JS.Identifier chooseTypeName(DartType type) {
-    return new JS.TemporaryId(_typeString(type));
+  js_ast.TemporaryId chooseTypeName(DartType type) {
+    return js_ast.TemporaryId(_typeString(type));
   }
 }
 
 /// _GeneratorTable tracks types which have been
 /// named and hoisted.
 class _GeneratorTable extends _CacheTable {
-  final _defs = <DartType, JS.Expression>{};
+  final _defs = <DartType, js_ast.Expression>{};
 
-  final JS.Identifier _runtimeModule;
+  final js_ast.Identifier _runtimeModule;
 
   _GeneratorTable(this._runtimeModule);
 
-  JS.Statement _dischargeType(DartType t) {
+  @override
+  js_ast.Statement _dischargeType(DartType t) {
     var name = _names.remove(t);
     if (name != null) {
-      JS.Expression init = _defs.remove(t);
+      var init = _defs.remove(t);
       assert(init != null);
-      return js.statement('let # = () => ((# = #.constFn(#))());',
+      // TODO(vsm): Change back to `let`.
+      // See https://github.com/dart-lang/sdk/issues/40380.
+      return js.statement('var # = () => ((# = #.constFn(#))());',
           [name, name, _runtimeModule, init]);
     }
     return null;
@@ -140,14 +140,14 @@ class _GeneratorTable extends _CacheTable {
 
   /// If [type] does not already have a generator name chosen for it,
   /// assign it one, using [typeRep] as the initializer for it.
-  /// Emit an expression which calls the generator name.
-  JS.Expression nameType(DartType type, JS.Expression typeRep) {
+  /// Emit the generator name.
+  js_ast.TemporaryId _nameType(DartType type, js_ast.Expression typeRep) {
     var temp = _names[type];
     if (temp == null) {
       _names[type] = temp = chooseTypeName(type);
       _defs[type] = typeRep;
     }
-    return js.call('#()', [temp]);
+    return temp;
   }
 }
 
@@ -161,12 +161,12 @@ class TypeTable {
   /// parameter.
   final _scopeDependencies = <TypeParameter, List<DartType>>{};
 
-  TypeTable(JS.Identifier runtime) : _generators = new _GeneratorTable(runtime);
+  TypeTable(js_ast.Identifier runtime) : _generators = _GeneratorTable(runtime);
 
   /// Emit a list of statements declaring the cache variables and generator
   /// definitions tracked by the table.  If [formals] is present, only
   /// emit the definitions which depend on the formals.
-  List<JS.Statement> discharge([List<TypeParameter> formals]) {
+  List<js_ast.Statement> discharge([List<TypeParameter> formals]) {
     var filter = formals?.expand((p) => _scopeDependencies[p] ?? <DartType>[]);
     var stmts = _generators.discharge(filter);
     formals?.forEach(_scopeDependencies.remove);
@@ -196,11 +196,27 @@ class TypeTable {
   /// Given a type [type], and a JS expression [typeRep] which implements it,
   /// add the type and its representation to the table, returning an
   /// expression which implements the type (but which caches the value).
-  JS.Expression nameType(DartType type, JS.Expression typeRep) {
-    var table = _generators;
-    if (!table.isNamed(type)) {
-      if (recordScopeDependencies(type)) return typeRep;
+  js_ast.Expression nameType(DartType type, js_ast.Expression typeRep) {
+    if (!_generators.isNamed(type) && recordScopeDependencies(type)) {
+      return typeRep;
     }
-    return table.nameType(type, typeRep);
+    var name = _generators._nameType(type, typeRep);
+    return js.call('#()', [name]);
+  }
+
+  /// Like [nameType] but for function types.
+  ///
+  /// The boolean parameter [lazy] indicates that the resulting expression
+  /// should be a function that is invoked to compute the type, rather than the
+  /// type itself. This allows better integration with `lazyFn`, avoiding an
+  /// extra level of indirection.
+  js_ast.Expression nameFunctionType(
+      FunctionType type, js_ast.Expression typeRep,
+      {bool lazy = false}) {
+    if (!_generators.isNamed(type) && recordScopeDependencies(type)) {
+      return lazy ? js_ast.ArrowFun([], typeRep) : typeRep;
+    }
+    var name = _generators._nameType(type, typeRep);
+    return lazy ? name : js.call('#()', [name]);
   }
 }

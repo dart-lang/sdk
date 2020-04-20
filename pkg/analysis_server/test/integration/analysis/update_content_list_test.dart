@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateContentTest);
   });
@@ -16,19 +16,19 @@ main() {
 
 @reflectiveTest
 class UpdateContentTest extends AbstractAnalysisServerIntegrationTest {
-  test_updateContent_list() {
-    String pathname = sourcePath('test.dart');
-    String goodText = r'''
+  Future<void> test_updateContent_list() {
+    var pathname = sourcePath('test.dart');
+    var goodText = r'''
 main() {
   print("Hello");
   print("World!");
 }''';
-    String badText = goodText.replaceAll('"', '');
+    var badText = goodText.replaceAll('"', '');
     // Create a dummy file
     writeFile(pathname, '// dummy text');
     standardAnalysisSetup();
     // Override file contents with badText.
-    sendAnalysisUpdateContent({pathname: new AddContentOverlay(badText)});
+    sendAnalysisUpdateContent({pathname: AddContentOverlay(badText)});
     return analysisFinished.then((_) {
       // The overridden contents (badText) are missing quotation marks.
       expect(currentAnalysisErrors[pathname], isNotEmpty);
@@ -37,11 +37,11 @@ main() {
       // order in which they appear in the file.  If these edits are applied in
       // the wrong order, some of the quotation marks will be in the wrong
       // places, and there will still be errors.
-      List<SourceEdit> edits = '"'
+      var edits = '"'
           .allMatches(goodText)
-          .map((Match match) => new SourceEdit(match.start, 0, '"'))
+          .map((Match match) => SourceEdit(match.start, 0, '"'))
           .toList();
-      sendAnalysisUpdateContent({pathname: new ChangeContentOverlay(edits)});
+      sendAnalysisUpdateContent({pathname: ChangeContentOverlay(edits)});
       return analysisFinished;
     }).then((_) {
       // There should be no errors now, assuming that quotation marks have been

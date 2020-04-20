@@ -4,6 +4,7 @@
 //
 // OtherResources=certificates/server_chain.pem
 // OtherResources=certificates/server_key.pem
+// OtherResources=secure_socket_renegotiate_client.dart
 
 // This test verifies that client certificates work, if the client and server
 // are in separate processes, and that connection renegotiation works, and
@@ -25,14 +26,13 @@ SecurityContext serverContext = new SecurityContext()
       password: 'dartdart');
 
 Future<SecureServerSocket> runServer() {
-  return SecureServerSocket
-      .bind(HOST_NAME, 0, serverContext)
+  return SecureServerSocket.bind(HOST_NAME, 0, serverContext)
       .then((SecureServerSocket server) {
     server.listen((SecureSocket socket) {
       Expect.isNull(socket.peerCertificate);
 
       StreamIterator<String> input = new StreamIterator(
-          socket.transform(UTF8.decoder).transform(new LineSplitter()));
+          utf8.decoder.bind(socket).transform(new LineSplitter()));
       input.moveNext().then((success) {
         Expect.isTrue(success);
         Expect.equals('first', input.current);
@@ -65,12 +65,15 @@ Future<SecureServerSocket> runServer() {
 
 void main() {
   runServer().then((SecureServerSocket server) {
-    var clientScript =
-        Platform.script.toFilePath().replaceFirst("_test.dart", "_client.dart");
-    Expect.isTrue(clientScript.endsWith("_client.dart"));
-    Process
-        .run(Platform.executable, [clientScript, server.port.toString()]).then(
-            (ProcessResult result) {
+    var clientScript = Platform.script
+        .resolve('secure_socket_renegotiate_client.dart')
+        .toFilePath();
+    Process.run(
+            Platform.executable,
+            []
+              ..addAll(Platform.executableArguments)
+              ..addAll([clientScript, server.port.toString()]))
+        .then((ProcessResult result) {
       if (result.exitCode != 0) {
         print("Client failed, stdout:");
         print(result.stdout);

@@ -1,163 +1,178 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.serialization.task;
-
-import 'dart:async' show Future;
-
-import '../../compiler_new.dart';
-import '../common/resolution.dart' show ResolutionImpact, ResolutionWorkItem;
-import '../common/tasks.dart' show CompilerTask;
-import '../compiler.dart' show Compiler;
-import '../elements/elements.dart';
-import '../elements/entities.dart' show Entity;
-import '../universe/world_impact.dart' show WorldImpact;
-import 'json_serializer.dart';
+import 'dart:async';
+import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/binary/ast_from_binary.dart' as ir;
+import 'package:kernel/binary/ast_to_binary.dart' as ir;
+import '../../compiler_new.dart' as api;
+import '../backend_strategy.dart';
+import '../common/codegen.dart';
+import '../common/tasks.dart';
+import '../diagnostics/diagnostic_listener.dart';
+import '../elements/entities.dart';
+import '../environment.dart';
+import '../inferrer/abstract_value_domain.dart';
+import '../inferrer/types.dart';
+import '../js_backend/backend.dart';
+import '../js_backend/inferred_data.dart';
+import '../js_model/js_world.dart';
+import '../options.dart';
+import '../util/sink_adapter.dart';
+import '../world.dart';
 import 'serialization.dart';
-import 'system.dart';
 
-/// A deserializer that can load a library element by reading it's information
-/// from a serialized form.
-abstract class LibraryDeserializer {
-  /// Loads the [LibraryElement] associated with a library under [uri], or null
-  /// if no serialized information is available for the given library.
-  Future<LibraryElement> readLibrary(Uri uri);
-
-  /// Returns `true` if [element] has been deserialized.
-  bool isDeserialized(Entity element);
+void serializeGlobalTypeInferenceResults(
+    GlobalTypeInferenceResults results, DataSink sink) {
+  JsClosedWorld closedWorld = results.closedWorld;
+  InferredData inferredData = results.inferredData;
+  closedWorld.writeToDataSink(sink);
+  inferredData.writeToDataSink(sink);
+  results.writeToDataSink(sink, closedWorld.elementMap);
+  sink.close();
 }
 
-/// Task that supports deserialization of elements.
-class SerializationTask extends CompilerTask implements LibraryDeserializer {
-  final Compiler compiler;
-  SerializationTask(Compiler compiler)
-      : compiler = compiler,
-        super(compiler.measurer);
-
-  DeserializerSystem deserializer;
-
-  String get name => 'Serialization';
-
-  /// If `true`, data must be retained to support serialization.
-  // TODO(johnniwinther): Make this more precise in terms of what needs to be
-  // retained, for instance impacts, resolution data etc.
-  bool supportSerialization = false;
-
-  /// Set this flag to also deserialize [ResolvedAst]s and [ResolutionImpact]s
-  /// in `resolveOnly` mode. Use this for testing only.
-  bool deserializeCompilationDataForTesting = false;
-
-  /// If `true`, deserialized data is supported.
-  bool get supportsDeserialization => deserializer != null;
-
-  /// Returns the [LibraryElement] for [resolvedUri] if available from
-  /// serialization.
-  Future<LibraryElement> readLibrary(Uri resolvedUri) {
-    if (deserializer == null) return new Future<LibraryElement>.value();
-    return deserializer.readLibrary(resolvedUri);
-  }
-
-  /// Returns `true` if [element] has been deserialized.
-  bool isDeserialized(Entity element) {
-    return deserializer != null && deserializer.isDeserialized(element);
-  }
-
-  bool hasResolutionImpact(Element element) {
-    return deserializer != null && deserializer.hasResolutionImpact(element);
-  }
-
-  ResolutionImpact getResolutionImpact(Element element) {
-    return deserializer != null
-        ? deserializer.getResolutionImpact(element)
-        : null;
-  }
-
-  /// Creates the [ResolutionWorkItem] for the deserialized [element].
-  ResolutionWorkItem createResolutionWorkItem(MemberElement element) {
-    assert(deserializer != null);
-    assert(isDeserialized(element));
-    return new DeserializedResolutionWorkItem(
-        element, deserializer.computeWorldImpact(element));
-  }
-
-  bool hasResolvedAst(ExecutableElement element) {
-    return deserializer != null ? deserializer.hasResolvedAst(element) : false;
-  }
-
-  ResolvedAst getResolvedAst(ExecutableElement element) {
-    return deserializer != null ? deserializer.getResolvedAst(element) : null;
-  }
-
-  Serializer createSerializer(Iterable<LibraryElement> libraries) {
-    return measure(() {
-      assert(supportSerialization);
-
-      Serializer serializer =
-          new Serializer(shouldInclude: (e) => libraries.contains(e.library));
-      SerializerPlugin backendSerializer =
-          compiler.backend.serialization.serializer;
-      serializer.plugins.add(backendSerializer);
-      serializer.plugins.add(new ResolutionImpactSerializer(
-          compiler.resolution, backendSerializer));
-      serializer.plugins.add(new ResolvedAstSerializerPlugin(
-          compiler.resolution, backendSerializer));
-
-      for (LibraryElement library in libraries) {
-        serializer.serialize(library);
-      }
-      return serializer;
-    });
-  }
-
-  void serializeToSink(OutputSink sink, Iterable<LibraryElement> libraries) {
-    measure(() {
-      sink
-        ..add(createSerializer(libraries)
-            .toText(const JsonSerializationEncoder()))
-        ..close();
-    });
-  }
-
-  void deserializeFromText(Uri sourceUri, String serializedData) {
-    measure(() {
-      if (deserializer == null) {
-        deserializer = new ResolutionDeserializerSystem(compiler,
-            deserializeCompilationDataForTesting:
-                deserializeCompilationDataForTesting);
-      }
-      ResolutionDeserializerSystem deserializerImpl = deserializer;
-      DeserializationContext context = deserializerImpl.deserializationContext;
-      Deserializer dataDeserializer = new Deserializer.fromText(
-          context, sourceUri, serializedData, const JsonSerializationDecoder());
-      context.deserializers.add(dataDeserializer);
-    });
-  }
+GlobalTypeInferenceResults deserializeGlobalTypeInferenceResults(
+    CompilerOptions options,
+    DiagnosticReporter reporter,
+    Environment environment,
+    AbstractValueStrategy abstractValueStrategy,
+    ir.Component component,
+    DataSource source) {
+  JsClosedWorld newClosedWorld = new JsClosedWorld.readFromDataSource(
+      options, reporter, environment, abstractValueStrategy, component, source);
+  InferredData newInferredData =
+      new InferredData.readFromDataSource(source, newClosedWorld);
+  return new GlobalTypeInferenceResults.readFromDataSource(
+      source, newClosedWorld.elementMap, newClosedWorld, newInferredData);
 }
 
-/// A [ResolutionWorkItem] for a deserialized element.
-///
-/// This will not resolve the element but only compute the [WorldImpact].
-class DeserializedResolutionWorkItem implements ResolutionWorkItem {
-  final MemberElement element;
-  final WorldImpact worldImpact;
+class SerializationTask extends CompilerTask {
+  final CompilerOptions _options;
+  final DiagnosticReporter _reporter;
+  final api.CompilerInput _provider;
+  final api.CompilerOutput _outputProvider;
 
-  DeserializedResolutionWorkItem(this.element, this.worldImpact);
+  SerializationTask(this._options, this._reporter, this._provider,
+      this._outputProvider, Measurer measurer)
+      : super(measurer);
 
   @override
-  WorldImpact run() {
-    return worldImpact;
-  }
-}
+  String get name => 'Serialization';
 
-/// The interface for a system that supports deserialization of libraries and
-/// elements.
-abstract class DeserializerSystem {
-  Future<LibraryElement> readLibrary(Uri resolvedUri);
-  bool isDeserialized(Entity element);
-  bool hasResolvedAst(ExecutableElement element);
-  ResolvedAst getResolvedAst(ExecutableElement element);
-  bool hasResolutionImpact(Element element);
-  ResolutionImpact getResolutionImpact(Element element);
-  WorldImpact computeWorldImpact(Element element);
+  void serializeGlobalTypeInference(GlobalTypeInferenceResults results) {
+    measureSubtask('serialize dill', () {
+      // TODO(sigmund): remove entirely: we will do this immediately as soon as
+      // we get the component in the kernel/loader.dart task once we refactor
+      // how we apply our modular kernel transformation for super mixin calls.
+      _reporter.log('Writing dill to ${_options.outputUri}');
+      api.BinaryOutputSink dillOutput =
+          _outputProvider.createBinarySink(_options.outputUri);
+      JsClosedWorld closedWorld = results.closedWorld;
+      ir.Component component = closedWorld.elementMap.programEnv.mainComponent;
+      BinaryOutputSinkAdapter irSink = new BinaryOutputSinkAdapter(dillOutput);
+      ir.BinaryPrinter printer = new ir.BinaryPrinter(irSink);
+      printer.writeComponentFile(component);
+      irSink.close();
+    });
+
+    measureSubtask('serialize data', () {
+      _reporter.log('Writing data to ${_options.writeDataUri}');
+      api.BinaryOutputSink dataOutput =
+          _outputProvider.createBinarySink(_options.writeDataUri);
+      DataSink sink = new BinarySink(new BinaryOutputSinkAdapter(dataOutput));
+      serializeGlobalTypeInferenceResults(results, sink);
+    });
+  }
+
+  Future<GlobalTypeInferenceResults> deserializeGlobalTypeInference(
+      Environment environment,
+      AbstractValueStrategy abstractValueStrategy) async {
+    ir.Component component =
+        await measureIoSubtask('deserialize dill', () async {
+      _reporter.log('Reading dill from ${_options.entryPoint}');
+      api.Input<List<int>> dillInput = await _provider
+          .readFromUri(_options.entryPoint, inputKind: api.InputKind.binary);
+      ir.Component component = new ir.Component();
+      new ir.BinaryBuilder(dillInput.data).readComponent(component);
+      return component;
+    });
+
+    return await measureIoSubtask('deserialize data', () async {
+      _reporter.log('Reading data from ${_options.readDataUri}');
+      api.Input<List<int>> dataInput = await _provider
+          .readFromUri(_options.readDataUri, inputKind: api.InputKind.binary);
+      DataSource source = new BinarySourceImpl(dataInput.data);
+      return deserializeGlobalTypeInferenceResults(_options, _reporter,
+          environment, abstractValueStrategy, component, source);
+    });
+  }
+
+  void serializeCodegen(
+      BackendStrategy backendStrategy, CodegenResults codegenResults) {
+    GlobalTypeInferenceResults globalTypeInferenceResults =
+        codegenResults.globalTypeInferenceResults;
+    JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
+    int shard = _options.codegenShard;
+    int shards = _options.codegenShards;
+    Map<MemberEntity, CodegenResult> results = {};
+    int index = 0;
+    EntityWriter entityWriter =
+        backendStrategy.forEachCodegenMember((MemberEntity member) {
+      if (index % shards == shard) {
+        CodegenResult codegenResult = codegenResults.getCodegenResults(member);
+        results[member] = codegenResult;
+      }
+      index++;
+    });
+    measureSubtask('serialize codegen', () {
+      Uri uri = Uri.parse('${_options.writeCodegenUri}$shard');
+      api.BinaryOutputSink dataOutput = _outputProvider.createBinarySink(uri);
+      DataSink sink = new BinarySink(new BinaryOutputSinkAdapter(dataOutput));
+      _reporter.log('Writing data to ${uri}');
+      sink.registerEntityWriter(entityWriter);
+      sink.registerCodegenWriter(new CodegenWriterImpl(closedWorld));
+      sink.writeMemberMap(
+          results,
+          (MemberEntity member, CodegenResult result) =>
+              result.writeToDataSink(sink));
+      sink.close();
+    });
+  }
+
+  Future<CodegenResults> deserializeCodegen(
+      BackendStrategy backendStrategy,
+      GlobalTypeInferenceResults globalTypeInferenceResults,
+      CodegenInputs codegenInputs) async {
+    int shards = _options.codegenShards;
+    JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
+    Map<MemberEntity, CodegenResult> results = {};
+    for (int shard = 0; shard < shards; shard++) {
+      Uri uri = Uri.parse('${_options.readCodegenUri}$shard');
+      await measureIoSubtask('deserialize codegen', () async {
+        _reporter.log('Reading data from ${uri}');
+        api.Input<List<int>> dataInput =
+            await _provider.readFromUri(uri, inputKind: api.InputKind.binary);
+        DataSource source = new BinarySourceImpl(dataInput.data);
+        backendStrategy.prepareCodegenReader(source);
+        Map<MemberEntity, CodegenResult> codegenResults =
+            source.readMemberMap((MemberEntity member) {
+          List<ModularName> modularNames = [];
+          List<ModularExpression> modularExpressions = [];
+          CodegenReader reader = new CodegenReaderImpl(
+              closedWorld, modularNames, modularExpressions);
+          source.registerCodegenReader(reader);
+          CodegenResult result = CodegenResult.readFromDataSource(
+              source, modularNames, modularExpressions);
+          source.deregisterCodegenReader(reader);
+          return result;
+        });
+        _reporter.log('Read ${codegenResults.length} members from ${uri}');
+        results.addAll(codegenResults);
+      });
+    }
+    return new DeserializedCodegenResults(
+        globalTypeInferenceResults, codegenInputs, results);
+  }
 }

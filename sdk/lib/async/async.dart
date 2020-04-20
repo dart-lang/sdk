@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 /**
  * Support for asynchronous programming,
  * with classes such as Future and Stream.
@@ -52,11 +54,11 @@
  * each time more data is available.
  *
  *     Stream<List<int>> stream = new File('quotes.txt').openRead();
- *     stream.transform(UTF8.decoder).listen(print);
+ *     stream.transform(utf8.decoder).listen(print);
  *
  * The stream emits a sequence of a list of bytes.
  * The program must interpret the bytes or handle the raw byte data.
- * Here, the code uses a UTF8 decoder (provided in the `dart:convert` library)
+ * Here, the code uses a UTF-8 decoder (provided in the `dart:convert` library)
  * to convert the sequence of bytes into a sequence
  * of Dart strings.
  *
@@ -87,12 +89,22 @@
  * [asynchronous-programming]: https://www.dartlang.org/docs/dart-up-and-running/ch03.html#dartasync---asynchronous-programming
  * [futures-tutorial]: https://www.dartlang.org/docs/tutorials/futures/
  * [futures-error-handling]: https://www.dartlang.org/articles/futures-and-error-handling/
- * [test-readme]: https://pub.dartlang.org/packages/test
+ * [test-readme]: https://pub.dev/packages/test
+ *
+ * {@category Core}
  */
 library dart.async;
 
 import "dart:collection" show HashMap, IterableBase;
-import "dart:_internal" show printToZone, printToConsole, IterableElementError;
+import "dart:_internal"
+    show
+        CastStream,
+        CastStreamTransformer,
+        EmptyIterator,
+        IterableElementError,
+        printToZone,
+        printToConsole,
+        Since;
 
 part 'async_error.dart';
 part 'broadcast_stream_controller.dart';

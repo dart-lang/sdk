@@ -1,0 +1,67 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with a number of modules.
+# Compile again with changing modules.
+
+type: newworld
+modules:
+  foo:
+    foo/foo.dart: |
+      var foo = true;
+    foo/.packages: |
+      foo:.
+  foo2:
+    foo2/foo.dart: |
+      var foo2 = true;
+    foo2/.packages: |
+      foo:.
+worlds:
+  - entry: main.dart
+    fromComponent: true
+    simulateTransformer: true
+    sources:
+      main.dart: |
+        import "package:foo/foo.dart";
+        main() {
+          print(foo);
+        }
+      .packages: |
+        foo:foo
+    modules:
+      - foo
+    expectedLibraryCount: 2
+    expectedContent:
+      org-dartlang-test:///main.dart:
+        - Procedure main
+        - Field unique_SimulateTransformer
+      package:foo/foo.dart:
+        - Field foo
+        - Field unique_SimulateTransformer
+    neededDillLibraries:
+      - package:foo/foo.dart
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    simulateTransformer: true
+    sources:
+      main.dart: |
+        import "package:foo/foo.dart";
+        main() {
+          print(foo2);
+        }
+      .packages: |
+        foo:foo2
+    modules:
+      - foo2
+    expectedLibraryCount: 2
+    neededDillLibraries:
+      - package:foo/foo.dart
+    expectedContent:
+      org-dartlang-test:///main.dart:
+        - Procedure main
+        - Field unique_SimulateTransformer
+      package:foo/foo.dart:
+        - Field foo2
+        - Field unique_SimulateTransformer

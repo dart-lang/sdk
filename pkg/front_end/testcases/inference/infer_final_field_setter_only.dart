@@ -6,11 +6,11 @@
 library test;
 
 abstract class A {
-  void set x(double value);
+  void set x(double value) {}
 }
 
 class B extends A {
-  final /*@topType=double*/ x;
+  final x;
 
   B(this.x);
 }

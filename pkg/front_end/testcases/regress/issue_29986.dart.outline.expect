@@ -1,4 +1,12 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29986.dart:8:13: Error: Expected a function body or '=>'.
+// Try adding {}.
+// C(this.name);
+//             ^
+//
 import self as self;
 
 static method main() → dynamic

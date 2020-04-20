@@ -4,18 +4,17 @@
 
 #include "platform/globals.h"
 
-#if (!defined(DART_USE_TCMALLOC) && !defined(DART_USE_JEMALLOC)) ||            \
-    defined(PRODUCT)
+#if defined(PRODUCT) || !defined(DART_USE_TCMALLOC)
 
 #include "vm/malloc_hooks.h"
 
 namespace dart {
 
-void MallocHooks::InitOnce() {
+void MallocHooks::Init() {
   // Do nothing.
 }
 
-void MallocHooks::TearDown() {
+void MallocHooks::Cleanup() {
   // Do nothing.
 }
 

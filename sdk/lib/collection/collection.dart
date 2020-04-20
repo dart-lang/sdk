@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Classes and utilities that supplement the collection support in dart:core.
- * 
- * To use this library in your code:
- *
- *     import 'dart:collection';
- */
+// @dart = 2.6
+
+/// Classes and utilities that supplement the collection support in dart:core.
+///
+/// To use this library in your code:
+///
+///     import 'dart:collection';
+///
+/// {@category Core}
 library dart.collection;
 
 import 'dart:_internal' hide Symbol;

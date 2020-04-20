@@ -11,7 +11,7 @@ import 'dart:io' show exit, stderr;
 
 import 'dart:isolate' show Capability, Isolate, ReceivePort;
 
-import 'log.dart' show logUncaughtError;
+import 'log.dart' show StdoutLogger;
 
 Future runGuarded(Future f(),
     {void printLineOnStdout(line),
@@ -26,7 +26,7 @@ Future runGuarded(Future f(),
   Completer completer = new Completer();
 
   handleUncaughtError(error, StackTrace stackTrace) {
-    logUncaughtError(error, stackTrace);
+    StdoutLogger().logUncaughtError(error, stackTrace);
     if (!completer.isCompleted) {
       completer.completeError(error, stackTrace);
     } else if (handleLateError != null) {

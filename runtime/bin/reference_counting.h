@@ -5,7 +5,7 @@
 #ifndef RUNTIME_BIN_REFERENCE_COUNTING_H_
 #define RUNTIME_BIN_REFERENCE_COUNTING_H_
 
-#include "vm/atomic.h"
+#include <atomic>
 
 namespace dart {
 namespace bin {
@@ -35,24 +35,24 @@ class ReferenceCounted {
  public:
   ReferenceCounted() : ref_count_(1) {
 #if defined(DEBUG)
-    AtomicOperations::FetchAndIncrement(&instances_);
+    instances_.fetch_add(1u, std::memory_order_relaxed);
 #endif  // defined(DEBUG)
   }
 
   virtual ~ReferenceCounted() {
     ASSERT(ref_count_ == 0);
 #if defined(DEBUG)
-    AtomicOperations::FetchAndDecrement(&instances_);
+    instances_.fetch_sub(1u, std::memory_order_relaxed);
 #endif  // defined(DEBUG)
   }
 
   void Retain() {
-    intptr_t old = AtomicOperations::FetchAndIncrement(&ref_count_);
+    intptr_t old = ref_count_.fetch_add(1u, std::memory_order_relaxed);
     ASSERT(old > 0);
   }
 
   void Release() {
-    intptr_t old = AtomicOperations::FetchAndDecrement(&ref_count_);
+    intptr_t old = ref_count_.fetch_sub(1u, std::memory_order_acq_rel);
     ASSERT(old > 0);
     if (old == 1) {
       delete static_cast<Derived*>(this);
@@ -60,25 +60,29 @@ class ReferenceCounted {
   }
 
 #if defined(DEBUG)
-  static intptr_t instances() { return instances_; }
+  static intptr_t instances() {
+    return instances_.load(std::memory_order_relaxed);
+  }
 #endif  // defined(DEBUG)
 
  private:
 #if defined(DEBUG)
-  static intptr_t instances_;
+  static std::atomic<intptr_t> instances_;
 #endif  // defined(DEBUG)
 
-  intptr_t ref_count_;
+  std::atomic<intptr_t> ref_count_;
 
   // These are used only in the ASSERT below in RefCntReleaseScope.
-  intptr_t ref_count() const { return ref_count_; }
+  intptr_t ref_count() const {
+    return ref_count_.load(std::memory_order_relaxed);
+  }
   friend class RefCntReleaseScope<Derived>;
   DISALLOW_COPY_AND_ASSIGN(ReferenceCounted);
 };
 
 #if defined(DEBUG)
 template <class Derived>
-intptr_t ReferenceCounted<Derived>::instances_ = 0;
+std::atomic<intptr_t> ReferenceCounted<Derived>::instances_ = {0};
 #endif
 
 // Creates a scope at the end of which a reference counted object is

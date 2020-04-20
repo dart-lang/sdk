@@ -19,8 +19,11 @@ namespace dart {
 
 bool CpuId::sse2_ = false;
 bool CpuId::sse41_ = false;
-const char* CpuId::id_string_ = NULL;
-const char* CpuId::brand_string_ = NULL;
+bool CpuId::popcnt_ = false;
+bool CpuId::abm_ = false;
+
+const char* CpuId::id_string_ = nullptr;
+const char* CpuId::brand_string_ = nullptr;
 
 #if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
 
@@ -34,11 +37,12 @@ void CpuId::GetCpuId(int32_t level, uint32_t info[4]) {
 #endif
 }
 
-void CpuId::InitOnce() {
+void CpuId::Init() {
   uint32_t info[4] = {static_cast<uint32_t>(-1)};
 
   GetCpuId(0, info);
   char* id_string = reinterpret_cast<char*>(malloc(3 * sizeof(int32_t)));
+
   // Yes, these are supposed to be out of order.
   *reinterpret_cast<uint32_t*>(id_string) = info[1];
   *reinterpret_cast<uint32_t*>(id_string + 4) = info[3];
@@ -48,6 +52,10 @@ void CpuId::InitOnce() {
   GetCpuId(1, info);
   CpuId::sse41_ = (info[2] & (1 << 19)) != 0;
   CpuId::sse2_ = (info[3] & (1 << 26)) != 0;
+  CpuId::popcnt_ = (info[2] & (1 << 23)) != 0;
+
+  GetCpuId(0x80000001, info);
+  CpuId::abm_ = (info[2] & (1 << 5)) != 0;
 
   char* brand_string =
       reinterpret_cast<char*>(malloc(3 * 4 * sizeof(uint32_t)));
@@ -89,15 +97,25 @@ const char* CpuId::field(CpuInfoIndices idx) {
     case kCpuInfoHardware:
       return brand_string();
     case kCpuInfoFeatures: {
-      if (sse2() && sse41()) {
-        return strdup("sse2 sse4.1");
-      } else if (sse2()) {
-        return strdup("sse2");
-      } else if (sse41()) {
-        return strdup("sse4.1");
-      } else {
-        return strdup("");
+      char buffer[100];
+      char* p = buffer;
+      const char* q = p + 100;
+      *p = '\0';
+      if (sse2()) {
+        p += snprintf(p, q - p, "sse2 ");
       }
+      if (sse41()) {
+        p += snprintf(p, q - p, "sse4.1 ");
+      }
+      if (popcnt()) {
+        p += snprintf(p, q - p, "popcnt ");
+      }
+      if (abm()) {
+        p += snprintf(p, q - p, "abm ");
+      }
+      // Remove last space before returning string.
+      if (p != buffer) *(p - 1) = '\0';
+      return strdup(buffer);
     }
     default: {
       UNREACHABLE();

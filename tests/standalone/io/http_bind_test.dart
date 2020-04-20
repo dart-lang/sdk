@@ -66,7 +66,7 @@ void main() {
     if (ok) {
       addresses.add('::1');
     }
-    var futures = [];
+    var futures = <Future>[];
     for (var host in addresses) {
       futures.add(testBindShared(host, false));
       futures.add(testBindShared(host, true));

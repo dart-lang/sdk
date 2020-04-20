@@ -15,6 +15,30 @@ Mutex* CodeObservers::mutex_ = NULL;
 intptr_t CodeObservers::observers_length_ = 0;
 CodeObserver** CodeObservers::observers_ = NULL;
 
+class ExternalCodeObserverAdapter : public CodeObserver {
+ public:
+  explicit ExternalCodeObserverAdapter(Dart_CodeObserver delegate)
+      : delegate_(delegate) {}
+
+  virtual bool IsActive() const { return true; }
+
+  virtual void Notify(const char* name,
+                      uword base,
+                      uword prologue_offset,
+                      uword size,
+                      bool optimized,
+                      const CodeComments* comments) {
+    return delegate_.on_new_code(&delegate_, name, base, size);
+  }
+
+ private:
+  Dart_CodeObserver delegate_;
+};
+
+void CodeObservers::RegisterExternal(Dart_CodeObserver observer) {
+  Register(new ExternalCodeObserverAdapter(observer));
+}
+
 void CodeObservers::Register(CodeObserver* observer) {
   observers_length_++;
   observers_ = reinterpret_cast<CodeObserver**>(
@@ -29,11 +53,13 @@ void CodeObservers::NotifyAll(const char* name,
                               uword base,
                               uword prologue_offset,
                               uword size,
-                              bool optimized) {
+                              bool optimized,
+                              const CodeComments* comments) {
   ASSERT(!AreActive() || (strlen(name) != 0));
   for (intptr_t i = 0; i < observers_length_; i++) {
     if (observers_[i]->IsActive()) {
-      observers_[i]->Notify(name, base, prologue_offset, size, optimized);
+      observers_[i]->Notify(name, base, prologue_offset, size, optimized,
+                            comments);
     }
   }
 }
@@ -45,7 +71,7 @@ bool CodeObservers::AreActive() {
   return false;
 }
 
-void CodeObservers::DeleteAll() {
+void CodeObservers::Cleanup() {
   for (intptr_t i = 0; i < observers_length_; i++) {
     delete observers_[i];
   }
@@ -54,9 +80,10 @@ void CodeObservers::DeleteAll() {
   observers_ = NULL;
 }
 
-void CodeObservers::InitOnce() {
-  ASSERT(mutex_ == NULL);
-  mutex_ = new Mutex();
+void CodeObservers::Init() {
+  if (mutex_ == NULL) {
+    mutex_ = new Mutex();
+  }
   ASSERT(mutex_ != NULL);
   OS::RegisterCodeObservers();
 }

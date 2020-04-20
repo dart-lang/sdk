@@ -1,0 +1,24 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/issue_000001.dart:11:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+// Try removing the extra positional arguments.
+//   test0(0, 1);
+//        ^
+// pkg/front_end/testcases/rasta/issue_000001.dart:5:1: Context: Found this candidate, but the arguments don't match.
+// test0(x) {
+// ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test0(dynamic x) → dynamic {
+  core::print("test0");
+}
+static method main() → dynamic {
+  invalid-expression "pkg/front_end/testcases/rasta/issue_000001.dart:11:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+Try removing the extra positional arguments.
+  test0(0, 1);
+       ^";
+}

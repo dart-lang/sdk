@@ -4,7 +4,6 @@
 
 library test.invoke_private_test;
 
-@MirrorsUsed(targets: "invoke_private_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -68,7 +67,7 @@ main() {
   Expect.equals('my value', result.reflectee._field);
 
   // LibraryMirror.
-  LibraryMirror lm = cm.owner;
+  LibraryMirror lm = cm.owner as LibraryMirror;
   result = lm.invoke(#_libraryFunction, [':', ')']);
   Expect.equals(':)', result.reflectee);
 

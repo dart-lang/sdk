@@ -8,7 +8,7 @@ library test;
 import 'dart:async';
 
 main() async {
-  var /*@type=() -> Future<Null>*/ f = /*@returnType=Future<Null>*/ () async {
+  var /*@ type=() ->* Future<Null?>* */ f = /*@ returnType=Future<Null?>* */ () async {
     return null;
   };
   Future y = f();

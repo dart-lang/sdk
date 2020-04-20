@@ -18,70 +18,112 @@ class DFE {
   DFE();
   ~DFE();
 
-  const char* frontend_filename() const { return frontend_filename_; }
-  void set_frontend_filename(const char* name) { frontend_filename_ = name; }
-  bool UseDartFrontend() const { return frontend_filename_ != NULL; }
+  // Call Init before Dart_Initialize to prevent races between the
+  // different isolates.
+  void Init();
+  void Init(int target_abi_version);
 
+  char* frontend_filename() const { return frontend_filename_; }
+
+  void set_frontend_filename(const char* name) {
+    if (frontend_filename_ != nullptr) {
+      free(frontend_filename_);
+    }
+    frontend_filename_ = strdup(name);
+    set_use_dfe();
+  }
+  void set_use_dfe(bool value = true) { use_dfe_ = value; }
+  bool UseDartFrontend() const { return use_dfe_; }
+
+  void set_use_incremental_compiler(bool value) {
+    use_incremental_compiler_ = value;
+  }
+  bool use_incremental_compiler() const { return use_incremental_compiler_; }
+
+  // Returns the platform binary file name if the path to
+  // kernel binaries was set using SetKernelBinaries.
   const char* GetPlatformBinaryFilename();
 
-  void SetKernelBinaries(const char* name);
-
-  bool UsePlatformBinary() const { return kernel_binaries_path_ != NULL; }
-
-  void* kernel_platform() const { return kernel_platform_; }
-  void set_kernel_platform(void* kernel_platform) {
-    kernel_platform_ = kernel_platform;
+  // Set the kernel program for the main application if it was specified
+  // as a dill file.
+  void set_application_kernel_buffer(uint8_t* buffer, intptr_t size) {
+    application_kernel_buffer_ = buffer;
+    application_kernel_buffer_size_ = size;
+  }
+  void application_kernel_buffer(const uint8_t** buffer, intptr_t* size) const {
+    *buffer = application_kernel_buffer_;
+    *size = application_kernel_buffer_size_;
   }
 
-  bool kernel_file_specified() const { return kernel_file_specified_; }
-  void set_kernel_file_specified(bool value) { kernel_file_specified_ = value; }
+  // Compiles specified script.
+  // Returns result from compiling the script.
+  Dart_KernelCompilationResult CompileScript(const char* script_uri,
+                                             bool incremental,
+                                             const char* package_config);
 
-  // Method to read a kernel file into a kernel program blob.
-  // If the specified script [url] is not a kernel IR, compile it first using
-  // DFE and then read the resulting kernel file into a kernel program blob.
-  // Returns Dart_Null if successful, otherwise an error object is returned.
-  Dart_Handle ReadKernelBinary(Dart_Isolate isolate, const char* url_string);
-
-  // Compiles a script and reads the resulting kernel file.
+  // Compiles specified script and reads the resulting kernel file.
   // If the compilation is successful, returns a valid in memory kernel
   // representation of the script, NULL otherwise
   // 'error' and 'exit_code' have the error values in case of errors.
-  void* CompileAndReadScript(const char* script_uri,
-                             char** error,
-                             int* exit_code);
-
-  // Reads the platform kernel file.
-  // Returns an in memory kernel representation of the platform kernel file.
-  void* ReadPlatform();
-
-  // Reads the vmservice_io kernel file.
-  // Returns the in memory representation of the vmservice_io kernel file.
-  void* ReadVMServiceIO() const;
+  void CompileAndReadScript(const char* script_uri,
+                            uint8_t** kernel_buffer,
+                            intptr_t* kernel_buffer_size,
+                            char** error,
+                            int* exit_code,
+                            const char* package_config);
 
   // Reads the script kernel file if specified 'script_uri' is a kernel file.
   // Returns an in memory kernel representation of the specified script is a
   // valid kernel file, false otherwise.
-  void* ReadScript(const char* script_uri) const;
+  void ReadScript(const char* script_uri,
+                  uint8_t** kernel_buffer,
+                  intptr_t* kernel_buffer_size) const;
 
- private:
+  bool KernelServiceDillAvailable() const;
+
   // Tries to read [script_uri] as a Kernel IR file.
   // Returns `true` if successful and sets [kernel_file] and [kernel_length]
   // to be the kernel IR contents.
   // The caller is responsible for free()ing [kernel_file] if `true`
   // was returned.
-  bool TryReadKernelFile(const char* script_uri,
-                         const uint8_t** kernel_ir,
-                         intptr_t* kernel_ir_size) const;
+  static bool TryReadKernelFile(const char* script_uri,
+                                uint8_t** kernel_buffer,
+                                intptr_t* kernel_buffer_size);
 
-  const char* frontend_filename_;
-  char* kernel_binaries_path_;
-  char* platform_binary_filename_;
-  char* vmservice_io_binary_filename_;
-  void* kernel_platform_;
-  bool kernel_file_specified_;  // Kernel file was specified on the cmd line.
+  // We distinguish between "intent to use Dart frontend" vs "can actually
+  // use Dart frontend". The method UseDartFrontend tells us about the
+  // intent to use DFE. This method tells us if Dart frontend can actually
+  // be used.
+  bool CanUseDartFrontend() const;
+
+  void LoadPlatform(const uint8_t** kernel_buffer,
+                    intptr_t* kernel_buffer_size);
+  void LoadKernelService(const uint8_t** kernel_service_buffer,
+                         intptr_t* kernel_service_buffer_size);
+
+ private:
+  bool use_dfe_;
+  bool use_incremental_compiler_;
+  char* frontend_filename_;
+  const uint8_t* kernel_service_dill_;
+  intptr_t kernel_service_dill_size_;
+  const uint8_t* platform_strong_dill_for_compilation_;
+  intptr_t platform_strong_dill_for_compilation_size_;
+  const uint8_t* platform_strong_dill_for_execution_;
+  intptr_t platform_strong_dill_for_execution_size_;
+
+  // Kernel binary specified on the cmd line.
+  uint8_t* application_kernel_buffer_;
+  intptr_t application_kernel_buffer_size_;
+
+  bool InitKernelServiceAndPlatformDills(int target_abi_version);
 
   DISALLOW_COPY_AND_ASSIGN(DFE);
 };
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+extern DFE dfe;
+#endif
 
 }  // namespace bin
 }  // namespace dart

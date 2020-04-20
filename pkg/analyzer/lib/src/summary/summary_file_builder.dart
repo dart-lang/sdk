@@ -1,51 +1,46 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.summary.summary_file_builder;
-
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/link.dart';
-import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
+import 'package:analyzer/src/summary2/link.dart' as summary2;
+import 'package:analyzer/src/summary2/linked_element_factory.dart' as summary2;
+import 'package:analyzer/src/summary2/reference.dart' as summary2;
+import 'package:meta/meta.dart';
 
 class SummaryBuilder {
   final Iterable<Source> librarySources;
   final AnalysisContext context;
-  final bool strong;
 
   /**
    * Create a summary builder for these [librarySources] and [context].
    */
-  SummaryBuilder(this.librarySources, this.context, this.strong);
+  SummaryBuilder(this.librarySources, this.context);
 
   /**
    * Create an SDK summary builder for the dart SDK at the given [sdkPath].
    */
-  factory SummaryBuilder.forSdk(String sdkPath, bool strong) {
+  factory SummaryBuilder.forSdk(String sdkPath) {
     //
     // Prepare SDK.
     //
     ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
-    FolderBasedDartSdk sdk = new FolderBasedDartSdk(
-        resourceProvider, resourceProvider.getFolder(sdkPath), strong);
+    FolderBasedDartSdk sdk = FolderBasedDartSdk(
+        resourceProvider, resourceProvider.getFolder(sdkPath));
     sdk.useSummary = false;
-    sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = strong;
+    sdk.analysisOptions = AnalysisOptionsImpl();
 
     //
     // Prepare 'dart:' URIs to serialize.
@@ -54,31 +49,35 @@ class SummaryBuilder {
         sdk.sdkLibraries.map((SdkLibrary library) => library.shortName).toSet();
     uriSet.add('dart:html_common/html_common_dart2js.dart');
 
-    Set<Source> librarySources = new HashSet<Source>();
+    Set<Source> librarySources = HashSet<Source>();
     for (String uri in uriSet) {
       librarySources.add(sdk.mapDartUri(uri));
     }
 
-    return new SummaryBuilder(librarySources, sdk.context, strong);
+    return SummaryBuilder(librarySources, sdk.context);
   }
 
   /**
    * Build the linked bundle and return its bytes.
    */
-  List<int> build() => new _Builder(context, librarySources, strong).build();
+  List<int> build({
+    @required FeatureSet featureSet,
+  }) {
+    return _Builder(context, featureSet, librarySources).build();
+  }
 }
 
 class _Builder {
   final AnalysisContext context;
+  final FeatureSet featureSet;
   final Iterable<Source> librarySources;
-  final bool strong;
 
-  final Set<String> libraryUris = new Set<String>();
-  final Map<String, UnlinkedUnit> unlinkedMap = <String, UnlinkedUnit>{};
+  final Set<String> libraryUris = <String>{};
+  final List<summary2.LinkInputLibrary> inputLibraries = [];
 
-  final PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
+  final PackageBundleAssembler bundleAssembler = PackageBundleAssembler();
 
-  _Builder(this.context, this.librarySources, this.strong);
+  _Builder(this.context, this.featureSet, this.librarySources);
 
   /**
    * Build the linked bundle and return its bytes.
@@ -86,18 +85,14 @@ class _Builder {
   List<int> build() {
     librarySources.forEach(_addLibrary);
 
-    Map<String, LinkedLibraryBuilder> map = link(libraryUris, (uri) {
-      throw new StateError('Unexpected call to GetDependencyCallback($uri).');
-    }, (uri) {
-      UnlinkedUnit unlinked = unlinkedMap[uri];
-      if (unlinked == null) {
-        throw new StateError('Unable to find unresolved unit $uri.');
-      }
-      return unlinked;
-    }, (String name) {
-      throw new StateError('Unexpected call to GetDeclaredVariable($name).');
-    }, strong);
-    map.forEach(bundleAssembler.addLinkedLibrary);
+    var elementFactory = summary2.LinkedElementFactory(
+      context,
+      AnalysisSessionImpl(null),
+      summary2.Reference.root(),
+    );
+
+    var linkResult = summary2.link(elementFactory, inputLibraries);
+    bundleAssembler.setBundle2(linkResult.bundle);
 
     return bundleAssembler.assemble().toBuffer();
   }
@@ -107,8 +102,15 @@ class _Builder {
     if (!libraryUris.add(uriStr)) {
       return;
     }
-    CompilationUnit unit = _addUnlinked(source);
-    for (Directive directive in unit.directives) {
+
+    var inputUnits = <summary2.LinkInputUnit>[];
+
+    CompilationUnit definingUnit = _parse(source);
+    inputUnits.add(
+      summary2.LinkInputUnit(null, source, false, definingUnit),
+    );
+
+    for (Directive directive in definingUnit.directives) {
       if (directive is NamespaceDirective) {
         String libUri = directive.uri.stringValue;
         Source libSource = context.sourceFactory.resolveUri(source, libUri);
@@ -116,33 +118,23 @@ class _Builder {
       } else if (directive is PartDirective) {
         String partUri = directive.uri.stringValue;
         Source partSource = context.sourceFactory.resolveUri(source, partUri);
-        _addUnlinked(partSource);
+        CompilationUnit partUnit = _parse(partSource);
+        inputUnits.add(
+          summary2.LinkInputUnit(partUri, partSource, false, partUnit),
+        );
       }
     }
-  }
 
-  CompilationUnit _addUnlinked(Source source) {
-    String uriStr = source.uri.toString();
-    CompilationUnit unit = _parse(source);
-    UnlinkedUnitBuilder unlinked = serializeAstUnlinked(unit);
-    unlinkedMap[uriStr] = unlinked;
-    bundleAssembler.addUnlinkedUnit(source, unlinked);
-    return unit;
+    inputLibraries.add(
+      summary2.LinkInputLibrary(source, inputUnits),
+    );
   }
 
   CompilationUnit _parse(Source source) {
-    AnalysisErrorListener errorListener = AnalysisErrorListener.NULL_LISTENER;
-    String code = source.contents.data;
-    CharSequenceReader reader = new CharSequenceReader(code);
-    Scanner scanner = new Scanner(source, reader, errorListener);
-    scanner.scanGenericMethodComments = strong;
-    Token token = scanner.tokenize();
-    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
-    Parser parser = new Parser(source, errorListener,
-        useFasta: context.analysisOptions.useFastaParser);
-    parser.parseGenericMethodComments = strong;
-    CompilationUnit unit = parser.parseCompilationUnit(token);
-    unit.lineInfo = lineInfo;
-    return unit;
+    return parseString(
+      content: source.contents.data,
+      featureSet: featureSet,
+      throwIfDiagnostics: false,
+    ).unit;
   }
 }

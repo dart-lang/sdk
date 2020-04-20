@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of html_common;
 
 /**
@@ -26,9 +28,8 @@ class FilteredElementList extends ListBase<Element> implements NodeListWrapper {
 
   // We can't memoize this, since it's possible that children will be messed
   // with externally to this class.
-  Iterable<Element> get _iterable => _childNodes
-      .where((n) => n is Element)
-      .map/*<Element>*/((n) => n as Element);
+  Iterable<Element> get _iterable =>
+      _childNodes.where((n) => n is Element).map<Element>((n) => n as Element);
   List<Element> get _filtered =>
       new List<Element>.from(_iterable, growable: false);
 

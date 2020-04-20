@@ -7,14 +7,15 @@
 library front_end.tool.perf_test;
 
 import 'dart:io' show Platform;
-import 'fasta_perf.dart' as m;
+import 'fasta_perf.dart' as m show main;
 
 main() async {
   var benchIds = [
     'scan',
     'kernel_gen_e2e',
   ];
-  var inputFile = Platform.script.resolve('../lib/file_system.dart').path;
+  var inputFile =
+      Platform.script.resolve('../lib/src/api_prototype/file_system.dart').path;
   for (var id in benchIds) {
     print('=== legacy for $id $inputFile');
     await m.main(['--legacy', id, inputFile]);

@@ -38,11 +38,11 @@ TEST_CASE(RangeTests) {
     max = Clamp(max);                                                          \
     EXPECT(min.Equals(res_min));                                               \
     if (FLAG_support_il_printer && !min.Equals(res_min)) {                     \
-      OS::Print("%s\n", min.ToCString());                                      \
+      OS::PrintErr("%s\n", min.ToCString());                                   \
     }                                                                          \
     EXPECT(max.Equals(res_max));                                               \
     if (FLAG_support_il_printer && !max.Equals(res_max)) {                     \
-      OS::Print("%s\n", max.ToCString());                                      \
+      OS::PrintErr("%s\n", max.ToCString());                                   \
     }                                                                          \
   }
 
@@ -67,15 +67,18 @@ TEST_CASE(RangeTests) {
   TEST_RANGE_OP(Range::Shl, -1, 1, 63, 63, RangeBoundary(kMinInt64),
                 RangeBoundary::PositiveInfinity());
   if (kBitsPerWord == 64) {
-    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 62, 62, RangeBoundary(kSmiMin),
-                      RangeBoundary(kSmiMax));
+    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 62, 62,
+                      RangeBoundary(compiler::target::kSmiMin),
+                      RangeBoundary(compiler::target::kSmiMax));
     TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 30, 30, RangeBoundary(-(1 << 30)),
                       RangeBoundary(1 << 30));
   } else {
-    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 30, 30, RangeBoundary(kSmiMin),
-                      RangeBoundary(kSmiMax));
-    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 62, 62, RangeBoundary(kSmiMin),
-                      RangeBoundary(kSmiMax));
+    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 30, 30,
+                      RangeBoundary(compiler::target::kSmiMin),
+                      RangeBoundary(compiler::target::kSmiMax));
+    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 62, 62,
+                      RangeBoundary(compiler::target::kSmiMin),
+                      RangeBoundary(compiler::target::kSmiMax));
   }
   TEST_RANGE_OP(Range::Shl, 0, 100, 0, 64, RangeBoundary(0),
                 RangeBoundary::PositiveInfinity());
@@ -102,27 +105,31 @@ TEST_CASE(RangeTestsInfinity) {
   EXPECT(RangeBoundary::NegativeInfinity().OverflowedMint());
   EXPECT(RangeBoundary::PositiveInfinity().OverflowedMint());
 
+  const Range fullInt64Range = Range::Full(RangeBoundary::kRangeBoundaryInt64);
+
   Range* all = new Range(RangeBoundary::NegativeInfinity(),
                          RangeBoundary::PositiveInfinity());
+  EXPECT(all->Equals(&fullInt64Range));
   EXPECT(all->Overlaps(0, 0));
   EXPECT(all->Overlaps(-1, 1));
   EXPECT(!all->IsWithin(0, 100));
+
   Range* positive = new Range(RangeBoundary::FromConstant(0),
                               RangeBoundary::PositiveInfinity());
-  EXPECT(positive->IsPositive());
+  EXPECT(positive->Equals(&fullInt64Range));
   EXPECT(positive->Overlaps(0, 1));
   EXPECT(positive->Overlaps(1, 100));
   EXPECT(positive->Overlaps(-1, 0));
-  EXPECT(!positive->Overlaps(-2, -1));
+
   Range* negative = new Range(RangeBoundary::NegativeInfinity(),
                               RangeBoundary::FromConstant(-1));
-  EXPECT(!negative->IsPositive());
-  EXPECT(!negative->Overlaps(0, 1));
-  EXPECT(!negative->Overlaps(1, 100));
+  EXPECT(positive->Equals(&fullInt64Range));
   EXPECT(negative->Overlaps(-1, 0));
   EXPECT(negative->Overlaps(-2, -1));
+
   Range* negpos = new Range(RangeBoundary::NegativeInfinity(),
                             RangeBoundary::FromConstant(0));
+  EXPECT(negpos->Equals(&fullInt64Range));
   EXPECT(!negpos->IsPositive());
 
   Range* a = new Range(RangeBoundary::NegativeInfinity(),
@@ -134,45 +141,52 @@ TEST_CASE(RangeTestsInfinity) {
   Range* c = new Range(RangeBoundary::NegativeInfinity(),
                        RangeBoundary::FromConstant(32));
 
-  EXPECT(a->OnlyLessThanOrEqualTo(31));
-  EXPECT(b->OnlyLessThanOrEqualTo(31));
+  EXPECT(a->Equals(&fullInt64Range));
+  EXPECT(b->Equals(&fullInt64Range));
+  EXPECT(c->Equals(&fullInt64Range));
   EXPECT(!c->OnlyLessThanOrEqualTo(31));
 
   Range* unsatisfiable = new Range(RangeBoundary::PositiveInfinity(),
                                    RangeBoundary::NegativeInfinity());
-  EXPECT(unsatisfiable->IsUnsatisfiable());
+  EXPECT(unsatisfiable->Equals(&fullInt64Range));
 
   Range* unsatisfiable_right = new Range(RangeBoundary::PositiveInfinity(),
                                          RangeBoundary::FromConstant(0));
-  EXPECT(unsatisfiable_right->IsUnsatisfiable());
+  EXPECT(unsatisfiable_right->Equals(&fullInt64Range));
 
   Range* unsatisfiable_left = new Range(RangeBoundary::FromConstant(0),
                                         RangeBoundary::NegativeInfinity());
-  EXPECT(unsatisfiable_left->IsUnsatisfiable());
+  EXPECT(unsatisfiable_left->Equals(&fullInt64Range));
 }
 
 TEST_CASE(RangeUtils) {
+  // Use kMin/kMax instead of +/-inf as any range with a +/-inf bound is
+  // converted to the full int64 range due to wrap-around.
+  const RangeBoundary negativeInfinity =
+      RangeBoundary::FromConstant(RangeBoundary::kMin);
+  const RangeBoundary positiveInfinity =
+      RangeBoundary::FromConstant(RangeBoundary::kMax);
+
   // [-inf, +inf].
-  const Range& range_0 = *(new Range(RangeBoundary::NegativeInfinity(),
-                                     RangeBoundary::PositiveInfinity()));
+  const Range& range_0 = *(new Range(negativeInfinity, positiveInfinity));
   // [-inf, -1].
-  const Range& range_a = *(new Range(RangeBoundary::NegativeInfinity(),
-                                     RangeBoundary::FromConstant(-1)));
+  const Range& range_a =
+      *(new Range(negativeInfinity, RangeBoundary::FromConstant(-1)));
   // [-inf, 0].
-  const Range& range_b = *(new Range(RangeBoundary::NegativeInfinity(),
-                                     RangeBoundary::FromConstant(0)));
+  const Range& range_b =
+      *(new Range(negativeInfinity, RangeBoundary::FromConstant(0)));
   // [-inf, 1].
-  const Range& range_c = *(new Range(RangeBoundary::NegativeInfinity(),
-                                     RangeBoundary::FromConstant(1)));
+  const Range& range_c =
+      *(new Range(negativeInfinity, RangeBoundary::FromConstant(1)));
   // [-1, +inf]
-  const Range& range_d = *(new Range(RangeBoundary::FromConstant(-1),
-                                     RangeBoundary::PositiveInfinity()));
+  const Range& range_d =
+      *(new Range(RangeBoundary::FromConstant(-1), positiveInfinity));
   // [0, +inf]
-  const Range& range_e = *(new Range(RangeBoundary::FromConstant(0),
-                                     RangeBoundary::PositiveInfinity()));
+  const Range& range_e =
+      *(new Range(RangeBoundary::FromConstant(0), positiveInfinity));
   // [1, +inf].
-  const Range& range_f = *(new Range(RangeBoundary::FromConstant(1),
-                                     RangeBoundary::PositiveInfinity()));
+  const Range& range_f =
+      *(new Range(RangeBoundary::FromConstant(1), positiveInfinity));
   // [1, 2].
   const Range& range_g = *(new Range(RangeBoundary::FromConstant(1),
                                      RangeBoundary::FromConstant(2)));
@@ -238,22 +252,29 @@ TEST_CASE(RangeUtils) {
 
 TEST_CASE(RangeBinaryOp) {
   Range* range_a = new Range(RangeBoundary::FromConstant(-1),
-                             RangeBoundary::PositiveInfinity());
-  range_a->Clamp(RangeBoundary::kRangeBoundaryInt64);
+                             RangeBoundary::FromConstant(RangeBoundary::kMax));
+  range_a->Clamp(RangeBoundary::kRangeBoundaryInt32);
   EXPECT(range_a->min().ConstantValue() == -1);
-  EXPECT(range_a->max().ConstantValue() == RangeBoundary::kMax);
-  Range* range_b = new Range(RangeBoundary::NegativeInfinity(),
+  EXPECT(range_a->max().ConstantValue() == kMaxInt32);
+  range_a->set_max(RangeBoundary::FromConstant(RangeBoundary::kMax));
+
+  Range* range_b = new Range(RangeBoundary::FromConstant(RangeBoundary::kMin),
                              RangeBoundary::FromConstant(1));
-  range_b->Clamp(RangeBoundary::kRangeBoundaryInt64);
-  EXPECT(range_b->min().ConstantValue() == RangeBoundary::kMin);
+  range_b->Clamp(RangeBoundary::kRangeBoundaryInt32);
+  EXPECT(range_b->min().ConstantValue() == kMinInt32);
   EXPECT(range_b->max().ConstantValue() == 1);
+  range_b->set_min(RangeBoundary::FromConstant(RangeBoundary::kMin));
 
   {
     Range result;
     Range::BinaryOp(Token::kADD, range_a, range_b, NULL, &result);
     ASSERT(!Range::IsUnknown(&result));
-    EXPECT(result.min().IsNegativeInfinity());
-    EXPECT(result.max().IsPositiveInfinity());
+    EXPECT(!result.min().IsNegativeInfinity());
+    EXPECT(!result.max().IsPositiveInfinity());
+    EXPECT(result.min().Equals(
+        RangeBoundary::MinConstant(RangeBoundary::kRangeBoundaryInt64)));
+    EXPECT(result.max().Equals(
+        RangeBoundary::MaxConstant(RangeBoundary::kRangeBoundaryInt64)));
   }
 
   // Test that [5, 10] + [0, 5] = [5, 15].
@@ -299,11 +320,11 @@ TEST_CASE(RangeAdd) {
     Range::Add(left_range, right_range, &min, &max, NULL);                     \
     EXPECT(min.Equals(result_min));                                            \
     if (FLAG_support_il_printer && !min.Equals(result_min)) {                  \
-      OS::Print("%s != %s\n", min.ToCString(), result_min.ToCString());        \
+      OS::PrintErr("%s != %s\n", min.ToCString(), result_min.ToCString());     \
     }                                                                          \
     EXPECT(max.Equals(result_max));                                            \
     if (FLAG_support_il_printer && !max.Equals(result_max)) {                  \
-      OS::Print("%s != %s\n", max.ToCString(), result_max.ToCString());        \
+      OS::PrintErr("%s != %s\n", max.ToCString(), result_max.ToCString());     \
     }                                                                          \
   }
 
@@ -379,11 +400,11 @@ TEST_CASE(RangeSub) {
     Range::Sub(left_range, right_range, &min, &max, NULL);                     \
     EXPECT(min.Equals(result_min));                                            \
     if (FLAG_support_il_printer && !min.Equals(result_min)) {                  \
-      OS::Print("%s != %s\n", min.ToCString(), result_min.ToCString());        \
+      OS::PrintErr("%s != %s\n", min.ToCString(), result_min.ToCString());     \
     }                                                                          \
     EXPECT(max.Equals(result_max));                                            \
     if (FLAG_support_il_printer && !max.Equals(result_max)) {                  \
-      OS::Print("%s != %s\n", max.ToCString(), result_max.ToCString());        \
+      OS::PrintErr("%s != %s\n", max.ToCString(), result_max.ToCString());     \
     }                                                                          \
   }
 
@@ -432,11 +453,11 @@ TEST_CASE(RangeAnd) {
     Range::And(left_range, right_range, &min, &max);                           \
     EXPECT(min.Equals(result_min));                                            \
     if (FLAG_support_il_printer && !min.Equals(result_min)) {                  \
-      OS::Print("%s != %s\n", min.ToCString(), result_min.ToCString());        \
+      OS::PrintErr("%s != %s\n", min.ToCString(), result_min.ToCString());     \
     }                                                                          \
     EXPECT(max.Equals(result_max));                                            \
     if (FLAG_support_il_printer && !max.Equals(result_max)) {                  \
-      OS::Print("%s != %s\n", max.ToCString(), result_max.ToCString());        \
+      OS::PrintErr("%s != %s\n", max.ToCString(), result_max.ToCString());     \
     }                                                                          \
   }
 

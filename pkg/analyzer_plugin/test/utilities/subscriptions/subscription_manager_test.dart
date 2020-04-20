@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,13 +13,13 @@ void main() {
 
 @reflectiveTest
 class SubscriptionManagerTest {
-  SubscriptionManager manager = new SubscriptionManager();
+  SubscriptionManager manager = SubscriptionManager();
 
   String fooPath = '/project/lib/foo.dart';
   String barPath = '/project/lib/bar.dart';
   String bazPath = '/project/lib/baz.dart';
 
-  test_hasSubscriptionForFile_differentSubscription() {
+  void test_hasSubscriptionForFile_differentSubscription() {
     manager.setSubscriptions({
       AnalysisService.NAVIGATION: [barPath]
     });
@@ -27,7 +27,7 @@ class SubscriptionManagerTest {
         isFalse);
   }
 
-  test_hasSubscriptionForFile_hasSubscription() {
+  void test_hasSubscriptionForFile_hasSubscription() {
     manager.setSubscriptions({
       AnalysisService.HIGHLIGHTS: [fooPath]
     });
@@ -35,21 +35,20 @@ class SubscriptionManagerTest {
         isTrue);
   }
 
-  test_hasSubscriptionForFile_noSubscription() {
+  void test_hasSubscriptionForFile_noSubscription() {
     expect(manager.hasSubscriptionForFile(fooPath, AnalysisService.HIGHLIGHTS),
         isFalse);
   }
 
-  test_servicesForFile() {
+  void test_servicesForFile() {
     expect(manager.servicesForFile('/project/lib/test.dart'), hasLength(0));
   }
 
-  test_setSubscriptions() {
+  void test_setSubscriptions() {
     //
     // Set the initial set of subscriptions.
     //
-    Map<String, List<AnalysisService>> newSubscriptions =
-        manager.setSubscriptions({
+    var newSubscriptions = manager.setSubscriptions({
       AnalysisService.HIGHLIGHTS: [fooPath, barPath],
       AnalysisService.NAVIGATION: [fooPath]
     });

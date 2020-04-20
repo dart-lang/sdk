@@ -18,11 +18,15 @@ typedef const char* charp;
       Flags::Register_##type(&FLAG_##name, #name, default_value, comment);
 
 #define DEFINE_FLAG_HANDLER(handler, name, comment)                            \
-  bool DUMMY_##name = Flags::Register_func(handler, #name, comment);
+  bool DUMMY_##name = Flags::RegisterFlagHandler(handler, #name, comment);
+
+#define DEFINE_OPTION_HANDLER(handler, name, comment)                          \
+  bool DUMMY_##name = Flags::RegisterOptionHandler(handler, #name, comment);
 
 namespace dart {
 
 typedef void (*FlagHandler)(bool value);
+typedef void (*OptionHandler)(const char* value);
 
 // Forward declarations.
 class Flag;
@@ -51,17 +55,23 @@ class Flags {
                                     const char* default_value,
                                     const char* comment);
 
-  static bool Register_func(FlagHandler handler,
-                            const char* name,
-                            const char* comment);
+  static bool RegisterFlagHandler(FlagHandler handler,
+                                  const char* name,
+                                  const char* comment);
 
-  static bool ProcessCommandLineFlags(int argc, const char** argv);
+  static bool RegisterOptionHandler(OptionHandler handler,
+                                    const char* name,
+                                    const char* comment);
+
+  static char* ProcessCommandLineFlags(int argc, const char** argv);
 
   static Flag* Lookup(const char* name);
 
   static bool IsSet(const char* name);
 
   static bool Initialized() { return initialized_; }
+
+  static void Cleanup();
 
 #ifndef PRODUCT
   static void PrintJSON(JSONStream* js);
@@ -97,57 +107,57 @@ class Flags {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Flags);
 };
 
-#define PRODUCT_FLAG_MARCO(name, type, default_value, comment)                 \
+#define PRODUCT_FLAG_MACRO(name, type, default_value, comment)                 \
   extern type FLAG_##name;
 
 #if defined(DEBUG)
-#define DEBUG_FLAG_MARCO(name, type, default_value, comment)                   \
+#define DEBUG_FLAG_MACRO(name, type, default_value, comment)                   \
   extern type FLAG_##name;
 #else  // defined(DEBUG)
-#define DEBUG_FLAG_MARCO(name, type, default_value, comment)                   \
+#define DEBUG_FLAG_MACRO(name, type, default_value, comment)                   \
   const type FLAG_##name = default_value;
 #endif  // defined(DEBUG)
 
 #if defined(PRODUCT) && defined(DART_PRECOMPILED_RUNTIME)
-#define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)  \
+#define RELEASE_FLAG_MACRO(name, product_value, type, default_value, comment)  \
   const type FLAG_##name = product_value;
-#define PRECOMPILE_FLAG_MARCO(name, precompiled_value, product_value, type,    \
+#define PRECOMPILE_FLAG_MACRO(name, precompiled_value, product_value, type,    \
                               default_value, comment)                          \
   const type FLAG_##name = precompiled_value;
 
 #elif defined(PRODUCT)  // !PRECOMPILED
-#define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)  \
+#define RELEASE_FLAG_MACRO(name, product_value, type, default_value, comment)  \
   const type FLAG_##name = product_value;
-#define PRECOMPILE_FLAG_MARCO(name, precompiled_value, product_value, type,    \
+#define PRECOMPILE_FLAG_MACRO(name, precompiled_value, product_value, type,    \
                               default_value, comment)                          \
   const type FLAG_##name = product_value;
 
 #elif defined(DART_PRECOMPILED_RUNTIME)  // !PRODUCT
-#define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)  \
+#define RELEASE_FLAG_MACRO(name, product_value, type, default_value, comment)  \
   extern type FLAG_##name;
-#define PRECOMPILE_FLAG_MARCO(name, precompiled_value, product_value, type,    \
+#define PRECOMPILE_FLAG_MACRO(name, precompiled_value, product_value, type,    \
                               default_value, comment)                          \
   const type FLAG_##name = precompiled_value;
 
 #else  // !PRODUCT && !PRECOMPILED
-#define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)  \
+#define RELEASE_FLAG_MACRO(name, product_value, type, default_value, comment)  \
   extern type FLAG_##name;
-#define PRECOMPILE_FLAG_MARCO(name, precompiled_value, product_value, type,    \
+#define PRECOMPILE_FLAG_MACRO(name, precompiled_value, product_value, type,    \
                               default_value, comment)                          \
   extern type FLAG_##name;
 
 #endif
 
 // Now declare all flags here.
-FLAG_LIST(PRODUCT_FLAG_MARCO,
-          RELEASE_FLAG_MARCO,
-          DEBUG_FLAG_MARCO,
-          PRECOMPILE_FLAG_MARCO)
+FLAG_LIST(PRODUCT_FLAG_MACRO,
+          RELEASE_FLAG_MACRO,
+          PRECOMPILE_FLAG_MACRO,
+          DEBUG_FLAG_MACRO)
 
-#undef RELEASE_FLAG_MARCO
-#undef DEBUG_FLAG_MARCO
-#undef PRODUCT_FLAG_MARCO
-#undef PRECOMPILE_FLAG_MARCO
+#undef RELEASE_FLAG_MACRO
+#undef DEBUG_FLAG_MACRO
+#undef PRODUCT_FLAG_MACRO
+#undef PRECOMPILE_FLAG_MACRO
 
 }  // namespace dart
 

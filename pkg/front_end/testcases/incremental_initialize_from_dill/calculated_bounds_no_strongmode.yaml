@@ -1,0 +1,20 @@
+# Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Test compiling from source and initializing from dill.
+# Make sure that any inference if done in the same way.
+
+type: basic
+entry: a.dart
+invalidate:
+  - a.dart
+sources:
+  a.dart: |
+    import 'b.dart';
+
+    class A {
+      void foo(B cls) {}
+    }
+  b.dart: |
+    abstract class B<T extends String> {}

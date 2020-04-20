@@ -1,15 +1,14 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_rename.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameUnitMemberTest);
   });
@@ -17,7 +16,7 @@ main() {
 
 @reflectiveTest
 class RenameUnitMemberTest extends RenameRefactoringTest {
-  test_checkFinalConditions_hasTopLevel_ClassElement() async {
+  Future<void> test_checkFinalConditions_hasTopLevel_ClassElement() async {
     await indexTestUnit('''
 class Test {}
 class NewName {} // existing
@@ -25,13 +24,14 @@ class NewName {} // existing
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: "Library already declares class with name 'NewName'.",
         expectedContextSearch: 'NewName {} // existing');
   }
 
-  test_checkFinalConditions_hasTopLevel_FunctionTypeAliasElement() async {
+  Future<void>
+      test_checkFinalConditions_hasTopLevel_FunctionTypeAliasElement() async {
     await indexTestUnit('''
 class Test {}
 typedef NewName(); // existing
@@ -39,14 +39,15 @@ typedef NewName(); // existing
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage:
             "Library already declares function type alias with name 'NewName'.",
         expectedContextSearch: 'NewName(); // existing');
   }
 
-  test_checkFinalConditions_OK_qualifiedSuper_MethodElement() async {
+  Future<void>
+      test_checkFinalConditions_OK_qualifiedSuper_MethodElement() async {
     await indexTestUnit('''
 class Test {}
 class A {
@@ -61,15 +62,16 @@ class B extends A {
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatusOK(status);
   }
 
-  test_checkFinalConditions_publicToPrivate_usedInOtherLibrary() async {
+  Future<void>
+      test_checkFinalConditions_publicToPrivate_usedInOtherLibrary() async {
     await indexTestUnit('''
 class Test {}
 ''');
-    await indexUnit('/lib.dart', '''
+    await indexUnit('/home/test/lib/lib.dart', '''
 library my.lib;
 import 'test.dart';
 
@@ -80,12 +82,12 @@ main() {
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = '_NewName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: "Renamed class will be invisible in 'my.lib'.");
   }
 
-  test_checkFinalConditions_shadowedBy_MethodElement() async {
+  Future<void> test_checkFinalConditions_shadowedBy_MethodElement() async {
     await indexTestUnit('''
 class Test {}
 class A {
@@ -98,18 +100,18 @@ class A {
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage:
             "Reference to renamed class will be shadowed by method 'A.NewName'.",
         expectedContextSearch: 'NewName() {}');
   }
 
-  test_checkFinalConditions_shadowsInSubClass_importedLib() async {
+  Future<void> test_checkFinalConditions_shadowsInSubClass_importedLib() async {
     await indexTestUnit('''
 class Test {}
 ''');
-    await indexUnit('/lib.dart', '''
+    await indexUnit('/home/test/lib/lib.dart', '''
 library my.lib;
 import 'test.dart';
 class A {
@@ -124,12 +126,13 @@ class B extends A {
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: "Renamed class will shadow method 'A.NewName'.");
   }
 
-  test_checkFinalConditions_shadowsInSubClass_importedLib_hideCombinator() async {
+  Future<void>
+      test_checkFinalConditions_shadowsInSubClass_importedLib_hideCombinator() async {
     await indexTestUnit('''
 class Test {}
 ''');
@@ -148,11 +151,12 @@ class B extends A {
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatusOK(status);
   }
 
-  test_checkFinalConditions_shadowsInSubClass_MethodElement() async {
+  Future<void>
+      test_checkFinalConditions_shadowsInSubClass_MethodElement() async {
     await indexTestUnit('''
 class Test {}
 class A {
@@ -167,13 +171,14 @@ class B extends A {
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: "Renamed class will shadow method 'A.NewName'.",
         expectedContextSearch: 'NewName(); // super-ref');
   }
 
-  test_checkFinalConditions_shadowsInSubClass_notImportedLib() async {
+  Future<void>
+      test_checkFinalConditions_shadowsInSubClass_notImportedLib() async {
     await indexUnit('/lib.dart', '''
 library my.lib;
 class A {
@@ -191,11 +196,11 @@ class Test {}
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatusOK(status);
   }
 
-  test_checkFinalConditions_shadowsInSubClass_notSubClass() async {
+  Future<void> test_checkFinalConditions_shadowsInSubClass_notSubClass() async {
     await indexTestUnit('''
 class Test {}
 class A {
@@ -210,49 +215,11 @@ class B {
     createRenameRefactoringAtString('Test {}');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatusOK(status);
   }
 
-  test_checkInitialConditions_inPubCache_posix() async {
-    addSource('/.pub-cache/lib.dart', r'''
-class A {}
-''');
-    await indexTestUnit('''
-import '/.pub-cache/lib.dart';
-main() {
-  A a;
-}
-''');
-    createRenameRefactoringAtString('A a');
-    // check status
-    refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkInitialConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            "The class 'A' is defined in a pub package, so cannot be renamed.");
-  }
-
-  test_checkInitialConditions_inPubCache_windows() async {
-    addSource('/Pub/Cache/lib.dart', r'''
-class A {}
-''');
-    await indexTestUnit('''
-import '/Pub/Cache/lib.dart';
-main() {
-  A a;
-}
-''');
-    createRenameRefactoringAtString('A a');
-    // check status
-    refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkInitialConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            "The class 'A' is defined in a pub package, so cannot be renamed.");
-  }
-
-  test_checkInitialConditions_inSDK() async {
+  Future<void> test_checkInitialConditions_inSDK() async {
     await indexTestUnit('''
 main() {
   String s;
@@ -261,13 +228,32 @@ main() {
     createRenameRefactoringAtString('String s');
     // check status
     refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "The class 'String' is defined in the SDK, so cannot be renamed.");
   }
 
-  test_checkNewName_ClassElement() async {
+  Future<void> test_checkInitialConditions_outsideOfProject() async {
+    addPackageFile('aaa', 'lib.dart', r'''
+class A {}
+''');
+    await indexTestUnit('''
+import "package:aaa/lib.dart";
+main() {
+  A a;
+}
+''');
+    createRenameRefactoringAtString('A a');
+    // check status
+    refactoring.newName = 'NewName';
+    var status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            "The class 'A' is defined outside of the project, so cannot be renamed.");
+  }
+
+  Future<void> test_checkNewName_ClassElement() async {
     await indexTestUnit('''
 class Test {}
 ''');
@@ -276,24 +262,24 @@ class Test {}
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Class name must not be null.");
+        expectedMessage: 'Class name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Class name must not be empty.");
+        expectedMessage: 'Class name must not be empty.');
     // same
     refactoring.newName = 'Test';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
         expectedMessage:
-            "The new name must be different than the current name.");
+            'The new name must be different than the current name.');
     // OK
     refactoring.newName = 'NewName';
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_checkNewName_FunctionElement() async {
+  Future<void> test_checkNewName_FunctionElement() async {
     await indexTestUnit('''
 test() {}
 ''');
@@ -302,18 +288,18 @@ test() {}
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Function name must not be null.");
+        expectedMessage: 'Function name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Function name must not be empty.");
+        expectedMessage: 'Function name must not be empty.');
     // OK
     refactoring.newName = 'newName';
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_checkNewName_FunctionTypeAliasElement() async {
+  Future<void> test_checkNewName_FunctionTypeAliasElement() async {
     await indexTestUnit('''
 typedef Test();
 ''');
@@ -322,13 +308,13 @@ typedef Test();
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Function type alias name must not be null.");
+        expectedMessage: 'Function type alias name must not be null.');
     // OK
     refactoring.newName = 'NewName';
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_checkNewName_TopLevelVariableElement() async {
+  Future<void> test_checkNewName_TopLevelVariableElement() async {
     await indexTestUnit('''
 var test;
 ''');
@@ -337,18 +323,18 @@ var test;
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Variable name must not be null.");
+        expectedMessage: 'Variable name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Variable name must not be empty.");
+        expectedMessage: 'Variable name must not be empty.');
     // OK
     refactoring.newName = 'newName';
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_createChange_ClassElement() async {
+  Future<void> test_createChange_ClassElement() async {
     await indexTestUnit('''
 class Test implements Other {
   Test() {}
@@ -386,7 +372,132 @@ main() {
 ''');
   }
 
-  test_createChange_ClassElement_invocation() async {
+  Future<void> test_createChange_ClassElement_flutterWidget() async {
+    addFlutterPackage();
+    await indexTestUnit('''
+import 'package:flutter/material.dart';
+
+class TestPage extends StatefulWidget {
+  const TestPage();
+
+  @override
+  TestPageState createState() => new TestPageState();
+}
+
+class TestPageState extends State<TestPage> {
+  @override
+  Widget build(BuildContext context) => null;
+}
+''');
+    createRenameRefactoringAtString('TestPage extends');
+
+    expect(refactoring.refactoringName, 'Rename Class');
+    expect(refactoring.elementKindName, 'class');
+    expect(refactoring.oldName, 'TestPage');
+    refactoring.newName = 'NewPage';
+
+    return assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+class NewPage extends StatefulWidget {
+  const NewPage();
+
+  @override
+  NewPageState createState() => new NewPageState();
+}
+
+class NewPageState extends State<NewPage> {
+  @override
+  Widget build(BuildContext context) => null;
+}
+''');
+  }
+
+  Future<void>
+      test_createChange_ClassElement_flutterWidget_privateBoth() async {
+    addFlutterPackage();
+    await indexTestUnit('''
+import 'package:flutter/material.dart';
+
+class _TestPage extends StatefulWidget {
+  const _TestPage();
+
+  @override
+  _TestPageState createState() => new _TestPageState();
+}
+
+class _TestPageState extends State<_TestPage> {
+  @override
+  Widget build(BuildContext context) => null;
+}
+''');
+    createRenameRefactoringAtString('_TestPage extends');
+
+    expect(refactoring.refactoringName, 'Rename Class');
+    expect(refactoring.elementKindName, 'class');
+    expect(refactoring.oldName, '_TestPage');
+    refactoring.newName = '_NewPage';
+
+    return assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+class _NewPage extends StatefulWidget {
+  const _NewPage();
+
+  @override
+  _NewPageState createState() => new _NewPageState();
+}
+
+class _NewPageState extends State<_NewPage> {
+  @override
+  Widget build(BuildContext context) => null;
+}
+''');
+  }
+
+  Future<void>
+      test_createChange_ClassElement_flutterWidget_privateState() async {
+    addFlutterPackage();
+    await indexTestUnit('''
+import 'package:flutter/material.dart';
+
+class TestPage extends StatefulWidget {
+  const TestPage();
+
+  @override
+  _TestPageState createState() => new _TestPageState();
+}
+
+class _TestPageState extends State<TestPage> {
+  @override
+  Widget build(BuildContext context) => null;
+}
+''');
+    createRenameRefactoringAtString('TestPage extends');
+
+    expect(refactoring.refactoringName, 'Rename Class');
+    expect(refactoring.elementKindName, 'class');
+    expect(refactoring.oldName, 'TestPage');
+    refactoring.newName = 'NewPage';
+
+    return assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+class NewPage extends StatefulWidget {
+  const NewPage();
+
+  @override
+  _NewPageState createState() => new _NewPageState();
+}
+
+class _NewPageState extends State<NewPage> {
+  @override
+  Widget build(BuildContext context) => null;
+}
+''');
+  }
+
+  Future<void> test_createChange_ClassElement_invocation() async {
     verifyNoTestUnitErrors = false;
     await indexTestUnit('''
 class Test {
@@ -411,7 +522,7 @@ main() {
 ''');
   }
 
-  test_createChange_ClassElement_parameterTypeNested() async {
+  Future<void> test_createChange_ClassElement_parameterTypeNested() async {
     await indexTestUnit('''
 class Test {
 }
@@ -432,7 +543,7 @@ main(f(NewName p)) {
 ''');
   }
 
-  test_createChange_ClassElement_typeAlias() async {
+  Future<void> test_createChange_ClassElement_typeAlias() async {
     await indexTestUnit('''
 class A {}
 class Test = Object with A;
@@ -454,7 +565,7 @@ main(NewName t) {
 ''');
   }
 
-  test_createChange_FunctionElement() async {
+  Future<void> test_createChange_FunctionElement() async {
     await indexTestUnit('''
 test() {}
 foo() {}
@@ -482,8 +593,8 @@ main() {
 ''');
   }
 
-  test_createChange_FunctionElement_imported() async {
-    await indexUnit('/foo.dart', r'''
+  Future<void> test_createChange_FunctionElement_imported() async {
+    await indexUnit('/home/test/lib/foo.dart', r'''
 test() {}
 foo() {}
 ''');
@@ -510,49 +621,111 @@ main() {
   foo();
 }
 ''');
-    assertFileChangeResult('/foo.dart', '''
+    assertFileChangeResult('/home/test/lib/foo.dart', '''
 newName() {}
 foo() {}
 ''');
   }
 
-  test_createChange_PropertyAccessorElement_getter_declaration() async {
-    await _test_createChange_PropertyAccessorElement("test {}");
+  Future<void> test_createChange_FunctionTypeAliasElement() async {
+    await indexTestUnit('''
+typedef void F();
+void foo<T>() {}
+void main() {
+  foo<F>();
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('F()');
+    expect(refactoring.refactoringName, 'Rename Function Type Alias');
+    expect(refactoring.elementKindName, 'function type alias');
+    expect(refactoring.oldName, 'F');
+    refactoring.newName = 'G';
+    // validate change
+    return assertSuccessfulRefactoring('''
+typedef void G();
+void foo<T>() {}
+void main() {
+  foo<G>();
+}
+''');
   }
 
-  test_createChange_PropertyAccessorElement_getter_usage() async {
-    await _test_createChange_PropertyAccessorElement("test);");
+  Future<void> test_createChange_outsideOfProject_referenceInPart() async {
+    newFile('/home/part.dart', content: r'''
+part of test;
+
+Test test2;
+''');
+
+    // To use file:// URI.
+    testFile = convertPath('/home/test/bin/test.dart');
+
+    await indexTestUnit('''
+library test;
+
+part '../../part.dart';
+
+class Test {}
+
+Test test;
+''');
+    createRenameRefactoringAtString('Test {}');
+    refactoring.newName = 'NewName';
+
+    await assertSuccessfulRefactoring('''
+library test;
+
+part '../../part.dart';
+
+class NewName {}
+
+NewName test;
+''');
+
+    expect(refactoringChange.edits, hasLength(1));
+    expect(refactoringChange.edits[0].file, testFile);
   }
 
-  test_createChange_PropertyAccessorElement_mix() async {
-    await _test_createChange_PropertyAccessorElement("test += 2");
+  Future<void>
+      test_createChange_PropertyAccessorElement_getter_declaration() async {
+    await _test_createChange_PropertyAccessorElement('test {}');
   }
 
-  test_createChange_PropertyAccessorElement_setter_declaration() async {
-    await _test_createChange_PropertyAccessorElement("test(x) {}");
+  Future<void> test_createChange_PropertyAccessorElement_getter_usage() async {
+    await _test_createChange_PropertyAccessorElement('test);');
   }
 
-  test_createChange_PropertyAccessorElement_setter_usage() async {
-    await _test_createChange_PropertyAccessorElement("test = 1");
+  Future<void> test_createChange_PropertyAccessorElement_mix() async {
+    await _test_createChange_PropertyAccessorElement('test += 2');
   }
 
-  test_createChange_TopLevelVariableElement_field() async {
-    await _test_createChange_TopLevelVariableElement("test = 0");
+  Future<void>
+      test_createChange_PropertyAccessorElement_setter_declaration() async {
+    await _test_createChange_PropertyAccessorElement('test(x) {}');
   }
 
-  test_createChange_TopLevelVariableElement_getter() async {
-    await _test_createChange_TopLevelVariableElement("test);");
+  Future<void> test_createChange_PropertyAccessorElement_setter_usage() async {
+    await _test_createChange_PropertyAccessorElement('test = 1');
   }
 
-  test_createChange_TopLevelVariableElement_mix() async {
-    await _test_createChange_TopLevelVariableElement("test += 2");
+  Future<void> test_createChange_TopLevelVariableElement_field() async {
+    await _test_createChange_TopLevelVariableElement('test = 0');
   }
 
-  test_createChange_TopLevelVariableElement_setter() async {
-    await _test_createChange_TopLevelVariableElement("test = 1");
+  Future<void> test_createChange_TopLevelVariableElement_getter() async {
+    await _test_createChange_TopLevelVariableElement('test);');
   }
 
-  _test_createChange_PropertyAccessorElement(String search) async {
+  Future<void> test_createChange_TopLevelVariableElement_mix() async {
+    await _test_createChange_TopLevelVariableElement('test += 2');
+  }
+
+  Future<void> test_createChange_TopLevelVariableElement_setter() async {
+    await _test_createChange_TopLevelVariableElement('test = 1');
+  }
+
+  Future<void> _test_createChange_PropertyAccessorElement(String search) async {
     await indexTestUnit('''
 get test {}
 set test(x) {}
@@ -579,7 +752,7 @@ main() {
 ''');
   }
 
-  _test_createChange_TopLevelVariableElement(String search) async {
+  Future<void> _test_createChange_TopLevelVariableElement(String search) async {
     await indexTestUnit('''
 int test = 0;
 main() {

@@ -6,11 +6,11 @@
 library test;
 
 class A {
-  var /*@topType=dynamic*/ x;
+  var x;
 }
 
 class B implements A {
-  var /*@topType=dynamic*/ x = 2;
+  var x = 2;
 }
 
 foo() {

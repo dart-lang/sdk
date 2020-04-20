@@ -5,14 +5,16 @@
 // Test the basic StreamController and StreamController.singleSubscription.
 library stream_single_test;
 
-import "package:expect/expect.dart";
 import 'dart:async';
-import 'package:unittest/unittest.dart';
+
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_minitest.dart';
+
 import 'event_helper.dart';
 
 main() {
   test("tomulti 1", () {
-    StreamController c = new StreamController<int>(sync: true);
+    StreamController<int> c = new StreamController<int>(sync: true);
     Stream<int> multi = c.stream.asBroadcastStream();
     // Listen twice.
     multi.listen(expectAsync((v) => Expect.equals(42, v)));
@@ -21,7 +23,7 @@ main() {
   });
 
   test("tomulti 2", () {
-    StreamController c = new StreamController<int>(sync: true);
+    StreamController<int> c = new StreamController<int>(sync: true);
     Stream<int> multi = c.stream.asBroadcastStream();
     Events expected = new Events.fromIterable([1, 2, 3, 4, 5]);
     Events actual1 = new Events.capture(multi);
@@ -36,7 +38,7 @@ main() {
   });
 
   test("tomulti no-op", () {
-    StreamController c = new StreamController<int>(sync: true);
+    StreamController<int> c = new StreamController<int>(sync: true);
     Stream<int> multi = c.stream.asBroadcastStream();
     Events expected = new Events.fromIterable([1, 2, 3, 4, 5]);
     Events actual1 = new Events.capture(multi);

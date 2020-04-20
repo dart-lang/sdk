@@ -5,35 +5,29 @@
 import 'package:expect/expect.dart';
 
 main() {
+  const int big = 0x123456789AB0000 + 0xCDEF; // Slightly rounded on web.
+
   Expect.equals(0, 0.toInt());
   Expect.equals(1, 1.toInt());
   Expect.equals(0x1234, 0x1234.toInt());
   Expect.equals(0x12345678, 0x12345678.toInt());
   Expect.equals(0x123456789AB, 0x123456789AB.toInt());
-  Expect.equals(0x123456789ABCDEF, 0x123456789ABCDEF.toInt());
-  Expect.equals(0x123456789ABCDEF0123456789ABCDEF0123456789ABCDEF,
-      0x123456789ABCDEF0123456789ABCDEF0123456789ABCDEF.toInt());
-  Expect.equals(-1, -1.toInt());
-  Expect.equals(-0x1234, -0x1234.toInt());
-  Expect.equals(-0x12345678, -0x12345678.toInt());
-  Expect.equals(-0x123456789AB, -0x123456789AB.toInt());
-  Expect.equals(-0x123456789ABCDEF, -0x123456789ABCDEF.toInt());
-  Expect.equals(-0x123456789ABCDEF0123456789ABCDEF0123456789ABCDEF,
-      -0x123456789ABCDEF0123456789ABCDEF0123456789ABCDEF.toInt());
+  Expect.equals(big, big.toInt());
+  Expect.equals(-1, (-1).toInt());
+  Expect.equals(-0x1234, (-0x1234).toInt());
+  Expect.equals(-0x12345678, (-0x12345678).toInt());
+  Expect.equals(-0x123456789AB, (-0x123456789AB).toInt());
+  Expect.equals(-big, (-big).toInt());
 
   Expect.isTrue(0.toInt() is int);
   Expect.isTrue(1.toInt() is int);
   Expect.isTrue(0x1234.toInt() is int);
   Expect.isTrue(0x12345678.toInt() is int);
   Expect.isTrue(0x123456789AB.toInt() is int);
-  Expect.isTrue(0x123456789ABCDEF.toInt() is int);
-  Expect
-      .isTrue(0x123456789ABCDEF0123456789ABCDEF0123456789ABCDEF.toInt() is int);
-  Expect.isTrue(-1.toInt() is int);
-  Expect.isTrue(-0x1234.toInt() is int);
-  Expect.isTrue(-0x12345678.toInt() is int);
-  Expect.isTrue(-0x123456789AB.toInt() is int);
-  Expect.isTrue(-0x123456789ABCDEF.toInt() is int);
-  Expect.isTrue(
-      -0x123456789ABCDEF0123456789ABCDEF0123456789ABCDEF.toInt() is int);
+  Expect.isTrue(big.toInt() is int);
+  Expect.isTrue((-1).toInt() is int);
+  Expect.isTrue((-0x1234).toInt() is int);
+  Expect.isTrue((-0x12345678).toInt() is int);
+  Expect.isTrue((-0x123456789AB).toInt() is int);
+  Expect.isTrue((-big).toInt() is int);
 }

@@ -4,7 +4,6 @@
 
 library test.invoke_call_on_closure;
 
-@MirrorsUsed(targets: "test.invoke_call_on_closure")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

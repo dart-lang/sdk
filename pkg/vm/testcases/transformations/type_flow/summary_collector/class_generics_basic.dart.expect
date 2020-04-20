@@ -1,0 +1,108 @@
+------------ C:: ------------
+%this = _Parameter #0 [_T (#lib::C)+]
+t1 = _Call direct [Object::] (%this)
+RESULT: _T {}?
+------------ C::foo ------------
+%this = _Parameter #0 [_T (#lib::C)+]
+t1 = _Extract (%this[#lib::C/0]*)
+t2 = _CreateConcreteType (#lib::D @ (t1))
+t3 = _Call direct [D::] (t2)
+RESULT: t2
+------------ C::id1 ------------
+%this = _Parameter #0 [_T (#lib::C)+]
+%x = _Parameter #1
+t2 = _Extract (%this[#lib::C/0]*)
+t3 = _TypeCheck (%x against t2) (for VariableDeclaration(x))
+RESULT: t3
+------------ C::id2 ------------
+%this = _Parameter #0 [_T (#lib::C)+]
+%x = _Parameter #1
+t2 = _Extract (%this[#lib::C/0]*)
+t3 = _TypeCheck (%x against t2) (for VariableDeclaration(x))
+RESULT: t3
+------------ D:: ------------
+%this = _Parameter #0 [_T (#lib::D)+]
+t1 = _Call direct [Object::] (%this)
+RESULT: _T {}?
+------------ E:: ------------
+%this = _Parameter #0 [_T (#lib::E)+]
+t1 = _Call direct [C::] (%this)
+RESULT: _T {}?
+------------ E::foo ------------
+%this = _Parameter #0 [_T (#lib::E)+]
+t1* = _Call direct [C::foo] (%this)
+RESULT: t1
+------------ E::bar ------------
+%this = _Parameter #0 [_T (#lib::E)+]
+t1 = _Extract (%this[#lib::E/0]*)
+t2 = _CreateConcreteType (#lib::D @ (t1))
+t3 = _Call direct [D::] (t2)
+RESULT: t2
+------------ E::baz ------------
+%this = _Parameter #0 [_T (#lib::E)+]
+t1 = _Extract (%this[#lib::E/1]*)
+t2 = _CreateConcreteType (#lib::D @ (t1))
+t3 = _Call direct [D::] (t2)
+RESULT: t2
+------------ X:: ------------
+%this = _Parameter #0 [_T (#lib::X)+]
+t1 = _Call direct [Object::] (%this)
+RESULT: _T {}?
+------------ Y:: ------------
+%this = _Parameter #0 [_T (#lib::Y)+]
+t1 = _Call direct [X::] (%this)
+RESULT: _T {}?
+------------ Z:: ------------
+%this = _Parameter #0 [_T (#lib::Z)+]
+t1 = _Call direct [X::] (%this)
+RESULT: _T {}?
+------------ I:: ------------
+%this = _Parameter #0 [_T (#lib::I)+]
+t1 = _Call direct [Object::] (%this)
+RESULT: _T {}?
+------------ J:: ------------
+%this = _Parameter #0 [_T (#lib::J)+]
+t1 = _Call direct [I::] (%this)
+RESULT: _T {}?
+------------ K:: ------------
+%this = _Parameter #0 [_T (#lib::K)+]
+t1 = _Call direct [Object::] (%this)
+RESULT: _T {}?
+------------ C2:: ------------
+%this = _Parameter #0 [_T (#lib::C2)+]
+t1 = _Call direct [Object::] (%this)
+RESULT: _T {}?
+------------ C2::id3 ------------
+%this = _Parameter #0 [_T (#lib::C2)+]
+%x = _Parameter #1
+t2 = _Extract (%this[#lib::C2/0]*)
+t3 = _CreateRuntimeType (dart.core::Comparable @ (t2)*)
+t4 = _TypeCheck (%x against t3) (for VariableDeclaration(x))
+RESULT: t4
+------------ C2::id4 ------------
+%this = _Parameter #0 [_T (#lib::C2)+]
+%x = _Parameter #1
+t2 = _Extract (%this[#lib::C2/0]*)
+t3 = _CreateRuntimeType (#lib::I @ (t2)*)
+t4 = _CreateRuntimeType (#lib::K @ (t3)*)
+t5 = _TypeCheck (%x against t4) (for VariableDeclaration(x))
+RESULT: t5
+------------ main ------------
+t0 = _Call direct [C::] (_T (#lib::C<dart.core::int*>))
+t1 = _Call [C::foo] (_T (#lib::C<dart.core::int*>))
+t2 = _Call direct [E::] (_T (#lib::E<dart.core::int*, dart.core::String*>))
+t3 = _Call [E::foo] (_T (#lib::E<dart.core::int*, dart.core::String*>))
+t4 = _Call direct [E::] (_T (#lib::E<dart.core::int*, dart.core::String*>))
+t5 = _Call [E::bar] (_T (#lib::E<dart.core::int*, dart.core::String*>))
+t6 = _Call direct [E::] (_T (#lib::E<dart.core::int*, dart.core::String*>))
+t7* = _Call [E::baz] (_T (#lib::E<dart.core::int*, dart.core::String*>))
+t8 = _Call direct [C::] (_T (#lib::C<#lib::Y*>))
+t9 = _Call direct [Y::] (_T (#lib::Y))
+t10 = _Call [C::id1] (_T (#lib::C<#lib::Y*>), _T (#lib::Y))
+t11 = _Call direct [Z::] (_T (#lib::Z))
+t12 = _Call [C::id2] (_T (#lib::C<#lib::Y*>), _T (#lib::Z))
+t13 = _Call direct [C2::] (_T (#lib::C2<dart.core::num*>))
+t14 = _Call [C2::id3] (_T (#lib::C2<dart.core::num*>), _T (dart.core::_Double, 3.0))
+t15 = _Call direct [K::] (_T (#lib::K<#lib::J*>))
+t16 = _Call [C2::id4] (_T (#lib::C2<dart.core::num*>), _T (#lib::K<#lib::J*>))
+RESULT: t7

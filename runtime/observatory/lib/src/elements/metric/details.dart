@@ -8,7 +8,7 @@ import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 
-class MetricDetailsElement extends HtmlElement implements Renderable {
+class MetricDetailsElement extends CustomElement implements Renderable {
   static const tag = const Tag<MetricDetailsElement>('metric-details');
 
   RenderingScheduler<MetricDetailsElement> _r;
@@ -28,15 +28,15 @@ class MetricDetailsElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(metric != null);
     assert(metrics != null);
-    MetricDetailsElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    MetricDetailsElement e = new MetricDetailsElement.created();
+    e._r = new RenderingScheduler<MetricDetailsElement>(e, queue: queue);
     e._isolate = isolate;
     e._metric = metric;
     e._metrics = metrics;
     return e;
   }
 
-  MetricDetailsElement.created() : super.created();
+  MetricDetailsElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -48,17 +48,17 @@ class MetricDetailsElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new DivElement()
         ..classes = ['memberList']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberItem']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'name',
@@ -68,7 +68,7 @@ class MetricDetailsElement extends HtmlElement implements Renderable {
             ],
           new DivElement()
             ..classes = ['memberItem']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'description',
@@ -78,7 +78,7 @@ class MetricDetailsElement extends HtmlElement implements Renderable {
             ],
           new DivElement()
             ..classes = ['memberItem']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'refresh rate',
@@ -88,7 +88,7 @@ class MetricDetailsElement extends HtmlElement implements Renderable {
             ],
           new DivElement()
             ..classes = ['memberItem']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'buffer size',

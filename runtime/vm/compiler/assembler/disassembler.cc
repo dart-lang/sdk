@@ -5,8 +5,6 @@
 #include "vm/compiler/assembler/disassembler.h"
 
 #include "vm/code_patcher.h"
-#include "vm/compiler/assembler/assembler.h"
-#include "vm/compiler/backend/il_printer.h"
 #include "vm/deopt_instructions.h"
 #include "vm/globals.h"
 #include "vm/instructions.h"
@@ -16,21 +14,26 @@
 
 namespace dart {
 
-#ifndef PRODUCT
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 DECLARE_FLAG(bool, trace_inlining_intervals);
+#endif
+
 DEFINE_FLAG(bool, trace_source_positions, false, "Source position diagnostics");
 
-void DisassembleToStdout::ConsumeInstruction(const Code& code,
-                                             char* hex_buffer,
+void DisassembleToStdout::ConsumeInstruction(char* hex_buffer,
                                              intptr_t hex_size,
                                              char* human_buffer,
                                              intptr_t human_size,
                                              Object* object,
                                              uword pc) {
   static const int kHexColumnWidth = 23;
-  uint8_t* pc_ptr = reinterpret_cast<uint8_t*>(pc);
-  THR_Print("%p    %s", pc_ptr, hex_buffer);
+#if defined(TARGET_ARCH_IS_32_BIT)
+  THR_Print("0x%" Px32 "    %s", static_cast<uint32_t>(pc), hex_buffer);
+#else
+  THR_Print("0x%" Px64 "    %s", static_cast<uint64_t>(pc), hex_buffer);
+#endif
   int hex_length = strlen(hex_buffer);
   if (hex_length < kHexColumnWidth) {
     for (int i = kHexColumnWidth - hex_length; i > 0; i--) {
@@ -51,8 +54,7 @@ void DisassembleToStdout::Print(const char* format, ...) {
   va_end(args);
 }
 
-void DisassembleToJSONStream::ConsumeInstruction(const Code& code,
-                                                 char* hex_buffer,
+void DisassembleToJSONStream::ConsumeInstruction(char* hex_buffer,
                                                  intptr_t hex_size,
                                                  char* human_buffer,
                                                  intptr_t human_size,
@@ -76,11 +78,11 @@ void DisassembleToJSONStream::ConsumeInstruction(const Code& code,
 void DisassembleToJSONStream::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, args);
   va_end(args);
   char* p = reinterpret_cast<char*>(malloc(len + 1));
   va_start(args, format);
-  intptr_t len2 = OS::VSNPrint(p, len, format, args);
+  intptr_t len2 = Utils::VSNPrint(p, len, format, args);
   va_end(args);
   ASSERT(len == len2);
   for (intptr_t i = 0; i < len; i++) {
@@ -97,12 +99,69 @@ void DisassembleToJSONStream::Print(const char* format, ...) {
   free(p);
 }
 
+void DisassembleToMemory::ConsumeInstruction(char* hex_buffer,
+                                             intptr_t hex_size,
+                                             char* human_buffer,
+                                             intptr_t human_size,
+                                             Object* object,
+                                             uword pc) {
+  if (overflowed_) {
+    return;
+  }
+  intptr_t len = strlen(human_buffer);
+  if (remaining_ < len + 100) {
+    *buffer_++ = '.';
+    *buffer_++ = '.';
+    *buffer_++ = '.';
+    *buffer_++ = '\n';
+    *buffer_++ = '\0';
+    overflowed_ = true;
+    return;
+  }
+  memmove(buffer_, human_buffer, len);
+  buffer_ += len;
+  remaining_ -= len;
+  *buffer_++ = '\n';
+  remaining_--;
+  *buffer_ = '\0';
+}
+
+void DisassembleToMemory::Print(const char* format, ...) {
+  if (overflowed_) {
+    return;
+  }
+  va_list args;
+  va_start(args, format);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, args);
+  va_end(args);
+  if (remaining_ < len + 100) {
+    *buffer_++ = '.';
+    *buffer_++ = '.';
+    *buffer_++ = '.';
+    *buffer_++ = '\n';
+    *buffer_++ = '\0';
+    overflowed_ = true;
+    return;
+  }
+  va_start(args, format);
+  intptr_t len2 = Utils::VSNPrint(buffer_, len, format, args);
+  va_end(args);
+  ASSERT(len == len2);
+  buffer_ += len;
+  remaining_ -= len;
+  *buffer_++ = '\n';
+  remaining_--;
+  *buffer_ = '\0';
+}
+
 void Disassembler::Disassemble(uword start,
                                uword end,
                                DisassemblyFormatter* formatter,
-                               const Code& code) {
-  const Code::Comments& comments =
-      code.IsNull() ? Code::Comments::New(0) : code.comments();
+                               const Code& code,
+                               const Code::Comments* comments) {
+  if (comments == nullptr) {
+    comments = code.IsNull() ? &Code::Comments::New(0) : &code.comments();
+  }
   ASSERT(formatter != NULL);
   char hex_buffer[kHexadecimalBufferSize];  // Instruction in hexadecimal form.
   char human_buffer[kUserReadableBufferSize];  // Human-readable instruction.
@@ -113,14 +172,14 @@ void Disassembler::Disassemble(uword start,
   while (pc < end) {
     const intptr_t offset = pc - start;
     const intptr_t old_comment_finger = comment_finger;
-    while (comment_finger < comments.Length() &&
-           comments.PCOffsetAt(comment_finger) <= offset) {
+    while (comment_finger < comments->Length() &&
+           comments->PCOffsetAt(comment_finger) <= offset) {
       formatter->Print(
           "        ;; %s\n",
-          String::Handle(comments.CommentAt(comment_finger)).ToCString());
+          String::Handle(comments->CommentAt(comment_finger)).ToCString());
       comment_finger++;
     }
-    if (old_comment_finger != comment_finger) {
+    if (old_comment_finger != comment_finger && !code.IsNull()) {
       char str[4000];
       BufferFormatter f(str, sizeof(str));
       // Comment emitted, emit inlining information.
@@ -139,7 +198,7 @@ void Disassembler::Disassemble(uword start,
       }
       if (!first) {
         f.Print("]\n");
-        formatter->Print(str);
+        formatter->Print("%s", str);
       }
     }
     int instruction_length;
@@ -147,9 +206,9 @@ void Disassembler::Disassemble(uword start,
     DecodeInstruction(hex_buffer, sizeof(hex_buffer), human_buffer,
                       sizeof(human_buffer), &instruction_length, code, &object,
                       pc);
-    formatter->ConsumeInstruction(code, hex_buffer, sizeof(hex_buffer),
-                                  human_buffer, sizeof(human_buffer), object,
-                                  pc);
+    formatter->ConsumeInstruction(hex_buffer, sizeof(hex_buffer), human_buffer,
+                                  sizeof(human_buffer), object,
+                                  FLAG_disassemble_relative ? offset : pc);
     pc += instruction_length;
   }
 }
@@ -182,9 +241,17 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   ASSERT(code.pointer_offsets_length() == 0);
 #endif
 
-  const ObjectPool& object_pool =
-      ObjectPool::Handle(zone, code.GetObjectPool());
-  object_pool.DebugPrint();
+  if (FLAG_use_bare_instructions) {
+    THR_Print("(No object pool for bare instructions.)\n");
+  } else {
+    const ObjectPool& object_pool =
+        ObjectPool::Handle(zone, code.GetObjectPool());
+    if (!object_pool.IsNull()) {
+      object_pool.DebugPrint();
+    }
+  }
+
+  code.DumpSourcePositions(/*relative_addresses=*/FLAG_disassemble_relative);
 
   THR_Print("PC Descriptors for function '%s' {\n", function_fullname);
   PcDescriptors::PrintHeaderString();
@@ -192,38 +259,38 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
       PcDescriptors::Handle(zone, code.pc_descriptors());
   THR_Print("%s}\n", descriptors.ToCString());
 
-  uword start = Instructions::Handle(zone, code.instructions()).PayloadStart();
+  const uword start = code.PayloadStart();
+  const uword base = FLAG_disassemble_relative ? 0 : start;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   const Array& deopt_table = Array::Handle(zone, code.deopt_info_array());
-  intptr_t deopt_table_length = DeoptTable::GetLength(deopt_table);
-  if (deopt_table_length > 0) {
-    THR_Print("DeoptInfo: {\n");
-    Smi& offset = Smi::Handle(zone);
-    TypedData& info = TypedData::Handle(zone);
-    Smi& reason_and_flags = Smi::Handle(zone);
-    for (intptr_t i = 0; i < deopt_table_length; ++i) {
-      DeoptTable::GetEntry(deopt_table, i, &offset, &info, &reason_and_flags);
-      const intptr_t reason =
-          DeoptTable::ReasonField::decode(reason_and_flags.Value());
-      ASSERT((0 <= reason) && (reason < ICData::kDeoptNumReasons));
-      THR_Print(
-          "%4" Pd ": 0x%" Px "  %s  (%s)\n", i, start + offset.Value(),
-          DeoptInfo::ToCString(deopt_table, info),
-          DeoptReasonToCString(static_cast<ICData::DeoptReasonId>(reason)));
+  if (!deopt_table.IsNull()) {
+    intptr_t deopt_table_length = DeoptTable::GetLength(deopt_table);
+    if (deopt_table_length > 0) {
+      THR_Print("DeoptInfo: {\n");
+      Smi& offset = Smi::Handle(zone);
+      TypedData& info = TypedData::Handle(zone);
+      Smi& reason_and_flags = Smi::Handle(zone);
+      for (intptr_t i = 0; i < deopt_table_length; ++i) {
+        DeoptTable::GetEntry(deopt_table, i, &offset, &info, &reason_and_flags);
+        const intptr_t reason =
+            DeoptTable::ReasonField::decode(reason_and_flags.Value());
+        ASSERT((0 <= reason) && (reason < ICData::kDeoptNumReasons));
+        THR_Print(
+            "%4" Pd ": 0x%" Px "  %s  (%s)\n", i, base + offset.Value(),
+            DeoptInfo::ToCString(deopt_table, info),
+            DeoptReasonToCString(static_cast<ICData::DeoptReasonId>(reason)));
+      }
+      THR_Print("}\n");
     }
-    THR_Print("}\n");
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   THR_Print("StackMaps for function '%s' {\n", function_fullname);
-  if (code.stackmaps() != Array::null()) {
-    const Array& stackmap_table = Array::Handle(zone, code.stackmaps());
-    StackMap& map = StackMap::Handle(zone);
-    for (intptr_t i = 0; i < stackmap_table.Length(); ++i) {
-      map ^= stackmap_table.At(i);
-      THR_Print("%s\n", map.ToCString());
-    }
+  if (code.compressed_stackmaps() != CompressedStackMaps::null()) {
+    const auto& stackmaps =
+        CompressedStackMaps::Handle(zone, code.compressed_stackmaps());
+    THR_Print("%s\n", stackmaps.ToCString());
   }
   THR_Print("}\n");
 
@@ -263,37 +330,114 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
       ExceptionHandlers::Handle(zone, code.exception_handlers());
   THR_Print("%s}\n", handlers.ToCString());
 
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+  if (code.catch_entry_moves_maps() != Object::null()) {
+    THR_Print("Catch entry moves for function '%s' {\n", function_fullname);
+    CatchEntryMovesMapReader reader(
+        TypedData::Handle(code.catch_entry_moves_maps()));
+    reader.PrintEntries();
+    THR_Print("}\n");
+  }
+#endif  // defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+
+  {
+    THR_Print("Entry points for function '%s' {\n", function_fullname);
+    THR_Print("  [code+0x%02" Px "] %" Px " kNormal\n",
+              Code::entry_point_offset(CodeEntryKind::kNormal) - kHeapObjectTag,
+              code.EntryPoint() - start + base);
+    THR_Print(
+        "  [code+0x%02" Px "] %" Px " kMonomorphic\n",
+        Code::entry_point_offset(CodeEntryKind::kMonomorphic) - kHeapObjectTag,
+        code.MonomorphicEntryPoint() - start + base);
+    THR_Print(
+        "  [code+0x%02" Px "] %" Px " kUnchecked\n",
+        Code::entry_point_offset(CodeEntryKind::kUnchecked) - kHeapObjectTag,
+        code.UncheckedEntryPoint() - start + base);
+    THR_Print("  [code+0x%02" Px "] %" Px " kMonomorphicUnchecked\n",
+              Code::entry_point_offset(CodeEntryKind::kMonomorphicUnchecked) -
+                  kHeapObjectTag,
+              code.MonomorphicUncheckedEntryPoint() - start + base);
+    THR_Print("}\n");
+  }
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  THR_Print("(Cannot show static call target functions in AOT runtime.)\n");
+#else
   {
     THR_Print("Static call target functions {\n");
-    const Array& table = Array::Handle(zone, code.static_calls_target_table());
-    Smi& offset = Smi::Handle(zone);
-    Function& function = Function::Handle(zone);
-    Code& code = Code::Handle(zone);
-    for (intptr_t i = 0; i < table.Length();
-         i += Code::kSCallTableEntryLength) {
-      offset ^= table.At(i + Code::kSCallTableOffsetEntry);
-      function ^= table.At(i + Code::kSCallTableFunctionEntry);
-      code ^= table.At(i + Code::kSCallTableCodeEntry);
-      if (function.IsNull()) {
-        Class& cls = Class::Handle(zone);
-        cls ^= code.owner();
-        if (cls.IsNull()) {
-          THR_Print("  0x%" Px ": %s, %p\n", start + offset.Value(),
-                    code.QualifiedName(), code.raw());
-        } else {
-          THR_Print("  0x%" Px ": allocation stub for %s, %p\n",
-                    start + offset.Value(), cls.ToCString(), code.raw());
+    const auto& table = Array::Handle(zone, code.static_calls_target_table());
+    auto& cls = Class::Handle(zone);
+    auto& kind_type_and_offset = Smi::Handle(zone);
+    auto& function = Function::Handle(zone);
+    auto& object = Object::Handle(zone);
+    auto& code = Code::Handle(zone);
+    auto& dst_type = AbstractType::Handle(zone);
+    if (!table.IsNull()) {
+      StaticCallsTable static_calls(table);
+      for (auto& call : static_calls) {
+        kind_type_and_offset = call.Get<Code::kSCallTableKindAndOffset>();
+        function = call.Get<Code::kSCallTableFunctionTarget>();
+        object = call.Get<Code::kSCallTableCodeOrTypeTarget>();
+
+        dst_type = AbstractType::null();
+        if (object.IsAbstractType()) {
+          dst_type = AbstractType::Cast(object).raw();
+        } else if (object.IsCode()) {
+          code = Code::Cast(object).raw();
         }
-      } else {
-        THR_Print("  0x%" Px ": %s, %p\n", start + offset.Value(),
-                  function.ToFullyQualifiedCString(), code.raw());
+
+        auto kind = Code::KindField::decode(kind_type_and_offset.Value());
+        auto offset = Code::OffsetField::decode(kind_type_and_offset.Value());
+        auto entry_point =
+            Code::EntryPointField::decode(kind_type_and_offset.Value());
+
+        const char* s_entry_point =
+            entry_point == Code::kUncheckedEntry ? " <unchecked-entry>" : "";
+        const char* skind = nullptr;
+        switch (kind) {
+          case Code::kPcRelativeCall:
+            skind = "pc-relative-call";
+            break;
+          case Code::kPcRelativeTTSCall:
+            skind = "pc-relative-tts-call";
+            break;
+          case Code::kPcRelativeTailCall:
+            skind = "pc-relative-tail-call";
+            break;
+          case Code::kCallViaCode:
+            skind = "call-via-code";
+            break;
+          default:
+            UNREACHABLE();
+        }
+        if (!dst_type.IsNull()) {
+          THR_Print("  0x%" Px ": type testing stub %s, (%s)%s\n",
+                    base + offset, dst_type.ToCString(), skind, s_entry_point);
+        } else if (function.IsNull()) {
+          cls ^= code.owner();
+          if (cls.IsNull()) {
+            THR_Print("  0x%" Px ": %s, (%s)%s\n", base + offset,
+                      code.QualifiedName(), skind, s_entry_point);
+          } else {
+            THR_Print("  0x%" Px ": allocation stub for %s, (%s)%s\n",
+                      base + offset, cls.ToCString(), skind, s_entry_point);
+          }
+        } else {
+          THR_Print("  0x%" Px ": %s, (%s)%s\n", base + offset,
+                    function.ToFullyQualifiedCString(), skind, s_entry_point);
+        }
       }
     }
     THR_Print("}\n");
   }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (optimized && FLAG_trace_inlining_intervals) {
     code.DumpInlineIntervals();
   }
+#endif
+
   if (FLAG_trace_source_positions) {
     code.DumpSourcePositions();
   }
@@ -303,9 +447,29 @@ void Disassembler::DisassembleCode(const Function& function,
                                    const Code& code,
                                    bool optimized) {
   const char* function_fullname = function.ToFullyQualifiedCString();
+  LogBlock lb;
   DisassembleCodeHelper(function_fullname, code, optimized);
 }
 
-#endif  // !PRODUCT
+void Disassembler::DisassembleStub(const char* name, const Code& code) {
+  LogBlock lb;
+  THR_Print("Code for stub '%s': {\n", name);
+  DisassembleToStdout formatter;
+  code.Disassemble(&formatter);
+  THR_Print("}\n");
+  const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
+  if (FLAG_use_bare_instructions) {
+    THR_Print("(No object pool for bare instructions.)\n");
+  } else if (!object_pool.IsNull()) {
+    object_pool.DebugPrint();
+  }
+}
+
+#else   // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+
+void Disassembler::DisassembleCode(const Function& function,
+                                   const Code& code,
+                                   bool optimized) {}
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 }  // namespace dart

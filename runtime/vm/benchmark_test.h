@@ -9,10 +9,10 @@
 
 #include "vm/dart.h"
 #include "vm/globals.h"
-#include "vm/heap.h"
 #include "vm/isolate.h"
 #include "vm/malloc_hooks.h"
 #include "vm/object.h"
+#include "vm/unit_test.h"
 #include "vm/zone.h"
 
 namespace dart {
@@ -43,8 +43,6 @@ extern const uint8_t* core_isolate_snapshot_instructions;
     BenchmarkIsolateScope __isolate__(benchmark);                              \
     Thread* __thread__ = Thread::Current();                                    \
     ASSERT(__thread__->isolate() == benchmark->isolate());                     \
-    StackZone __zone__(__thread__);                                            \
-    HandleScope __hs__(__thread__);                                            \
     Dart_BenchmarkHelper##name(benchmark, __thread__);                         \
     MallocHooks::set_stack_trace_collection_enabled(                           \
         __stack_trace_collection_enabled__);                                   \
@@ -85,15 +83,17 @@ class Benchmark {
   int64_t score() const { return score_; }
   Isolate* isolate() const { return reinterpret_cast<Isolate*>(isolate_); }
 
-  Dart_Isolate CreateIsolate(const uint8_t* snapshot_data,
-                             const uint8_t* snapshot_instructions);
-
   void Run() { (*run_)(this); }
   void RunBenchmark();
 
   static void RunAll(const char* executable);
   static void SetExecutable(const char* arg) { executable_ = arg; }
   static const char* Executable() { return executable_; }
+
+  void CreateIsolate() {
+    isolate_ = TestCase::CreateTestIsolate();
+    EXPECT(isolate_ != NULL);
+  }
 
  private:
   static Benchmark* first_;
@@ -113,8 +113,7 @@ class Benchmark {
 class BenchmarkIsolateScope {
  public:
   explicit BenchmarkIsolateScope(Benchmark* benchmark) : benchmark_(benchmark) {
-    benchmark_->CreateIsolate(bin::core_isolate_snapshot_data,
-                              bin::core_isolate_snapshot_instructions);
+    benchmark->CreateIsolate();
     Dart_EnterScope();  // Create a Dart API scope for unit benchmarks.
   }
   ~BenchmarkIsolateScope() {

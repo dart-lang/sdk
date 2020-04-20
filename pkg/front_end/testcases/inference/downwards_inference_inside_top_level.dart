@@ -13,8 +13,7 @@ class B<T> {
   B(T x);
 }
 
-var /*@topType=A*/ t1 = new A()
-  .. /*@target=A::b*/ b = new /*@typeArgs=int*/ B(1);
-var /*@topType=List<B<int>>*/ t2 = <B<int>>[new /*@typeArgs=int*/ B(2)];
+var t1 = new A().. /*@target=A::b*/ b = new /*@ typeArgs=int* */ B(1);
+var t2 = <B<int>>[new /*@ typeArgs=int* */ B(2)];
 
 main() {}

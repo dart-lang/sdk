@@ -26,8 +26,6 @@ VM_UNIT_TEST_CASE(Id) {
 #else   // defined(HOST_ARCH_ARM64)
   EXPECT_STREQ("simarm64", CPU::Id());
 #endif  // defined(HOST_ARCH_ARM64)
-#elif defined(TARGET_ARCH_DBC)
-  EXPECT_STREQ("dbc", CPU::Id());
 #else
 #error Architecture was not detected as supported by Dart.
 #endif

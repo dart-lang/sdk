@@ -14,11 +14,11 @@
 #include "bin/dartutils.h"
 #include "bin/eventhandler.h"
 #include "bin/lockers.h"
-#include "bin/log.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
+#include "platform/syslog.h"
 
 namespace dart {
 namespace bin {
@@ -27,7 +27,7 @@ static const int kReadHandle = 0;
 static const int kWriteHandle = 1;
 
 int Process::global_exit_code_ = 0;
-Mutex* Process::global_exit_code_mutex_ = new Mutex();
+Mutex* Process::global_exit_code_mutex_ = nullptr;
 Process::ExitHook Process::exit_hook_ = NULL;
 
 // ProcessInfo is used to map a process id to the process handle,
@@ -84,6 +84,9 @@ class ProcessInfo {
 // started from Dart.
 class ProcessInfoList {
  public:
+  static void Init();
+  static void Cleanup();
+
   static void AddProcess(DWORD pid, HANDLE handle, HANDLE pipe) {
     // Register a callback to extract the exit code, when the process
     // is signaled.  The callback runs in a independent thread from the OS pool.
@@ -199,7 +202,7 @@ class ProcessInfoList {
 };
 
 ProcessInfo* ProcessInfoList::active_processes_ = NULL;
-Mutex* ProcessInfoList::mutex_ = new Mutex();
+Mutex* ProcessInfoList::mutex_ = nullptr;
 
 // Types of pipes to create.
 enum NamedPipeType { kInheritRead, kInheritWrite, kInheritNone };
@@ -229,7 +232,7 @@ static bool CreateProcessPipe(HANDLE handles[2],
                          NULL);
 
     if (handles[kWriteHandle] == INVALID_HANDLE_VALUE) {
-      Log::PrintErr("CreateNamedPipe failed %d\n", GetLastError());
+      Syslog::PrintErr("CreateNamedPipe failed %d\n", GetLastError());
       return false;
     }
 
@@ -237,7 +240,7 @@ static bool CreateProcessPipe(HANDLE handles[2],
         CreateFileW(pipe_name, GENERIC_READ, 0, &inherit_handle, OPEN_EXISTING,
                     FILE_READ_ATTRIBUTES | FILE_FLAG_OVERLAPPED, NULL);
     if (handles[kReadHandle] == INVALID_HANDLE_VALUE) {
-      Log::PrintErr("CreateFile failed %d\n", GetLastError());
+      Syslog::PrintErr("CreateFile failed %d\n", GetLastError());
       return false;
     }
   } else {
@@ -252,7 +255,7 @@ static bool CreateProcessPipe(HANDLE handles[2],
                          NULL);
 
     if (handles[kReadHandle] == INVALID_HANDLE_VALUE) {
-      Log::PrintErr("CreateNamedPipe failed %d\n", GetLastError());
+      Syslog::PrintErr("CreateNamedPipe failed %d\n", GetLastError());
       return false;
     }
 
@@ -261,7 +264,7 @@ static bool CreateProcessPipe(HANDLE handles[2],
         (type == kInheritWrite) ? &inherit_handle : NULL, OPEN_EXISTING,
         FILE_WRITE_ATTRIBUTES | FILE_FLAG_OVERLAPPED, NULL);
     if (handles[kWriteHandle] == INVALID_HANDLE_VALUE) {
-      Log::PrintErr("CreateFile failed %d\n", GetLastError());
+      Syslog::PrintErr("CreateFile failed %d\n", GetLastError());
       return false;
     }
   }
@@ -272,7 +275,7 @@ static void CloseProcessPipe(HANDLE handles[2]) {
   for (int i = kReadHandle; i < kWriteHandle; i++) {
     if (handles[i] != INVALID_HANDLE_VALUE) {
       if (!CloseHandle(handles[i])) {
-        Log::PrintErr("CloseHandle failed %d\n", GetLastError());
+        Syslog::PrintErr("CloseHandle failed %d\n", GetLastError());
       }
       handles[i] = INVALID_HANDLE_VALUE;
     }
@@ -307,7 +310,7 @@ static HANDLE OpenNul() {
   HANDLE nul = CreateFile(L"NUL", GENERIC_READ | GENERIC_WRITE, 0,
                           &inherit_handle, OPEN_EXISTING, 0, NULL);
   if (nul == INVALID_HANDLE_VALUE) {
-    Log::PrintErr("CloseHandle failed %d\n", GetLastError());
+    Syslog::PrintErr("CloseHandle failed %d\n", GetLastError());
   }
   return nul;
 }
@@ -331,12 +334,13 @@ static InitProcThreadAttrListFn init_proc_thread_attr_list = NULL;
 static UpdateProcThreadAttrFn update_proc_thread_attr = NULL;
 static DeleteProcThreadAttrListFn delete_proc_thread_attr_list = NULL;
 
+static Mutex* initialized_mutex = nullptr;
+static bool load_attempted = false;
+
 static bool EnsureInitialized() {
-  static bool load_attempted = false;
-  static Mutex* mutex = new Mutex();
   HMODULE kernel32_module = GetModuleHandleW(L"kernel32.dll");
   if (!load_attempted) {
-    MutexLocker locker(mutex);
+    MutexLocker locker(initialized_mutex);
     if (load_attempted) {
       return (delete_proc_thread_attr_list != NULL);
     }
@@ -504,39 +508,41 @@ class ProcessStarter {
     STARTUPINFOEXW startup_info;
     ZeroMemory(&startup_info, sizeof(startup_info));
     startup_info.StartupInfo.cb = sizeof(startup_info);
-    startup_info.StartupInfo.hStdInput = stdin_handles_[kReadHandle];
-    startup_info.StartupInfo.hStdOutput = stdout_handles_[kWriteHandle];
-    startup_info.StartupInfo.hStdError = stderr_handles_[kWriteHandle];
-    startup_info.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
+    if (mode_ != kInheritStdio) {
+      startup_info.StartupInfo.hStdInput = stdin_handles_[kReadHandle];
+      startup_info.StartupInfo.hStdOutput = stdout_handles_[kWriteHandle];
+      startup_info.StartupInfo.hStdError = stderr_handles_[kWriteHandle];
+      startup_info.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
 
-    bool supports_proc_thread_attr_lists = EnsureInitialized();
-    if (supports_proc_thread_attr_lists) {
-      // Setup the handles to inherit. We only want to inherit the three handles
-      // for stdin, stdout and stderr.
-      SIZE_T size = 0;
-      // The call to determine the size of an attribute list always fails with
-      // ERROR_INSUFFICIENT_BUFFER and that error should be ignored.
-      if (!init_proc_thread_attr_list(NULL, 1, 0, &size) &&
-          (GetLastError() != ERROR_INSUFFICIENT_BUFFER)) {
-        return CleanupAndReturnError();
+      bool supports_proc_thread_attr_lists = EnsureInitialized();
+      if (supports_proc_thread_attr_lists) {
+        // Setup the handles to inherit. We only want to inherit the three
+        // handles for stdin, stdout and stderr.
+        SIZE_T size = 0;
+        // The call to determine the size of an attribute list always fails with
+        // ERROR_INSUFFICIENT_BUFFER and that error should be ignored.
+        if (!init_proc_thread_attr_list(NULL, 1, 0, &size) &&
+            (GetLastError() != ERROR_INSUFFICIENT_BUFFER)) {
+          return CleanupAndReturnError();
+        }
+        attribute_list_ = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(
+            Dart_ScopeAllocate(size));
+        ZeroMemory(attribute_list_, size);
+        if (!init_proc_thread_attr_list(attribute_list_, 1, 0, &size)) {
+          return CleanupAndReturnError();
+        }
+        static const int kNumInheritedHandles = 3;
+        HANDLE inherited_handles[kNumInheritedHandles] = {
+            stdin_handles_[kReadHandle], stdout_handles_[kWriteHandle],
+            stderr_handles_[kWriteHandle]};
+        if (!update_proc_thread_attr(
+                attribute_list_, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
+                inherited_handles, kNumInheritedHandles * sizeof(HANDLE), NULL,
+                NULL)) {
+          return CleanupAndReturnError();
+        }
+        startup_info.lpAttributeList = attribute_list_;
       }
-      attribute_list_ = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(
-          Dart_ScopeAllocate(size));
-      ZeroMemory(attribute_list_, size);
-      if (!init_proc_thread_attr_list(attribute_list_, 1, 0, &size)) {
-        return CleanupAndReturnError();
-      }
-      static const int kNumInheritedHandles = 3;
-      HANDLE inherited_handles[kNumInheritedHandles] = {
-          stdin_handles_[kReadHandle], stdout_handles_[kWriteHandle],
-          stderr_handles_[kWriteHandle]};
-      if (!update_proc_thread_attr(
-              attribute_list_, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
-              inherited_handles, kNumInheritedHandles * sizeof(HANDLE), NULL,
-              NULL)) {
-        return CleanupAndReturnError();
-      }
-      startup_info.lpAttributeList = attribute_list_;
     }
 
     PROCESS_INFORMATION process_info;
@@ -545,7 +551,7 @@ class ProcessStarter {
     // Create process.
     DWORD creation_flags =
         EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT;
-    if (mode_ != kNormal) {
+    if (!Process::ModeIsAttached(mode_)) {
       creation_flags |= DETACHED_PROCESS;
     }
     BOOL result = CreateProcessW(
@@ -558,26 +564,33 @@ class ProcessStarter {
         reinterpret_cast<STARTUPINFOW*>(&startup_info), &process_info);
 
     if (result == 0) {
+      Syslog::PrintErr("CreateProcessW failed %d\n", GetLastError());
       return CleanupAndReturnError();
     }
 
-    CloseHandle(stdin_handles_[kReadHandle]);
-    CloseHandle(stdout_handles_[kWriteHandle]);
-    CloseHandle(stderr_handles_[kWriteHandle]);
-    if (mode_ == kNormal) {
+    if (mode_ != kInheritStdio) {
+      CloseHandle(stdin_handles_[kReadHandle]);
+      CloseHandle(stdout_handles_[kWriteHandle]);
+      CloseHandle(stderr_handles_[kWriteHandle]);
+    }
+    if (Process::ModeIsAttached(mode_)) {
       ProcessInfoList::AddProcess(process_info.dwProcessId,
                                   process_info.hProcess,
                                   exit_handles_[kWriteHandle]);
     }
     if (mode_ != kDetached) {
       // Connect the three stdio streams.
-      FileHandle* stdin_handle = new FileHandle(stdin_handles_[kWriteHandle]);
-      FileHandle* stdout_handle = new FileHandle(stdout_handles_[kReadHandle]);
-      FileHandle* stderr_handle = new FileHandle(stderr_handles_[kReadHandle]);
-      *in_ = reinterpret_cast<intptr_t>(stdout_handle);
-      *out_ = reinterpret_cast<intptr_t>(stdin_handle);
-      *err_ = reinterpret_cast<intptr_t>(stderr_handle);
-      if (mode_ == kNormal) {
+      if (Process::ModeHasStdio(mode_)) {
+        FileHandle* stdin_handle = new FileHandle(stdin_handles_[kWriteHandle]);
+        FileHandle* stdout_handle =
+            new FileHandle(stdout_handles_[kReadHandle]);
+        FileHandle* stderr_handle =
+            new FileHandle(stderr_handles_[kReadHandle]);
+        *in_ = reinterpret_cast<intptr_t>(stdout_handle);
+        *out_ = reinterpret_cast<intptr_t>(stdin_handle);
+        *err_ = reinterpret_cast<intptr_t>(stderr_handle);
+      }
+      if (Process::ModeIsAttached(mode_)) {
         FileHandle* exit_handle = new FileHandle(exit_handles_[kReadHandle]);
         *exit_handler_ = reinterpret_cast<intptr_t>(exit_handle);
       }
@@ -596,20 +609,22 @@ class ProcessStarter {
     int status = GenerateNames<4>(pipe_names);
     if (status != 0) {
       SetOsErrorMessage(os_error_message_);
-      Log::PrintErr("UuidCreateSequential failed %d\n", status);
+      Syslog::PrintErr("UuidCreateSequential failed %d\n", status);
       return status;
     }
 
     if (mode_ != kDetached) {
       // Open pipes for stdin, stdout, stderr and for communicating the exit
       // code.
-      if (!CreateProcessPipe(stdin_handles_, pipe_names[0], kInheritRead) ||
-          !CreateProcessPipe(stdout_handles_, pipe_names[1], kInheritWrite) ||
-          !CreateProcessPipe(stderr_handles_, pipe_names[2], kInheritWrite)) {
-        return CleanupAndReturnError();
+      if (Process::ModeHasStdio(mode_)) {
+        if (!CreateProcessPipe(stdin_handles_, pipe_names[0], kInheritRead) ||
+            !CreateProcessPipe(stdout_handles_, pipe_names[1], kInheritWrite) ||
+            !CreateProcessPipe(stderr_handles_, pipe_names[2], kInheritWrite)) {
+          return CleanupAndReturnError();
+        }
       }
       // Only open exit code pipe for non detached processes.
-      if (mode_ == kNormal) {
+      if (Process::ModeIsAttached(mode_)) {
         if (!CreateProcessPipe(exit_handles_, pipe_names[3], kInheritNone)) {
           return CleanupAndReturnError();
         }
@@ -932,7 +947,7 @@ int64_t Process::MaxRSS() {
 }
 
 static SignalInfo* signal_handlers = NULL;
-static Mutex* signal_mutex = new Mutex();
+static Mutex* signal_mutex = nullptr;
 
 SignalInfo::~SignalInfo() {
   FileHandle* file_handle = reinterpret_cast<FileHandle*>(fd_);
@@ -1038,6 +1053,48 @@ void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
   if (signal_handlers == NULL) {
     USE(SetConsoleCtrlHandler(SignalHandler, false));
   }
+}
+
+void ProcessInfoList::Init() {
+  ASSERT(ProcessInfoList::mutex_ == nullptr);
+  ProcessInfoList::mutex_ = new Mutex();
+}
+
+void ProcessInfoList::Cleanup() {
+  ASSERT(ProcessInfoList::mutex_ != nullptr);
+  delete ProcessInfoList::mutex_;
+  ProcessInfoList::mutex_ = nullptr;
+}
+
+void Process::Init() {
+  ProcessInfoList::Init();
+
+  ASSERT(signal_mutex == nullptr);
+  signal_mutex = new Mutex();
+
+  ASSERT(initialized_mutex == nullptr);
+  initialized_mutex = new Mutex();
+
+  ASSERT(Process::global_exit_code_mutex_ == nullptr);
+  Process::global_exit_code_mutex_ = new Mutex();
+}
+
+void Process::Cleanup() {
+  ClearAllSignalHandlers();
+
+  ASSERT(signal_mutex != nullptr);
+  delete signal_mutex;
+  signal_mutex = nullptr;
+
+  ASSERT(initialized_mutex != nullptr);
+  delete initialized_mutex;
+  initialized_mutex = nullptr;
+
+  ASSERT(Process::global_exit_code_mutex_ != nullptr);
+  delete Process::global_exit_code_mutex_;
+  Process::global_exit_code_mutex_ = nullptr;
+
+  ProcessInfoList::Cleanup();
 }
 
 }  // namespace bin

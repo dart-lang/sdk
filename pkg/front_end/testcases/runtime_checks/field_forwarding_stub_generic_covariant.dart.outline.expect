@@ -2,19 +2,21 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-class B<T extends core::Object> extends core::Object {
-  field self::B::T x;
-  default constructor •() → void
+class B<T extends core::Object* = dynamic> extends core::Object {
+  generic-covariant-impl field self::B::T* x;
+  synthetic constructor •() → self::B<self::B::T*>*
     ;
 }
 class C extends core::Object {
-  field core::num x;
-  default constructor •() → void
+  field core::num* x;
+  synthetic constructor •() → self::C*
     ;
 }
-class D extends self::C implements self::B<core::num> {
-  default constructor •() → void
+class D extends self::C implements self::B<core::num*> {
+  synthetic constructor •() → self::D*
     ;
+  forwarding-stub set x(generic-covariant-impl core::num* _) → void
+    return super.{self::C::x} = _;
 }
 static method main() → void
   ;

@@ -2,7 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
+
 library test_extension_test;
+
+import 'dart:isolate';
 
 import "test_extension.dart";
 
@@ -22,7 +27,9 @@ class Expect {
   }
 }
 
-main() {
+isolateHandler(_) {}
+
+main() async {
   Expect.equals('cat 13', new Cat(13).toString(), 'new Cat(13).toString()');
 
   Expect.equals(3, Cat.ifNull(null, 3), 'Cat.ifNull(null, 3)');
@@ -35,4 +42,6 @@ main() {
   } on String catch (e) {
     Expect.equals("ball", e);
   }
+
+  await Isolate.spawn(isolateHandler, []);
 }

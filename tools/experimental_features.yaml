@@ -1,0 +1,122 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Experimental features are described in docs/process/experimental-flags.md
+# (Despite the name, they are not really intended for experiments.)
+# They are intended to enable new features or enhancements that are being
+# developed and are not yet shipped. Experimental feature flags are expected
+# to be relatively short-lived.
+#
+# ### Code Generation
+#
+# When you change this file, run the following to update analyzer and kernel:
+#
+# analyzer:
+#   dart pkg/analyzer/tool/experiments/generate.dart
+#
+# kernel:
+#   pkg/front_end/tool/fasta generate-experimental-flags
+#
+# ### Overview
+#
+# This document consists mostly of a map called "features".
+# Each entry in this map corresponds to an experiment,
+# and contains the following parts:
+#
+# 1. help: (required text)
+#    A human readable description of the experiment.
+#
+# 2. enabledIn: (optional #.#)
+#    The Dart SDK version (<major>.<minor>) in which the experiment is shipping.
+#
+#    If this field is specified, then the experiment is enabled regardless of
+#    the actual version of the SDK. If this field is omitted, then the
+#    experiment is disabled by default, but may be enabled by specifying the
+#    flag on the command line. (e.g. --enable-experiment=non-nullable)
+#
+#    A version less than than this version may be specified in a .packages file
+#    or in a library language version override (e.g. // @dart = 2.1)
+#    to disable this feature. For more on library language version override, see
+#    https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/language-versioning.md
+#
+# 3. expired: (optional boolean)
+#    If true, then the experiment can no longer be enabled by specifying the
+#    flag on the command line, and the corresponding entry is slated for
+#    eventual removal from this file. If this field is omitted, then 'expired'
+#    is considered to be false.
+#
+# Using the above fields, experiments pass through several states:
+#
+# Disabled:
+#    When an experiment is first added to this file, the 'enabledIn' and
+# 'expired' fields are omitted and the experiment is disabled by default,
+# but may be enabled by specifying the flag on the command line.
+# The implementation teams begin building support for the feature,
+# guarded by the flag.  Users can enable the flag and begin to try out
+# the feature as it is being developed.
+#
+# Shipped:
+#    When an experiment is shipped, then the 'enabledIn' field is added
+# indicating which version of the SDK contains this new language feature.
+# At this point, specifying the flag on the command line has no effect because
+# the experiment is enabled by default and cannot be disabled.
+#
+# Retired or Rejected:
+#    At some point, the 'expired' field is added to the experiment indicating
+# that the flag is to be retired if the experiment has shipped or that the
+# entire experiment was rejected if the experiment has not shipped. It also
+# indicates that the corresponding entry is slated for eventual removal
+# from this file. Users specifying this flag on the command line should receive
+# a warning that the experiment has been retired or rejected, but the tool
+# should continue to run.
+#
+# In addition, there is also a value called "current-version"
+# specifying the version of Dart that is currently being developed.
+# Dart source files that don't specify their own version will be
+# presumed to be in this version.  Experiment flags will not affect
+# files that specify an earlier version.
+
+current-version: 2.9
+
+features:
+  extension-methods:
+    help: "Extension Methods"
+    enabledIn: '2.6.0'
+
+  non-nullable:
+    help: "Non Nullable by default"
+
+  triple-shift:
+    help: "Triple-shift operator"
+
+  variance:
+    help: "Sound variance."
+
+  nonfunction-type-aliases:
+    help: "Type aliases define a <type>, not just a <functionType>."
+
+#
+# Flags below this line are shipped, retired, or rejected, cannot be specified
+# on the command line, and will eventually be removed.
+#
+
+  constant-update-2018:
+    help: "Enhanced constant expressions"
+    enabledIn: '2.4.1'
+    expired: true
+
+  control-flow-collections:
+    help: "Control Flow Collections"
+    enabledIn: '2.2.2'
+    expired: true
+
+  set-literals:
+    help: "Set Literals"
+    enabledIn: 2.2
+    expired: true
+
+  spread-collections:
+    help: "Spread Collections"
+    enabledIn: '2.2.2'
+    expired: true

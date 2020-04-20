@@ -7,7 +7,7 @@
 import 'infer_consts_transitively_2.dart';
 import 'infer_consts_transitively_2_b.dart';
 
-const /*@topType=int*/ a1 = m2;
-const /*@topType=int*/ a2 = b1;
+const a1 = m2;
+const a2 = b1;
 
 main() {}

@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../domain_completion_util.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CommonUsageSorterTest);
   });
@@ -24,7 +24,7 @@ class CommonUsageSorterTest extends AbstractCompletionDomainTest {
   Future getSuggestionsWith(Map<String, List<String>> selectorRelevance) async {
     var originalSorter = DartCompletionManager.contributionSorter;
     DartCompletionManager.contributionSorter =
-        new CommonUsageSorter(selectorRelevance);
+        CommonUsageSorter(selectorRelevance);
     try {
       return await getSuggestions();
     } finally {
@@ -32,7 +32,7 @@ class CommonUsageSorterTest extends AbstractCompletionDomainTest {
     }
   }
 
-  test_ConstructorName() async {
+  Future<void> test_ConstructorName() async {
     // SimpleIdentifier  ConstructorName  InstanceCreationExpression
     addTestFile('import "dart:async"; class A {x() {new Future.^}}');
     await getSuggestionsWith({
@@ -48,8 +48,26 @@ class CommonUsageSorterTest extends AbstractCompletionDomainTest {
     assertNoResult('A');
   }
 
-  test_PrefixedIdentifier_field() async {
-    // SimpleIdentifier  PrefixedIdentifeir  ExpressionStatement
+  Future<void> test_namedArgument_enum() async {
+    addTestFile('''
+enum E {e1, e2}
+f({E e}) {}
+main() {
+  f(e: ^);
+}
+''');
+    await getSuggestionsWith(<String, List<String>>{});
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'E');
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'E.e1',
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'E.e2',
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+  }
+
+  Future<void> test_PrefixedIdentifier_field() async {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestFile('class A {static int s1; static int s2; x() {A.^}}');
     await getSuggestionsWith({
       '.A': ['s2']
@@ -64,10 +82,11 @@ class CommonUsageSorterTest extends AbstractCompletionDomainTest {
     assertNoResult('A');
   }
 
-  test_PrefixedIdentifier_field_inPart() async {
-    // SimpleIdentifier  PrefixedIdentifeir  ExpressionStatement
-    addFile('/project/bin/myLib.dart',
-        'library L; part "$testFile"; class A {static int s2;}');
+  Future<void> test_PrefixedIdentifier_field_inPart() async {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    newFile('/project/bin/myLib.dart',
+        content:
+            'library L; part "${toUriStr(testFile)}"; class A {static int s2;}');
     addTestFile('part of L; foo() {A.^}');
     await getSuggestionsWith({
       'L.A': ['s2']
@@ -81,8 +100,8 @@ class CommonUsageSorterTest extends AbstractCompletionDomainTest {
     assertNoResult('A');
   }
 
-  test_PrefixedIdentifier_getter() async {
-    // SimpleIdentifier  PrefixedIdentifeir  ExpressionStatement
+  Future<void> test_PrefixedIdentifier_getter() async {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestFile('class A {int get g1 => 1; int get g2 => 2; x() {new A().^}}');
     await getSuggestionsWith({
       '.A': ['g2']
@@ -97,8 +116,8 @@ class CommonUsageSorterTest extends AbstractCompletionDomainTest {
     assertNoResult('A');
   }
 
-  test_PrefixedIdentifier_setter() async {
-    // SimpleIdentifier  PrefixedIdentifeir  ExpressionStatement
+  Future<void> test_PrefixedIdentifier_setter() async {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestFile('class A {set s1(v) {}; set s2(v) {}; x() {new A().^}}');
     await getSuggestionsWith({
       '.A': ['s2']
@@ -113,8 +132,8 @@ class CommonUsageSorterTest extends AbstractCompletionDomainTest {
     assertNoResult('A');
   }
 
-  test_PrefixedIdentifier_static_method() async {
-    // SimpleIdentifier  PrefixedIdentifeir  ExpressionStatement
+  Future<void> test_PrefixedIdentifier_static_method() async {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestFile('import "dart:async"; class A {x() {Future.^}}');
     await getSuggestionsWith({
       'dart.async.Future': ['value', 'wait']
@@ -128,7 +147,7 @@ class CommonUsageSorterTest extends AbstractCompletionDomainTest {
     assertNoResult('A');
   }
 
-  test_PropertyAccess() async {
+  Future<void> test_PropertyAccess() async {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement
     addTestFile('import "dart:math"; class A {x() {new Random().^}}');
     await getSuggestionsWith({

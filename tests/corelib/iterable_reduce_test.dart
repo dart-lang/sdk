@@ -19,14 +19,14 @@ class MyList extends ListBase {
   operator []=(index, val) => list[index] = val;
 }
 
-id(x) => x;
+Iterable id(Iterable x) => x;
 
 main() {
   // Test functionality.
-  for (var iterable in [
+  for (dynamic iterable in [
     const [1, 2, 3],
     [1, 2, 3],
-    new List(3)
+    new List<int?>.filled(3, null)
       ..[0] = 1
       ..[1] = 2
       ..[2] = 3,
@@ -77,7 +77,8 @@ main() {
     int callCount = 0;
     var result = iterable.reduce((x, y) {
       callCount++;
-      return x + y;
+      // Return type of reduce() callback should match element type.
+      return (x + y) as int;
     });
     Expect.equals(6, result, "${iterable.runtimeType}");
     Expect.equals(2, callCount);
@@ -87,7 +88,7 @@ main() {
   for (var iterable in [
     const [],
     [],
-    new List(0),
+    new List.empty(),
     {}.keys,
     {}.values,
     new Iterable.generate(0, (x) => x + 1),
@@ -110,16 +111,15 @@ main() {
     "".runes,
     new MyList([]),
   ]) {
-    Expect.throws(() {
-      iterable.reduce((x, y) => throw "Unreachable");
-    }, (e) => e is StateError);
+    Expect
+        .throwsStateError(() => iterable.reduce((x, y) => throw "Unreachable"));
   }
 
   // Singleton iterables not calling reduce function.
-  for (var iterable in [
+  for (dynamic iterable in [
     const [1],
     [1],
-    new List(1)..[0] = 1,
+    new List.filled(1, 1),
     {1: 1}.keys,
     {1: 1}.values,
     new Iterable.generate(1, (x) => x + 1),
@@ -154,13 +154,18 @@ main() {
     Expect.throws(() {
       iterable.reduce((x, y) {
         modify(base);
-        return x + y;
+        // Return type of reduce() callback should match element type.
+        return (x + y) as int;
       });
     }, (e) => e is ConcurrentModificationError);
   }
 
   void add4(collection) {
     collection.add(4);
+  }
+
+  void addListOf4(collection) {
+    collection.add([4]);
   }
 
   void put4(map) {
@@ -173,12 +178,12 @@ main() {
   testModification(new SplayTreeSet()..add(1)..add(2)..add(3), add4, id);
   testModification(new MyList([1, 2, 3]), add4, id);
 
-  testModification([0, 1, 2, 3], add4, (x) => x.where((x) => x > 0));
+  testModification([0, 1, 2, 3], add4, (x) => x.where((int x) => x > 0));
   testModification([0, 1, 2], add4, (x) => x.map((x) => x + 1));
   testModification([
     [1, 2],
     [3]
-  ], add4, (x) => x.expand((x) => x));
+  ], addListOf4, (x) => x.expand((List<int> x) => x));
   testModification([3, 2, 1], add4, (x) => x.reversed);
   testModification({1: 1, 2: 2, 3: 3}, put4, (x) => x.keys);
   testModification({1: 1, 2: 2, 3: 3}, put4, (x) => x.values);

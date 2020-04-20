@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static field core::List<core::int*>* list = <core::int*>[1, 2, 3];
+static method main() → dynamic {
+  self::list.{core::List::add}(1);
+}

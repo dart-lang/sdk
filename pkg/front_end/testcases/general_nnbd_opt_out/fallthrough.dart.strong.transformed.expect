@@ -1,0 +1,55 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/fallthrough.dart:10:5: Error: Switch case may fall through to the next case.
+//     case 3:
+//     ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/fallthrough.dart:14:5: Error: Switch case may fall through to the next case.
+//     case 6:
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method main(core::List<core::String*>* args) → void {
+  core::int* x = args.{core::List::length};
+  #L1:
+  switch(x) {
+    #L2:
+    case #C1:
+      {
+        x = 4;
+        throw new core::FallThroughError::_create("org-dartlang-testcase:///fallthrough.dart", 10);
+      }
+    #L3:
+    case #C2:
+      {
+        break #L1;
+      }
+    #L4:
+    case #C3:
+    case #C4:
+      {
+        if(args.{core::List::[]}(0).{core::String::==}("")) {
+          break #L1;
+        }
+        else {
+          return;
+        }
+        throw new core::FallThroughError::_create("org-dartlang-testcase:///fallthrough.dart", 14);
+      }
+    #L5:
+    case #C5:
+      {}
+  }
+}
+
+constants  {
+  #C1 = 3
+  #C2 = 5
+  #C3 = 6
+  #C4 = 7
+  #C5 = 4
+}

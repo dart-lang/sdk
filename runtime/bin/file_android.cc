@@ -20,9 +20,9 @@
 
 #include "bin/builtin.h"
 #include "bin/fdutils.h"
-#include "bin/log.h"
 #include "bin/namespace.h"
 #include "platform/signal_blocker.h"
+#include "platform/syslog.h"
 #include "platform/utils.h"
 
 namespace dart {
@@ -56,13 +56,13 @@ void File::Close() {
     int null_fd = TEMP_FAILURE_RETRY(open("/dev/null", O_WRONLY));
     ASSERT(null_fd >= 0);
     VOID_TEMP_FAILURE_RETRY(dup2(null_fd, handle_->fd()));
-    VOID_TEMP_FAILURE_RETRY(close(null_fd));
+    close(null_fd);
   } else {
-    int err = TEMP_FAILURE_RETRY(close(handle_->fd()));
+    int err = close(handle_->fd());
     if (err != 0) {
       const int kBufferSize = 1024;
       char error_buf[kBufferSize];
-      Log::PrintErr("%s\n", Utils::StrError(errno, error_buf, kBufferSize));
+      Syslog::PrintErr("%s\n", Utils::StrError(errno, error_buf, kBufferSize));
     }
   }
   handle_->set_fd(kClosedFd);
@@ -76,7 +76,10 @@ bool File::IsClosed() {
   return handle_->fd() == kClosedFd;
 }
 
-MappedMemory* File::Map(MapType type, int64_t position, int64_t length) {
+MappedMemory* File::Map(MapType type,
+                        int64_t position,
+                        int64_t length,
+                        void* start) {
   ASSERT(handle_->fd() >= 0);
   ASSERT(length > 0);
   int prot = PROT_NONE;
@@ -87,14 +90,16 @@ MappedMemory* File::Map(MapType type, int64_t position, int64_t length) {
     case kReadExecute:
       prot = PROT_READ | PROT_EXEC;
       break;
-    default:
-      return NULL;
+    case kReadWrite:
+      prot = PROT_READ | PROT_WRITE;
+      break;
   }
-  void* addr = mmap(NULL, length, prot, MAP_PRIVATE, handle_->fd(), position);
+  const int flags = MAP_PRIVATE | (start != nullptr ? MAP_FIXED : 0);
+  void* addr = mmap(start, length, prot, flags, handle_->fd(), position);
   if (addr == MAP_FAILED) {
     return NULL;
   }
-  return new MappedMemory(addr, length);
+  return new MappedMemory(addr, length, /*should_unmap=*/start == nullptr);
 }
 
 void MappedMemory::Unmap() {
@@ -236,8 +241,27 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
   return new File(new FileHandle(fd));
 }
 
+static Utils::CStringUniquePtr DecodeUri(const char* uri) {
+  const char* path = (strlen(uri) >= 8 && strncmp(uri, "file:///", 8) == 0)
+      ? uri + 7 : uri;
+  UriDecoder uri_decoder(path);
+  if (uri_decoder.decoded() == nullptr) {
+    errno = EINVAL;
+    return Utils::CreateCStringUniquePtr(nullptr);
+  }
+  return Utils::CreateCStringUniquePtr(strdup(uri_decoder.decoded()));
+}
+
+File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
+  auto path = DecodeUri(uri);
+  if (path == nullptr) {
+    return nullptr;
+  }
+  return File::Open(namespc, path.get(), mode);
+}
+
 File* File::OpenStdio(int fd) {
-  return ((fd < 0) || (2 < fd)) ? NULL : new File(new FileHandle(fd));
+  return new File(new FileHandle(fd));
 }
 
 bool File::Exists(Namespace* namespc, const char* name) {
@@ -249,6 +273,14 @@ bool File::Exists(Namespace* namespc, const char* name) {
   } else {
     return false;
   }
+}
+
+bool File::ExistsUri(Namespace* namespc, const char* uri) {
+  auto path = DecodeUri(uri);
+  if (path == nullptr) {
+    return false;
+  }
+  return File::Exists(namespc, path.get());
 }
 
 bool File::Create(Namespace* namespc, const char* name) {
@@ -391,7 +423,7 @@ bool File::Copy(Namespace* namespc,
       openat(newns.fd(), newns.path(), O_WRONLY | O_TRUNC | O_CREAT | O_CLOEXEC,
              st.st_mode));
   if (new_fd < 0) {
-    VOID_TEMP_FAILURE_RETRY(close(old_fd));
+    close(old_fd);
     return false;
   }
   off_t offset = 0;
@@ -405,7 +437,7 @@ bool File::Copy(Namespace* namespc,
   //   where sendfile() fails with EINVAL or ENOSYS.
   if ((result < 0) && ((errno == EINVAL) || (errno == ENOSYS))) {
     const intptr_t kBufferSize = 8 * KB;
-    uint8_t buffer[kBufferSize];
+    uint8_t* buffer = reinterpret_cast<uint8_t*>(malloc(kBufferSize));
     while ((result = TEMP_FAILURE_RETRY(read(old_fd, buffer, kBufferSize))) >
            0) {
       int wrote = TEMP_FAILURE_RETRY(write(new_fd, buffer, result));
@@ -414,10 +446,11 @@ bool File::Copy(Namespace* namespc,
         break;
       }
     }
+    free(buffer);
   }
   int e = errno;
-  VOID_TEMP_FAILURE_RETRY(close(old_fd));
-  VOID_TEMP_FAILURE_RETRY(close(new_fd));
+  close(old_fd);
+  close(new_fd);
   if (result < 0) {
     VOID_NO_RETRY_EXPECTED(unlinkat(newns.fd(), newns.path(), 0));
     errno = e;
@@ -535,7 +568,10 @@ static int ReadLinkAt(int dirfd,
   return syscall(__NR_readlinkat, dirfd, pathname, buf, bufsize);
 }
 
-const char* File::LinkTarget(Namespace* namespc, const char* name) {
+const char* File::LinkTarget(Namespace* namespc,
+                             const char* name,
+                             char* dest,
+                             int dest_size) {
   NamespaceScope ns(namespc, name);
   struct stat link_stats;
   const int status = TEMP_FAILURE_RETRY(
@@ -557,42 +593,62 @@ const char* File::LinkTarget(Namespace* namespc, const char* name) {
   if (target_size <= 0) {
     return NULL;
   }
-  char* target_name = DartUtils::ScopedCString(target_size + 1);
-  ASSERT(target_name != NULL);
-  memmove(target_name, target, target_size);
-  target_name[target_size] = '\0';
-  return target_name;
+  if (dest == NULL) {
+    dest = DartUtils::ScopedCString(target_size + 1);
+  } else {
+    ASSERT(dest_size > 0);
+    if (dest_size <= target_size) {
+      return NULL;
+    }
+  }
+  memmove(dest, target, target_size);
+  dest[target_size] = '\0';
+  return dest;
 }
 
 bool File::IsAbsolutePath(const char* pathname) {
   return ((pathname != NULL) && (pathname[0] == '/'));
 }
 
-const char* File::ReadLink(const char* pathname) {
+intptr_t File::ReadLinkInto(const char* pathname,
+                            char* result,
+                            size_t result_size) {
   ASSERT(pathname != NULL);
   ASSERT(IsAbsolutePath(pathname));
   struct stat link_stats;
   if (TEMP_FAILURE_RETRY(lstat(pathname, &link_stats)) != 0) {
-    return NULL;
+    return -1;
   }
   if (!S_ISLNK(link_stats.st_mode)) {
     errno = ENOENT;
-    return NULL;
+    return -1;
   }
+  size_t target_size =
+      TEMP_FAILURE_RETRY(readlink(pathname, result, result_size));
+  if (target_size <= 0) {
+    return -1;
+  }
+  // readlink returns non-zero terminated strings. Append.
+  if (target_size < result_size) {
+    result[target_size] = '\0';
+    target_size++;
+  }
+  return target_size;
+}
+
+const char* File::ReadLink(const char* pathname) {
   // Don't rely on the link_stats.st_size for the size of the link
   // target. For some filesystems, e.g. procfs, this value is always
   // 0. Also the link might have changed before the readlink call.
   const int kBufferSize = PATH_MAX + 1;
   char target[kBufferSize];
-  size_t target_size =
-      TEMP_FAILURE_RETRY(readlink(pathname, target, kBufferSize));
+  size_t target_size = ReadLinkInto(pathname, target, kBufferSize);
   if (target_size <= 0) {
     return NULL;
   }
-  char* target_name = DartUtils::ScopedCString(target_size + 1);
+  char* target_name = DartUtils::ScopedCString(target_size);
   ASSERT(target_name != NULL);
   memmove(target_name, target, target_size);
-  target_name[target_size] = '\0';
   return target_name;
 }
 
@@ -626,11 +682,10 @@ const char* File::StringEscapedPathSeparator() {
 }
 
 File::StdioHandleType File::GetStdioHandleType(int fd) {
-  ASSERT((0 <= fd) && (fd <= 2));
   struct stat buf;
   int result = fstat(fd, &buf);
   if (result == -1) {
-    return kOther;
+    return kTypeError;
   }
   if (S_ISCHR(buf.st_mode)) {
     return kTerminal;
@@ -647,22 +702,28 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   return kOther;
 }
 
-File::Identical File::AreIdentical(Namespace* namespc,
+File::Identical File::AreIdentical(Namespace* namespc_1,
                                    const char* file_1,
+                                   Namespace* namespc_2,
                                    const char* file_2) {
-  NamespaceScope ns1(namespc, file_1);
-  NamespaceScope ns2(namespc, file_2);
   struct stat file_1_info;
   struct stat file_2_info;
-  int status = TEMP_FAILURE_RETRY(
-      fstatat(ns1.fd(), ns1.path(), &file_1_info, AT_SYMLINK_NOFOLLOW));
-  if (status == -1) {
-    return File::kError;
+  int status;
+  {
+    NamespaceScope ns1(namespc_1, file_1);
+    status = TEMP_FAILURE_RETRY(
+        fstatat(ns1.fd(), ns1.path(), &file_1_info, AT_SYMLINK_NOFOLLOW));
+    if (status == -1) {
+      return File::kError;
+    }
   }
-  status = TEMP_FAILURE_RETRY(
-      fstatat(ns2.fd(), ns2.path(), &file_2_info, AT_SYMLINK_NOFOLLOW));
-  if (status == -1) {
-    return File::kError;
+  {
+    NamespaceScope ns2(namespc_2, file_2);
+    status = TEMP_FAILURE_RETRY(
+        fstatat(ns2.fd(), ns2.path(), &file_2_info, AT_SYMLINK_NOFOLLOW));
+    if (status == -1) {
+      return File::kError;
+    }
   }
   return ((file_1_info.st_ino == file_2_info.st_ino) &&
           (file_1_info.st_dev == file_2_info.st_dev))

@@ -6,8 +6,7 @@ library document_register_basic_test;
 
 import 'dart:html';
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:async_helper/async_minitest.dart';
 
 import 'utils.dart';
 
@@ -41,30 +40,34 @@ abstract class BadC extends HtmlElement {
   BadC.created() : super.created();
 }
 
-main() {
-  useHtmlConfiguration();
-
+main() async {
   // Adapted from Blink's fast/dom/custom/document-register-basic test.
 
-  setUp(() => customElementsReady);
+  await customElementsReady;
 
-  test('Testing document.registerElement() basic behaviors', () {
-    document.registerElement(Foo.tag, Foo);
+  test('Testing document.registerElement2() basic behaviors', () {
+    document.registerElement2(Foo.tag, {'prototype': Foo});
 
     // Cannot register an existing dart:html type.
-    expect(() => document.registerElement('x-bad-a', HtmlElement), throws);
+    expect(
+        () => document.registerElement2('x-bad-a', {'prototype': HtmlElement}),
+        throws);
 
     // Invalid user type.  Doesn't inherit from HtmlElement.
-    expect(() => document.registerElement('x-bad-b', BadB), throws);
+    expect(() => document.registerElement2('x-bad-b', {'prototype': BadB}),
+        throws);
 
     // Cannot register abstract class.
-    expect(() => document.registerElement('x-bad-c', BadC), throws);
+    expect(() => document.registerElement2('x-bad-c', {'prototype': BadC}),
+        throws);
 
     // Not a type.
-    expect(() => document.registerElement('x-bad-d', null), throws);
+    expect(() => document.registerElement2('x-bad-d', {'prototype': null}),
+        throws);
 
     // Cannot register system type.
-    expect(() => document.registerElement('x-bad-e', Object), throws);
+    expect(() => document.registerElement2('x-bad-e', {'prototype': Object}),
+        throws);
 
     // Constructor initiated instantiation
     var createdFoo = new Foo();
@@ -105,14 +108,14 @@ main() {
     expect(someProperty[container.firstChild], someProperty[parsedFoo]);
 
     // Having another constructor
-    document.registerElement(Bar.tag, Bar);
+    document.registerElement2(Bar.tag, {'prototype': Bar});
     var createdBar = new Bar();
     expect(createdBar is Bar, isTrue);
     expect(createdBar is Foo, isFalse);
     expect(createdBar.tagName, "X-BAR");
 
     // Having a subclass
-    document.registerElement(Baz.tag, Baz);
+    document.registerElement2(Baz.tag, {'prototype': Baz});
     var createdBaz = new Baz();
     expect(createdBaz.tagName, "X-BAZ");
     expect(createdBaz.thisIsACustomClass, isTrue);

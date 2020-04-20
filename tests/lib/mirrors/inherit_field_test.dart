@@ -6,7 +6,6 @@
 
 library test.inherit_field_test;
 
-@MirrorsUsed(targets: "test.inherit_field_test")
 import 'dart:mirrors';
 
 import 'stringify.dart';

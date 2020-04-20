@@ -4,7 +4,6 @@
 
 library test.invoke_closurization_test;
 
-@MirrorsUsed(targets: "test.invoke_closurization_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -50,7 +49,7 @@ confuse(x) {
 }
 
 main() {
-  var list = ["foo", new List(), new A()];
+  var list = ["foo", <dynamic>[], new A()];
 
   getAMirror() => reflect(list[confuse(2)]);
 
@@ -84,11 +83,14 @@ main() {
 
   // Now the same thing through mirrors and mirror-invocation.
   f = getAMirror().getField(#codeUnitAt);
-  Expect.equals("codeUnitAt-42", f.invoke(#call, [42], {}).reflectee);
+  Expect.equals(
+      "codeUnitAt-42", f.invoke(#call, [42], <Symbol, dynamic>{}).reflectee);
   f = getAMirror().getField(#toUpperCase);
-  Expect.equals("toUpperCase", f.invoke(#call, [], {}).reflectee);
+  Expect.equals(
+      "toUpperCase", f.invoke(#call, [], <Symbol, dynamic>{}).reflectee);
   f = getAMirror().getField(#indexOf);
-  Expect.equals("indexOf-499", f.invoke(#call, [499], {}).reflectee);
+  Expect.equals(
+      "indexOf-499", f.invoke(#call, [499], <Symbol, dynamic>{}).reflectee);
   f = getAMirror().getField(#lastIndexOf);
   Expect.equals(
       "lastIndexOf-FOO,BAR", f.invoke(#call, ["FOO", "BAR"]).reflectee);
@@ -115,11 +117,14 @@ main() {
   Expect.equals("toSet-true", f(named: true));
 
   f = getAMirror().getField(#endsWith);
-  Expect.equals("endsWith-42", f.invoke(#call, [42], {}).reflectee);
+  Expect.equals(
+      "endsWith-42", f.invoke(#call, [42], <Symbol, dynamic>{}).reflectee);
   f = getAMirror().getField(#toLowerCase);
-  Expect.equals("toLowerCase", f.invoke(#call, [], {}).reflectee);
+  Expect.equals(
+      "toLowerCase", f.invoke(#call, [], <Symbol, dynamic>{}).reflectee);
   f = getAMirror().getField(#indexOf);
-  Expect.equals("indexOf-499", f.invoke(#call, [499], {}).reflectee);
+  Expect.equals(
+      "indexOf-499", f.invoke(#call, [499], <Symbol, dynamic>{}).reflectee);
   f = getAMirror().getField(#matchAsPrefix);
   Expect.equals(
       "matchAsPrefix-FOO,BAR", f.invoke(#call, ["FOO", "BAR"]).reflectee);

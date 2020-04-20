@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // dart2js regression test where the SSA backend would use the wrong
 // type for an instruction: when doing a speculative type propagation,
 // if an instruction gets analyzed multiple times, we used to save the

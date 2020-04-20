@@ -8,13 +8,15 @@ import "package:expect/expect.dart";
 import 'dart:collection' show Queue;
 
 class CollectionTest {
-  CollectionTest(Iterable iterable) {
+  CollectionTest(Iterable<int> iterable) {
     testFold(iterable);
   }
 
-  void testFold(Iterable iterable) {
-    Expect.equals(28, iterable.fold(0, (prev, element) => prev + element));
-    Expect.equals(3024, iterable.fold(1, (prev, element) => prev * element));
+  void testFold(Iterable<int> iterable) {
+    Expect.equals(
+        28, iterable.fold<int>(0, (prev, element) => prev + element));
+    Expect.equals(
+        3024, iterable.fold<int>(1, (prev, element) => prev * element));
   }
 }
 
@@ -24,10 +26,7 @@ main() {
   new CollectionTest(TEST_ELEMENTS);
 
   // Fixed size list.
-  var fixedList = new List(TEST_ELEMENTS.length);
-  for (int i = 0; i < TEST_ELEMENTS.length; i++) {
-    fixedList[i] = TEST_ELEMENTS[i];
-  }
+  var fixedList = new List<int>.of(TEST_ELEMENTS, growable: false);
   new CollectionTest(fixedList);
 
   // Growable list.

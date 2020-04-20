@@ -1,0 +1,21 @@
+name: dev_compiler
+publish_to: none
+
+environment:
+  sdk: '>=2.3.0 <3.0.0'
+
+dependencies:
+  analyzer: any
+  bazel_worker: any
+  build_integration:
+    path: ../build_integration
+  cli_util: any
+  source_maps: any
+
+dev_dependencies:
+  sourcemap_testing:
+    path: ../sourcemap_testing
+  pedantic: ^1.8.0
+  test: any
+  testing:
+    path: ../testing

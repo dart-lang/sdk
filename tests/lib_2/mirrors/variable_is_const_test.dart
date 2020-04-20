@@ -4,7 +4,6 @@
 
 library test.variable_is_const;
 
-@MirrorsUsed(targets: "test.variable_is_const")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -30,7 +29,7 @@ main() {
   Expect.isTrue(isConst(cm, #staticConst));
   Expect.isFalse(isConst(cm, #staticNonConst));
 
-  LibraryMirror lm = cm.owner;
+  LibraryMirror lm = cm.owner as LibraryMirror;
   Expect.isTrue(isConst(lm, #topLevelConst));
   Expect.isFalse(isConst(lm, #topLevelNonConst));
 }

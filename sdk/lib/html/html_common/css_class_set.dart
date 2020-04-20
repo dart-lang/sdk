@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of html_common;
 
-abstract class CssClassSetImpl implements CssClassSet {
+abstract class CssClassSetImpl extends SetBase<String> implements CssClassSet {
   static final RegExp _validTokenRE = new RegExp(r'^\S+$');
 
   String _validateToken(String value) {
@@ -108,7 +110,7 @@ abstract class CssClassSetImpl implements CssClassSet {
     _validateToken(value);
     // TODO - figure out if we need to do any validation here
     // or if the browser natively does enough.
-    return modify((s) => s.add(value));
+    return modify((s) => s.add(value)) ?? false;
   }
 
   /**
@@ -200,8 +202,8 @@ abstract class CssClassSetImpl implements CssClassSet {
       readClasses().firstWhere(test, orElse: orElse);
   String lastWhere(bool test(String value), {String orElse()}) =>
       readClasses().lastWhere(test, orElse: orElse);
-  String singleWhere(bool test(String value)) =>
-      readClasses().singleWhere(test);
+  String singleWhere(bool test(String value), {String orElse()}) =>
+      readClasses().singleWhere(test, orElse: orElse);
   String elementAt(int index) => readClasses().elementAt(index);
 
   void clear() {

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Regression test for http://dartbug.com/19191
 
 class A {
@@ -21,20 +23,12 @@ class A {
           invocation.positionalArguments, invocation.namedArguments);
     }
   }
-
-  init() {
-    closure_fails = (String str) {
-      return str.toUpperCase();
-    };
-  }
-
-  run() {
-    print(closure_fails("Hello World"));
-  }
 }
 
 void main() {
-  var a = new A();
-  a.init();
-  a.run();
+  dynamic a = new A();
+  a.closure_fails = (String str) {
+    return str.toUpperCase();
+  };
+  print(a.closure_fails("Hello World"));
 }

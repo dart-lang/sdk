@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/unicode.h"
+#include "platform/unicode.h"
 #include "vm/globals.h"
 #include "vm/unit_test.h"
 
 namespace dart {
 
-TEST_CASE(Utf8Encode) {
+ISOLATE_UNIT_TEST_CASE(Utf8Encode) {
   const intptr_t kInputLen = 3;
   const uint16_t kInput[kInputLen] = {0xe6, 0xe7, 0xe8};  // æøå
   const String& input = String::Handle(String::FromUTF16(kInput, kInputLen));
@@ -27,7 +27,41 @@ TEST_CASE(Utf8Encode) {
   }
 }
 
-TEST_CASE(Utf8Decode) {
+ISOLATE_UNIT_TEST_CASE(Utf8InvalidByte) {
+  {
+    uint8_t array[] = {0x41, 0xF0, 0x92};
+    intptr_t encode_len = 3;
+    intptr_t decode_len = 3;
+    intptr_t pos = Utf8::ReportInvalidByte(array, encode_len, decode_len);
+    EXPECT(pos == 1);
+  }
+
+  {
+    uint8_t array[] = {0x81, 0x40, 0x42};
+    intptr_t encode_len = 3;
+    intptr_t decode_len = 3;
+    intptr_t pos = Utf8::ReportInvalidByte(array, encode_len, decode_len);
+    EXPECT(pos == 0);
+  }
+
+  {
+    uint8_t array[] = {0x42, 0x40, 0x80};
+    intptr_t encode_len = 3;
+    intptr_t decode_len = 3;
+    intptr_t pos = Utf8::ReportInvalidByte(array, encode_len, decode_len);
+    EXPECT(pos == 2);
+  }
+
+  {
+    uint8_t array[] = {0x41, 0xF0, 0x92, 0x92, 0x91};
+    intptr_t encode_len = 5;
+    intptr_t decode_len = 2;
+    intptr_t pos = Utf8::ReportInvalidByte(array, encode_len, decode_len);
+    EXPECT(pos == encode_len);
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(Utf8Decode) {
   // Examples from the Unicode specification, chapter 3
   {
     const char* src = "\x41\xC3\xB1\x42";

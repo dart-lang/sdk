@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.io;
 
 /**
@@ -48,14 +50,14 @@ abstract class BytesBuilder {
    * The list returned is a view of the internal buffer, limited to the
    * [length].
    */
-  List<int> takeBytes();
+  Uint8List takeBytes();
 
   /**
    * Returns a copy of the current contents of the builder.
    *
    * Leaves the contents of the builder intact.
    */
-  List<int> toBytes();
+  Uint8List toBytes();
 
   /**
    * The number of bytes in the builder.
@@ -80,8 +82,9 @@ abstract class BytesBuilder {
 
 class _CopyingBytesBuilder implements BytesBuilder {
   // Start with 1024 bytes.
-  static const int _INIT_SIZE = 1024;
+  static const int _initSize = 1024;
 
+  // Safe for reuse because a fixed-length empty list is immutable.
   static final _emptyList = new Uint8List(0);
 
   int _length = 0;
@@ -125,8 +128,8 @@ class _CopyingBytesBuilder implements BytesBuilder {
     // We will create a list in the range of 2-4 times larger than
     // required.
     int newSize = required * 2;
-    if (newSize < _INIT_SIZE) {
-      newSize = _INIT_SIZE;
+    if (newSize < _initSize) {
+      newSize = _initSize;
     } else {
       newSize = _pow2roundup(newSize);
     }
@@ -135,17 +138,18 @@ class _CopyingBytesBuilder implements BytesBuilder {
     _buffer = newBuffer;
   }
 
-  List<int> takeBytes() {
+  Uint8List takeBytes() {
     if (_length == 0) return _emptyList;
-    var buffer = new Uint8List.view(_buffer.buffer, 0, _length);
+    var buffer =
+        new Uint8List.view(_buffer.buffer, _buffer.offsetInBytes, _length);
     clear();
     return buffer;
   }
 
-  List<int> toBytes() {
+  Uint8List toBytes() {
     if (_length == 0) return _emptyList;
     return new Uint8List.fromList(
-        new Uint8List.view(_buffer.buffer, 0, _length));
+        new Uint8List.view(_buffer.buffer, _buffer.offsetInBytes, _length));
   }
 
   int get length => _length;
@@ -191,7 +195,7 @@ class _BytesBuilder implements BytesBuilder {
     _length++;
   }
 
-  List<int> takeBytes() {
+  Uint8List takeBytes() {
     if (_length == 0) return _CopyingBytesBuilder._emptyList;
     if (_chunks.length == 1) {
       var buffer = _chunks[0];
@@ -208,7 +212,7 @@ class _BytesBuilder implements BytesBuilder {
     return buffer;
   }
 
-  List<int> toBytes() {
+  Uint8List toBytes() {
     if (_length == 0) return _CopyingBytesBuilder._emptyList;
     var buffer = new Uint8List(_length);
     int offset = 0;

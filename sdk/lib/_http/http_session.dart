@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart._http;
 
 const String _DART_SESSION_ID = "DARTSESSID";
@@ -62,6 +64,27 @@ class _HttpSession implements HttpSession {
 
   void forEach(void f(key, value)) {
     _data.forEach(f);
+  }
+
+  Iterable<MapEntry> get entries => _data.entries;
+
+  void addEntries(Iterable<MapEntry> entries) {
+    _data.addEntries(entries);
+  }
+
+  Map<K, V> map<K, V>(MapEntry<K, V> transform(key, value)) =>
+      _data.map(transform);
+
+  void removeWhere(bool test(key, value)) {
+    _data.removeWhere(test);
+  }
+
+  Map<K, V> cast<K, V>() => _data.cast<K, V>();
+  update(key, update(value), {ifAbsent()}) =>
+      _data.update(key, update, ifAbsent: ifAbsent);
+
+  void updateAll(update(key, value)) {
+    _data.updateAll(update);
   }
 
   Iterable get keys => _data.keys;

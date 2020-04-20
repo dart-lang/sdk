@@ -7,7 +7,7 @@ library test;
 
 T run<T>(T f()) {
   print("running");
-  var /*@type=run::T*/ t = f();
+  var /*@ type=run::T* */ t = f();
   print("done running");
   return t;
 }
@@ -16,7 +16,6 @@ void printRunning() {
   print("running");
 }
 
-var /*@topType=void*/ y = /*info:USE_OF_VOID_RESULT, error:TOP_LEVEL_TYPE_ARGUMENTS*/ /*@typeArgs=void*/ run(
-    printRunning);
+var y = /*info:USE_OF_VOID_RESULT*/ /*@ typeArgs=void */ run(printRunning);
 
 main() {}

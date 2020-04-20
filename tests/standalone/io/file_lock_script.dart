@@ -8,11 +8,11 @@ import "dart:io";
 
 main(List<String> args) {
   File file = new File(args[0]);
-  int start = null;
-  int end = null;
-  var mode = FileLock.EXCLUSIVE;
+  int start = 0;
+  int end = -1;
+  var mode = FileLock.exclusive;
   if (args[1] == 'SHARED') {
-    mode = FileLock.SHARED;
+    mode = FileLock.shared;
   }
   if (args[2] != 'null') {
     start = int.parse(args[2]);
@@ -20,7 +20,7 @@ main(List<String> args) {
   if (args[3] != 'null') {
     end = int.parse(args[3]);
   }
-  var raf = file.openSync(mode: WRITE);
+  var raf = file.openSync(mode: FileMode.write);
   try {
     raf.lockSync(mode, start, end);
     print('LOCK SUCCEEDED');

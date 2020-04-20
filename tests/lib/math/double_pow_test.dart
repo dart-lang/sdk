@@ -8,7 +8,7 @@ library math_test;
 import "package:expect/expect.dart";
 import 'dart:math';
 
-void checkVeryClose(double a, double b) {
+void checkVeryClose(double a, num b) {
   // We find a ulp (unit in the last place) by shifting the original number
   // to the right. This only works if we are not too close to infinity or if
   // we work with denormals.
@@ -35,8 +35,8 @@ void checkVeryClose(double a, double b) {
   Expect.equals(true, b <= limitHigh);
 }
 
-const NaN = double.NAN;
-const Infinity = double.INFINITY;
+const NaN = double.nan;
+const Infinity = double.infinity;
 
 var samples = [
   NaN,
@@ -153,8 +153,8 @@ test() {
 
   // Some non-exceptional values.
   checkVeryClose(16.0, pow(4.0, 2.0));
-  checkVeryClose(SQRT2, pow(2.0, 0.5));
-  checkVeryClose(SQRT1_2, pow(0.5, 0.5));
+  checkVeryClose(sqrt2, pow(2.0, 0.5));
+  checkVeryClose(sqrt1_2, pow(0.5, 0.5));
   // Denormal result.
   Expect.identical(5e-324, pow(2.0, -1074.0));
   // Overflow.
@@ -166,7 +166,7 @@ test() {
 
   // The second argument is an odd integer as int, but not when converted
   // to double.
-  Expect.identical(Infinity, pow(-0.0, -9223372036854775809));
+  Expect.identical(Infinity, pow(-0.0, -9223372036854775807));
 }
 
 main() {

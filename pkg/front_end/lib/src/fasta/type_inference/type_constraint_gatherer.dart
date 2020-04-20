@@ -2,39 +2,99 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:front_end/src/fasta/type_inference/type_schema.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
-import 'package:kernel/ast.dart';
-import 'package:kernel/type_algebra.dart';
+import 'package:kernel/ast.dart'
+    show
+        Class,
+        DartType,
+        DynamicType,
+        FunctionType,
+        InterfaceType,
+        Library,
+        Member,
+        Name,
+        NamedType,
+        Nullability,
+        Procedure,
+        TypeParameter,
+        TypeParameterType,
+        Variance,
+        VoidType;
+
+import 'package:kernel/core_types.dart';
+
+import 'package:kernel/type_algebra.dart' show substitute, Substitution;
+
+import 'package:kernel/type_environment.dart';
+
+import 'package:kernel/src/future_or.dart';
+
+import 'type_schema.dart' show UnknownType;
+
+import '../names.dart' show callName;
+
+import 'type_schema.dart';
+
+import 'type_schema_environment.dart';
 
 /// Creates a collection of [TypeConstraint]s corresponding to type parameters,
 /// based on an attempt to make one type schema a subtype of another.
-class TypeConstraintGatherer {
-  final TypeSchemaEnvironment environment;
-
+abstract class TypeConstraintGatherer {
   final _protoConstraints = <_ProtoConstraint>[];
 
   final List<TypeParameter> _parametersToConstrain;
 
+  final Library _currentLibrary;
+
   /// Creates a [TypeConstraintGatherer] which is prepared to gather type
   /// constraints for the given [typeParameters].
-  TypeConstraintGatherer(
-      this.environment, Iterable<TypeParameter> typeParameters)
+  TypeConstraintGatherer.subclassing(
+      Iterable<TypeParameter> typeParameters, this._currentLibrary)
       : _parametersToConstrain = typeParameters.toList();
 
+  factory TypeConstraintGatherer(TypeSchemaEnvironment environment,
+      Iterable<TypeParameter> typeParameters, Library currentLibrary) {
+    return new TypeSchemaConstraintGatherer(
+        environment, typeParameters, currentLibrary);
+  }
+
+  Class get objectClass;
+
+  Class get functionClass;
+
+  Class get futureOrClass;
+
+  Class get nullClass;
+
+  void addUpperBound(
+      TypeConstraint constraint, DartType upper, Library clientLibrary);
+
+  void addLowerBound(
+      TypeConstraint constraint, DartType lower, Library clientLibrary);
+
+  Member getInterfaceMember(Class class_, Name name, {bool setter: false});
+
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      Library clientLibrary, CoreTypes coreTypes);
+
+  List<DartType> getTypeArgumentsAsInstanceOf(
+      InterfaceType type, Class superclass);
+
+  InterfaceType futureType(DartType type, Nullability nullability);
+
   /// Returns the set of type constraints that was gathered.
-  Map<TypeParameter, TypeConstraint> computeConstraints() {
-    var result = <TypeParameter, TypeConstraint>{};
-    for (var parameter in _parametersToConstrain) {
+  Map<TypeParameter, TypeConstraint> computeConstraints(Library clientLibrary) {
+    Map<TypeParameter, TypeConstraint> result =
+        <TypeParameter, TypeConstraint>{};
+    for (TypeParameter parameter in _parametersToConstrain) {
       result[parameter] = new TypeConstraint();
     }
-    for (var protoConstraint in _protoConstraints) {
+    for (_ProtoConstraint protoConstraint in _protoConstraints) {
       if (protoConstraint.isUpper) {
-        environment.addUpperBound(
-            result[protoConstraint.parameter], protoConstraint.bound);
+        addUpperBound(result[protoConstraint.parameter], protoConstraint.bound,
+            clientLibrary);
       } else {
-        environment.addLowerBound(
-            result[protoConstraint.parameter], protoConstraint.bound);
+        addLowerBound(result[protoConstraint.parameter], protoConstraint.bound,
+            clientLibrary);
       }
     }
     return result;
@@ -42,7 +102,7 @@ class TypeConstraintGatherer {
 
   /// Tries to match [subtype] against [supertype].
   ///
-  /// If the match suceeds, the resulting type constraints are recorded for
+  /// If the match succeeds, the resulting type constraints are recorded for
   /// later use by [computeConstraints].  If the match fails, the set of type
   /// constraints is unchanged.
   bool trySubtypeMatch(DartType subtype, DartType supertype) {
@@ -88,11 +148,15 @@ class TypeConstraintGatherer {
         supertype.positionalParameters.length) {
       return false;
     }
-    if (subtype.typeParameters.isNotEmpty ||
-        supertype.typeParameters.isNotEmpty) {
-      var subtypeSubstitution = <TypeParameter, DartType>{};
-      var supertypeSubstitution = <TypeParameter, DartType>{};
-      var freshTypeVariables = <TypeParameter>[];
+    if (subtype.typeParameters.length != supertype.typeParameters.length) {
+      return false;
+    }
+    if (subtype.typeParameters.isNotEmpty) {
+      Map<TypeParameter, DartType> subtypeSubstitution =
+          <TypeParameter, DartType>{};
+      Map<TypeParameter, DartType> supertypeSubstitution =
+          <TypeParameter, DartType>{};
+      List<TypeParameter> freshTypeVariables = <TypeParameter>[];
       if (!_matchTypeFormals(subtype.typeParameters, supertype.typeParameters,
           subtypeSubstitution, supertypeSubstitution, freshTypeVariables)) {
         return false;
@@ -112,8 +176,8 @@ class TypeConstraintGatherer {
 
     // Test the parameter types.
     for (int i = 0; i < supertype.positionalParameters.length; ++i) {
-      var supertypeParameter = supertype.positionalParameters[i];
-      var subtypeParameter = subtype.positionalParameters[i];
+      DartType supertypeParameter = supertype.positionalParameters[i];
+      DartType subtypeParameter = subtype.positionalParameters[i];
       // Termination: Both types shrink in size.
       if (!_isSubtypeMatch(supertypeParameter, subtypeParameter)) {
         return false;
@@ -158,13 +222,29 @@ class TypeConstraintGatherer {
     // of supertypes of a given type more than once, the order of the checks
     // above is irrelevant; we just need to find the matched superclass,
     // substitute, and then iterate through type variables.
-    var matchingSupertypeOfSubtype =
-        environment.hierarchy.getTypeAsInstanceOf(subtype, supertype.classNode);
-    if (matchingSupertypeOfSubtype == null) return false;
+    List<DartType> matchingSupertypeOfSubtypeArguments =
+        getTypeArgumentsAsInstanceOf(subtype, supertype.classNode);
+    if (matchingSupertypeOfSubtypeArguments == null) return false;
     for (int i = 0; i < supertype.classNode.typeParameters.length; i++) {
-      if (!_isSubtypeMatch(matchingSupertypeOfSubtype.typeArguments[i],
-          supertype.typeArguments[i])) {
-        return false;
+      // Generate constraints and subtype match with respect to variance.
+      int parameterVariance = supertype.classNode.typeParameters[i].variance;
+      if (parameterVariance == Variance.contravariant) {
+        if (!_isSubtypeMatch(supertype.typeArguments[i],
+            matchingSupertypeOfSubtypeArguments[i])) {
+          return false;
+        }
+      } else if (parameterVariance == Variance.invariant) {
+        if (!_isSubtypeMatch(supertype.typeArguments[i],
+                matchingSupertypeOfSubtypeArguments[i]) ||
+            !_isSubtypeMatch(matchingSupertypeOfSubtypeArguments[i],
+                supertype.typeArguments[i])) {
+          return false;
+        }
+      } else {
+        if (!_isSubtypeMatch(matchingSupertypeOfSubtypeArguments[i],
+            supertype.typeArguments[i])) {
+          return false;
+        }
       }
     }
     return true;
@@ -175,8 +255,7 @@ class TypeConstraintGatherer {
     // it return `true` for both Null and bottom types?  Revisit this once
     // enough functionality is implemented that we can compare the behavior with
     // the old analyzer-based implementation.
-    return type is InterfaceType &&
-        identical(type.classNode, environment.coreTypes.nullClass);
+    return type is InterfaceType && identical(type.classNode, nullClass);
   }
 
   /// Attempts to match [subtype] as a subtype of [supertype], gathering any
@@ -214,24 +293,18 @@ class TypeConstraintGatherer {
     // identical().  If P and Q are equal but not identical, recursing through
     // the types will give the proper result.
     if (identical(subtype, supertype)) return true;
-    // Any type `P` is a subtype match for `dynamic`, `Object`, or `void` under
-    // no constraints.
-    if (_isTop(supertype)) return true;
-    // `Null` is a subtype match for any type `Q` under no constraints.
-    // Note that nullable types will change this.
-    if (_isNull(subtype)) return true;
 
     // Handle FutureOr<T> union type.
     if (subtype is InterfaceType &&
-        identical(subtype.classNode, environment.futureOrClass)) {
-      var subtypeArg = subtype.typeArguments[0];
+        identical(subtype.classNode, futureOrClass)) {
+      DartType subtypeArg = subtype.typeArguments[0];
       if (supertype is InterfaceType &&
-          identical(supertype.classNode, environment.futureOrClass)) {
-        // `FutureOr<P>` is a subtype match for `FutureOr<Q>` with respect to `L`
-        // under constraints `C`:
-        // - If `P` is a subtype match for `Q` with respect to `L` under constraints
-        //   `C`.
-        var supertypeArg = supertype.typeArguments[0];
+          identical(supertype.classNode, futureOrClass)) {
+        // `FutureOr<P>` is a subtype match for `FutureOr<Q>` with respect to
+        // `L` under constraints `C`:
+        // - If `P` is a subtype match for `Q` with respect to `L` under
+        //   constraints `C`.
+        DartType supertypeArg = supertype.typeArguments[0];
         return _isSubtypeMatch(subtypeArg, supertypeArg);
       }
 
@@ -241,26 +314,62 @@ class TypeConstraintGatherer {
       //   constraints `C0`.
       // - And `P` is a subtype match for `Q` with respect to `L` under
       //   constraints `C1`.
-      var subtypeFuture = environment.futureType(subtypeArg);
+      InterfaceType subtypeFuture =
+          futureType(subtypeArg, _currentLibrary.nonNullable);
       return _isSubtypeMatch(subtypeFuture, supertype) &&
-          _isSubtypeMatch(subtypeArg, supertype);
+          _isSubtypeMatch(subtypeArg, supertype) &&
+          new IsSubtypeOf.basedSolelyOnNullabilities(
+                  subtype, supertype, futureOrClass)
+              .isSubtypeWhenUsingNullabilities();
     }
 
     if (supertype is InterfaceType &&
-        identical(supertype.classNode, environment.futureOrClass)) {
+        identical(supertype.classNode, futureOrClass)) {
       // `P` is a subtype match for `FutureOr<Q>` with respect to `L` under
       // constraints `C`:
       // - If `P` is a subtype match for `Future<Q>` with respect to `L` under
       //   constraints `C`.
-      // - Or `P` is not a subtype match for `Future<Q>` with respect to `L` under
-      //   constraints `C`
+      // - Or `P` is not a subtype match for `Future<Q>` with respect to `L`
+      //   under constraints `C`
       //   - And `P` is a subtype match for `Q` with respect to `L` under
       //     constraints `C`
-      var supertypeArg = supertype.typeArguments[0];
-      var supertypeFuture = environment.futureType(supertypeArg);
-      return trySubtypeMatch(subtype, supertypeFuture) ||
-          _isSubtypeMatch(subtype, supertypeArg);
+
+      // Since FutureOr<S> is a union type Future<S> U S where U denotes the
+      // union operation on types, T? is T U Null, T U T = T, S U T = T U S, and
+      // S U (T U V) = (S U T) U V, the following is true:
+      //
+      //   - FutureOr<S?> = S? U Future<S?>?
+      //   - FutureOr<S>? = S? U Future<S>?
+      //
+      // To compute the nullabilities for the two types in the union, the
+      // nullability of the argument and the declared nullability of FutureOr
+      // should be united.  Also, computeNullability is used to fetch the
+      // nullability of the argument because it can be a FutureOr itself.
+      Nullability unitedNullability = uniteNullabilities(
+          computeNullability(supertype.typeArguments[0], futureOrClass),
+          supertype.nullability);
+      DartType supertypeArg =
+          supertype.typeArguments[0].withNullability(unitedNullability);
+      DartType supertypeFuture = futureType(supertypeArg, unitedNullability);
+
+      // The match against FutureOr<X> succeeds if the match against either
+      // Future<X> or X succeeds.  If they both succeed, the one adding new
+      // constraints should be preferred.  If both matches against Future<X> and
+      // X add new constraints, the former should be preferred over the latter.
+      int oldProtoConstraintsLength = _protoConstraints.length;
+      bool matchesFuture = trySubtypeMatch(subtype, supertypeFuture);
+      bool matchesArg = oldProtoConstraintsLength != _protoConstraints.length
+          ? false
+          : _isSubtypeMatch(subtype, supertypeArg);
+      return matchesFuture || matchesArg;
     }
+
+    // Any type `P` is a subtype match for `dynamic`, `Object`, or `void` under
+    // no constraints.
+    if (_isTop(supertype)) return true;
+    // `Null` is a subtype match for any type `Q` under no constraints.
+    // Note that nullable types will change this.
+    if (_isNull(subtype)) return true;
 
     // A type variable `T` not in `L` with bound `P` is a subtype match for the
     // same type variable `T` with bound `Q` with respect to `L` under
@@ -286,29 +395,34 @@ class TypeConstraintGatherer {
     if (subtype is InterfaceType && supertype is InterfaceType) {
       return _isInterfaceSubtypeMatch(subtype, supertype);
     }
-    // A type `P` is a subtype match for `Function` with respect to `L` under no
-    // constraints:
-    // - If `P` implements a call method.
-    // - Or if `P` is a function type.
-    // TODO(paulberry): implement this case.
+    if (subtype is FunctionType) {
+      if (supertype is InterfaceType) {
+        return identical(supertype.classNode, functionClass) ||
+            identical(supertype.classNode, objectClass);
+      } else if (supertype is FunctionType) {
+        return _isFunctionSubtypeMatch(subtype, supertype);
+      }
+    }
     // A type `P` is a subtype match for a type `Q` with respect to `L` under
     // constraints `C`:
     // - If `P` is an interface type which implements a call method of type `F`,
     //   and `F` is a subtype match for a type `Q` with respect to `L` under
     //   constraints `C`.
-    // TODO(paulberry): implement this case.
-    if (subtype is FunctionType) {
-      if (supertype is InterfaceType) {
-        if (identical(
-                supertype.classNode, environment.coreTypes.functionClass) ||
-            identical(supertype.classNode, environment.coreTypes.objectClass)) {
-          return true;
-        } else {
-          return false;
+    if (subtype is InterfaceType) {
+      Member callMember = getInterfaceMember(subtype.classNode, callName);
+      if (callMember is Procedure && !callMember.isGetter) {
+        DartType callType = callMember.getterType;
+        if (callType != null) {
+          callType =
+              Substitution.fromInterfaceType(subtype).substituteType(callType);
+          // TODO(kmillikin): The subtype check will fail if the type of a
+          // generic call method is a subtype of a non-generic function type.
+          // For example, if `T call<T>(T arg)` is a subtype of `S->S` for some
+          // S.  However, explicitly tearing off that call method will work and
+          // insert an explicit instantiation, so the implicit tear off should
+          // work as well.  Figure out how to support this case.
+          return _isSubtypeMatch(callType, supertype);
         }
-      }
-      if (supertype is FunctionType) {
-        return _isFunctionSubtypeMatch(subtype, supertype);
       }
     }
     return false;
@@ -317,8 +431,7 @@ class TypeConstraintGatherer {
   bool _isTop(DartType type) =>
       type is DynamicType ||
       type is VoidType ||
-      (type is InterfaceType &&
-          identical(type.classNode, environment.coreTypes.objectClass));
+      (type is InterfaceType && identical(type.classNode, objectClass));
 
   /// Given two lists of function type formal parameters, checks that their
   /// bounds are compatible.
@@ -333,16 +446,16 @@ class TypeConstraintGatherer {
       Map<TypeParameter, DartType> substitution1,
       Map<TypeParameter, DartType> substitution2,
       List<TypeParameter> freshTypeVariables) {
-    int count = params1.length;
-    if (count != params2.length) return false;
+    assert(params1.length == params2.length);
     // TODO(paulberry): in imitation of analyzer, we're checking the bounds as
     // we build up the substitutions.  But I don't think that's correct--I think
     // we should build up both substitutions completely before checking any
     // bounds.  See dartbug.com/29629.
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < params1.length; ++i) {
       TypeParameter pFresh = new TypeParameter(params2[i].name);
       freshTypeVariables.add(pFresh);
-      DartType variableFresh = new TypeParameterType(pFresh);
+      DartType variableFresh =
+          new TypeParameterType.forAlphaRenaming(params2[i], pFresh);
       substitution1[params1[i]] = variableFresh;
       substitution2[params2[i]] = variableFresh;
       DartType bound1 = substitute(params1[i].bound, substitution1);
@@ -351,6 +464,62 @@ class TypeConstraintGatherer {
       if (!_isSubtypeMatch(bound2, bound1)) return false;
     }
     return true;
+  }
+}
+
+class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
+  final TypeSchemaEnvironment environment;
+
+  TypeSchemaConstraintGatherer(this.environment,
+      Iterable<TypeParameter> typeParameters, Library currentLibrary)
+      : super.subclassing(typeParameters, currentLibrary);
+
+  @override
+  Class get objectClass => environment.coreTypes.objectClass;
+
+  @override
+  Class get functionClass => environment.coreTypes.functionClass;
+
+  @override
+  Class get futureOrClass => environment.coreTypes.futureOrClass;
+
+  @override
+  Class get nullClass => environment.coreTypes.nullClass;
+
+  @override
+  void addUpperBound(
+      TypeConstraint constraint, DartType upper, Library clientLibrary) {
+    environment.addUpperBound(constraint, upper, clientLibrary);
+  }
+
+  @override
+  void addLowerBound(
+      TypeConstraint constraint, DartType lower, Library clientLibrary) {
+    environment.addLowerBound(constraint, lower, clientLibrary);
+  }
+
+  @override
+  Member getInterfaceMember(Class class_, Name name, {bool setter: false}) {
+    return environment.hierarchy
+        .getInterfaceMember(class_, name, setter: setter);
+  }
+
+  @override
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      Library clientLibrary, CoreTypes coreTypes) {
+    return environment.getTypeAsInstanceOf(
+        type, superclass, clientLibrary, coreTypes);
+  }
+
+  @override
+  List<DartType> getTypeArgumentsAsInstanceOf(
+      InterfaceType type, Class superclass) {
+    return environment.getTypeArgumentsAsInstanceOf(type, superclass);
+  }
+
+  @override
+  InterfaceType futureType(DartType type, Nullability nullability) {
+    return environment.futureType(type, nullability);
   }
 }
 
@@ -369,4 +538,10 @@ class _ProtoConstraint {
   _ProtoConstraint.lower(this.parameter, this.bound) : isUpper = false;
 
   _ProtoConstraint.upper(this.parameter, this.bound) : isUpper = true;
+
+  String toString() {
+    return isUpper
+        ? "${parameter.name} <: $bound"
+        : "$bound <: ${parameter.name}";
+  }
 }

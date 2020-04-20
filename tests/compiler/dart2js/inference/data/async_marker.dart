@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+// @dart = 2.7
+
+/*member: main:[null]*/
 main() {
   asyncMethod();
   asyncMethodWithReturn();
@@ -10,16 +12,16 @@ main() {
   syncStarMethod();
 }
 
-/*element: asyncMethod:[exact=_Future]*/
+/*member: asyncMethod:[exact=_Future]*/
 asyncMethod() async {}
 
-/*element: asyncMethodWithReturn:Union of [[exact=JSUInt31], [exact=_Future]]*/
+/*member: asyncMethodWithReturn:Union([exact=JSUInt31], [exact=_Future])*/
 asyncMethodWithReturn() async {
   return 0;
 }
 
-/*element: asyncStarMethod:[exact=_ControllerStream]*/
+/*member: asyncStarMethod:[exact=_ControllerStream]*/
 asyncStarMethod() async* {}
 
-/*element: syncStarMethod:[exact=_SyncStarIterable]*/
+/*member: syncStarMethod:[exact=_SyncStarIterable]*/
 syncStarMethod() sync* {}

@@ -5,39 +5,40 @@
 library timer_repeat_test;
 
 import 'dart:async';
-import 'package:unittest/unittest.dart';
+
+import 'package:expect/expect.dart';
 
 const Duration TIMEOUT = const Duration(milliseconds: 500);
 const int ITERATIONS = 5;
 
-Timer timer;
+late Timer timer;
 Stopwatch stopwatch = new Stopwatch();
-int iteration;
+int iteration = 0;
 
 // Some browsers (Firefox and IE so far) can trigger too early. Add a safety
 // margin. We use identical(1, 1.0) as an easy way to know if the test is
 // compiled by dart2js.
 int get safetyMargin => identical(1, 1.0) ? 100 : 0;
 
+var completer = new Completer();
+
 void timeoutHandler(Timer timer) {
   iteration++;
-  expect(iteration, lessThanOrEqualTo(ITERATIONS));
+  Expect.isTrue(iteration <= ITERATIONS);
   if (iteration == ITERATIONS) {
     // When we are done with all of the iterations, we expect a
     // certain amount of time to have passed.  Checking the time on
     // each iteration doesn't work because the timeoutHandler runs
     // concurrently with the periodic timer.
-    expect(stopwatch.elapsedMilliseconds + safetyMargin,
-        greaterThanOrEqualTo(ITERATIONS * TIMEOUT.inMilliseconds));
+    Expect.isTrue(stopwatch.elapsedMilliseconds + safetyMargin >=
+        ITERATIONS * TIMEOUT.inMilliseconds);
     timer.cancel();
+    completer.complete();
   }
 }
 
 main() {
-  test("timer_repeat", () {
-    iteration = 0;
-    stopwatch.start();
-    timer = new Timer.periodic(
-        TIMEOUT, expectAsync(timeoutHandler, count: ITERATIONS));
-  });
+  stopwatch.start();
+  timer = new Timer.periodic(TIMEOUT, timeoutHandler);
+  return completer.future;
 }

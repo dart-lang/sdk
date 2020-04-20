@@ -29,7 +29,7 @@ class DescriptorInfo : public DescriptorInfoBase {
   intptr_t GetPollEvents();
 
   virtual void Close() {
-    VOID_TEMP_FAILURE_RETRY(close(fd_));
+    close(fd_);
     fd_ = -1;
   }
 
@@ -83,7 +83,7 @@ class EventHandlerImplementation {
   static void* GetHashmapKeyFromFd(intptr_t fd);
   static uint32_t GetHashmapHashFromFd(intptr_t fd);
 
-  HashMap socket_map_;
+  SimpleHashMap socket_map_;
   TimeoutQueue timeout_queue_;
   bool shutdown_;
   int interrupt_fds_[2];

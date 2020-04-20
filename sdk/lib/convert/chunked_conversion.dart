@@ -2,50 +2,42 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.convert;
 
-typedef void _ChunkedConversionCallback<T>(T accumulated);
-
-/**
- * A [ChunkedConversionSink] is used to transmit data more efficiently between
- * two converters during chunked conversions.
- *
- * The basic `ChunkedConversionSink` is just a [Sink], and converters should
- * work with a plain `Sink`, but may work more efficiently with certain
- * specialized types of `ChunkedConversionSink`.
- *
- * It is recommended that implementations of `ChunkedConversionSink` extend
- * this class, to inherit any further methods that may be added to the class.
- */
+/// A [ChunkedConversionSink] is used to transmit data more efficiently between
+/// two converters during chunked conversions.
+///
+/// The basic `ChunkedConversionSink` is just a [Sink], and converters should
+/// work with a plain `Sink`, but may work more efficiently with certain
+/// specialized types of `ChunkedConversionSink`.
+///
+/// It is recommended that implementations of `ChunkedConversionSink` extend
+/// this class, to inherit any further methods that may be added to the class.
 abstract class ChunkedConversionSink<T> implements Sink<T> {
   ChunkedConversionSink();
   factory ChunkedConversionSink.withCallback(
       void callback(List<T> accumulated)) = _SimpleCallbackSink<T>;
 
-  /**
-   * Adds chunked data to this sink.
-   *
-   * This method is also used when converters are used as [StreamTransformer]s.
-   */
+  /// Adds chunked data to this sink.
+  ///
+  /// This method is also used when converters are used as [StreamTransformer]s.
   void add(T chunk);
 
-  /**
-   * Closes the sink.
-   *
-   * This signals the end of the chunked conversion. This method is called
-   * when converters are used as [StreamTransformer]'s.
-   */
+  /// Closes the sink.
+  ///
+  /// This signals the end of the chunked conversion. This method is called
+  /// when converters are used as [StreamTransformer]'s.
   void close();
 }
 
-/**
- * This class accumulates all chunks and invokes a callback with a list of
- * the chunks when the sink is closed.
- *
- * This class can be used to terminate a chunked conversion.
- */
+/// This class accumulates all chunks and invokes a callback with a list of
+/// the chunks when the sink is closed.
+///
+/// This class can be used to terminate a chunked conversion.
 class _SimpleCallbackSink<T> extends ChunkedConversionSink<T> {
-  final _ChunkedConversionCallback<List<T>> _callback;
+  final void Function(List<T>) _callback;
   final List<T> _accumulated = <T>[];
 
   _SimpleCallbackSink(this._callback);
@@ -59,27 +51,23 @@ class _SimpleCallbackSink<T> extends ChunkedConversionSink<T> {
   }
 }
 
-/**
- * This class implements the logic for a chunked conversion as a
- * stream transformer.
- *
- * It is used as strategy in the [EventTransformStream].
- *
- * It also implements the [ChunkedConversionSink] interface so that it
- * can be used as output sink in a chunked conversion.
- */
+/// This class implements the logic for a chunked conversion as a
+/// stream transformer.
+///
+/// It is used as strategy in the [EventTransformStream].
+///
+/// It also implements the [ChunkedConversionSink] interface so that it
+/// can be used as output sink in a chunked conversion.
 class _ConverterStreamEventSink<S, T> implements EventSink<S> {
-  /** The output sink for the converter. */
+  /// The output sink for the converter.
   final EventSink<T> _eventSink;
 
-  /**
-   * The input sink for new data. All data that is received with
-   * [handleData] is added into this sink.
-   */
+  /// The input sink for new data. All data that is received with
+  /// [handleData] is added into this sink.
   final Sink<S> _chunkedSink;
 
   _ConverterStreamEventSink(Converter<S, T> converter, EventSink<T> sink)
-      : this._eventSink = sink,
+      : _eventSink = sink,
         _chunkedSink = converter.startChunkedConversion(sink);
 
   void add(S o) {
@@ -87,6 +75,7 @@ class _ConverterStreamEventSink<S, T> implements EventSink<S> {
   }
 
   void addError(Object error, [StackTrace stackTrace]) {
+    ArgumentError.checkNotNull(error, "error");
     _eventSink.addError(error, stackTrace);
   }
 

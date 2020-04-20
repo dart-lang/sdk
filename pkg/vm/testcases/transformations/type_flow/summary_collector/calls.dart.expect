@@ -1,0 +1,80 @@
+------------ A:: ------------
+%this = _Parameter #0 [_T (#lib::A)+]
+t1 = _Call direct [Object::] (%this)
+RESULT: _T {}?
+------------ A::foo1 ------------
+%this = _Parameter #0 [_T (#lib::A)+]
+%x = _Parameter #1 [_T (dart.core::Object)+?]
+RESULT: _T {}?
+------------ B:: ------------
+%this = _Parameter #0 [_T (#lib::B)+]
+t1 = _Call direct [Object::] (%this)
+RESULT: _T {}?
+------------ B::bar1 ------------
+%this = _Parameter #0 [_T (#lib::B)+]
+%arg = _Parameter #1 [_T (dart.core::Object)+?]
+RESULT: _T {}?
+------------ B::bar2 ------------
+%this = _Parameter #0 [_T (#lib::B)+]
+RESULT: _T {}?
+------------ B::bar3 ------------
+%this = _Parameter #0 [_T (#lib::B)+]
+%y = _Parameter #1 [_T (dart.core::int)+?]
+RESULT: _T {}?
+------------ B::bar4 ------------
+%this = _Parameter #0 [_T (#lib::B)+]
+RESULT: _T {}?
+------------ C:: ------------
+%this = _Parameter #0 [_T (#lib::C)+]
+t1 = _Call direct [Object::] (%this)
+RESULT: _T {}?
+------------ C::interfaceCalls ------------
+%this = _Parameter #0 [_T (#lib::C)+]
+%aa = _Parameter #1 [_T (#lib::A)+?]
+%a2 = _Parameter #2 [_T (dart.core::Object)+?]
+%a3 = _Parameter #3 [_T (dart.core::Object)+?]
+%a4 = _Parameter #4 [_T (dart.core::Object)+?]
+t5 = _Call direct [B::] (_T (#lib::B))
+t6 = _Call [A::foo1] (%aa, _T (#lib::B))
+t7 = _Narrow (%aa to _T ANY)
+t8* = _Call get [A::foo2] (t7)
+t9 = _TypeCheck (t8 against dart.core::int*) (for AsExpression(.foo2 as int*))
+t10 = _Call set [A::foo3] (t7, t9)
+t11* = _Call get [A::foo1] (t7)
+t12* = _Call get [A::foo2] (t7)
+t13* = _Call dynamic [call] (t12, %a2, %a3, t11)
+RESULT: t13
+------------ C::dynamicCalls ------------
+%this = _Parameter #0 [_T (#lib::C)+]
+%aa = _Parameter #1 [_T ANY?]
+%a2 = _Parameter #2 [_T (dart.core::Object)+?]
+%a3 = _Parameter #3 [_T (dart.core::Object)+?]
+%a4 = _Parameter #4 [_T (dart.core::Object)+?]
+t5 = _Call direct [B::] (_T (#lib::B))
+t6 = _Call dynamic [foo1] (%aa, _T (#lib::B))
+t7 = _Narrow (%aa to _T ANY)
+t8* = _Call dynamic get [foo2] (t7)
+t9 = _Call dynamic set [foo3] (t7, t8)
+t10* = _Call dynamic get [foo1] (t7)
+t11* = _Call dynamic [foo2] (t7, %a2, %a3, t10)
+RESULT: t11
+------------ D:: ------------
+%this = _Parameter #0 [_T (#lib::D)+]
+t1 = _Call direct [B::] (%this)
+RESULT: _T {}?
+------------ D::superCalls ------------
+%this = _Parameter #0 [_T (#lib::D)+]
+%a1 = _Parameter #1 [_T (dart.core::Object)+?]
+%a2 = _Parameter #2 [_T (dart.core::Object)+?]
+%a3 = _Parameter #3 [_T (dart.core::Object)+?]
+%a4 = _Parameter #4 [_T (dart.core::Object)+?]
+t5 = _Call direct [B::bar1] (%this, %a1)
+t6* = _Call direct get [B::bar4] (%this)
+t7 = _Call direct set [B::bar3] (%this, t6)
+t8* = _Call direct get [B::bar2] (%this)
+t9* = _Call direct get [B::bar1] (%this)
+t10* = _Call dynamic [call] (t8, %a2, %a3, t9)
+RESULT: t10
+------------ main ------------
+
+RESULT: _T {}?

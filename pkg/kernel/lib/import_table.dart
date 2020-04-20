@@ -4,18 +4,17 @@
 library kernel.import_table;
 
 import 'ast.dart';
-import 'package:path/path.dart' as path;
 
 abstract class ImportTable {
   int getImportIndex(Library library);
 }
 
-class ProgramImportTable implements ImportTable {
+class ComponentImportTable implements ImportTable {
   final Map<Library, int> _libraryIndex = <Library, int>{};
 
-  ProgramImportTable(Program program) {
-    for (int i = 0; i < program.libraries.length; ++i) {
-      _libraryIndex[program.libraries[i]] = i;
+  ComponentImportTable(Component component) {
+    for (int i = 0; i < component.libraries.length; ++i) {
+      _libraryIndex[component.libraries[i]] = i;
     }
   }
 
@@ -76,6 +75,7 @@ class _ImportTableBuilder extends RecursiveVisitor {
 
   void addLibraryImport(Library target) {
     if (target == referenceLibrary) return; // Self-reference is special.
+    if (target == null) return;
     var referenceUri = referenceLibrary.importUri;
     var targetUri = target.importUri;
     if (targetUri == null) {
@@ -89,12 +89,8 @@ class _ImportTableBuilder extends RecursiveVisitor {
     bool isTargetSchemeFileOrCustom = isFileOrCustomScheme(targetUri);
     bool isReferenceSchemeFileOrCustom = isFileOrCustomScheme(referenceUri);
     if (isTargetSchemeFileOrCustom && isReferenceSchemeFileOrCustom) {
-      var targetDirectory = path.dirname(targetUri.path);
-      var currentDirectory = path.dirname(referenceUri.path);
-      var relativeDirectory =
-          path.relative(targetDirectory, from: currentDirectory);
-      var filename = path.basename(targetUri.path);
-      table.addImport(target, '$relativeDirectory/$filename');
+      String relativeUri = relativeUriPath(targetUri, referenceUri);
+      table.addImport(target, relativeUri);
     } else if (isTargetSchemeFileOrCustom) {
       // Cannot import a file:URI from a dart:URI or package:URI.
       // We may want to remove this restriction, but for now it's just a sanity
@@ -125,4 +121,37 @@ class _ImportTableBuilder extends RecursiveVisitor {
       addLibraryImport(name.library);
     }
   }
+}
+
+String relativeUriPath(Uri target, Uri ref) {
+  List<String> targetSegments = target.pathSegments;
+  List<String> refSegments = ref.pathSegments;
+  int to = refSegments.length;
+  if (targetSegments.length < to) to = targetSegments.length;
+  to--; // The last entry is the filename, here we compare only directories.
+  int same = -1;
+  for (int i = 0; i < to; i++) {
+    if (targetSegments[i] == refSegments[i]) {
+      same = i;
+    } else {
+      break;
+    }
+  }
+  if (same == targetSegments.length - 2 &&
+      targetSegments.length == refSegments.length) {
+    // Both parts have the same number of segments,
+    // and they agree on all directories.
+    if (targetSegments.last == "") return ".";
+    return targetSegments.last;
+  }
+  List<String> path = new List<String>();
+  int oked = same + 1;
+  while (oked < refSegments.length - 1) {
+    path.add("..");
+    oked++;
+  }
+  path.addAll(targetSegments.skip(same + 1));
+
+  if (path.isEmpty) path.add(".");
+  return path.join("/");
 }

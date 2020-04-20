@@ -18,14 +18,15 @@ Future<HttpServer> createServer() => HttpServer.bind("127.0.0.1", 0);
 Future<WebSocket> createClient(int port, bool compression) => compression
     ? WebSocket.connect('ws://127.0.0.1:$port/')
     : WebSocket.connect('ws://127.0.0.1:$port/',
-        compression: CompressionOptions.OFF);
+        compression: CompressionOptions.compressionOff);
 
 void test(expected, testData, compression) {
   createServer().then((server) {
     var messageCount = 0;
     var transformer = compression
         ? new WebSocketTransformer()
-        : new WebSocketTransformer(compression: CompressionOptions.OFF);
+        : new WebSocketTransformer(
+            compression: CompressionOptions.compressionOff);
     server.transform(transformer).listen((webSocket) {
       webSocket.listen((message) {
         Expect.listEquals(expected, message);
@@ -76,7 +77,8 @@ void testOutOfRangeClient({bool compression: false}) {
     var messageCount = 0;
     var transformer = compression
         ? new WebSocketTransformer()
-        : new WebSocketTransformer(compression: CompressionOptions.OFF);
+        : new WebSocketTransformer(
+            compression: CompressionOptions.compressionOff);
     server.transform(transformer).listen((webSocket) {
       webSocket.listen((message) => Expect.fail("No message expected"));
     });
@@ -99,7 +101,7 @@ void testOutOfRangeClient({bool compression: false}) {
       return completer.future;
     }
 
-    var futures = [];
+    var futures = <Future>[];
     var data;
     data = new Uint16List(1);
     data[0] = 256;
@@ -133,7 +135,7 @@ void testOutOfRangeClient({bool compression: false}) {
 }
 
 void testOutOfRangeServer({bool compression: false}) {
-  var futures = [];
+  var futures = <Future>[];
   var testData = [];
   var data;
   data = new Uint16List(1);
@@ -180,7 +182,8 @@ void testOutOfRangeServer({bool compression: false}) {
     var messageCount = 0;
     var transformer = compression
         ? new WebSocketTransformer()
-        : new WebSocketTransformer(compression: CompressionOptions.OFF);
+        : new WebSocketTransformer(
+            compression: CompressionOptions.compressionOff);
     server.transform(transformer).listen((webSocket) {
       webSocket.listen((message) {
         messageCount++;
@@ -197,7 +200,7 @@ void testOutOfRangeServer({bool compression: false}) {
         webSocket.listen((message) => Expect.fail("No message expected"),
             onDone: () => completer.complete(true),
             onError: (e) => completer.completeError(e));
-        webSocket.add(new List()..add(i));
+        webSocket.add([i]);
       });
       return completer.future;
     }

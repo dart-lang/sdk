@@ -16,8 +16,8 @@ namespace bin {
 
 // Flags used to provide information and actions to the eventhandler
 // when sending a message about a file descriptor. These flags should
-// be kept in sync with the constants in socket_impl.dart. For more
-// information see the comments in socket_impl.dart
+// be kept in sync with the constants in socket_patch.dart. For more
+// information see the comments in socket_patch.dart
 enum MessageFlags {
   kInEvent = 0,
   kOutEvent = 1,
@@ -413,7 +413,7 @@ class DescriptorInfoMultipleMixin : public DI {
   virtual bool IsListeningSocket() const { return true; }
 
   virtual void SetPortAndMask(Dart_Port port, intptr_t mask) {
-    HashMap::Entry* entry = tokens_map_.Lookup(
+    SimpleHashMap::Entry* entry = tokens_map_.Lookup(
         GetHashmapKeyFromPort(port), GetHashmapHashFromPort(port), true);
     PortEntry* pentry;
     if (entry->value == NULL) {
@@ -454,7 +454,7 @@ class DescriptorInfoMultipleMixin : public DI {
       } while (current != root);
     }
 
-    for (HashMap::Entry* entry = tokens_map_.Start(); entry != NULL;
+    for (SimpleHashMap::Entry* entry = tokens_map_.Start(); entry != NULL;
          entry = tokens_map_.Next(entry)) {
       PortEntry* pentry = reinterpret_cast<PortEntry*>(entry->value);
       if (pentry->IsReady()) {
@@ -467,7 +467,7 @@ class DescriptorInfoMultipleMixin : public DI {
   }
 
   virtual void RemovePort(Dart_Port port) {
-    HashMap::Entry* entry = tokens_map_.Lookup(
+    SimpleHashMap::Entry* entry = tokens_map_.Lookup(
         GetHashmapKeyFromPort(port), GetHashmapHashFromPort(port), false);
     if (entry != NULL) {
       PortEntry* pentry = reinterpret_cast<PortEntry*>(entry->value);
@@ -491,7 +491,7 @@ class DescriptorInfoMultipleMixin : public DI {
   }
 
   virtual void RemoveAllPorts() {
-    for (HashMap::Entry* entry = tokens_map_.Start(); entry != NULL;
+    for (SimpleHashMap::Entry* entry = tokens_map_.Start(); entry != NULL;
          entry = tokens_map_.Next(entry)) {
       PortEntry* pentry = reinterpret_cast<PortEntry*>(entry->value);
       entry->value = NULL;
@@ -532,7 +532,7 @@ class DescriptorInfoMultipleMixin : public DI {
     ASSERT(IS_EVENT(events, kCloseEvent) || IS_EVENT(events, kErrorEvent) ||
            IS_EVENT(events, kDestroyedEvent));
 
-    for (HashMap::Entry* entry = tokens_map_.Start(); entry != NULL;
+    for (SimpleHashMap::Entry* entry = tokens_map_.Start(); entry != NULL;
          entry = tokens_map_.Next(entry)) {
       PortEntry* pentry = reinterpret_cast<PortEntry*>(entry->value);
       DartUtils::PostInt32(pentry->dart_port, events);
@@ -550,7 +550,7 @@ class DescriptorInfoMultipleMixin : public DI {
   }
 
   virtual void ReturnTokens(Dart_Port port, int count) {
-    HashMap::Entry* entry = tokens_map_.Lookup(
+    SimpleHashMap::Entry* entry = tokens_map_.Lookup(
         GetHashmapKeyFromPort(port), GetHashmapHashFromPort(port), false);
     ASSERT(entry != NULL);
 
@@ -560,7 +560,7 @@ class DescriptorInfoMultipleMixin : public DI {
       pentry->token_count += count;
     }
     ASSERT(pentry->token_count <= kTokenCount);
-    bool is_ready = pentry->token_count > 0 && pentry->IsReady();
+    bool is_ready = pentry->IsReady();
     if (!was_ready && is_ready) {
       active_readers_.Add(pentry);
     }
@@ -588,7 +588,7 @@ class DescriptorInfoMultipleMixin : public DI {
 
   // A convenience mapping:
   //   Dart_Port -> struct PortEntry { dart_port, mask, token_count }
-  HashMap tokens_map_;
+  SimpleHashMap tokens_map_;
 
   bool disable_tokens_;
 

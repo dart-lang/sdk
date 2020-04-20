@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,66 +7,61 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new AssertStatementTest().buildAll();
+  AssertStatementTest().buildAll();
 }
 
 class AssertStatementTest extends PartialCodeTest {
   buildAll() {
+    List<String> allExceptEof =
+        PartialCodeTest.statementSuffixes.map((t) => t.name).toList();
     buildTests(
         'assert_statement',
         [
-          new TestDescriptor(
+          TestDescriptor(
               'keyword',
               'assert',
-              [
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "assert (_s_);",
-              allFailing: true),
-          new TestDescriptor(
+              [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
+              "assert (_s_);"),
+          TestDescriptor(
               'leftParen',
               'assert (',
               [
                 ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN,
+                ScannerErrorCode.EXPECTED_TOKEN,
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "assert (_s_);",
-              allFailing: true),
-          new TestDescriptor(
+              failing: [
+                'assert',
+                'block',
+                'labeled',
+                'localFunctionNonVoid',
+                'localFunctionVoid',
+                'return'
+              ]),
+          TestDescriptor(
               'condition',
               'assert (a',
-              [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
-              "assert (a);",
-              allFailing: true),
-          new TestDescriptor(
+              [ParserErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN],
+              "assert (a);"),
+          TestDescriptor(
               'comma',
               'assert (a,',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "assert (a, _s_);",
-              allFailing: true),
-          new TestDescriptor(
+              [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
+              "assert (a,);",
+              failing: allExceptEof),
+          TestDescriptor(
               'message',
               'assert (a, b',
-              [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
-              "assert (a, b);",
-              allFailing: true),
-          new TestDescriptor(
+              [ParserErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN],
+              "assert (a, b);"),
+          TestDescriptor(
               'trailingComma',
               'assert (a, b,',
-              [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
-              "assert (a, b,);",
-              allFailing: true),
-          new TestDescriptor('rightParen', 'assert (a, b)',
-              [ParserErrorCode.EXPECTED_TOKEN], "assert (a, b);",
-              allFailing: true),
+              [ParserErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN],
+              "assert (a, b,);"),
+          TestDescriptor('rightParen', 'assert (a, b)',
+              [ParserErrorCode.EXPECTED_TOKEN], "assert (a, b);"),
         ],
         PartialCodeTest.statementSuffixes,
         head: 'f() { ',

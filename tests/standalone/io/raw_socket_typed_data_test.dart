@@ -16,21 +16,21 @@ import "package:expect/expect.dart";
 
 testOutOfRange() {
   asyncStart();
-  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+  RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     server.listen((client) {
       client.writeEventsEnabled = false;
       client.listen((event) {
         switch (event) {
-          case RawSocketEvent.READ:
+          case RawSocketEvent.read:
             Expect.fail("No data expected");
             break;
-          case RawSocketEvent.WRITE:
+          case RawSocketEvent.write:
             break;
-          case RawSocketEvent.READ_CLOSED:
+          case RawSocketEvent.readClosed:
             client.close();
             server.close();
             break;
-          case RawSocketEvent.CLOSED:
+          case RawSocketEvent.closed:
             break;
           default:
             throw "Unexpected event $event";
@@ -41,9 +41,9 @@ testOutOfRange() {
     RawSocket.connect("127.0.0.1", server.port).then((socket) {
       socket.listen((event) {
         switch (event) {
-          case RawSocketEvent.READ:
+          case RawSocketEvent.read:
             break;
-          case RawSocketEvent.WRITE:
+          case RawSocketEvent.write:
             Expect.isFalse(socket.writeEventsEnabled);
             var data;
             data = new Uint16List(1);
@@ -74,9 +74,9 @@ testOutOfRange() {
             Expect.throws(() => socket.write([256]));
             socket.close();
             break;
-          case RawSocketEvent.READ_CLOSED:
+          case RawSocketEvent.readClosed:
             break;
-          case RawSocketEvent.CLOSED:
+          case RawSocketEvent.closed:
             break;
           default:
             throw "Unexpected event $event";
@@ -120,21 +120,21 @@ void testSimpleReadWrite() {
     Expect.listEquals(expected, data);
   }
 
-  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+  RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     server.listen((client) {
       int bytesRead = 0;
       int bytesWritten = 0;
       int index = 0;
       List<List<int>> data = createTestData();
-      List<int> received = new List<int>(messageSize);
+      List<int> received = new List<int>.filled(messageSize, 0);
 
       client.writeEventsEnabled = false;
       client.listen((event) {
         switch (event) {
-          case RawSocketEvent.READ:
+          case RawSocketEvent.read:
             Expect.isTrue(bytesWritten == 0);
             Expect.isTrue(client.available() > 0);
-            var buffer = client.read();
+            var buffer = client.read()!;
             received.setRange(bytesRead, bytesRead + buffer.length, buffer);
             bytesRead += buffer.length;
             if (bytesRead == messageSize) {
@@ -142,7 +142,7 @@ void testSimpleReadWrite() {
               client.writeEventsEnabled = true;
             }
             break;
-          case RawSocketEvent.WRITE:
+          case RawSocketEvent.write:
             Expect.isTrue(bytesRead == messageSize);
             Expect.isFalse(client.writeEventsEnabled);
             bytesWritten += client.write(
@@ -155,14 +155,14 @@ void testSimpleReadWrite() {
               if (index < data.length) {
                 client.writeEventsEnabled = true;
               } else {
-                client.shutdown(SocketDirection.SEND);
+                client.shutdown(SocketDirection.send);
               }
             }
             break;
-          case RawSocketEvent.READ_CLOSED:
+          case RawSocketEvent.readClosed:
             server.close();
             break;
-          case RawSocketEvent.CLOSED:
+          case RawSocketEvent.closed:
             break;
           default:
             throw "Unexpected event $event";
@@ -175,17 +175,17 @@ void testSimpleReadWrite() {
       int bytesWritten = 0;
       int index = 0;
       List<List<int>> data = createTestData();
-      List<int> received = new List<int>(messageSize);
+      List<int> received = new List<int>.filled(messageSize, 0);
 
       socket.listen((event) {
         switch (event) {
-          case RawSocketEvent.READ:
+          case RawSocketEvent.read:
             Expect.isTrue(socket.available() > 0);
-            var buffer = socket.read();
+            var buffer = socket.read()!;
             received.setRange(bytesRead, bytesRead + buffer.length, buffer);
             bytesRead += buffer.length;
             break;
-          case RawSocketEvent.WRITE:
+          case RawSocketEvent.write:
             Expect.isTrue(bytesRead == 0);
             Expect.isFalse(socket.writeEventsEnabled);
             bytesWritten += socket.write(
@@ -200,11 +200,11 @@ void testSimpleReadWrite() {
               }
             }
             break;
-          case RawSocketEvent.READ_CLOSED:
+          case RawSocketEvent.readClosed:
             verifyTestData(received);
             socket.close();
             break;
-          case RawSocketEvent.CLOSED:
+          case RawSocketEvent.closed:
             break;
           default:
             throw "Unexpected event $event";

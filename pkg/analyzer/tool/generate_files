@@ -39,9 +39,10 @@ fi
 DART="${BIN_DIR}/dart"
 
 declare -a VM_OPTIONS
-VM_OPTIONS+=("--checked")
+VM_OPTIONS+=("--enable-asserts")
 VM_OPTIONS+=("--packages=${ROOT_DIR}/.packages")
 
 cd "${SCRIPT_DIR}"
-"${DART}" "${VM_OPTIONS[@]}" "task_dependency_graph/generate.dart"
+"${DART}" "${VM_OPTIONS[@]}" "messages/generate.dart"
 "${DART}" "${VM_OPTIONS[@]}" "summary/generate.dart"
+"${DART}" "${VM_OPTIONS[@]}" "task_dependency_graph/generate.dart"

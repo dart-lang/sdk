@@ -32,7 +32,7 @@ void testHttpIPv6() {
         .openUrl('GET', url)
         .then((request) => request.close())
         .then((response) {
-      Expect.equals(response.statusCode, HttpStatus.OK);
+      Expect.equals(response.statusCode, HttpStatus.ok);
     }).whenComplete(() {
       server.close();
       client.close();

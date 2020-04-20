@@ -16,7 +16,12 @@ abstract class CodeOutputListener {
   void onDone(int length);
 }
 
-/// Interface for a mapping of target offsets to source locations.
+/// Interface for a mapping of target offsets to source locations and for
+/// tracking inlining frame data.
+///
+/// Source-location mapping is used to build standard source-maps files.
+/// Inlining frames is used to attach an extension to source-map files to
+/// improve deobfuscation of production stack traces.
 abstract class SourceLocations {
   /// The name identifying this source mapping.
   String get name;
@@ -24,15 +29,33 @@ abstract class SourceLocations {
   /// Adds a [sourceLocation] at the specified [targetOffset].
   void addSourceLocation(int targetOffset, SourceLocation sourcePosition);
 
+  /// Record an inlining call at the [targetOffset].
+  ///
+  /// The inlining call-site was made from [pushLocation] and calls
+  /// [inlinedMethodName].
+  void addPush(
+      int targetOffset, SourceLocation pushPosition, String inlinedMethodName);
+
+  /// Record a return of an inlining call at the [targetOffset].
+  ///
+  /// [isEmpty] indicates that this return also makes the inlining stack empty.
+  void addPop(int targetOffset, bool isEmpty);
+
   /// Applies [f] to every target offset and associated source location.
   void forEachSourceLocation(
       void f(int targetOffset, SourceLocation sourceLocation));
+
+  /// Recorded inlining data per target-offset.
+  Map<int, List<FrameEntry>> get frameMarkers;
 }
 
 class _SourceLocationsImpl implements SourceLocations {
+  @override
   final String name;
   final AbstractCodeOutput codeOutput;
   Map<int, List<SourceLocation>> markers = <int, List<SourceLocation>>{};
+  @override
+  Map<int, List<FrameEntry>> frameMarkers = <int, List<FrameEntry>>{};
 
   _SourceLocationsImpl(this.name, this.codeOutput);
 
@@ -45,7 +68,23 @@ class _SourceLocationsImpl implements SourceLocations {
   }
 
   @override
-  void forEachSourceLocation(void f(int targetOffset, var sourceLocation)) {
+  void addPush(int targetOffset, SourceLocation sourceLocation,
+      String inlinedMethodName) {
+    assert(targetOffset <= codeOutput.length);
+    List<FrameEntry> frames = frameMarkers[targetOffset] ??= [];
+    frames.add(new FrameEntry.push(sourceLocation, inlinedMethodName));
+  }
+
+  @override
+  void addPop(int targetOffset, bool isEmpty) {
+    assert(targetOffset <= codeOutput.length);
+    List<FrameEntry> frames = frameMarkers[targetOffset] ??= [];
+    frames.add(new FrameEntry.pop(isEmpty));
+  }
+
+  @override
+  void forEachSourceLocation(
+      void f(int targetOffset, SourceLocation sourceLocation)) {
     markers.forEach((int targetOffset, List<SourceLocation> sourceLocations) {
       for (SourceLocation sourceLocation in sourceLocations) {
         f(targetOffset, sourceLocation);
@@ -53,15 +92,20 @@ class _SourceLocationsImpl implements SourceLocations {
     });
   }
 
-  void _addSourceLocations(_SourceLocationsImpl other) {
+  void _merge(_SourceLocationsImpl other) {
     assert(name == other.name);
+    int length = codeOutput.length;
     if (other.markers.length > 0) {
       other.markers
           .forEach((int targetOffset, List<SourceLocation> sourceLocations) {
-        markers
-            .putIfAbsent(
-                codeOutput.length + targetOffset, () => <SourceLocation>[])
+        (markers[length + targetOffset] ??= <SourceLocation>[])
             .addAll(sourceLocations);
+      });
+    }
+
+    if (other.frameMarkers.length > 0) {
+      other.frameMarkers.forEach((int targetOffset, List<FrameEntry> frames) {
+        (frameMarkers[length + targetOffset] ??= <FrameEntry>[]).addAll(frames);
       });
     }
   }
@@ -101,6 +145,7 @@ abstract class CodeOutput implements SourceLocationsProvider {
 abstract class AbstractCodeOutput extends CodeOutput {
   Map<String, _SourceLocationsImpl> sourceLocationsMap =
       <String, _SourceLocationsImpl>{};
+  @override
   bool isClosed = false;
 
   void _addInternal(String text);
@@ -116,7 +161,7 @@ abstract class AbstractCodeOutput extends CodeOutput {
   @override
   void addBuffer(CodeBuffer other) {
     other.sourceLocationsMap.forEach((String name, _SourceLocationsImpl other) {
-      createSourceLocations(name)._addSourceLocations(other);
+      createSourceLocations(name)._merge(other);
     });
     if (!other.isClosed) {
       other.close();
@@ -137,8 +182,7 @@ abstract class AbstractCodeOutput extends CodeOutput {
 
   @override
   _SourceLocationsImpl createSourceLocations(String name) {
-    return sourceLocationsMap.putIfAbsent(
-        name, () => new _SourceLocationsImpl(name, this));
+    return sourceLocationsMap[name] ??= new _SourceLocationsImpl(name, this);
   }
 }
 
@@ -158,10 +202,12 @@ class CodeBuffer extends AbstractCodeOutput implements BufferedCodeOutput {
   @override
   int get length => buffer.length;
 
+  @override
   String getText() {
     return buffer.toString();
   }
 
+  @override
   String toString() {
     throw "Don't use CodeBuffer.toString() since it drops sourcemap data.";
   }
@@ -169,6 +215,7 @@ class CodeBuffer extends AbstractCodeOutput implements BufferedCodeOutput {
 
 /// [CodeOutput] using a [CompilationOutput] as backend.
 class StreamCodeOutput extends AbstractCodeOutput {
+  @override
   int length = 0;
   final OutputSink output;
   final List<CodeOutputListener> _listeners;
@@ -184,6 +231,7 @@ class StreamCodeOutput extends AbstractCodeOutput {
     }
   }
 
+  @override
   void close() {
     output.close();
     super.close();

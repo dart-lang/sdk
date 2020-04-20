@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,7 +6,6 @@ import 'dart:core';
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -14,24 +13,18 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../generated/parser_test.dart';
 
 main() {
+  _analyzerRootComponents = path.split(path.fromUri(Platform.script));
+  int index = _analyzerRootComponents.lastIndexOf('analyzer');
+  _analyzerRootComponents = _analyzerRootComponents.sublist(0, index + 1);
   defineReflectiveSuite(() {
     defineReflectiveTests(ErrorCodeValuesTest);
   });
 }
 
+List<String> _analyzerRootComponents;
+
 @reflectiveTest
 class ErrorCodeValuesTest extends ParserTestCase {
-  List<String> _rootComponents;
-
-  List<String> get rootComponents {
-    if (_rootComponents == null) {
-      List<String> components = path.split(package_root.packageRoot);
-      components.add('analyzer');
-      _rootComponents = components;
-    }
-    return _rootComponents;
-  }
-
   bool bad() {
     return false;
   }
@@ -77,10 +70,10 @@ class ErrorCodeValuesTest extends ParserTestCase {
   }
 
   CompilationUnit parseFile(List<String> relativeComponents) {
-    List<String> pathComponents = rootComponents.toList()
+    List<String> pathComponents = _analyzerRootComponents.toList()
       ..addAll(relativeComponents);
     String filePath = path.normalize(path.joinAll(pathComponents));
-    return parseCompilationUnit(new File(filePath).readAsStringSync());
+    return parseCompilationUnit(File(filePath).readAsStringSync());
   }
 
   test_errorCodeValues() {
@@ -88,13 +81,13 @@ class ErrorCodeValuesTest extends ParserTestCase {
     List<String> missingCodes = <String>[];
     List<List<String>> declaringPaths = [
       ['lib', 'src', 'analysis_options', 'error', 'option_codes.dart'],
+      ['lib', 'src', 'dart', 'error', 'ffi_code.dart'],
       ['lib', 'src', 'dart', 'error', 'hint_codes.dart'],
       ['lib', 'src', 'dart', 'error', 'lint_codes.dart'],
       ['lib', 'src', 'dart', 'error', 'todo_codes.dart'],
-      ['lib', 'src', 'html', 'error', 'html_codes.dart'],
       ['lib', 'src', 'dart', 'error', 'syntactic_errors.dart'],
       ['lib', 'src', 'error', 'codes.dart'],
-      ['..', 'front_end', 'lib', 'src', 'scanner', 'errors.dart']
+      ['..', '_fe_analyzer_shared', 'lib', 'src', 'scanner', 'errors.dart']
     ];
     for (List<String> path in declaringPaths) {
       for (String declaredCode in getDeclaredCodes(path)) {

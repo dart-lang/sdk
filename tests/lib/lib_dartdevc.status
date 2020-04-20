@@ -1,0 +1,45 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $compiler == dartdevc ]
+html/xhr_test: Slow, Pass
+
+[ $runtime == chrome && ($compiler == dartdevc || $compiler == dartdevk) ]
+html/js_dispatch_property_test: Skip # Timeout Issue 31030
+
+[ $system == linux && ($compiler == dartdevc || $compiler == dartdevk) ]
+html/interactive_geolocation_test: Skip # Requires allowing geo location.
+
+[ $system == macos && ($compiler == dartdevc || $compiler == dartdevk) ]
+html/interactive_media_test: Skip # Requires interactive camera, microphone permissions.
+
+[ $system == windows && ($compiler == dartdevc || $compiler == dartdevk) ]
+html/xhr_test: Skip # Times out. Issue 21527
+
+[ $compiler == dartdevc || $compiler == dartdevk ]
+convert/chunked_conversion_utf88_test: Slow, Pass
+convert/json_utf8_chunk_test: Slow, Pass
+convert/streamed_conversion_utf8_decode_test: Slow, Pass # Issue 29922
+convert/utf85_test: Slow, Pass
+developer/metrics_num_test: Skip # Because of an int / double type test.
+html/callback_list_test: Skip # Test requires user interaction to accept permissions.
+html/custom/attribute_changed_callback_test: Skip # Issue 31577
+html/custom/constructor_calls_created_synchronously_test: Skip # Issue 31577
+html/custom/created_callback_test: Skip # Issue 31577
+html/custom/document_register_basic_test: Skip # Issue 31577
+html/custom/document_register_template_test: Skip # Issue 31577
+html/custom/document_register_type_extensions_test: Skip # Issue 31577
+html/custom/element_upgrade_test: Skip # Issue 31577
+html/custom/entered_left_view/*: Skip # Issue 31577
+html/custom/mirrors_2_test: Skip # Issue 31577
+html/custom_element_method_clash_test: Skip # Issue 29922
+html/custom_element_name_clash_test: Skip # Issue 29922
+html/custom_elements_23127_test: Skip # Issue 29922
+html/custom_elements_test: Skip # Issue 29922
+html/notification_permission_test: Skip # Issue 32002
+isolate/*: SkipByDesign # No support for dart:isolate in dart4web (http://dartbug.com/30538)
+mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
+typed_data/int64_list_load_store_test: SkipByDesign # dartdevk/c does not support Int64List
+typed_data/typed_data_hierarchy_int64_test: SkipByDesign # dartdevk/c does not support Int64List
+typed_data/unmodifiable_typed_data_test: SkipByDesign # dartdevk/c does not support Int64List

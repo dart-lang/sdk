@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 void main() {
-  Expect.equals("", new String.fromCharCodes(new List(0)));
+  Expect.equals("", new String.fromCharCodes(new List.empty()));
   Expect.equals("", new String.fromCharCodes([]));
   Expect.equals("", new String.fromCharCodes(const []));
   Expect.equals("AB", new String.fromCharCodes([65, 66]));
@@ -13,9 +13,8 @@ void main() {
   Expect.equals("Ærø", new String.fromCharCodes(const [0xc6, 0x72, 0xf8]));
   Expect.equals("\u{1234}", new String.fromCharCodes([0x1234]));
   Expect.equals("\u{12345}*", new String.fromCharCodes([0x12345, 42]));
-  Expect.equals("", new String.fromCharCodes(new List()));
   {
-    var a = new List();
+    var a = <int>[];
     a.add(65);
     a.add(66);
     Expect.equals("AB", new String.fromCharCodes(a));
@@ -23,7 +22,7 @@ void main() {
 
   // Long list (bug 6919).
   for (int len in [499, 500, 501, 999, 100000]) {
-    List<int> list = new List(len);
+    List<int> list = new List.filled(len, -1);
     for (int i = 0; i < len; i++) {
       list[i] = 65 + (i % 26);
     }

@@ -60,16 +60,19 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
     return node.accept(this);
   }
 
+  @override
   int visitNode(js.Node node) {
     safe = false;
     super.visitNode(node);
     return UNKNOWN_VALUE;
   }
 
+  @override
   int visitLiteralNull(js.LiteralNull node) {
     return UNKNOWN_VALUE;
   }
 
+  @override
   int visitLiteral(js.Literal node) {
     return NONNULL_VALUE;
   }
@@ -81,26 +84,32 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
     return position;
   }
 
+  @override
   int visitInterpolatedExpression(js.InterpolatedExpression node) {
     return handleInterpolatedNode(node);
   }
 
+  @override
   int visitInterpolatedLiteral(js.InterpolatedLiteral node) {
     return handleInterpolatedNode(node);
   }
 
+  @override
   int visitInterpolatedSelector(js.InterpolatedSelector node) {
     return handleInterpolatedNode(node);
   }
 
+  @override
   int visitInterpolatedStatement(js.InterpolatedStatement node) {
     return handleInterpolatedNode(node);
   }
 
+  @override
   int visitInterpolatedDeclaration(js.InterpolatedDeclaration node) {
     return handleInterpolatedNode(node);
   }
 
+  @override
   int visitObjectInitializer(js.ObjectInitializer node) {
     for (js.Property property in node.properties) {
       visit(property);
@@ -108,21 +117,25 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
     return NONNULL_VALUE;
   }
 
+  @override
   int visitProperty(js.Property node) {
     visit(node.name);
     visit(node.value);
     return UNKNOWN_VALUE;
   }
 
+  @override
   int visitArrayInitializer(js.ArrayInitializer node) {
     node.elements.forEach(visit);
     return NONNULL_VALUE;
   }
 
+  @override
   int visitArrayHole(js.ArrayHole node) {
     return UNKNOWN_VALUE;
   }
 
+  @override
   int visitAccess(js.PropertyAccess node) {
     int first = visit(node.receiver);
     visit(node.selector);
@@ -131,6 +144,7 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
     return UNKNOWN_VALUE;
   }
 
+  @override
   int visitAssignment(js.Assignment node) {
     js.Expression left = node.leftHandSide;
     js.Expression right = node.value;
@@ -172,6 +186,7 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
     return leftToRight();
   }
 
+  @override
   int visitCall(js.Call node) {
     // TODO(sra): Recognize JavaScript built-ins like
     // 'Object.prototype.hasOwnProperty.call'.
@@ -180,12 +195,14 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
     return unsafe(UNKNOWN_VALUE);
   }
 
+  @override
   int visitNew(js.New node) {
     visit(node.target);
     node.arguments.forEach(visit);
     return unsafe(NONNULL_VALUE);
   }
 
+  @override
   int visitBinary(js.Binary node) {
     switch (node.op) {
       // We make the non-conservative assumption that these operations are not
@@ -238,6 +255,7 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
     }
   }
 
+  @override
   int visitConditional(js.Conditional node) {
     visit(node.condition);
     // TODO(sra): Might be safe, e.g.  "# ? 1 : 2".
@@ -247,11 +265,13 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
     return UNKNOWN_VALUE;
   }
 
+  @override
   int visitThrow(js.Throw node) {
     visit(node.expression);
     return unsafe(UNKNOWN_VALUE);
   }
 
+  @override
   int visitPrefix(js.Prefix node) {
     if (node.op == 'typeof') {
       // "typeof a" first evaluates to a Reference. If the Reference is to a
@@ -287,12 +307,14 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
     }
   }
 
+  @override
   int visitPostfix(js.Postfix node) {
     assert(node.op == '--' || node.op == '++');
     visit(node.argument);
     return NONNULL_VALUE; // Always a number, even for "(a=null, a++)".
   }
 
+  @override
   int visitVariableUse(js.VariableUse node) {
     // We could get a ReferenceError unless the variable is in scope.  For JS
     // fragments, the only use of VariableUse outside a `function(){...}` should
@@ -315,6 +337,7 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
     }
   }
 
+  @override
   int visitFun(js.Fun node) {
     bool oldSafe = safe;
     int oldNextPosition = nextPosition;

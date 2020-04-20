@@ -40,9 +40,10 @@ void main() {
   var clientScript = localFile('secure_unauthorized_client.dart');
 
   Future clientProcess(int port) {
-    return Process
-        .run(Platform.executable, [clientScript, port.toString()]).then(
-            (ProcessResult result) {
+    List<String> args = new List<String>.from(Platform.executableArguments);
+    args.add(clientScript);
+    args.add(port.toString());
+    return Process.run(Platform.executable, args).then((ProcessResult result) {
       if (result.exitCode != 0 || !result.stdout.contains('SUCCESS')) {
         print("Client failed");
         print("  stdout:");

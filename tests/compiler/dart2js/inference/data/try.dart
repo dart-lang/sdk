@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+// @dart = 2.7
+
+/*member: main:[null]*/
 main() {
   emptyTryCatch();
   emptyTryFinally();
@@ -25,13 +27,13 @@ main() {
 /// Parameter passed through an empty try-catch statement.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _emptyTryCatch:[exact=JSUInt31]*/
+/*member: _emptyTryCatch:[exact=JSUInt31]*/
 _emptyTryCatch(/*[exact=JSUInt31]*/ o) {
   try {} catch (e) {}
   return o;
 }
 
-/*element: emptyTryCatch:[null]*/
+/*member: emptyTryCatch:[null]*/
 emptyTryCatch() {
   _emptyTryCatch(0);
 }
@@ -40,13 +42,13 @@ emptyTryCatch() {
 /// Parameter passed through an empty try-finally statement.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _emptyTryFinally:[exact=JSUInt31]*/
+/*member: _emptyTryFinally:[exact=JSUInt31]*/
 _emptyTryFinally(/*[exact=JSUInt31]*/ o) {
   try {} finally {}
   return o;
 }
 
-/*element: emptyTryFinally:[null]*/
+/*member: emptyTryFinally:[null]*/
 emptyTryFinally() {
   _emptyTryFinally(0);
 }
@@ -55,13 +57,13 @@ emptyTryFinally() {
 /// Parameter passed through an empty try-catch-finally statement.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _emptyTryCatchFinally:[exact=JSUInt31]*/
+/*member: _emptyTryCatchFinally:[exact=JSUInt31]*/
 _emptyTryCatchFinally(/*[exact=JSUInt31]*/ o) {
   try {} catch (e) {} finally {}
   return o;
 }
 
-/*element: emptyTryCatchFinally:[null]*/
+/*member: emptyTryCatchFinally:[null]*/
 emptyTryCatchFinally() {
   _emptyTryCatchFinally(0);
 }
@@ -70,7 +72,7 @@ emptyTryCatchFinally() {
 /// A try-catch statement with an assignment in the try block.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: tryCatchAssignmentInTry:[null|exact=JSUInt31]*/
+/*member: tryCatchAssignmentInTry:[null|exact=JSUInt31]*/
 tryCatchAssignmentInTry() {
   var o = 0;
   try {
@@ -83,7 +85,7 @@ tryCatchAssignmentInTry() {
 /// A try-catch statement with an assignment in the catch block.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: tryCatchAssignmentInCatch:[null|exact=JSUInt31]*/
+/*member: tryCatchAssignmentInCatch:[null|exact=JSUInt31]*/
 tryCatchAssignmentInCatch() {
   var o = 0;
   try {} catch (e) {
@@ -96,7 +98,7 @@ tryCatchAssignmentInCatch() {
 /// A try-finally statement with an assignment in the finally clause.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: tryFinallyAssignmentInFinally:[null]*/
+/*member: tryFinallyAssignmentInFinally:[null]*/
 tryFinallyAssignmentInFinally() {
   var o = 0;
   try {} finally {
@@ -110,7 +112,7 @@ tryFinallyAssignmentInFinally() {
 /// block.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: tryCatchAssignmentInTryCatch:Union of [[exact=JSUInt31], [null|exact=JSString]]*/
+/*member: tryCatchAssignmentInTryCatch:Union(null, [exact=JSString], [exact=JSUInt31])*/
 tryCatchAssignmentInTryCatch() {
   dynamic o = 0;
   try {
@@ -126,7 +128,7 @@ tryCatchAssignmentInTryCatch() {
 /// finally block.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: tryCatchAssignmentInTryFinally:[null]*/
+/*member: tryCatchAssignmentInTryFinally:[null]*/
 tryCatchAssignmentInTryFinally() {
   dynamic o = 0;
   try {
@@ -142,7 +144,7 @@ tryCatchAssignmentInTryFinally() {
 /// catch clause.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _tryCatchParameterAssignmentInTry:[null|exact=JSUInt31]*/
+/*member: _tryCatchParameterAssignmentInTry:[null|exact=JSUInt31]*/
 _tryCatchParameterAssignmentInTry(/*[exact=JSUInt31]*/ o) {
   try {
     o = null;
@@ -150,7 +152,7 @@ _tryCatchParameterAssignmentInTry(/*[exact=JSUInt31]*/ o) {
   return o;
 }
 
-/*element: tryCatchParameterAssignmentInTry:[null]*/
+/*member: tryCatchParameterAssignmentInTry:[null]*/
 tryCatchParameterAssignmentInTry() {
   _tryCatchParameterAssignmentInTry(0);
 }
@@ -160,7 +162,7 @@ tryCatchParameterAssignmentInTry() {
 /// catch clause.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _tryCatchParameterAssignmentInCatch:[null|exact=JSUInt31]*/
+/*member: _tryCatchParameterAssignmentInCatch:[null|exact=JSUInt31]*/
 _tryCatchParameterAssignmentInCatch(/*[exact=JSUInt31]*/ o) {
   try {} catch (e) {
     o = null;
@@ -168,7 +170,7 @@ _tryCatchParameterAssignmentInCatch(/*[exact=JSUInt31]*/ o) {
   return o;
 }
 
-/*element: tryCatchParameterAssignmentInCatch:[null]*/
+/*member: tryCatchParameterAssignmentInCatch:[null]*/
 tryCatchParameterAssignmentInCatch() {
   _tryCatchParameterAssignmentInCatch(0);
 }
@@ -178,7 +180,7 @@ tryCatchParameterAssignmentInCatch() {
 /// finally clause.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _tryFinallyParameterAssignmentInFinally:[null]*/
+/*member: _tryFinallyParameterAssignmentInFinally:[null]*/
 _tryFinallyParameterAssignmentInFinally(/*[exact=JSUInt31]*/ o) {
   try {} finally {
     o = null;
@@ -186,7 +188,7 @@ _tryFinallyParameterAssignmentInFinally(/*[exact=JSUInt31]*/ o) {
   return o;
 }
 
-/*element: tryFinallyParameterAssignmentInFinally:[null]*/
+/*member: tryFinallyParameterAssignmentInFinally:[null]*/
 tryFinallyParameterAssignmentInFinally() {
   _tryFinallyParameterAssignmentInFinally(0);
 }
@@ -196,7 +198,7 @@ tryFinallyParameterAssignmentInFinally() {
 /// catch clause.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _tryCatchParameterAssignmentInTryCatch:Union of [[exact=JSUInt31], [null|exact=JSString]]*/
+/*member: _tryCatchParameterAssignmentInTryCatch:Union(null, [exact=JSString], [exact=JSUInt31])*/
 _tryCatchParameterAssignmentInTryCatch(/*[exact=JSUInt31]*/ o) {
   try {
     o = '';
@@ -206,7 +208,7 @@ _tryCatchParameterAssignmentInTryCatch(/*[exact=JSUInt31]*/ o) {
   return o;
 }
 
-/*element: tryCatchParameterAssignmentInTryCatch:[null]*/
+/*member: tryCatchParameterAssignmentInTryCatch:[null]*/
 tryCatchParameterAssignmentInTryCatch() {
   _tryCatchParameterAssignmentInTryCatch(0);
 }
@@ -216,7 +218,7 @@ tryCatchParameterAssignmentInTryCatch() {
 /// finally clause.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _tryFinallyParameterAssignmentInTryFinally:[null]*/
+/*member: _tryFinallyParameterAssignmentInTryFinally:[null]*/
 _tryFinallyParameterAssignmentInTryFinally(/*[exact=JSUInt31]*/ o) {
   try {
     o = '';
@@ -226,7 +228,7 @@ _tryFinallyParameterAssignmentInTryFinally(/*[exact=JSUInt31]*/ o) {
   return o;
 }
 
-/*element: tryFinallyParameterAssignmentInTryFinally:[null]*/
+/*member: tryFinallyParameterAssignmentInTryFinally:[null]*/
 tryFinallyParameterAssignmentInTryFinally() {
   _tryFinallyParameterAssignmentInTryFinally(0);
 }

@@ -7,7 +7,7 @@ library test;
 
 T f<T>() => null;
 
-var /*@topType=dynamic*/ x = throw /*@typeArgs=dynamic*/ f();
+var x = throw /*@typeArgs=dynamic*/ f();
 
 void g() {
   var /*@type=dynamic*/ x = throw /*@typeArgs=dynamic*/ f();

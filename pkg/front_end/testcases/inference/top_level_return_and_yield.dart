@@ -10,31 +10,31 @@ import 'dart:async';
 typedef int IntToInt(int i);
 
 IntToInt a() {
-  return /*@returnType=int*/ (/*@type=int*/ x) => x;
+  return /*@ returnType=int* */ (/*@ type=int* */ x) => x;
 }
 
 Future<IntToInt> b() async {
   // TODO(paulberry): this is broken due to bug 29689.
-  return /*@returnType=dynamic*/ (/*@type=dynamic*/ x) => x;
+  return /*@ returnType=dynamic */ (/*@ type=dynamic */ x) => x;
 }
 
 Iterable<IntToInt> c() sync* {
-  yield /*@returnType=int*/ (/*@type=int*/ x) => x;
+  yield /*@ returnType=int* */ (/*@ type=int* */ x) => x;
 }
 
 Iterable<IntToInt> d() sync* {
-  yield* /*@typeArgs=(int) -> int*/ [
-    /*@returnType=int*/ (/*@type=int*/ x) => x
+  yield* /*@ typeArgs=(int*) ->* int* */ [
+    /*@ returnType=int* */ (/*@ type=int* */ x) => x
   ];
 }
 
 Stream<IntToInt> e() async* {
-  yield /*@returnType=int*/ (/*@type=int*/ x) => x;
+  yield /*@ returnType=int* */ (/*@ type=int* */ x) => x;
 }
 
 Stream<IntToInt> f() async* {
-  yield* new /*@typeArgs=(int) -> int*/ Stream.fromIterable(
-      /*@typeArgs=(int) -> int*/ [/*@returnType=int*/ (/*@type=int*/ x) => x]);
+  yield* new /*@ typeArgs=(int*) ->* int* */ Stream.fromIterable(
+      /*@ typeArgs=(int*) ->* int* */ [/*@ returnType=int* */ (/*@ type=int* */ x) => x]);
 }
 
 main() {}

@@ -9,7 +9,7 @@ class C<T> {
   C(T x());
 }
 
-var /*@topType=C<int>*/ v = new C<int>(/*@returnType=int*/ () {
+var v = new C<int>(/*@ returnType=int* */ () {
   return 1;
 });
 

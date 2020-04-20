@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // This program has many similar constants that should all have distinct
 // identities. They are sufficiently similar to have name collisions and need
 // ordering by constant value.
@@ -29,14 +31,14 @@ const ll2 = const [1, 8, 3, 4, 5, 6, 7];
 const ll3 = const [1, 2, 8, 4, 5, 6, 7];
 const ll4 = const [1, 2, 3, 4, 8, 6, 7];
 
-const m1 = const {1: 1, 2: 2};
-const m2 = const {1: 2, 2: 1};
-const m3 = const {1: 1, 2: 1};
-const m4 = const {1: 2, 2: 2};
-const m5 = const {2: 1, 1: 2};
-const m6 = const {2: 2, 1: 1};
-const m7 = const {2: 1, 1: 1};
-const m8 = const {2: 2, 1: 2};
+const m1 = const <dynamic, dynamic>{1: 1, 2: 2};
+const m2 = const <dynamic, dynamic>{1: 2, 2: 1};
+const m3 = const <dynamic, dynamic>{1: 1, 2: 1};
+const m4 = const <dynamic, dynamic>{1: 2, 2: 2};
+const m5 = const <dynamic, dynamic>{2: 1, 1: 2};
+const m6 = const <dynamic, dynamic>{2: 2, 1: 1};
+const m7 = const <dynamic, dynamic>{2: 1, 1: 1};
+const m8 = const <dynamic, dynamic>{2: 2, 1: 2};
 const m9 = const <int, int>{1: 1, 2: 2};
 const mA = const <int, int>{1: 2, 2: 1};
 const mB = const <int, int>{1: 1, 2: 1};

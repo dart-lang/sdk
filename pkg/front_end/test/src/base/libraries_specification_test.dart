@@ -197,6 +197,56 @@ main() {
       expect(spec.specificationFor('none').libraryInfoFor('c').uri,
           Uri.parse('org-dartlang-test:///one/two/c/main.dart'));
     });
+
+    test('supported entry must be bool', () async {
+      var jsonString = '{"vm" : {"libraries": {"core": '
+          '{"uri": "main.dart", "supported": 3}},';
+      expect(
+          () => LibrariesSpecification.parse(
+              Uri.parse('org-dartlang-test:///f.json'), jsonString),
+          throwsA((e) => e is LibrariesSpecificationException));
+    });
+
+    test('supported entry is copied correctly when parsing', () async {
+      var jsonString = '''
+      {
+        "vm": {
+          "libraries": {
+              "foo" : {
+                "uri": "a/main.dart",
+                "patches": [
+                  "a/p1.dart",
+                  "a/p2.dart"
+                ],
+                "supported": false
+
+              },
+              "bar" : {
+                "uri": "b/main.dart",
+                "patches": [
+                  "b/p3.dart"
+                ],
+                "supported": true
+              },
+              "baz" : {
+                "uri": "b/main.dart",
+                "patches": [
+                  "b/p3.dart"
+                ]
+              }
+          }
+        }
+      }
+      ''';
+      var spec = LibrariesSpecification.parse(
+          Uri.parse('org-dartlang-test:///one/two/f.json'), jsonString);
+      expect(
+          spec.specificationFor('vm').libraryInfoFor('foo').isSupported, false);
+      expect(
+          spec.specificationFor('vm').libraryInfoFor('bar').isSupported, true);
+      expect(
+          spec.specificationFor('vm').libraryInfoFor('baz').isSupported, true);
+    });
   });
 
   group('toJson', () {
@@ -210,7 +260,8 @@ main() {
                 "patches": [
                   "a/p1.dart",
                   "a/p2.dart"
-                ]
+                ],
+                "supported": false
               },
               "bar" : {
                 "uri": "b/main.dart",

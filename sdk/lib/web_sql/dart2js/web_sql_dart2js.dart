@@ -1,3 +1,5 @@
+// @dart = 2.6
+
 /**
  * An API for storing data in the browser that can be queried with SQL.
  *
@@ -7,6 +9,8 @@
  * for more information.
  *
  * The [dart:indexed_db] APIs is a recommended alternatives.
+ *
+ * {@category Web}
  */
 library dart.dom.web_sql;
 
@@ -23,11 +27,13 @@ import 'dart:_interceptors' show Interceptor;
 
 import 'dart:_js_helper'
     show
+        applyExtension,
         convertDartClosureToJS,
         Creates,
         JSName,
         Native,
-        JavaScriptIndexingBehavior;
+        JavaScriptIndexingBehavior,
+        Returns;
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35,9 +41,6 @@ import 'dart:_js_helper'
 
 // WARNING: Do not edit - generated code.
 
-@DomName('SQLStatementCallback')
-// http://www.w3.org/TR/webdatabase/#sqlstatementcallback
-@Experimental() // deprecated
 typedef void SqlStatementCallback(
     SqlTransaction transaction, SqlResultSet resultSet);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -46,9 +49,6 @@ typedef void SqlStatementCallback(
 
 // WARNING: Do not edit - generated code.
 
-@DomName('SQLStatementErrorCallback')
-// http://www.w3.org/TR/webdatabase/#sqlstatementerrorcallback
-@Experimental() // deprecated
 typedef void SqlStatementErrorCallback(
     SqlTransaction transaction, SqlError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -57,9 +57,6 @@ typedef void SqlStatementErrorCallback(
 
 // WARNING: Do not edit - generated code.
 
-@DomName('SQLTransactionCallback')
-// http://www.w3.org/TR/webdatabase/#sqltransactioncallback
-@Experimental() // deprecated
 typedef void SqlTransactionCallback(SqlTransaction transaction);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -67,21 +64,13 @@ typedef void SqlTransactionCallback(SqlTransaction transaction);
 
 // WARNING: Do not edit - generated code.
 
-@DomName('SQLTransactionErrorCallback')
-// http://www.w3.org/TR/webdatabase/#sqltransactionerrorcallback
-@Experimental() // deprecated
 typedef void SqlTransactionErrorCallback(SqlError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@DocsEditable()
-@DomName('Database')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
-// http://www.w3.org/TR/webdatabase/#asynchronous-database-api
-@Experimental() // deprecated
 @Native("Database")
 class SqlDatabase extends Interceptor {
   // To suppress missing implicit constructor warnings.
@@ -92,10 +81,9 @@ class SqlDatabase extends Interceptor {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.openDatabase)');
 
-  @DomName('Database.version')
-  @DocsEditable()
-  final String version;
+  String get version native;
 
+  @JSName('changeVersion')
   /**
    * Atomically update the database version to [newVersion], asynchronously
    * running [callback] on the [SqlTransaction] representing this
@@ -110,33 +98,72 @@ class SqlDatabase extends Interceptor {
    *
    * * [Database.changeVersion](http://www.w3.org/TR/webdatabase/#dom-database-changeversion) from W3C.
    */
-  @DomName('Database.changeVersion')
-  @DocsEditable()
-  void changeVersion(String oldVersion, String newVersion,
+  void _changeVersion(String oldVersion, String newVersion,
       [SqlTransactionCallback callback,
       SqlTransactionErrorCallback errorCallback,
       VoidCallback successCallback]) native;
 
-  @DomName('Database.readTransaction')
-  @DocsEditable()
-  void readTransaction(SqlTransactionCallback callback,
+  @JSName('changeVersion')
+  /**
+   * Atomically update the database version to [newVersion], asynchronously
+   * running [callback] on the [SqlTransaction] representing this
+   * [changeVersion] transaction.
+   *
+   * If [callback] runs successfully, then [successCallback] is called.
+   * Otherwise, [errorCallback] is called.
+   *
+   * [oldVersion] should match the database's current [version] exactly.
+   *
+   * See also:
+   *
+   * * [Database.changeVersion](http://www.w3.org/TR/webdatabase/#dom-database-changeversion) from W3C.
+   */
+  Future<SqlTransaction> changeVersion(String oldVersion, String newVersion) {
+    var completer = new Completer<SqlTransaction>();
+    _changeVersion(oldVersion, newVersion, (value) {
+      completer.complete(value);
+    }, (error) {
+      completer.completeError(error);
+    });
+    return completer.future;
+  }
+
+  @JSName('readTransaction')
+  void _readTransaction(SqlTransactionCallback callback,
       [SqlTransactionErrorCallback errorCallback,
       VoidCallback successCallback]) native;
 
-  @DomName('Database.transaction')
-  @DocsEditable()
+  @JSName('readTransaction')
+  Future<SqlTransaction> readTransaction() {
+    var completer = new Completer<SqlTransaction>();
+    _readTransaction((value) {
+      completer.complete(value);
+    }, (error) {
+      completer.completeError(error);
+    });
+    return completer.future;
+  }
+
   void transaction(SqlTransactionCallback callback,
       [SqlTransactionErrorCallback errorCallback,
       VoidCallback successCallback]) native;
+
+  @JSName('transaction')
+  Future<SqlTransaction> transaction_future() {
+    var completer = new Completer<SqlTransaction>();
+    transaction((value) {
+      applyExtension('SQLTransaction', value);
+      completer.complete(value);
+    }, (error) {
+      completer.completeError(error);
+    });
+    return completer.future;
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@DocsEditable()
-@DomName('SQLError')
-// http://www.w3.org/TR/webdatabase/#sqlerror
-@Experimental() // deprecated
 @Native("SQLError")
 class SqlError extends Interceptor {
   // To suppress missing implicit constructor warnings.
@@ -144,54 +171,30 @@ class SqlError extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  @DomName('SQLError.CONSTRAINT_ERR')
-  @DocsEditable()
   static const int CONSTRAINT_ERR = 6;
 
-  @DomName('SQLError.DATABASE_ERR')
-  @DocsEditable()
   static const int DATABASE_ERR = 1;
 
-  @DomName('SQLError.QUOTA_ERR')
-  @DocsEditable()
   static const int QUOTA_ERR = 4;
 
-  @DomName('SQLError.SYNTAX_ERR')
-  @DocsEditable()
   static const int SYNTAX_ERR = 5;
 
-  @DomName('SQLError.TIMEOUT_ERR')
-  @DocsEditable()
   static const int TIMEOUT_ERR = 7;
 
-  @DomName('SQLError.TOO_LARGE_ERR')
-  @DocsEditable()
   static const int TOO_LARGE_ERR = 3;
 
-  @DomName('SQLError.UNKNOWN_ERR')
-  @DocsEditable()
   static const int UNKNOWN_ERR = 0;
 
-  @DomName('SQLError.VERSION_ERR')
-  @DocsEditable()
   static const int VERSION_ERR = 2;
 
-  @DomName('SQLError.code')
-  @DocsEditable()
-  final int code;
+  int get code native;
 
-  @DomName('SQLError.message')
-  @DocsEditable()
-  final String message;
+  String get message native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@DocsEditable()
-@DomName('SQLResultSet')
-// http://www.w3.org/TR/webdatabase/#sqlresultset
-@Experimental() // deprecated
 @Native("SQLResultSet")
 class SqlResultSet extends Interceptor {
   // To suppress missing implicit constructor warnings.
@@ -199,26 +202,16 @@ class SqlResultSet extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  @DomName('SQLResultSet.insertId')
-  @DocsEditable()
-  final int insertId;
+  int get insertId native;
 
-  @DomName('SQLResultSet.rows')
-  @DocsEditable()
-  final SqlResultSetRowList rows;
+  SqlResultSetRowList get rows native;
 
-  @DomName('SQLResultSet.rowsAffected')
-  @DocsEditable()
-  final int rowsAffected;
+  int get rowsAffected native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@DocsEditable()
-@DomName('SQLResultSetRowList')
-// http://www.w3.org/TR/webdatabase/#sqlresultsetrowlist
-@Experimental() // deprecated
 @Native("SQLResultSetRowList")
 class SqlResultSetRowList extends Interceptor
     with ListMixin<Map>, ImmutableListMixin<Map>
@@ -228,8 +221,6 @@ class SqlResultSetRowList extends Interceptor
     throw new UnsupportedError("Not supported");
   }
 
-  @DomName('SQLResultSetRowList.length')
-  @DocsEditable()
   int get length => JS("int", "#.length", this);
 
   Map operator [](int index) {
@@ -275,26 +266,19 @@ class SqlResultSetRowList extends Interceptor
   Map elementAt(int index) => this[index];
   // -- end List<Map> mixins.
 
-  @DomName('SQLResultSetRowList.item')
-  @DocsEditable()
   Map item(int index) {
     return convertNativeToDart_Dictionary(_item_1(index));
   }
 
   @JSName('item')
-  @DomName('SQLResultSetRowList.item')
-  @DocsEditable()
   _item_1(index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@DocsEditable()
-@DomName('SQLTransaction')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
 // http://www.w3.org/TR/webdatabase/#sqltransaction
 @deprecated // deprecated
 @Native("SQLTransaction")
@@ -304,10 +288,22 @@ class SqlTransaction extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  @DomName('SQLTransaction.executeSql')
-  @DocsEditable()
-  void executeSql(String sqlStatement,
+  @JSName('executeSql')
+  void _executeSql(String sqlStatement,
       [List arguments,
       SqlStatementCallback callback,
       SqlStatementErrorCallback errorCallback]) native;
+
+  @JSName('executeSql')
+  Future<SqlResultSet> executeSql(String sqlStatement, [List arguments]) {
+    var completer = new Completer<SqlResultSet>();
+    _executeSql(sqlStatement, arguments, (transaction, resultSet) {
+      applyExtension('SQLResultSet', resultSet);
+      applyExtension('SQLResultSetRowList', resultSet.rows);
+      completer.complete(resultSet);
+    }, (transaction, error) {
+      completer.completeError(error);
+    });
+    return completer.future;
+  }
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Regression test to ensure that we substitute type variables in is-tests.
 
 import "package:expect/expect.dart";

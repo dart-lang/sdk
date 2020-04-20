@@ -26,7 +26,7 @@ void virtualTreeUpdateLines(SpanElement element, int n) {
   }
 }
 
-class VirtualTreeElement extends HtmlElement implements Renderable {
+class VirtualTreeElement extends CustomElement implements Renderable {
   static const tag = const Tag<VirtualTreeElement>('virtual-tree',
       dependencies: const [VirtualCollectionElement.tag]);
 
@@ -56,8 +56,8 @@ class VirtualTreeElement extends HtmlElement implements Renderable {
     assert(update != null);
     assert(children != null);
     assert(items != null);
-    VirtualTreeElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    VirtualTreeElement e = new VirtualTreeElement.created();
+    e._r = new RenderingScheduler<VirtualTreeElement>(e, queue: queue);
     e._children = children;
     e._collection = new VirtualCollectionElement(() {
       var element;
@@ -82,7 +82,7 @@ class VirtualTreeElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  VirtualTreeElement.created() : super.created();
+  VirtualTreeElement.created() : super.created(tag);
 
   bool isExpanded(item) {
     return _expanded.contains(item);
@@ -151,7 +151,7 @@ class VirtualTreeElement extends HtmlElement implements Renderable {
 
   void render() {
     if (children.length == 0) {
-      children = [_collection];
+      children = <Element>[_collection.element];
     }
 
     final items = [];

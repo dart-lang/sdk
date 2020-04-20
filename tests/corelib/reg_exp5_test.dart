@@ -15,7 +15,7 @@ main() {
     }
   }
   Expect.isFalse(new RegExp(r"^\w+$").hasMatch(str));
-  Match fm = new RegExp(r"^\w+$").firstMatch(str);
+  Match? fm = new RegExp(r"^\w+$").firstMatch(str);
   Expect.equals(null, fm);
 
   Iterable<Match> am = new RegExp(r"^\w+$").allMatches(str);

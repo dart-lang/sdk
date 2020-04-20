@@ -6,9 +6,11 @@
 library stream_join_test;
 
 import 'dart:async';
+
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_minitest.dart';
+
 import 'event_helper.dart';
-import 'package:unittest/unittest.dart';
-import "package:expect/expect.dart";
 
 main() {
   test("join-empty", () {
@@ -50,8 +52,7 @@ main() {
 
   test("join-error", () {
     StreamController c = new StreamController();
-    c.stream
-        .join("X")
+    Future<String?>.value(c.stream.join("X"))
         .catchError(expectAsync((String s) => expect(s, equals("BAD!"))));
     c.add(new Foo("foo"));
     c.add(new Foo("bar"));

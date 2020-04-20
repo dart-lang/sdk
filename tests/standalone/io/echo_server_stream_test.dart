@@ -1,6 +1,9 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
 //
 // Echo server test program to test socket streams.
 //
@@ -23,9 +26,7 @@ class EchoServerGame {
   static const MESSAGES = 100;
   static const FIRSTCHAR = 65;
 
-  EchoServerGame.start()
-      : _buffer = new List<int>(MSGSIZE),
-        _messages = 0 {
+  EchoServerGame.start() {
     for (int i = 0; i < MSGSIZE; i++) {
       _buffer[i] = FIRSTCHAR + i;
     }
@@ -64,7 +65,7 @@ class EchoServerGame {
       _socket.listen(onData, onError: errorHandler, onDone: onClosed);
       _socket.add(_buffer);
       _socket.close();
-      data = new List<int>(MSGSIZE);
+      data = new List<int>.filled(MSGSIZE, 0);
     }
 
     Socket.connect(TestingServer.HOST, _port).then((s) {
@@ -88,14 +89,15 @@ class EchoServerGame {
     asyncEnd();
   }
 
-  int _port;
-  SendPort _closeSendPort;
-  Socket _socket;
-  List<int> _buffer;
-  int _messages;
+  late int _port;
+  late SendPort _closeSendPort;
+  late Socket _socket;
+  final _buffer = new List<int>.filled(MSGSIZE, 0);
+  int _messages = 0;
 }
 
-void startEchoServer(SendPort replyPort) {
+void startEchoServer(Object replyPortObj) {
+  SendPort replyPort = replyPortObj as SendPort;
   var server = new EchoServer();
   server.init().then((port) {
     replyPort.send([port, server.closeSendPort]);
@@ -106,7 +108,7 @@ class EchoServer extends TestingServer {
   static const int MSGSIZE = EchoServerGame.MSGSIZE;
 
   void onConnection(Socket connection) {
-    List<int> buffer = new List<int>(MSGSIZE);
+    List<int> buffer = new List<int>.filled(MSGSIZE, 0);
     int offset = 0;
 
     void dataReceived(List<int> data) {

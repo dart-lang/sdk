@@ -2,6 +2,7 @@
 // https://codereview.chromium.org/444453006/ has been committed, in which case
 // it will be pulled in from DEPS!
 // Copied from http://trac.webkit.org/browser/trunk/WebCore/css/CSSPropertyNames.in
+// via. http://web.archive.org/web/20100722083519/http://trac.webkit.org/browser/trunk/WebCore/css/CSSPropertyNames.in
 //
 // CSS property names
 //

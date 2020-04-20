@@ -5,8 +5,14 @@
 #ifndef RUNTIME_VM_CONSTANTS_ARM_H_
 #define RUNTIME_VM_CONSTANTS_ARM_H_
 
+#ifndef RUNTIME_VM_CONSTANTS_H_
+#error Do not include constants_arm.h directly; use constants.h instead.
+#endif
+
 #include "platform/assert.h"
 #include "platform/globals.h"
+
+#include "vm/constants_base.h"
 
 namespace dart {
 
@@ -40,23 +46,23 @@ namespace dart {
 // Stack alignment: 4 bytes always, 8 bytes at public interfaces
 
 // Linux (Debian armhf) and Android also differ in whether floating point
-// arguments are passed in registers. Linux uses hardfp and Android uses
-// softfp. See TargetCPUFeatures::hardfp_supported().
+// arguments are passed in floating point registers. Linux uses hardfp and
+// Android uses softfp. See TargetCPUFeatures::hardfp_supported().
 
 // iOS ABI
 // See "iOS ABI Function Call Guide"
-// R0-R1: Argument / result / volatile
-// R2-R3: Argument / volatile
-// R4-R6: Preserved
-// R7:    Frame pointer
-// R8-R9: Preserved
-// R12:   Volatile
-// R13:   Stack pointer
-// R14:   Link register
-// R15:   Program counter
+// R0-R1:  Argument / result / volatile
+// R2-R3:  Argument / volatile
+// R4-R6:  Preserved
+// R7:     Frame pointer
+// R8-R11: Preserved
+// R12:    Volatile
+// R13:    Stack pointer
+// R14:    Link register
+// R15:    Program counter
 // Stack alignment: 4 bytes always, 4 bytes at public interfaces
 
-// iOS passes floating point arguments in registers (hardfp)
+// iOS passes floating point arguments in integer registers (softfp)
 
 enum Register {
   R0 = 0,
@@ -65,7 +71,7 @@ enum Register {
   R3 = 3,
   R4 = 4,
   R5 = 5,  // PP
-  R6 = 6,  // CTX
+  R6 = 6,  // CODE
   R7 = 7,  // iOS FP
   R8 = 8,
   R9 = 9,
@@ -249,6 +255,16 @@ static inline SRegister OddSRegisterOf(DRegister d) {
   return static_cast<SRegister>((d * 2) + 1);
 }
 
+static inline QRegister QRegisterOf(DRegister d) {
+  return static_cast<QRegister>(d / 2);
+}
+static inline QRegister QRegisterOf(SRegister s) {
+  return static_cast<QRegister>(s / 4);
+}
+static inline DRegister DRegisterOf(SRegister s) {
+  return static_cast<DRegister>(s / 2);
+}
+
 // Register aliases for floating point scratch registers.
 const QRegister QTMP = Q7;                     // Overlaps with DTMP, STMP.
 const DRegister DTMP = EvenDRegisterOf(QTMP);  // Overlaps with STMP.
@@ -261,15 +277,19 @@ const FpuRegister FpuTMP = QTMP;
 const int kNumberOfFpuRegisters = kNumberOfQRegisters;
 const FpuRegister kNoFpuRegister = kNoQRegister;
 
+extern const char* cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* fpu_reg_names[kNumberOfFpuRegisters];
+extern const char* fpu_s_reg_names[kNumberOfSRegisters];
+extern const char* fpu_d_reg_names[kNumberOfDRegisters];
+
 // Register aliases.
 const Register TMP = IP;            // Used as scratch register by assembler.
 const Register TMP2 = kNoRegister;  // There is no second assembler temporary.
-const Register CTX = R6;    // Location of current context at method entry.
 const Register PP = R5;     // Caches object pool pointer in generated code.
+const Register DISPATCH_TABLE_REG = NOTFP;  // Dispatch table register.
 const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
 const Register LRREG = LR;  // Link register.
-const Register ICREG = R9;  // IC data register.
 const Register ARGS_DESC_REG = R4;
 const Register CODE_REG = R6;
 const Register THR = R10;  // Caches current thread in generated code.
@@ -278,13 +298,88 @@ const Register CALLEE_SAVED_TEMP = R8;
 // R15 encodes APSR in the vmrs instruction.
 const Register APSR = R15;
 
-// Exception object is passed in this register to the catch handlers when an
-// exception is thrown.
+// ABI for catch-clause entry point.
 const Register kExceptionObjectReg = R0;
-
-// Stack trace object is passed in this register to the catch handlers when
-// an exception is thrown.
 const Register kStackTraceObjectReg = R1;
+
+// ABI for write barrier stub.
+const Register kWriteBarrierObjectReg = R1;
+const Register kWriteBarrierValueReg = R0;
+const Register kWriteBarrierSlotReg = R9;
+
+// ABI for allocation stubs.
+const Register kAllocationStubTypeArgumentsReg = R3;
+
+// ABI for instantiation stubs.
+struct InstantiationABI {
+  static const Register kUninstantiatedTypeArgumentsReg = R3;
+  static const Register kInstantiatorTypeArgumentsReg = R2;
+  static const Register kFunctionTypeArgumentsReg = R1;
+  static const Register kResultTypeArgumentsReg = R0;
+  static const Register kResultTypeReg = R0;
+};
+
+// Calling convention when calling TypeTestingStub and SubtypeTestCacheStub.
+struct TypeTestABI {
+  static const Register kInstanceReg = R0;
+  static const Register kDstTypeReg = R8;
+  static const Register kInstantiatorTypeArgumentsReg = R2;
+  static const Register kFunctionTypeArgumentsReg = R1;
+  static const Register kSubtypeTestCacheReg = R3;
+
+  static const intptr_t kAbiRegisters =
+      (1 << kInstanceReg) | (1 << kDstTypeReg) |
+      (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
+      (1 << kSubtypeTestCacheReg);
+
+  // For call to InstanceOfStub.
+  static const Register kResultReg = R0;
+};
+
+// Registers used inside the implementation of type testing stubs.
+struct TTSInternalRegs {
+  static const Register kInstanceTypeArgumentsReg = R4;
+  static const Register kScratchReg = R9;
+
+  static const intptr_t kInternalRegisters =
+      (1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg);
+};
+
+// ABI for InitStaticFieldStub.
+struct InitStaticFieldABI {
+  static const Register kFieldReg = R0;
+};
+
+// ABI for InitInstanceFieldStub.
+struct InitInstanceFieldABI {
+  static const Register kInstanceReg = R0;
+  static const Register kFieldReg = R1;
+};
+
+// ABI for ThrowStub.
+struct ThrowABI {
+  static const Register kExceptionReg = R0;
+};
+
+// ABI for ReThrowStub.
+struct ReThrowABI {
+  static const Register kExceptionReg = R0;
+  static const Register kStackTraceReg = R1;
+};
+
+// ABI for AssertBooleanStub.
+struct AssertBooleanABI {
+  static const Register kObjectReg = R0;
+};
+
+// ABI for RangeErrorStub.
+struct RangeErrorABI {
+  static const Register kLengthReg = R0;
+  static const Register kIndexReg = R1;
+};
+
+// TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
+// of reusing the constants of the instantiation stubs ABI.
 
 // List of registers used in load/store multiple.
 typedef uint16_t RegList;
@@ -308,10 +403,15 @@ const QRegister kAbiLastPreservedFpuReg = Q7;
 const int kAbiPreservedFpuRegCount = 4;
 
 const RegList kReservedCpuRegisters = (1 << SPREG) | (1 << FPREG) | (1 << TMP) |
-                                      (1 << PP) | (1 << THR) | (1 << PC);
+                                      (1 << PP) | (1 << THR) | (1 << LR) |
+                                      (1 << PC) | (1 << NOTFP);
+constexpr intptr_t kNumberOfReservedCpuRegisters = 8;
 // CPU registers available to Dart allocator.
-const RegList kDartAvailableCpuRegs =
+constexpr RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
+constexpr int kNumberOfDartAvailableCpuRegs =
+    kNumberOfCpuRegisters - kNumberOfReservedCpuRegisters;
+const intptr_t kStoreBufferWrapperSize = 24;
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
@@ -323,6 +423,62 @@ const int kDartVolatileCpuRegCount = 5;
 const QRegister kDartFirstVolatileFpuReg = Q0;
 const QRegister kDartLastVolatileFpuReg = Q3;
 const int kDartVolatileFpuRegCount = 4;
+
+#define R(REG) (1 << REG)
+
+class CallingConventions {
+ public:
+  static const intptr_t kArgumentRegisters = kAbiArgumentCpuRegs;
+  static const Register ArgumentRegisters[];
+  static const intptr_t kNumArgRegs = 4;
+
+  static const intptr_t kFpuArgumentRegisters = 0;
+
+  static const FpuRegister FpuArgumentRegisters[];
+  static const intptr_t kNumFpuArgRegs = 4;
+  static const DRegister FpuDArgumentRegisters[];
+  static const intptr_t kNumDFpuArgRegs = 8;
+  static const SRegister FpuSArgumentRegisters[];
+  static const intptr_t kNumSFpuArgRegs = 16;
+
+  static constexpr bool kArgumentIntRegXorFpuReg = false;
+
+  static constexpr intptr_t kCalleeSaveCpuRegisters = kAbiPreservedCpuRegs;
+
+  // Whether larger than wordsize arguments are aligned to even registers.
+  static constexpr AlignmentStrategy kArgumentRegisterAlignment =
+      kAlignedToWordSizeBut8AlignedTo8;
+
+  // How stack arguments are aligned.
+  static constexpr AlignmentStrategy kArgumentStackAlignment =
+      kAlignedToWordSizeBut8AlignedTo8;
+
+  // How fields in composites are aligned.
+#if defined(TARGET_OS_MACOS_IOS)
+  static constexpr AlignmentStrategy kFieldAlignment =
+      kAlignedToValueSizeBut8AlignedTo4;
+#else
+  static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
+#endif
+
+  // Whether 1 or 2 byte-sized arguments or return values are passed extended
+  // to 4 bytes.
+  static constexpr ExtensionStrategy kReturnRegisterExtension = kExtendedTo4;
+  static constexpr ExtensionStrategy kArgumentRegisterExtension = kExtendedTo4;
+  static constexpr ExtensionStrategy kArgumentStackExtension = kExtendedTo4;
+
+  static constexpr Register kReturnReg = R0;
+  static constexpr Register kSecondReturnReg = R1;
+  static constexpr FpuRegister kReturnFpuReg = Q0;
+
+  // We choose these to avoid overlap between themselves and reserved registers.
+  static constexpr Register kFirstNonArgumentRegister = R8;
+  static constexpr Register kSecondNonArgumentRegister = R9;
+  static constexpr Register kFirstCalleeSavedCpuReg = R4;
+  static constexpr Register kStackPointerRegister = SPREG;
+};
+
+#undef R
 
 // Values for the condition field as defined in section A3.2.
 enum Condition {
@@ -347,7 +503,9 @@ enum Condition {
 
   // Platform-independent variants declared for all platforms
   EQUAL = EQ,
+  ZERO = EQUAL,
   NOT_EQUAL = NE,
+  NOT_ZERO = NOT_EQUAL,
   LESS = LT,
   LESS_EQUAL = LE,
   GREATER_EQUAL = GE,
@@ -359,6 +517,20 @@ enum Condition {
 
   kInvalidCondition = 16
 };
+
+static inline Condition InvertCondition(Condition c) {
+  COMPILE_ASSERT((EQ ^ NE) == 1);
+  COMPILE_ASSERT((CS ^ CC) == 1);
+  COMPILE_ASSERT((MI ^ PL) == 1);
+  COMPILE_ASSERT((VS ^ VC) == 1);
+  COMPILE_ASSERT((HI ^ LS) == 1);
+  COMPILE_ASSERT((GE ^ LT) == 1);
+  COMPILE_ASSERT((GT ^ LE) == 1);
+  ASSERT(c != AL);
+  ASSERT(c != kSpecialCondition);
+  ASSERT(c != kInvalidCondition);
+  return static_cast<Condition>(c ^ 1);
+}
 
 // Opcodes for Data-processing instructions (instructions with a type 0 and 1)
 // as defined in section A3.4
@@ -490,7 +662,6 @@ class Instr {
       ((AL << kConditionShift) | (0x32 << 20) | (0xf << 12));
 
   static const int32_t kBreakPointCode = 0xdeb0;      // For breakpoint.
-  static const int32_t kStopMessageCode = 0xdeb1;     // For Stop(message).
   static const int32_t kSimulatorBreakCode = 0xdeb2;  // For breakpoint in sim.
   static const int32_t kSimulatorRedirectCode = 0xca11;  // For redirection.
 
@@ -697,6 +868,13 @@ class Instr {
             (Bits(22, 3) == 4));
   }
 
+  inline bool IsRbit() const {
+    ASSERT(ConditionField() != kSpecialCondition);
+    ASSERT(TypeField() == 3);
+    return ((Bits(4, 4) == 3) && (Bits(8, 4) == 15) && (Bits(16, 4) == 15) &&
+            (Bits(20, 8) == 111));
+  }
+
   // Test for VFP data processing or single transfer instructions of type 7.
   inline bool IsVFPDataProcessingOrSingleTransfer() const {
     ASSERT(ConditionField() != kSpecialCondition);
@@ -758,6 +936,18 @@ class Instr {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Instr);
 };
+
+// Floating-point reciprocal estimate and step (see pages A2-85 and A2-86 of
+// ARM Architecture Reference Manual ARMv7-A edition).
+float ReciprocalEstimate(float op);
+float ReciprocalStep(float op1, float op2);
+
+// Floating-point reciprocal square root estimate and step (see pages A2-87 to
+// A2-90 of ARM Architecture Reference Manual ARMv7-A edition).
+float ReciprocalSqrtEstimate(float op);
+float ReciprocalSqrtStep(float op1, float op2);
+
+constexpr uword kBreakInstructionFiller = 0xE1200070;  // bkpt #0
 
 }  // namespace dart
 

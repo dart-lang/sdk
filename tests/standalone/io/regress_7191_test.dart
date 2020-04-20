@@ -21,7 +21,12 @@ main() {
   asyncStart();
   var executable = Platform.executable;
   var script = Platform.script.resolve('regress_7191_script.dart').toFilePath();
-  Process.start(executable, [script]).then((process) {
+  Process.start(
+          executable,
+          []
+            ..addAll(Platform.executableArguments)
+            ..add(script))
+      .then((process) {
     process.stdin.add([0]);
     process.stdout.listen((_) {}, onDone: () {
       process.stdin.add([0]);

@@ -1,0 +1,53 @@
+------------ T:: ------------
+%this = _Parameter #0 [_T (#lib::T)+]
+t1 = _Call direct [Object::] (%this)
+RESULT: _T {}?
+------------ A:: ------------
+%this = _Parameter #0 [_T (#lib::A)+]
+t1 = _Call direct [Object::] (%this)
+RESULT: _T {}?
+------------ A::foo ------------
+%this = _Parameter #0 [_T (#lib::A)+]
+RESULT: _T {}?
+------------ B:: ------------
+%this = _Parameter #0 [_T (#lib::B)+]
+t1 = _Call direct [A::] (%this)
+RESULT: _T {}?
+------------ B::foo ------------
+%this = _Parameter #0 [_T (#lib::B)+]
+%x = _Parameter #1 [_T ANY?]
+RESULT: _T {}?
+------------ B::testPropertySet ------------
+%this = _Parameter #0 [_T (#lib::B)+]
+%x = _Parameter #1 [_T ANY?]
+t2 = _Call virtual set [B::foo] (%this, %x)
+t3 = _Call direct [use] (%x)
+RESULT: _T {}?
+------------ B::testDynamicPropertySet ------------
+%this = _Parameter #0 [_T (#lib::B)+]
+%x = _Parameter #1 [_T ANY?]
+%y = _Parameter #2 [_T ANY?]
+t3 = _Call dynamic set [foo] (%x, %y)
+t4 = _Call direct [use] (%y)
+RESULT: _T {}?
+------------ B::testSuperPropertySet ------------
+%this = _Parameter #0 [_T (#lib::B)+]
+%x = _Parameter #1 [_T ANY?]
+t2 = _Call direct set [A::foo] (%this, %x)
+t3 = _Call direct [use] (%x)
+RESULT: _T {}?
+------------ B::testStaticPropertySet ------------
+%this = _Parameter #0 [_T (#lib::B)+]
+%x = _Parameter #1 [_T ANY?]
+t2 = _Call direct set [B::bar] (%x)
+t3 = _Call direct [use] (%x)
+RESULT: _T {}?
+------------ B::bar ------------
+
+RESULT: _T {}?
+------------ use ------------
+%x = _Parameter #0 [_T ANY?]
+RESULT: _T {}?
+------------ main ------------
+
+RESULT: _T {}?

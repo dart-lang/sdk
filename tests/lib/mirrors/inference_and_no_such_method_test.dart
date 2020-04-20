@@ -6,9 +6,6 @@
 // whose type may change at runtime due to an invocation through
 // [InstanceMirror.delegate].
 
-library lib;
-
-@MirrorsUsed(targets: "lib")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
@@ -24,6 +21,6 @@ class B {
 
 main() {
   Expect.equals(42, new B().foo(0));
-  Expect.throws(
-      () => new A().foo('foo'), (e) => e is ArgumentError || e is TypeError);
+  dynamic a = new A();
+  Expect.throwsTypeError(() => a.foo('foo'));
 }

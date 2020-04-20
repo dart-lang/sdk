@@ -1,0 +1,4 @@
+Errors: {
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dynamic x) → dynamic
+  return main::id<main::A::T*>(x as{TypeError,ForDynamic} main::A::T*);

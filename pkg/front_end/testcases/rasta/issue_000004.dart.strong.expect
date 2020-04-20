@@ -1,0 +1,37 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+static field dynamic global;
+static method fact4() → dynamic {
+  core::int* f = 1;
+  for (core::int* n in <core::int*>[1, 2, 3, 4]) {
+    f = f.{core::num::*}(n);
+  }
+  return f;
+}
+static method fact5() → dynamic {
+  core::int* f = 1;
+  dynamic n;
+  for (final dynamic #t1 in <dynamic>[1, 2, 3, 4, 5]) {
+    n = #t1;
+    f = f.{core::num::*}(n as{TypeError,ForDynamic} core::num*) as{TypeError} core::int*;
+  }
+  return f;
+}
+static method fact6() → dynamic {
+  core::int* f = 1;
+  for (final dynamic #t2 in <dynamic>[1, 2, 3, 4, 5, 6]) {
+    self::global = #t2;
+    f = f.{core::num::*}(self::global as{TypeError,ForDynamic} core::num*) as{TypeError} core::int*;
+  }
+  return f;
+}
+static method main() → dynamic {
+  exp::Expect::isTrue(self::fact4().{core::Object::==}(24));
+  exp::Expect::isTrue(self::fact5().{core::Object::==}(120));
+  exp::Expect::isTrue(self::fact6().{core::Object::==}(720));
+}

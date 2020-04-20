@@ -4,7 +4,6 @@
 
 library test.metadata_scope;
 
-@MirrorsUsed(targets: "test.metadata_scope")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
@@ -49,16 +48,16 @@ checkMetadata(DeclarationMirror mirror, List expectedMetadata) {
 
 main() {
   reflectClass(A).metadata;
-  checkMetadata(reflectClass(A).declarations[#T], [const Annotation(A.foo)]);
-  checkMetadata(reflectClass(A).declarations[#foo], [const Annotation(A.foo)]);
-  checkMetadata(reflectClass(A).declarations[#bar], [const Annotation(A.foo)]);
+  checkMetadata(reflectClass(A).declarations[#T]!, [const Annotation(A.foo)]);
+  checkMetadata(reflectClass(A).declarations[#foo]!, [const Annotation(A.foo)]);
+  checkMetadata(reflectClass(A).declarations[#bar]!, [const Annotation(A.foo)]);
   checkMetadata(reflectClass(B), [const Annotation(B.foo)]);
-  checkMetadata(reflectClass(B).declarations[#T], [const Annotation(B.foo)]);
-  checkMetadata(reflectClass(B).declarations[#foo], [const Annotation(B.foo)]);
-  checkMetadata(reflectClass(B).declarations[#bar], [const Annotation(B.foo)]);
+  checkMetadata(reflectClass(B).declarations[#T]!, [const Annotation(B.foo)]);
+  checkMetadata(reflectClass(B).declarations[#foo]!, [const Annotation(B.foo)]);
+  checkMetadata(reflectClass(B).declarations[#bar]!, [const Annotation(B.foo)]);
   // The top-level function baz, not C.baz.
   checkMetadata(reflectClass(C), [const Annotation(baz)]);
   // C.baz, not the top-level function baz.
-  checkMetadata(reflectClass(C).declarations[#T], [const Annotation(C.baz)]);
-  checkMetadata(reflectClass(C).declarations[#baz], [const Annotation(C.baz)]);
+  checkMetadata(reflectClass(C).declarations[#T]!, [const Annotation(C.baz)]);
+  checkMetadata(reflectClass(C).declarations[#baz]!, [const Annotation(C.baz)]);
 }

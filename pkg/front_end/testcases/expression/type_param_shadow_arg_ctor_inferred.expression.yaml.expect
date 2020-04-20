@@ -1,0 +1,10 @@
+Errors: {
+  org-dartlang-debug:synthetic_debug_expression:2:13: Error: A value of type 'A<dynamic>' can't be assigned to a variable of type 'T'.
+   - 'A' is from 'pkg/front_end/testcases/expression/main.dart'.
+    T k = new A();
+              ^
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr<T extends dynamic>() → dynamic
+  return () → dart.core::Null? {
+    main::A::debugExpr::T* k = let final<BottomType> #t1 = invalid-expression "org-dartlang-debug:synthetic_debug_expression:2:13: Error: A value of type 'A<dynamic>' can't be assigned to a variable of type 'T'.\n - 'A' is from 'pkg/front_end/testcases/expression/main.dart'.\n  T k = new A();\n            ^" in new main::A::•<dynamic>() as{TypeError} <BottomType>;
+  };

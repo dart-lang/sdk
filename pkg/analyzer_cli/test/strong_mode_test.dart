@@ -1,8 +1,6 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer_cli.test.strong_mode;
 
 import 'dart:io';
 
@@ -12,13 +10,11 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_test.dart';
 
-main() {
-  // TODO(pq): fix tests to run safely on the bots
-  // https://github.com/dart-lang/sdk/issues/25001
-//  defineReflectiveTests(StrongModeTest);
+void main() {
+  defineReflectiveTests(StrongModeTest);
 }
 
-/// End-to-end test for --strong checking.
+/// End-to-end test for strong checking.
 ///
 /// Most strong mode tests are in Analyzer, but this verifies the option is
 /// working and producing extra errors as expected.
@@ -27,12 +23,12 @@ main() {
 /// full analysis context.
 @reflectiveTest
 class StrongModeTest extends BaseTest {
-  test_producesStricterErrors() async {
-    await drive('data/strong_example.dart', args: ['--strong']);
+  Future<void> test_producesStricterErrors() async {
+    await drive('data/strong_example.dart');
 
     expect(exitCode, 3);
     var stdout = bulletToDash(outSink);
-    expect(stdout, contains('error - Invalid override'));
+    expect(stdout, contains("isn't a valid override of"));
     expect(stdout, contains('error - The list literal type'));
     expect(stdout, contains('2 errors found'));
   }

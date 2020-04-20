@@ -5,63 +5,116 @@
 typedef void DebugCallback(String methodName, var arg1, var arg2);
 
 class DebugMap<K, V> implements Map<K, V> {
-  final Map<K, V> map;
-  DebugCallback indexSetCallBack;
-  DebugCallback putIfAbsentCallBack;
+  final Map<K, V> sourceMap;
+  DebugCallback indexSetCallback;
+  DebugCallback putIfAbsentCallback;
+  DebugCallback removeCallback;
 
-  DebugMap(this.map, {DebugCallback addCallback}) {
+  DebugMap(this.sourceMap, {DebugCallback addCallback, this.removeCallback}) {
     if (addCallback != null) {
       this.addCallback = addCallback;
     }
   }
 
   void set addCallback(DebugCallback value) {
-    indexSetCallBack = value;
-    putIfAbsentCallBack = value;
+    indexSetCallback = value;
+    putIfAbsentCallback = value;
   }
 
+  @override
+  Map<RK, RV> cast<RK, RV>() => Map.castFrom<K, V, RK, RV>(this);
+  @override
   bool containsValue(Object value) {
-    return map.containsValue(value);
+    return sourceMap.containsValue(value);
   }
 
-  bool containsKey(Object key) => map.containsKey(key);
+  @override
+  bool containsKey(Object key) => sourceMap.containsKey(key);
 
-  V operator [](Object key) => map[key];
+  @override
+  V operator [](Object key) => sourceMap[key];
 
+  @override
   void operator []=(K key, V value) {
-    if (indexSetCallBack != null) {
-      indexSetCallBack('[]=', key, value);
+    if (indexSetCallback != null) {
+      indexSetCallback('[]=', key, value);
     }
-    map[key] = value;
+    sourceMap[key] = value;
   }
 
+  @override
   V putIfAbsent(K key, V ifAbsent()) {
-    return map.putIfAbsent(key, () {
+    return sourceMap.putIfAbsent(key, () {
       V v = ifAbsent();
-      if (putIfAbsentCallBack != null) {
-        putIfAbsentCallBack('putIfAbsent', key, v);
+      if (putIfAbsentCallback != null) {
+        putIfAbsentCallback('putIfAbsent', key, v);
       }
       return v;
     });
   }
 
-  void addAll(Map<K, V> other) => map.addAll(other);
+  @override
+  void addAll(Map<K, V> other) => sourceMap.addAll(other);
 
-  V remove(Object key) => map.remove(key);
+  @override
+  V remove(Object key) {
+    if (removeCallback != null) {
+      removeCallback('remove', key, sourceMap[key]);
+    }
+    return sourceMap.remove(key);
+  }
 
-  void clear() => map.clear();
+  @override
+  void clear() {
+    if (removeCallback != null) {
+      removeCallback('clear', sourceMap, null);
+    }
+    sourceMap.clear();
+  }
 
-  void forEach(void f(K key, V value)) => map.forEach(f);
+  @override
+  void forEach(void f(K key, V value)) => sourceMap.forEach(f);
 
-  Iterable<K> get keys => map.keys;
+  @override
+  Iterable<K> get keys => sourceMap.keys;
 
-  Iterable<V> get values => map.values;
+  @override
+  Iterable<V> get values => sourceMap.values;
 
-  int get length => map.length;
+  @override
+  Iterable<MapEntry<K, V>> get entries => sourceMap.entries;
 
-  bool get isEmpty => map.isEmpty;
+  @override
+  void addEntries(Iterable<MapEntry<K, V>> entries) {
+    sourceMap.addEntries(entries);
+  }
 
-  bool get isNotEmpty => map.isNotEmpty;
+  @override
+  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> transform(K key, V value)) =>
+      sourceMap.map(transform);
+
+  @override
+  int get length => sourceMap.length;
+
+  @override
+  bool get isEmpty => sourceMap.isEmpty;
+
+  @override
+  bool get isNotEmpty => sourceMap.isNotEmpty;
+
+  @override
+  V update(K key, V update(V value), {V ifAbsent()}) =>
+      sourceMap.update(key, update, ifAbsent: ifAbsent);
+
+  @override
+  void updateAll(V update(K key, V value)) {
+    sourceMap.updateAll(update);
+  }
+
+  @override
+  void removeWhere(bool test(K key, V value)) {
+    sourceMap.removeWhere(test);
+  }
 }
 
 class DebugIterable<E> implements Iterable<E> {
@@ -69,68 +122,105 @@ class DebugIterable<E> implements Iterable<E> {
 
   DebugIterable(this.iterable);
 
+  @override
   Iterator<E> get iterator => iterable.iterator;
 
+  @override
+  Iterable<R> cast<R>() => Iterable.castFrom<E, R>(this);
+  @override
   Iterable<T> map<T>(T f(E element)) => iterable.map(f);
 
+  @override
   Iterable<E> where(bool test(E element)) => iterable.where(test);
 
+  @override
   Iterable<T> expand<T>(Iterable<T> f(E element)) => iterable.expand(f);
 
+  @override
   bool contains(Object element) => iterable.contains(element);
 
+  @override
   void forEach(void f(E element)) => iterable.forEach(f);
 
+  @override
   E reduce(E combine(E value, E element)) => iterable.reduce(combine);
 
+  @override
   T fold<T>(T initialValue, T combine(T previousValue, E element)) {
     return iterable.fold(initialValue, combine);
   }
 
+  @override
   bool every(bool test(E element)) => iterable.every(test);
 
+  @override
   String join([String separator = ""]) => iterable.join(separator);
 
+  @override
   bool any(bool test(E element)) => iterable.any(test);
 
+  @override
   List<E> toList({bool growable: true}) {
     return iterable.toList(growable: growable);
   }
 
+  @override
   Set<E> toSet() => iterable.toSet();
 
+  @override
   int get length => iterable.length;
 
+  @override
   bool get isEmpty => iterable.isEmpty;
 
+  @override
   bool get isNotEmpty => iterable.isNotEmpty;
 
+  @override
   Iterable<E> take(int n) => iterable.take(n);
 
+  @override
   Iterable<E> takeWhile(bool test(E value)) => iterable.takeWhile(test);
 
+  @override
   Iterable<E> skip(int n) => iterable.skip(n);
 
+  @override
   Iterable<E> skipWhile(bool test(E value)) => iterable.skipWhile(test);
 
+  @override
   E get first => iterable.first;
 
+  @override
   E get last => iterable.last;
 
+  @override
   E get single => iterable.single;
 
+  @override
   E firstWhere(bool test(E element), {E orElse()}) {
     return iterable.firstWhere(test, orElse: orElse);
   }
 
+  @override
   E lastWhere(bool test(E element), {E orElse()}) {
     return iterable.lastWhere(test, orElse: orElse);
   }
 
-  E singleWhere(bool test(E element)) => iterable.singleWhere(test);
+  @override
+  E singleWhere(bool test(E element), {E orElse()}) =>
+      iterable.singleWhere(test, orElse: orElse);
 
+  @override
   E elementAt(int index) => iterable.elementAt(index);
 
+  @override
+  Iterable<E> followedBy(Iterable<E> other) => iterable.followedBy(other);
+
+  @override
+  Iterable<T> whereType<T>() => iterable.whereType<T>();
+
+  @override
   String toString() => iterable.toString();
 }
 
@@ -143,18 +233,38 @@ class DebugList<E> extends DebugIterable<E> implements List<E> {
 
   List<E> get list => iterable;
 
+  @override
+  List<R> cast<R>() => List.castFrom<E, R>(this);
+  @override
+  List<E> operator +(List<E> other) => list + other;
+
+  @override
   E operator [](int index) => list[index];
 
+  @override
   void operator []=(int index, E value) {
     list[index] = value;
   }
 
+  @override
+  void set first(E element) {
+    list.first = element;
+  }
+
+  @override
+  void set last(E element) {
+    list.last = element;
+  }
+
+  @override
   int get length => list.length;
 
+  @override
   void set length(int newLength) {
     list.length = newLength;
   }
 
+  @override
   void add(E value) {
     if (addCallback != null) {
       addCallback('add', value, null);
@@ -162,6 +272,7 @@ class DebugList<E> extends DebugIterable<E> implements List<E> {
     list.add(value);
   }
 
+  @override
   void addAll(Iterable<E> iterable) {
     if (addAllCallback != null) {
       addAllCallback('addAll', iterable, null);
@@ -169,56 +280,85 @@ class DebugList<E> extends DebugIterable<E> implements List<E> {
     list.addAll(iterable);
   }
 
+  @override
   Iterable<E> get reversed => list.reversed;
 
+  @override
   void sort([int compare(E a, E b)]) => list.sort(compare);
 
+  @override
   void shuffle([random]) => list.shuffle(random);
 
+  @override
   int indexOf(E element, [int start = 0]) => list.indexOf(element, start);
 
+  @override
+  int indexWhere(bool test(E element), [int start = 0]) =>
+      list.indexWhere(test, start);
+
+  @override
   int lastIndexOf(E element, [int start]) => list.lastIndexOf(element, start);
 
+  @override
+  int lastIndexWhere(bool test(E element), [int start]) =>
+      list.lastIndexWhere(test, start);
+
+  @override
   void clear() => list.clear();
 
+  @override
   void insert(int index, E element) => list.insert(index, element);
 
+  @override
   void insertAll(int index, Iterable<E> iterable) {
     list.insertAll(index, iterable);
   }
 
+  @override
   void setAll(int index, Iterable<E> iterable) => list.setAll(index, iterable);
 
+  @override
   bool remove(Object value) => list.remove(value);
 
+  @override
   E removeAt(int index) => list.removeAt(index);
 
+  @override
   E removeLast() => list.removeLast();
 
+  @override
   void removeWhere(bool test(E element)) => list.removeWhere(test);
 
+  @override
   void retainWhere(bool test(E element)) => list.retainWhere(test);
 
+  @override
   List<E> sublist(int start, [int end]) => list.sublist(start, end);
 
+  @override
   Iterable<E> getRange(int start, int end) => list.getRange(start, end);
 
+  @override
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
     list.setRange(start, end, iterable, skipCount);
   }
 
+  @override
   void removeRange(int start, int end) {
     list.removeRange(start, end);
   }
 
+  @override
   void fillRange(int start, int end, [E fillValue]) {
     list.fillRange(start, end, fillValue);
   }
 
+  @override
   void replaceRange(int start, int end, Iterable<E> replacement) {
     list.replaceRange(start, end, replacement);
   }
 
+  @override
   Map<int, E> asMap() => list.asMap();
 }
 
@@ -229,8 +369,12 @@ class DebugSet<E> extends DebugIterable<E> implements Set<E> {
 
   Set<E> get set => iterable;
 
+  @override
+  Set<R> cast<R>() => Set.castFrom<E, R>(this);
+  @override
   bool contains(Object value) => set.contains(value);
 
+  @override
   bool add(E value) {
     if (addCallback != null) {
       addCallback('add', value, null);
@@ -238,32 +382,45 @@ class DebugSet<E> extends DebugIterable<E> implements Set<E> {
     return set.add(value);
   }
 
+  @override
   void addAll(Iterable<E> elements) {
     elements.forEach(add);
   }
 
+  @override
   bool remove(Object value) => set.remove(value);
 
+  @override
   E lookup(Object object) => set.lookup(object);
 
+  @override
   void removeAll(Iterable<Object> elements) => set.removeAll(elements);
 
+  @override
   void retainAll(Iterable<Object> elements) => set.retainAll(elements);
 
+  @override
   void removeWhere(bool test(E element)) => set.removeWhere(test);
 
+  @override
   void retainWhere(bool test(E element)) => set.retainWhere(test);
 
+  @override
   bool containsAll(Iterable<Object> other) => set.containsAll(other);
 
+  @override
   Set<E> intersection(Set<Object> other) => set.intersection(other);
 
+  @override
   Set<E> union(Set<E> other) => set.union(other);
 
+  @override
   Set<E> difference(Set<Object> other) => set.difference(other);
 
+  @override
   void clear() => set.clear();
 
+  @override
   Set<E> toSet() => set.toSet();
 }
 

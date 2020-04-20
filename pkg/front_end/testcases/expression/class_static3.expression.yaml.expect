@@ -1,0 +1,11 @@
+Errors: {
+  org-dartlang-debug:synthetic_debug_expression:1:13: Error: Getter not found: 'staticVar'.
+  globalVar + staticVar + 5
+              ^^^^^^^^^
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return #lib1::globalVar.{dart.core::num::+}(invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:13: Error: Getter not found: 'staticVar'.\nglobalVar + staticVar + 5\n            ^^^^^^^^^" as{TypeError,ForDynamic} dart.core::num*).{dart.core::num::+}(5);
+Errors: {
+}
+static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return #lib1::globalVar.{dart.core::num::+}(#lib1::MyClass::staticVar).{dart.core::num::+}(5);

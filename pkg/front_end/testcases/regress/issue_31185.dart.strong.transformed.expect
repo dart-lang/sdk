@@ -1,0 +1,33 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_31185.dart:8:12: Error: Expected ';' after this.
+//   return i ++ (i);
+//            ^^
+//
+// pkg/front_end/testcases/regress/issue_31185.dart:12:14: Error: Expected ';' after this.
+//   return (i) ++ (i);
+//              ^^
+//
+// pkg/front_end/testcases/regress/issue_31185.dart:12:12: Error: Can't assign to a parenthesized expression.
+//   return (i) ++ (i);
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field core::int* i = 5;
+static method test1() → core::int* {
+  return let final core::int* #t1 = self::i in let final core::int* #t2 = self::i = #t1.{core::num::+}(1) in #t1;
+  self::i;
+}
+static method test2() → core::int* {
+  return invalid-expression "pkg/front_end/testcases/regress/issue_31185.dart:12:12: Error: Can't assign to a parenthesized expression.
+  return (i) ++ (i);
+           ^" as{TypeError,ForDynamic} core::int*;
+  self::i;
+}
+static method main() → dynamic {
+  self::test1();
+}

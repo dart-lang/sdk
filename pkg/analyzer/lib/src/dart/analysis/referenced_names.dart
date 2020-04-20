@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,7 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
  * Compute the set of external names referenced in the [unit].
  */
 Set<String> computeReferencedNames(CompilationUnit unit) {
-  _ReferencedNamesComputer computer = new _ReferencedNamesComputer();
+  _ReferencedNamesComputer computer = _ReferencedNamesComputer();
   unit.accept(computer);
   return computer.names;
 }
@@ -19,7 +19,7 @@ Set<String> computeReferencedNames(CompilationUnit unit) {
  * clauses in the file. Import prefixes and type arguments are not included.
  */
 Set<String> computeSubtypedNames(CompilationUnit unit) {
-  Set<String> subtypedNames = new Set<String>();
+  Set<String> subtypedNames = <String>{};
 
   void _addSubtypedName(TypeName type) {
     if (type != null) {
@@ -45,6 +45,9 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
       _addSubtypedName(declaration.superclass);
       _addSubtypedNames(declaration.withClause?.mixinTypes);
       _addSubtypedNames(declaration.implementsClause?.interfaces);
+    } else if (declaration is MixinDeclaration) {
+      _addSubtypedNames(declaration.onClause?.superclassConstraints);
+      _addSubtypedNames(declaration.implementsClause?.interfaces);
     }
   }
 
@@ -61,7 +64,7 @@ class _LocalNameScope {
   _LocalNameScope(this.enclosing);
 
   factory _LocalNameScope.forBlock(_LocalNameScope enclosing, Block node) {
-    _LocalNameScope scope = new _LocalNameScope(enclosing);
+    _LocalNameScope scope = _LocalNameScope(enclosing);
     for (Statement statement in node.statements) {
       if (statement is FunctionDeclarationStatement) {
         scope.add(statement.functionDeclaration.name);
@@ -74,7 +77,7 @@ class _LocalNameScope {
 
   factory _LocalNameScope.forClass(
       _LocalNameScope enclosing, ClassDeclaration node) {
-    _LocalNameScope scope = new _LocalNameScope(enclosing);
+    _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.typeParameters);
     for (ClassMember member in node.members) {
       if (member is FieldDeclaration) {
@@ -88,21 +91,21 @@ class _LocalNameScope {
 
   factory _LocalNameScope.forClassTypeAlias(
       _LocalNameScope enclosing, ClassTypeAlias node) {
-    _LocalNameScope scope = new _LocalNameScope(enclosing);
+    _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.typeParameters);
     return scope;
   }
 
   factory _LocalNameScope.forConstructor(
       _LocalNameScope enclosing, ConstructorDeclaration node) {
-    _LocalNameScope scope = new _LocalNameScope(enclosing);
+    _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addFormalParameters(node.parameters);
     return scope;
   }
 
   factory _LocalNameScope.forFunction(
       _LocalNameScope enclosing, FunctionDeclaration node) {
-    _LocalNameScope scope = new _LocalNameScope(enclosing);
+    _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.functionExpression.typeParameters);
     scope.addFormalParameters(node.functionExpression.parameters);
     return scope;
@@ -110,21 +113,21 @@ class _LocalNameScope {
 
   factory _LocalNameScope.forFunctionTypeAlias(
       _LocalNameScope enclosing, FunctionTypeAlias node) {
-    _LocalNameScope scope = new _LocalNameScope(enclosing);
+    _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.typeParameters);
     return scope;
   }
 
   factory _LocalNameScope.forMethod(
       _LocalNameScope enclosing, MethodDeclaration node) {
-    _LocalNameScope scope = new _LocalNameScope(enclosing);
+    _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.typeParameters);
     scope.addFormalParameters(node.parameters);
     return scope;
   }
 
   factory _LocalNameScope.forUnit(CompilationUnit node) {
-    _LocalNameScope scope = new _LocalNameScope(null);
+    _LocalNameScope scope = _LocalNameScope(null);
     for (CompilationUnitMember declaration in node.declarations) {
       if (declaration is NamedCompilationUnitMember) {
         scope.add(declaration.name);
@@ -137,7 +140,7 @@ class _LocalNameScope {
 
   void add(SimpleIdentifier identifier) {
     if (identifier != null) {
-      names ??= new Set<String>();
+      names ??= <String>{};
       names.add(identifier.name);
     }
   }
@@ -174,16 +177,16 @@ class _LocalNameScope {
 }
 
 class _ReferencedNamesComputer extends GeneralizingAstVisitor {
-  final Set<String> names = new Set<String>();
-  final Set<String> importPrefixNames = new Set<String>();
+  final Set<String> names = <String>{};
+  final Set<String> importPrefixNames = <String>{};
 
-  _LocalNameScope localScope = new _LocalNameScope(null);
+  _LocalNameScope localScope = _LocalNameScope(null);
 
   @override
   visitBlock(Block node) {
     _LocalNameScope outerScope = localScope;
     try {
-      localScope = new _LocalNameScope.forBlock(localScope, node);
+      localScope = _LocalNameScope.forBlock(localScope, node);
       super.visitBlock(node);
     } finally {
       localScope = outerScope;
@@ -194,7 +197,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor {
   visitClassDeclaration(ClassDeclaration node) {
     _LocalNameScope outerScope = localScope;
     try {
-      localScope = new _LocalNameScope.forClass(localScope, node);
+      localScope = _LocalNameScope.forClass(localScope, node);
       super.visitClassDeclaration(node);
     } finally {
       localScope = outerScope;
@@ -205,7 +208,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor {
   visitClassTypeAlias(ClassTypeAlias node) {
     _LocalNameScope outerScope = localScope;
     try {
-      localScope = new _LocalNameScope.forClassTypeAlias(localScope, node);
+      localScope = _LocalNameScope.forClassTypeAlias(localScope, node);
       super.visitClassTypeAlias(node);
     } finally {
       localScope = outerScope;
@@ -214,7 +217,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor {
 
   @override
   visitCompilationUnit(CompilationUnit node) {
-    localScope = new _LocalNameScope.forUnit(node);
+    localScope = _LocalNameScope.forUnit(node);
     super.visitCompilationUnit(node);
   }
 
@@ -222,7 +225,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor {
   visitConstructorDeclaration(ConstructorDeclaration node) {
     _LocalNameScope outerScope = localScope;
     try {
-      localScope = new _LocalNameScope.forConstructor(localScope, node);
+      localScope = _LocalNameScope.forConstructor(localScope, node);
       super.visitConstructorDeclaration(node);
     } finally {
       localScope = outerScope;
@@ -240,7 +243,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor {
   visitFunctionDeclaration(FunctionDeclaration node) {
     _LocalNameScope outerScope = localScope;
     try {
-      localScope = new _LocalNameScope.forFunction(localScope, node);
+      localScope = _LocalNameScope.forFunction(localScope, node);
       super.visitFunctionDeclaration(node);
     } finally {
       localScope = outerScope;
@@ -251,7 +254,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor {
   visitFunctionTypeAlias(FunctionTypeAlias node) {
     _LocalNameScope outerScope = localScope;
     try {
-      localScope = new _LocalNameScope.forFunctionTypeAlias(localScope, node);
+      localScope = _LocalNameScope.forFunctionTypeAlias(localScope, node);
       super.visitFunctionTypeAlias(node);
     } finally {
       localScope = outerScope;
@@ -270,7 +273,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor {
   visitMethodDeclaration(MethodDeclaration node) {
     _LocalNameScope outerScope = localScope;
     try {
-      localScope = new _LocalNameScope.forMethod(localScope, node);
+      localScope = _LocalNameScope.forMethod(localScope, node);
       super.visitMethodDeclaration(node);
     } finally {
       localScope = outerScope;

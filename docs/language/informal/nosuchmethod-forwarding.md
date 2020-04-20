@@ -1,16 +1,16 @@
-## Feature: No Such Method Forwarding
+## NoSuchMethod Forwarding
 
 Author: eernst@
 
-**Status**: Under discussion.
+**Status**: Background material, normative language now in dartLangSpec.tex.
 
-**Version**: 0.3 (2017-10-05)
+**Version**: 0.7 (2018-07-10)
 
 **This document** is an informal specification of the support in Dart 2 for
 invoking `noSuchMethod` in situations where an attempt is made to invoke a
 method that does not exist.
 
-**The feature** described here, *no such method forwarding*, is a particular
+**The feature** described here, *noSuchMethod forwarding*, is a particular
 approach whereby an implementation of `noSuchMethod` in a class _C_ causes
 _C_ to be extended with a set of compiler generated forwarding methods, such
 that an invocation of any method in the static interface of _C_ will become
@@ -25,13 +25,12 @@ call a method that does not exist.
 In other words, consider an instance method invocation of a member named
 _m_ on a receiver _o_ whose class _C_ does not have a member named _m_ (or
 it has a member named _m_, but it does not admit the given invocation,
-e.g., because the number of arguments is wrong). If _C_ declares or inherits
-an implementation of the method `noSuchMethod` which is distinct from the
-one in the built-in class `Object`, the properties of the invocation are
-specified using an instance _i_ of `Invocation`, and `noSuchMethod` is then
-invoked with _i_ as the actual argument. Among other things, _i_ specifies
-whether the invocation was a method call or an invocation of a getter or a
-setter, and it specifies which actual arguments were passed.
+e.g., because the number of arguments is wrong). The properties of the
+invocation are then specified using an instance _i_ of `Invocation`, and
+`noSuchMethod` is then invoked with _i_ as the actual argument. Among other
+things, _i_ specifies whether the invocation was a method call or an
+invocation of a getter or a setter, and it specifies which actual arguments
+were passed.
 
 One difficulty with this design is that it requires developers to take
 both method invocations and getter invocations into account, in order to
@@ -74,8 +73,8 @@ a large number of methods with complex signatures. It is particularly
 inconvenient if the mock behavior is simple and largely independent of
 all those types.
 
-The no such method forwarding approach eliminates much of this tedium
-by means of compiler-generated forwarding methods corresponding to all
+The noSuchMethod forwarding approach eliminates much of this tedium
+by means of compiler generated forwarding methods corresponding to all
 the unimplemented methods. The example could then be expressed as
 follows:
 ```dart
@@ -96,7 +95,7 @@ class MockFoo implements Foo {
   }
 }
 ```
-With no such method forwarding, this causes a `foo` forwarding
+With noSuchMethod forwarding, this causes a `foo` forwarding
 method to be generated, with the signature declared in `Foo`
 and with the necessary code to create and initialize a suitable
 `Invocation` which will be passed to `noSuchMethod`.
@@ -104,52 +103,91 @@ and with the necessary code to create and initialize a suitable
 
 ## Syntax
 
-This feature does not include any grammar modifications.
+The grammar remains unchanged.
 
 
 ## Static Analysis
 
 We say that a class _C_ _has a non-trivial_ `noSuchMethod` if _C_ declares
-or inherits a non-abstract method named `noSuchMethod` which is distinct
+or inherits a concrete method named `noSuchMethod` which is distinct
 from the declaration in the built-in class `Object`.
 
 *Note that such a declaration cannot be a getter or setter, and it must
 accept one positional argument of type `Invocation`, due to the
 requirement that it must correctly override the declaration of
-`noSuchMethod` in `Object`.*
+`noSuchMethod` in the class `Object`. For instance, in addition to the
+obvious choice `noSuchMethod(Invocation i)` it can be
+`noSuchMethod(Object i, [String s])`, but not
+`noSuchMethod(Invocation i, String s)`.*
 
-*We introduce the notion of methods which are 'considered to be
-implemented'. These methods are exactly the ones that we will generate
-forwarders for, except that we keep the language slightly more abstract,
-such that the ability to use a different implementation technique remains
-open. During static analysis, "considering" these methods to be implemented
-allows the enclosing class to be non-abstract, with no errors.*
+If a concrete class _C_ has a non-trivial `noSuchMethod` then each
+method signature (including getters and setters) which is a member of _C_'s
+interface and for which _C_ does not have a concrete declaration is
+_noSuchMethod forwarded_.
 
-If a non-abstract class _C_ has a non-trivial `noSuchMethod`, _C_ is
-_considered to declare an implementation_ for each method, getter, and
-setter which is a member of _C_'s interface, unless _C_ declares or
-inherits an implementation of it.
+A concrete class _C_ that does _not_ have a non-trivial `noSuchMethod`
+implements its interface (*it is a compile-time error not to do so*), but
+there may exist superclasses of _C_ declared in other libraries whose
+interfaces include some private methods for which _C_ has no concrete
+declaration (*such members are by definition omitted from the interface of
+_C_, because their names are inaccessible*). Similarly, even if a class _D_
+does have a non-trivial `noSuchMethod`, there may exist abstract
+declarations of private methods with inaccessible names in superclasses of
+_D_ for which _D_ has no concrete declaration. In both of these situations,
+such inaccessible private method signatures are _noSuchMethod forwarded_.
 
-*Note that it is a compile-time error if a class _C_ has multiple
-superinterfaces with a member named _m_, declared by declarations _D1
-.. Dk_, and there is no declaration of _m_ in _C_, and there is no
-declaration among _D1 .. Dk_ which is a correct override of every
-declaration in _D1 .. Dk_. In other words, we ignore the situation where a
-class is considered to implement a member _m_, but the signature of _m_ is
-ambiguous, because it is based on a set of declarations that does not
-contain a "most specific" element: That situation is an error, so we do not
-need to handle it.*
+No other situations give rise to a noSuchMethod forwarded method
+signature.
 
-It is a compile-time error if _C_ is considered to declare an
-implementation of a method declaration _D_, and such an implementation
-would override an inherited non-abstract declaration.
+*This means that whenever it is stated that a class _C_ has a noSuchMethod
+forwarded method signature, it is guaranteed to be a concrete class with a
+non-trivial `noSuchMethod`, or the signature is guaranteed to be
+inaccessible. In the former case, the developer expressed the intent to
+obtain implementations of "missing methods" by having a non-trivial
+`noSuchMethod` declaration, and in the latter case it is impossible to
+write declarations in _C_ that implement the missing private methods, but
+they will then be provided as generated forwarders.*
 
-*This can only happen if the given implementation satisfies some, but not
-all requirements. In the example below, a `foo(int i)` implementation is
-inherited and a superinterface declares `foo([int i])`. This is a
-compile-time error because it would be error prone to generate a forwarder
-in `C` which will silently override an implementation which "almost"
-satisfies the requirement in the superinterface.*
+If a class _C_ has a noSuchMethod forwarded signature then an implicit
+method implementation implementing that method signature is induced in _C_.
+In the case where _C_ already contains an abstract declaration with the
+same name, the induced method implementation replaces the abstract
+declaration.
+
+It is a compile-time error if a concrete class _C_ has a non-trivial
+`noSuchMethod`, and a name `m` has a set of method signatures in the
+superinterfaces of _C_ where none is most specific, and there is no
+declaration in _C_ which provides such a most specific method signature.
+
+*This means that even in the situation where everything else implies that a
+noSuchMethod forwarder should be induced, signature ambiguities must still
+be resolved by a developer-written declaration, it cannot be a consequence
+of implicitly inducing a noSuchMethod forwarder. However, that
+developer-written declaration could be an abstract method in the
+concrete class itself.*
+
+*Note that there is no most specific method signature if there are several
+method signatures which are equally specific with respect to the argument
+types and return type, but an optional formal parameter in these signatures
+has different default values in different signatures.*
+
+It is a compile-time error if a class _C_ has a noSuchMethod forwarded
+method signature _S_ for a method named _m_, as well as an implementation
+of _m_.
+
+*This can only happen if that implementation is inherited and satisfies
+some, but not all requirements of the noSuchMethod forwarded method
+signature. In the example below, a `foo(int i)` implementation is inherited
+and a superinterface declares `foo([int i])`. This is a compile-time error
+because `C` does not have a method implementation with signature
+`foo([int])`, but if one were to be implicitly induced it would override
+`A.foo` (which is capable of accepting some but not all of the argument
+lists that an implementation of `foo([int])` would allow). We have made
+this an error because it would be error prone to induce a forwarder in `C`
+which will silently override an `A.foo` which "almost" satisfies the
+requirement in the superinterface. In particular, developers are likely to
+be surprised if `A.foo` is not called even when it is passed a single
+`int` argument, which precisely matches the declaration of `A.foo`.*
 
 ```dart
 class A {
@@ -166,98 +204,105 @@ class C extends A implements B {
 }
 ```
 
-*This error can be eliminated by adding a disambiguating abstract method
-declaration to `C` for `foo`.*
+*Note that this makes it a breaking change, in situations where such a
+signature conflict exists in some subtype like `C`, to change an abstract
+method declaration to a method implementation: If `A` had been an abstract
+class and `A.foo` an abstract method which was replaced by an `A.foo`
+declaration which implements the method, the error on `foo` in class `C`
+would be introduced because `A.foo` was implemented. There is a reasonably
+practical workaround, though: implement `C.foo` with a signature that
+resolves the conflict. That implementation might invoke `A.foo` in a
+superinvocation, or it might forward to `noSuchMethod`, or some times one
+and some times the other, that is up to the developer who writes `C.foo`.*
 
-```dart
-// class A and B are unchanged from the previous example.
+*Note that it is _not_ a compile-time error if the interface of _C_ has a
+noSuchMethod forwarded method signature _S_ with name _m_, and a superclass
+of _C_ also has a noSuchMethod forwarded method signature named _m_, such
+that the implicitly induced implementation of the former overrides the
+implicitly induced implementation of the  latter. In other words, it is OK
+for a generated forwarder to override another generated forwarder.*
 
-class C extends A implements B {
-  noSuchMethod(Invocation i) => ...;
-  foo([int i]); // No ambiguity; will forward to `noSuchMethod`.
-}
-```
-
-*Note that it is _not_ a compile-time error if _C_ is considered to declare an
-implementation of a method declaration _D_, and such an implementation
-would override an inherited declaration with the same name that some
-superclass is considered to have. In other words, it is OK for a generated
-forwarder to override another generated forwarder.*
-
-*Note that when a class _C_ is considered to declare an implementation of a
-given member, it allows superinvocations in subclasses.*
+*Note that when a class _C_ has an implicitly induced implementation of a
+method, superinvocations in subclasses are allowed, just like they would
+have been for a developer-written implementation.*
 
 ```dart
 abstract class D { baz(); }
-class E implements D {}
+class E implements D {
+  noSuchMethod(Invocation i) => null;
+}
 class F extends E { baz() { super.baz(); }} // OK
 ```
 
 
 ## Dynamic Semantics
 
-Consider a program _P_ that contains a non-abstract class _C_ which has a
-non-trivial `noSuchMethod`, and for which some methods, getters, or setters
-_m1 .. mk_ are considered to be implemented, as defined in the previous
-section.
+Assume that a class _C_ has an implicitly induced implementation of a
+method _m_ with positional formal parameters
+_T<sub>1</sub> a<sub>1</sub>..., T<sub>k</sub> a<sub>k</sub>_
+and named formal parameters
+_T<sub>k+1</sub> n<sub>1</sub>..., T<sub>k+m</sub> n<sub>m</sub>_.
+Said implementation will then create an instance _i_ of the predefined
+class `Invocation` such that its
 
-*This means that _m1 .. mk_ are present in the interface of _C_, but they
-do not have an implementation, except for special cases like when the
-implementation is a generated forwarder in a superclass of _C_ which
-is not a correct override of the method in the interface of _C_.*
+-   `isGetter` evaluates to true iff _m_ is a getter,
+    `isSetter` evaluates to true iff _m_ is a setter,
+    `isMethod` evaluates to true iff _m_ is a method.
+-   `memberName` evaluates to the symbol for the name _m_.
+-   `positionalArguments` evaluates to an immutable list whose
+    values are _a<sub>1</sub>..., a<sub>k</sub>_.
+-   `namedArguments` evaluates to an immutable map with the same keys
+    and values as
+    _{n<sub>1</sub>: n<sub>1</sub>..., n<sub>m</sub>: n<sub>m</sub>}_
 
-The semantics of _P_ is then such that it behaves as if _C_ had been
-modified by adding declarations of _m1 .. mk_ with the signatures
-declared in the interface of _C_, and with an implementation of each
-member _mj_. That implementation will invoke `noSuchMethod` on `this`
-with an `Invocation` as argument which specifies the bindings of the
-formal parameters to the actual arguments, and indicates whether _mj_ is a
-method, getter, or setter.
+*Note that the number of named arguments can be zero, in which case some of
+the positional parameters can be optional. We do not need to mention
+optional positional arguments separately, because they receive the same
+treatment as required parameters (which are of course always positional).*
+
+Finally the induced method implementation will invoke `noSuchMethod` with
+_i_ as the actual argument, and return the result obtained from there.
+
+*This determines the dynamic semantics of implicitly induced methods: The
+declared return type and the formal parameters, with type annotations and
+default values, are uniquely determined by the noSuchMethod forwarded
+method signatures, and invocation of an implicitly induced method has the
+same semantics of invocation of other methods. In particular, dynamic type
+checks are performed on the actual arguments upon invocation when the
+corresponding formal parameter is covariant.*
 
 *This ensures, relying on the heap soundness and expression soundness of
 Dart (which ensures that every expression of type _T_ will evaluate to an
 entity of type _T_), that all statically type safe invocations will invoke
-regular method implementations, user-written or generated. In other words,
-with statically checked calls there is no need for dynamic support for
-`noSuchMethod` at all.*
-
-*The generated forwarding methods behave in the same way as user-written
-method declarations. For instance, dynamic type checks are performed on the
-actual arguments when the corresponding formal parameter is covariant. A
-generated forwarding method may have optional arguments with default
-values. Given that there is always exactly one user-written signature which
-is selected to be the signature of the forwarding method, these default
-values are uniquely determined, and they work the same way as default
-values do in a user-written method.*
+a method implementation, user-written or implicitly induced. In other
+words, with statically checked calls there is no need for dynamic support
+for `noSuchMethod` at all.*
 
 For a dynamic invocation of a member _m_ on a receiver _o_ that has a
 non-trivial `noSuchMethod`, the semantics is such that an attempt to invoke
 _m_ with the given actual arguments (including possibly some type
-arguments) is made at first; if that fails (*because _o_ has no
+arguments) is made at first. If that fails (*because _o_ has no
 implementation of _m_ which can be invoked with the given argument list
-shape, be it a regular method or a generated forwarder*) `noSuchMethod` is
-invoked with an actual argument which is an `Invocation` describing the
-actual arguments and invocation.
+shape, be it a developer-written method or an implicitly induced
+implementation*) `noSuchMethod` is invoked with an actual argument which is
+an `Invocation` describing the actual arguments and invocation.
 
 *This implies that dynamic invocations on receivers having a non-trivial
 `noSuchMethod` will simply invoke the forwarders whenever possible.
-Similarly, the "automatic" support for tearing off a method in the static
-interface of the receiver which is not implemented, but supported via
-`noSuchMethod` and a generated forwarder will still work for dynamic
-invocations, as well as static ones.*
+Similarly, it will work for dynamic invocations as well as statically
+checked ones to tear off a method which is in the interface of the receiver
+and implemented as a generated forwarder.*
 
 *The only remaining situation is when a dynamic invocation invokes a method
 which is not present in the static interface of the receiver, or when a
 method with that name is present, but its signature does not allow for the
-given invocation (e.g., because there are too few positional arguments).
-In this situation, the regular instance method invocation has failed (there
-is no such regular method, and no such generated forwarder). Such a dynamic
-invocation must then dynamically determine whether the given receiver has a
-non-trivial `noSuchMethod` and invoke it, rather than just invoking the
-behavior of `noSuchMethod` in `Object` immediately (that is, throwing a
-`NoSuchMethodError`). In this situation, `noSuchMethod` must also support
-both method invocations and tear-offs, because there is no generated
-forwarder to do that.*
+given invocation (e.g., because some required arguments are omitted). In
+this situation, the regular instance method invocation has failed (there is
+no such regular method, and no such generated forwarder). Such a dynamic
+invocation will then invoke `noSuchMethod`. In this situation, a
+developer-written implementation of `noSuchMethod` should also support both
+method invocations and tear-offs explicitly (as it should before this
+feature was added), because there is no generated forwarder to do that.*
 
 *This approach may incur a certain performance penalty, but only for these
 invocations (which are dynamic, and have already failed to invoke an
@@ -267,17 +312,45 @@ existing method, regular or generated).*
 statically checked and dynamic invocations: Whenever an instance method is
 invoked, and no such method exists, `noSuchMethod` will be invoked.*
 
-*Note that this allows dynamic code to support types that have conflicting
-signatures. For instance, it would be possible to create a class having a
-non-trivial `noSuchMethod` that accepts dynamic invocations corresponding
-to having both a getter `int get foo` and a method `int foo()`, even though
-that could never be achieved for the actual interface of the class of an
-instance. This will allow dynamic code to be more generic than typed code
-could be, of course, at the expense of being forced to remain dynamically
-typed as long as these conflicting interfaces are used together.*
+*One special case to be aware of is where a forwarder is torn off and then
+invoked with an actual argument list which does not match the formal
+parameter list. In that situation we will get an invocation of
+`Object.noSuchMethod` rather than the `noSuchMethod` in the original
+receiver, because this is an invocation of a function object (and they do
+not override `noSuchMethod`):*
+
+```dart
+class A {
+  dynamic noSuchMethod(Invocation i) => null;
+  void foo();
+}
+
+main() {
+  A a = new A();
+  dynamic f = a.foo;
+  // Invokes `Object.noSuchMethod`, not `A.noSuchMethod`, so it throws.
+  f(42);
+}
+```
 
 
 ## Updates
+
+*   Jul 10th 2018, version 0.7: Added requirement to generate forwarders
+    for inaccessible private methods even in the case where there is no
+    non-trivial `noSuchMethod`.
+
+*   Mar 22nd 2018, version 0.6: Added example to illustrate the case where a
+    torn-off method invokes `Object.noSuchMethod`, not the one in the
+    receiver, because of a non-matching actual argument list.
+
+*   Nov 27th 2017, version 0.5: Changed terminology to use 'implicitly
+    induced method implementations'. Helped achieving a major simplifaction
+    of the dynamic semantics.
+
+*   Nov 22nd 2017, version 0.4: Removed support for explicitly requesting
+    generated forwarder in conflict case. Improved the clarity of many
+    parts.
 
 *   Oct 5th 2017, version 0.3: Clarified that generated forwarders must
     pass an `Invocation` to `noSuchMethod` which specifies the bindings

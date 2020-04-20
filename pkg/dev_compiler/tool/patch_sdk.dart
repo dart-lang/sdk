@@ -7,148 +7,136 @@
 /// This is currently designed as an offline tool, but we could automate it.
 
 import 'dart:io';
-import 'dart:math' as math;
 
-import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/src/generated/sdk.dart';
-import 'package:path/path.dart' as path;
+import 'package:_fe_analyzer_shared/src/util/relativize.dart';
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:args/args.dart';
+import 'package:front_end/src/base/libraries_specification.dart';
+import 'package:front_end/src/fasta/resolve_input_uri.dart';
 
 void main(List<String> argv) {
-  var self = path.relative(path.fromUri(Platform.script));
-  if (argv.length < 3) {
-    var toolDir = path.relative(path.dirname(path.fromUri(Platform.script)));
-
-    var inputExample = path.join(toolDir, '..', '..', '..');
-    var patchExample = path.join(toolDir, 'input_sdk');
-    var outExample =
-        path.relative(path.normalize(path.join('gen', 'patched_sdk')));
-
-    print('Usage: $self INPUT_SDK_DIR PATCH_DIR OUTPUT_DIR');
+  var args = _parser.parse(argv);
+  if (args['libraries'] == null || args['out'] == null) {
+    var self = relativizeUri(Uri.base, Platform.script, isWindows);
+    var librariesJson = relativizeUri(Uri.base,
+        Platform.script.resolve('../../../sdk/lib/libraries.json'), isWindows);
+    print('Usage: $self [other options]'
+        ' --libraries <libraries.json> --out <output-dir>');
     print('For example:');
-    print('\$ $self $inputExample $patchExample $outExample');
+    print('\$ $self --nnbd --libraries $librariesJson --out patched-sdk-dir');
     exit(1);
   }
 
-  var selfModifyTime = new File(self).lastModifiedSync().millisecondsSinceEpoch;
+  var useNnbd = args['nnbd'] as bool;
+  var target = args['target'] as String;
+  var jsonUri = resolveInputUri(args['libraries'] as String);
+  var libRoot = jsonUri.resolve('./');
+  var outPath = args['out'] as String;
+  var outDir = resolveInputUri(outPath.endsWith('/') ? outPath : '$outPath/');
+  var outLibRoot = outDir.resolve('lib/');
 
-  var inputDir = argv[0];
-  var patchDir = argv[1];
-  var sdkLibIn = path.join(inputDir, 'sdk', 'lib');
-  var patchIn = path.join(patchDir, 'patch');
-  var privateIn = path.join(patchDir, 'private');
-  var sdkOut = path.join(argv[2], 'lib');
+  var inputVersion = Platform.script.resolve('../../../tools/VERSION');
+  var outVersion = outDir.resolve('version');
 
-  var INTERNAL_PATH = '_internal/js_runtime/lib/';
+  var specification = LibrariesSpecification.parse(
+          jsonUri, File.fromUri(jsonUri).readAsStringSync())
+      .specificationFor(target);
 
   // Copy libraries.dart and version
-  var librariesDart = path.join(patchDir, 'libraries.dart');
-  var libContents = new File(librariesDart).readAsStringSync();
-  // TODO(jmesserly): can we remove this?
-  _writeSync(path.join(sdkOut, '_internal', 'libraries.dart'), libContents);
-  _writeSync(
-      path.join(
-          sdkOut, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'),
-      libContents);
-  _writeSync(path.join(sdkOut, '..', 'version'),
-      new File(path.join(inputDir, 'tools', 'VERSION')).readAsStringSync());
+  _writeSync(outVersion, File.fromUri(inputVersion).readAsStringSync());
 
-  // Parse libraries.dart
-  var sdkLibraries = _getSdkLibraries(libContents);
-
-  // Enumerate core libraries and apply patches
-  for (SdkLibrary library in sdkLibraries) {
-    // TODO(jmesserly): analyzer does not handle the default case of
-    // "both platforms" correctly, and treats it as being supported on neither.
-    // So instead we skip explicitly marked as VM libs.
-    if (library.isVmLibrary) continue;
-
-    var libraryOut = path.join(sdkLibIn, library.path);
-    var libraryOverride = path.join(patchDir, 'lib', library.path);
-    var libraryIn;
-    if (library.path.contains(INTERNAL_PATH)) {
-      libraryIn =
-          path.join(privateIn, library.path.replaceAll(INTERNAL_PATH, ''));
-    } else if (new File(libraryOverride).existsSync()) {
-      libraryIn = libraryOverride;
-    } else {
-      libraryIn = libraryOut;
-    }
-
-    var libraryFile = new File(libraryIn);
+  // Enumerate sdk libraries and apply patches
+  for (var library in specification.allLibraries) {
+    var libraryFile = File.fromUri(library.uri);
+    var libraryOut =
+        outLibRoot.resolve(relativizeLibraryUri(libRoot, library.uri, useNnbd));
     if (libraryFile.existsSync()) {
-      var outPaths = <String>[libraryOut];
+      var outUris = <Uri>[libraryOut];
       var libraryContents = libraryFile.readAsStringSync();
+      var contents = <String>[libraryContents];
 
-      int inputModifyTime = math.max(selfModifyTime,
-          libraryFile.lastModifiedSync().millisecondsSinceEpoch);
-      var partFiles = <File>[];
-      for (var part in parseDirectives(libraryContents).directives) {
+      for (var part
+          in _parseString(libraryContents, useNnbd: useNnbd).unit.directives) {
         if (part is PartDirective) {
           var partPath = part.uri.stringValue;
-          outPaths.add(path.join(path.dirname(libraryOut), partPath));
-
-          var partFile = new File(path.join(path.dirname(libraryIn), partPath));
-          partFiles.add(partFile);
-          inputModifyTime = math.max(inputModifyTime,
-              partFile.lastModifiedSync().millisecondsSinceEpoch);
+          outUris.add(libraryOut.resolve(partPath));
+          contents.add(
+              File.fromUri(library.uri.resolve(partPath)).readAsStringSync());
         }
       }
 
-      // See if we can find a patch file.
-      var patchPath = path.join(
-          patchIn, path.basenameWithoutExtension(libraryIn) + '_patch.dart');
-
-      var patchFile = new File(patchPath);
-      bool patchExists = patchFile.existsSync();
-      if (patchExists) {
-        inputModifyTime = math.max(inputModifyTime,
-            patchFile.lastModifiedSync().millisecondsSinceEpoch);
+      if (args['merge-parts'] as bool && outUris.length > 1) {
+        outUris.length = 1;
+        contents = [
+          contents
+              .join('\n')
+              .replaceAll(RegExp('^part [^\n]*\$', multiLine: true), '')
+        ];
       }
 
-      // Compute output paths
-      outPaths = outPaths
-          .map((p) => path.join(sdkOut, path.relative(p, from: sdkLibIn)))
-          .toList();
+      var buffer = StringBuffer();
+      for (var patchUri in library.patches) {
+        // Note: VM targets enumerate more than one patch file, they are
+        // currently written so that the first file is a valid patch file and
+        // all other files can be appended at the end.
+        buffer.write(File.fromUri(patchUri).readAsStringSync());
+      }
+      var patchContents = '$buffer';
 
-      // Compare output modify time with input modify time.
-      bool needsUpdate = false;
-      for (var outPath in outPaths) {
-        var outFile = new File(outPath);
-        if (!outFile.existsSync() ||
-            outFile.lastModifiedSync().millisecondsSinceEpoch <
-                inputModifyTime) {
-          needsUpdate = true;
-          break;
-        }
+      if (patchContents.isNotEmpty) {
+        contents = _patchLibrary(contents, patchContents, useNnbd: useNnbd);
       }
 
-      if (needsUpdate) {
-        var contents = <String>[libraryContents];
-        contents.addAll(partFiles.map((f) => f.readAsStringSync()));
-        if (patchExists) {
-          var patchContents = patchFile.readAsStringSync();
-          contents = _patchLibrary(contents, patchContents);
+      if (contents != null) {
+        for (var i = 0; i < outUris.length; i++) {
+          _writeSync(outUris[i], contents[i]);
         }
-
-        if (contents != null) {
-          for (var i = 0; i < outPaths.length; i++) {
-            _writeSync(outPaths[i], contents[i]);
-          }
-        } else {
-          exitCode = 2;
-        }
+      } else {
+        exitCode = 2;
       }
     }
   }
+
+  var outLibrariesDart =
+      outLibRoot.resolve('_internal/sdk_library_metadata/lib/libraries.dart');
+  _writeSync(outLibrariesDart,
+      _generateLibrariesDart(libRoot, specification, useNnbd));
 }
 
 /// Writes a file, creating the directory if needed.
-void _writeSync(String filePath, String contents) {
-  var outDir = new Directory(path.dirname(filePath));
+void _writeSync(Uri fileUri, String contents) {
+  var outDir = Directory.fromUri(fileUri.resolve('.'));
   if (!outDir.existsSync()) outDir.createSync(recursive: true);
 
-  new File(filePath).writeAsStringSync(contents);
+  File.fromUri(fileUri).writeAsStringSync(contents);
 }
+
+final _parser = ArgParser()
+  ..addFlag('nnbd',
+      help: 'Whether to enable the nnbd feature.', defaultsTo: false)
+  ..addFlag('merge-parts',
+      help: 'Whether to merge part files. '
+          'Technically this is not necessary, but dartanalyzer '
+          'produces less warnings when enabling this flag.',
+      defaultsTo: false)
+  ..addOption('libraries',
+      help: 'Path to a libraries.json specification file (required). '
+          'All libary URIs within libraries.json are expected to be somewhere '
+          'under the directory containing the libraries.json file. Reaching '
+          'out above such directory is generally not supported. Today it is '
+          'only allowed for the nnbd sdk to reuse libraries of the non-nnbd '
+          'sdk, in which case the path starts with "../../sdk/lib/".')
+  ..addOption('out', help: 'Path to an output folder (required).')
+  ..addOption('target',
+      help: 'The target tool. '
+          'This name matches one of the possible targets in libraries.json '
+          'and it is used to pick which patch files will be applied.',
+      allowed: ['dartdevc', 'dart2js', 'dart2js_server', 'vm', 'flutter']);
 
 /// Merges dart:* library code with code from *_patch.dart file.
 ///
@@ -169,29 +157,30 @@ void _writeSync(String filePath, String contents) {
 /// in the Dart language. Since this feature is only for the convenience of
 /// writing the dart:* libraries, and not a tool given to Dart developers, it
 /// seems like a non-ideal situation. Instead we keep the preprocessing simple.
-List<String> _patchLibrary(List<String> partsContents, String patchContents) {
+List<String> _patchLibrary(List<String> partsContents, String patchContents,
+    {bool useNnbd = false}) {
   var results = <StringEditBuffer>[];
 
   // Parse the patch first. We'll need to extract bits of this as we go through
   // the other files.
-  var patchFinder = new PatchFinder.parseAndVisit(patchContents);
+  var patchFinder = PatchFinder.parseAndVisit(patchContents, useNnbd: useNnbd);
 
   // Merge `external` declarations with the corresponding `@patch` code.
-  bool failed = false;
+  var failed = false;
   for (var partContent in partsContents) {
-    var partEdits = new StringEditBuffer(partContent);
-    var partUnit = parseCompilationUnit(partContent);
-    var patcher = new PatchApplier(partEdits, patchFinder);
+    var partEdits = StringEditBuffer(partContent);
+    var partUnit = _parseString(partContent, useNnbd: useNnbd).unit;
+    var patcher = PatchApplier(partEdits, patchFinder);
     partUnit.accept(patcher);
     if (!failed) failed = patcher.patchWasMissing;
     results.add(partEdits);
   }
   if (failed) return null;
-  return new List<String>.from(results.map((e) => e.toString()));
+  return List<String>.from(results.map((e) => e.toString()));
 }
 
 /// Merge `@patch` declarations into `external` declarations.
-class PatchApplier extends GeneralizingAstVisitor {
+class PatchApplier extends GeneralizingAstVisitor<void> {
   final StringEditBuffer edits;
   final PatchFinder patch;
 
@@ -201,7 +190,7 @@ class PatchApplier extends GeneralizingAstVisitor {
   PatchApplier(this.edits, this.patch);
 
   @override
-  visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     super.visitCompilationUnit(node);
     if (_isLibrary) _mergeUnpatched(node);
   }
@@ -218,38 +207,38 @@ class PatchApplier extends GeneralizingAstVisitor {
 
     // To patch a library, we must have a library directive
     var libDir = unit.directives.first as LibraryDirective;
-    int importPos = unit.directives
+    var importPos = unit.directives
         .lastWhere((d) => d is ImportDirective, orElse: () => libDir)
         .end;
-    for (var d in patch.unit.directives.where((d) => d is ImportDirective)) {
+    for (var d in patch.unit.directives.whereType<ImportDirective>()) {
       _merge(d, importPos);
     }
 
-    int partPos = unit.directives.last.end;
-    for (var d in patch.unit.directives.where((d) => d is PartDirective)) {
+    var partPos = unit.directives.last.end;
+    for (var d in patch.unit.directives.whereType<PartDirective>()) {
       _merge(d, partPos);
     }
 
     // Merge declarations from the patch
-    int declPos = edits.original.length;
+    var declPos = edits.original.length;
     for (var d in patch.mergeDeclarations) {
       _merge(d, declPos);
     }
   }
 
   @override
-  visitPartOfDirective(PartOfDirective node) {
+  void visitPartOfDirective(PartOfDirective node) {
     _isLibrary = false;
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     _maybePatch(node);
   }
 
   /// Merge patches and extensions into the class
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     node.members.forEach(_maybePatch);
 
     var mergeMembers = patch.mergeMembers[_qualifiedName(node)];
@@ -263,22 +252,30 @@ class PatchApplier extends GeneralizingAstVisitor {
     }
   }
 
-  void _maybePatch(AstNode node) {
+  void _maybePatch(Declaration node) {
     if (node is FieldDeclaration) return;
 
-    var externalKeyword = (node as dynamic).externalKeyword;
+    var externalKeyword = (node as dynamic).externalKeyword as Token;
     if (externalKeyword == null) return;
 
     var name = _qualifiedName(node);
     var patchNode = patch.patches[name];
     if (patchNode == null) {
-      print('warning: patch not found for $name: $node');
-      patchWasMissing = true;
+      // *.fromEnvironment are left unpatched by dart2js and are handled via
+      // codegen.
+      if (name != 'bool.fromEnvironment' &&
+          name != 'int.fromEnvironment' &&
+          name != 'String.fromEnvironment') {
+        print('warning: patch not found for $name: $node');
+        // TODO(sigmund): delete this fail logic? Rather than emit an empty
+        // file, it's more useful to emit a file with missing patches.
+        // patchWasMissing = true;
+      }
       return;
     }
 
-    Annotation patchMeta = patchNode.metadata.lastWhere(_isPatchAnnotation);
-    int start = patchMeta.endToken.next.offset;
+    var patchMeta = patchNode.metadata.lastWhere(_isPatchAnnotation);
+    var start = patchMeta.endToken.next.offset;
     var code = patch.contents.substring(start, patchNode.end);
 
     // Const factory constructors can't be legally parsed from the patch file,
@@ -297,27 +294,27 @@ class PatchApplier extends GeneralizingAstVisitor {
   }
 }
 
-class PatchFinder extends GeneralizingAstVisitor {
+class PatchFinder extends GeneralizingAstVisitor<void> {
   final String contents;
   final CompilationUnit unit;
 
-  final Map patches = <String, Declaration>{};
-  final Map mergeMembers = <String, List<ClassMember>>{};
-  final List mergeDeclarations = <CompilationUnitMember>[];
+  final patches = <String, Declaration>{};
+  final mergeMembers = <String, List<ClassMember>>{};
+  final mergeDeclarations = <CompilationUnitMember>[];
 
-  PatchFinder.parseAndVisit(String contents)
+  PatchFinder.parseAndVisit(String contents, {bool useNnbd})
       : contents = contents,
-        unit = parseCompilationUnit(contents) {
+        unit = _parseString(contents, useNnbd: useNnbd).unit {
     visitCompilationUnit(unit);
   }
 
   @override
-  visitCompilationUnitMember(CompilationUnitMember node) {
+  void visitCompilationUnitMember(CompilationUnitMember node) {
     mergeDeclarations.add(node);
   }
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     if (_isPatch(node)) {
       var members = <ClassMember>[];
       for (var member in node.members) {
@@ -336,7 +333,7 @@ class PatchFinder extends GeneralizingAstVisitor {
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     if (_isPatch(node)) {
       patches[_qualifiedName(node)] = node;
     } else {
@@ -345,24 +342,24 @@ class PatchFinder extends GeneralizingAstVisitor {
   }
 
   @override
-  visitFunctionBody(node) {} // skip method bodies
+  void visitFunctionBody(node) {} // skip method bodies
 }
 
 String _qualifiedName(Declaration node) {
-  var result = "";
+  var result = '';
 
   var parent = node.parent;
   if (parent is ClassDeclaration) {
-    result = "${parent.name.name}.";
+    result = '${parent.name.name}.';
   }
 
-  var name = (node as dynamic).name;
+  var name = (node as dynamic).name as SimpleIdentifier;
   if (name != null) result += name.name;
 
   // Make sure setters and getters don't collide.
-  if ((node is FunctionDeclaration || node is MethodDeclaration) &&
-      (node as dynamic).isSetter) {
-    result += "=";
+  if (node is FunctionDeclaration && node.isSetter ||
+      node is MethodDeclaration && node.isSetter) {
+    result += '=';
   }
 
   return result;
@@ -387,12 +384,12 @@ class StringEditBuffer {
   /// Creates a new transaction.
   StringEditBuffer(this.original);
 
-  bool get hasEdits => _edits.length > 0;
+  bool get hasEdits => _edits.isNotEmpty;
 
   /// Edit the original text, replacing text on the range [begin] and
   /// exclusive [end] with the [replacement] string.
   void replace(int begin, int end, String replacement) {
-    _edits.add(new _StringEdit(begin, end, replacement));
+    _edits.add(_StringEdit(begin, end, replacement));
   }
 
   /// Insert [string] at [offset].
@@ -411,17 +408,18 @@ class StringEditBuffer {
   ///
   /// Throws [UnsupportedError] if the edits were overlapping. If no edits were
   /// made, the original string will be returned.
+  @override
   String toString() {
-    var sb = new StringBuffer();
-    if (_edits.length == 0) return original;
+    var sb = StringBuffer();
+    if (_edits.isEmpty) return original;
 
     // Sort edits by start location.
     _edits.sort();
 
-    int consumed = 0;
+    var consumed = 0;
     for (var edit in _edits) {
       if (consumed > edit.begin) {
-        sb = new StringBuffer();
+        sb = StringBuffer();
         sb.write('overlapping edits. Insert at offset ');
         sb.write(edit.begin);
         sb.write(' but have consumed ');
@@ -431,7 +429,7 @@ class StringEditBuffer {
           sb.write('\n    ');
           sb.write(e);
         }
-        throw new UnsupportedError(sb.toString());
+        throw UnsupportedError(sb.toString());
       }
 
       // Add characters from the original string between this edit and the last
@@ -457,17 +455,153 @@ class _StringEdit implements Comparable<_StringEdit> {
 
   int get length => end - begin;
 
+  @override
   String toString() => '(Edit @ $begin,$end: "$replace")';
 
+  @override
   int compareTo(_StringEdit other) {
-    int diff = begin - other.begin;
+    var diff = begin - other.begin;
     if (diff != 0) return diff;
     return end - other.end;
   }
 }
 
-List<SdkLibrary> _getSdkLibraries(String contents) {
-  var libraryBuilder = new SdkLibrariesReader_LibraryBuilder(true);
-  parseCompilationUnit(contents).accept(libraryBuilder);
-  return libraryBuilder.librariesMap.sdkLibraries;
+ParseStringResult _parseString(String source, {bool useNnbd}) {
+  var features = FeatureSet.fromEnableFlags([if (useNnbd) 'non-nullable']);
+  return parseString(content: source, featureSet: features);
 }
+
+/// Use the data from a libraries.json specification to generate the contents
+/// of `sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart`, which is
+/// needed by dartdevc-legacy and dartanalyzer.
+String _generateLibrariesDart(
+    Uri libBaseUri, TargetLibrariesSpecification specification, bool usdNnbd) {
+  var contents = StringBuffer();
+  contents.write(_LIBRARIES_DART_PREFIX);
+  for (var library in specification.allLibraries) {
+    var path = relativizeLibraryUri(libBaseUri, library.uri, usdNnbd);
+    contents.write('  "${library.name}": \n'
+        '      const LibraryInfo("$path",\n'
+        '          categories: "Client,Server"),\n');
+  }
+  contents.write(_LIBRARIES_DART_SUFFIX);
+  return '$contents';
+}
+
+String relativizeLibraryUri(Uri libRoot, Uri uri, bool useNnbd) {
+  var relativePath = relativizeUri(libRoot, uri, isWindows);
+  // During the nnbd-migration we may have paths that reach out into the
+  // non-nnbd directory.
+  if (relativePath.startsWith('..')) {
+    if (!useNnbd || !relativePath.startsWith('../../sdk/lib/')) {
+      print("error: can't handle libraries that live out of the sdk folder"
+          ': $relativePath');
+      exit(1);
+    }
+    relativePath = relativePath.replaceFirst('../../sdk/lib/', '');
+  }
+  return relativePath;
+}
+
+final _LIBRARIES_DART_PREFIX = r'''
+library libraries;
+
+const int DART2JS_PLATFORM = 1;
+const int VM_PLATFORM = 2;
+
+enum Category { client, server, embedded }
+
+Category parseCategory(String name) {
+  switch (name) {
+    case "Client":
+      return Category.client;
+    case "Server":
+      return Category.server;
+    case "Embedded":
+      return Category.embedded;
+  }
+  return null;
+}
+
+const Map<String, LibraryInfo> libraries = const {
+''';
+
+final _LIBRARIES_DART_SUFFIX = r'''
+};
+
+class LibraryInfo {
+  final String path;
+  final String _categories;
+  final String dart2jsPath;
+  final String dart2jsPatchPath;
+  final bool documented;
+  final int platforms;
+  final bool implementation;
+  final Maturity maturity;
+
+  const LibraryInfo(this.path,
+      {String categories: "",
+      this.dart2jsPath,
+      this.dart2jsPatchPath,
+      this.implementation: false,
+      this.documented: true,
+      this.maturity: Maturity.UNSPECIFIED,
+      this.platforms: DART2JS_PLATFORM | VM_PLATFORM})
+      : _categories = categories;
+
+  bool get isDart2jsLibrary => (platforms & DART2JS_PLATFORM) != 0;
+  bool get isVmLibrary => (platforms & VM_PLATFORM) != 0;
+  List<Category> get categories {
+    // `"".split(,)` returns [""] not [], so we handle that case separately.
+    if (_categories == "") return const <Category>[];
+    return _categories.split(",").map(parseCategory).toList();
+  }
+
+  bool get isInternal => categories.isEmpty;
+  String get categoriesString => _categories;
+}
+
+class Maturity {
+  final int level;
+  final String name;
+  final String description;
+
+  const Maturity(this.level, this.name, this.description);
+
+  String toString() => "$name: $level\n$description\n";
+
+  static const Maturity DEPRECATED = const Maturity(0, "Deprecated",
+      "This library will be remove before next major release.");
+
+  static const Maturity EXPERIMENTAL = const Maturity(
+      1,
+      "Experimental",
+      "This library is experimental and will likely change or be removed\n"
+          "in future versions.");
+
+  static const Maturity UNSTABLE = const Maturity(
+      2,
+      "Unstable",
+      "This library is in still changing and have not yet endured\n"
+          "sufficient real-world testing.\n"
+          "Backwards-compatibility is NOT guaranteed.");
+
+  static const Maturity WEB_STABLE = const Maturity(
+      3,
+      "Web Stable",
+      "This library is tracking the DOM evolution as defined by WC3.\n"
+          "Backwards-compatibility is NOT guaranteed.");
+
+  static const Maturity STABLE = const Maturity(
+      4,
+      "Stable",
+      "The library is stable. API backwards-compatibility is guaranteed.\n"
+          "However implementation details might change.");
+
+  static const Maturity LOCKED = const Maturity(5, "Locked",
+      "This library will not change except when serious bugs are encountered.");
+
+  static const Maturity UNSPECIFIED = const Maturity(-1, "Unspecified",
+      "The maturity for this library has not been specified.");
+}
+''';

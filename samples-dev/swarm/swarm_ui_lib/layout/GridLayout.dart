@@ -71,14 +71,14 @@ class GridLayout extends ViewLayout {
   Dimension _dimension;
 
   GridLayout(Positionable view)
-      : super(view),
-        rows = _GridTrackParser.parse(view.customStyle['grid-rows']),
+      : rows = _GridTrackParser.parse(view.customStyle['grid-rows']),
         columns = _GridTrackParser.parse(view.customStyle['grid-columns']),
         template = _GridTemplateParser.parse(view.customStyle['grid-template']),
         rowSizing = _GridTrackParser
             .parseTrackSizing(view.customStyle['grid-row-sizing']),
         columnSizing = _GridTrackParser
-            .parseTrackSizing(view.customStyle['grid-column-sizing']) {
+            .parseTrackSizing(view.customStyle['grid-column-sizing']),
+        super(view) {
     _rowTracks = rows != null ? rows.tracks : new List<GridTrack>();
     _columnTracks = columns != null ? columns.tracks : new List<GridTrack>();
   }

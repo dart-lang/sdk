@@ -2,19 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import "package:expect/expect.dart";
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 confuse(x) => x;
 
 main(args) {
-  var x = new A();
+  dynamic x = new A();
   var y;
 
   // Checks that inference doesn't incorrectly treat this as a normal
   // assignment (where only B is a possible value after the assignment).
-  var c = x ??= new B();
+  dynamic c = x ??= new B();
   var z = x;
   Expect.equals('a', x.m());
   Expect.equals('a', z.m());

@@ -27,9 +27,9 @@ main() {
   bool hasThrown = false;
   try {
     B.Ba();
-  } catch (e) {
+  } catch (e, stackTrace) {
     hasThrown = true;
-    var trace = e.stackTrace.toString();
+    var trace = stackTrace.toString();
     print(trace);
     Expect.isTrue(trace.contains("Bc"));
     Expect.isTrue(trace.contains("Bb"));

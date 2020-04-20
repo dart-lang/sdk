@@ -1,51 +1,40 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:front_end/src/scanner/token.dart';
 import 'package:meta/meta.dart';
 
-/**
- * A collection of factory methods which may be used to create concrete
- * instances of the interfaces that constitute the AST.
- *
- * Clients should not extend, implement or mix-in this class.
- */
+/// A collection of factory methods which may be used to create concrete
+/// instances of the interfaces that constitute the AST.
+///
+/// Clients should not extend, implement or mix-in this class.
 abstract class AstFactory {
-  /**
-   * Returns a newly created list of adjacent strings. To be syntactically
-   * valid, the list of [strings] must contain at least two elements.
-   */
+  /// Returns a newly created list of adjacent strings. To be syntactically
+  /// valid, the list of [strings] must contain at least two elements.
   AdjacentStrings adjacentStrings(List<StringLiteral> strings);
 
-  /**
-   * Returns a newly created annotation. Both the [period] and the
-   * [constructorName] can be `null` if the annotation is not referencing a
-   * named constructor. The [arguments] can be `null` if the annotation is not
-   * referencing a constructor.
-   */
+  /// Returns a newly created annotation. Both the [period] and the
+  /// [constructorName] can be `null` if the annotation is not referencing a
+  /// named constructor. The [arguments] can be `null` if the annotation is not
+  /// referencing a constructor.
   Annotation annotation(Token atSign, Identifier name, Token period,
       SimpleIdentifier constructorName, ArgumentList arguments);
 
-  /**
-   * Returns a newly created list of arguments. The list of [arguments] can
-   * be `null` if there are no arguments.
-   */
+  /// Returns a newly created list of arguments. The list of [arguments] can
+  /// be `null` if there are no arguments.
   ArgumentList argumentList(Token leftParenthesis, List<Expression> arguments,
       Token rightParenthesis);
 
-  /**
-   * Returns a newly created as expression.
-   */
+  /// Returns a newly created as expression.
   AsExpression asExpression(
       Expression expression, Token asOperator, TypeAnnotation type);
 
-  /**
-   * Returns a newly created assert initializer. The [comma] and [message]
-   * can be `null` if there is no message.
-   */
+  /// Returns a newly created assert initializer. The [comma] and [message]
+  /// can be `null` if there is no message.
   AssertInitializer assertInitializer(
       Token assertKeyword,
       Token leftParenthesis,
@@ -54,10 +43,8 @@ abstract class AstFactory {
       Expression message,
       Token rightParenthesis);
 
-  /**
-   * Returns a newly created assert statement. The [comma] and [message] can
-   * be `null` if there is no message.
-   */
+  /// Returns a newly created assert statement. The [comma] and [message] can
+  /// be `null` if there is no message.
   AssertStatement assertStatement(
       Token assertKeyword,
       Token leftParenthesis,
@@ -67,67 +54,47 @@ abstract class AstFactory {
       Token rightParenthesis,
       Token semicolon);
 
-  /**
-   * Returns a newly created assignment expression.
-   */
+  /// Returns a newly created assignment expression.
   AssignmentExpression assignmentExpression(
       Expression leftHandSide, Token operator, Expression rightHandSide);
 
-  /**
-   * Returns a newly created await expression.
-   */
+  /// Returns a newly created await expression.
   AwaitExpression awaitExpression(Token awaitKeyword, Expression expression);
 
-  /**
-   * Returns a newly created binary expression.
-   */
+  /// Returns a newly created binary expression.
   BinaryExpression binaryExpression(
       Expression leftOperand, Token operator, Expression rightOperand);
 
-  /**
-   * Returns a newly created block of code.
-   */
+  /// Returns a newly created block of code.
   Block block(
       Token leftBracket, List<Statement> statements, Token rightBracket);
 
-  /**
-   * Returns a block comment consisting of the given [tokens].
-   */
+  /// Returns a block comment consisting of the given [tokens].
   Comment blockComment(List<Token> tokens);
 
-  /**
-   * Returns a newly created function body consisting of a block of
-   * statements. The [keyword] can be `null` if there is no keyword specified
-   * for the block. The [star] can be `null` if there is no star following the
-   * keyword (and must be `null` if there is no keyword).
-   */
+  /// Returns a newly created function body consisting of a block of
+  /// statements. The [keyword] can be `null` if there is no keyword specified
+  /// for the block. The [star] can be `null` if there is no star following the
+  /// keyword (and must be `null` if there is no keyword).
   BlockFunctionBody blockFunctionBody(Token keyword, Token star, Block block);
 
-  /**
-   * Returns a newly created boolean literal.
-   */
+  /// Returns a newly created boolean literal.
   BooleanLiteral booleanLiteral(Token literal, bool value);
 
-  /**
-   * Returns a newly created break statement. The [label] can be `null` if
-   * there is no label associated with the statement.
-   */
+  /// Returns a newly created break statement. The [label] can be `null` if
+  /// there is no label associated with the statement.
   BreakStatement breakStatement(
       Token breakKeyword, SimpleIdentifier label, Token semicolon);
 
-  /**
-   * Returns a newly created cascade expression. The list of
-   * [cascadeSections] must contain at least one element.
-   */
+  /// Returns a newly created cascade expression. The list of
+  /// [cascadeSections] must contain at least one element.
   CascadeExpression cascadeExpression(
       Expression target, List<Expression> cascadeSections);
 
-  /**
-   * Returns a newly created catch clause. The [onKeyword] and
-   * [exceptionType] can be `null` if the clause will catch all exceptions. The
-   * [comma] and [stackTraceParameter] can be `null` if the stack trace
-   * parameter is not defined.
-   */
+  /// Returns a newly created catch clause. The [onKeyword] and [exceptionType]
+  /// can be `null` if the clause will catch all exceptions. The [comma] and
+  /// [stackTraceParameter] can be `null` if the stack trace parameter is not
+  /// defined.
   CatchClause catchClause(
       Token onKeyword,
       TypeAnnotation exceptionType,
@@ -139,16 +106,14 @@ abstract class AstFactory {
       Token rightParenthesis,
       Block body);
 
-  /**
-   * Returns a newly created class declaration. Either or both of the
-   * [comment] and [metadata] can be `null` if the class does not have the
-   * corresponding attribute. The [abstractKeyword] can be `null` if the class
-   * is not abstract. The [typeParameters] can be `null` if the class does not
-   * have any type parameters. Any or all of the [extendsClause], [withClause],
-   * and [implementsClause] can be `null` if the class does not have the
-   * corresponding clause. The list of [members] can be `null` if the class does
-   * not have any members.
-   */
+  /// Returns a newly created class declaration. Either or both of the
+  /// [comment] and [metadata] can be `null` if the class does not have the
+  /// corresponding attribute. The [abstractKeyword] can be `null` if the class
+  /// is not abstract. The [typeParameters] can be `null` if the class does not
+  /// have any type parameters. Any or all of the [extendsClause], [withClause],
+  /// and [implementsClause] can be `null` if the class does not have the
+  /// corresponding clause. The list of [members] can be `null` if the class
+  /// does not have any members.
   ClassDeclaration classDeclaration(
       Comment comment,
       List<Annotation> metadata,
@@ -163,14 +128,12 @@ abstract class AstFactory {
       List<ClassMember> members,
       Token rightBracket);
 
-  /**
-   * Returns a newly created class type alias. Either or both of the
-   * [comment] and [metadata] can be `null` if the class type alias does not
-   * have the corresponding attribute. The [typeParameters] can be `null` if the
-   * class does not have any type parameters. The [abstractKeyword] can be
-   * `null` if the class is not abstract. The [implementsClause] can be `null`
-   * if the class does not implement any interfaces.
-   */
+  /// Returns a newly created class type alias. Either or both of the [comment]
+  /// and [metadata] can be `null` if the class type alias does not have the
+  /// corresponding attribute. The [typeParameters] can be `null` if the class
+  /// does not have any type parameters. The [abstractKeyword] can be `null` if
+  /// the class is not abstract. The [implementsClause] can be `null` if the
+  /// class does not implement any interfaces.
   ClassTypeAlias classTypeAlias(
       Comment comment,
       List<Annotation> metadata,
@@ -184,29 +147,27 @@ abstract class AstFactory {
       ImplementsClause implementsClause,
       Token semicolon);
 
-  /**
-   * Returns a newly created reference to a Dart element. The [newKeyword]
-   * can be `null` if the reference is not to a constructor.
-   */
+  /// Returns a newly created reference to a Dart element. The [newKeyword]
+  /// can be `null` if the reference is not to a constructor.
   CommentReference commentReference(Token newKeyword, Identifier identifier);
 
-  /**
-   * Returns a newly created compilation unit to have the given directives
-   * and declarations. The [scriptTag] can be `null` if there is no script tag
-   * in the compilation unit. The list of [directives] can be `null` if there
-   * are no directives in the compilation unit. The list of [declarations] can
-   * be `null` if there are no declarations in the compilation unit.
-   */
+  /// Returns a newly created compilation unit to have the given directives and
+  /// declarations.  The [scriptTag] can be `null` (or omitted) if there is no
+  /// script tag in the compilation unit.  The list of [declarations] can be
+  /// `null` (or omitted) if there are no directives in the compilation unit.
+  /// The list of `declarations` can be `null` (or omitted) if there are no
+  /// declarations in the compilation unit.  The [featureSet] can be `null` if
+  /// the set of features for this compilation unit is not known (this
+  /// restricts what analysis can be done of the compilation unit).
   CompilationUnit compilationUnit(
-      Token beginToken,
+      {@required Token beginToken,
       ScriptTag scriptTag,
       List<Directive> directives,
       List<CompilationUnitMember> declarations,
-      Token endToken);
+      @required Token endToken,
+      @required FeatureSet featureSet});
 
-  /**
-   * Returns a newly created conditional expression.
-   */
+  /// Returns a newly created conditional expression.
   ConditionalExpression conditionalExpression(
       Expression condition,
       Token question,
@@ -214,9 +175,7 @@ abstract class AstFactory {
       Token colon,
       Expression elseExpression);
 
-  /**
-   * Returns a newly created configuration.
-   */
+  /// Returns a newly created configuration.
   Configuration configuration(
       Token ifKeyword,
       Token leftParenthesis,
@@ -226,21 +185,19 @@ abstract class AstFactory {
       Token rightParenthesis,
       StringLiteral libraryUri);
 
-  /**
-   * Returns a newly created constructor declaration. The [externalKeyword]
-   * can be `null` if the constructor is not external. Either or both of the
-   * [comment] and [metadata] can be `null` if the constructor does not have the
-   * corresponding attribute. The [constKeyword] can be `null` if the
-   * constructor cannot be used to create a constant. The [factoryKeyword] can
-   * be `null` if the constructor is not a factory. The [period] and [name] can
-   * both be `null` if the constructor is not a named constructor. The
-   * [separator] can be `null` if the constructor does not have any initializers
-   * and does not redirect to a different constructor. The list of
-   * [initializers] can be `null` if the constructor does not have any
-   * initializers. The [redirectedConstructor] can be `null` if the constructor
-   * does not redirect to a different constructor. The [body] can be `null` if
-   * the constructor does not have a body.
-   */
+  /// Returns a newly created constructor declaration. The [externalKeyword]
+  /// can be `null` if the constructor is not external. Either or both of the
+  /// [comment] and [metadata] can be `null` if the constructor does not have
+  /// the corresponding attribute. The [constKeyword] can be `null` if the
+  /// constructor cannot be used to create a constant. The [factoryKeyword] can
+  /// be `null` if the constructor is not a factory. The [period] and [name] can
+  /// both be `null` if the constructor is not a named constructor. The
+  /// [separator] can be `null` if the constructor does not have any
+  /// initializers and does not redirect to a different constructor. The list of
+  /// [initializers] can be `null` if the constructor does not have any
+  /// initializers. The [redirectedConstructor] can be `null` if the constructor
+  /// does not redirect to a different constructor. The [body] can be `null` if
+  /// the constructor does not have a body.
   ConstructorDeclaration constructorDeclaration(
       Comment comment,
       List<Annotation> metadata,
@@ -256,11 +213,9 @@ abstract class AstFactory {
       ConstructorName redirectedConstructor,
       FunctionBody body);
 
-  /**
-   * Returns a newly created field initializer to initialize the field with
-   * the given name to the value of the given expression. The [thisKeyword] and
-   * [period] can be `null` if the 'this' keyword was not specified.
-   */
+  /// Returns a newly created field initializer to initialize the field with
+  /// the given name to the value of the given expression. The [thisKeyword] and
+  /// [period] can be `null` if the 'this' keyword was not specified.
   ConstructorFieldInitializer constructorFieldInitializer(
       Token thisKeyword,
       Token period,
@@ -268,26 +223,20 @@ abstract class AstFactory {
       Token equals,
       Expression expression);
 
-  /**
-   * Returns a newly created constructor name. The [period] and [name] can be
-   * `null` if the constructor being named is the unnamed constructor.
-   */
+  /// Returns a newly created constructor name. The [period] and [name] can be
+  /// `null` if the constructor being named is the unnamed constructor.
   ConstructorName constructorName(
       TypeName type, Token period, SimpleIdentifier name);
 
-  /**
-   * Returns a newly created continue statement. The [label] can be `null` if
-   * there is no label associated with the statement.
-   */
+  /// Returns a newly created continue statement. The [label] can be `null` if
+  /// there is no label associated with the statement.
   ContinueStatement continueStatement(
       Token continueKeyword, SimpleIdentifier label, Token semicolon);
 
-  /**
-   * Returns a newly created formal parameter. Either or both of the
-   * [comment] and [metadata] can be `null` if the declaration does not have the
-   * corresponding attribute. The [keyword] can be `null` if a type name is
-   * given. The [type] must be `null` if the keyword is 'var'.
-   */
+  /// Returns a newly created formal parameter. Either or both of the
+  /// [comment] and [metadata] can be `null` if the declaration does not have
+  /// the corresponding attribute. The [keyword] can be `null` if a type name is
+  /// given. The [type] must be `null` if the keyword is 'var'.
   DeclaredIdentifier declaredIdentifier(
       Comment comment,
       List<Annotation> metadata,
@@ -295,23 +244,17 @@ abstract class AstFactory {
       TypeAnnotation type,
       SimpleIdentifier identifier);
 
-  /**
-   * Returns a newly created default formal parameter. The [separator] and
-   * [defaultValue] can be `null` if there is no default value.
-   */
+  /// Returns a newly created default formal parameter. The [separator] and
+  /// [defaultValue] can be `null` if there is no default value.
   DefaultFormalParameter defaultFormalParameter(NormalFormalParameter parameter,
       ParameterKind kind, Token separator, Expression defaultValue);
 
-  /**
-   * Returns a documentation comment consisting of the given [tokens] and having
-   * the given [references] (if supplied) embedded within it.
-   */
+  /// Returns a documentation comment consisting of the given [tokens] and
+  /// having the given [references] (if supplied) embedded within it.
   Comment documentationComment(List<Token> tokens,
       [List<CommentReference> references]);
 
-  /**
-   * Returns a newly created do loop.
-   */
+  /// Returns a newly created do loop.
   DoStatement doStatement(
       Token doKeyword,
       Statement body,
@@ -321,46 +264,32 @@ abstract class AstFactory {
       Token rightParenthesis,
       Token semicolon);
 
-  /**
-   * Returns a newly created dotted name.
-   */
+  /// Returns a newly created dotted name.
   DottedName dottedName(List<SimpleIdentifier> components);
 
-  /**
-   * Returns a newly created floating point literal.
-   */
+  /// Returns a newly created floating point literal.
   DoubleLiteral doubleLiteral(Token literal, double value);
 
-  /**
-   * Returns a newly created function body.
-   */
+  /// Returns a newly created function body.
   EmptyFunctionBody emptyFunctionBody(Token semicolon);
 
-  /**
-   * Returns a newly created empty statement.
-   */
+  /// Returns a newly created empty statement.
   EmptyStatement emptyStatement(Token semicolon);
 
-  /**
-   * Returns an end-of-line comment consisting of the given [tokens].
-   */
+  /// Returns an end-of-line comment consisting of the given [tokens].
   Comment endOfLineComment(List<Token> tokens);
 
-  /**
-   * Returns a newly created enum constant declaration. Either or both of the
-   * [comment] and [metadata] can be `null` if the constant does not have the
-   * corresponding attribute. (Technically, enum constants cannot have metadata,
-   * but we allow it for consistency.)
-   */
+  /// Returns a newly created enum constant declaration. Either or both of the
+  /// [comment] and [metadata] can be `null` if the constant does not have the
+  /// corresponding attribute. (Technically, enum constants cannot have
+  /// metadata, but we allow it for consistency.)
   EnumConstantDeclaration enumConstantDeclaration(
       Comment comment, List<Annotation> metadata, SimpleIdentifier name);
 
-  /**
-   * Returns a newly created enumeration declaration. Either or both of the
-   * [comment] and [metadata] can be `null` if the declaration does not have the
-   * corresponding attribute. The list of [constants] must contain at least one
-   * value.
-   */
+  /// Returns a newly created enumeration declaration. Either or both of the
+  /// [comment] and [metadata] can be `null` if the declaration does not have
+  /// the corresponding attribute. The list of [constants] must contain at least
+  /// one value.
   EnumDeclaration enumDeclaration(
       Comment comment,
       List<Annotation> metadata,
@@ -370,12 +299,10 @@ abstract class AstFactory {
       List<EnumConstantDeclaration> constants,
       Token rightBracket);
 
-  /**
-   * Returns a newly created export directive. Either or both of the
-   * [comment] and [metadata] can be `null` if the directive does not have the
-   * corresponding attribute. The list of [combinators] can be `null` if there
-   * are no combinators.
-   */
+  /// Returns a newly created export directive. Either or both of the
+  /// [comment] and [metadata] can be `null` if the directive does not have the
+  /// corresponding attribute. The list of [combinators] can be `null` if there
+  /// are no combinators.
   ExportDirective exportDirective(
       Comment comment,
       List<Annotation> metadata,
@@ -384,43 +311,55 @@ abstract class AstFactory {
       List<Configuration> configurations,
       List<Combinator> combinators,
       Token semicolon);
-  /**
-   * Returns a newly created function body consisting of a block of
-   * statements. The [keyword] can be `null` if the function body is not an
-   * async function body.
-   */
+
+  /// Returns a newly created function body consisting of a block of statements.
+  /// The [keyword] can be `null` if the function body is not an async function
+  /// body.
   ExpressionFunctionBody expressionFunctionBody(Token keyword,
       Token functionDefinition, Expression expression, Token semicolon);
 
-  /**
-   * Returns a newly created expression statement.
-   */
+  /// Returns a newly created expression statement.
   ExpressionStatement expressionStatement(
       Expression expression, Token semicolon);
 
-  /**
-   * Returns a newly created extends clause.
-   */
+  /// Returns a newly created extends clause.
   ExtendsClause extendsClause(Token extendsKeyword, TypeName superclass);
 
-  /**
-   * Returns a newly created field declaration. Either or both of the
-   * [comment] and [metadata] can be `null` if the declaration does not have the
-   * corresponding attribute. The [staticKeyword] can be `null` if the field is
-   * not a static field.
-   *
-   * Use [fieldDeclaration2] instead.
-   */
+  /// Return a newly created extension declaration. The list of [typeParameters]
+  /// can be `null` if there are no type parameters.
+  ExtensionDeclaration extensionDeclaration(
+      {Comment comment,
+      List<Annotation> metadata,
+      Token extensionKeyword,
+      @required SimpleIdentifier name,
+      TypeParameterList typeParameters,
+      Token onKeyword,
+      @required TypeAnnotation extendedType,
+      Token leftBracket,
+      List<ClassMember> members,
+      Token rightBracket});
+
+  /// Return a newly created extension override. The list of [typeArguments]
+  /// can be `null` if there are no type arguments.
+  ExtensionOverride extensionOverride(
+      {@required Identifier extensionName,
+      TypeArgumentList typeArguments,
+      @required ArgumentList argumentList});
+
+  /// Returns a newly created field declaration. Either or both of the [comment]
+  /// and [metadata] can be `null` if the declaration does not have the
+  /// corresponding attribute. The [staticKeyword] can be `null` if the field is
+  /// not a static field.
+  ///
+  /// Use [fieldDeclaration2] instead.
   @deprecated
   FieldDeclaration fieldDeclaration(Comment comment, List<Annotation> metadata,
       Token staticKeyword, VariableDeclarationList fieldList, Token semicolon);
 
-  /**
-   * Returns a newly created field declaration. Either or both of the
-   * [comment] and [metadata] can be `null` if the declaration does not have the
-   * corresponding attribute. The [staticKeyword] can be `null` if the field is
-   * not a static field.
-   */
+  /// Returns a newly created field declaration. Either or both of the
+  /// [comment] and [metadata] can be `null` if the declaration does not have
+  /// the corresponding attribute. The [staticKeyword] can be `null` if the
+  /// field is not a static field.
   FieldDeclaration fieldDeclaration2(
       {Comment comment,
       List<Annotation> metadata,
@@ -429,17 +368,15 @@ abstract class AstFactory {
       @required VariableDeclarationList fieldList,
       @required Token semicolon});
 
-  /**
-   * Returns a newly created formal parameter. Either or both of the
-   * [comment] and [metadata] can be `null` if the parameter does not have the
-   * corresponding attribute. The [keyword] can be `null` if there is a type.
-   * The [type] must be `null` if the keyword is 'var'. The [thisKeyword] and
-   * [period] can be `null` if the keyword 'this' was not provided.  The
-   * [parameters] can be `null` if this is not a function-typed field formal
-   * parameter.
-   *
-   * Use [fieldFormalParameter2] instead.
-   */
+  /// Returns a newly created formal parameter. Either or both of the [comment]
+  /// and [metadata] can be `null` if the parameter does not have the
+  /// corresponding attribute. The [keyword] can be `null` if there is a type.
+  /// The [type] must be `null` if the keyword is 'var'. The [thisKeyword] and
+  /// [period] can be `null` if the keyword 'this' was not provided.  The
+  /// [parameters] can be `null` if this is not a function-typed field formal
+  /// parameter.
+  ///
+  /// Use [fieldFormalParameter2] instead.
   @deprecated
   FieldFormalParameter fieldFormalParameter(
       Comment comment,
@@ -452,62 +389,49 @@ abstract class AstFactory {
       TypeParameterList typeParameters,
       FormalParameterList parameters);
 
-  /**
-   * Returns a newly created formal parameter. Either or both of the
-   * [comment] and [metadata] can be `null` if the parameter does not have the
-   * corresponding attribute. The [keyword] can be `null` if there is a type.
-   * The [type] must be `null` if the keyword is 'var'. The [thisKeyword] and
-   * [period] can be `null` if the keyword 'this' was not provided.  The
-   * [parameters] can be `null` if this is not a function-typed field formal
-   * parameter.
-   */
+  /// Returns a newly created formal parameter. Either or both of the [comment]
+  /// and [metadata] can be `null` if the parameter does not have the
+  /// corresponding attribute. The [keyword] can be `null` if there is a type.
+  /// The [type] must be `null` if the keyword is 'var'. The [thisKeyword] and
+  /// [period] can be `null` if the keyword 'this' was not provided.  The
+  /// [parameters] can be `null` if this is not a function-typed field formal
+  /// parameter.
   FieldFormalParameter fieldFormalParameter2(
       {Comment comment,
       List<Annotation> metadata,
       Token covariantKeyword,
+      Token requiredKeyword,
       Token keyword,
       TypeAnnotation type,
       @required Token thisKeyword,
       @required Token period,
       @required SimpleIdentifier identifier,
       TypeParameterList typeParameters,
-      FormalParameterList parameters});
+      FormalParameterList parameters,
+      Token question});
 
-  /**
-   * Returns a newly created for-each statement whose loop control variable
-   * is declared internally (in the for-loop part). The [awaitKeyword] can be
-   * `null` if this is not an asynchronous for loop.
-   */
-  ForEachStatement forEachStatementWithDeclaration(
-      Token awaitKeyword,
+  /// Returns a newly created for each part that includes a declaration.
+  ForEachPartsWithDeclaration forEachPartsWithDeclaration(
+      {DeclaredIdentifier loopVariable, Token inKeyword, Expression iterable});
+
+  /// Returns a newly created for each part that includes an identifier that is
+  /// declared outside of the loop.
+  ForEachPartsWithIdentifier forEachPartsWithIdentifier(
+      {SimpleIdentifier identifier, Token inKeyword, Expression iterable});
+
+  /// Returns a newly created for element that can be part of a list, map or set
+  /// literal.
+  ForElement forElement(
+      {Token awaitKeyword,
       Token forKeyword,
       Token leftParenthesis,
-      DeclaredIdentifier loopVariable,
-      Token inKeyword,
-      Expression iterator,
+      ForLoopParts forLoopParts,
       Token rightParenthesis,
-      Statement body);
+      CollectionElement body});
 
-  /**
-   * Returns a newly created for-each statement whose loop control variable
-   * is declared outside the for loop. The [awaitKeyword] can be `null` if this
-   * is not an asynchronous for loop.
-   */
-  ForEachStatement forEachStatementWithReference(
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      SimpleIdentifier identifier,
-      Token inKeyword,
-      Expression iterator,
-      Token rightParenthesis,
-      Statement body);
-
-  /**
-   * Returns a newly created parameter list. The list of [parameters] can be
-   * `null` if there are no parameters. The [leftDelimiter] and [rightDelimiter]
-   * can be `null` if there are no optional parameters.
-   */
+  /// Returns a newly created parameter list. The list of [parameters] can be
+  /// `null` if there are no parameters. The [leftDelimiter] and
+  /// [rightDelimiter] can be `null` if there are no optional parameters.
   FormalParameterList formalParameterList(
       Token leftParenthesis,
       List<FormalParameter> parameters,
@@ -515,32 +439,37 @@ abstract class AstFactory {
       Token rightDelimiter,
       Token rightParenthesis);
 
-  /**
-   * Returns a newly created for statement. Either the [variableList] or the
-   * [initialization] must be `null`. Either the [condition] and the list of
-   * [updaters] can be `null` if the loop does not have the corresponding
-   * attribute.
-   */
-  ForStatement forStatement(
-      Token forKeyword,
-      Token leftParenthesis,
-      VariableDeclarationList variableList,
-      Expression initialization,
+  /// Returns a newly created for part that includes a declaration.
+  ForPartsWithDeclarations forPartsWithDeclarations(
+      {VariableDeclarationList variables,
       Token leftSeparator,
       Expression condition,
       Token rightSeparator,
-      List<Expression> updaters,
-      Token rightParenthesis,
-      Statement body);
+      List<Expression> updaters});
 
-  /**
-   * Returns a newly created function declaration. Either or both of the
-   * [comment] and [metadata] can be `null` if the function does not have the
-   * corresponding attribute. The [externalKeyword] can be `null` if the
-   * function is not an external function. The [returnType] can be `null` if no
-   * return type was specified. The [propertyKeyword] can be `null` if the
-   * function is neither a getter or a setter.
-   */
+  /// Returns a newly created for part that includes an expression.
+  ForPartsWithExpression forPartsWithExpression(
+      {Expression initialization,
+      Token leftSeparator,
+      Expression condition,
+      Token rightSeparator,
+      List<Expression> updaters});
+
+  /// Returns a newly created for statement.
+  ForStatement forStatement(
+      {Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForLoopParts forLoopParts,
+      Token rightParenthesis,
+      Statement body});
+
+  /// Returns a newly created function declaration. Either or both of the
+  /// [comment] and [metadata] can be `null` if the function does not have the
+  /// corresponding attribute. The [externalKeyword] can be `null` if the
+  /// function is not an external function. The [returnType] can be `null` if no
+  /// return type was specified. The [propertyKeyword] can be `null` if the
+  /// function is neither a getter or a setter.
   FunctionDeclaration functionDeclaration(
       Comment comment,
       List<Annotation> metadata,
@@ -550,31 +479,23 @@ abstract class AstFactory {
       SimpleIdentifier name,
       FunctionExpression functionExpression);
 
-  /**
-   * Returns a newly created function declaration statement.
-   */
+  /// Returns a newly created function declaration statement.
   FunctionDeclarationStatement functionDeclarationStatement(
       FunctionDeclaration functionDeclaration);
 
-  /**
-   * Returns a newly created function declaration.
-   */
+  /// Returns a newly created function declaration.
   FunctionExpression functionExpression(TypeParameterList typeParameters,
       FormalParameterList parameters, FunctionBody body);
 
-  /**
-   * Returns a newly created function expression invocation.
-   */
+  /// Returns a newly created function expression invocation.
   FunctionExpressionInvocation functionExpressionInvocation(Expression function,
       TypeArgumentList typeArguments, ArgumentList argumentList);
 
-  /**
-   * Returns a newly created function type alias. Either or both of the
-   * [comment] and [metadata] can be `null` if the function does not have the
-   * corresponding attribute. The [returnType] can be `null` if no return type
-   * was specified. The [typeParameters] can be `null` if the function has no
-   * type parameters.
-   */
+  /// Returns a newly created function type alias. Either or both of the
+  /// [comment] and [metadata] can be `null` if the function does not have the
+  /// corresponding attribute. The [returnType] can be `null` if no return type
+  /// was specified. The [typeParameters] can be `null` if the function has no
+  /// type parameters.
   FunctionTypeAlias functionTypeAlias(
       Comment comment,
       List<Annotation> metadata,
@@ -585,14 +506,12 @@ abstract class AstFactory {
       FormalParameterList parameters,
       Token semicolon);
 
-  /**
-   * Returns a newly created formal parameter. Either or both of the
-   * [comment] and [metadata] can be `null` if the parameter does not have the
-   * corresponding attribute. The [returnType] can be `null` if no return type
-   * was specified.
-   *
-   * Use [functionTypedFormalParameter2] instead.
-   */
+  /// Returns a newly created formal parameter. Either or both of the
+  /// [comment] and [metadata] can be `null` if the parameter does not have the
+  /// corresponding attribute. The [returnType] can be `null` if no return type
+  /// was specified.
+  ///
+  /// Use [functionTypedFormalParameter2] instead.
   @deprecated
   FunctionTypedFormalParameter functionTypedFormalParameter(
       Comment comment,
@@ -600,40 +519,35 @@ abstract class AstFactory {
       TypeAnnotation returnType,
       SimpleIdentifier identifier,
       TypeParameterList typeParameters,
-      FormalParameterList parameters,
-      {Token question: null});
+      FormalParameterList parameters);
 
-  /**
-   * Returns a newly created formal parameter. Either or both of the
-   * [comment] and [metadata] can be `null` if the parameter does not have the
-   * corresponding attribute. The [returnType] can be `null` if no return type
-   * was specified.
-   */
+  /// Returns a newly created formal parameter. Either or both of the
+  /// [comment] and [metadata] can be `null` if the parameter does not have the
+  /// corresponding attribute. The [returnType] can be `null` if no return type
+  /// was specified.
   FunctionTypedFormalParameter functionTypedFormalParameter2(
       {Comment comment,
       List<Annotation> metadata,
       Token covariantKeyword,
+      Token requiredKeyword,
       TypeAnnotation returnType,
       @required SimpleIdentifier identifier,
       TypeParameterList typeParameters,
       @required FormalParameterList parameters,
       Token question});
 
-  /**
-   * Initialize a newly created generic function type.
-   */
+  /// Initialize a newly created generic function type.
   GenericFunctionType genericFunctionType(
       TypeAnnotation returnType,
       Token functionKeyword,
       TypeParameterList typeParameters,
-      FormalParameterList parameters);
+      FormalParameterList parameters,
+      {Token question});
 
-  /**
-   * Returns a newly created generic type alias. Either or both of the
-   * [comment] and [metadata] can be `null` if the variable list does not have
-   * the corresponding attribute. The [typeParameters] can be `null` if there
-   * are no type parameters.
-   */
+  /// Returns a newly created generic type alias. Either or both of the
+  /// [comment] and [metadata] can be `null` if the variable list does not have
+  /// the corresponding attribute. The [typeParameters] can be `null` if there
+  /// are no type parameters.
   GenericTypeAlias genericTypeAlias(
       Comment comment,
       List<Annotation> metadata,
@@ -644,16 +558,23 @@ abstract class AstFactory {
       GenericFunctionType functionType,
       Token semicolon);
 
-  /**
-   * Returns a newly created import show combinator.
-   */
+  /// Returns a newly created import show combinator.
   HideCombinator hideCombinator(
       Token keyword, List<SimpleIdentifier> hiddenNames);
 
-  /**
-   * Returns a newly created if statement. The [elseKeyword] and
-   * [elseStatement] can be `null` if there is no else clause.
-   */
+  /// Returns a newly created if element that can be part of a list, map or set
+  /// literal.
+  IfElement ifElement(
+      {Token ifKeyword,
+      Token leftParenthesis,
+      Expression condition,
+      Token rightParenthesis,
+      CollectionElement thenElement,
+      Token elseKeyword,
+      CollectionElement elseElement});
+
+  /// Returns a newly created if statement. The [elseKeyword] and
+  /// [elseStatement] can be `null` if there is no else clause.
   IfStatement ifStatement(
       Token ifKeyword,
       Token leftParenthesis,
@@ -663,20 +584,16 @@ abstract class AstFactory {
       Token elseKeyword,
       Statement elseStatement);
 
-  /**
-   * Returns a newly created implements clause.
-   */
+  /// Returns a newly created implements clause.
   ImplementsClause implementsClause(
       Token implementsKeyword, List<TypeName> interfaces);
 
-  /**
-   * Returns a newly created import directive. Either or both of the
-   * [comment] and [metadata] can be `null` if the function does not have the
-   * corresponding attribute. The [deferredKeyword] can be `null` if the import
-   * is not deferred. The [asKeyword] and [prefix] can be `null` if the import
-   * does not specify a prefix. The list of [combinators] can be `null` if there
-   * are no combinators.
-   */
+  /// Returns a newly created import directive. Either or both of the
+  /// [comment] and [metadata] can be `null` if the function does not have the
+  /// corresponding attribute. The [deferredKeyword] can be `null` if the import
+  /// is not deferred. The [asKeyword] and [prefix] can be `null` if the import
+  /// does not specify a prefix. The list of [combinators] can be `null` if
+  /// there are no combinators.
   ImportDirective importDirective(
       Comment comment,
       List<Annotation> metadata,
@@ -689,105 +606,90 @@ abstract class AstFactory {
       List<Combinator> combinators,
       Token semicolon);
 
-  /**
-   * Returns a newly created index expression.
-   */
+  /// Returns a newly created index expression suitable for use in a cascade
+  /// expression.
+  @Deprecated('Use indexExpressionForCascade2')
   IndexExpression indexExpressionForCascade(
       Token period, Token leftBracket, Expression index, Token rightBracket);
 
-  /**
-   * Returns a newly created index expression.
-   */
+  /// Returns a newly created index expression.
+  IndexExpression indexExpressionForCascade2(
+      {@required Token period,
+      Token question,
+      @required Token leftBracket,
+      @required Expression index,
+      @required Token rightBracket});
+
+  /// Returns a newly created index expression suitable for use outside a
+  /// cascade expression.
+  @Deprecated('Use indexExpressionForTarget2')
   IndexExpression indexExpressionForTarget(Expression target, Token leftBracket,
       Expression index, Token rightBracket);
 
-  /**
-   * Returns a newly created instance creation expression.
-   */
-  InstanceCreationExpression instanceCreationExpression(Token keyword,
-      ConstructorName constructorName, ArgumentList argumentList);
+  /// Returns a newly created index expression.
+  IndexExpression indexExpressionForTarget2(
+      {@required Expression target,
+      Token question,
+      @required Token leftBracket,
+      @required Expression index,
+      @required Token rightBracket});
 
-  /**
-   * Returns a newly created integer literal.
-   */
+  /// Returns a newly created instance creation expression.
+  InstanceCreationExpression instanceCreationExpression(
+      Token keyword, ConstructorName constructorName, ArgumentList argumentList,
+      {TypeArgumentList typeArguments});
+
+  /// Returns a newly created integer literal.
   IntegerLiteral integerLiteral(Token literal, int value);
 
-  /**
-   * Returns a newly created interpolation expression.
-   */
+  /// Returns a newly created interpolation expression.
   InterpolationExpression interpolationExpression(
       Token leftBracket, Expression expression, Token rightBracket);
 
-  /**
-   * Returns a newly created string of characters that are part of a string
-   * interpolation.
-   */
+  /// Returns a newly created string of characters that are part of a string
+  /// interpolation.
   InterpolationString interpolationString(Token contents, String value);
 
-  /**
-   * Returns a newly created is expression. The [notOperator] can be `null`
-   * if the sense of the test is not negated.
-   */
+  /// Returns a newly created is expression. The [notOperator] can be `null`
+  /// if the sense of the test is not negated.
   IsExpression isExpression(Expression expression, Token isOperator,
       Token notOperator, TypeAnnotation type);
 
-  /**
-   * Returns a newly created label.
-   */
+  /// Returns a newly created label.
   Label label(SimpleIdentifier label, Token colon);
 
-  /**
-   * Returns a newly created labeled statement.
-   */
+  /// Returns a newly created labeled statement.
   LabeledStatement labeledStatement(List<Label> labels, Statement statement);
 
-  /**
-   * Returns a newly created library directive. Either or both of the
-   * [comment] and [metadata] can be `null` if the directive does not have the
-   * corresponding attribute.
-   */
+  /// Returns a newly created library directive. Either or both of the
+  /// [comment] and [metadata] can be `null` if the directive does not have the
+  /// corresponding attribute.
   LibraryDirective libraryDirective(Comment comment, List<Annotation> metadata,
       Token libraryKeyword, LibraryIdentifier name, Token semicolon);
 
-  /**
-   * Returns a newly created prefixed identifier.
-   */
+  /// Returns a newly created prefixed identifier.
   LibraryIdentifier libraryIdentifier(List<SimpleIdentifier> components);
 
-  /**
-   * Returns a newly created list literal. The [constKeyword] can be `null`
-   * if the literal is not a constant. The [typeArguments] can be `null` if no
-   * type arguments were declared. The list of [elements] can be `null` if the
-   * list is empty.
-   */
+  /// Returns a newly created list literal. The [constKeyword] can be `null`
+  /// if the literal is not a constant. The [typeArguments] can be `null` if no
+  /// type arguments were declared. The list of [elements] can be `null` if the
+  /// list is empty.
   ListLiteral listLiteral(Token constKeyword, TypeArgumentList typeArguments,
-      Token leftBracket, List<Expression> elements, Token rightBracket);
+      Token leftBracket, List<CollectionElement> elements, Token rightBracket);
 
-  /**
-   * Returns a newly created map literal. The [constKeyword] can be `null` if
-   * the literal is not a constant. The [typeArguments] can be `null` if no type
-   * arguments were declared. The [entries] can be `null` if the map is empty.
-   */
-  MapLiteral mapLiteral(Token constKeyword, TypeArgumentList typeArguments,
-      Token leftBracket, List<MapLiteralEntry> entries, Token rightBracket);
-
-  /**
-   * Returns a newly created map literal entry.
-   */
+  /// Returns a newly created map literal entry.
   MapLiteralEntry mapLiteralEntry(
       Expression key, Token separator, Expression value);
 
-  /**
-   * Returns a newly created method declaration. Either or both of the
-   * [comment] and [metadata] can be `null` if the declaration does not have the
-   * corresponding attribute. The [externalKeyword] can be `null` if the method
-   * is not external. The [modifierKeyword] can be `null` if the method is
-   * neither abstract nor static. The [returnType] can be `null` if no return
-   * type was specified. The [propertyKeyword] can be `null` if the method is
-   * neither a getter or a setter. The [operatorKeyword] can be `null` if the
-   * method does not implement an operator. The [parameters] must be `null` if
-   * this method declares a getter.
-   */
+  /// Returns a newly created method declaration. Either or both of the
+  /// [comment] and [metadata] can be `null` if the declaration does not have
+  /// the corresponding attribute. The [externalKeyword] can be `null` if the
+  /// method is not external. The [modifierKeyword] can be `null` if the method
+  /// is neither abstract nor static. The [returnType] can be `null` if no
+  /// return type was specified. The [propertyKeyword] can be `null` if the
+  /// method is neither a getter or a setter. The [operatorKeyword] can be
+  /// `null` if the method does not implement an operator. The [parameters] must
+  /// be `null` if this method declares a getter.
   MethodDeclaration methodDeclaration(
       Comment comment,
       List<Annotation> metadata,
@@ -801,10 +703,8 @@ abstract class AstFactory {
       FormalParameterList parameters,
       FunctionBody body);
 
-  /**
-   * Returns a newly created method invocation. The [target] and [operator]
-   * can be `null` if there is no target.
-   */
+  /// Returns a newly created method invocation. The [target] and [operator]
+  /// can be `null` if there is no target.
   MethodInvocation methodInvocation(
       Expression target,
       Token operator,
@@ -812,54 +712,54 @@ abstract class AstFactory {
       TypeArgumentList typeArguments,
       ArgumentList argumentList);
 
-  /**
-   * Returns a newly created named expression..
-   */
+  /// Return a newly created mixin declaration.
+  MixinDeclaration mixinDeclaration(
+      Comment comment,
+      List<Annotation> metadata,
+      Token mixinKeyword,
+      SimpleIdentifier name,
+      TypeParameterList typeParameters,
+      OnClause onClause,
+      ImplementsClause implementsClause,
+      Token leftBracket,
+      List<ClassMember> members,
+      Token rightBracket);
+
+  /// Returns a newly created named expression.
   NamedExpression namedExpression(Label name, Expression expression);
 
-  /**
-   * Returns a newly created native clause.
-   */
+  /// Returns a newly created native clause.
   NativeClause nativeClause(Token nativeKeyword, StringLiteral name);
 
-  /**
-   * Returns a newly created function body consisting of the 'native' token,
-   * a string literal, and a semicolon.
-   */
+  /// Returns a newly created function body consisting of the 'native' token,
+  /// a string literal, and a semicolon.
   NativeFunctionBody nativeFunctionBody(
       Token nativeKeyword, StringLiteral stringLiteral, Token semicolon);
 
-  /**
-   * Returns a newly created list of nodes such that all of the nodes that
-   * are added to the list will have their parent set to the given [owner]. The
-   * list will initially be populated with the given [elements].
-   */
+  /// Returns a newly created list of nodes such that all of the nodes that
+  /// are added to the list will have their parent set to the given [owner]. The
+  /// list will initially be populated with the given [elements].
   NodeList<E> nodeList<E extends AstNode>(AstNode owner, [List<E> elements]);
 
-  /**
-   * Returns a newly created null literal.
-   */
+  /// Returns a newly created null literal.
   NullLiteral nullLiteral(Token literal);
 
-  /**
-   * Returns a newly created parenthesized expression.
-   */
+  /// Return a newly created on clause.
+  OnClause onClause(Token onKeyword, List<TypeName> superclassConstraints);
+
+  /// Returns a newly created parenthesized expression.
   ParenthesizedExpression parenthesizedExpression(
       Token leftParenthesis, Expression expression, Token rightParenthesis);
 
-  /**
-   * Returns a newly created part directive. Either or both of the [comment]
-   * and [metadata] can be `null` if the directive does not have the
-   * corresponding attribute.
-   */
+  /// Returns a newly created part directive. Either or both of the [comment]
+  /// and [metadata] can be `null` if the directive does not have the
+  /// corresponding attribute.
   PartDirective partDirective(Comment comment, List<Annotation> metadata,
       Token partKeyword, StringLiteral partUri, Token semicolon);
 
-  /**
-   * Returns a newly created part-of directive. Either or both of the
-   * [comment] and [metadata] can be `null` if the directive does not have the
-   * corresponding attribute.
-   */
+  /// Returns a newly created part-of directive. Either or both of the
+  /// [comment] and [metadata] can be `null` if the directive does not have the
+  /// corresponding attribute.
   PartOfDirective partOfDirective(
       Comment comment,
       List<Annotation> metadata,
@@ -869,70 +769,61 @@ abstract class AstFactory {
       LibraryIdentifier libraryName,
       Token semicolon);
 
-  /**
-   * Returns a newly created postfix expression.
-   */
+  /// Returns a newly created postfix expression.
   PostfixExpression postfixExpression(Expression operand, Token operator);
 
-  /**
-   * Returns a newly created prefixed identifier.
-   */
+  /// Returns a newly created prefixed identifier.
   PrefixedIdentifier prefixedIdentifier(
       SimpleIdentifier prefix, Token period, SimpleIdentifier identifier);
 
-  /**
-   * Returns a newly created prefix expression.
-   */
+  /// Returns a newly created prefix expression.
   PrefixExpression prefixExpression(Token operator, Expression operand);
 
-  /**
-   * Returns a newly created property access expression.
-   */
+  /// Returns a newly created property access expression.
   PropertyAccess propertyAccess(
       Expression target, Token operator, SimpleIdentifier propertyName);
 
-  /**
-   * Returns a newly created redirecting invocation to invoke the constructor
-   * with the given name with the given arguments. The [constructorName] can be
-   * `null` if the constructor being invoked is the unnamed constructor.
-   */
+  /// Returns a newly created redirecting invocation to invoke the constructor
+  /// with the given name with the given arguments. The [constructorName] can be
+  /// `null` if the constructor being invoked is the unnamed constructor.
   RedirectingConstructorInvocation redirectingConstructorInvocation(
       Token thisKeyword,
       Token period,
       SimpleIdentifier constructorName,
       ArgumentList argumentList);
 
-  /**
-   * Returns a newly created rethrow expression.
-   */
+  /// Returns a newly created rethrow expression.
   RethrowExpression rethrowExpression(Token rethrowKeyword);
 
-  /**
-   * Returns a newly created return statement. The [expression] can be `null`
-   * if no explicit value was provided.
-   */
+  /// Returns a newly created return statement. The [expression] can be `null`
+  /// if no explicit value was provided.
   ReturnStatement returnStatement(
       Token returnKeyword, Expression expression, Token semicolon);
 
-  /**
-   * Returns a newly created script tag.
-   */
+  /// Returns a newly created script tag.
   ScriptTag scriptTag(Token scriptTag);
 
-  /**
-   * Returns a newly created import show combinator.
-   */
+  /// Returns a newly created set or map literal. The [constKeyword] can be
+  /// `null` if the literal is not a constant. The [typeArguments] can be `null`
+  /// if no type arguments were declared. The list of [elements] can be `null`
+  /// if the set or map is empty.
+  SetOrMapLiteral setOrMapLiteral(
+      {Token constKeyword,
+      TypeArgumentList typeArguments,
+      Token leftBracket,
+      List<CollectionElement> elements,
+      Token rightBracket});
+
+  /// Returns a newly created import show combinator.
   ShowCombinator showCombinator(
       Token keyword, List<SimpleIdentifier> shownNames);
 
-  /**
-   * Returns a newly created formal parameter. Either or both of the
-   * [comment] and [metadata] can be `null` if the parameter does not have the
-   * corresponding attribute. The [keyword] can be `null` if a type was
-   * specified. The [type] must be `null` if the keyword is 'var'.
-   *
-   * Use [simpleFormalParameter2] instead.
-   */
+  /// Returns a newly created formal parameter. Either or both of the
+  /// [comment] and [metadata] can be `null` if the parameter does not have the
+  /// corresponding attribute. The [keyword] can be `null` if a type was
+  /// specified. The [type] must be `null` if the keyword is 'var'.
+  ///
+  /// Use [simpleFormalParameter2] instead.
   @deprecated
   SimpleFormalParameter simpleFormalParameter(
       Comment comment,
@@ -941,70 +832,56 @@ abstract class AstFactory {
       TypeAnnotation type,
       SimpleIdentifier identifier);
 
-  /**
-   * Returns a newly created formal parameter. Either or both of the
-   * [comment] and [metadata] can be `null` if the parameter does not have the
-   * corresponding attribute. The [keyword] can be `null` if a type was
-   * specified. The [type] must be `null` if the keyword is 'var'.
-   */
+  /// Returns a newly created formal parameter. Either or both of the
+  /// [comment] and [metadata] can be `null` if the parameter does not have the
+  /// corresponding attribute. The [keyword] can be `null` if a type was
+  /// specified. The [type] must be `null` if the keyword is 'var'.
   SimpleFormalParameter simpleFormalParameter2(
       {Comment comment,
       List<Annotation> metadata,
       Token covariantKeyword,
+      Token requiredKeyword,
       Token keyword,
       TypeAnnotation type,
       @required SimpleIdentifier identifier});
 
-  /**
-   * Returns a newly created identifier.
-   */
-  SimpleIdentifier simpleIdentifier(Token token, {bool isDeclaration: false});
+  /// Returns a newly created identifier.
+  SimpleIdentifier simpleIdentifier(Token token, {bool isDeclaration = false});
 
-  /**
-   * Returns a newly created simple string literal.
-   */
+  /// Returns a newly created simple string literal.
   SimpleStringLiteral simpleStringLiteral(Token literal, String value);
 
-  /**
-   * Returns a newly created string interpolation expression.
-   */
+  /// Returns a newly created spread element.
+  SpreadElement spreadElement({Token spreadOperator, Expression expression});
+
+  /// Returns a newly created string interpolation expression.
   StringInterpolation stringInterpolation(List<InterpolationElement> elements);
 
-  /**
-   * Returns a newly created super invocation to invoke the inherited
-   * constructor with the given name with the given arguments. The [period] and
-   * [constructorName] can be `null` if the constructor being invoked is the
-   * unnamed constructor.
-   */
+  /// Returns a newly created super invocation to invoke the inherited
+  /// constructor with the given name with the given arguments. The [period] and
+  /// [constructorName] can be `null` if the constructor being invoked is the
+  /// unnamed constructor.
   SuperConstructorInvocation superConstructorInvocation(
       Token superKeyword,
       Token period,
       SimpleIdentifier constructorName,
       ArgumentList argumentList);
 
-  /**
-   * Returns a newly created super expression.
-   */
+  /// Returns a newly created super expression.
   SuperExpression superExpression(Token superKeyword);
 
-  /**
-   * Returns a newly created switch case. The list of [labels] can be `null`
-   * if there are no labels.
-   */
+  /// Returns a newly created switch case. The list of [labels] can be `null`
+  /// if there are no labels.
   SwitchCase switchCase(List<Label> labels, Token keyword,
       Expression expression, Token colon, List<Statement> statements);
 
-  /**
-   * Returns a newly created switch default. The list of [labels] can be
-   * `null` if there are no labels.
-   */
+  /// Returns a newly created switch default. The list of [labels] can be
+  /// `null` if there are no labels.
   SwitchDefault switchDefault(List<Label> labels, Token keyword, Token colon,
       List<Statement> statements);
 
-  /**
-   * Returns a newly created switch statement. The list of [members] can be
-   * `null` if there are no switch members.
-   */
+  /// Returns a newly created switch statement. The list of [members] can be
+  /// `null` if there are no switch members.
   SwitchStatement switchStatement(
       Token switchKeyword,
       Token leftParenthesis,
@@ -1014,81 +891,62 @@ abstract class AstFactory {
       List<SwitchMember> members,
       Token rightBracket);
 
-  /**
-   * Returns a newly created symbol literal.
-   */
+  /// Returns a newly created symbol literal.
   SymbolLiteral symbolLiteral(Token poundSign, List<Token> components);
 
-  /**
-   * Returns a newly created this expression.
-   */
+  /// Returns a newly created this expression.
   ThisExpression thisExpression(Token thisKeyword);
 
-  /**
-   * Returns a newly created throw expression.
-   */
+  /// Returns a newly created throw expression.
   ThrowExpression throwExpression(Token throwKeyword, Expression expression);
 
-  /**
-   * Returns a newly created top-level variable declaration. Either or both
-   * of the [comment] and [metadata] can be `null` if the variable does not have
-   * the corresponding attribute.
-   */
+  /// Returns a newly created top-level variable declaration. Either or both
+  /// of the [comment] and [metadata] can be `null` if the variable does not
+  /// have the corresponding attribute.
   TopLevelVariableDeclaration topLevelVariableDeclaration(
       Comment comment,
       List<Annotation> metadata,
       VariableDeclarationList variableList,
       Token semicolon);
 
-  /**
-   * Returns a newly created try statement. The list of [catchClauses] can be
-   * `null` if there are no catch clauses. The [finallyKeyword] and
-   * [finallyBlock] can be `null` if there is no finally clause.
-   */
+  /// Returns a newly created try statement. The list of [catchClauses] can be
+  /// `null` if there are no catch clauses. The [finallyKeyword] and
+  /// [finallyBlock] can be `null` if there is no finally clause.
   TryStatement tryStatement(Token tryKeyword, Block body,
       List<CatchClause> catchClauses, Token finallyKeyword, Block finallyBlock);
 
-  /**
-   * Returns a newly created list of type arguments.
-   */
+  /// Returns a newly created list of type arguments.
   TypeArgumentList typeArgumentList(
       Token leftBracket, List<TypeAnnotation> arguments, Token rightBracket);
 
-  /**
-   * Returns a newly created type name. The [typeArguments] can be `null` if
-   * there are no type arguments.
-   */
+  /// Returns a newly created type name. The [typeArguments] can be `null` if
+  /// there are no type arguments. The [question] can be `null` if there is no
+  /// question mark.
   TypeName typeName(Identifier name, TypeArgumentList typeArguments,
-      {Token question: null});
+      {Token question});
 
-  /**
-   * Returns a newly created type parameter. Either or both of the [comment]
-   * and [metadata] can be `null` if the parameter does not have the
-   * corresponding attribute. The [extendsKeyword] and [bound] can be `null` if
-   * the parameter does not have an upper bound.
-   */
+  /// Returns a newly created type parameter. Either or both of the [comment]
+  /// and [metadata] can be `null` if the parameter does not have the
+  /// corresponding attribute. The [extendsKeyword] and [bound] can be `null` if
+  /// the parameter does not have an upper bound.
   TypeParameter typeParameter(Comment comment, List<Annotation> metadata,
       SimpleIdentifier name, Token extendsKeyword, TypeAnnotation bound);
 
-  /**
-   * Returns a newly created list of type parameters.
-   */
+  /// Returns a newly created list of type parameters.
   TypeParameterList typeParameterList(Token leftBracket,
       List<TypeParameter> typeParameters, Token rightBracket);
 
-  /**
-   * Returns a newly created variable declaration. The [equals] and
-   * [initializer] can be `null` if there is no initializer.
-   */
+  /// Returns a newly created variable declaration. The [equals] and
+  /// [initializer] can be `null` if there is no initializer.
   VariableDeclaration variableDeclaration(
       SimpleIdentifier name, Token equals, Expression initializer);
 
-  /**
-   * Returns a newly created variable declaration list. Either or both of the
-   * [comment] and [metadata] can be `null` if the variable list does not have
-   * the corresponding attribute. The [keyword] can be `null` if a type was
-   * specified. The [type] must be `null` if the keyword is 'var'.
-   */
+  /// Returns a newly created variable declaration list. Either or both of the
+  /// [comment] and [metadata] can be `null` if the variable list does not have
+  /// the corresponding attribute. The [keyword] can be `null` if a type was
+  /// specified. The [type] must be `null` if the keyword is 'var'.
+  ///
+  /// Use [variableDeclarationList2] instead.
   VariableDeclarationList variableDeclarationList(
       Comment comment,
       List<Annotation> metadata,
@@ -1096,27 +954,31 @@ abstract class AstFactory {
       TypeAnnotation type,
       List<VariableDeclaration> variables);
 
-  /**
-   * Returns a newly created variable declaration statement.
-   */
+  /// Returns a newly created variable declaration list. Either or both of the
+  /// [comment] and [metadata] can be `null` if the variable list does not have
+  /// the corresponding attribute. The [keyword] can be `null` if a type was
+  /// specified. The [type] must be `null` if the keyword is 'var'.
+  VariableDeclarationList variableDeclarationList2(
+      {Comment comment,
+      List<Annotation> metadata,
+      Token lateKeyword,
+      Token keyword,
+      TypeAnnotation type,
+      List<VariableDeclaration> variables});
+
+  /// Returns a newly created variable declaration statement.
   VariableDeclarationStatement variableDeclarationStatement(
       VariableDeclarationList variableList, Token semicolon);
 
-  /**
-   * Returns a newly created while statement.
-   */
+  /// Returns a newly created while statement.
   WhileStatement whileStatement(Token whileKeyword, Token leftParenthesis,
       Expression condition, Token rightParenthesis, Statement body);
 
-  /**
-   * Returns a newly created with clause.
-   */
+  /// Returns a newly created with clause.
   WithClause withClause(Token withKeyword, List<TypeName> mixinTypes);
 
-  /**
-   * Returns a newly created yield expression. The [star] can be `null` if no
-   * star was provided.
-   */
+  /// Returns a newly created yield expression. The [star] can be `null` if no
+  /// star was provided.
   YieldStatement yieldStatement(
       Token yieldKeyword, Token star, Expression expression, Token semicolon);
 }

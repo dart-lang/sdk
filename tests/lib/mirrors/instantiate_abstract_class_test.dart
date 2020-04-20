@@ -4,7 +4,6 @@
 
 library test.instantiate_abstract_class;
 
-@MirrorsUsed(targets: const ["dart.core", AbstractClass])
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
@@ -12,7 +11,7 @@ assertInstanitationErrorOnGenerativeConstructors(classMirror) {
   classMirror.declarations.values.forEach((decl) {
     if (decl is! MethodMirror) return;
     if (!decl.isGenerativeConstructor) return;
-    var args = new List(decl.parameters.length);
+    var args = new List<dynamic>.filled(decl.parameters.length, null);
     Expect.throws(
         () => classMirror.newInstance(decl.constructorName, args),
         (e) => e is AbstractClassInstantiationError,
@@ -24,7 +23,7 @@ runFactoryConstructors(classMirror) {
   classMirror.declarations.values.forEach((decl) {
     if (decl is! MethodMirror) return;
     if (!decl.isFactoryConstructor) return;
-    var args = new List(decl.parameters.length);
+    var args = new List<dynamic>.filled(decl.parameters.length, null);
     classMirror.newInstance(decl.constructorName, args); // Should not throw.
   });
 }

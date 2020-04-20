@@ -6,23 +6,36 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 Future setupUDP() async {
+  // Service might attach to us after we completed the setup but
+  // before we actually received a datagram - if it will start inspecting
+  // IO metrics at that point then it will see that no reads happened
+  // and the test will fail. That is why we don't consider setup complete
+  // until after we received the datagram.
+  final doneCompleter = Completer<void>();
+
   var server = await io.RawDatagramSocket.bind('127.0.0.1', 0);
   server.listen((io.RawSocketEvent event) {
-    if (event == io.RawSocketEvent.READ) {
+    if (event == io.RawSocketEvent.read) {
       io.Datagram dg = server.receive();
       dg.data.forEach((x) => true);
+      if (!doneCompleter.isCompleted) {
+        doneCompleter.complete(null);
+      }
     }
   });
   var client = await io.RawDatagramSocket.bind('127.0.0.1', 0);
-  client.send(UTF8.encoder.convert('foobar'),
+  client.send(utf8.encoder.convert('foobar'),
       new io.InternetAddress('127.0.0.1'), server.port);
+
+  // Wait for datagram to arrive.
+  await doneCompleter.future;
 }
 
-var udpTests = [
+var udpTests = <IsolateTest>[
   // Initial.
   (Isolate isolate) async {
     var result =
@@ -46,12 +59,9 @@ var udpTests = [
     expect(server['listening'], isFalse);
     expect(server['socketType'], equals('UDP'));
     expect(server['port'], greaterThanOrEqualTo(1024));
-    // Stopwatch resolution on windows makes us sometimes report 0;
-    if (io.Platform.isWindows) {
-      expect(server['lastRead'], greaterThanOrEqualTo(0));
-    } else {
-      expect(server['lastRead'], greaterThan(0));
-    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    expect(
+        server['lastRead'], closeTo(now, Duration(seconds: 10).inMilliseconds));
     expect(server['totalRead'], equals(6));
     expect(server['lastWrite'], equals(0));
     expect(server['totalWritten'], equals(0));

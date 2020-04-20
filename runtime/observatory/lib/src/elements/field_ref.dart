@@ -10,7 +10,7 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 
-class FieldRefElement extends HtmlElement implements Renderable {
+class FieldRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<FieldRefElement>('field-ref',
       dependencies: const [InstanceRefElement.tag]);
 
@@ -32,8 +32,8 @@ class FieldRefElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(field != null);
     assert(objects != null);
-    FieldRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    FieldRefElement e = new FieldRefElement.created();
+    e._r = new RenderingScheduler<FieldRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._field = field;
     e._objects = objects;
@@ -41,7 +41,7 @@ class FieldRefElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  FieldRefElement.created() : super.created();
+  FieldRefElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -53,7 +53,7 @@ class FieldRefElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
@@ -73,16 +73,17 @@ class FieldRefElement extends HtmlElement implements Renderable {
       header += 'var ';
     }
     if (_field.declaredType.name == 'dynamic') {
-      children = [
+      children = <Element>[
         new SpanElement()..text = header,
         new AnchorElement(href: Uris.inspect(_isolate, object: _field))
           ..text = _field.name
       ];
     } else {
-      children = [
+      children = <Element>[
         new SpanElement()..text = header,
         new InstanceRefElement(_isolate, _field.declaredType, _objects,
-            queue: _r.queue, expandable: _expandable),
+                queue: _r.queue, expandable: _expandable)
+            .element,
         new SpanElement()..text = ' ',
         new AnchorElement(href: Uris.inspect(_isolate, object: _field))
           ..text = _field.name

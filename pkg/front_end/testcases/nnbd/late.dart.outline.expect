@@ -1,0 +1,31 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  late field core::int lateInstanceField;
+  late final [setter] field core::int lateFinalInstanceField1;
+  late final [setter] field core::int lateFinalInstanceField2;
+  late final field core::int lateFinalInstanceFieldWithInit;
+  late field self::Class lateInstanceFieldThis;
+  late final field self::Class lateFinalInstanceFieldThis;
+  late static field core::int lateStaticField;
+  late static final field core::int lateFinalStaticField1;
+  late static final field core::int lateFinalStaticField2;
+  late static final field core::int lateFinalStaticFieldWithInit;
+  synthetic constructor •() → self::Class
+    ;
+  method method() → dynamic
+    ;
+  method methodWithErrors() → dynamic
+    ;
+}
+late static field core::int lateTopLevelField;
+late static final field core::int lateFinalTopLevelField;
+late static final field core::int lateFinalTopLevelFieldWithInit;
+static method main() → dynamic
+  ;
+static method noErrors() → dynamic
+  ;
+static method errors() → dynamic
+  ;

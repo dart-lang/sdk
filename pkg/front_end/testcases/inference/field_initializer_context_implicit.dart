@@ -8,8 +8,8 @@ library test;
 T f<T>() => null;
 
 class C implements B {
-  final /*@topType=int*/ x;
-  C() : x = /*@typeArgs=int*/ f();
+  final x;
+  C() : x = /*@ typeArgs=int* */ f();
 }
 
 abstract class B {

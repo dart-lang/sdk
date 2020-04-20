@@ -1,51 +1,85 @@
 # This pubspec is currently mainly used to make it easier to develop on dart2js
 # by making it a standalone package.
 name: compiler
-#version: do-not-upload
+publish_to: none
+environment:
+  sdk: '>=2.6.0 <3.0.0'
+
+# NOTE: `pub get / pub upgrade` are generally not needed when working on this
+# package. The `.packages` file in the repository root will be used by default.
 dependencies:
-  package_config: '>=0.1.1 <2.0.0'
-  pub_semver: ^1.2.1
-  js:
-    path: ../js
+  # Published packages - repo version ensured via dependency_overrides
+  collection: any
+  crypto: any
+  dart2js_info: any
+  front_end: any
+  kernel: any
+
+  # Unpublished packages that can be used via path dependency
   js_ast:
     path: ../js_ast
   js_runtime:
     path: ../../sdk/lib/_internal/js_runtime
-  kernel:
-    path: ../../pkg/kernel
   sdk_library_metadata:
     path: ../../sdk/lib/_internal/sdk_library_metadata
-  dart2js_info:
-    path: ../../third_party/pkg/dart2js_info
-  front_end:
-    path: ../front_end
+
+dev_dependencies:
+  # Published packages - repo version ensured via dependency_overrides
+  args: any
+
 dependency_overrides:
+  # Packages with source in the SDK
   front_end:
     path: ../front_end
-  analyzer:
-    path: ../analyzer
   kernel:
     path: ../../pkg/kernel
+  meta:
+    path: ../meta
 
-# Uncomment if running gclient, so you can depend directly on the downloaded
-# versions of dart2js's transitive dependencies:
-#
-# dependency_overrides:
-#   package_config:
-#     path: ../../third_party/pkg_tested/package_config
-#   path:
-#     path: ../../third_party/pkg/path
-#   charcode:
-#     path: ../../third_party/pkg/charcode
-#   collection:
-#     path: ../../third_party/pkg/collection
-#   crypto:
-#     path: ../../third_party/pkg/crypto
-#   http_parser:
-#     path: ../../third_party/pkg/http_parser
-#   args:
-#     path: ../../third_party/pkg/args
-#   shelf:
-#     path: ../../third_party/pkg/shelf
-#   yaml:
-#     path: ../../third_party/pkg/yaml
+  # Packages brought in via DEPS
+  args:
+    path: ../../third_party/pkg/args
+  async:
+    path: ../../third_party/pkg/async
+  charcode:
+    path: ../../third_party/pkg/charcode
+  collection:
+    path: ../../third_party/pkg/collection
+  convert:
+    path: ../../third_party/pkg/convert
+  crypto:
+    path: ../../third_party/pkg/crypto
+  dart2js_info:
+    path: ../../third_party/pkg/dart2js_info
+  fixnum:
+    path: ../../third_party/pkg/fixnum
+  http_parser:
+    path: ../../third_party/pkg/http_parser
+  matcher:
+    path: ../../third_party/pkg/matcher
+  mime:
+    path: ../../third_party/pkg/mime
+  package_config:
+    path: ../../third_party/pkg_tested/package_config
+  path:
+    path: ../../third_party/pkg/path
+  protobuf:
+    path: ../../third_party/pkg/protobuf
+  quiver:
+    path: ../../third_party/pkg/quiver
+  shelf:
+    path: ../../third_party/pkg/shelf
+  shelf_static:
+    path: ../../third_party/pkg/shelf_static
+  source_span:
+    path: ../../third_party/pkg/source_span
+  stack_trace:
+    path: ../../third_party/pkg/stack_trace
+  stream_channel:
+    path: ../../third_party/pkg/stream_channel
+  string_scanner:
+    path: ../../third_party/pkg/string_scanner
+  typed_data:
+    path: ../../third_party/pkg/typed_data
+  yaml:
+    path: ../../third_party/pkg/yaml

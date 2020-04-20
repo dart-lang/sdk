@@ -11,11 +11,11 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/menu_item.dart';
 
-class NavVMMenuElement extends HtmlElement implements Renderable {
+class NavVMMenuElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavVMMenuElement>('nav-vm-menu',
       dependencies: const [NavMenuItemElement.tag]);
 
-  RenderingScheduler _r;
+  RenderingScheduler<NavVMMenuElement> _r;
 
   Stream<RenderedEvent<NavVMMenuElement>> get onRendered => _r.onRendered;
 
@@ -36,14 +36,14 @@ class NavVMMenuElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(vm != null);
     assert(events != null);
-    NavVMMenuElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    NavVMMenuElement e = new NavVMMenuElement.created();
+    e._r = new RenderingScheduler<NavVMMenuElement>(e, queue: queue);
     e._vm = vm;
     e._events = events;
     return e;
   }
 
-  NavVMMenuElement.created() : super.created();
+  NavVMMenuElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -58,17 +58,20 @@ class NavVMMenuElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
     _updatesSubscription.cancel();
   }
 
   void render() {
-    final content = (_vm.isolates.map((isolate) {
+    final content = (_vm.isolates.map<Element>((isolate) {
       return new NavMenuItemElement(isolate.name,
-          queue: _r.queue, link: Uris.inspect(isolate));
+              queue: _r.queue, link: Uris.inspect(isolate))
+          .element;
     }).toList()
       ..addAll(_content));
-    children = [navMenu(vm.displayName, link: Uris.vm(), content: content)];
+    children = <Element>[
+      navMenu(vm.displayName, link: Uris.vm(), content: content)
+    ];
   }
 }

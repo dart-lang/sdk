@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class CustomType extends core::Type {
+  synthetic constructor •() → self::CustomType
+    ;
+  method call() → void
+    ;
+}
+abstract class CustomInvocation extends core::Object implements core::Invocation {
+  synthetic constructor •() → self::CustomInvocation
+    ;
+}
+abstract class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    ;
+  abstract get runtimeType() → self::CustomType;
+  forwarding-stub forwarding-semi-stub method noSuchMethod(covariant self::CustomInvocation invocation) → core::String
+    return super.{core::Object::noSuchMethod}(invocation);
+  forwarding-stub forwarding-semi-stub operator ==(covariant self::Class o) → core::bool
+    return super.{core::Object::==}(o);
+  abstract method toString({core::Object o}) → core::String;
+}
+static method main() → dynamic
+  ;
+static method test(self::Class c1, self::Class? c2, core::Invocation invocation, self::CustomInvocation customInvocation) → void
+  ;

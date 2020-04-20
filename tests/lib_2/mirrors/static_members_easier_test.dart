@@ -4,20 +4,19 @@
 
 library test.static_members;
 
-@MirrorsUsed(targets: "test.static_members")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 import 'stringify.dart';
 import 'declarations_model_easier.dart' as declarations_model;
 
-selectKeys(map, predicate) {
-  return map.keys.where((key) => predicate(map[key]));
+selectKeys<K, V>(Map<K, V> map, bool Function(V) predicate) {
+  return map.keys.where((K key) => predicate(map[key]));
 }
 
 main() {
   ClassMirror cm = reflectClass(declarations_model.Class);
-  LibraryMirror lm = cm.owner;
+  LibraryMirror lm = cm.owner as LibraryMirror;
 
   Expect.setEquals([
     #staticVariable,

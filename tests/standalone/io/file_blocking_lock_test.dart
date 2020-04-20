@@ -23,16 +23,16 @@ import "package:path/path.dart";
 runPeer(String path, int len, FileLock mode) {
   var script =
       Platform.script.resolve('file_blocking_lock_script.dart').toFilePath();
-  var arguments = []
+  var arguments = <String>[]
     ..addAll(Platform.executableArguments)
     ..add(script)
     ..add(path)
     ..add(len.toString());
   return Process.start(Platform.executable, arguments).then((process) {
-    process.stdout.transform(UTF8.decoder).listen((data) {
+    process.stdout.transform(utf8.decoder).listen((data) {
       print(data);
     });
-    process.stderr.transform(UTF8.decoder).listen((data) {
+    process.stderr.transform(utf8.decoder).listen((data) {
       print(data);
     });
     return process;
@@ -51,9 +51,9 @@ Future<bool> waitForPeer(RandomAccessFile raf, int length) async {
       return false;
     }
     try {
-      await raf.lock(FileLock.EXCLUSIVE, 0, length);
-    } on dynamic {
-      await raf.lock(FileLock.BLOCKING_EXCLUSIVE, 0, length);
+      await raf.lock(FileLock.exclusive, 0, length);
+    } catch (_) {
+      await raf.lock(FileLock.blockingExclusive, 0, length);
       break;
     }
   }
@@ -66,9 +66,9 @@ testLockWholeFile() async {
   Directory directory = await Directory.systemTemp.createTemp('dart_file_lock');
   File file = new File(join(directory.path, "file"));
   await file.writeAsBytes(new List.filled(length, 0));
-  var raf = await file.open(mode: APPEND);
-  await raf.lock(FileLock.BLOCKING_EXCLUSIVE, 0, length);
-  Process peer = await runPeer(file.path, length, FileLock.BLOCKING_EXCLUSIVE);
+  var raf = await file.open(mode: FileMode.append);
+  await raf.lock(FileLock.blockingExclusive, 0, length);
+  Process peer = await runPeer(file.path, length, FileLock.blockingExclusive);
 
   // If the peer doesn't come up within the timeout, then give up on the test
   // to avoid the test being flaky.

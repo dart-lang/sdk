@@ -9,7 +9,7 @@ library stream_state_nonzero_timer_test;
 
 import 'dart:async';
 
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 import 'stream_state_helper.dart';
 

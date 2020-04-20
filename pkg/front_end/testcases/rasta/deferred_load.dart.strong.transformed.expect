@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:async" as asy;
+
+import "org-dartlang-testcase:///deferred_lib.dart" deferred as lib;
+
+static method main() → dynamic {
+  #C1;
+  LoadLibrary(lib);
+}
+static method _#loadLibrary_lib() → asy::Future<dynamic>*
+  return LoadLibrary(lib);
+
+library deferred_lib;
+import self as self2;
+
+static method foo() → dynamic
+  return null;
+
+constants  {
+  #C1 = tearoff self::_#loadLibrary_lib
+}

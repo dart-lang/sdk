@@ -2,18 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
+
 import "dart:isolate";
 import "dart:io";
 
 void main(List<String> args) {
   if (args.contains("--child")) {
     new RawReceivePort(); // Hang if not killed.
-    Isolate.current.kill(priority: Isolate.IMMEDIATE);
+    Isolate.current.kill(priority: Isolate.immediate);
     // No intervening call.
     throw "QQQ Should not be reached";
   } else {
     var exec = Platform.resolvedExecutable;
-    var args = new List();
+    var args = new List<String>();
     args.addAll(Platform.executableArguments);
     args.add(Platform.script.toFilePath());
     args.add("--child");

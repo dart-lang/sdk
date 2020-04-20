@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: boxedLoopVariableExample:*/
+// @dart = 2.7
+
+/*member: boxedLoopVariableExample:*/
 boxedLoopVariableExample() {
   var input = [1, 2, 3];
   var fs = [];
@@ -15,25 +17,25 @@ boxedLoopVariableExample() {
   return fs;
 }
 
-/*element: readParameterInAnonymousClosure:*/
+/*member: readParameterInAnonymousClosure:*/
 readParameterInAnonymousClosure(/**/ parameter) {
   return /*fields=[parameter],free=[parameter]*/ () => parameter;
 }
 
-/*element: readParameterInClosure:*/
+/*member: readParameterInClosure:*/
 readParameterInClosure(/**/ parameter) {
   /*fields=[parameter],free=[parameter]*/ func() => parameter;
   return func;
 }
 
-/*element: writeParameterInAnonymousClosure:box=(box0 which holds [parameter])*/
+/*member: writeParameterInAnonymousClosure:box=(box0 which holds [parameter])*/
 writeParameterInAnonymousClosure(/*boxed*/ parameter) {
   return /*fields=[box0],free=[box0,parameter]*/ () {
     parameter = 42;
   };
 }
 
-/*element: writeParameterInClosure:box=(box0 which holds [parameter])*/
+/*member: writeParameterInClosure:box=(box0 which holds [parameter])*/
 writeParameterInClosure(/*boxed*/ parameter) {
   /*fields=[box0],free=[box0,parameter]*/ func() {
     parameter = 43;
@@ -42,20 +44,20 @@ writeParameterInClosure(/*boxed*/ parameter) {
   return func;
 }
 
-/*element: readLocalInAnonymousClosure:*/
+/*member: readLocalInAnonymousClosure:*/
 readLocalInAnonymousClosure(/**/ parameter) {
   var /**/ local = parameter;
   return /*fields=[local],free=[local]*/ () => local;
 }
 
-/*element: readLocalInClosure:*/
+/*member: readLocalInClosure:*/
 readLocalInClosure(/**/ parameter) {
   var /**/ local = parameter;
   /*fields=[local],free=[local]*/ func() => local;
   return func;
 }
 
-/*element: writeLocalInAnonymousClosure:box=(box0 which holds [local])*/
+/*member: writeLocalInAnonymousClosure:box=(box0 which holds [local])*/
 writeLocalInAnonymousClosure(/**/ parameter) {
   // ignore: UNUSED_LOCAL_VARIABLE
   var /*boxed*/ local = parameter;
@@ -64,7 +66,7 @@ writeLocalInAnonymousClosure(/**/ parameter) {
   };
 }
 
-/*element: writeLocalInClosure:box=(box0 which holds [local])*/
+/*member: writeLocalInClosure:box=(box0 which holds [local])*/
 writeLocalInClosure(/**/ parameter) {
   // ignore: UNUSED_LOCAL_VARIABLE
   var /*boxed*/ local = parameter;
@@ -75,25 +77,25 @@ writeLocalInClosure(/**/ parameter) {
   return func;
 }
 
-/*element: Foo.:hasThis*/
+/*member: Foo.:hasThis*/
 class Foo {
-  int /*element: Foo.bar:hasThis*/ bar = 4;
+  int /*member: Foo.bar:hasThis*/ bar = 4;
 
-  /*element: Foo.baz:hasThis*/ baz() {
+  /*member: Foo.baz:hasThis*/ baz() {
     /*fields=[this],free=[this],hasThis*/ func() => bar;
     return func;
   }
 }
 
-/*element: Repro.:hasThis*/
+/*member: Repro.:hasThis*/
 class Repro {
-  /*element: Repro.qux:hasThis*/ qux() {
+  /*member: Repro.qux:hasThis*/ qux() {
     /*fields=[this],free=[this],hasThis*/ threeNested(foo) =>
         /*fields=[this],free=[this],hasThis*/ (bar) => someFunction();
     return threeNested;
   }
 
-  /*element: Repro.someFunction:hasThis*/ someFunction() => 3;
+  /*member: Repro.someFunction:hasThis*/ someFunction() => 3;
 }
 
 main() {

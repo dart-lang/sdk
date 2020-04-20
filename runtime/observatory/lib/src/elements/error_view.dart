@@ -14,7 +14,7 @@ import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class ErrorViewElement extends HtmlElement implements Renderable {
+class ErrorViewElement extends CustomElement implements Renderable {
   static const tag = const Tag<ErrorViewElement>('error-view',
       dependencies: const [
         NavTopMenuElement.tag,
@@ -22,7 +22,7 @@ class ErrorViewElement extends HtmlElement implements Renderable {
         ViewFooterElement.tag
       ]);
 
-  RenderingScheduler _r;
+  RenderingScheduler<ErrorViewElement> _r;
 
   Stream<RenderedEvent<ErrorViewElement>> get onRendered => _r.onRendered;
 
@@ -36,14 +36,14 @@ class ErrorViewElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(error != null);
     assert(notifications != null);
-    ErrorViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    ErrorViewElement e = new ErrorViewElement.created();
+    e._r = new RenderingScheduler<ErrorViewElement>(e, queue: queue);
     e._error = error;
     e._notifications = notifications;
     return e;
   }
 
-  ErrorViewElement.created() : super.created();
+  ErrorViewElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -54,27 +54,27 @@ class ErrorViewElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    children = [
-      navBar([
-        new NavTopMenuElement(queue: _r.queue),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+    children = <Element>[
+      navBar(<Element>[
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h1()
             ..text = 'Error: ${_kindToString(_error.kind)}',
           new BRElement(),
           new DivElement()
             ..classes = ['well']
-            ..children = [new PreElement()..text = error.message]
+            ..children = <Element>[new PreElement()..text = error.message]
         ],
-      new ViewFooterElement(queue: _r.queue)
+      new ViewFooterElement(queue: _r.queue).element
     ];
   }
 

@@ -1,0 +1,64 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with errors in it, then - without fixing the errors -
+# recompile. Make sure we still get errors. As long as we don't fix the error,
+# we keep getting errors. Once we fix it, we no longer get errors.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      .packages: mypackage:mypackage
+      main.dart: |
+        import "package:mypackage/a.dart";
+      mypackage/a.dart: |
+        import "package:mypackage/b.dart";
+
+        class Foo<T> {}
+        class Bar<T> extends Foo<T> {}
+      mypackage/b.dart: |
+        import "package:mypackage/a.dart";
+
+        class Baz extends Bar<int> implements Foo<String> {}
+    expectedLibraryCount: 3
+    errors: true
+  - entry: main.dart
+    errors: true
+    worldType: updated
+    expectInitializeFromDill: false
+    expectedLibraryCount: 3
+  - entry: main.dart
+    sources:
+      .packages: mypackage:mypackage
+      main.dart: |
+        import "package:mypackage/a.dart";
+      mypackage/a.dart: |
+        import "package:mypackage/b.dart";
+
+        class Foo<T> {}
+        class Bar<T> extends Foo<T> {}
+      mypackage/b.dart: |
+        import "package:mypackage/a.dart";
+
+        class Baz extends Bar<int> implements Foo<String> {}
+    expectedLibraryCount: 3
+    errors: true
+  - entry: main.dart
+    errors: true
+    worldType: updated
+    invalidate:
+      - main.dart
+    expectedLibraryCount: 3
+  - entry: main.dart
+    errors: false
+    worldType: updated
+    invalidate:
+      - mypackage/b.dart
+    sources:
+      mypackage/b.dart: |
+        import "package:mypackage/a.dart";
+
+        class Baz extends Bar<int> {}
+    expectedLibraryCount: 3

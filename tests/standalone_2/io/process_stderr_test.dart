@@ -30,8 +30,10 @@ void test(Future<Process> future, int expectedExitCode) {
 
     void readData(List<int> data) {
       buffer.addAll(data);
-      for (int i = received; i < min(data.length, buffer.length) - 1; i++) {
-        Expect.equals(data[i], buffer[i]);
+      for (int i = received;
+          i < min(input_data.length, buffer.length) - 1;
+          i++) {
+        Expect.equals(input_data[i], buffer[i]);
       }
       received = buffer.length;
       if (received >= input_dataSize) {
@@ -65,5 +67,11 @@ main() {
         new File("../tests/standalone_2/io/process_std_io_script.dart");
   }
   Expect.isTrue(scriptFile.existsSync());
-  test(Process.start(Platform.executable, [scriptFile.path, "1"]), 0);
+  test(
+      Process.start(
+          Platform.executable,
+          []
+            ..addAll(Platform.executableArguments)
+            ..addAll([scriptFile.path, "1"])),
+      0);
 }

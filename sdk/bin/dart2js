@@ -38,7 +38,7 @@ declare -a EXTRA_VM_OPTIONS
 
 case $0 in
   *_developer)
-    EXTRA_VM_OPTIONS+=('--checked')
+    EXTRA_VM_OPTIONS+=('--enable-asserts')
     ;;
 esac
 
@@ -50,6 +50,6 @@ fi
 
 DART_ROOT="$(cd "${SDK_DIR}/.." ; pwd -P)"
 
-DART2JS="$DART_ROOT/pkg/compiler/lib/src/dart2js.dart"
+DART2JS="package:compiler/src/dart2js.dart"
 
 exec "$DART" "--packages=$DART_ROOT/.packages" "${EXTRA_VM_OPTIONS[@]}" "$DART2JS" "${EXTRA_OPTIONS[@]}" "$@"

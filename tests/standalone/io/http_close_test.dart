@@ -13,7 +13,7 @@ import "dart:io";
 import "dart:typed_data";
 import "dart:math";
 
-void testClientAndServerCloseNoListen(int connections) {
+testClientAndServerCloseNoListen(int connections) {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     int closed = 0;
     server.listen((request) {
@@ -28,7 +28,7 @@ void testClientAndServerCloseNoListen(int connections) {
         }
       });
     });
-    var client = new HttpClient();
+    var client = HttpClient();
     for (int i = 0; i < connections; i++) {
       client
           .get("127.0.0.1", server.port, "/")
@@ -38,10 +38,10 @@ void testClientAndServerCloseNoListen(int connections) {
   });
 }
 
-void testClientCloseServerListen(int connections) {
+testClientCloseServerListen(int connections) {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     int closed = 0;
-    void check() {
+    check() {
       closed++;
       if (closed == connections * 2) {
         Expect.equals(0, server.connectionsInfo().active);
@@ -57,7 +57,7 @@ void testClientCloseServerListen(int connections) {
         request.response.done.then((_) => check());
       });
     });
-    var client = new HttpClient();
+    var client = HttpClient();
     for (int i = 0; i < connections; i++) {
       client
           .get("127.0.0.1", server.port, "/")
@@ -67,15 +67,15 @@ void testClientCloseServerListen(int connections) {
   });
 }
 
-void testClientCloseSendingResponse(int connections) {
-  var buffer = new Uint8List(64 * 1024);
-  var rand = new Random();
+testClientCloseSendingResponse(int connections) {
+  var buffer = Uint8List(64 * 1024);
+  var rand = Random();
   for (int i = 0; i < buffer.length; i++) {
     buffer[i] = rand.nextInt(256);
   }
   HttpServer.bind("127.0.0.1", 0).then((server) {
     int closed = 0;
-    void check() {
+    check() {
       closed++;
       // Wait for both server and client to see the connections as closed.
       if (closed == connections * 2) {
@@ -87,7 +87,7 @@ void testClientCloseSendingResponse(int connections) {
     }
 
     server.listen((request) {
-      var timer = new Timer.periodic(const Duration(milliseconds: 50), (_) {
+      var timer = Timer.periodic(const Duration(milliseconds: 50), (_) {
         request.response.add(buffer);
       });
       request.response.done.catchError((_) {}).whenComplete(() {
@@ -95,7 +95,7 @@ void testClientCloseSendingResponse(int connections) {
         timer.cancel();
       });
     });
-    var client = new HttpClient();
+    var client = HttpClient();
     for (int i = 0; i < connections; i++) {
       client
           .get("127.0.0.1", server.port, "/")
@@ -104,7 +104,7 @@ void testClientCloseSendingResponse(int connections) {
         // Ensure we don't accept the response until we have send the entire
         // request.
         var subscription = response.listen((_) {});
-        new Timer(const Duration(milliseconds: 20), () {
+        Timer(const Duration(milliseconds: 20), () {
           subscription.cancel();
           check();
         });
@@ -113,30 +113,38 @@ void testClientCloseSendingResponse(int connections) {
   });
 }
 
-void testClientCloseWhileSendingRequest(int connections) {
+// Closing the request early, before sending the full request payload should
+// result in an error on both server and client.
+testClientCloseWhileSendingRequest(int connections) {
   HttpServer.bind("127.0.0.1", 0).then((server) {
-    int errors = 0;
+    int serverErrors = 0;
+    int clientErrors = 0;
     server.listen((request) {
-      request.listen((_) {});
+      request.listen((_) {}, onError: (_) {
+        serverErrors++;
+        if (serverErrors == connections) {
+          server.close();
+        }
+      });
+    }, onDone: () {
+      Expect.equals(connections, clientErrors);
+      Expect.equals(connections, serverErrors);
     });
-    var client = new HttpClient();
-    int closed = 0;
+    var client = HttpClient();
     for (int i = 0; i < connections; i++) {
-      client.post("127.0.0.1", server.port, "/").then((request) {
+      Future<HttpClientResponse?>.value(
+          client.post("127.0.0.1", server.port, "/").then((request) {
         request.contentLength = 110;
         request.write("0123456789");
         return request.close();
-      }).catchError((_) {
-        closed++;
-        if (closed == connections) {
-          server.close();
-        }
+      })).catchError((_) {
+        clientErrors++;
       });
     }
   });
 }
 
-void main() {
+main() {
   testClientAndServerCloseNoListen(10);
   testClientCloseServerListen(10);
   testClientCloseSendingResponse(10);

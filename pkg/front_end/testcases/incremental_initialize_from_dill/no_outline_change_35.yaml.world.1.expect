@@ -1,0 +1,55 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  import "dart:ffi";
+
+  @#C3
+  class Coordinate extends dart.ffi::Struct {
+    @#C3
+    static final field dart.core::int* #sizeOf = (#C6).{dart.core::List::[]}(dart.ffi::_abi());
+    @#C3
+    constructor #fromPointer(dynamic #pointer) → dynamic
+      : super dart.ffi::Struct::_fromPointer(#pointer)
+      ;
+    static factory allocate(dart.core::double* x, dart.core::double* y, dart.ffi::Pointer<lib::Coordinate*>* next) → lib::Coordinate* {
+      return null;
+    }
+    get x() → dart.core::double*
+      return dart.ffi::_loadDouble(this.{dart.ffi::Struct::_addressOf}, (#C8).{dart.core::List::[]}(dart.ffi::_abi()));
+    set x(dart.core::double* #v) → void
+      return dart.ffi::_storeDouble(this.{dart.ffi::Struct::_addressOf}, (#C8).{dart.core::List::[]}(dart.ffi::_abi()), #v);
+    get y() → dart.core::double*
+      return dart.ffi::_loadDouble(this.{dart.ffi::Struct::_addressOf}, (#C10).{dart.core::List::[]}(dart.ffi::_abi()));
+    set y(dart.core::double* #v) → void
+      return dart.ffi::_storeDouble(this.{dart.ffi::Struct::_addressOf}, (#C10).{dart.core::List::[]}(dart.ffi::_abi()), #v);
+    get next() → dart.ffi::Pointer<lib::Coordinate*>*
+      return dart.ffi::_fromAddress<lib::Coordinate*>(dart.ffi::_loadIntPtr(this.{dart.ffi::Struct::_addressOf}, (#C12).{dart.core::List::[]}(dart.ffi::_abi())));
+    set next(dart.ffi::Pointer<lib::Coordinate*>* #v) → void
+      return dart.ffi::_storeIntPtr(this.{dart.ffi::Struct::_addressOf}, (#C12).{dart.core::List::[]}(dart.ffi::_abi()), #v.{=dart.ffi::Pointer::address});
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart";
+
+  static method main() → dynamic {
+    lib::Coordinate* coordinate = lib::Coordinate::allocate(42.0, 42.0, null);
+    dart.core::print(coordinate.{lib::Coordinate::x});
+    dart.core::print(coordinate.{lib::Coordinate::y});
+    dart.core::print(coordinate.{lib::Coordinate::next});
+  }
+}
+constants  {
+  #C1 = "vm:entry-point"
+  #C2 = null
+  #C3 = dart.core::pragma {name:#C1, options:#C2}
+  #C4 = 24
+  #C5 = 20
+  #C6 = <dart.core::int*>[#C4, #C5, #C4]
+  #C7 = 0
+  #C8 = <dart.core::int*>[#C7, #C7, #C7]
+  #C9 = 8
+  #C10 = <dart.core::int*>[#C9, #C9, #C9]
+  #C11 = 16
+  #C12 = <dart.core::int*>[#C11, #C11, #C11]
+}

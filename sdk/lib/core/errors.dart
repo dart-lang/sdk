@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.core;
 
 /**
@@ -98,24 +100,34 @@ class Error {
 class AssertionError extends Error {
   /** Message describing the assertion error. */
   final Object message;
+
   AssertionError([this.message]);
-  String toString() => "Assertion failed";
+
+  String toString() {
+    if (message != null) {
+      return "Assertion failed: ${Error.safeToString(message)}";
+    }
+    return "Assertion failed";
+  }
 }
 
 /**
- * Error thrown by the runtime system when a type assertion fails.
+ * Error thrown by the runtime system when a dynamic type error happens.
  */
-class TypeError extends AssertionError {}
+class TypeError extends Error {}
 
 /**
  * Error thrown by the runtime system when a cast operation fails.
  */
+@Deprecated("Use TypeError instead")
 class CastError extends Error {}
 
 /**
  * Error thrown when attempting to throw [:null:].
  */
 class NullThrownError extends Error {
+  @pragma("vm:entry-point")
+  NullThrownError();
   String toString() => "Throw of null.";
 }
 
@@ -139,6 +151,7 @@ class ArgumentError extends Error {
    * If the `message` is not a [String], it is assumed to be a value instead
    * of a message.
    */
+  @pragma("vm:entry-point")
   ArgumentError([this.message])
       : invalidValue = null,
         _hasValue = false,
@@ -157,6 +170,7 @@ class ArgumentError extends Error {
    * names differ from the interface, it might be more useful to use the
    * interface method's argument name (or just rename arguments to match).
    */
+  @pragma("vm:entry-point")
   ArgumentError.value(value, [this.name, this.message])
       : invalidValue = value,
         _hasValue = true;
@@ -168,6 +182,20 @@ class ArgumentError extends Error {
       : _hasValue = false,
         message = "Must not be null",
         invalidValue = null;
+
+  /**
+   * Throws if [argument] is `null`.
+   *
+   * If [name] is supplied, it is used as the parameter name
+   * in the error message.
+   *
+   * Returns the [argument] if it is not null.
+   */
+  @Since("2.1")
+  static T checkNotNull<@Since("2.8") T>(T argument, [String name]) {
+    if (argument == null) throw ArgumentError.notNull(name);
+    return argument;
+  }
 
   // Helper functions for toString overridden in subclasses.
   String get _errorName => "Invalid argument${!_hasValue ? "(s)" : ""}";
@@ -202,6 +230,7 @@ class RangeError extends ArgumentError {
   /**
    * Create a new [RangeError] with the given [message].
    */
+  @pragma("vm:entry-point")
   RangeError(var message)
       : start = null,
         end = null,
@@ -234,6 +263,7 @@ class RangeError extends ArgumentError {
    * invalid value, and the [message] can override the default error
    * description.
    */
+  @pragma("vm:entry-point")
   RangeError.range(num invalidValue, int minValue, int maxValue,
       [String name, String message])
       : start = minValue,
@@ -252,41 +282,54 @@ class RangeError extends ArgumentError {
    * The [length] is the length of [indexable] at the time of the error.
    * If `length` is omitted, it defaults to `indexable.length`.
    */
-  factory RangeError.index(int index, indexable,
+  factory RangeError.index(int index, dynamic indexable,
       [String name, String message, int length]) = IndexError;
 
   /**
-   * Check that a [value] lies in a specific interval.
+   * Check that an integer [value] lies in a specific interval.
    *
    * Throws if [value] is not in the interval.
    * The interval is from [minValue] to [maxValue], both inclusive.
+   *
+   * If [name] or [message] are provided, they are used as the parameter
+   * name and message text of the thrown error.
+   *
+   * Returns [value] if it is in the interval.
    */
-  static void checkValueInInterval(int value, int minValue, int maxValue,
+  static int checkValueInInterval(int value, int minValue, int maxValue,
       [String name, String message]) {
     if (value < minValue || value > maxValue) {
-      throw new RangeError.range(value, minValue, maxValue, name, message);
+      throw RangeError.range(value, minValue, maxValue, name, message);
     }
+    return value;
   }
 
   /**
-   * Check that a value is a valid index into an indexable object.
+   * Check that [index] is a valid index into an indexable object.
    *
    * Throws if [index] is not a valid index into [indexable].
    *
    * An indexable object is one that has a `length` and a and index-operator
    * `[]` that accepts an index if `0 <= index < length`.
    *
+   * If [name] or [message] are provided, they are used as the parameter
+   * name and message text of the thrown error. If [name] is omitted, it
+   * defaults to `"index"`.
+   *
    * If [length] is provided, it is used as the length of the indexable object,
    * otherwise the length is found as `indexable.length`.
+   *
+   * Returns [index] if it is a valid index.
    */
-  static void checkValidIndex(int index, var indexable,
+  static int checkValidIndex(int index, dynamic indexable,
       [String name, int length, String message]) {
-    if (length == null) length = indexable.length;
+    length ??= indexable.length;
     // Comparing with `0` as receiver produces better dart2js type inference.
     if (0 > index || index >= length) {
-      if (name == null) name = "index";
-      throw new RangeError.index(index, indexable, name, message, length);
+      name ??= "index";
+      throw RangeError.index(index, indexable, name, message, length);
     }
+    return index;
   }
 
   /**
@@ -310,13 +353,13 @@ class RangeError extends ArgumentError {
     // Comparing with `0` as receiver produces better dart2js type inference.
     // Ditto `start > end` below.
     if (0 > start || start > length) {
-      if (startName == null) startName = "start";
-      throw new RangeError.range(start, 0, length, startName, message);
+      startName ??= "start";
+      throw RangeError.range(start, 0, length, startName, message);
     }
     if (end != null) {
       if (start > end || end > length) {
-        if (endName == null) endName = "end";
-        throw new RangeError.range(end, start, length, endName, message);
+        endName ??= "end";
+        throw RangeError.range(end, start, length, endName, message);
       }
       return end;
     }
@@ -324,12 +367,19 @@ class RangeError extends ArgumentError {
   }
 
   /**
-   * Check that an integer value isn't negative.
+   * Check that an integer value is non-negative.
    *
    * Throws if the value is negative.
+   *
+   * If [name] or [message] are provided, they are used as the parameter
+   * name and message text of the thrown error. If [name] is omitted, it
+   * defaults to `index`.
+   *
+   * Returns [value] if it is not negative.
    */
-  static void checkNotNegative(int value, [String name, String message]) {
-    if (value < 0) throw new RangeError.range(value, 0, null, name, message);
+  static int checkNotNegative(int value, [String name, String message]) {
+    if (value < 0) throw RangeError.range(value, 0, null, name, message);
+    return value;
   }
 
   String get _errorName => "RangeError";
@@ -377,10 +427,10 @@ class IndexError extends ArgumentError implements RangeError {
    *
    * The message is used as part of the string representation of the error.
    */
-  IndexError(int invalidValue, indexable,
+  IndexError(int invalidValue, dynamic indexable,
       [String name, String message, int length])
       : this.indexable = indexable,
-        this.length = (length != null) ? length : indexable.length,
+        this.length = length ?? indexable.length,
         super.value(invalidValue, name,
             (message != null) ? message : "Index out of range");
 
@@ -391,6 +441,7 @@ class IndexError extends ArgumentError implements RangeError {
   String get _errorName => "RangeError";
   String get _errorExplanation {
     assert(_hasValue);
+    int invalidValue = this.invalidValue;
     if (invalidValue < 0) {
       return ": index must not be negative";
     }
@@ -411,6 +462,7 @@ class IndexError extends ArgumentError implements RangeError {
  */
 class FallThroughError extends Error {
   FallThroughError();
+  @pragma("vm:entry-point")
   external FallThroughError._create(String url, int line);
 
   external String toString();
@@ -430,13 +482,6 @@ class AbstractClassInstantiationError extends Error {
  * Error thrown by the default implementation of [:noSuchMethod:] on [Object].
  */
 class NoSuchMethodError extends Error {
-  // Deprecated members to be removed.
-  final Object _receiver;
-  final Symbol _memberName;
-  final List _arguments;
-  final Map<Symbol, dynamic> _namedArguments;
-  final List _existingArgumentNames;
-
   /**
    * Create a [NoSuchMethodError] corresponding to a failed method call.
    *
@@ -446,7 +491,6 @@ class NoSuchMethodError extends Error {
    * The [invocation] represents the method call that failed. It
    * should not be `null`.
    */
-  @Deprecated("Dart 2.0. Will be renamed to become default constructor")
   external NoSuchMethodError.withInvocation(
       Object receiver, Invocation invocation);
 
@@ -469,14 +513,14 @@ class NoSuchMethodError extends Error {
    * The [namedArguments] is a map from [Symbol]s to the values of named
    * arguments that the method was called with.
    *
-   * The optional [existingArgumentNames] is the expected parameters of a
-   * method with the same name on the receiver, if available. This is
-   * the signature of the method that would have been called if the parameters
-   * had matched.
+   * This constructor does not handle type arguments.
+   * To include type variables, create an [Invocation] and use
+   * [NoSuchMethodError.withInvocation].
    */
+  @Deprecated("Use NoSuchMethod.withInvocation instead")
   external NoSuchMethodError(Object receiver, Symbol memberName,
       List positionalArguments, Map<Symbol, dynamic> namedArguments,
-      [List existingArgumentNames = null]);
+      [@deprecated List existingArgumentNames]);
 
   external String toString();
 }
@@ -487,8 +531,10 @@ class NoSuchMethodError extends Error {
  * This [Error] is thrown when an instance cannot implement one of the methods
  * in its signature.
  */
+@pragma("vm:entry-point")
 class UnsupportedError extends Error {
   final String message;
+  @pragma("vm:entry-point")
   UnsupportedError(this.message);
   String toString() => "Unsupported operation: $message";
 }
@@ -546,6 +592,7 @@ class ConcurrentModificationError extends Error {
 }
 
 class OutOfMemoryError implements Error {
+  @pragma("vm:entry-point")
   const OutOfMemoryError();
   String toString() => "Out of Memory";
 
@@ -553,6 +600,7 @@ class OutOfMemoryError implements Error {
 }
 
 class StackOverflowError implements Error {
+  @pragma("vm:entry-point")
   const StackOverflowError();
   String toString() => "Stack Overflow";
 
@@ -568,203 +616,26 @@ class StackOverflowError implements Error {
  */
 class CyclicInitializationError extends Error {
   final String variableName;
+  @pragma("vm:entry-point")
   CyclicInitializationError([this.variableName]);
   String toString() => variableName == null
       ? "Reading static variable during its initialization"
       : "Reading static variable '$variableName' during its initialization";
 }
 
-/// Used by Fasta to throw a compile-time error in a way that is compatible
-/// with compile-time constant evaluation.
-class _ConstantExpressionError {
-  const _ConstantExpressionError();
-
-  external _throw(error);
-}
-
-/// Used by Fasta to wrap constant expressions so an illegal constant expression
-/// will throw an error.
-class _ConstantHelper {
-  _isNumStringBoolOrNull(Object e) {
-    return e is num || e is String || e is bool || e == null;
-  }
-
-  _isNumStringOrNull(Object e) {
-    return e is num || e is String || e == null;
-  }
-
-  _isNumOrNull(Object e) {
-    return e is num || e == null;
-  }
-
-  _isIntOrNull(Object e) {
-    return e is int || e == null;
-  }
-
-  ////////////////////////////////////////
-
-  // An expression of one of the forms e1 == e2 or e1 != e2 where e1 and e2 are
-  // constant expressions that evaluate to a numeric, string or boolean value or
-  // to null.
-
-  equals(Object e1, Object e2, Function onError) {
-    if (!_isNumStringBoolOrNull((e1)) || !_isNumStringBoolOrNull(e2)) onError();
-    return e1 == e2;
-  }
-
-  notEquals(Object e1, Object e2, Function onError) {
-    if (!_isNumStringBoolOrNull((e1)) || !_isNumStringBoolOrNull(e2)) onError();
-    return e1 != e2;
-  }
-
-  ////////////////////////////////////////
-
-  // An expression of one of the forms !e, e1 && e2 or e1 || e2 , where e, e1
-  // and e2 are constant expressions that evaluate to a boolean value.
-
-  not(Object e, Function onError) {
-    if (e is! bool) onError();
-    return !e;
-  }
-
-  logicalAnd(Object e1, Object e2, Function onError) {
-    if (e1 is! bool || e2 is! bool) onError();
-    return e1 && e2;
-  }
-
-  logicalOr(Object e1, Object e2, Function onError) {
-    if (e1 is! bool || e2 is! bool) onError();
-    return e1 || e2;
-  }
-
-  ////////////////////////////////////////
-
-  // An expression of one of the forms  ~e, e1 ˆ e2, e1 & e2, e1 | e2, e1 >> e2
-  // or e1 << e2, where e, e1 and e2 are constant expressions that evaluate to
-  // an integer value or to null.
-
-  bitwiseNot(dynamic e, Function onError) {
-    if (!_isIntOrNull(e)) onError();
-    return ~e;
-  }
-
-  bitwiseXor(dynamic e1, dynamic e2, Function onError) {
-    if (!_isIntOrNull(e1) || !_isIntOrNull(e2)) onError();
-    return e1 ^ e2;
-  }
-
-  bitwiseAnd(dynamic e1, dynamic e2, Function onError) {
-    if (!_isIntOrNull(e1) || !_isIntOrNull(e2)) onError();
-    return e1 & e2;
-  }
-
-  bitwiseOr(dynamic e1, dynamic e2, Function onError) {
-    if (!_isIntOrNull(e1) || !_isIntOrNull(e2)) onError();
-    return e1 | e2;
-  }
-
-  rightShift(dynamic e1, dynamic e2, Function onError) {
-    if (!_isIntOrNull(e1) || !_isIntOrNull(e2)) onError();
-    return e1 >> e2;
-  }
-
-  leftShift(dynamic e1, dynamic e2, Function onError) {
-    if (!_isIntOrNull(e1) || !_isIntOrNull(e2)) onError();
-    return e1 << e2;
-  }
-
-  ////////////////////////////////////////
-
-  // An expression of the form e1 + e2 where e1 and e2 are constant expressions
-  // that evaluate to a numeric or string value or to null.
-
-  plus(dynamic e1, dynamic e2, Function onError) {
-    if (!_isNumStringOrNull(e1) || !_isNumStringOrNull(e2)) onError();
-    return e1 + e2;
-  }
-
-  ////////////////////////////////////////
-
-  // An expression of one of the forms -e, e1 - e2, e1 * e2, e1 / e2, e1 ~/ e2,
-  // e1 > e2, e1 < e2, e1 >= e2, e1 <= e2 or e1 % e2, where e, e1 and e2 are
-  // constant expressions that evaluate to a numeric value or to null.
-
-  unary_minus(dynamic e, Function onError) {
-    if (!_isNumOrNull(e)) onError();
-    return -e;
-  }
-
-  minus(dynamic e1, dynamic e2, Function onError) {
-    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
-    return e1 - e2;
-  }
-
-  times(dynamic e1, dynamic e2, Function onError) {
-    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
-    return e1 * e2;
-  }
-
-  div(dynamic e1, dynamic e2, Function onError) {
-    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
-    return e1 / e2;
-  }
-
-  integerDiv(dynamic e1, dynamic e2, Function onError) {
-    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
-    return e1 ~/ e2;
-  }
-
-  greater(dynamic e1, dynamic e2, Function onError) {
-    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
-    return e1 > e2;
-  }
-
-  less(dynamic e1, dynamic e2, Function onError) {
-    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
-    return e1 < e2;
-  }
-
-  greaterEqual(dynamic e1, dynamic e2, Function onError) {
-    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
-    return e1 >= e2;
-  }
-
-  lessEqual(dynamic e1, dynamic e2, Function onError) {
-    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
-    return e1 <= e2;
-  }
-
-  mod(dynamic e1, dynamic e2, Function onError) {
-    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
-    return e1 % e2;
-  }
-
-  ////////////////////////////////////////
-
-  // An expression of the form e1 ? e2 : e3 where e1, e2 and e3 are constant
-  // expressions and e1 evaluates to a boolean value.
-
-  conditional(Object e1, Object e2, Object e3, Function onError) {
-    if (e1 is! bool) onError();
-    return e1 ? e2 : e3;
-  }
-
-  ////////////////////////////////////////
-
-  // An expression of the form e1 ?? e2 where e1 and e2 are constant expressions.
-
-  ifNull(Object e1, Object e2, Object e3, Function onError) {
-    if (e1 is! bool) onError();
-    return e1 ?? e2;
-  }
-
-  ////////////////////////////////////////
-
-  // An expression of the form e.length where e is a constant expression that
-  // evaluates to a string value.
-
-  dotLength(dynamic e, Function onError) {
-    if (e is! String) onError();
-    return e.length();
-  }
+/**
+ * Error thrown when a late variable is accessed in an invalid manner.
+ *
+ * A late variable must be initialized before it's read.
+ * If a late variable has no initializer expression and has not
+ * been written to, then reading it will throw a
+ * late initialization error.
+ *
+ * A late final variable with no initializer expression may only
+ * be written to once.
+ * If it is written to again, the writing will throw a
+ * late initialization error.
+ */
+abstract class LateInitializationError extends Error {
+  factory LateInitializationError._() => throw UnsupportedError("");
 }

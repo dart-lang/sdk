@@ -1,0 +1,36 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39060.dart:2:4: Error: 's' isn't a type.
+//   {s A<}>
+//    ^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39060.dart:2:6: Error: Expected ';' after this.
+//   {s A<}>
+//      ^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39060.dart:2:8: Error: Expected a type, but got '}'.
+//   {s A<}>
+//        ^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39060.dart:2:8: Error: This couldn't be parsed.
+//   {s A<}>
+//        ^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39060.dart:3:1: Error: Expected '[' before this.
+// }
+// ^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39060.dart:3:1: Error: Expected ';' after this.
+// }
+// ^
+//
+import self as self;
+
+static method main() → dynamic {
+  {
+    invalid-type A;
+    <invalid-type>[];
+  }
+}

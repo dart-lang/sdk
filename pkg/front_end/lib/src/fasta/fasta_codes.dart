@@ -4,96 +4,19 @@
 
 library fasta.codes;
 
-import 'package:kernel/ast.dart' show DartType;
+import 'package:_fe_analyzer_shared/src/messages/codes.dart'
+    hide demangleMixinApplicationName;
 
-import '../scanner/token.dart' show Token;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart';
 
-import 'util/relativize.dart' as util show relativizeUri;
+import 'package:kernel/ast.dart'
+    show Constant, DartType, demangleMixinApplicationName;
 
-part 'fasta_codes_generated.dart';
+import 'kernel/type_labeler.dart';
 
-class Code<T> {
-  final String name;
+export 'package:_fe_analyzer_shared/src/messages/codes.dart'
+    hide demangleMixinApplicationName;
 
-  final Template<T> template;
+export 'package:_fe_analyzer_shared/src/messages/severity.dart';
 
-  final String analyzerCode;
-
-  final String dart2jsCode;
-
-  const Code(this.name, this.template, {this.analyzerCode, this.dart2jsCode});
-
-  String toString() => name;
-}
-
-class Message {
-  final Code code;
-
-  final String message;
-
-  final String tip;
-
-  final Map<String, dynamic> arguments;
-
-  const Message(this.code, {this.message, this.tip, this.arguments});
-
-  LocatedMessage withLocation(Uri uri, int charOffset) {
-    return new LocatedMessage(uri, charOffset, this);
-  }
-}
-
-class MessageCode extends Code<Null> implements Message {
-  final String message;
-
-  final String tip;
-
-  const MessageCode(String name,
-      {String analyzerCode, String dart2jsCode, this.message, this.tip})
-      : super(name, null, analyzerCode: analyzerCode, dart2jsCode: dart2jsCode);
-
-  Map<String, dynamic> get arguments => const <String, dynamic>{};
-
-  Code get code => this;
-
-  LocatedMessage withLocation(Uri uri, int charOffset) {
-    return new LocatedMessage(uri, charOffset, this);
-  }
-}
-
-class Template<T> {
-  final String messageTemplate;
-
-  final String tipTemplate;
-
-  final T withArguments;
-
-  const Template({this.messageTemplate, this.tipTemplate, this.withArguments});
-}
-
-class LocatedMessage {
-  final Uri uri;
-
-  final int charOffset;
-
-  final Message messageObject;
-
-  const LocatedMessage(this.uri, this.charOffset, this.messageObject);
-
-  Code get code => messageObject.code;
-
-  String get message => messageObject.message;
-
-  String get tip => messageObject.tip;
-
-  Map<String, dynamic> get arguments => messageObject.arguments;
-}
-
-String relativizeUri(Uri uri) {
-  // We have this method here for two reasons:
-  //
-  // 1. It allows us to implement #uri message argument without using it
-  // (otherwise, we might get an `UNUSED_IMPORT` warning).
-  //
-  // 2. We can change `base` argument here if needed.
-  return util.relativizeUri(uri, base: Uri.base);
-}
+part 'fasta_codes_cfe_generated.dart';

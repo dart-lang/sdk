@@ -24,42 +24,11 @@ class Bootstrap : public AllStatic {
   // bootstrapping.
   // The caller of this function is responsible for managing the kernel
   // program's memory.
-  static RawError* DoBootstrapping(kernel::Program* program);
+  static RawError* DoBootstrapping(const uint8_t* kernel_buffer,
+                                   intptr_t kernel_buffer_size);
 
   static void SetupNativeResolver();
-  static bool IsBootstapResolver(Dart_NativeEntryResolver resolver);
-
-  // Source path mapping for library URI and 'parts'.
-  static const char* async_source_paths_[];
-  static const char* core_source_paths_[];
-  static const char* collection_source_paths_[];
-  static const char* convert_source_paths_[];
-  static const char* developer_source_paths_[];
-  static const char* _internal_source_paths_[];
-  static const char* isolate_source_paths_[];
-  static const char* json_source_paths_[];
-  static const char* math_source_paths_[];
-  static const char* mirrors_source_paths_[];
-  static const char* profiler_source_paths_[];
-  static const char* typed_data_source_paths_[];
-  static const char* utf_source_paths_[];
-  static const char* _vmservice_source_paths_[];
-
-  // Source path mapping for patch URI and 'parts'.
-  static const char* async_patch_paths_[];
-  static const char* core_patch_paths_[];
-  static const char* collection_patch_paths_[];
-  static const char* convert_patch_paths_[];
-  static const char* developer_patch_paths_[];
-  static const char* _internal_patch_paths_[];
-  static const char* isolate_patch_paths_[];
-  static const char* math_patch_paths_[];
-  static const char* mirrors_patch_paths_[];
-  static const char* typed_data_patch_paths_[];
-  static const char* _vmservice_patch_paths_[];
-
-  // NULL patch paths for libraries that do not have patch files.
-  static const char** profiler_patch_paths_;
+  static bool IsBootstrapResolver(Dart_NativeEntryResolver resolver);
 };
 
 }  // namespace dart

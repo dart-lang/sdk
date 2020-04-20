@@ -6,11 +6,11 @@ library map_test;
 
 import "package:expect/expect.dart";
 import 'dart:collection';
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 
-Map newJsonMap() => JSON.decode('{}');
-Map newJsonMapCustomReviver() =>
-    JSON.decode('{}', reviver: (key, value) => value);
+Map<String, dynamic> newJsonMap() => json.decode('{}');
+Map<String, dynamic> newJsonMapCustomReviver() =>
+    json.decode('{}', reviver: (key, value) => value);
 
 void main() {
   test(new HashMap());
@@ -21,10 +21,13 @@ void main() {
   test(new MapView(new SplayTreeMap()));
   test(new MapBaseMap());
   test(new MapMixinMap());
+  test(newJsonMap());
+  test(newJsonMapCustomReviver());
   testLinkedHashMap();
   testMapLiteral();
   testNullValue();
   testTypes();
+  testUnmodifiableMaps();
 
   testWeirdStringKeys(new Map());
   testWeirdStringKeys(new Map<String, String>());
@@ -52,14 +55,17 @@ void main() {
   testNumericKeys(new MapBaseMap<num, String>());
   testNumericKeys(new MapMixinMap<num, String>());
 
+  // NaN maps need to have nullable value types because the forEach method
+  // cannot look up the value and therefore might find `null` instead of the
+  // actuall value. See MapMixin.forEach in dart:collection/maps.dart
   testNaNKeys(new Map());
-  testNaNKeys(new Map<num, String>());
+  testNaNKeys(new Map<num, String?>());
   testNaNKeys(new HashMap());
-  testNaNKeys(new HashMap<num, String>());
+  testNaNKeys(new HashMap<num, String?>());
   testNaNKeys(new LinkedHashMap());
-  testNaNKeys(new LinkedHashMap<num, String>());
-  testNaNKeys(new MapBaseMap<num, String>());
-  testNaNKeys(new MapMixinMap<num, String>());
+  testNaNKeys(new LinkedHashMap<num, String?>());
+  testNaNKeys(new MapBaseMap<num, String?>());
+  testNaNKeys(new MapMixinMap<num, String?>());
   // Identity maps fail the NaN-keys tests because the test assumes that
   // NaN is not equal to NaN.
 
@@ -90,6 +96,8 @@ void main() {
 
   testIterationOrder(new LinkedHashMap());
   testIterationOrder(new LinkedHashMap.identity());
+  testIterationOrder(newJsonMap());
+  testIterationOrder(newJsonMapCustomReviver());
 
   testOtherKeys(new SplayTreeMap<int, int>());
   testOtherKeys(
@@ -118,26 +126,44 @@ void main() {
   testUnmodifiableMap(new UnmodifiableMapView({1: 37}));
   testUnmodifiableMap(new UnmodifiableMapBaseMap([1, 37]));
 
+  testTypeAnnotations(new HashMap());
+  testTypeAnnotations(new LinkedHashMap());
+  testTypeAnnotations(new HashMap(equals: identical));
+  testTypeAnnotations(new LinkedHashMap(equals: identical));
+  testTypeAnnotations(new HashMap(
+      equals: (int a, int b) => a == b,
+      hashCode: (int a) => a.hashCode,
+      isValidKey: (a) => a is int));
+  testTypeAnnotations(new LinkedHashMap(
+      equals: (int a, int b) => a == b,
+      hashCode: (int a) => a.hashCode,
+      isValidKey: (a) => a is int));
+
   testFrom();
 }
 
-void test(Map map) {
+void test<K, V>(Map<K, V> map) {
   testDeletedElement(map);
-  testMap(map, 1, 2, 3, 4, 5, 6, 7, 8);
-  map.clear();
-  testMap(map, "value1", "value2", "value3", "value4", "value5", "value6",
-      "value7", "value8");
+  if (map is Map<int, dynamic>) {
+    testMap(map, 1, 2, 3, 4, 5, 6, 7, 8);
+  } else {
+    map.clear();
+    testMap(map, "value1", "value2", "value3", "value4", "value5", "value6",
+        "value7", "value8");
+  }
 }
 
 void testLinkedHashMap() {
   LinkedHashMap map = new LinkedHashMap();
-  Expect.equals(false, map.containsKey(1));
+  Expect.isFalse(map.containsKey(1));
   map[1] = 1;
   map[1] = 2;
   testLength(1, map);
 }
 
-void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {
+void testMap<K, V>(
+    Map<K, V> typedMap, key1, key2, key3, key4, key5, key6, key7, key8) {
+  dynamic map = typedMap;
   int value1 = 10;
   int value2 = 20;
   int value3 = 30;
@@ -152,7 +178,7 @@ void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {
   map[key1] = value1;
   Expect.equals(value1, map[key1]);
   map[key1] = value2;
-  Expect.equals(false, map.containsKey(key2));
+  Expect.isFalse(map.containsKey(key2));
   testLength(1, map);
 
   map[key1] = value1;
@@ -188,20 +214,20 @@ void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {
   testLength(8, map);
 
   map.remove(key4);
-  Expect.equals(false, map.containsKey(key4));
+  Expect.isFalse(map.containsKey(key4));
   testLength(7, map);
 
   // Test clearing the table.
   map.clear();
   testLength(0, map);
-  Expect.equals(false, map.containsKey(key1));
-  Expect.equals(false, map.containsKey(key2));
-  Expect.equals(false, map.containsKey(key3));
-  Expect.equals(false, map.containsKey(key4));
-  Expect.equals(false, map.containsKey(key5));
-  Expect.equals(false, map.containsKey(key6));
-  Expect.equals(false, map.containsKey(key7));
-  Expect.equals(false, map.containsKey(key8));
+  Expect.isFalse(map.containsKey(key1));
+  Expect.isFalse(map.containsKey(key2));
+  Expect.isFalse(map.containsKey(key3));
+  Expect.isFalse(map.containsKey(key4));
+  Expect.isFalse(map.containsKey(key5));
+  Expect.isFalse(map.containsKey(key6));
+  Expect.isFalse(map.containsKey(key7));
+  Expect.isFalse(map.containsKey(key8));
 
   // Test adding and removing again.
   map[key1] = value1;
@@ -235,97 +261,109 @@ void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {
   map.remove(key8);
   testLength(2, map);
 
-  Expect.equals(true, map.containsKey(key1));
-  Expect.equals(true, map.containsValue(value1));
+  Expect.isTrue(map.containsKey(key1));
+  Expect.isTrue(map.containsValue(value1));
 
   // Test Map.forEach.
-  Map otherMap = new Map();
+  Map otherMap = new Map<K, V>();
   void testForEachMap(key, value) {
     otherMap[key] = value;
   }
 
   map.forEach(testForEachMap);
-  Expect.equals(true, otherMap.containsKey(key1));
-  Expect.equals(true, otherMap.containsKey(key2));
-  Expect.equals(true, otherMap.containsValue(value1));
-  Expect.equals(true, otherMap.containsValue(value2));
+  Expect.isTrue(otherMap.containsKey(key1));
+  Expect.isTrue(otherMap.containsKey(key2));
+  Expect.isTrue(otherMap.containsValue(value1));
+  Expect.isTrue(otherMap.containsValue(value2));
   Expect.equals(2, otherMap.length);
 
   otherMap.clear();
   Expect.equals(0, otherMap.length);
 
   // Test Collection.keys.
-  void testForEachCollection(value) {
-    otherMap[value] = value;
+  void testForEachKey(key) {
+    otherMap[key] = null;
   }
 
   Iterable keys = map.keys;
-  keys.forEach(testForEachCollection);
-  Expect.equals(true, otherMap.containsKey(key1));
-  Expect.equals(true, otherMap.containsKey(key2));
-  Expect.equals(true, otherMap.containsValue(key1));
-  Expect.equals(true, otherMap.containsValue(key2));
-  Expect.equals(true, !otherMap.containsKey(value1));
-  Expect.equals(true, !otherMap.containsKey(value2));
-  Expect.equals(true, !otherMap.containsValue(value1));
-  Expect.equals(true, !otherMap.containsValue(value2));
+  keys.forEach(testForEachKey);
+  Expect.isTrue(otherMap.containsKey(key1));
+  Expect.isTrue(otherMap.containsKey(key2));
+  Expect.isFalse(otherMap.containsKey(value1));
+  Expect.isFalse(otherMap.containsKey(value2));
+
+  Expect.isTrue(otherMap.containsValue(null));
+  Expect.isFalse(otherMap.containsValue(value1));
+  Expect.isFalse(otherMap.containsValue(value2));
   Expect.equals(2, otherMap.length);
   otherMap.clear();
   Expect.equals(0, otherMap.length);
 
   // Test Collection.values.
+  void testForEachValue(value) {
+    if (value == value1) {
+      otherMap[key1] = value;
+    } else if (value == value2) {
+      otherMap[key2] = value;
+    } else {
+      otherMap[key3] = null;
+    }
+  }
+
   Iterable values = map.values;
-  values.forEach(testForEachCollection);
-  Expect.equals(true, !otherMap.containsKey(key1));
-  Expect.equals(true, !otherMap.containsKey(key2));
-  Expect.equals(true, !otherMap.containsValue(key1));
-  Expect.equals(true, !otherMap.containsValue(key2));
-  Expect.equals(true, otherMap.containsKey(value1));
-  Expect.equals(true, otherMap.containsKey(value2));
-  Expect.equals(true, otherMap.containsValue(value1));
-  Expect.equals(true, otherMap.containsValue(value2));
+  values.forEach(testForEachValue);
+  Expect.isTrue(otherMap.containsKey(key1));
+  Expect.isTrue(otherMap.containsKey(key2));
+  Expect.isFalse(otherMap.containsKey(value1));
+  Expect.isFalse(otherMap.containsKey(value2));
+
+  Expect.isTrue(otherMap.containsValue(value1));
+  Expect.isTrue(otherMap.containsValue(value2));
+  Expect.isFalse(otherMap.containsValue(value3));
+  Expect.isFalse(otherMap.containsValue(key1));
+  Expect.isFalse(otherMap.containsValue(null));
   Expect.equals(2, otherMap.length);
   otherMap.clear();
   Expect.equals(0, otherMap.length);
 
   // Test Map.putIfAbsent.
   map.clear();
-  Expect.equals(false, map.containsKey(key1));
+  Expect.isFalse(map.containsKey(key1));
   map.putIfAbsent(key1, () => 10);
-  Expect.equals(true, map.containsKey(key1));
+  Expect.isTrue(map.containsKey(key1));
   Expect.equals(10, map[key1]);
   Expect.equals(10, map.putIfAbsent(key1, () => 11));
 
   // Test Map.addAll.
   map.clear();
   otherMap.clear();
-  otherMap[99] = 1;
-  otherMap[50] = 50;
-  otherMap[1] = 99;
+  otherMap['99'] = 1;
+  otherMap['50'] = 50;
+  otherMap['1'] = 99;
   map.addAll(otherMap);
   Expect.equals(3, map.length);
-  Expect.equals(1, map[99]);
-  Expect.equals(50, map[50]);
-  Expect.equals(99, map[1]);
-  otherMap[50] = 42;
-  map.addAll(new HashMap.from(otherMap));
+  Expect.equals(1, map['99']);
+  Expect.equals(50, map['50']);
+  Expect.equals(99, map['1']);
+  otherMap['50'] = 42;
+  map.addAll(new HashMap<K, V>.from(otherMap));
   Expect.equals(3, map.length);
-  Expect.equals(1, map[99]);
-  Expect.equals(42, map[50]);
-  Expect.equals(99, map[1]);
-  otherMap[99] = 7;
-  map.addAll(new SplayTreeMap.from(otherMap));
+  Expect.equals(1, map['99']);
+  Expect.equals(42, map['50']);
+  Expect.equals(99, map['1']);
+  otherMap['99'] = 7;
+  map.addAll(new SplayTreeMap<K, V>.from(otherMap));
   Expect.equals(3, map.length);
-  Expect.equals(7, map[99]);
-  Expect.equals(42, map[50]);
-  Expect.equals(99, map[1]);
-  otherMap.remove(99);
-  map[99] = 0;
+  Expect.equals(7, map['99']);
+  Expect.equals(42, map['50']);
+  Expect.equals(99, map['1']);
+  otherMap.remove('99');
+  map['99'] = 0;
   map.addAll(otherMap);
   Expect.equals(3, map.length);
-  Expect.equals(0, map[99]);
-  Expect.equals(42, map[50]);
-  Expect.equals(99, map[1]);
+  Expect.equals(0, map['99']);
+  Expect.equals(42, map['50']);
+  Expect.equals(99, map['1']);
   map.clear();
   otherMap.clear();
   map.addAll(otherMap);
@@ -335,16 +373,16 @@ void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {
 void testDeletedElement(Map map) {
   map.clear();
   for (int i = 0; i < 100; i++) {
-    map[1] = 2;
+    map['1'] = 2;
     testLength(1, map);
-    map.remove(1);
+    map.remove('1');
     testLength(0, map);
   }
   testLength(0, map);
 }
 
 void testMapLiteral() {
-  Map m = {"a": 1, "b": 2, "c": 3};
+  var m = {"a": 1, "b": 2, "c": 3};
   Expect.equals(3, m.length);
   int sum = 0;
   m.forEach((a, b) {
@@ -359,30 +397,30 @@ void testMapLiteral() {
   String third = values[2];
   String all = "${first}${second}${third}";
   Expect.equals(3, all.length);
-  Expect.equals(true, all.contains("a", 0));
-  Expect.equals(true, all.contains("b", 0));
-  Expect.equals(true, all.contains("c", 0));
+  Expect.isTrue(all.contains("a", 0));
+  Expect.isTrue(all.contains("b", 0));
+  Expect.isTrue(all.contains("c", 0));
 }
 
 void testNullValue() {
   Map m = {"a": 1, "b": null, "c": 3};
 
   Expect.equals(null, m["b"]);
-  Expect.equals(true, m.containsKey("b"));
+  Expect.isTrue(m.containsKey("b"));
   Expect.equals(3, m.length);
 
   m["a"] = null;
   m["c"] = null;
   Expect.equals(null, m["a"]);
-  Expect.equals(true, m.containsKey("a"));
+  Expect.isTrue(m.containsKey("a"));
   Expect.equals(null, m["c"]);
-  Expect.equals(true, m.containsKey("c"));
+  Expect.isTrue(m.containsKey("c"));
   Expect.equals(3, m.length);
 
   m.remove("a");
   Expect.equals(2, m.length);
   Expect.equals(null, m["a"]);
-  Expect.equals(false, m.containsKey("a"));
+  Expect.isFalse(m.containsKey("a"));
 }
 
 void testTypes() {
@@ -457,8 +495,8 @@ void testWeirdStringKeys(Map map) {
 
 void testNumericKeys(Map map) {
   var numericKeys = const [
-    double.INFINITY,
-    double.NEGATIVE_INFINITY,
+    double.infinity,
+    double.negativeInfinity,
     0,
     0.0,
     -0.0
@@ -480,9 +518,12 @@ void testNumericKeys(Map map) {
 }
 
 void testNaNKeys(Map map) {
+  Object nan = double.nan;
+  // Skip this test on platforms that use native-JS NaN semantics for speed.
+  if (!identical(nan, nan)) return;
+
   Expect.isTrue(map.isEmpty);
   // Test NaN.
-  var nan = double.NAN;
   Expect.isFalse(map.containsKey(nan));
   Expect.equals(null, map[nan]);
 
@@ -531,10 +572,11 @@ void testLength(int length, Map map) {
   }
 }
 
-testIdentityMap(Map map) {
+testIdentityMap<K, V>(Map<K, V> typedMap) {
+  Map map = typedMap;
   Expect.isTrue(map.isEmpty);
 
-  var nan = double.NAN;
+  var nan = double.nan;
   // TODO(11551): Remove guard when dart2js makes identical(NaN, NaN) true.
   if (identical(nan, nan)) {
     map[nan] = 42;
@@ -631,7 +673,7 @@ testIdentityMap(Map map) {
   testLength(4, map);
 
   // Transfer to equality-based map will collapse elements.
-  Map eqMap = new HashMap();
+  Map eqMap = new HashMap<K, V>();
   eqMap.addAll(map);
   testLength(2, eqMap);
   Expect.isTrue(eqMap.containsKey(eq01));
@@ -665,8 +707,7 @@ class Equalizer {
   int id;
   Equalizer(this.id);
   int get hashCode => id;
-  bool operator ==(Object other) =>
-      other is Equalizer && id == (other as Equalizer).id;
+  bool operator ==(Object other) => other is Equalizer && id == other.id;
 }
 
 /**
@@ -683,10 +724,11 @@ class Vampire {
   // The double-fang operator falsely claims that a vampire is equal to
   // any of its sire's generation.
   bool operator ==(Object other) =>
-      other is Vampire && generation - 1 == (other as Vampire).generation;
+      other is Vampire && generation - 1 == other.generation;
 }
 
-void testCustomMap(Map map) {
+void testCustomMap<K, V>(Map<K, V> typedMap) {
+  Map map = typedMap;
   testLength(0, map);
   var c11 = const Customer(1, 1);
   var c12 = const Customer(1, 2);
@@ -783,9 +825,10 @@ int myHashCode(Customer c) => c.secondId;
 bool myEquals(Customer a, Customer b) => a.secondId == b.secondId;
 
 void testIterationOrder(Map map) {
-  var order = [0, 6, 4, 2, 7, 9, 7, 1, 2, 5, 3];
+  var order = ['0', '6', '4', '2', '7', '9', '7', '1', '2', '5', '3'];
   for (int i = 0; i < order.length; i++) map[order[i]] = i;
-  Expect.listEquals(map.keys.toList(), [0, 6, 4, 2, 7, 9, 1, 5, 3]);
+  Expect.listEquals(
+      map.keys.toList(), ['0', '6', '4', '2', '7', '9', '1', '5', '3']);
   Expect.listEquals(map.values.toList(), [0, 1, 2, 8, 6, 5, 7, 9, 10]);
 }
 
@@ -795,9 +838,6 @@ void testOtherKeys(Map<int, int> map) {
   // use the equality/comparator on incompatible objects.
 
   // This should not throw in either checked or unchecked mode.
-  map[0] = 0;
-  map[1] = 1;
-  map[2] = 2;
   Expect.isFalse(map.containsKey("not an int"));
   Expect.isFalse(map.containsKey(1.5));
   Expect.isNull(map.remove("not an int"));
@@ -819,7 +859,7 @@ abstract class MapBaseOperations<K, V> {
   final List _values = <V>[];
   int _modCount = 0;
 
-  V operator [](Object key) {
+  V? operator [](Object? key) {
     int index = _keys.indexOf(key);
     if (index < 0) return null;
     return _values[index];
@@ -838,7 +878,7 @@ abstract class MapBaseOperations<K, V> {
     }
   }
 
-  V remove(Object key) {
+  V? remove(Object? key) {
     int index = _keys.indexOf(key);
     if (index >= 0) {
       var result = _values[index];
@@ -898,8 +938,8 @@ class TestKeyIterator<K> implements Iterator<K> {
 
 // Slow implementation of Map based on MapBase.
 class UnmodifiableMapBaseMap<K, V> extends UnmodifiableMapBase<K, V> {
-  final List _keys = <K>[];
-  final List _values = <V>[];
+  final List<K> _keys = [];
+  final List<V> _values = [];
   UnmodifiableMapBaseMap(List pairs) {
     for (int i = 0; i < pairs.length; i += 2) {
       _keys.add(pairs[i]);
@@ -909,8 +949,8 @@ class UnmodifiableMapBaseMap<K, V> extends UnmodifiableMapBase<K, V> {
 
   int get _modCount => 0;
 
-  V operator [](K key) {
-    int index = _keys.indexOf(key);
+  V? operator [](Object? key) {
+    int index = _keys.indexOf(key as K);
     if (index < 0) return null;
     return _values[index];
   }
@@ -923,7 +963,7 @@ abstract class Super implements Comparable {}
 abstract class Interface implements Comparable {}
 
 class Sub extends Super implements Interface, Comparable {
-  int compareTo(Sub other) => 0;
+  int compareTo(dynamic other) => 0;
   int get hashCode => 0;
   bool operator ==(other) => other is Sub;
 }
@@ -971,4 +1011,40 @@ void testFrom() {
   expectMap(superMap, new LinkedHashMap<Interface, Interface>.from(superMap));
   expectMap(superMap, new SplayTreeMap<Super, Super>.from(interfaceMap));
   expectMap(superMap, new SplayTreeMap<Interface, Interface>.from(superMap));
+}
+
+void testTypeAnnotations(Map<int, int> map) {
+  map[0] = 100;
+  map[999] = 101;
+  map[0x800000000] = 102;
+  map[0x20000000000000] = 103;
+  Expect.isFalse(map.containsKey("not an it"));
+  Expect.isNull(map.remove("not an it"));
+
+  testLength(4, map);
+  Expect.equals(101, map.remove(999));
+  testLength(3, map);
+  Expect.equals(102, map.remove(0x800000000));
+  testLength(2, map);
+  Expect.equals(103, map.remove(0x20000000000000));
+  testLength(1, map);
+}
+
+void testUnmodifiableMaps() {
+  void checkUnmodifiable(Map<int, int> map) {
+    Expect.throws(() => map[0] = 0);
+    Expect.throws(() => map.addAll({0: 0}));
+    Expect.throws(() => map.addEntries({0: 0}.entries));
+    Expect.throws(() => map.clear());
+    Expect.throws(() => map.putIfAbsent(0, () => 0));
+    Expect.throws(() => map.remove(0));
+    Expect.throws(() => map.removeWhere((k, v) => true));
+    Expect.throws(() => map.update(0, (v) => v, ifAbsent: () => 0));
+    Expect.throws(() => map.updateAll((k, v) => v));
+  }
+
+  checkUnmodifiable(const {1: 1});
+  checkUnmodifiable(Map.unmodifiable({1: 1}));
+  checkUnmodifiable(UnmodifiableMapView({1: 1}));
+  checkUnmodifiable(const MapView({1: 1}));
 }

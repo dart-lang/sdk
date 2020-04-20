@@ -1,0 +1,22 @@
+# Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../application_snapshot.gni")
+
+application_snapshot("gen_kernel") {
+  main_dart = "../../pkg/vm/bin/gen_kernel.dart"
+  deps = [ "../../runtime/vm:vm_platform" ]
+
+  # NOTE: The output filename must be kept in sync with the output of the
+  # vm_platform rule.
+  vm_platform_out =
+      get_label_info("../../runtime/vm:vm_platform", "root_out_dir")
+  vm_platform = "$vm_platform_out/vm_platform_strong.dill"
+  training_args = [
+    "--platform",
+    rebase_path(vm_platform),
+    rebase_path("../../pkg/vm/bin/gen_kernel.dart"),
+    "-o -",
+  ]
+}

@@ -1,0 +1,14 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Test that our diagnostics handler doesn't crash
+  main() {
+  <<<< []
+  ==== {"messages":[],"hasCompileTimeError":1}
+    // This is a long comment to guarantee that we have a position beyond the end
+    // of the first version of this file.
+    NoSuchClass c = null; // Provoke a warning to exercise the diagnostic handler.
+  >>>>
+  }

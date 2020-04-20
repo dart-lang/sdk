@@ -5,22 +5,19 @@
 // Regression test for dartbug.com/30853: check that we assign correct range
 // to Uint32 operations when creating them from Int64 operations.
 
-// VMOptions=--optimization_counter_threshold=50 --no-background-compilation --enable-inlining-annotations
+// VMOptions=--optimization_counter_threshold=50 --no-background-compilation
 
 import "package:expect/expect.dart";
 
-const NeverInline = "NeverInline";
-const AlwaysInline = "AlwaysInline";
-
-@NeverInline
+@pragma('vm:never-inline')
 noop(x) => x;
 
 const int BITS32 = 0xFFFFFFFF;
 
-@AlwaysInline
+@pragma('vm:prefer-inline')
 int toUint32(int x) => noop(x & BITS32);
 
-@NeverInline
+@pragma('vm:never-inline')
 bitNotAsUint32(x) {
   // After inlining we will have here BoxUint32(UnboxUint32(UnarySmiOp(~, x)))
   // UnboxUint32 must have correct range assigned, otherwise we will not

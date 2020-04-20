@@ -8,18 +8,18 @@ library test;
 int x = 0;
 
 test1() {
-  var /*@type=int*/ a = x;
+  var /*@ type=int* */ a = x;
   a = /*error:INVALID_ASSIGNMENT*/ "hi";
   a = 3;
-  var /*@type=int*/ b = y;
+  var /*@ type=int* */ b = y;
   b = /*error:INVALID_ASSIGNMENT*/ "hi";
   b = 4;
-  var /*@type=int*/ c = z;
+  var /*@ type=int* */ c = z;
   c = /*error:INVALID_ASSIGNMENT*/ "hi";
   c = 4;
 }
 
 int y = 0; // field def after use
-final /*@topType=int*/ z = 42; // should infer `int`
+final z = 42; // should infer `int`
 
 main() {}

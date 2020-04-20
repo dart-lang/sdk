@@ -1,0 +1,33 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  static field core::int nonNullableStaticFieldReads;
+  static field core::int? _#nonNullableStaticField;
+  static field core::int nullableStaticFieldReads;
+  static field core::int? _#nullableStaticField;
+  static field core::bool _#nullableStaticField#isSet;
+  field core::int nonNullableInstanceFieldReads;
+  field core::int? _#Class#nonNullableInstanceField;
+  field core::int nullableInstanceFieldReads;
+  field core::int? _#Class#nullableInstanceField;
+  field core::bool _#Class#nullableInstanceField#isSet;
+  synthetic constructor •() → self::Class
+    ;
+  static get nonNullableStaticField() → core::int;
+  static get nullableStaticField() → core::int?;
+  get nonNullableInstanceField() → core::int;
+  get nullableInstanceField() → core::int?;
+}
+static field core::int nonNullableTopLevelFieldReads;
+static field core::int? _#nonNullableTopLevelField;
+static field core::int nullableTopLevelFieldReads;
+static field core::int? _#nullableTopLevelField;
+static field core::bool _#nullableTopLevelField#isSet;
+static get nonNullableTopLevelField() → core::int;
+static get nullableTopLevelField() → core::int?;
+static method main() → void
+  ;
+static method throws(() → dynamic f, core::String message) → dynamic
+  ;

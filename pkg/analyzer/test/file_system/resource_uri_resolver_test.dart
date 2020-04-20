@@ -1,12 +1,10 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.file_system.resource_uri_resolver_test;
-
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,56 +15,61 @@ main() {
 }
 
 @reflectiveTest
-class ResourceUriResolverTest {
-  MemoryResourceProvider provider;
+class ResourceUriResolverTest with ResourceProviderMixin {
   ResourceUriResolver resolver;
 
   void setUp() {
-    provider = new MemoryResourceProvider();
-    resolver = new ResourceUriResolver(provider);
-    provider.newFile(provider.convertPath('/test.dart'), '');
-    provider.newFolder(provider.convertPath('/folder'));
+    resolver = ResourceUriResolver(resourceProvider);
+    newFile('/test.dart');
+    newFolder('/folder');
   }
 
   void test_creation() {
-    expect(provider, isNotNull);
+    expect(resourceProvider, isNotNull);
     expect(resolver, isNotNull);
   }
 
   void test_resolveAbsolute_file() {
-    var uri = provider.pathContext.toUri(provider.convertPath('/test.dart'));
+    var uri = toUri('/test.dart');
+
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNotNull);
     expect(source.exists(), isTrue);
-    expect(source.fullName, provider.convertPath('/test.dart'));
+    expect(source.fullName, convertPath('/test.dart'));
   }
 
   void test_resolveAbsolute_folder() {
-    var uri = provider.pathContext.toUri(provider.convertPath('/folder'));
+    var uri = toUri('/folder');
+
     Source source = resolver.resolveAbsolute(uri);
-    expect(source, isNull);
+    expect(source, isNotNull);
+    expect(source.exists(), isFalse);
+    expect(source.fullName, convertPath('/folder'));
   }
 
   void test_resolveAbsolute_notFile_dartUri() {
-    var uri = new Uri(scheme: 'dart', path: 'core');
+    var uri = Uri(scheme: 'dart', path: 'core');
+
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNull);
   }
 
   void test_resolveAbsolute_notFile_httpsUri() {
-    var uri = new Uri(scheme: 'https', path: '127.0.0.1/test.dart');
+    var uri = Uri(scheme: 'https', path: '127.0.0.1/test.dart');
+
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNull);
   }
 
   void test_restoreAbsolute() {
-    var uri = provider.pathContext.toUri(provider.convertPath('/test.dart'));
+    var uri = toUri('/test.dart');
+
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNotNull);
     expect(resolver.restoreAbsolute(source), uri);
     expect(
-        resolver.restoreAbsolute(
-            new NonExistingSource(source.fullName, null, null)),
+        resolver
+            .restoreAbsolute(NonExistingSource(source.fullName, null, null)),
         uri);
   }
 }

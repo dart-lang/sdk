@@ -4,7 +4,6 @@
 
 library symbol_validation_test;
 
-@MirrorsUsed(targets: "symbol_validation_test")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
@@ -16,15 +15,15 @@ validSymbol(String string) {
 }
 
 invalidSymbol(String string) {
-  Expect.throws(() => new Symbol(string), (e) => e is ArgumentError,
+  Expect.throwsArgumentError(() => new Symbol(string),
       'Invalid symbol "$string" should be rejected');
-  Expect.throws(() => MirrorSystem.getSymbol(string), (e) => e is ArgumentError,
+  Expect.throwsArgumentError(() => MirrorSystem.getSymbol(string),
       'Invalid symbol "$string" should be rejected');
 }
 
 validPrivateSymbol(String string) {
-  ClosureMirror closure = reflect(main);
-  LibraryMirror library = closure.function.owner;
+  ClosureMirror closure = reflect(main) as ClosureMirror;
+  LibraryMirror library = closure.function.owner as LibraryMirror;
   Expect.equals(
       string,
       MirrorSystem.getName(MirrorSystem.getSymbol(string, library)),
@@ -61,7 +60,7 @@ main() {
       .expand((op) => [".$op", "$op.x", "x$op", "_x.$op"])
       .forEach(invalidSymbol);
   operators
-      .expand((op) => operators.contains("$op=") ? [] : ["x.$op=", "$op="])
+      .expand<String>((op) => operators.contains("$op=") ? [] : ["x.$op=", "$op="])
       .forEach(invalidSymbol);
 
   var simpleSymbols = [

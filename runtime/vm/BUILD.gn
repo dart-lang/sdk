@@ -3,27 +3,30 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../../build/executable_suffix.gni")
-import("../../build/prebuilt_dart_sdk.gni")
 import("../../sdk/lib/async/async_sources.gni")
 import("../../sdk/lib/collection/collection_sources.gni")
 import("../../sdk/lib/convert/convert_sources.gni")
 import("../../sdk/lib/core/core_sources.gni")
 import("../../sdk/lib/developer/developer_sources.gni")
+import("../../sdk/lib/ffi/ffi_sources.gni")
 import("../../sdk/lib/internal/internal_sources.gni")
 import("../../sdk/lib/isolate/isolate_sources.gni")
 import("../../sdk/lib/math/math_sources.gni")
 import("../../sdk/lib/mirrors/mirrors_sources.gni")
-import("../../sdk/lib/profiler/profiler_sources.gni")
 import("../../sdk/lib/typed_data/typed_data_sources.gni")
 import("../../sdk/lib/vmservice/vmservice_sources.gni")
+import("../../sdk/lib/wasm/wasm_sources.gni")
+import("../../sdk_args.gni")
 import("../../utils/compile_platform.gni")
-import("../../utils/generate_patch_sdk.gni")
+import("../bin/cli_sources.gni")
 import("../bin/io_sources.gni")
+import("../configs.gni")
 import("../lib/async_sources.gni")
 import("../lib/collection_sources.gni")
 import("../lib/convert_sources.gni")
 import("../lib/core_sources.gni")
 import("../lib/developer_sources.gni")
+import("../lib/ffi_sources.gni")
 import("../lib/internal_sources.gni")
 import("../lib/isolate_sources.gni")
 import("../lib/math_sources.gni")
@@ -31,16 +34,19 @@ import("../lib/mirrors_sources.gni")
 import("../lib/profiler_sources.gni")
 import("../lib/typed_data_sources.gni")
 import("../lib/vmservice_sources.gni")
+import("../lib/wasm_sources.gni")
 import("../runtime_args.gni")
 import("compiler/compiler_sources.gni")
+import("heap/heap_sources.gni")
 import("vm_sources.gni")
+
+if (is_fuchsia) {
+  import("//build/fuchsia/sdk.gni")
+}
 
 config("libdart_vm_config") {
   if (is_fuchsia) {
-    libs = [
-      "zircon",
-      "trace-engine",
-    ]
+    libs = [ "zircon" ]
   } else if (is_win) {
     libs = [
       "advapi32.lib",
@@ -58,584 +64,174 @@ config("libdart_vm_config") {
   }
 }
 
-template("build_libdart_vm") {
-  extra_configs = []
-  if (defined(invoker.extra_configs)) {
-    extra_configs += invoker.extra_configs
-  }
-  source_set(target_name) {
-    configs += [
-      "..:dart_arch_config",
-      "..:dart_config",
-      "..:dart_os_config",
-    ] + extra_configs
-    if (is_fuchsia) {
-      configs -= [ "//build/config:symbol_visibility_hidden" ]
-      deps = [
-        # TODO(zra): When the platform-specific timeline code is moved out to
-        # the embedder, this can go away.
-        "//zircon/system/ulib/fbl",
+library_for_all_configs("libdart_vm") {
+  target_type = "source_set"
+  extra_deps = [ "//third_party/icu" ]
+  if (is_fuchsia) {
+    if (using_fuchsia_sdk) {
+      extra_deps += [
+        "$fuchsia_sdk_root/fidl:fuchsia.deprecatedtimezone",
+        "$fuchsia_sdk_root/pkg:sys_cpp",
+        "$fuchsia_sdk_root/pkg:trace-engine",
+      ]
+    } else {
+      extra_deps += [
+        # TODO(US-399): Remove time_service specific code when it is no longer
+        # necessary.
+        "//sdk/fidl/fuchsia.deprecatedtimezone",
+        "//sdk/lib/sys/cpp",
+        "//zircon/public/lib/fbl",
+        "//zircon/public/lib/trace-engine",
       ]
     }
-    public_configs = [ ":libdart_vm_config" ]
-    set_sources_assignment_filter([
-                                    "*_test.cc",
-                                    "*_test.h",
-                                  ])
-    sources = vm_sources + rebase_path(compiler_sources, ".", "./compiler/")
-    include_dirs = [ ".." ]
+  }
+  public_configs = [ ":libdart_vm_config" ]
+  set_sources_assignment_filter([
+                                  "*_test.cc",
+                                  "*_test.h",
+                                ])
+  sources = vm_sources + rebase_path(compiler_api_sources, ".", "./compiler/") +
+            rebase_path(disassembler_sources, ".", "./compiler/") +
+            rebase_path(heap_sources, ".", "./heap/")
+  include_dirs = [ ".." ]
+}
+
+library_for_all_configs_with_compiler("libdart_compiler") {
+  target_type = "source_set"
+  public_configs = [ ":libdart_vm_config" ]
+  set_sources_assignment_filter([
+                                  "*_test.cc",
+                                  "*_test.h",
+                                ])
+  sources = rebase_path(compiler_sources, ".", "./compiler/")
+  include_dirs = [ ".." ]
+  if (is_fuchsia) {
+    if (using_fuchsia_sdk) {
+      extra_deps = [ "$fuchsia_sdk_root/pkg:trace-engine" ]
+    } else {
+      extra_deps = [
+        "//zircon/public/lib/fbl",
+        "//zircon/public/lib/trace-engine",
+      ]
+    }
   }
 }
 
-build_libdart_vm("libdart_vm_jit") {
-  extra_configs = [ "..:dart_maybe_product_config" ]
+library_for_all_configs("libdart_lib") {
+  target_type = "source_set"
+  if (is_fuchsia) {
+    if (using_fuchsia_sdk) {
+      extra_deps = [ "$fuchsia_sdk_root/pkg:trace-engine" ]
+    } else {
+      extra_deps = [
+        "//zircon/public/lib/fbl",
+        "//zircon/public/lib/trace-engine",
+      ]
+    }
+  }
+  if (dart_enable_wasm) {
+    defines = [ "DART_ENABLE_WASM" ]
+  }
+  include_dirs = [ ".." ]
+  allsources = async_runtime_cc_files + collection_runtime_cc_files +
+               core_runtime_cc_files + developer_runtime_cc_files +
+               internal_runtime_cc_files + isolate_runtime_cc_files +
+               math_runtime_cc_files + mirrors_runtime_cc_files +
+               typed_data_runtime_cc_files + vmservice_runtime_cc_files +
+               ffi_runtime_cc_files + wasm_runtime_cc_files
+  sources = [ "bootstrap.cc" ] + rebase_path(allsources, ".", "../lib")
+  snapshot_sources = []
 }
 
-build_libdart_vm("libdart_vm_jit_product") {
-  extra_configs = [ "..:dart_product_config" ]
-}
-
-build_libdart_vm("libdart_vm_precompiled_runtime") {
-  extra_configs = [
-    "..:dart_maybe_product_config",
-    "..:dart_precompiled_runtime_config",
-  ]
-}
-
-build_libdart_vm("libdart_vm_precompiled_runtime_product") {
-  extra_configs = [
-    "..:dart_product_config",
-    "..:dart_precompiled_runtime_config",
-  ]
-}
-
-build_libdart_vm("libdart_vm_nosnapshot") {
-  extra_configs = [
-    "..:dart_maybe_product_config",
-    "..:dart_no_snapshot_config",
-  ]
-}
-
-build_libdart_vm("libdart_vm_nosnapshot_with_precompiler") {
-  extra_configs = [
-    "..:dart_maybe_product_config",
-    "..:dart_precompiler_config",
-    "..:dart_no_snapshot_config",
-  ]
-}
-
-build_libdart_vm("libdart_vm_nosnapshot_with_precompiler_product") {
-  extra_configs = [
-    "..:dart_product_config",
-    "..:dart_precompiler_config",
-    "..:dart_no_snapshot_config",
-  ]
-}
-
-build_libdart_vm("libdart_vm_with_precompiler") {
-  extra_configs = [
-    "..:dart_maybe_product_config",
-    "..:dart_precompiler_config",
-  ]
-}
-
-build_libdart_vm("libdart_vm_with_precompiler_product") {
-  extra_configs = [
-    "..:dart_product_config",
-    "..:dart_precompiler_config",
-  ]
-}
-
-template("process_library_source") {
-  assert(defined(invoker.libsources), "Need libsources in $target_name")
-  assert(defined(invoker.output), "Need output in $target_name")
-  action(target_name) {
-    visibility = [ ":*" ]  # Only targets in this file can see this.
-    libsources = invoker.libsources
-
-    script = invoker.script
-    inputs = invoker.inputs + libsources
+template("gen_vm_platform") {
+  assert(defined(invoker.output_postfix),
+         "Must define output postfix (e.g., '_strong'")
+  compile_platform(target_name) {
+    output_postfix = invoker.output_postfix
+    if (defined(invoker.add_implicit_vm_platform_dependency)) {
+      add_implicit_vm_platform_dependency =
+          invoker.add_implicit_vm_platform_dependency
+    }
+    single_root_scheme = "org-dartlang-sdk"
+    single_root_base = rebase_path("../../")
+    if (use_nnbd) {
+      libraries_specification_uri =
+          "org-dartlang-sdk:///sdk_nnbd/lib/libraries.json"
+    } else {
+      libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
+    }
     outputs = [
-      invoker.output,
+      "$root_out_dir/vm_platform" + output_postfix + ".dill",
+      "$root_out_dir/vm_outline" + output_postfix + ".dill",
     ]
-    args = invoker.args + rebase_path(libsources, root_build_dir)
-  }
-}
-
-template("generate_library_source") {
-  assert(defined(invoker.libname), "Need libname in $target_name")
-  assert(defined(invoker.libsources), "Need libsources in $target_name")
-  assert(defined(invoker.kind), "Need kind in $target_name")
-  assert(defined(invoker.output), "Need output in $target_name")
-
-  process_library_source(target_name) {
-    libname = invoker.libname
-    libsources = invoker.libsources
-    kind = invoker.kind
-    script = "../tools/gen_library_src_paths.py"
-    inputs = [
-      "../lib/libgen_in.cc",
+    args = [ "dart:core" ]
+    is_product_flag = dart_runtime_mode == "release"
+    allow_causal_async_stacks = !is_product_flag
+    args += [
+      "-Ddart.vm.product=$is_product_flag",
+      "-Ddart.developer.causal_async_stacks=$allow_causal_async_stacks",
+      "-Ddart.isVM=true",
     ]
-    output = invoker.output
-    args = [
-      "--output",
-      rebase_path(invoker.output, root_build_dir),
-      "--input_cc",
-      rebase_path("../lib/libgen_in.cc", root_build_dir),
-      "--include",
-      "vm/bootstrap.h",
-      "--var_name",
-      "dart::Bootstrap::${libname}_${kind}_paths_",
-      "--library_name",
-      "dart:${libname}",
-    ]
-  }
-}
-
-template("build_libdart_lib") {
-  extra_configs = []
-  if (defined(invoker.extra_configs)) {
-    extra_configs += invoker.extra_configs
-  }
-  extra_deps = []
-  if (defined(invoker.extra_deps)) {
-    extra_deps += invoker.extra_deps
-  }
-  extra_sources = []
-  if (defined(invoker.extra_sources)) {
-    extra_sources += invoker.extra_sources
-  }
-  source_set(target_name) {
-    configs += [
-      "..:dart_arch_config",
-      "..:dart_config",
-      "..:dart_os_config",
-    ] + extra_configs
-    if (is_fuchsia) {
-      configs -= [ "//build/config:symbol_visibility_hidden" ]
+    if (use_nnbd) {
+      args += [ "--enable-experiment=non-nullable" ]
+      args += [ "--nnbd-agnostic" ]
     }
-    deps = extra_deps
-    sources = extra_sources
-    include_dirs = [ ".." ]
-  }
-}
-
-# This templates expects invoker.sources to be a list of lists.
-# The lists contain the following information about each library:
-#   library name (string)
-#   library sources (list of strings)
-#   library source base path (string)
-#   filename (string)
-#   do_patch (boolean)
-#
-# If do_patch is true, the lists additionally contains
-#   patch sources (list of strings)
-#   patch source base path (string)
-#
-# The template iterates over the list, and generates generate_library_source
-# actions for each. After that, it generates targets to compile the generated
-# sources to make libdart_lib_*.
-template("generate_core_libraries") {
-  assert(defined(invoker.sources), "Need sources in $target_name")
-  assert(defined(invoker.allsources), "Need allsources in $target_name")
-  liboutputs = []
-  libdeps = []
-  foreach(lib, invoker.sources) {
-    libname = lib[0]
-    filename = lib[3]
-    do_patch = lib[4]
-    generate_library_source("generate_${filename}_cc_file") {
-      libname = libname
-      libsources = rebase_path(lib[1], ".", lib[2])
-      kind = "source"
-      output = "$target_gen_dir/${filename}_gen.cc"
+    if (defined(invoker.exclude_source) && invoker.exclude_source) {
+      args += [ "--exclude-source" ]
     }
-    if (do_patch) {
-      generate_library_source("generate_${filename}_patch_cc_file") {
-        libname = libname
-        libsources = rebase_path(lib[5], ".", lib[6])
-        kind = "patch"
-        output = "$target_gen_dir/${filename}_patch_gen.cc"
-      }
+    if (defined(invoker.bytecode) && invoker.bytecode) {
+      args += [ "--bytecode" ]
     }
-
-    liboutputs += [ "$target_gen_dir/${filename}_gen.cc" ]
-    libdeps += [ ":generate_${filename}_cc_file" ]
-    if (do_patch) {
-      liboutputs += [ "$target_gen_dir/${filename}_patch_gen.cc" ]
-      libdeps += [ ":generate_${filename}_patch_cc_file" ]
-    }
-  }
-
-  all_libsources = rebase_path(invoker.allsources, ".", "../lib")
-
-  build_libdart_lib("libdart_lib_nosnapshot_with_precompiler") {
-    extra_configs = [
-      "..:dart_maybe_product_config",
-      "..:dart_precompiler_config",
-    ]
-    extra_deps = libdeps
-    extra_sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
-  }
-
-  build_libdart_lib("libdart_lib_nosnapshot_with_precompiler_product") {
-    extra_configs = [
-      "..:dart_product_config",
-      "..:dart_precompiler_config",
-    ]
-    extra_deps = libdeps
-    extra_sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
-  }
-
-  build_libdart_lib("libdart_lib_with_precompiler") {
-    extra_configs = [
-      "..:dart_maybe_product_config",
-      "..:dart_precompiler_config",
-    ]
-    extra_deps = libdeps
-    extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
-  }
-
-  build_libdart_lib("libdart_lib_with_precompiler_product") {
-    extra_configs = [
-      "..:dart_product_config",
-      "..:dart_precompiler_config",
-    ]
-    extra_deps = libdeps
-    extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
-  }
-
-  build_libdart_lib("libdart_lib_jit") {
-    extra_configs = [ "..:dart_maybe_product_config" ]
-    extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
-  }
-
-  build_libdart_lib("libdart_lib_jit_product") {
-    extra_configs = [ "..:dart_product_config" ]
-    extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
-  }
-
-  build_libdart_lib("libdart_lib_precompiled_runtime") {
-    extra_configs = [
-      "..:dart_maybe_product_config",
-      "..:dart_precompiled_runtime_config",
-    ]
-    extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
-  }
-
-  build_libdart_lib("libdart_lib_precompiled_runtime_product") {
-    extra_configs = [
-      "..:dart_product_config",
-      "..:dart_precompiled_runtime_config",
-    ]
-    extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
+    outline = "vm_outline" + output_postfix + ".dill"
   }
 }
 
-generate_core_libraries("core_libraries") {
-  sources = [
-    [
-      "async",
-      async_sdk_sources,
-      "../../sdk/lib/async",
-      "async",
-      true,
-      async_runtime_sources,
-      "../lib",
-    ],
-    [
-      "collection",
-      collection_sdk_sources,
-      "../../sdk/lib/collection",
-      "collection",
-      true,
-      collection_runtime_sources,
-      "../lib",
-    ],
-    [
-      "convert",
-      convert_sdk_sources,
-      "../../sdk/lib/convert",
-      "convert",
-      true,
-      convert_runtime_sources,
-      "../lib",
-    ],
-    [
-      "core",
-      core_sdk_sources,
-      "../../sdk/lib/core",
-      "core",
-      true,
-      core_runtime_sources,
-      "../lib",
-    ],
-    [
-      "developer",
-      developer_sdk_sources,
-      "../../sdk/lib/developer",
-      "developer",
-      true,
-      developer_runtime_sources,
-      "../lib",
-    ],
-    [
-      "_internal",
-      internal_sdk_sources,
-      "../../sdk/lib/internal",
-      "internal",
-      true,
-      internal_runtime_sources,
-      "../lib",
-    ],
-    [
-      "isolate",
-      isolate_sdk_sources,
-      "../../sdk/lib/isolate",
-      "isolate",
-      true,
-      isolate_runtime_sources,
-      "../lib",
-    ],
-    [
-      "math",
-      math_sdk_sources,
-      "../../sdk/lib/math",
-      "math",
-      true,
-      math_runtime_sources,
-      "../lib",
-    ],
-    [
-      "mirrors",
-      mirrors_sdk_sources,
-      "../../sdk/lib/mirrors",
-      "mirrors",
-      true,
-      mirrors_runtime_sources,
-      "../lib",
-    ],
-    [
-      "profiler",
-      profiler_sdk_sources,
-      "../../sdk/lib/profiler",
-      "profiler",
-      false,
-    ],
-    [
-      "typed_data",
-      typed_data_sdk_sources,
-      "../../sdk/lib/typed_data",
-      "typed_data",
-      true,
-      typed_data_runtime_sources,
-      "../lib",
-    ],
-    [
-      "_vmservice",
-      vmservice_sdk_sources,
-      "../../sdk/lib/vmservice",
-      "vmservice",
-      true,
-      vmservice_runtime_sources,
-      "../lib",
-    ],
-  ]
-  allsources = async_runtime_sources + collection_runtime_sources +
-               convert_runtime_sources + core_runtime_sources +
-               developer_runtime_sources + internal_runtime_sources +
-               isolate_runtime_sources + math_runtime_sources +
-               mirrors_runtime_sources + profiler_runtime_sources +
-               typed_data_runtime_sources + vmservice_runtime_sources
+gen_vm_platform("vm_platform") {
+  add_implicit_vm_platform_dependency = false
+  exclude_source = false
+  output_postfix = "_strong"
 }
 
-template("concatenate_patch") {
-  assert(defined(invoker.libsources), "Need a sources in $target_name")
-  assert(defined(invoker.output), "Need an output in $target_name")
+gen_vm_platform("vm_platform_stripped") {
+  add_implicit_vm_platform_dependency = false
+  exclude_source = true
+  output_postfix = "_strong_stripped"
 
-  process_library_source(target_name) {
-    libsources = invoker.libsources
-    inputs = []
-    output = invoker.output
-    script = "../tools/concatenate_patches.py"
-    args = [
-      "--output",
-      rebase_path(output, root_build_dir),
-    ]
+  if (dart_platform_bytecode) {
+    bytecode = true
   }
-}
-
-template("generate_vm_patched_sdk") {
-  assert(defined(invoker.libraries), "Need libraries in $target_name")
-
-  concatenation_target_names = []
-
-  # Concatenate vm library patches.
-  foreach(library, invoker.libraries) {
-    name = library[0]
-
-    target_output = "$target_gen_dir/patches/${name}_patch.dart"
-    concatenate_patch("concatenate_${name}_patch") {
-      libsources = rebase_path(library[1], ".", library[2])
-      output = target_output
-    }
-    concatenation_target_names += [ ":concatenate_${name}_patch" ]
-  }
-
-  patched_sdk_dir = "patched_sdk"
-
-  other_outputs = [
-    # Instead of listing all outputs we list those consumed by
-    # other BUILD rules.
-    "$root_out_dir/$patched_sdk_dir/lib/libraries.json",
-  ]
-
-  # Build the patched sdk out of the concatenated patches and the special
-  # libraries.
-  generate_patched_sdk(target_name) {
-    mode = "vm"
-    deps = concatenation_target_names
-    input_patches_dir = "$target_gen_dir/patches"
-    patched_sdk_dir = patched_sdk_dir
-    outputs = other_outputs
-  }
-}
-
-generate_vm_patched_sdk("patched_sdk") {
-  libraries = [
-    [
-      "async",
-      async_runtime_sources,
-      "../lib",
-    ],
-    [
-      "collection",
-      collection_runtime_sources,
-      "../lib",
-    ],
-    [
-      "convert",
-      convert_runtime_sources,
-      "../lib",
-    ],
-    [
-      "core",
-      core_runtime_sources,
-      "../lib",
-    ],
-    [
-      "developer",
-      developer_runtime_sources,
-      "../lib",
-    ],
-    [
-      "internal",
-      internal_runtime_sources,
-      "../lib",
-    ],
-    [
-      "isolate",
-      isolate_runtime_sources,
-      "../lib",
-    ],
-    [
-      "math",
-      math_runtime_sources,
-      "../lib",
-    ],
-    [
-      "mirrors",
-      mirrors_runtime_sources,
-      "../lib",
-    ],
-    [
-      "profiler",
-      profiler_runtime_sources,
-      "../lib",
-    ],
-    [
-      "typed_data",
-      typed_data_runtime_sources,
-      "../lib",
-    ],
-    [
-      "vmservice",
-      vmservice_runtime_sources,
-      "../lib",
-    ],
-    [
-      "io",
-      io_runtime_sources,
-      "../bin",
-    ],
-  ]
-}
-
-compile_platform("vm_legacy_platform") {
-  sources = [
-    "$root_out_dir/patched_sdk/lib/libraries.json",
-  ]
-
-  outputs = [
-    "$root_out_dir/vm_platform.dill",
-    "$root_out_dir/vm_outline.dill",
-  ]
-
-  deps = [
-    ":patched_sdk",
-  ]
-
-  args = [ "dart:core" ]
-}
-
-compile_platform("vm_platform") {
-  sources = [
-    "$root_out_dir/patched_sdk/lib/libraries.json",
-  ]
-
-  outputs = [
-    "$root_out_dir/vm_platform_strong.dill",
-    "$root_out_dir/vm_outline_strong.dill",
-  ]
-
-  deps = [
-    ":patched_sdk",
-  ]
-
-  args = [
-    "--strong-mode",
-    "dart:core",
-  ]
-}
-
-compile_platform("vmservice_dill") {
-  sources = [
-    "../../sdk/lib/vmservice_libraries.json",
-  ]
-
-  outputs = [
-    "$root_out_dir/vmservice_io.dill",
-    "$root_out_dir/vmservice_io_outline.dill",
-  ]
-
-  inputs = [
-    "$root_out_dir/vm_platform.dill",
-  ]
-
-  deps = [
-    ":vm_legacy_platform",
-  ]
-
-  args = [
-    "--platform=" + rebase_path(inputs[0], root_build_dir),
-    "dart:vmservice_io",
-  ]
 }
 
 group("kernel_platform_files") {
   public_deps = [
-    ":vm_legacy_platform",
     ":vm_platform",
-    ":vmservice_dill",
+    ":vm_platform_stripped",
   ]
+}
+
+executable("offsets_extractor") {
+  configs += [
+    "..:dart_arch_config",
+    "..:dart_config",
+    "..:dart_maybe_product_config",
+    ":libdart_vm_config",
+  ]
+  sources = [
+    "compiler/offsets_extractor.cc",
+  ]
+  include_dirs = [ ".." ]
+}
+
+executable("offsets_extractor_precompiled_runtime") {
+  configs += [
+    "..:dart_arch_config",
+    "..:dart_config",
+    "..:dart_precompiled_runtime_config",
+    "..:dart_maybe_product_config",
+    ":libdart_vm_config",
+  ]
+  sources = [
+    "compiler/offsets_extractor.cc",
+  ]
+  include_dirs = [ ".." ]
 }

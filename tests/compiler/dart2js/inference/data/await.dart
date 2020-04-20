@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:async';
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   awaitOfFuture();
   awaitOfInt();
@@ -15,10 +17,10 @@ main() {
 // Await of Future.value.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _method1:[null]*/
-_method1(/*[null|subclass=Object]*/ o) {}
+/*member: _method1:[null]*/
+_method1(/*[null|subclass=JSInt]*/ o) {}
 
-/*element: awaitOfFuture:[exact=_Future]*/
+/*member: awaitOfFuture:[exact=_Future]*/
 awaitOfFuture() async {
   var future = new Future.value(0);
   var local = await future;
@@ -29,10 +31,10 @@ awaitOfFuture() async {
 // Await of int.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _method2:[null]*/
-_method2(/*[null|subclass=Object]*/ o) {}
+/*member: _method2:[null]*/
+_method2(/*[null|subclass=JSInt]*/ o) {}
 
-/*element: awaitOfInt:[exact=_Future]*/
+/*member: awaitOfInt:[exact=_Future]*/
 awaitOfInt() async {
   var local = await 0;
   _method2(local);
@@ -42,14 +44,15 @@ awaitOfInt() async {
 // Await for of Stream.fromIterable.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _method3:[null]*/
+/*member: _method3:[null]*/
 _method3(
-    /*Container mask: [exact=JSUInt31] length: 1 type: [exact=JSExtendableArray]*/ o) {}
+    /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
+    o) {}
 
-/*element: _method4:[null]*/
-_method4(/*[null|subclass=Object]*/ o) {}
+/*member: _method4:[null]*/
+_method4(/*[null|subclass=JSInt]*/ o) {}
 
-/*element: awaitForOfStream:[exact=_Future]*/
+/*member: awaitForOfStream:[exact=_Future]*/
 awaitForOfStream() async {
   var list = [0];
   _method3(list);

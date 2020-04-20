@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+ // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,27 +6,31 @@
 
 import "package:expect/expect.dart";
 
-void assertEquals(actual, expected, [String message = null]) {
+void assertEquals(actual, expected, [String message = '']) {
   Expect.equals(actual, expected, message);
 }
 
-void assertTrue(actual, [String message = null]) {
+void assertTrue(actual, [String message = '']) {
   Expect.isTrue(actual, message);
 }
 
-void assertFalse(actual, [String message = null]) {
+void assertFalse(actual, [String message = '']) {
   Expect.isFalse(actual, message);
 }
 
-void assertThrows(fn, [num testid = null]) {
-  Expect.throws(fn, null, "Test $testid");
+void assertThrows(fn, [num? testid = null]) {
+  Expect.throws(fn, (_) => true, "Test $testid");
 }
 
-void assertNull(actual, [num testid = null]) {
+void assertDoesNotThrow(fn, [num? testid = null]) {
+  fn();
+}
+
+void assertNull(actual, [num? testid = null]) {
   Expect.isNull(actual, "Test $testid");
 }
 
-void assertToStringEquals(str, match, num testid) {
+void assertToStringEquals(str, match, num? testid) {
   var actual = [];
   for (int i = 0; i <= match.groupCount; i++) {
     var g = match.group(i);
@@ -47,7 +51,7 @@ void shouldBeNull(actual) {
   Expect.isNull(actual);
 }
 
-void shouldBe(actual, expected, [String message = null]) {
+void shouldBe(actual, expected, [String message = '']) {
   if (expected == null) {
     Expect.isNull(actual, message);
   } else {
@@ -58,8 +62,8 @@ void shouldBe(actual, expected, [String message = null]) {
   }
 }
 
-Match firstMatch(String str, RegExp pattern) => pattern.firstMatch(str);
-List<String> allStringMatches(String str, RegExp pattern) =>
+Match? firstMatch(String str, RegExp pattern) => pattern.firstMatch(str);
+List<String?> allStringMatches(String str, RegExp pattern) =>
     pattern.allMatches(str).map((Match m) => m.group(0)).toList();
 
 void description(str) {}

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.core;
 
 /**
@@ -40,7 +42,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    * Creates an empty [Set].
    *
    * The created [Set] is a plain [LinkedHashSet].
-   * As such, it considers elements that are equal (using [==]) to be
+   * As such, it considers elements that are equal (using [operator ==]) to be
    * indistinguishable, and requires them to have a compatible
    * [Object.hashCode] implementation.
    *
@@ -61,7 +63,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /**
    * Creates a [Set] that contains all [elements].
    *
-   * All the [elements] should be assignable to [E].
+   * All the [elements] should be instances of [E].
    * The `elements` iterable itself can have any type,
    * so this constructor can be used to down-cast a `Set`, for example as:
    *
@@ -70,7 +72,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    *         new Set<SubType>.from(superSet.where((e) => e is SubType));
    *
    * The created [Set] is a [LinkedHashSet]. As such, it considers elements that
-   * are equal (using [==]) to be indistinguishable, and requires them to
+   * are equal (using [operator ==]) to be indistinguishable, and requires them to
    * have a compatible [Object.hashCode] implementation.
    *
    * The set is equivalent to one created by
@@ -78,6 +80,54 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    */
   factory Set.from(Iterable elements) = LinkedHashSet<E>.from;
 
+  /**
+   * Creates a [Set] from [elements].
+   *
+   * The created [Set] is a [LinkedHashSet]. As such, it considers elements that
+   * are equal (using [operator ==]) to be indistinguishable, and requires them to
+   * have a compatible [Object.hashCode] implementation.
+   *
+   * The set is equivalent to one created by
+   * `new LinkedHashSet<E>.of(elements)`.
+   */
+  factory Set.of(Iterable<E> elements) = LinkedHashSet<E>.of;
+
+  /**
+   * Adapts [source] to be a `Set<T>`.
+   *
+   * If [newSet] is provided, it is used to create the new sets returned
+   * by [toSet], [union], and is also used for [intersection] and [difference].
+   * If [newSet] is omitted, it defaults to creating a new set using the
+   * default [Set] constructor, and [intersection] and [difference]
+   * returns an adapted version of calling the same method on the source.
+   *
+   * Any time the set would produce an element that is not a [T],
+   * the element access will throw.
+   *
+   * Any time a [T] value is attempted added into the adapted set,
+   * the store will throw unless the value is also an instance of [S].
+   *
+   * If all accessed elements of [source] are actually instances of [T],
+   * and if all elements added to the returned set are actually instance
+   * of [S],
+   * then the returned set can be used as a `Set<T>`.
+   */
+  static Set<T> castFrom<S, T>(Set<S> source, {Set<R> Function<R>() newSet}) =>
+      CastSet<S, T>(source, newSet);
+
+  /**
+   * Provides a view of this set as a set of [R] instances.
+   *
+   * If this set contains only instances of [R], all read operations
+   * will work correctly. If any operation tries to access an element
+   * that is not an instance of [R], the access will throw instead.
+   *
+   * Elements added to the set (e.g., by using [add] or [addAll])
+   * must be instance of [R] to be valid arguments to the adding function,
+   * and they must be instances of [E] as well to be accepted by
+   * this set as well.
+   */
+  Set<R> cast<R>();
   /**
    * Provides an iterator that iterates over the elements of this set.
    *
@@ -132,8 +182,16 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /**
    * If an object equal to [object] is in the set, return it.
    *
-   * Checks if there is an object in the set that is equal to [object].
-   * If so, that object is returned, otherwise returns null.
+   * Checks whether [object] is in the set, like [contains], and if so,
+   * returns the object in the set, otherwise returns `null`.
+   *
+   * If the equality relation used by the set is not identity,
+   * then the returned object may not be *identical* to [object].
+   * Some set implementations may not be able to implement this method.
+   * If the [contains] method is computed,
+   * rather than being based on an actual object instance,
+   * then there may not be a specific object instance representing the
+   * set element.
    */
   E lookup(Object object);
 

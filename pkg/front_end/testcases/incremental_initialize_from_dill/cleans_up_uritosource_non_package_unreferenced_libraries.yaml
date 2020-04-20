@@ -1,0 +1,48 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with no packages and two libraries. Update the world
+# to now only include one library. The now no longer referenced library should
+# also have been removed from the uri to sources.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "b.dart";
+        main() { b(); }
+      b.dart: |
+        part 'c.dart';
+        b() {
+          c();
+        }
+      c.dart: |
+        part of 'b.dart';
+        c() {}
+    expectedLibraryCount: 2
+  - entry: main.dart
+    worldType: updated
+    invalidate:
+      - main.dart
+    expectInitializeFromDill: false
+    sources:
+      main.dart: |
+        main() {}
+    expectedLibraryCount: 1
+    uriToSourcesDoesntInclude:
+      - b.dart
+      - c.dart
+  - entry: main.dart
+    worldType: updated
+    invalidate:
+      - main.dart
+    expectInitializeFromDill: false
+    sources:
+      main.dart: |
+        main() {}
+    expectedLibraryCount: 1
+    uriToSourcesDoesntInclude:
+      - b.dart
+      - c.dart

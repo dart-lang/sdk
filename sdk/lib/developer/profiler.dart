@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.developer;
 
 /// A UserTag can be used to group samples in the Observatory profiler.
@@ -64,15 +66,9 @@ class Gauge extends Metric {
 
   Gauge(String name, String description, this.min, this.max)
       : super(name, description) {
-    if (min is! double) {
-      throw new ArgumentError('min must be a double');
-    }
-    if (max is! double) {
-      throw new ArgumentError('max must be a double');
-    }
-    if (!(min < max)) {
-      throw new ArgumentError('min must be less than max');
-    }
+    ArgumentError.checkNotNull(min, 'min');
+    ArgumentError.checkNotNull(max, 'max');
+    if (!(min < max)) throw new ArgumentError('min must be less than max');
     _value = min;
   }
 
@@ -117,9 +113,7 @@ class Metrics {
 
   /// Register [Metric]s to make them visible to Observatory.
   static void register(Metric metric) {
-    if (metric is! Metric) {
-      throw new ArgumentError('metric must be a Metric');
-    }
+    ArgumentError.checkNotNull(metric, 'metric');
     if (_metrics[metric.name] != null) {
       throw new ArgumentError('Registered metrics have unique names');
     }
@@ -128,20 +122,22 @@ class Metrics {
 
   /// Deregister [Metric]s to make them not visible to Observatory.
   static void deregister(Metric metric) {
-    if (metric is! Metric) {
-      throw new ArgumentError('metric must be a Metric');
-    }
+    ArgumentError.checkNotNull(metric, 'metric');
     _metrics.remove(metric.name);
   }
 
+  // ignore: unused_element, called from native code
+  @pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
   static String _printMetric(String id) {
     var metric = _metrics[id];
     if (metric == null) {
       return null;
     }
-    return JSON.encode(metric._toJSON());
+    return json.encode(metric._toJSON());
   }
 
+  // ignore: unused_element, called from native code
+  @pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
   static String _printMetrics() {
     var metrics = [];
     for (var metric in _metrics.values) {
@@ -151,6 +147,6 @@ class Metrics {
       'type': 'MetricList',
       'metrics': metrics,
     };
-    return JSON.encode(map);
+    return json.encode(map);
   }
 }

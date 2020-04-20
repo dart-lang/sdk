@@ -7,6 +7,7 @@
 
 #include "vm/lockers.h"
 #include "vm/native_symbol.h"
+#include "vm/os.h"
 #include "vm/os_thread.h"
 
 #include <dbghelp.h>  // NOLINT
@@ -16,20 +17,24 @@ namespace dart {
 static bool running_ = false;
 static Mutex* lock_ = NULL;
 
-void NativeSymbolResolver::InitOnce() {
+void NativeSymbolResolver::Init() {
   ASSERT(running_ == false);
-  lock_ = new Mutex();
+  if (lock_ == NULL) {
+    lock_ = new Mutex();
+  }
   running_ = true;
   SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS);
   HANDLE hProcess = GetCurrentProcess();
   if (!SymInitialize(hProcess, NULL, TRUE)) {
     DWORD error = GetLastError();
-    printf("Failed to init NativeSymbolResolver (SymInitialize %d)\n", error);
+    OS::PrintErr("Failed to init NativeSymbolResolver (SymInitialize %" Pu32
+                 ")\n",
+                 error);
     return;
   }
 }
 
-void NativeSymbolResolver::ShutdownOnce() {
+void NativeSymbolResolver::Cleanup() {
   MutexLocker lock(lock_);
   if (!running_) {
     return;
@@ -38,11 +43,13 @@ void NativeSymbolResolver::ShutdownOnce() {
   HANDLE hProcess = GetCurrentProcess();
   if (!SymCleanup(hProcess)) {
     DWORD error = GetLastError();
-    printf("Failed to shutdown NativeSymbolResolver (SymCleanup  %d)\n", error);
+    OS::PrintErr("Failed to shutdown NativeSymbolResolver (SymCleanup  %" Pu32
+                 ")\n",
+                 error);
   }
 }
 
-char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc, uintptr_t* start) {
+char* NativeSymbolResolver::LookupSymbolName(uword pc, uword* start) {
   static const intptr_t kMaxNameLength = 2048;
   static const intptr_t kSymbolInfoSize = sizeof(SYMBOL_INFO);  // NOLINT.
   static char buffer[kSymbolInfoSize + kMaxNameLength];
@@ -79,6 +86,12 @@ bool NativeSymbolResolver::LookupSharedObject(uword pc,
                                               uword* dso_base,
                                               char** dso_name) {
   return false;
+}
+
+void NativeSymbolResolver::AddSymbols(const char* dso_name,
+                                      void* buffer,
+                                      size_t size) {
+  OS::PrintErr("warning: Dart_AddSymbols has no effect on Windows\n");
 }
 
 }  // namespace dart

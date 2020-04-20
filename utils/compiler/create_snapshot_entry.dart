@@ -2,14 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// Generates a wrapper around dart2js to ship with the SDK.
+///
+/// The only reason to create this wrapper is to be able to embed the sdk
+/// version information into the compiler.
 import 'dart:io';
 import 'dart:async';
 
 Future<String> getVersion(var rootPath) {
   var suffix = Platform.operatingSystem == 'windows' ? '.exe' : '';
-  var printVersionScript = rootPath.resolve("tools/print_version.py");
-  return Process
-      .run("python$suffix", [printVersionScript.toFilePath()]).then((result) {
+  var printVersionScript = rootPath.resolve("tools/make_version.py");
+  return Process.run(
+          "python$suffix", [printVersionScript.toFilePath(), "--quiet"])
+      .then((result) {
     if (result.exitCode != 0) {
       throw "Could not generate version";
     }
@@ -17,32 +22,10 @@ Future<String> getVersion(var rootPath) {
   });
 }
 
-Future<String> getSnapshotGenerationFile(var args, var rootPath) {
-  var dart2js = rootPath.resolve(args["dart2js_main"]);
+Future<String> getDart2jsSnapshotGenerationFile(var rootPath) {
   return getVersion(rootPath).then((version) {
     var snapshotGenerationText = """
-import '${dart2js.toFilePath(windows: false)}' as dart2jsMain;
-import 'dart:io';
-
-void main(List<String> arguments) {
-  if (arguments.length < 1) throw "No tool given as argument";
-  String tool = arguments[0];
-  if (tool == "dart2js") {
-    dart2jsMain.BUILD_ID = "$version";
-    dart2jsMain.main(arguments.skip(1).toList());
-  }
-}
-
-""";
-    return snapshotGenerationText;
-  });
-}
-
-Future<String> getDart2jsSnapshotGenerationFile(var args, var rootPath) {
-  var dart2js = rootPath.resolve(args["dart2js_main"]);
-  return getVersion(rootPath).then((version) {
-    var snapshotGenerationText = """
-import '${dart2js.toFilePath(windows: false)}' as dart2jsMain;
+import 'package:compiler/src/dart2js.dart' as dart2jsMain;
 
 void main(List<String> arguments) {
   dart2jsMain.BUILD_ID = "$version";
@@ -51,13 +34,6 @@ void main(List<String> arguments) {
 """;
     return snapshotGenerationText;
   });
-}
-
-void writeSnapshotFile(var path, var content) {
-  File file = new File(path);
-  var writer = file.openSync(mode: FileMode.WRITE);
-  writer.writeStringSync(content);
-  writer.close();
 }
 
 /**
@@ -76,19 +52,14 @@ void main(List<String> arguments) {
     }
     args[argumentSplit[0].substring(2)] = argumentSplit[1];
   }
-  if (!args.containsKey("dart2js_main")) throw "Please specify dart2js_main";
   if (!args.containsKey("output_dir")) throw "Please specify output_dir";
 
   var scriptFile = Uri.base.resolveUri(Platform.script);
   var path = scriptFile.resolve(".");
   var rootPath = path.resolve("../..");
-  getSnapshotGenerationFile(args, rootPath).then((result) {
-    var wrapper = "${args['output_dir']}/utils_wrapper.dart";
-    writeSnapshotFile(wrapper, result);
-  });
 
-  getDart2jsSnapshotGenerationFile(args, rootPath).then((result) {
+  getDart2jsSnapshotGenerationFile(rootPath).then((result) {
     var wrapper = "${args['output_dir']}/dart2js.dart";
-    writeSnapshotFile(wrapper, result);
+    new File(wrapper).writeAsStringSync(result);
   });
 }

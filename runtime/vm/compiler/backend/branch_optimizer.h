@@ -5,11 +5,17 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_BRANCH_OPTIMIZER_H_
 #define RUNTIME_VM_COMPILER_BACKEND_BRANCH_OPTIMIZER_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/allocation.h"
 
 namespace dart {
 
+class BlockEntryInstr;
 class FlowGraph;
+class FunctionEntryInstr;
 class JoinEntryInstr;
 class Zone;
 class TargetEntryInstr;
@@ -23,10 +29,15 @@ class BranchSimplifier : public AllStatic {
  public:
   static void Simplify(FlowGraph* flow_graph);
 
-  // Replace a target entry instruction with a join entry instruction.  Does
+  // Replace a block entry instruction with a join entry instruction.  Does
   // not update the original target's predecessors to point to the new block
   // and does not replace the target in already computed block order lists.
-  static JoinEntryInstr* ToJoinEntry(Zone* zone, TargetEntryInstr* target);
+  static JoinEntryInstr* ToJoinEntry(Zone* zone, BlockEntryInstr* target);
+
+  // Replace a block entry instruction with a target entry instruction.  Does
+  // not update the original target's predecessors to point to the new block and
+  // does not replace the target in already computed block order lists.
+  static TargetEntryInstr* ToTargetEntry(Zone* zone, BlockEntryInstr* target);
 
  private:
   // Match an instance of the pattern to rewrite.  See the implementation

@@ -1,0 +1,15 @@
+NOTICE: Stream was rewritten by parser!
+
+f() {
+var a, b;
+
+a?.call(b);
+a?(b):;
+}
+
+f[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] a[StringToken],[SimpleToken] b[StringToken];[SimpleToken]
+
+a[StringToken]?.[SimpleToken]call[StringToken]([BeginToken]b[StringToken])[SimpleToken];[SimpleToken]
+a[StringToken]?[SimpleToken]([BeginToken]b[StringToken])[SimpleToken]:[SyntheticToken][SyntheticStringToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

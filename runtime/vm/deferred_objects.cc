@@ -105,16 +105,13 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
     Exceptions::PropagateError(error);
   }
   const Code& code = Code::Handle(zone, function.unoptimized_code());
-// Check that deopt_id exists.
-// TODO(vegorov): verify after deoptimization targets as well.
-#ifdef DEBUG
-  ASSERT(Thread::IsDeoptAfter(deopt_id_) ||
-         (code.GetPcForDeoptId(deopt_id_, RawPcDescriptors::kDeopt) != 0));
-#endif
 
   uword continue_at_pc =
       code.GetPcForDeoptId(deopt_id_, RawPcDescriptors::kDeopt);
-  ASSERT(continue_at_pc != 0);
+  if (continue_at_pc == 0) {
+    FATAL2("Can't locate continuation PC for deoptid %" Pd " within %s\n",
+           deopt_id_, function.ToFullyQualifiedCString());
+  }
   uword* dest_addr = reinterpret_cast<uword*>(slot());
   *dest_addr = continue_at_pc;
 
@@ -127,23 +124,23 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
   if (pc != 0) {
     // If the deoptimization happened at an IC call, update the IC data
     // to avoid repeated deoptimization at the same site next time around.
-    ICData& ic_data = ICData::Handle(zone);
-    CodePatcher::GetInstanceCallAt(pc, code, &ic_data);
-    if (!ic_data.IsNull()) {
-      ic_data.AddDeoptReason(deopt_context->deopt_reason());
-      // Propagate the reason to all ICData-s with same deopt_id since
-      // only unoptimized-code ICData (IC calls) are propagated.
-      function.SetDeoptReasonForAll(ic_data.deopt_id(),
-                                    deopt_context->deopt_reason());
-    }
+    // We cannot use CodePatcher::GetInstanceCallAt because the call site
+    // may have switched to from referencing an ICData to a target Code or
+    // MegamorphicCache.
+    ICData& ic_data = ICData::Handle(zone, function.FindICData(deopt_id_));
+    ic_data.AddDeoptReason(deopt_context->deopt_reason());
+    // Propagate the reason to all ICData-s with same deopt_id since
+    // only unoptimized-code ICData (IC calls) are propagated.
+    function.SetDeoptReasonForAll(ic_data.deopt_id(),
+                                  deopt_context->deopt_reason());
   } else {
     if (deopt_context->HasDeoptFlag(ICData::kHoisted)) {
       // Prevent excessive deoptimization.
-      function.set_allows_hoisting_check_class(false);
+      function.SetProhibitsHoistingCheckClass(true);
     }
 
     if (deopt_context->HasDeoptFlag(ICData::kGeneralized)) {
-      function.set_allows_bounds_check_generalization(false);
+      function.SetProhibitsBoundsCheckGeneralization(true);
     }
   }
 }
@@ -183,7 +180,7 @@ void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
   }
   // Clear invocation counter so that hopefully the function gets reoptimized
   // only after more feedback has been collected.
-  function.set_usage_counter(0);
+  function.SetUsageCounter(0);
   if (function.HasOptimizedCode()) {
     function.SwitchToUnoptimizedCode();
   }
@@ -306,7 +303,11 @@ void DeferredObject::Fill() {
                        value.ToCString());
         }
       } else {
-        ASSERT(offset.Value() == cls.type_arguments_field_offset());
+        // In addition to the type arguments vector we can also have lazy
+        // materialization of e.g. _ByteDataView objects which don't have
+        // explicit fields in Dart (all accesses to the fields are done via
+        // recognized native methods).
+        ASSERT(offset.Value() < cls.host_instance_size());
         obj.SetFieldAtOffset(offset.Value(), value);
         if (FLAG_trace_deoptimization_verbose) {
           OS::PrintErr("    null Field @ offset(%" Pd ") <- %s\n",

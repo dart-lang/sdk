@@ -1,0 +1,38 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int? _#A#x;
+  field core::int? _#A#y;
+  field core::bool _#A#y#isSet;
+  synthetic constructor •() → self::A
+    ;
+  get x() → core::int;
+  set x(core::int #t1) → void;
+  get y() → core::int?;
+  set y(core::int? #t2) → void;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    ;
+  get x() → core::int
+    ;
+  get y() → core::int?
+    ;
+}
+class C extends self::A {
+  field core::int? _#C#x;
+  field core::int? _#C#y;
+  field core::bool _#C#y#isSet;
+  synthetic constructor •() → self::C
+    ;
+  get x() → core::int;
+  get y() → core::int?;
+}
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method throws(() → dynamic f, core::String message) → dynamic
+  ;

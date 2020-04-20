@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.exception.exception;
 
 /**
  * An exception that occurred during the analysis of one or more sources.
@@ -23,11 +21,12 @@ class AnalysisException implements Exception {
    * Initialize a newly created exception to have the given [message] and
    * [cause].
    */
-  AnalysisException([this.message = 'Exception', this.cause = null]);
+  AnalysisException([this.message = 'Exception', this.cause]);
 
+  @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
-    buffer.write("AnalysisException: ");
+    StringBuffer buffer = StringBuffer();
+    buffer.write('$runtimeType: ');
     buffer.writeln(message);
     if (cause != null) {
       buffer.write('Caused by ');
@@ -47,6 +46,11 @@ class CaughtException implements Exception {
   final Object exception;
 
   /**
+   * The message describing where/how/why this was caught.
+   */
+  final String message;
+
+  /**
    * The stack trace associated with the exception.
    */
   StackTrace stackTrace;
@@ -55,20 +59,32 @@ class CaughtException implements Exception {
    * Initialize a newly created caught exception to have the given [exception]
    * and [stackTrace].
    */
-  CaughtException(this.exception, stackTrace) {
-    if (stackTrace == null) {
-      try {
-        throw this;
-      } catch (_, st) {
-        stackTrace = st;
-      }
+  CaughtException(exception, stackTrace)
+      : this.withMessage(null, exception, stackTrace);
+
+  /**
+   * Initialize a newly created caught exception to have the given [exception],
+   * [stackTrace], and [message].
+   */
+  CaughtException.withMessage(this.message, this.exception, stackTrace)
+      : this.stackTrace = stackTrace ?? StackTrace.current;
+
+  /**
+   * Recursively unwrap this [CaughtException] if it itself contains a
+   * [CaughtException].
+   *
+   * If it does not contain a [CaughtException], simply return this instance.
+   */
+  CaughtException get rootCaughtException {
+    if (exception is CaughtException) {
+      return (exception as CaughtException).rootCaughtException;
     }
-    this.stackTrace = stackTrace;
+    return this;
   }
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     _writeOn(buffer);
     return buffer.toString();
   }
@@ -78,6 +94,9 @@ class CaughtException implements Exception {
    * stack trace.
    */
   void _writeOn(StringBuffer buffer) {
+    if (message != null) {
+      buffer.writeln(message);
+    }
     if (exception is AnalysisException) {
       AnalysisException analysisException = exception;
       buffer.writeln(analysisException.message);
@@ -96,4 +115,21 @@ class CaughtException implements Exception {
       }
     }
   }
+}
+
+/**
+ * A form of [CaughtException] that should be silent to users.
+ *
+ * This is still considered an exceptional situation and will be sent to crash
+ * reporting.
+ */
+class SilentException extends CaughtException {
+  SilentException(String message, exception, stackTrace)
+      : super.withMessage(message, exception, stackTrace);
+
+  /**
+   * Create a [SilentException] to wrap a [CaughtException], adding a [message].
+   */
+  SilentException.wrapInMessage(String message, CaughtException exception)
+      : this(message, exception, null);
 }

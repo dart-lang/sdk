@@ -5,7 +5,7 @@
 /*@testedFeatures=inference*/
 library test;
 
-final /*@topType=(bool) -> int*/ f = /*@returnType=int*/ (bool b) => 1;
+final f = /*@ returnType=int* */ (bool b) => 1;
 
 main() {
   f;

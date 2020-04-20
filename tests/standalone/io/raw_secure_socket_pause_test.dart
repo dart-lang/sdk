@@ -10,11 +10,11 @@
 // OtherResources=certificates/server_key.pem
 // OtherResources=certificates/trusted_certs.pem
 
-import "package:expect/expect.dart";
-import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
+import "package:expect/expect.dart";
+import "package:path/path.dart";
 
 String localFile(path) => Platform.script.resolve(path).toFilePath();
 
@@ -27,8 +27,7 @@ SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
 
 Future<HttpServer> startServer() {
-  return HttpServer
-      .bindSecure("localhost", 0, serverContext, backlog: 5)
+  return HttpServer.bindSecure("localhost", 0, serverContext, backlog: 5)
       .then((server) {
     server.listen((HttpRequest request) {
       request.listen((_) {}, onDone: () {
@@ -50,7 +49,7 @@ main() async {
   var server = await startServer();
   var socket = await RawSecureSocket.connect("localhost", server.port,
       context: clientContext);
-  StreamSubscription subscription;
+  late StreamSubscription subscription;
   bool paused = false;
   bool readEventsTested = false;
   bool readEventsPaused = false;
@@ -78,21 +77,21 @@ main() async {
   void handleRawEvent(RawSocketEvent event) {
     Expect.isFalse(paused);
     switch (event) {
-      case RawSocketEvent.READ:
+      case RawSocketEvent.read:
         Expect.isFalse(readEventsPaused);
         runReadEventTest();
-        body.addAll(socket.read());
+        body.addAll(socket.read()!);
         break;
-      case RawSocketEvent.WRITE:
+      case RawSocketEvent.write:
         written += socket.write(message, written, message.length - written);
         if (written < message.length) {
           socket.writeEventsEnabled = true;
         } else {
-          socket.shutdown(SocketDirection.SEND);
+          socket.shutdown(SocketDirection.send);
           runPauseTest();
         }
         break;
-      case RawSocketEvent.READ_CLOSED:
+      case RawSocketEvent.readClosed:
         Expect.isTrue(body.length > 100);
         Expect.equals(72, body.first);
         Expect.equals(9, body.last);

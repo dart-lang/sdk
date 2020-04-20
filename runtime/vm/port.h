@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_PORT_H_
 #define RUNTIME_VM_PORT_H_
 
+#include <memory>
+
 #include "include/dart_api.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
@@ -46,7 +48,8 @@ class PortMap : public AllStatic {
   // active any longer.
   //
   // Claims ownership of 'message'.
-  static bool PostMessage(Message* message);
+  static bool PostMessage(std::unique_ptr<Message> message,
+                          bool before_events = false);
 
   // Returns whether a port is local to the current isolate.
   static bool IsLocalPort(Dart_Port id);
@@ -54,7 +57,8 @@ class PortMap : public AllStatic {
   // Returns the owning Isolate for port 'id'.
   static Isolate* GetIsolate(Dart_Port id);
 
-  static void InitOnce();
+  static void Init();
+  static void Cleanup();
 
   static void PrintPortsForMessageHandler(MessageHandler* handler,
                                           JSONStream* stream);

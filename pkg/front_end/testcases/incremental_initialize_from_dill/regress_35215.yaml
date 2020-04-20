@@ -1,0 +1,43 @@
+# Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Load from a dill file, update a file in the dill that is the context of an
+# error in such a way that the position in the newly compiled procedure doesn't
+# exist in the old library.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "b.dart";
+        main() {
+          b(42);
+        }
+      b.dart: |
+        b({int named}) {
+          print("b");
+        }
+    expectedLibraryCount: 2
+    errors: true
+  - entry: main.dart
+    worldTypex: updated
+    invalidate:
+      - b.dart
+    sources:
+      main.dart: |
+        import "b.dart";
+        main() {
+          b(42);
+        }
+      b.dart: |
+        // lots of comments
+        // forcing offsets down
+        // and also adding more lines
+        // and whatnot
+        b({int named}) {
+          print("b");
+        }
+    expectedLibraryCount: 2
+    errors: true

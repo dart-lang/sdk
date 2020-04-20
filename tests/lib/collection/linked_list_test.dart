@@ -27,14 +27,14 @@ testPreviousNext() {
   var entry = list.first;
   Expect.isNull(entry.previous);
   Expect.equals(0, entry.value);
-  entry = entry.next;
+  entry = entry.next!;
   Expect.equals(1, entry.value);
-  entry = entry.next;
+  entry = entry.next!;
   Expect.equals(2, entry.value);
   Expect.isNull(entry.next);
-  entry = entry.previous;
+  entry = entry.previous!;
   Expect.equals(1, entry.value);
-  entry = entry.previous;
+  entry = entry.previous!;
   Expect.equals(0, entry.value);
   Expect.isNull(entry.previous);
 }
@@ -53,13 +53,13 @@ testUnlinked() {
   list.add(unlinked);
   list.add(new MyEntry(1));
   Expect.isNull(unlinked.previous);
-  Expect.equals(1, unlinked.next.value);
+  Expect.equals(1, unlinked.next!.value);
   list.remove(unlinked);
   Expect.isNull(unlinked.previous);
   Expect.isNull(unlinked.next);
   list.add(unlinked);
   Expect.isNull(unlinked.next);
-  Expect.equals(1, unlinked.previous.value);
+  Expect.equals(1, unlinked.previous!.value);
 }
 
 testInsert() {
@@ -173,7 +173,7 @@ testBadAdd() {
 }
 
 testConcurrentModificationError() {
-  test(function(LinkedList ll)) {
+  test(function(LinkedList<MyEntry> ll)) {
     var ll = new LinkedList<MyEntry>();
     for (int i = 0; i < 10; i++) {
       ll.add(new MyEntry(i));

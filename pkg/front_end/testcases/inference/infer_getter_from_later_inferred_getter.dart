@@ -6,11 +6,11 @@
 library test;
 
 class A implements B {
-  get /*@topType=int*/ x => f();
+  get x => f();
 }
 
 abstract class B implements C {
-  get /*@topType=int*/ x;
+  get x;
 }
 
 abstract class C {

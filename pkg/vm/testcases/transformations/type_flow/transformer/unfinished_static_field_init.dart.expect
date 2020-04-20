@@ -1,0 +1,19 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+}
+[@vm.inferred-type.metadata=#lib::A?]static field dynamic static_field_good = [@vm.inferred-type.metadata=#lib::A] self::good();
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)]static field dynamic static_field_bad = [@vm.inferred-type.metadata=!] self::bad();
+static method good() → dynamic
+  return new self::A::•();
+static method bad() → dynamic
+  return throw "No return!";
+static method main(core::List<core::String*>* args) → dynamic {
+  core::print([@vm.inferred-type.metadata=#lib::A?] self::static_field_good);
+  core::print([@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::static_field_bad);
+}

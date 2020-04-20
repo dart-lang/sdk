@@ -6,7 +6,7 @@ library testing.stdio_process;
 
 import 'dart:async' show EventSink, Future, Stream, StreamTransformer, Timer;
 
-import 'dart:convert' show UTF8;
+import 'dart:convert' show utf8;
 
 import 'dart:io' show Process, ProcessSignal, Stdout;
 
@@ -43,8 +43,10 @@ class StdioProcess {
   static Future<StdioProcess> run(String executable, List<String> arguments,
       {String input,
       Duration timeout: const Duration(seconds: 60),
-      bool suppressOutput: true}) async {
-    Process process = await Process.start(executable, arguments);
+      bool suppressOutput: true,
+      bool runInShell: false}) async {
+    Process process =
+        await Process.start(executable, arguments, runInShell: runInShell);
     Timer timer;
     StringBuffer sb = new StringBuffer();
     if (timeout != null) {
@@ -58,7 +60,7 @@ class StdioProcess {
         process.kill();
         timer = new Timer(const Duration(seconds: 10), () {
           sb.writeln("Sending SIGKILL to process");
-          process.kill(ProcessSignal.SIGKILL);
+          process.kill(ProcessSignal.sigkill);
         });
       });
     }
@@ -67,8 +69,8 @@ class StdioProcess {
       await process.stdin.flush();
     }
     Future closeFuture = process.stdin.close();
-    Stream stdoutStream = process.stdout.transform(UTF8.decoder);
-    Stream stderrStream = process.stderr.transform(UTF8.decoder);
+    Stream stdoutStream = process.stdout.transform(utf8.decoder);
+    Stream stderrStream = process.stderr.transform(utf8.decoder);
     if (!suppressOutput) {
       stdoutStream = stdoutStream.transform(transformToStdio(io.stdout));
       stderrStream = stderrStream.transform(transformToStdio(io.stderr));

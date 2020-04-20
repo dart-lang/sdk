@@ -2,15 +2,35 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/front_end.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:front_end/src/fasta/kernel/utils.dart';
-import 'package:front_end/src/fasta/deprecated_problems.dart'
-    show deprecated_InputError;
-import 'package:front_end/src/testing/compiler_common.dart';
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart'
+    show EmptyStatement, Component, ReturnStatement, StaticInvocation;
 
-import 'package:test/test.dart';
+import 'package:test/test.dart'
+    show
+        expect,
+        greaterThan,
+        group,
+        isEmpty,
+        isNotEmpty,
+        isNotNull,
+        isTrue,
+        same,
+        test;
+
+import 'package:front_end/src/api_prototype/front_end.dart'
+    show CompilerOptions;
+
+import 'package:front_end/src/fasta/fasta_codes.dart' show messageMissingMain;
+
+import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
+
+import 'package:front_end/src/testing/compiler_common.dart'
+    show
+        compileScript,
+        compileUnit,
+        findLibrary,
+        invalidCoreLibsSpecUri,
+        isDartCoreLibrary;
 
 main() {
   group('kernelForProgram', () {
@@ -20,11 +40,12 @@ main() {
         ..librariesSpecificationUri = invalidCoreLibsSpecUri
         ..sdkSummary = null
         ..compileSdk = true // To prevent FE from loading an sdk-summary.
-        ..onError = (e) => errors.add(e);
+        ..onDiagnostic = errors.add;
 
-      var program =
-          await compileScript('main() => print("hi");', options: options);
-      expect(program, isNull);
+      Component component =
+          (await compileScript('main() => print("hi");', options: options))
+              ?.component;
+      expect(component, isNotNull);
       expect(errors, isNotEmpty);
     });
 
@@ -33,142 +54,68 @@ main() {
       var options = new CompilerOptions()
         ..sdkSummary =
             Uri.parse('org-dartlang-test:///not_existing_summary_file')
-        ..onError = (e) => errors.add(e);
+        ..onDiagnostic = errors.add;
 
-      var program =
-          await compileScript('main() => print("hi");', options: options);
-      expect(program, isNull);
+      Component component =
+          (await compileScript('main() => print("hi");', options: options))
+              ?.component;
+      expect(component, isNotNull);
       expect(errors, isNotEmpty);
     });
 
-    test('by default program is compiled using summaries', () async {
+    test('by default component is compiled using the full platform file',
+        () async {
       var options = new CompilerOptions()
         // Note: we define [librariesSpecificationUri] with a specification that
         // contains broken URIs to ensure we do not attempt to lookup for
         // sources of the sdk directly.
         ..librariesSpecificationUri = invalidCoreLibsSpecUri;
-      var program =
-          await compileScript('main() => print("hi");', options: options);
-      var core = program.libraries.firstWhere(isDartCoreLibrary);
+      Component component =
+          (await compileScript('main() => print("hi");', options: options))
+              ?.component;
+      var core = component.libraries.firstWhere(isDartCoreLibrary);
       var printMember = core.members.firstWhere((m) => m.name.name == 'print');
 
       // Note: summaries created by the SDK today contain empty statements as
       // method bodies.
-      expect(printMember.function.body is EmptyStatement, isTrue);
+      expect(printMember.function.body is! EmptyStatement, isTrue);
     });
 
     test('compiler requires a main method', () async {
       var errors = [];
-      var options = new CompilerOptions()..onError = (e) => errors.add(e);
+      var options = new CompilerOptions()..onDiagnostic = errors.add;
       await compileScript('a() => print("hi");', options: options);
       expect(errors.first.message, messageMissingMain.message);
     });
 
-    // TODO(ahe): This test is wrong at least with respect to expecting that
-    // [deprecated_InputError] leaks through the API. Furthermore, the default
-    // behavior should be to recover from errors, as this is the most important
-    // use case we have.
-    test('default error handler throws on errors', () async {
-      var options = new CompilerOptions();
-      var exceptionThrown = false;
-      try {
-        await compileScript('a() => print("hi");', options: options);
-      } on deprecated_InputError catch (e) {
-        exceptionThrown = true;
-        expect('${e.error}', contains("Compilation aborted"));
-      }
-      expect(exceptionThrown, isTrue);
-    }, skip: true /* Issue 30194 */);
-
     test('generated program contains source-info', () async {
-      var program = await compileScript('a() => print("hi"); main() {}',
-          fileName: 'a.dart');
+      Component component = (await compileScript(
+              'a() => print("hi"); main() {}',
+              fileName: 'a.dart'))
+          ?.component;
       // Kernel always store an empty '' key in the map, so there is always at
       // least one. Having more means that source-info is added.
-      expect(program.uriToSource.keys.length, greaterThan(1));
+      expect(component.uriToSource.keys.length, greaterThan(1));
       expect(
-          program.uriToSource['org-dartlang-test:///a/b/c/a.dart'], isNotNull);
-    });
-
-    test('code from summary dependencies are marked external', () async {
-      var program = await compileScript('a() => print("hi"); main() {}',
-          fileName: 'a.dart');
-      for (var lib in program.libraries) {
-        if (lib.importUri.scheme == 'dart') {
-          expect(lib.isExternal, isTrue);
-        }
-      }
-
-      // Pretend that the compiled code is a summary
-      var bytes = serializeProgram(program);
-      program = await compileScript(
-          {
-            'b.dart': 'import "a.dart" as m; b() => m.a(); main() {}',
-            'summary.dill': bytes
-          },
-          fileName: 'b.dart',
-          inputSummaries: ['summary.dill']);
-
-      var aLib = program.libraries
-          .firstWhere((lib) => lib.importUri.path == '/a/b/c/a.dart');
-      expect(aLib.isExternal, isTrue);
-    });
-
-    test('code from linked dependencies are not marked external', () async {
-      var program = await compileScript('a() => print("hi"); main() {}',
-          fileName: 'a.dart');
-      for (var lib in program.libraries) {
-        if (lib.importUri.scheme == 'dart') {
-          expect(lib.isExternal, isTrue);
-        }
-      }
-
-      var bytes = serializeProgram(program);
-      program = await compileScript(
-          {
-            'b.dart': 'import "a.dart" as m; b() => m.a(); main() {}',
-            'link.dill': bytes
-          },
-          fileName: 'b.dart',
-          linkedDependencies: ['link.dill']);
-
-      var aLib = program.libraries
-          .firstWhere((lib) => lib.importUri.path == '/a/b/c/a.dart');
-      expect(aLib.isExternal, isFalse);
+          component.uriToSource[Uri.parse('org-dartlang-test:///a/b/c/a.dart')],
+          isNotNull);
     });
 
     // TODO(sigmund): add tests discovering libraries.json
   });
 
-  group('kernelForBuildUnit', () {
+  group('kernelForComponent', () {
     test('compiler does not require a main method', () async {
       var errors = [];
-      var options = new CompilerOptions()..onError = (e) => errors.add(e);
+      var options = new CompilerOptions()..onDiagnostic = errors.add;
       await compileUnit(['a.dart'], {'a.dart': 'a() => print("hi");'},
           options: options);
       expect(errors, isEmpty);
     });
 
-    test('compiler by default is hermetic', () async {
+    test('compiler is not hermetic by default', () async {
       var errors = [];
-      var options = new CompilerOptions()..onError = (e) => errors.add(e);
-      var sources = {
-        'a.dart': 'import "b.dart"; a() => print("hi");',
-        'b.dart': ''
-      };
-      await compileUnit(['a.dart'], sources, options: options);
-      expect(errors.first.message, contains('Invalid access'));
-      errors.clear();
-
-      await compileUnit(['a.dart', 'b.dart'], sources, options: options);
-      expect(errors, isEmpty);
-    });
-
-    test('chaseDependencies=true removes hermetic restriction', () async {
-      var errors = [];
-      var options = new CompilerOptions()
-        ..chaseDependencies = true
-        ..onError = (e) => errors.add(e);
+      var options = new CompilerOptions()..onDiagnostic = errors.add;
       await compileUnit([
         'a.dart'
       ], {
@@ -188,17 +135,17 @@ main() {
 
       var unitA = await compileUnit(['a.dart'], sources);
       // Pretend that the compiled code is a summary
-      sources['a.dill'] = serializeProgram(unitA);
+      sources['a.dill'] = serializeComponent(unitA);
 
       var unitBC = await compileUnit(['b.dart', 'c.dart'], sources,
-          inputSummaries: ['a.dill']);
+          additionalDills: ['a.dill']);
 
       // Pretend that the compiled code is a summary
-      sources['bc.dill'] = serializeProgram(unitBC);
+      sources['bc.dill'] = serializeComponent(unitBC);
 
-      void checkDCallsC(Program program) {
-        var dLib = findLibrary(program, 'd.dart');
-        var cLib = findLibrary(program, 'c.dart');
+      void checkDCallsC(Component component) {
+        var dLib = findLibrary(component, 'd.dart');
+        var cLib = findLibrary(component, 'c.dart');
         var dMethod = dLib.procedures.first;
         var dBody = dMethod.function.body;
         var dCall = (dBody as ReturnStatement).expression;
@@ -208,11 +155,11 @@ main() {
       }
 
       var unitD1 = await compileUnit(['d.dart'], sources,
-          inputSummaries: ['a.dill', 'bc.dill']);
+          additionalDills: ['a.dill', 'bc.dill']);
       checkDCallsC(unitD1);
 
       var unitD2 = await compileUnit(['d.dart'], sources,
-          inputSummaries: ['bc.dill', 'a.dill']);
+          additionalDills: ['bc.dill', 'a.dill']);
       checkDCallsC(unitD2);
     });
 

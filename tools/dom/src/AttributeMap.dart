@@ -4,7 +4,7 @@
 
 part of html;
 
-abstract class _AttributeMap implements Map<String, String> {
+abstract class _AttributeMap extends MapBase<String, String> {
   final Element _element;
 
   _AttributeMap(this._element);
@@ -15,6 +15,7 @@ abstract class _AttributeMap implements Map<String, String> {
     });
   }
 
+  Map<K, V> cast<K, V>() => Map.castFrom<String, String, K, V>(this);
   bool containsValue(Object value) {
     for (var v in this.values) {
       if (value == v) {
@@ -106,11 +107,8 @@ class _ElementAttributeMap extends _AttributeMap {
     _element.setAttribute(key, value);
   }
 
-  String remove(Object key) {
-    String value = _element.getAttribute(key);
-    _element._removeAttribute(key);
-    return value;
-  }
+  @pragma('dart2js:tryInline')
+  String remove(Object key) => key is String ? _remove(_element, key) : null;
 
   /**
    * The number of {key, value} pairs in the map.
@@ -120,6 +118,21 @@ class _ElementAttributeMap extends _AttributeMap {
   }
 
   bool _matches(_Attr node) => node._namespaceUri == null;
+
+  // Inline this because almost all call sites of [remove] do not use [value],
+  // and the annotations on the `getAttribute` call allow it to be removed.
+  @pragma('dart2js:tryInline')
+  static String _remove(Element element, String key) {
+    String value = JS(
+        // throws:null(1) is not accurate since [key] could be malformed, but
+        // [key] is checked again by `removeAttributeNS`.
+        'returns:String|Null;depends:all;effects:none;throws:null(1)',
+        '#.getAttribute(#)',
+        element,
+        key);
+    JS('', '#.removeAttribute(#)', element, key);
+    return value;
+  }
 }
 
 /**
@@ -142,11 +155,9 @@ class _NamespacedAttributeMap extends _AttributeMap {
     _element.setAttributeNS(_namespace, key, value);
   }
 
-  String remove(Object key) {
-    String value = this[key];
-    _element._removeAttributeNS(_namespace, key);
-    return value;
-  }
+  @pragma('dart2js:tryInline')
+  String remove(Object key) =>
+      key is String ? _remove(_namespace, _element, key) : null;
 
   /**
    * The number of {key, value} pairs in the map.
@@ -156,13 +167,30 @@ class _NamespacedAttributeMap extends _AttributeMap {
   }
 
   bool _matches(_Attr node) => node._namespaceUri == _namespace;
+
+  // Inline this because almost all call sites of [remove] do not use the
+  // returned [value], and the annotations on the `getAttributeNS` call allow it
+  // to be removed.
+  @pragma('dart2js:tryInline')
+  static String _remove(String namespace, Element element, String key) {
+    String value = JS(
+        // throws:null(1) is not accurate since [key] could be malformed, but
+        // [key] is checked again by `removeAttributeNS`.
+        'returns:String|Null;depends:all;effects:none;throws:null(1)',
+        '#.getAttributeNS(#, #)',
+        element,
+        namespace,
+        key);
+    JS('', '#.removeAttributeNS(#, #)', element, namespace, key);
+    return value;
+  }
 }
 
 /**
  * Provides a Map abstraction on top of data-* attributes, similar to the
  * dataSet in the old DOM.
  */
-class _DataAttributeMap implements Map<String, String> {
+class _DataAttributeMap extends MapBase<String, String> {
   final Map<String, String> _attributes;
 
   _DataAttributeMap(this._attributes);
@@ -175,6 +203,7 @@ class _DataAttributeMap implements Map<String, String> {
     });
   }
 
+  Map<K, V> cast<K, V>() => Map.castFrom<String, String, K, V>(this);
   // TODO: Use lazy iterator when it is available on Map.
   bool containsValue(Object value) => values.any((v) => v == value);
 
@@ -241,7 +270,7 @@ class _DataAttributeMap implements Map<String, String> {
   /**
    * Converts a string name with hyphens into an identifier, by removing hyphens
    * and capitalizing the following letter. Optionally [startUppercase] to
-   * captialize the first letter.
+   * capitalize the first letter.
    */
   String _toCamelCase(String hyphenedName, {bool startUppercase: false}) {
     var segments = hyphenedName.split('-');

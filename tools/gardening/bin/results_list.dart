@@ -6,7 +6,7 @@ import 'dart:async';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:gardening/src/results/configurations.dart';
-import 'package:gardening/src/results/result_models.dart' as models;
+import 'package:gardening/src/results/result_json_models.dart' as models;
 import 'package:gardening/src/results/testpy_wrapper.dart';
 
 /// Helper function to add all standard arguments to the [argParser].
@@ -16,8 +16,7 @@ void addStandardArguments(ArgParser argParser) {
   argParser.addFlag("checked", negatable: false);
   argParser.addOption("compiler", allowed: Compiler.names);
   argParser.addFlag("csp", negatable: false);
-  argParser.addFlag("dart2js-with-kernel", negatable: false);
-  argParser.addFlag("dart2js-with-kernel-in-ssa", negatable: false);
+  argParser.addFlag("fasta", negatable: false);
   argParser.addFlag("enable-asserts", negatable: false);
   argParser.addFlag("fast-startup", negatable: false);
   argParser.addFlag("host-checked", negatable: false);
@@ -25,11 +24,12 @@ void addStandardArguments(ArgParser argParser) {
   argParser.addFlag("hot-reload-rollback", negatable: false);
   argParser.addFlag("minified", negatable: false);
   argParser.addOption("mode", allowed: Mode.names);
+  argParser.addFlag("no-preview-dart-2", negatable: false);
+  argParser.addFlag("preview-dart-2", negatable: false);
   argParser.addOption("runtime", allowed: Runtime.names);
   argParser.addFlag("strong", negatable: false);
   argParser.addOption("system", allowed: System.names);
   argParser.addFlag("use-sdk", negatable: false);
-  argParser.addFlag("preview-dart-2", negatable: false);
 }
 
 /// Helper function to get a configuration from [argResults].
@@ -44,13 +44,13 @@ models.Configuration getConfigurationFromArguments(ArgResults argResults) {
       argResults["host-checked"],
       argResults["minified"],
       argResults["csp"],
+      argResults["fasta"],
       argResults["system"],
       [],
       argResults["use-sdk"],
       argResults["builder-tag"],
       argResults["fast-startup"],
       0,
-      argResults["dart2js-with-kernel"],
       argResults["enable-asserts"],
       argResults["hot-reload"],
       argResults["hot-reload-rollback"],

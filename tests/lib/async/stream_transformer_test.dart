@@ -3,9 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import 'dart:async';
-import 'event_helper.dart';
 
 _defaultData(x) {}
 _defaultError(e, [st]) {}
@@ -15,30 +13,30 @@ _defaultDone() {}
 class MyStreamSubscription<T> implements StreamSubscription<T> {
   final Stream stream;
   final bool cancelOnError;
-  Function handleData = null;
-  Function handleError = null;
-  Function handleDone = null;
+  Function? handleData = null;
+  Function? handleError = null;
+  Function? handleDone = null;
 
   MyStreamSubscription(this.stream, this.cancelOnError);
 
-  Future cancel() => null;
-  void onData(void handleData(T data)) {
+  Future cancel() => Future.value();
+  void onData(void handleData(T data)?) {
     this.handleData = handleData == null ? _defaultData : handleData;
   }
 
-  void onError(Function handleError) {
+  void onError(Function? handleError) {
     this.handleError = handleError == null ? _defaultError : handleError;
   }
 
-  void onDone(void handleDone()) {
+  void onDone(void handleDone()?) {
     this.handleDone = handleDone == null ? _defaultDone : handleDone;
   }
 
-  void pause([Future resumeSignal]) {}
+  void pause([Future<void>? resumeSignal]) {}
   void resume() {}
 
   final isPaused = false;
-  Future asFuture([var futureValue]) => null;
+  Future<E> asFuture<E>([E? futureValue]) => Future.value(futureValue as E);
 }
 
 main() {
@@ -46,16 +44,18 @@ main() {
       (stream, cancelOnError) =>
           new MyStreamSubscription(stream, cancelOnError));
 
-  var controller = new StreamController(sync: true);
+  var controller = new StreamController<int>(sync: true);
   var stream = controller.stream;
   var transformed = stream.transform(transformer);
+
+  Expect.isFalse(transformed.isBroadcast);
 
   var handleData = (String _) => 499;
   var handleError = (e, st) => 42;
   var handleDone = () => 99;
 
-  var subscription =
-      transformed.listen(handleData, onError: handleError, onDone: handleDone);
+  MyStreamSubscription<String> subscription =
+      transformed.listen(handleData, onError: handleError, onDone: handleDone) as MyStreamSubscription<String>;
 
   Expect.identical(stream, subscription.stream);
   Expect.equals(false, subscription.cancelOnError);
@@ -68,7 +68,7 @@ main() {
   controller = new StreamController(sync: true);
   stream = controller.stream;
   transformed = stream.transform(transformer);
-  subscription = transformed.listen(null);
+  subscription = transformed.listen(null) as MyStreamSubscription<String>;
 
   Expect.identical(stream, subscription.stream);
   Expect.equals(false, subscription.cancelOnError);
@@ -80,7 +80,20 @@ main() {
   stream = controller.stream;
   transformed = stream.transform(transformer);
   subscription =
-      transformed.listen(null, onDone: handleDone, cancelOnError: true);
+      transformed.listen(null, onDone: handleDone, cancelOnError: true) as MyStreamSubscription<String>;
+
+  Expect.identical(stream, subscription.stream);
+  Expect.equals(true, subscription.cancelOnError);
+  Expect.identical(_defaultData, subscription.handleData);
+  Expect.identical(_defaultError, subscription.handleError);
+  Expect.identical(handleDone, subscription.handleDone);
+
+  controller = new StreamController.broadcast(sync: true);
+  stream = controller.stream;
+  transformed = stream.transform(transformer);
+  Expect.isTrue(transformed.isBroadcast);
+  subscription =
+      transformed.listen(null, onDone: handleDone, cancelOnError: true) as MyStreamSubscription<String>;
 
   Expect.identical(stream, subscription.stream);
   Expect.equals(true, subscription.cancelOnError);

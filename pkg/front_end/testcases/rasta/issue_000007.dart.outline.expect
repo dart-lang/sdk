@@ -3,19 +3,22 @@ import self as self;
 import "dart:core" as core;
 
 class Base extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::Base*
     ;
 }
 class Mixin extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::Mixin*
     ;
   method foo() → dynamic
     ;
 }
-abstract class _Base&Mixin = self::Base with self::Mixin {
+abstract class _Sub&Base&Mixin = self::Base with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Sub&Base&Mixin*
+    : super self::Base::•()
+    ;
 }
-class Sub extends self::_Base&Mixin {
-  default constructor •() → void
+class Sub extends self::_Sub&Base&Mixin {
+  synthetic constructor •() → self::Sub*
     ;
 }
 static method main() → dynamic

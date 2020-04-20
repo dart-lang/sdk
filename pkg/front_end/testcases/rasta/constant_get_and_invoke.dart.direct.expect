@@ -1,8 +1,0 @@
-library;
-import self as self;
-
-static const field dynamic c = 1;
-static method main() → dynamic {
-  self::c;
-  self::c.call();
-}

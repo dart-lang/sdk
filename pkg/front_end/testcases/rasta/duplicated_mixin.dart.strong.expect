@@ -4,16 +4,22 @@ import "dart:core" as core;
 
 class Mixin extends core::Object {
   field dynamic field = null;
-  default constructor •() → void
+  synthetic constructor •() → self::Mixin*
     : super core::Object::•()
     ;
 }
-abstract class _Object&Mixin = core::Object with self::Mixin {
-}
-abstract class __Object&Mixin&Mixin = self::_Object&Mixin with self::Mixin {
-}
-class A extends self::__Object&Mixin&Mixin {
-  default constructor •() → void
+abstract class _A&Object&Mixin = core::Object with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_A&Object&Mixin*
     : super core::Object::•()
+    ;
+}
+abstract class _A&Object&Mixin&Mixin = self::_A&Object&Mixin with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_A&Object&Mixin&Mixin*
+    : super self::_A&Object&Mixin::•()
+    ;
+}
+class A extends self::_A&Object&Mixin&Mixin {
+  synthetic constructor •() → self::A*
+    : super self::_A&Object&Mixin&Mixin::•()
     ;
 }

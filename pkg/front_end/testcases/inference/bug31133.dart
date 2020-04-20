@@ -6,11 +6,19 @@
 library test;
 
 void test() {
-  var /*@type=int*/ i = 0;
-  for (i++; i /*@target=num::<*/ < 10; i++) {}
-  for (++i; i /*@target=num::<*/ < 10; i++) {}
-  for (i--; i /*@target=num::>=*/ >= 0; i--) {}
-  for (--i; i /*@target=num::>=*/ >= 0; i--) {}
+  var /*@ type=int* */ i = 0;
+  for (i /*@ target=num::+ */ ++;
+      i /*@target=num::<*/ < 10;
+      i /*@ target=num::+ */ ++) {}
+  for (/*@ target=num::+ */ ++i;
+      i /*@target=num::<*/ < 10;
+      i /*@ target=num::+ */ ++) {}
+  for (i /*@ target=num::- */ --;
+      i /*@target=num::>=*/ >= 0;
+      i /*@ target=num::- */ --) {}
+  for (/*@ target=num::- */ --i;
+      i /*@target=num::>=*/ >= 0;
+      i /*@ target=num::- */ --) {}
 }
 
 main() {}

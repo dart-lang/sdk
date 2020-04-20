@@ -8,7 +8,7 @@ library compiler.kernel.front_end_adapter;
 
 import 'dart:async';
 
-import 'package:front_end/front_end.dart' as fe;
+import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import '../../compiler_new.dart' as api;
 
@@ -22,11 +22,17 @@ class CompilerFileSystem implements fe.FileSystem {
   CompilerFileSystem(this.inputProvider);
 
   @override
-  fe.FileSystemEntity entityForUri(Uri uri) =>
-      new _CompilerFileSystemEntity(uri, this);
+  fe.FileSystemEntity entityForUri(Uri uri) {
+    if (uri.scheme == 'data') {
+      return new fe.DataFileSystemEntity(Uri.base.resolveUri(uri));
+    } else {
+      return new _CompilerFileSystemEntity(uri, this);
+    }
+  }
 }
 
 class _CompilerFileSystemEntity implements fe.FileSystemEntity {
+  @override
   final Uri uri;
   final CompilerFileSystem fs;
 
@@ -37,7 +43,7 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
     api.Input input;
     try {
       input = await fs.inputProvider
-          .readFromUri(uri, inputKind: api.InputKind.utf8);
+          .readFromUri(uri, inputKind: api.InputKind.UTF8);
     } catch (e) {
       throw new fe.FileSystemException(uri, '$e');
     }
@@ -77,27 +83,38 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
 /// Report a [message] received from the front-end, using dart2js's
 /// [DiagnosticReporter].
 void reportFrontEndMessage(
-    DiagnosticReporter reporter, fe.CompilationMessage message) {
-  // TODO(sigmund): translate message kinds using message.dart2jsCode
-  MessageKind kind = MessageKind.GENERIC;
-  Spannable span;
-  if (message.span != null) {
-    span = new SourceSpan(message.span.start.sourceUrl,
-        message.span.start.offset, message.span.start.offset + 1);
-  } else {
-    span = NO_LOCATION_SPANNABLE;
+    DiagnosticReporter reporter, fe.DiagnosticMessage message) {
+  Spannable _getSpannable(fe.DiagnosticMessage message) {
+    Uri uri = fe.getMessageUri(message);
+    int offset = fe.getMessageCharOffset(message);
+    int length = fe.getMessageLength(message);
+    if (uri != null && offset != -1) {
+      return new SourceSpan(uri, offset, offset + length);
+    } else {
+      return NO_LOCATION_SPANNABLE;
+    }
   }
+
+  DiagnosticMessage _convertMessage(fe.DiagnosticMessage message) {
+    Spannable span = _getSpannable(message);
+    String text = fe.getMessageHeaderText(message);
+    return reporter.createMessage(span, MessageKind.GENERIC, {'text': text});
+  }
+
+  List<fe.DiagnosticMessage> relatedInformation =
+      fe.getMessageRelatedInformation(message);
+  DiagnosticMessage mainMessage = _convertMessage(message);
+  List<DiagnosticMessage> infos = relatedInformation != null
+      ? relatedInformation.map(_convertMessage).toList()
+      : const [];
   switch (message.severity) {
     case fe.Severity.internalProblem:
-      throw message.message;
+      throw mainMessage.message.computeMessage();
     case fe.Severity.error:
-      reporter.reportErrorMessage(span, kind, {'text': message.message});
+      reporter.reportError(mainMessage, infos);
       break;
     case fe.Severity.warning:
-      reporter.reportWarningMessage(span, kind, {'text': message.message});
-      break;
-    case fe.Severity.nit:
-      reporter.reportHintMessage(span, kind, {'text': message.message});
+      reporter.reportWarning(mainMessage, infos);
       break;
     default:
       throw new UnimplementedError('unhandled severity ${message.severity}');

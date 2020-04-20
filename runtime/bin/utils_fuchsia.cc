@@ -17,11 +17,11 @@ namespace dart {
 namespace bin {
 
 OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
-  set_sub_system(kSystem);
-  set_code(errno);
-  const int kBufferSize = 1024;
-  char error_buf[kBufferSize];
-  SetMessage(Utils::StrError(errno, error_buf, kBufferSize));
+  Reload();
+}
+
+void OSError::Reload() {
+  SetCodeAndMessage(kSystem, errno);
 }
 
 void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
@@ -66,10 +66,6 @@ char* StringUtils::Utf8ToConsoleString(char* utf8,
   return NULL;
 }
 
-char* StringUtils::StrNDup(const char* s, intptr_t n) {
-  return strndup(s, n);
-}
-
 bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   return false;
 }
@@ -81,7 +77,7 @@ int64_t TimerUtils::GetCurrentMonotonicMillis() {
 }
 
 int64_t TimerUtils::GetCurrentMonotonicMicros() {
-  int64_t ticks = zx_time_get(ZX_CLOCK_MONOTONIC);
+  zx_time_t ticks = zx_clock_get_monotonic();
   return ticks / kNanosecondsPerMicrosecond;
 }
 

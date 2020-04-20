@@ -1,0 +1,87 @@
+library;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+import "deferred_explicit_access_lib.dart" as def;
+
+import "org-dartlang-testcase:///deferred_explicit_access_lib.dart" deferred as prefix;
+
+static method main() → dynamic /* originally async */ {
+  final asy::_AsyncAwaitCompleter<dynamic>* :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
+  asy::FutureOr<dynamic>* :return_value;
+  dynamic :async_stack_trace;
+  (dynamic) →* dynamic :async_op_then;
+  (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+  core::int* :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  dynamic :saved_try_context_var0;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L1:
+      {
+        [yield] let dynamic #t1 = asy::_awaitHelper(LoadLibrary(prefix), :async_op_then, :async_op_error, :async_op) in null;
+        :result;
+        self::expect(0, let final core::Object* #t2 = CheckLibraryIsLoaded(prefix) in def::topLevelField);
+        self::expect(42, let final core::Object* #t3 = CheckLibraryIsLoaded(prefix) in def::topLevelField = 42);
+        self::expect(42, let final core::Object* #t4 = CheckLibraryIsLoaded(prefix) in def::topLevelField);
+        self::expect(0, let final core::Object* #t5 = CheckLibraryIsLoaded(prefix) in def::topLevelProperty);
+        self::expect(87, let final core::Object* #t6 = CheckLibraryIsLoaded(prefix) in def::topLevelProperty = 87);
+        self::expect(87, let final core::Object* #t7 = CheckLibraryIsLoaded(prefix) in def::topLevelProperty);
+        self::expect(87, let final core::Object* #t8 = CheckLibraryIsLoaded(prefix) in def::topLevelMethod());
+      }
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+library;
+import self as def;
+import "dart:core" as core;
+
+extension Extension on core::int* {
+  static field staticField = def::Extension|staticField;
+  static get staticProperty = get def::Extension|staticProperty;
+  static method staticMethod = def::Extension|staticMethod;
+  get property = def::Extension|get#property;
+  method method = def::Extension|method;
+  tearoff method = def::Extension|get#method;
+  static set staticProperty = set def::Extension|staticProperty;
+  set property = def::Extension|set#property;
+}
+static field core::int* Extension|staticField = 0;
+static field core::int* topLevelField = def::Extension|staticField;
+static get Extension|staticProperty() → core::int*
+  return def::Extension|staticField;
+static set Extension|staticProperty(core::int* value) → void {
+  def::Extension|staticField = value;
+}
+static method Extension|staticMethod() → core::int*
+  return def::Extension|staticField;
+static method Extension|get#property(final core::int* #this) → core::int*
+  return #this.{core::num::+}(def::Extension|staticField);
+static method Extension|set#property(final core::int* #this, core::int* value) → void {
+  def::Extension|staticField = value;
+}
+static method Extension|method(final core::int* #this) → core::int*
+  return #this.{core::num::+}(def::Extension|staticField);
+static method Extension|get#method(final core::int* #this) → () →* core::int*
+  return () → core::int* => def::Extension|method(#this);
+static get topLevelProperty() → core::int*
+  return def::Extension|staticField;
+static set topLevelProperty(core::int* value) → void {
+  def::Extension|staticField = value;
+}
+static method topLevelMethod() → dynamic
+  return def::Extension|staticField;

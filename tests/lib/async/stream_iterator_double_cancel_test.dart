@@ -8,7 +8,7 @@ import "package:async_helper/async_helper.dart";
 
 Stream timedStream(int n) {
   int i = 0;
-  StreamController controller;
+  late StreamController controller;
   tick() {
     if (i >= n) {
       controller.close();

@@ -6,15 +6,16 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   factory $CLASSNAME(String type,
-      {Window view, int detail: 0, int screenX: 0, int screenY: 0,
+      {Window$NULLABLE view, int detail: 0, int screenX: 0, int screenY: 0,
       int clientX: 0, int clientY: 0, int button: 0, bool canBubble: true,
       bool cancelable: true, bool ctrlKey: false, bool altKey: false,
-      bool shiftKey: false, bool metaKey: false, EventTarget relatedTarget}) {
+      bool shiftKey: false, bool metaKey: false,
+      EventTarget$NULLABLE relatedTarget}) {
 
     if (view == null) {
       view = window;
     }
-    MouseEvent event = document._createEvent('MouseEvent');
+    MouseEvent event = document._createEvent('MouseEvent') $#NULLSAFECAST(as MouseEvent);
     event._initMouseEvent(type, canBubble, cancelable, view, detail,
         screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
         button, relatedTarget);
@@ -22,16 +23,11 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   }
 $!MEMBERS
 
-  @DomName('MouseEvent.clientX')
-  @DomName('MouseEvent.clientY')
-  Point get client => new Point/*<num>*/(_clientX, _clientY);
+  Point get client => new Point(_clientX, _clientY);
 
-  @DomName('MouseEvent.movementX')
-  @DomName('MouseEvent.movementY')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @Experimental()
-  Point get movement => new Point/*<num>*/(_movementX, _movementY);
+  Point get movement => new Point(_movementX, _movementY);
 
   /**
    * The coordinates of the mouse pointer in target node coordinates.
@@ -44,32 +40,25 @@ $!MEMBERS
     if (JS('bool', '!!#.offsetX', this)) {
       var x = JS('int', '#.offsetX', this);
       var y = JS('int', '#.offsetY', this);
-      return new Point/*<num>*/(x, y);
+      return new Point(x $#NULLSAFECAST(as num), y $#NULLSAFECAST(as num));
     } else {
       // Firefox does not support offsetX.
       if (!(this.target is Element)) {
         throw new UnsupportedError(
             'offsetX is only supported on elements');
       }
-      Element target = this.target;
+      Element target = this.target $#NULLSAFECAST(as Element);
       var point = (this.client - target.getBoundingClientRect().topLeft);
-      return new Point/*<num>*/(point.x.toInt(), point.y.toInt());
+      return new Point(point.x.toInt(), point.y.toInt());
     }
   }
 
-  @DomName('MouseEvent.screenX')
-  @DomName('MouseEvent.screenY')
-  Point get screen => new Point/*<num>*/(_screenX, _screenY);
+  Point get screen => new Point(_screenX, _screenY);
 
-  @DomName('MouseEvent.layerX')
-  @DomName('MouseEvent.layerY')
-  Point get layer => new Point/*<num>*/(_layerX, _layerY);
+  Point get layer => new Point(_layerX, _layerY);
 
-  @DomName('MouseEvent.pageX')
-  @DomName('MouseEvent.pageY')
-  Point get page => new Point/*<num>*/(_pageX, _pageY);
+  Point get page => new Point(_pageX, _pageY);
 
-  @DomName('MouseEvent.dataTransfer')
   DataTransfer get dataTransfer => JS('DataTransfer', "#['dataTransfer']", this);
 
 }

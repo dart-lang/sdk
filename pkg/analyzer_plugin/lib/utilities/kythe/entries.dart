@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,96 +10,71 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/utilities/kythe/entries.dart';
 import 'package:analyzer_plugin/utilities/generator.dart';
 
-/**
- * The information about a requested set of entries when computing entries in a
- * `.dart` file.
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// The information about a requested set of entries when computing entries in a
+/// `.dart` file.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class DartEntryRequest implements EntryRequest {
-  /**
-   * The analysis result for the file in which the entries are being requested.
-   */
-  ResolveResult get result;
+  /// The analysis result for the file in which the entries are being requested.
+  ResolvedUnitResult get result;
 }
 
-/**
- * An object that [EntryContributor]s use to record entries.
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// An object that [EntryContributor]s use to record entries.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class EntryCollector {
-  /**
-   * Record a new [entry].
-   */
+  /// Record a new [entry].
   void addEntry(KytheEntry entry);
 }
 
-/**
- * An object used to produce entries.
- *
- * Clients may implement this class when implementing plugins.
- */
+/// An object used to produce entries.
+///
+/// Clients may implement this class when implementing plugins.
 abstract class EntryContributor {
-  /**
-   * Contribute entries for the file specified by the given [request] into the
-   * given [collector].
-   */
+  /// Contribute entries for the file specified by the given [request] into the
+  /// given [collector].
   void computeEntries(EntryRequest request, EntryCollector collector);
 }
 
-/**
- * A generator that will generate a 'kythe.getEntries' response.
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// A generator that will generate a 'kythe.getEntries' response.
+///
+/// Clients may not extend, implement or mix-in this class.
 class EntryGenerator {
-  /**
-   * The contributors to be used to generate the entries.
-   */
+  /// The contributors to be used to generate the entries.
   final List<EntryContributor> contributors;
 
-  /**
-   * Initialize a newly created entry generator to use the given [contributors].
-   */
+  /// Initialize a newly created entry generator to use the given
+  /// [contributors].
   EntryGenerator(this.contributors);
 
-  /**
-   * Create a 'kythe.getEntries' response for the file specified by the given
-   * [request]. If any of the contributors throws an exception, also create a
-   * non-fatal 'plugin.error' notification.
-   */
-  GeneratorResult generateGetEntriesResponse(EntryRequest request) {
-    List<Notification> notifications = <Notification>[];
-    EntryCollectorImpl collector = new EntryCollectorImpl();
-    for (EntryContributor contributor in contributors) {
+  /// Create a 'kythe.getEntries' response for the file specified by the given
+  /// [request]. If any of the contributors throws an exception, also create a
+  /// non-fatal 'plugin.error' notification.
+  GeneratorResult<KytheGetKytheEntriesResult> generateGetEntriesResponse(
+      EntryRequest request) {
+    var notifications = <Notification>[];
+    var collector = EntryCollectorImpl();
+    for (var contributor in contributors) {
       try {
         contributor.computeEntries(request, collector);
       } catch (exception, stackTrace) {
-        notifications.add(new PluginErrorParams(
+        notifications.add(PluginErrorParams(
                 false, exception.toString(), stackTrace.toString())
             .toNotification());
       }
     }
-    KytheGetKytheEntriesResult result =
-        new KytheGetKytheEntriesResult(collector.entries, collector.files);
-    return new GeneratorResult(result, notifications);
+    var result = KytheGetKytheEntriesResult(collector.entries, collector.files);
+    return GeneratorResult(result, notifications);
   }
 }
 
-/**
- * The information about a requested set of entries.
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// The information about a requested set of entries.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class EntryRequest {
-  /**
-   * Return the path of the file in which entries are being requested.
-   */
+  /// Return the path of the file in which entries are being requested.
   String get path;
 
-  /**
-   * Return the resource provider associated with this request.
-   */
+  /// Return the resource provider associated with this request.
   ResourceProvider get resourceProvider;
 }

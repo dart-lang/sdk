@@ -29,8 +29,7 @@ class CompositeView extends View {
       scrollable = false,
       vertical = false,
       showScrollbar = false])
-      : super(),
-        _nestedContainer = nestedContainer,
+      : _nestedContainer = nestedContainer,
         _scrollable = scrollable,
         _vertical = vertical,
         _showScrollbar = showScrollbar,

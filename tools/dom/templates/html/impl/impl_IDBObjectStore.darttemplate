@@ -6,7 +6,6 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-  @DomName('IDBObjectStore.add')
   Future add(value, [key]) {
     try {
       var request;
@@ -21,7 +20,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  @DomName('IDBObjectStore.clear')
   Future clear() {
     try {
       return _completeRequest(_clear());
@@ -30,7 +28,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  @DomName('IDBObjectStore.delete')
   Future delete(key_OR_keyRange){
     try {
       return _completeRequest(_delete(key_OR_keyRange));
@@ -39,7 +36,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  @DomName('IDBObjectStore.count')
   Future<int> count([key_OR_range]) {
    try {
       var request = _count(key_OR_range);
@@ -49,7 +45,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  @DomName('IDBObjectStore.put')
   Future put(value, [key]) {
     try {
       var request;
@@ -64,7 +59,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  @DomName('IDBObjectStore.get')
   Future getObject(key) {
     try {
       var request = _get(key);
@@ -96,9 +90,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * must be done synchronously unless they are additional async requests to
    * the current transaction.
    */
-  @DomName('IDBObjectStore.openCursor')
-  Stream<CursorWithValue> openCursor({key, KeyRange range, String direction,
-      bool autoAdvance}) {
+  Stream<CursorWithValue> openCursor({key, KeyRange$NULLABLE range,
+      String$NULLABLE direction, bool$NULLABLE autoAdvance}) {
     var key_OR_range = null;
     if (key != null) {
       if (range != null) {
@@ -119,8 +112,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return _cursorStreamFromResult(request, autoAdvance);
   }
 
-  @DomName('IDBObjectStore.createIndex')
-  Index createIndex(String name, keyPath, {bool unique, bool multiEntry}) {
+  Index createIndex(String name, keyPath, {bool$NULLABLE unique,
+      bool$NULLABLE multiEntry}) {
     var options = {};
     if (unique != null) {
       options['unique'] = unique;
@@ -137,18 +130,18 @@ $!MEMBERS
   /**
    * Helper for iterating over cursors in a request.
    */
-  static Stream/*<T>*/ _cursorStreamFromResult/*<T extends Cursor>*/(Request request,
-      bool autoAdvance) {
+  static Stream<T> _cursorStreamFromResult<T extends Cursor>(Request request,
+      bool$NULLABLE autoAdvance) {
     // TODO: need to guarantee that the controller provides the values
     // immediately as waiting until the next tick will cause the transaction to
     // close.
-    var controller = new StreamController/*<T>*/(sync: true);
+    var controller = new StreamController<T>(sync: true);
 
     //TODO: Report stacktrace once issue 4061 is resolved.
     request.onError.listen(controller.addError);
 
     request.onSuccess.listen((e) {
-      var cursor = _cast/*<T>*/(request.result);
+      T$NULLABLE cursor = request.result as dynamic;
       if (cursor == null) {
         controller.close();
       } else {
@@ -161,6 +154,3 @@ $!MEMBERS
     return controller.stream;
   }
 }
-
-// ignore: STRONG_MODE_DOWN_CAST_COMPOSITE
-/*=To*/ _cast/*<To>*/(dynamic x) => x;

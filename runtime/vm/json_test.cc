@@ -61,7 +61,7 @@ TEST_CASE(JSON_JSONStream_Primitives) {
       JSONArray jsarr(&js);
       jsarr.AddValue(1.0);
     }
-    EXPECT_STREQ("[1.000000]", js.ToCString());
+    EXPECT_STREQ("[1.0]", js.ToCString());
   }
   {
     JSONStream js;
@@ -161,7 +161,7 @@ TEST_CASE(JSON_JSONStream_ObjectPrintf) {
   EXPECT_STREQ("{\"key\":\"2 hello\"}", js.ToCString());
 }
 
-TEST_CASE(JSON_JSONStream_DartObject) {
+ISOLATE_UNIT_TEST_CASE(JSON_JSONStream_DartObject) {
   JSONStream js;
   {
     JSONArray jsarr(&js);
@@ -216,26 +216,37 @@ TEST_CASE(JSON_JSONStream_DartString) {
   EXPECT_VALID(lib);
 
   Dart_Handle result;
+  TransitionNativeToVM transition1(thread);
   String& obj = String::Handle();
 
-  {
-    result = Dart_GetField(lib, NewString("ascii"));
-    EXPECT_VALID(result);
+  auto do_test = [&](const char* field_name, const char* expected) {
+    {
+      TransitionVMToNative to_native(thread);
+      result = Dart_GetField(lib, NewString(field_name));
+      EXPECT_VALID(result);
+    }
+
     obj ^= Api::UnwrapHandle(result);
 
-    JSONStream js;
     {
-      JSONObject jsobj(&js);
-      EXPECT(!jsobj.AddPropertyStr("ascii", obj));
+      JSONStream js;
+      {
+        JSONObject jsobj(&js);
+        EXPECT(!jsobj.AddPropertyStr(field_name, obj));
+      }
+      EXPECT_STREQ(expected, js.ToCString());
     }
-    EXPECT_STREQ("{\"ascii\":\"Hello, World!\"}", js.ToCString());
+  };
+
+  {
+    TransitionVMToNative to_native(thread);
+    result = Dart_GetField(lib, NewString("ascii"));
+    EXPECT_VALID(result);
   }
 
-  {
-    result = Dart_GetField(lib, NewString("ascii"));
-    EXPECT_VALID(result);
-    obj ^= Api::UnwrapHandle(result);
+  obj ^= Api::UnwrapHandle(result);
 
+  {
     JSONStream js;
     {
       JSONObject jsobj(&js);
@@ -244,58 +255,11 @@ TEST_CASE(JSON_JSONStream_DartString) {
     EXPECT_STREQ("{\"subrange\":\"ello\"}", js.ToCString());
   }
 
-  {
-    result = Dart_GetField(lib, NewString("unicode"));
-    EXPECT_VALID(result);
-    obj ^= Api::UnwrapHandle(result);
-
-    JSONStream js;
-    {
-      JSONObject jsobj(&js);
-      EXPECT(!jsobj.AddPropertyStr("unicode", obj));
-    }
-    EXPECT_STREQ("{\"unicode\":\"Îñţérñåţîöñåļîžåţîờñ\"}", js.ToCString());
-  }
-
-  {
-    result = Dart_GetField(lib, NewString("surrogates"));
-    EXPECT_VALID(result);
-    obj ^= Api::UnwrapHandle(result);
-
-    JSONStream js;
-    {
-      JSONObject jsobj(&js);
-      EXPECT(!jsobj.AddPropertyStr("surrogates", obj));
-    }
-    EXPECT_STREQ("{\"surrogates\":\"𝄞𝄞𝄞𝄞𝄞\"}", js.ToCString());
-  }
-
-  {
-    result = Dart_GetField(lib, NewString("wrongEncoding"));
-    EXPECT_VALID(result);
-    obj ^= Api::UnwrapHandle(result);
-
-    JSONStream js;
-    {
-      JSONObject jsobj(&js);
-      EXPECT(!jsobj.AddPropertyStr("wrongEncoding", obj));
-    }
-    EXPECT_STREQ("{\"wrongEncoding\":\"𝄞\\uD834𝄞\"}", js.ToCString());
-  }
-
-  {
-    result = Dart_GetField(lib, NewString("nullInMiddle"));
-    EXPECT_VALID(result);
-    obj ^= Api::UnwrapHandle(result);
-
-    JSONStream js;
-    {
-      JSONObject jsobj(&js);
-      EXPECT(!jsobj.AddPropertyStr("nullInMiddle", obj));
-    }
-    EXPECT_STREQ("{\"nullInMiddle\":\"This has\\u0000 four words.\"}",
-                 js.ToCString());
-  }
+  do_test("ascii", "{\"ascii\":\"Hello, World!\"}");
+  do_test("unicode", "{\"unicode\":\"Îñţérñåţîöñåļîžåţîờñ\"}");
+  do_test("surrogates", "{\"surrogates\":\"𝄞𝄞𝄞𝄞𝄞\"}");
+  do_test("wrongEncoding", "{\"wrongEncoding\":\"𝄞\\uD834𝄞\"}");
+  do_test("nullInMiddle", "{\"nullInMiddle\":\"This has\\u0000 four words.\"}");
 }
 
 TEST_CASE(JSON_JSONStream_Params) {

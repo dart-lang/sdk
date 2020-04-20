@@ -1,0 +1,124 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with a number of modules.
+# Try out "trickery" in the module dependencies to force needing more or less
+# dill libraries.
+
+type: newworld
+modules:
+  module:
+    module/lib1.dart: |
+      import 'lib3.dart';
+
+      class Class1 {
+        Class3a get c3a {}
+      }
+    module/lib2.dart: |
+      import 'lib4.dart';
+
+      class Class2 {
+        void cl4() {
+          Class4 class4 = new Class4();
+          print(class4);
+        }
+      }
+    module/lib3.dart: |
+      class Class3a {
+        Class3b get c3b {}
+      }
+
+      class Class3b {
+        String str() {}
+      }
+    module/lib4.dart: |
+      class Class4 {}
+    module/.packages: |
+      module:.
+worlds:
+  - entry: compileme.dart
+    fromComponent: true
+    sources:
+      compileme.dart: |
+        import 'package:module/lib1.dart';
+        import 'package:module/lib2.dart';
+
+        main() {
+          Class2 class2 = new Class2();
+          print(class2);
+        }
+
+        class Foo {
+          Class1 class1() {
+            Class1 class1 = new Class1();
+            class1.c3a.c3b.str();
+            return class1;
+          }
+        }
+      .packages: |
+        module:module
+    modules:
+      - module
+    expectedLibraryCount: 5
+    neededDillLibraries:
+      - package:module/lib1.dart
+      - package:module/lib2.dart
+      - package:module/lib3.dart
+    expectedContent:
+      org-dartlang-test:///compileme.dart:
+        - Class Foo
+        - Procedure main
+      package:module/lib1.dart:
+        - Class Class1
+      package:module/lib2.dart:
+        - Class Class2
+      package:module/lib3.dart:
+        - Class Class3a
+        - Class Class3b
+      package:module/lib4.dart:
+        - Class Class4
+  - entry: compileme.dart
+    fromComponent: true
+    expectInitializeFromDill: false
+    outlineOnly: true
+    skipOutlineBodyCheck: true
+    sources:
+      compileme.dart: |
+        import 'package:module/lib1.dart';
+        import 'package:module/lib2.dart';
+
+        main() {
+          Class2 class2 = new Class2();
+          print(class2);
+        }
+
+        class Foo {
+          Class1 class1() {
+            Class1 class1 = new Class1();
+            class1.c3a.c3b.str();
+            return class1;
+          }
+        }
+      .packages: |
+        module:module
+    modules:
+      - module
+    expectedLibraryCount: 5
+    neededDillLibraries:
+      # This is the outline version. It doesn't use lib3.dart.
+      - package:module/lib1.dart
+      - package:module/lib2.dart
+    expectedContent:
+      org-dartlang-test:///compileme.dart:
+        - Class Foo
+        - Procedure main
+      package:module/lib1.dart:
+        - Class Class1
+      package:module/lib2.dart:
+        - Class Class2
+      package:module/lib3.dart:
+        - Class Class3a
+        - Class Class3b
+      package:module/lib4.dart:
+        - Class Class4

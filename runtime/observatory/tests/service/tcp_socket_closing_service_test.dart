@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 /// Test that we correctly remove sockets that have been closed from the list
@@ -35,14 +35,14 @@ Future setup() async {
 
   var server = await io.RawDatagramSocket.bind('127.0.0.1', 0);
   server.listen((io.RawSocketEvent event) {
-    if (event == io.RawSocketEvent.READ) {
+    if (event == io.RawSocketEvent.read) {
       io.Datagram dg = server.receive();
       dg.data.forEach((x) => true);
       server.close();
     }
   });
   var client = await io.RawDatagramSocket.bind('127.0.0.1', 0);
-  client.send(UTF8.encoder.convert('foobar'),
+  client.send(utf8.encoder.convert('foobar'),
       new io.InternetAddress('127.0.0.1'), server.port);
   client.close();
 
@@ -50,7 +50,7 @@ Future setup() async {
   await io.ServerSocket.bind('127.0.0.1', 0);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   // Initial.
   (Isolate isolate) async {
     var result =

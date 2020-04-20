@@ -42,8 +42,8 @@ void testCloseOneEnd(String toClose) {
   RawSecureServerSocket.bind(HOST, 0, serverContext).then((server) {
     server.listen((serverConnection) {
       serverConnection.listen((event) {
-        if (toClose == "server" || event == RawSocketEvent.READ_CLOSED) {
-          serverConnection.shutdown(SocketDirection.SEND);
+        if (toClose == "server" || event == RawSocketEvent.readClosed) {
+          serverConnection.shutdown(SocketDirection.send);
         }
       }, onDone: () {
         serverEndDone.complete(null);
@@ -55,8 +55,8 @@ void testCloseOneEnd(String toClose) {
         .connect(HOST, server.port, context: clientContext)
         .then((clientConnection) {
       clientConnection.listen((event) {
-        if (toClose == "client" || event == RawSocketEvent.READ_CLOSED) {
-          clientConnection.shutdown(SocketDirection.SEND);
+        if (toClose == "client" || event == RawSocketEvent.readClosed) {
+          clientConnection.shutdown(SocketDirection.send);
         }
       }, onDone: () {
         clientEndDone.complete(null);
@@ -96,7 +96,7 @@ testPauseServerSocket() {
     var subscription;
     subscription = server.listen((connection) {
       Expect.isTrue(resumed);
-      connection.shutdown(SocketDirection.SEND);
+      connection.shutdown(SocketDirection.send);
       if (++acceptCount == 2 * socketCount) {
         server.close();
         asyncEnd();
@@ -112,7 +112,7 @@ testPauseServerSocket() {
       RawSecureSocket
           .connect(HOST, server.port, context: clientContext)
           .then((connection) {
-        connection.shutdown(SocketDirection.SEND);
+        connection.shutdown(SocketDirection.send);
       });
     }
     new Timer(const Duration(milliseconds: 500), () {
@@ -122,7 +122,7 @@ testPauseServerSocket() {
         RawSecureSocket
             .connect(HOST, server.port, context: clientContext)
             .then((connection) {
-          connection.shutdown(SocketDirection.SEND);
+          connection.shutdown(SocketDirection.send);
         });
       }
     });

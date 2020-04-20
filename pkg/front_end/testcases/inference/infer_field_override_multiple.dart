@@ -21,23 +21,23 @@ abstract class D {
   double get x;
 }
 
-// Superclasses have a consistent type for `x` so inferrence succeeds.
+// Superclasses have a consistent type for `x` so inference succeeds.
 class E extends A implements B {
-  var /*@topType=int*/ x;
+  var x;
 }
 
 // Superclasses don't have a consistent type for `x` so inference fails, even if
 // the types are related.
 class F extends A implements C {
-  var /*@topType=dynamic*/ x;
+  var x;
 }
 
 class G extends A implements D {
-  var /*@topType=dynamic*/ x;
+  var x;
 }
 
 class H extends C implements D {
-  var /*@topType=dynamic*/ x;
+  var x;
 }
 
 main() {}

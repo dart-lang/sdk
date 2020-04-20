@@ -1,34 +1,34 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.test.source.analysis_options_provider_test;
 
 import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/analysis_options_provider.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/util/yaml.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
 
 import '../resource_utils.dart';
+import '../src/util/yaml_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AnalysisOptionsProviderOldTest);
-    defineReflectiveTests(AnalysisOptionsProviderNewTest);
+    defineReflectiveTests(AnalysisOptionsProviderTest);
   });
   group('AnalysisOptionsProvider', () {
     void expectMergesTo(String defaults, String overrides, String expected) {
-      var optionsProvider = new AnalysisOptionsProvider();
+      var optionsProvider = AnalysisOptionsProvider();
       var defaultOptions = optionsProvider.getOptionsFromString(defaults);
       var overrideOptions = optionsProvider.getOptionsFromString(overrides);
       var merged = optionsProvider.merge(defaultOptions, overrideOptions);
-      expect(merged, optionsProvider.getOptionsFromString(expected));
+      expectEquals(merged, optionsProvider.getOptionsFromString(expected));
     }
 
     group('merging', () {
@@ -79,9 +79,9 @@ linter:
 strong-mode: true
 ''';
 
-      var optionsProvider = new AnalysisOptionsProvider();
+      var optionsProvider = AnalysisOptionsProvider();
       expect(() => optionsProvider.getOptionsFromString(src),
-          throwsA(new isInstanceOf<OptionsFormatException>()));
+          throwsA(TypeMatcher<OptionsFormatException>()));
     });
 
     test('test_bad_yaml (2)', () {
@@ -90,7 +90,7 @@ analyzer:
   strong-mode:true # missing space (sdk/issues/24885)
 ''';
 
-      var optionsProvider = new AnalysisOptionsProvider();
+      var optionsProvider = AnalysisOptionsProvider();
       // Should not throw an exception.
       var options = optionsProvider.getOptionsFromString(src);
       // Should return a non-null options list.
@@ -100,29 +100,20 @@ analyzer:
 }
 
 @reflectiveTest
-class AnalysisOptionsProviderNewTest extends AnalysisOptionsProviderTest {
-  String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
-}
-
-@reflectiveTest
-class AnalysisOptionsProviderOldTest extends AnalysisOptionsProviderTest {
-  String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_FILE;
-}
-
-abstract class AnalysisOptionsProviderTest {
+class AnalysisOptionsProviderTest {
   TestPathTranslator pathTranslator;
   ResourceProvider resourceProvider;
 
   AnalysisOptionsProvider provider;
 
-  String get optionsFileName;
+  String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
 
   void setUp() {
-    var rawProvider = new MemoryResourceProvider();
-    resourceProvider = new TestResourceProvider(rawProvider);
-    pathTranslator = new TestPathTranslator(rawProvider);
-    provider = new AnalysisOptionsProvider(new SourceFactory([
-      new ResourceUriResolver(rawProvider),
+    var rawProvider = MemoryResourceProvider();
+    resourceProvider = TestResourceProvider(rawProvider);
+    pathTranslator = TestPathTranslator(rawProvider);
+    provider = AnalysisOptionsProvider(SourceFactory([
+      ResourceUriResolver(rawProvider),
     ]));
   }
 
@@ -138,12 +129,12 @@ analyzer:
   ignore:
     - bar
 ''');
-    Map<String, YamlNode> options = _getOptions('/foo/bar', crawlUp: true);
+    YamlMap options = _getOptions('/foo/bar', crawlUp: true);
     expect(options, hasLength(1));
     {
-      YamlMap analyzer = options['analyzer'];
+      YamlMap analyzer = getValue(options, 'analyzer');
       expect(analyzer, isNotNull);
-      expect(analyzer['ignore'], unorderedEquals(['bar']));
+      expect(getValue(analyzer, 'ignore'), unorderedEquals(['bar']));
     }
   }
 
@@ -159,24 +150,24 @@ analyzer:
   ignore:
     - bar
 ''');
-    Map<String, YamlNode> options = _getOptions('/foo/bar/baz', crawlUp: true);
+    YamlMap options = _getOptions('/foo/bar/baz', crawlUp: true);
     expect(options, hasLength(1));
     {
-      YamlMap analyzer = options['analyzer'];
+      YamlMap analyzer = getValue(options, 'analyzer');
       expect(analyzer, isNotNull);
-      expect(analyzer['ignore'], unorderedEquals(['bar']));
+      expect(getValue(analyzer, 'ignore'), unorderedEquals(['bar']));
     }
   }
 
   void test_getOptions_doesNotExist() {
     pathTranslator.newFolder('/notFile');
-    Map<String, YamlNode> options = _getOptions('/notFile');
+    YamlMap options = _getOptions('/notFile');
     expect(options, isEmpty);
   }
 
   void test_getOptions_empty() {
     pathTranslator.newFile('/$optionsFileName', r'''#empty''');
-    Map<String, YamlNode> options = _getOptions('/');
+    YamlMap options = _getOptions('/');
     expect(options, isNotNull);
     expect(options, isEmpty);
   }
@@ -191,13 +182,13 @@ analyzer:
     pathTranslator.newFile('/$optionsFileName', r'''
 include: foo.include
 ''');
-    Map<String, YamlNode> options = _getOptions('/');
-    expect(options, hasLength(1));
+    YamlMap options = _getOptions('/');
+    expect(options, hasLength(2));
     {
-      YamlMap analyzer = options['analyzer'];
+      YamlMap analyzer = getValue(options, 'analyzer');
       expect(analyzer, hasLength(1));
       {
-        YamlList ignore = analyzer['ignore'];
+        YamlList ignore = getValue(analyzer, 'ignore');
         expect(ignore, hasLength(2));
         expect(ignore[0], 'ignoreme.dart');
         expect(ignore[1], 'sdk_ext/**');
@@ -209,15 +200,14 @@ include: foo.include
     pathTranslator.newFile('/$optionsFileName', r'''
 include: /foo.include
 ''');
-    Map<String, YamlNode> options = _getOptions('/');
-    expect(options, hasLength(0));
+    YamlMap options = _getOptions('/');
+    expect(options, hasLength(1));
   }
 
   void test_getOptions_invalid() {
     pathTranslator.newFile('/$optionsFileName', r''':''');
-    expect(() {
-      _getOptions('/');
-    }, throwsException);
+    YamlMap options = _getOptions('/');
+    expect(options, hasLength(1));
   }
 
   void test_getOptions_simple() {
@@ -227,13 +217,13 @@ analyzer:
     - ignoreme.dart
     - 'sdk_ext/**'
 ''');
-    Map<String, YamlNode> options = _getOptions('/');
+    YamlMap options = _getOptions('/');
     expect(options, hasLength(1));
     {
-      YamlMap analyzer = options['analyzer'];
+      YamlMap analyzer = getValue(options, 'analyzer');
       expect(analyzer, hasLength(1));
       {
-        YamlList ignore = analyzer['ignore'];
+        YamlList ignore = getValue(analyzer, 'ignore');
         expect(ignore, hasLength(2));
         expect(ignore[0], 'ignoreme.dart');
         expect(ignore[1], 'sdk_ext/**');
@@ -241,7 +231,7 @@ analyzer:
     }
   }
 
-  Map<String, YamlNode> _getOptions(String posixPath, {bool crawlUp: false}) {
+  YamlMap _getOptions(String posixPath, {bool crawlUp = false}) {
     Resource resource = pathTranslator.getResource(posixPath);
     return provider.getOptions(resource, crawlUp: crawlUp);
   }

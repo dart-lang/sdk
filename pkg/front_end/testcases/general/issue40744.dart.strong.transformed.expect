@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::Map<core::String*, dynamic>* generatorConfigDefaultJson = #C4;
+static method helper(core::Map<core::String*, dynamic>* input) → void {
+  core::print(input);
+}
+static method main() → void {
+  final core::Map<core::String*, core::Null?>* nullValueMap = core::Map::fromEntries<core::String*, core::Null?>((#C4).{core::Map::entries}.{core::Iterable::map}<core::MapEntry<core::String*, core::Null?>*>((core::MapEntry<core::String*, dynamic>* e) → core::MapEntry<core::String*, core::Null?>* => new core::MapEntry::_<core::String*, core::Null?>(e.{core::MapEntry::key}, null)));
+  self::helper(nullValueMap);
+}
+
+constants  {
+  #C1 = "a"
+  #C2 = 1
+  #C3 = <dynamic>[#C1, #C2]
+  #C4 = core::_ImmutableMap<core::String*, dynamic> {_kvPairs:#C3}
+}

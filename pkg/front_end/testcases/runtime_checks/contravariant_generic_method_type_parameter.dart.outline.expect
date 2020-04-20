@@ -2,14 +2,14 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef F<T extends core::Object> = (T) → void;
-class C<T extends core::Object> extends core::Object {
-  default constructor •() → void
+typedef F<contravariant T extends core::Object* = dynamic> = (T*) →* void;
+class C<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T*>*
     ;
-  method f<U extends (self::C::T) → void>(self::C::f::U x) → void
+  method f<U extends (self::C::T*) →* void = (self::C::T*) →* void>(self::C::f::U* x) → void
     ;
 }
-static method g(self::C<core::num> c) → void
+static method g(self::C<core::num*>* c) → void
   ;
 static method test() → void
   ;

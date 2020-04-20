@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_LINEARSCAN_H_
 #define RUNTIME_VM_COMPILER_BACKEND_LINEARSCAN_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/growable_array.h"
@@ -12,7 +16,6 @@
 namespace dart {
 
 class AllocationFinger;
-class BlockInfo;
 class FlowGraph;
 class LiveRange;
 class UseInterval;
@@ -47,10 +50,14 @@ class SSALivenessAnalysis : public LivenessAnalysis {
   GraphEntryInstr* graph_entry_;
 };
 
+// Forward.
+struct ExtraLoopInfo;
+
 class FlowGraphAllocator : public ValueObject {
  public:
   // Number of stack slots needed for a fpu register spill slot.
-  static const intptr_t kDoubleSpillFactor = kDoubleSize / kWordSize;
+  static const intptr_t kDoubleSpillFactor =
+      kDoubleSize / compiler::target::kWordSize;
 
   explicit FlowGraphAllocator(const FlowGraph& flow_graph,
                               bool intrinsic_mode = false);
@@ -59,6 +66,20 @@ class FlowGraphAllocator : public ValueObject {
 
   // Map a virtual register number to its live range.
   LiveRange* GetLiveRange(intptr_t vreg);
+
+  DART_FORCE_INLINE static void SetLifetimePosition(Instruction* instr,
+                                                    intptr_t pos) {
+    instr->SetPassSpecificId(CompilerPass::kAllocateRegisters, pos);
+  }
+
+  DART_FORCE_INLINE static bool HasLifetimePosition(Instruction* instr) {
+    return instr->HasPassSpecificId(CompilerPass::kAllocateRegisters);
+  }
+
+  DART_FORCE_INLINE static intptr_t GetLifetimePosition(
+      const Instruction* instr) {
+    return instr->GetPassSpecificId(CompilerPass::kAllocateRegisters);
+  }
 
  private:
   void CollectRepresentations();
@@ -85,13 +106,8 @@ class FlowGraphAllocator : public ValueObject {
   // that will be used for phi resolution.
   void NumberInstructions();
   Instruction* InstructionAt(intptr_t pos) const;
-  BlockInfo* BlockInfoAt(intptr_t pos) const;
+  BlockEntryInstr* BlockEntryAt(intptr_t pos) const;
   bool IsBlockEntry(intptr_t pos) const;
-
-  // Discover structural (reducible) loops nesting structure.
-  // It will be used later in SplitBetween heuristic that selects an
-  // optimal splitting position.
-  void DiscoverLoops();
 
   LiveRange* MakeLiveRangeForTemporary();
 
@@ -130,7 +146,8 @@ class FlowGraphAllocator : public ValueObject {
 
   void ProcessInitialDefinition(Definition* defn,
                                 LiveRange* range,
-                                BlockEntryInstr* block);
+                                BlockEntryInstr* block,
+                                bool second_location_for_definition = false);
   void ConnectIncomingPhiMoves(JoinEntryInstr* join);
   void BlockLocation(Location loc, intptr_t from, intptr_t to);
   void BlockRegisterLocation(Location loc,
@@ -197,7 +214,7 @@ class FlowGraphAllocator : public ValueObject {
   // performance because it introduces multiple operations with memory
   // inside the loop body and on the back edge.
   bool HasCheapEvictionCandidate(LiveRange* phi_range);
-  bool IsCheapToEvictRegisterInLoop(BlockInfo* loop, intptr_t reg);
+  bool IsCheapToEvictRegisterInLoop(LoopInfo* loop_info, intptr_t reg);
 
   // Assign selected non-free register to an unallocated live range and
   // evict any interference that can be evicted by splitting and spilling
@@ -259,8 +276,11 @@ class FlowGraphAllocator : public ValueObject {
   // Mapping between lifetime positions and instructions.
   GrowableArray<Instruction*> instructions_;
 
-  // Mapping between lifetime positions and blocks containing them.
-  GrowableArray<BlockInfo*> block_info_;
+  // Mapping between lifetime positions and block entries.
+  GrowableArray<BlockEntryInstr*> block_entries_;
+
+  // Mapping between loops and additional information.
+  GrowableArray<ExtraLoopInfo*> extra_loop_info_;
 
   SSALivenessAnalysis liveness_;
 
@@ -294,10 +314,6 @@ class FlowGraphAllocator : public ValueObject {
 
   intptr_t number_of_registers_;
 
-#if defined(TARGET_ARCH_DBC)
-  intptr_t last_used_register_;
-#endif
-
   // Per register lists of allocated live ranges.  Contain only those
   // ranges that can be affected by future allocation decisions.
   // Those live ranges that end before the start of the current live range are
@@ -330,68 +346,6 @@ class FlowGraphAllocator : public ValueObject {
   const bool intrinsic_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphAllocator);
-};
-
-// Additional information about a block that is not contained in a
-// block entry.
-class BlockInfo : public ZoneAllocated {
- public:
-  explicit BlockInfo(BlockEntryInstr* entry)
-      : entry_(entry),
-        loop_(NULL),
-        is_loop_header_(false),
-        backedge_interference_(NULL) {}
-
-  BlockEntryInstr* entry() const { return entry_; }
-
-  // Returns true is this node is a header of a structural loop.
-  bool is_loop_header() const { return is_loop_header_; }
-
-  // Returns header of the innermost loop containing this block.
-  BlockInfo* loop_header() {
-    if (is_loop_header()) {
-      return this;
-    } else if (loop() != NULL) {
-      return loop();
-    } else {
-      return NULL;
-    }
-  }
-
-  // Innermost reducible loop containing this node. Loop headers point to
-  // outer loop not to themselves.
-  BlockInfo* loop() const { return loop_; }
-
-  void mark_loop_header() { is_loop_header_ = true; }
-  void set_loop(BlockInfo* loop) {
-    ASSERT(loop_ == NULL);
-    ASSERT((loop == NULL) || loop->is_loop_header());
-    loop_ = loop;
-  }
-
-  BlockEntryInstr* last_block() const { return last_block_; }
-  void set_last_block(BlockEntryInstr* last_block) { last_block_ = last_block; }
-
-  intptr_t loop_id() const { return loop_id_; }
-  void set_loop_id(intptr_t loop_id) { loop_id_ = loop_id; }
-
-  BitVector* backedge_interference() const { return backedge_interference_; }
-
-  void set_backedge_interference(BitVector* backedge_interference) {
-    backedge_interference_ = backedge_interference;
-  }
-
- private:
-  BlockEntryInstr* entry_;
-  BlockInfo* loop_;
-  bool is_loop_header_;
-
-  BlockEntryInstr* last_block_;
-  intptr_t loop_id_;
-
-  BitVector* backedge_interference_;
-
-  DISALLOW_COPY_AND_ASSIGN(BlockInfo);
 };
 
 // UsePosition represents a single use of an SSA value by some instruction.
@@ -587,16 +541,16 @@ class LiveRange : public ZoneAllocated {
   Location spill_slot() const { return spill_slot_; }
 
   bool HasOnlyUnconstrainedUsesInLoop(intptr_t loop_id) const {
-    if (loop_id < kBitsPerWord) {
-      const intptr_t mask = static_cast<intptr_t>(1) << loop_id;
+    if (loop_id < kMaxLoops) {
+      const uint64_t mask = static_cast<uint64_t>(1) << loop_id;
       return (has_only_any_uses_in_loops_ & mask) != 0;
     }
     return false;
   }
 
   void MarkHasOnlyUnconstrainedUsesInLoop(intptr_t loop_id) {
-    if (loop_id < kBitsPerWord) {
-      has_only_any_uses_in_loops_ |= static_cast<intptr_t>(1) << loop_id;
+    if (loop_id < kMaxLoops) {
+      has_only_any_uses_in_loops_ |= static_cast<uint64_t>(1) << loop_id;
     }
   }
 
@@ -638,7 +592,8 @@ class LiveRange : public ZoneAllocated {
 
   LiveRange* next_sibling_;
 
-  intptr_t has_only_any_uses_in_loops_;
+  static constexpr intptr_t kMaxLoops = sizeof(uint64_t) * kBitsPerByte;
+  uint64_t has_only_any_uses_in_loops_;
   bool is_loop_phi_;
 
   AllocationFinger finger_;

@@ -6,6 +6,6 @@
 library test;
 
 typedef T F<T>();
-final /*@topType=Map<String, () -> int>*/ x = <String, F<int>>{};
+final x = <String, F<int>>{};
 
 main() {}

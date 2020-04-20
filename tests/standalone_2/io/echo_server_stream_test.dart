@@ -1,6 +1,9 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
 //
 // Echo server test program to test socket streams.
 //
@@ -95,7 +98,8 @@ class EchoServerGame {
   int _messages;
 }
 
-void startEchoServer(SendPort replyPort) {
+void startEchoServer(Object replyPortObj) {
+  SendPort replyPort = replyPortObj;
   var server = new EchoServer();
   server.init().then((port) {
     replyPort.send([port, server.closeSendPort]);

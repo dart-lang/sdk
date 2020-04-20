@@ -77,7 +77,7 @@ abstract class CommonWebSocket {
 /// The Dart VM can be embedded in Chromium or standalone.
 abstract class CommonWebSocketVM extends VM {
   final Completer _connected = new Completer();
-  final Completer _disconnected = new Completer<String>();
+  final Completer<String> _disconnected = new Completer<String>();
   final WebSocketVMTarget target;
   final Map<String, _WebSocketRequest> _delayedRequests =
       new Map<String, _WebSocketRequest>();
@@ -114,7 +114,7 @@ abstract class CommonWebSocketVM extends VM {
     }
   }
 
-  Future get onDisconnect => _disconnected.future;
+  Future<String> get onDisconnect => _disconnected.future;
   bool get isDisconnected => _disconnected.isCompleted;
 
   void disconnect({String reason: 'WebSocket closed'}) {
@@ -137,10 +137,10 @@ abstract class CommonWebSocketVM extends VM {
       try {
         _webSocket.connect(
             target.networkAddress, _onOpen, _onMessage, _onError, _onClose);
-      } catch (_) {
+      } catch (_, stack) {
         _webSocket = null;
         var exception = new NetworkRpcException('WebSocket closed');
-        return new Future.error(exception);
+        return new Future.error(exception, stack);
       }
     }
     if (_disconnected.isCompleted) {
@@ -183,7 +183,7 @@ abstract class CommonWebSocketVM extends VM {
   Map _parseJSON(String message) {
     var map;
     try {
-      map = JSON.decode(message);
+      map = json.decode(message);
     } catch (e, st) {
       Logger.root.severe('Disconnecting: Error decoding message: $e\n$st');
       disconnect(reason: 'Connection saw corrupt JSON message: $e');
@@ -199,18 +199,15 @@ abstract class CommonWebSocketVM extends VM {
 
   void _onBinaryMessage(dynamic data) {
     _webSocket.nonStringToByteData(data).then((ByteData bytes) {
-      // See format spec. in VMs Service::SendEvent.
-      int offset = 0;
-      // Dart2JS workaround (no getUint64). Limit to 4 GB metadata.
-      assert(bytes.getUint32(offset, Endianness.BIG_ENDIAN) == 0);
-      int metaSize = bytes.getUint32(offset + 4, Endianness.BIG_ENDIAN);
-      offset += 8;
-      var meta = _utf8Decoder.convert(new Uint8List.view(
-          bytes.buffer, bytes.offsetInBytes + offset, metaSize));
-      offset += metaSize;
-      var data = new ByteData.view(bytes.buffer, bytes.offsetInBytes + offset,
-          bytes.lengthInBytes - offset);
-      var map = _parseJSON(meta);
+      var metadataOffset = 4;
+      var dataOffset = bytes.getUint32(0, Endian.little);
+      var metadataLength = dataOffset - metadataOffset;
+      var dataLength = bytes.lengthInBytes - dataOffset;
+      var metadata = _utf8Decoder.convert(new Uint8List.view(
+          bytes.buffer, bytes.offsetInBytes + metadataOffset, metadataLength));
+      var data = new Uint8List.view(
+          bytes.buffer, bytes.offsetInBytes + dataOffset, dataLength);
+      var map = _parseJSON(metadata);
       if (map == null || map['method'] != 'streamNotify') {
         return;
       }
@@ -315,14 +312,18 @@ abstract class CommonWebSocketVM extends VM {
     var message;
     // Encode message.
     if (target.chrome) {
-      message = JSON.encode({
+      message = json.encode({
         'id': int.parse(serial),
         'method': 'Dart.observatoryQuery',
         'params': {'id': serial, 'query': request.method}
       });
     } else {
-      message = JSON.encode(
-          {'id': serial, 'method': request.method, 'params': request.params});
+      message = json.encode({
+        'jsonrpc': '2.0',
+        'id': serial,
+        'method': request.method,
+        'params': request.params
+      });
     }
     if (request.method != 'getTagProfile' &&
         request.method != 'getIsolateMetric' &&

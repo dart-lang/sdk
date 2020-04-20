@@ -13,7 +13,7 @@ import 'package:observatory/src/elements/retaining_path.dart';
 import 'package:observatory/src/elements/sentinel_value.dart';
 import 'package:observatory/utils.dart';
 
-class ObjectCommonElement extends HtmlElement implements Renderable {
+class ObjectCommonElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<ObjectCommonElement>('object-common', dependencies: const [
     ClassRefElement.tag,
@@ -57,8 +57,8 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
     assert(references != null);
     assert(retainingPaths != null);
     assert(objects != null);
-    ObjectCommonElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    ObjectCommonElement e = new ObjectCommonElement.created();
+    e._r = new RenderingScheduler<ObjectCommonElement>(e, queue: queue);
     e._isolate = isolate;
     e._object = object;
     e._retainedSizes = retainedSizes;
@@ -69,7 +69,7 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  ObjectCommonElement.created() : super.created();
+  ObjectCommonElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -81,7 +81,7 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   RetainingPathElement _path;
@@ -94,29 +94,30 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
     _inbounds = _inbounds ??
         new InboundReferencesElement(_isolate, _object, _references, _objects,
             queue: _r.queue);
-    children = [
+    children = <Element>[
       new DivElement()
         ..classes = ['memberList']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberItem']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'Class ',
               new DivElement()
                 ..classes = ['memberValue']
-                ..children = [
+                ..children = <Element>[
                   _object.clazz == null
                       ? (new SpanElement()..text = '...')
                       : new ClassRefElement(_isolate, _object.clazz,
-                          queue: _r.queue)
+                              queue: _r.queue)
+                          .element
                 ]
             ],
           new DivElement()
             ..classes = ['memberItem']
             ..title = 'Space for this object in memory'
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'Shallow size ',
@@ -128,7 +129,7 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
             ..classes = ['memberItem']
             ..title = 'Space reachable from this object, '
                 'excluding class references'
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'Reachable size ',
@@ -140,7 +141,7 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
             ..classes = ['memberItem']
             ..title = 'Space that would be reclaimed if references to this '
                 'object were replaced with null'
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'Retained size ',
@@ -150,24 +151,24 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
             ],
           new DivElement()
             ..classes = ['memberItem']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'Retaining path ',
               new DivElement()
                 ..classes = ['memberValue']
-                ..children = [_path]
+                ..children = <Element>[_path.element]
             ],
           new DivElement()
             ..classes = ['memberItem']
             ..title = 'Objects which directly reference this object'
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'Inbound references ',
               new DivElement()
                 ..classes = ['memberValue']
-                ..children = [_inbounds]
+                ..children = <Element>[_inbounds.element]
             ]
         ]
     ];
@@ -177,12 +178,13 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
     final content = <Element>[];
     if (_reachableSize != null) {
       if (_reachableSize.isSentinel) {
-        content.add(new SentinelValueElement(_reachableSize.asSentinel,
-            queue: _r.queue));
+        content.add(
+            new SentinelValueElement(_reachableSize.asSentinel, queue: _r.queue)
+                .element);
       } else {
         content.add(new SpanElement()
-          ..text = Utils
-              .formatSize(int.parse(_reachableSize.asValue.valueAsString)));
+          ..text = Utils.formatSize(
+              int.parse(_reachableSize.asValue.valueAsString)));
       }
     } else {
       content.add(new SpanElement()..text = '...');
@@ -205,8 +207,9 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
     final content = <Element>[];
     if (_retainedSize != null) {
       if (_retainedSize.isSentinel) {
-        content.add(new SentinelValueElement(_retainedSize.asSentinel,
-            queue: _r.queue));
+        content.add(
+            new SentinelValueElement(_retainedSize.asSentinel, queue: _r.queue)
+                .element);
       } else {
         content.add(new SpanElement()
           ..text =

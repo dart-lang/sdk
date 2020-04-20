@@ -9,12 +9,12 @@
 #include "bin/eventhandler.h"
 #include "bin/file.h"
 #include "bin/lockers.h"
-#include "bin/log.h"
 #include "bin/socket.h"
 #include "bin/socket_base_win.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
+#include "platform/syslog.h"
 
 namespace dart {
 namespace bin {
@@ -22,6 +22,7 @@ namespace bin {
 Socket::Socket(intptr_t fd)
     : ReferenceCounted(),
       fd_(fd),
+      isolate_port_(Dart_GetMainPortId()),
       port_(ILLEGAL_PORT),
       udp_receive_buffer_(NULL) {
   ASSERT(fd_ != kClosedFd);
@@ -29,11 +30,15 @@ Socket::Socket(intptr_t fd)
   ASSERT(handle != NULL);
 }
 
-void Socket::SetClosedFd() {
+void Socket::CloseFd() {
   ASSERT(fd_ != kClosedFd);
   Handle* handle = reinterpret_cast<Handle*>(fd_);
   ASSERT(handle != NULL);
   handle->Release();
+  SetClosedFd();
+}
+
+void Socket::SetClosedFd() {
   fd_ = kClosedFd;
 }
 
@@ -126,6 +131,13 @@ intptr_t Socket::CreateConnect(const RawAddr& addr) {
   return Connect(fd, addr, bind_addr);
 }
 
+intptr_t Socket::CreateUnixDomainConnect(const RawAddr& addr) {
+  // TODO(21403): Support unix domain socket on Windows
+  // https://devblogs.microsoft.com/commandline/af_unix-comes-to-windows/
+  SetLastError(ERROR_NOT_SUPPORTED);
+  return -1;
+}
+
 intptr_t Socket::CreateBindConnect(const RawAddr& addr,
                                    const RawAddr& source_addr) {
   intptr_t fd = Create(addr);
@@ -134,6 +146,12 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
   }
 
   return Connect(fd, addr, source_addr);
+}
+
+intptr_t Socket::CreateUnixDomainBindConnect(const RawAddr& addr,
+                                             const RawAddr& source_addr) {
+  SetLastError(ERROR_NOT_SUPPORTED);
+  return -1;
 }
 
 intptr_t ServerSocket::Accept(intptr_t fd) {
@@ -146,7 +164,10 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
   }
 }
 
-intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
+intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
+                                    bool reuseAddress,
+                                    bool reusePort,
+                                    int ttl) {
   SOCKET s = socket(addr.ss.ss_family, SOCK_DGRAM, IPPROTO_UDP);
   if (s == INVALID_SOCKET) {
     return -1;
@@ -165,6 +186,29 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
     }
   }
 
+  if (reusePort) {
+    // ignore reusePort - not supported on this platform.
+    Syslog::PrintErr(
+        "Dart Socket ERROR: %s:%d: `reusePort` not supported for "
+        "Windows.",
+        __FILE__, __LINE__);
+  }
+
+  // Can't use SocketBase::SetMulticastHops here - we'd need to create
+  // the DatagramSocket object and reinterpret_cast it here, just for that
+  // method to reinterpret_cast it again.
+  int ttlValue = ttl;
+  int ttlLevel = addr.addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
+  int ttlOptname =
+      addr.addr.sa_family == AF_INET ? IP_MULTICAST_TTL : IPV6_MULTICAST_HOPS;
+  if (setsockopt(s, ttlLevel, ttlOptname, reinterpret_cast<char*>(&ttlValue),
+                 sizeof(ttlValue)) != 0) {
+    DWORD rc = WSAGetLastError();
+    closesocket(s);
+    SetLastError(rc);
+    return -1;
+  }
+
   status = bind(s, &addr.addr, SocketAddress::GetAddrLength(addr));
   if (status == SOCKET_ERROR) {
     DWORD rc = WSAGetLastError();
@@ -175,6 +219,7 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
 
   DatagramSocket* datagram_socket = new DatagramSocket(s);
   datagram_socket->EnsureInitialized(EventHandler::delegate());
+
   return reinterpret_cast<intptr_t>(datagram_socket);
 }
 
@@ -237,6 +282,14 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
   }
 
   return reinterpret_cast<intptr_t>(listen_socket);
+}
+
+intptr_t ServerSocket::CreateUnixDomainBindListen(const RawAddr& addr,
+                                                  intptr_t backlog) {
+  // TODO(21403): Support unix domain socket on Windows
+  // https://devblogs.microsoft.com/commandline/af_unix-comes-to-windows/
+  SetLastError(ERROR_NOT_SUPPORTED);
+  return -1;
 }
 
 bool ServerSocket::StartAccept(intptr_t fd) {

@@ -1,0 +1,83 @@
+Object:
+  superclasses:
+  interfaces:
+  classMembers:
+    Object._haveSameRuntimeType
+    Object.toString
+    Object.runtimeType
+    Object._toString
+    Object._simpleInstanceOf
+    Object._hashCodeRnd
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._objectHashCode
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+Future:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    Future._falseFuture
+    Future.catchError
+    Object.toString
+    Future._kTrue
+    Future.forEach
+    Future.whenComplete
+    Object.runtimeType
+    Future.timeout
+    Object._simpleInstanceOf
+    Future.any
+    Object._instanceOf
+    Object.noSuchMethod
+    Future.then
+    Object._identityHashCode
+    Future.doWhile
+    Future._nullFuture
+    Object.hashCode
+    Future.wait
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+    Future.asStream
+  classSetters:
+
+MyFuture:
+  Longest path to Object: 2
+  superclasses:
+    Object
+  interfaces: Future<int>
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    Future.catchError
+    Object.toString
+    Future.whenComplete
+    Object.runtimeType
+    Future.timeout
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Future.then
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+    Future.asStream
+  interfaceSetters:

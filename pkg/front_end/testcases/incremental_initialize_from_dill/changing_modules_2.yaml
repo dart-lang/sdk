@@ -1,0 +1,78 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with a number of modules.
+# Compile again with changing modules.
+
+type: newworld
+modules:
+  example_1:
+    example_1/a.dart: |
+      a() {}
+      var example = true;
+    example_1/.packages: |
+      example:.
+  example_2:
+    example_2/a.dart: |
+      a() {}
+      var example = true;
+    example_2/.packages: |
+      example:.
+  foo:
+    foo/foo.dart: |
+      export "package:example/a.dart";
+      var foo = true;
+    foo/.packages: |
+      foo:.
+      example:../example_1
+worlds:
+  - entry: main.dart
+    fromComponent: true
+    sources:
+      main.dart: |
+        import "package:foo/foo.dart";
+        main() {
+          print("hello");
+          a();
+        }
+      .packages: |
+        foo:foo
+        example:example_1
+    modules:
+      - foo
+      - example_1
+    expectedLibraryCount: 3
+    neededDillLibraries:
+      - package:foo/foo.dart
+      - package:example/a.dart
+    expectedContent:
+      org-dartlang-test:///main.dart:
+        - Procedure main
+      package:foo/foo.dart:
+        - Field foo
+      package:example/a.dart:
+        - Procedure a
+        - Field example
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    sources:
+      .packages: |
+        foo:foo
+        example:example_2
+    modules:
+      - foo
+      - example_2
+    expectedLibraryCount: 3
+    neededDillLibraries:
+      - package:foo/foo.dart
+      - package:example/a.dart
+    expectedContent:
+      org-dartlang-test:///main.dart:
+        - Procedure main
+      package:foo/foo.dart:
+        - Field foo
+      package:example/a.dart:
+        - Procedure a
+        - Field example

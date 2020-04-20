@@ -8,7 +8,7 @@ library test;
 import 'infer_from_variables_in_non_cycle_imports_with_flag2_a.dart';
 
 class B {
-  static var /*@topType=int*/ y = A.x;
+  static var y = A.x;
 }
 
 test1() {

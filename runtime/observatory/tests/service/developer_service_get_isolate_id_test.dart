@@ -1,14 +1,13 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:isolate' as Core;
 
 import 'package:observatory/service_io.dart' as Service;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
@@ -32,11 +31,17 @@ Future testeeMain() async {
   dev.debugger();
 }
 
+@pragma("vm:entry-point")
+getSelfId() => selfId;
+
+@pragma("vm:entry-point")
+getChildId() => childId;
+
 // tester state:
 Service.Isolate initialIsolate;
 Service.Isolate localChildIsolate;
 
-var tests = [
+var tests = <VMTest>[
   (Service.VM vm) async {
     // Sanity check.
     expect(vm.isolates.length, 1);
@@ -66,7 +71,7 @@ var tests = [
 
     // Grab self id.
     Service.Instance localSelfId =
-        await initialIsolate.eval(rootLbirary, 'selfId');
+        await initialIsolate.invoke(rootLbirary, 'getSelfId');
 
     // Check that the id reported from dart:developer matches the id reported
     // from the service protocol.
@@ -75,7 +80,7 @@ var tests = [
 
     // Grab the child isolate's id.
     Service.Instance localChildId =
-        await initialIsolate.eval(rootLbirary, 'childId');
+        await initialIsolate.invoke(rootLbirary, 'getChildId');
 
     // Check that the id reported from dart:developer matches the id reported
     // from the service protocol.

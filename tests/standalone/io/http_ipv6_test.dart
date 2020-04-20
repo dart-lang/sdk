@@ -20,7 +20,7 @@ void testHttpIPv6() {
   asyncStart();
   HttpServer.bind("::", 0).then((server) {
     server.listen((HttpRequest request) {
-      Expect.equals(request.headers["host"][0], "[::1]:${server.port}");
+      Expect.equals(request.headers["host"]![0], "[::1]:${server.port}");
       Expect.equals(request.requestedUri.host, "::1");
       request.response.close();
     });
@@ -32,7 +32,7 @@ void testHttpIPv6() {
         .openUrl('GET', url)
         .then((request) => request.close())
         .then((response) {
-      Expect.equals(response.statusCode, HttpStatus.OK);
+      Expect.equals(response.statusCode, HttpStatus.ok);
     }).whenComplete(() {
       server.close();
       client.close();

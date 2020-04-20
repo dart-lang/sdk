@@ -12,6 +12,7 @@
 #include "bin/eventhandler.h"
 #include "bin/fdutils.h"
 #include "platform/signal_blocker.h"
+#include "platform/syslog.h"
 
 // #define SOCKET_LOG_INFO 1
 // #define SOCKET_LOG_ERROR 1
@@ -19,16 +20,18 @@
 // define SOCKET_LOG_ERROR to get log messages only for errors.
 // define SOCKET_LOG_INFO to get log messages for both information and errors.
 #if defined(SOCKET_LOG_INFO) || defined(SOCKET_LOG_ERROR)
+
 #define LOG_ERR(msg, ...)                                                      \
   {                                                                            \
     int err = errno;                                                           \
-    Log::PrintErr("Dart Socket ERROR: %s:%d: " msg, __FILE__, __LINE__,        \
-                  ##__VA_ARGS__);                                              \
+    Syslog::PrintErr("Dart Socket ERROR: %s:%d: " msg, __FILE__, __LINE__,     \
+                     ##__VA_ARGS__);                                           \
     errno = err;                                                               \
   }
 #if defined(SOCKET_LOG_INFO)
 #define LOG_INFO(msg, ...)                                                     \
-  Log::Print("Dart Socket INFO: %s:%d: " msg, __FILE__, __LINE__, ##__VA_ARGS__)
+  Syslog::Print("Dart Socket INFO: %s:%d: " msg, __FILE__, __LINE__,           \
+                ##__VA_ARGS__)
 #else
 #define LOG_INFO(msg, ...)
 #endif  // defined(SOCKET_LOG_INFO)
@@ -43,15 +46,20 @@ namespace bin {
 Socket::Socket(intptr_t fd)
     : ReferenceCounted(),
       fd_(fd),
+      isolate_port_(Dart_GetMainPortId()),
       port_(ILLEGAL_PORT),
       udp_receive_buffer_(NULL) {}
 
 void Socket::SetClosedFd() {
+  fd_ = kClosedFd;
+}
+
+void Socket::CloseFd() {
   ASSERT(fd_ != kClosedFd);
   IOHandle* handle = reinterpret_cast<IOHandle*>(fd_);
   ASSERT(handle != NULL);
   handle->Release();
-  fd_ = kClosedFd;
+  SetClosedFd();
 }
 
 static intptr_t Create(const RawAddr& addr) {
@@ -101,16 +109,30 @@ intptr_t Socket::CreateConnect(const RawAddr& addr) {
   return Connect(fd, addr);
 }
 
-intptr_t Socket::CreateBindConnect(const RawAddr& addr,
-                                   const RawAddr& source_addr) {
-  LOG_ERR("SocketBase::CreateBindConnect is unimplemented\n");
-  UNIMPLEMENTED();
+intptr_t Socket::CreateUnixDomainConnect(const RawAddr& addr) {
+  // Fuchsia does not support unix domain socket
+  errno = ENOSYS;
   return -1;
 }
 
-intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
-  LOG_ERR("SocketBase::CreateBindDatagram is unimplemented\n");
-  UNIMPLEMENTED();
+intptr_t Socket::CreateBindConnect(const RawAddr& addr,
+                                   const RawAddr& source_addr) {
+  errno = ENOSYS;
+  return -1;
+}
+
+intptr_t Socket::CreateUnixDomainBindConnect(const RawAddr& addr,
+                                             const RawAddr& source_addr) {
+  // Fuchsia does not support unix domain socket
+  errno = ENOSYS;
+  return -1;
+}
+
+intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
+                                    bool reuseAddress,
+                                    bool reusePort,
+                                    int ttl) {
+  errno = ENOSYS;
   return -1;
 }
 
@@ -183,6 +205,13 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
   return reinterpret_cast<intptr_t>(io_handle);
 }
 
+intptr_t ServerSocket::CreateUnixDomainBindListen(const RawAddr& addr,
+                                                  intptr_t backlog) {
+  // Fuchsia does not support unix domain socket.
+  errno = ENOSYS;
+  return -1;
+}
+
 bool ServerSocket::StartAccept(intptr_t fd) {
   USE(fd);
   return true;
@@ -202,7 +231,7 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
   intptr_t socket;
   struct sockaddr clientaddr;
   socklen_t addrlen = sizeof(clientaddr);
-  LOG_INFO("ServerSocket::Accept: calling accept(%ld)\n", listen_fd);
+  LOG_INFO("ServerSocket::Accept: calling accept(%ld)\n", fd);
   socket = listen_handle->Accept(&clientaddr, &addrlen);
   if (socket == -1) {
     if (IsTemporaryAcceptError(errno)) {
@@ -212,12 +241,11 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
       ASSERT(kTemporaryFailure != -1);
       socket = kTemporaryFailure;
     } else {
-      LOG_ERR("ServerSocket::Accept: accept(%ld) failed\n", listen_fd);
+      LOG_ERR("ServerSocket::Accept: accept(%ld) failed\n", fd);
     }
   } else {
     IOHandle* io_handle = new IOHandle(socket);
-    LOG_INFO("ServerSocket::Accept: accept(%ld) -> socket %ld\n", listen_fd,
-             socket);
+    LOG_INFO("ServerSocket::Accept: accept(%ld) -> socket %ld\n", fd, socket);
     if (!FDUtils::SetCloseOnExec(socket)) {
       LOG_ERR("FDUtils::SetCloseOnExec(%ld) failed\n", socket);
       FDUtils::SaveErrorAndClose(socket);

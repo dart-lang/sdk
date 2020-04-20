@@ -6,11 +6,12 @@
 #if defined(HOST_OS_FUCHSIA)
 
 #include "bin/namespace.h"
+#include "bin/namespace_fuchsia.h"
 
 #include <errno.h>
 #include <fcntl.h>
-#include <fdio/namespace.h>
-#include <fdio/private.h>
+#include <lib/fdio/namespace.h>
+#include <zircon/status.h>
 
 #include "bin/file.h"
 #include "platform/signal_blocker.h"
@@ -19,80 +20,79 @@
 namespace dart {
 namespace bin {
 
-class NamespaceImpl {
- public:
-  explicit NamespaceImpl(fdio_ns_t* fdio_ns)
+NamespaceImpl::NamespaceImpl(fdio_ns_t* fdio_ns)
       : fdio_ns_(fdio_ns),
-        rootfd_(fdio_ns_opendir(fdio_ns)),
         cwd_(strdup("/")) {
-    ASSERT(rootfd_ > 0);
-    cwdfd_ = dup(rootfd_);
-    ASSERT(cwdfd_ > 0);
+  rootfd_ = fdio_ns_opendir(fdio_ns);
+  if (rootfd_ < 0) {
+    FATAL2("Failed to open file descriptor for namespace: errno=%d: %s", errno,
+           strerror(errno));
   }
+  cwdfd_ = dup(rootfd_);
+  if (cwdfd_ < 0) {
+    FATAL2("Failed to dup() namespace file descriptor: errno=%d: %s", errno,
+           strerror(errno));
+  }
+}
 
-  explicit NamespaceImpl(const char* path)
+NamespaceImpl::NamespaceImpl(const char* path)
       : fdio_ns_(NULL),
-        rootfd_(TEMP_FAILURE_RETRY(open64(path, O_DIRECTORY))),
         cwd_(strdup("/")) {
-    ASSERT(rootfd_ > 0);
-    cwdfd_ = dup(rootfd_);
-    ASSERT(cwdfd_ > 0);
+  rootfd_ = TEMP_FAILURE_RETRY(open(path, O_DIRECTORY));
+  if (rootfd_ < 0) {
+    FATAL2("Failed to open file descriptor for namespace: errno=%d: %s", errno,
+           strerror(errno));
+  }
+  cwdfd_ = dup(rootfd_);
+  if (cwdfd_ < 0) {
+    FATAL2("Failed to dup() namespace file descriptor: errno=%d: %s", errno,
+           strerror(errno));
+  }
+}
+
+NamespaceImpl::~NamespaceImpl() {
+  NO_RETRY_EXPECTED(close(rootfd_));
+  free(cwd_);
+  NO_RETRY_EXPECTED(close(cwdfd_));
+  if (fdio_ns_ != NULL) {
+    zx_status_t status = fdio_ns_destroy(fdio_ns_);
+    if (status != ZX_OK) {
+      Syslog::PrintErr("fdio_ns_destroy: %s\n", zx_status_get_string(status));
+    }
+  }
+}
+
+bool NamespaceImpl::SetCwd(Namespace* namespc, const char* new_path) {
+  NamespaceScope ns(namespc, new_path);
+  const intptr_t new_cwdfd =
+      TEMP_FAILURE_RETRY(openat(ns.fd(), ns.path(), O_DIRECTORY));
+  if (new_cwdfd < 0) {
+    return false;
   }
 
-  ~NamespaceImpl() {
-    if (fdio_ns_ != NULL) {
-      zx_status_t status = fdio_ns_destroy(fdio_ns_);
-      ASSERT(status == ZX_OK);
-    }
-    NO_RETRY_EXPECTED(close(rootfd_));
-    free(cwd_);
-    NO_RETRY_EXPECTED(close(cwdfd_));
+  // Build the new cwd.
+  TextBuffer tbuf(PATH_MAX);
+  if (!File::IsAbsolutePath(new_path)) {
+    tbuf.AddString(cwd_);
+  }
+  tbuf.AddString(File::PathSeparator());
+  tbuf.AddString(ns.path());
+
+  // Normalize it.
+  char result[PATH_MAX];
+  const intptr_t result_len =
+      File::CleanUnixPath(tbuf.buf(), result, PATH_MAX);
+  if (result_len < 0) {
+    errno = ENAMETOOLONG;
+    return false;
   }
 
-  intptr_t rootfd() const { return rootfd_; }
-  char* cwd() const { return cwd_; }
-  intptr_t cwdfd() const { return cwdfd_; }
-
-  bool SetCwd(Namespace* namespc, const char* new_path) {
-    NamespaceScope ns(namespc, new_path);
-    const intptr_t new_cwdfd =
-        TEMP_FAILURE_RETRY(openat64(ns.fd(), ns.path(), O_DIRECTORY));
-    if (new_cwdfd != 0) {
-      return false;
-    }
-
-    // Build the new cwd.
-    TextBuffer tbuf(PATH_MAX);
-    if (!File::IsAbsolutePath(new_path)) {
-      tbuf.AddString(cwd_);
-    }
-    tbuf.AddString(File::PathSeparator());
-    tbuf.AddString(ns.path());
-
-    // Normalize it.
-    char result[PATH_MAX];
-    const intptr_t result_len =
-        File::CleanUnixPath(tbuf.buf(), result, PATH_MAX);
-    if (result_len < 0) {
-      errno = ENAMETOOLONG;
-      return false;
-    }
-
-    free(cwd_);
-    cwd_ = strdup(result);
-    close(cwdfd_);
-    cwdfd_ = new_cwdfd;
-    return true;
-  }
-
- private:
-  fdio_ns_t* fdio_ns_;  // native namespace object, if any.
-  intptr_t rootfd_;     // dirfd for the namespace root.
-  char* cwd_;           // cwd relative to the namespace.
-  intptr_t cwdfd_;      // dirfd for the cwd.
-
-  DISALLOW_COPY_AND_ASSIGN(NamespaceImpl);
-};
+  free(cwd_);
+  cwd_ = strdup(result);
+  close(cwdfd_);
+  cwdfd_ = new_cwdfd;
+  return true;
+}
 
 Namespace* Namespace::Create(intptr_t namespc) {
   NamespaceImpl* namespc_impl = NULL;

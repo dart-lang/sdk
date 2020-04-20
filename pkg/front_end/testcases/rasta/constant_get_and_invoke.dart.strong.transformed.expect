@@ -1,0 +1,24 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/constant_get_and_invoke.dart:8:4: Error: The method 'call' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing method, or defining a method named 'call'.
+//   c();
+//    ^
+//
+import self as self;
+import "dart:core" as core;
+
+static const field core::int* c = #C1;
+static method main() → dynamic {
+  #C1;
+  invalid-expression "pkg/front_end/testcases/rasta/constant_get_and_invoke.dart:8:4: Error: The method 'call' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing method, or defining a method named 'call'.
+  c();
+   ^";
+}
+
+constants  {
+  #C1 = 1
+}

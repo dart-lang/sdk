@@ -4,32 +4,30 @@
 
 part of js_backend.namer;
 
-/**
- * Assigns JavaScript identifiers to Dart variables, class-names and members.
- */
+/// Assigns JavaScript identifiers to Dart variables, class-names and members.
 class MinifyNamer extends Namer
     with
         _MinifiedFieldNamer,
         _MinifyConstructorBodyNamer,
         _MinifiedOneShotInterceptorNamer {
-  MinifyNamer(ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder)
-      : super(closedWorld, codegenWorldBuilder) {
+  MinifyNamer(
+      JClosedWorld closedWorld, RuntimeTypeTags rtiTags, FixedNames fixedNames)
+      : super(closedWorld, rtiTags, fixedNames) {
     reserveBackendNames();
     fieldRegistry = new _FieldNamingRegistry(this);
   }
 
+  @override
   _FieldNamingRegistry fieldRegistry;
 
+  @override
   String get isolateName => 'I';
+  @override
   String get isolatePropertiesName => 'p';
+  @override
   bool get shouldMinify => true;
-
-  final String getterPrefix = 'g';
-  final String setterPrefix = 's';
-  final String callPrefix = ''; // this will create function names $<n>
-  String get requiredParameterField => r'$R';
-  String get defaultValuesField => r'$D';
-  String get operatorSignature => r'$S';
+  @override
+  String get genericInstantiationPrefix => r'$I';
 
   final ALPHABET_CHARACTERS = 52; // a-zA-Z.
   final ALPHANUMERIC_CHARACTERS = 62; // a-zA-Z0-9.
@@ -165,7 +163,7 @@ class MinifyNamer extends Namer
       r'BoundClosure',
       r'Closure',
       r'StateError$',
-      r'getInterceptor',
+      r'getInterceptor$',
       r'max',
       r'$mul',
       r'Map',
@@ -315,37 +313,42 @@ class MinifyNamer extends Namer
 /// constructors declared along the inheritance chain.
 class _ConstructorBodyNamingScope {
   final int _startIndex;
-  final List _constructors;
-
+  final List<ConstructorEntity> _constructors;
   int get numberOfConstructors => _constructors.length;
 
-  _ConstructorBodyNamingScope.rootScope(ClassElement cls)
+  _ConstructorBodyNamingScope.rootScope(
+      ClassEntity cls, ElementEnvironment environment)
       : _startIndex = 0,
-        _constructors = cls.constructors.toList(growable: false);
+        _constructors = _getConstructorList(cls, environment);
 
-  _ConstructorBodyNamingScope.forClass(
-      ClassElement cls, _ConstructorBodyNamingScope superScope)
+  _ConstructorBodyNamingScope.forClass(ClassEntity cls,
+      _ConstructorBodyNamingScope superScope, ElementEnvironment environment)
       : _startIndex = superScope._startIndex + superScope.numberOfConstructors,
-        _constructors = cls.constructors.toList(growable: false);
+        _constructors = _getConstructorList(cls, environment);
 
   // Mixin Applications have constructors but we never generate code for them,
   // so they do not count in the inheritance chain.
   _ConstructorBodyNamingScope.forMixinApplication(
-      ClassElement cls, _ConstructorBodyNamingScope superScope)
+      ClassEntity cls, _ConstructorBodyNamingScope superScope)
       : _startIndex = superScope._startIndex + superScope.numberOfConstructors,
         _constructors = const [];
 
-  factory _ConstructorBodyNamingScope(ClassElement cls,
-      Map<ClassElement, _ConstructorBodyNamingScope> registry) {
+  factory _ConstructorBodyNamingScope(
+      ClassEntity cls,
+      Map<ClassEntity, _ConstructorBodyNamingScope> registry,
+      ElementEnvironment environment) {
     return registry.putIfAbsent(cls, () {
-      if (cls.superclass == null) {
-        return new _ConstructorBodyNamingScope.rootScope(cls);
-      } else if (cls.isMixinApplication) {
-        return new _ConstructorBodyNamingScope.forMixinApplication(
-            cls, new _ConstructorBodyNamingScope(cls.superclass, registry));
+      ClassEntity superclass = environment.getSuperClass(cls);
+      if (superclass == null) {
+        return new _ConstructorBodyNamingScope.rootScope(cls, environment);
+      } else if (environment.isMixinApplication(cls)) {
+        return new _ConstructorBodyNamingScope.forMixinApplication(cls,
+            new _ConstructorBodyNamingScope(superclass, registry, environment));
       } else {
         return new _ConstructorBodyNamingScope.forClass(
-            cls, new _ConstructorBodyNamingScope(cls.superclass, registry));
+            cls,
+            new _ConstructorBodyNamingScope(superclass, registry, environment),
+            environment);
       }
     });
   }
@@ -355,16 +358,23 @@ class _ConstructorBodyNamingScope {
     assert(position >= 0, failedAt(body, "constructor body missing"));
     return "@constructorBody@${_startIndex + position}";
   }
+
+  static List<ConstructorEntity> _getConstructorList(
+      ClassEntity cls, ElementEnvironment environment) {
+    var result = <ConstructorEntity>[];
+    environment.forEachConstructor(cls, result.add);
+    return result;
+  }
 }
 
 abstract class _MinifyConstructorBodyNamer implements Namer {
-  Map<ClassElement, _ConstructorBodyNamingScope> _constructorBodyScopes =
-      new Map<ClassElement, _ConstructorBodyNamingScope>();
+  Map<ClassEntity, _ConstructorBodyNamingScope> _constructorBodyScopes =
+      new Map<ClassEntity, _ConstructorBodyNamingScope>();
 
   @override
   jsAst.Name constructorBodyName(ConstructorBodyEntity method) {
     _ConstructorBodyNamingScope scope = new _ConstructorBodyNamingScope(
-        method.enclosingClass, _constructorBodyScopes);
+        method.enclosingClass, _constructorBodyScopes, _elementEnvironment);
     String key = scope.constructorBodyKeyFor(method);
     return _disambiguateMemberByKey(
         key, () => _proposeNameForConstructorBody(method));
@@ -375,7 +385,7 @@ abstract class _MinifiedOneShotInterceptorNamer implements Namer {
   /// Property name used for the one-shot interceptor method for the given
   /// [selector] and return-type specialization.
   @override
-  jsAst.Name nameForGetOneShotInterceptor(
+  jsAst.Name nameForOneShotInterceptor(
       Selector selector, Iterable<ClassEntity> classes) {
     String root = selector.isOperator
         ? operatorNameToIdentifier(selector.name)
@@ -383,9 +393,10 @@ abstract class _MinifiedOneShotInterceptorNamer implements Namer {
     String prefix =
         selector.isGetter ? r"$get" : selector.isSetter ? r"$set" : "";
     String callSuffix = selector.isCall
-        ? callSuffixForStructure(selector.callStructure).join()
+        ? Namer.callSuffixForStructure(selector.callStructure).join()
         : "";
-    String suffix = suffixForGetInterceptor(classes);
+    String suffix =
+        suffixForGetInterceptor(_commonElements, _nativeData, classes);
     String fullName = "\$intercepted$prefix\$$root$callSuffix\$$suffix";
     return _disambiguateInternalGlobal(fullName);
   }

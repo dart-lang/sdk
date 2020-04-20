@@ -1,0 +1,12 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/annotation_eof.dart:12:1: Error: Expected a declaration, but got ''.
+//
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::print("There is a dangling annotation at the end of this file");
+}

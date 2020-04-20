@@ -6,7 +6,6 @@
 
 part of $LIBRARYNAME;
 
-@Experimental()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
 
@@ -15,13 +14,15 @@ $!MEMBERS
    *
    * See also:
    *
-   * * <https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#innerhtml-on-templates>
+   * * <https://w3c.github.io/DOM-Parsing/#the-innerhtml-mixin>
    */
-  void setInnerHtml(String html,
-    {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+  void setInnerHtml(String$NULLABLE html,
+    {NodeValidator$NULLABLE validator,
+     NodeTreeSanitizer$NULLABLE treeSanitizer}) {
     text = null;
+    content.nodes.clear();
     var fragment = createFragment(
-        html, validator: validator, treeSanitizer: treeSanitizer);
+        html$NULLASSERT, validator: validator, treeSanitizer: treeSanitizer);
 
     content.append(fragment);
   }

@@ -1,0 +1,26 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+class B extends core::Object {
+  synthetic constructor •() → self::B*
+    : super core::Object::•()
+    ;
+  operator [](core::int* x) → core::num*
+    return null;
+}
+class C extends self::B {
+  synthetic constructor •() → self::C*
+    : super self::B::•()
+    ;
+  operator [](core::Object* x) → core::int*
+    return null;
+  method h() → void {
+    dynamic x = super.{self::B::[]}(self::f<dynamic>());
+  }
+}
+static method f<T extends core::Object* = dynamic>() → self::f::T*
+  return null;
+static method main() → dynamic {}

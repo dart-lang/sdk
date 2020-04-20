@@ -124,7 +124,7 @@ testContainsRectangle() {
   Expect.isTrue(r.containsRectangle(r));
 
   Expect.isFalse(r.containsRectangle(
-      new Rectangle(double.NAN, double.NAN, double.NAN, double.NAN)));
+      new Rectangle(double.nan, double.nan, double.nan, double.nan)));
 
   var r2 = new Rectangle(0, 2, 5, 5);
   Expect.isTrue(r.containsRectangle(r2));
@@ -225,10 +225,10 @@ testNegativeLengths() {
 
 testNaNLeft() {
   var rectangles = [
-    const Rectangle(double.NAN, 1, 2, 3),
-    new MutableRectangle(double.NAN, 1, 2, 3),
-    new Rectangle.fromPoints(new Point(double.NAN, 1), new Point(2, 4)),
-    new MutableRectangle.fromPoints(new Point(double.NAN, 1), new Point(2, 4)),
+    const Rectangle(double.nan, 1, 2, 3),
+    new MutableRectangle(double.nan, 1, 2, 3),
+    new Rectangle.fromPoints(new Point(double.nan, 1), new Point(2, 4)),
+    new MutableRectangle.fromPoints(new Point(double.nan, 1), new Point(2, 4)),
   ];
   for (var r in rectangles) {
     Expect.isFalse(r.containsPoint(new Point(0, 1)));
@@ -241,10 +241,10 @@ testNaNLeft() {
 
 testNaNTop() {
   var rectangles = [
-    const Rectangle(0, double.NAN, 2, 3),
-    new MutableRectangle(0, double.NAN, 2, 3),
-    new Rectangle.fromPoints(new Point(0, double.NAN), new Point(2, 4)),
-    new MutableRectangle.fromPoints(new Point(0, double.NAN), new Point(2, 4)),
+    const Rectangle(0, double.nan, 2, 3),
+    new MutableRectangle(0, double.nan, 2, 3),
+    new Rectangle.fromPoints(new Point(0, double.nan), new Point(2, 4)),
+    new MutableRectangle.fromPoints(new Point(0, double.nan), new Point(2, 4)),
   ];
   for (var r in rectangles) {
     Expect.isFalse(r.containsPoint(new Point(0, 1)));
@@ -257,10 +257,10 @@ testNaNTop() {
 
 testNaNWidth() {
   var rectangles = [
-    const Rectangle(0, 1, double.NAN, 3),
-    new MutableRectangle(0, 1, double.NAN, 3),
-    new Rectangle.fromPoints(new Point(0, 1), new Point(double.NAN, 4)),
-    new MutableRectangle.fromPoints(new Point(0, 1), new Point(double.NAN, 4)),
+    const Rectangle(0, 1, double.nan, 3),
+    new MutableRectangle(0, 1, double.nan, 3),
+    new Rectangle.fromPoints(new Point(0, 1), new Point(double.nan, 4)),
+    new MutableRectangle.fromPoints(new Point(0, 1), new Point(double.nan, 4)),
   ];
   for (var r in rectangles) {
     Expect.isFalse(r.containsPoint(new Point(0, 1)));
@@ -273,10 +273,10 @@ testNaNWidth() {
 
 testNaNHeight() {
   var rectangles = [
-    const Rectangle(0, 1, 2, double.NAN),
-    new MutableRectangle(0, 1, 2, double.NAN),
-    new Rectangle.fromPoints(new Point(0, 1), new Point(2, double.NAN)),
-    new MutableRectangle.fromPoints(new Point(0, 1), new Point(2, double.NAN)),
+    const Rectangle(0, 1, 2, double.nan),
+    new MutableRectangle(0, 1, 2, double.nan),
+    new Rectangle.fromPoints(new Point(0, 1), new Point(2, double.nan)),
+    new MutableRectangle.fromPoints(new Point(0, 1), new Point(2, double.nan)),
   ];
   for (var r in rectangles) {
     Expect.isFalse(r.containsPoint(new Point(0, 1)));

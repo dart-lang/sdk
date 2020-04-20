@@ -130,6 +130,12 @@ declare_args() {
 
   # Compile for Thread Sanitizer to find threading bugs.
   is_tsan = false
+
+  # Compile for Undefined Behavior Sanitizer to find reliance on undefined behavior.
+  is_ubsan = false
+
+  # Compile for execution in user-mode QEMU.
+  is_qemu = false
 }
 
 # =============================================================================
@@ -154,7 +160,6 @@ if (current_os == "win") {
   is_android = false
   is_chromeos = false
   is_fuchsia = false
-  is_fuchsia_host = false
   is_ios = false
   is_linux = false
   is_mac = false
@@ -165,7 +170,6 @@ if (current_os == "win") {
   is_android = false
   is_chromeos = false
   is_fuchsia = false
-  is_fuchsia_host = false
   is_ios = false
   is_linux = false
   is_mac = true
@@ -176,7 +180,6 @@ if (current_os == "win") {
   is_android = true
   is_chromeos = false
   is_fuchsia = false
-  is_fuchsia_host = false
   is_ios = false
   is_linux = false
   is_mac = false
@@ -187,7 +190,6 @@ if (current_os == "win") {
   is_android = false
   is_chromeos = false
   is_fuchsia = false
-  is_fuchsia_host = false
   is_ios = false
   is_linux = true
   is_mac = false
@@ -202,7 +204,7 @@ if (current_os == "win") {
 
 # These Sanitizers all imply using the Clang compiler. On Windows they either
 # don't work or work differently.
-if (!is_clang && (is_asan || is_lsan || is_tsan || is_msan)) {
+if (!is_clang && (is_asan || is_lsan || is_msan || is_tsan || is_ubsan)) {
   is_clang = true
 }
 
@@ -219,7 +221,9 @@ if (!is_clang && (is_asan || is_lsan || is_tsan || is_msan)) {
 # duplication in each target below.
 _native_compiler_configs = [
   "//build/config/compiler:compiler",
+  "//build/config/compiler:clang_stackrealign",
   "//build/config/compiler:compiler_arm_fpu",
+  "//build/config/compiler:compiler_arm_thumb",
   "//build/config/compiler:chromium_code",
   "//build/config/compiler:default_include_dirs",
   "//build/config/compiler:no_rtti",
@@ -235,7 +239,10 @@ if (is_win) {
   ]
 }
 if (is_posix) {
-  _native_compiler_configs += [ "//build/config/gcc:no_exceptions" ]
+  _native_compiler_configs += [
+    "//build/config/gcc:no_exceptions",
+    "//build/config/gcc:relative_paths",
+  ]
   if (is_product) {
     _native_compiler_configs +=
         [ "//build/config/gcc:symbol_visibility_hidden" ]
@@ -251,10 +258,7 @@ if (is_linux) {
 }
 
 if (is_clang) {
-  _native_compiler_configs += [
-    "//build/config/clang:find_bad_constructs",
-    "//build/config/clang:extra_warnings",
-  ]
+  _native_compiler_configs += [ "//build/config/clang:extra_warnings" ]
 }
 
 # Optimizations and debug checking.
@@ -270,6 +274,9 @@ if (is_debug) {
   _default_optimization_config = "//build/config/compiler:optimize"
 }
 _native_compiler_configs += [ _default_optimization_config ]
+
+# zlib's BUILD.gn expects to have this config among default configs.
+_native_compiler_configs += [ "//build/config/compiler:default_optimization" ]
 
 # Symbol setup.
 _default_symbols_config = "//build/config/compiler:symbols"
@@ -297,11 +304,16 @@ if (is_win) {
     "//build/config/mac:mac_dynamic_flags",
     "//build/config/mac:mac_executable_flags",
   ]
-} else if (is_linux || is_android) {
-  _executable_configs += [ "//build/config/gcc:executable_ldconfig" ]
-  if (is_android) {
-    _executable_configs += [ "//build/config/android:executable_config" ]
-  }
+} else if (is_linux) {
+  _executable_configs += [
+    "//build/config/gcc:executable_ldconfig",
+    "//build/config/linux:executable_config",
+  ]
+} else if (is_android) {
+  _executable_configs += [
+    "//build/config/gcc:executable_ldconfig",
+    "//build/config/android:executable_config",
+  ]
 }
 set_defaults("executable") {
   configs = _executable_configs

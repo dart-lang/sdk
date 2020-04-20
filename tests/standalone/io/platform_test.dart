@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
+
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
@@ -96,21 +99,34 @@ testVersion() {
   checkValidVersion(String version) {
     RegExp re = new RegExp(r'(\d+)\.(\d+)\.(\d+)(-dev\.([^\.]*)\.([^\.]*))?');
     var match = re.firstMatch(version);
-    Expect.isNotNull(match);
-    var major = int.parse(match.group(1));
+    if (match == null) {
+      throw new FormatException();
+    }
+    var major = int.parse(match.group(1)!);
     // Major version.
     Expect.isTrue(major == 1 || major == 2);
     // Minor version.
-    Expect.isTrue(int.parse(match.group(2)) >= 0);
+    Expect.isTrue(int.parse(match.group(2)!) >= 0);
     // Patch version.
-    Expect.isTrue(int.parse(match.group(3)) >= 0);
+    Expect.isTrue(int.parse(match.group(3)!) >= 0);
     // Dev
     if (match.group(4) != null) {
       // Dev prerelease minor version
-      Expect.isTrue(int.parse(match.group(5)) >= 0);
+      Expect.isTrue(int.parse(match.group(5)!) >= 0);
       // Dev prerelease patch version
-      Expect.isTrue(int.parse(match.group(6)) >= 0);
+      Expect.isTrue(int.parse(match.group(6)!) >= 0);
     }
+  }
+
+  checkInvalidVersion(String version) {
+    try {
+      checkValidVersion(version);
+    } on FormatException {
+      return;
+    } on ExpectException {
+      return;
+    }
+    Expect.testError("checkValidVersion accepts invalid version: $version");
   }
 
   String stripAdditionalInfo(String version) {
@@ -119,6 +135,7 @@ testVersion() {
     return version.substring(0, index);
   }
 
+  // Sanity-checks for `checkValidVersion`.
   // Ensure we can match valid versions.
   checkValidVersion('1.9.0');
   checkValidVersion('2.0.0');
@@ -128,19 +145,20 @@ testVersion() {
   // Check stripping of additional information.
   checkValidVersion(stripAdditionalInfo(
       '1.9.0-dev.1.2 (Wed Feb 25 02:22:19 2015) on "linux_ia32"'));
+  // Reject some invalid versions.
+  checkInvalidVersion('1.9');
+  checkInvalidVersion('..');
+  checkInvalidVersion('1..');
+  checkInvalidVersion('1.9.');
+  checkInvalidVersion('1.9.0-dev..');
+  checkInvalidVersion('1.9.0-dev..0');
+  checkInvalidVersion('1.9.0-dev.0.');
+  checkInvalidVersion('1.9.0-dev.x.y');
+  checkInvalidVersion('x');
+  checkInvalidVersion('x.y.z');
+
   // Test current version.
   checkValidVersion(stripAdditionalInfo(Platform.version));
-  // Test some invalid versions.
-  Expect.throws(() => checkValidVersion('1.9'));
-  Expect.throws(() => checkValidVersion('..'));
-  Expect.throws(() => checkValidVersion('1..'));
-  Expect.throws(() => checkValidVersion('1.9.'));
-  Expect.throws(() => checkValidVersion('1.9.0-dev..'));
-  Expect.throws(() => checkValidVersion('1.9.0-dev..0'));
-  Expect.throws(() => checkValidVersion('1.9.0-dev.0.'));
-  Expect.throws(() => checkValidVersion('1.9.0-dev.x.y'));
-  Expect.throws(() => checkValidVersion('x'));
-  Expect.throws(() => checkValidVersion('x.y.z'));
 }
 
 main() {

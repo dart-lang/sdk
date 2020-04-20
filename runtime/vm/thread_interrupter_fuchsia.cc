@@ -23,7 +23,6 @@ namespace dart {
 
 #ifndef PRODUCT
 
-DECLARE_FLAG(bool, thread_interrupter);
 DECLARE_FLAG(bool, trace_thread_interrupter);
 
 // TODO(ZX-430): Currently, CPU profiling for Fuchsia is arranged very similarly
@@ -37,8 +36,8 @@ DECLARE_FLAG(bool, trace_thread_interrupter);
 class ThreadSuspendScope {
  public:
   explicit ThreadSuspendScope(zx_handle_t thread_handle)
-      : thread_handle_(thread_handle), suspended_(true) {
-    zx_status_t status = zx_task_suspend(thread_handle);
+      : thread_handle_(thread_handle), suspend_token_(ZX_HANDLE_INVALID) {
+    zx_status_t status = zx_task_suspend_token(thread_handle, &suspend_token_);
     // If a thread is somewhere where suspend is impossible, zx_task_suspend()
     // can return ZX_ERR_NOT_SUPPORTED.
     if (status != ZX_OK) {
@@ -46,27 +45,21 @@ class ThreadSuspendScope {
         OS::PrintErr("ThreadInterrupter: zx_task_suspend failed: %s\n",
                      zx_status_get_string(status));
       }
-      suspended_ = false;
     }
   }
 
   ~ThreadSuspendScope() {
-    if (suspended_) {
-      zx_status_t status = zx_task_resume(thread_handle_, 0);
-      if (status != ZX_OK) {
-        // If we fail to resume a thread, then it's likely the program will
-        // hang. Crash instead.
-        FATAL1("zx_task_resume failed: %s", zx_status_get_string(status));
-      }
+    if (suspend_token_ != ZX_HANDLE_INVALID) {
+      zx_handle_close(suspend_token_);
     }
     zx_handle_close(thread_handle_);
   }
 
-  bool suspended() const { return suspended_; }
+  bool suspended() const { return suspend_token_ != ZX_HANDLE_INVALID; }
 
  private:
   zx_handle_t thread_handle_;
-  bool suspended_;
+  zx_handle_t suspend_token_;  // ZX_HANDLE_INVALID when not suspended.
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(ThreadSuspendScope);
@@ -76,10 +69,9 @@ class ThreadInterrupterFuchsia : public AllStatic {
  public:
 #if defined(TARGET_ARCH_X64)
   static bool GrabRegisters(zx_handle_t thread, InterruptedThreadState* state) {
-    zx_x86_64_general_regs_t regs;
-    uint32_t regset_size;
+    zx_thread_state_general_regs regs;
     zx_status_t status = zx_thread_read_state(
-        thread, ZX_THREAD_STATE_REGSET0, &regs, sizeof(regs), &regset_size);
+        thread, ZX_THREAD_STATE_GENERAL_REGS, &regs, sizeof(regs));
     if (status != ZX_OK) {
       if (FLAG_trace_thread_interrupter) {
         OS::PrintErr("ThreadInterrupter failed to get registers: %s\n",
@@ -95,10 +87,9 @@ class ThreadInterrupterFuchsia : public AllStatic {
   }
 #elif defined(TARGET_ARCH_ARM64)
   static bool GrabRegisters(zx_handle_t thread, InterruptedThreadState* state) {
-    zx_arm64_general_regs_t regs;
-    uint32_t regset_size;
+    zx_thread_state_general_regs regs;
     zx_status_t status = zx_thread_read_state(
-        thread, ZX_THREAD_STATE_REGSET0, &regs, sizeof(regs), &regset_size);
+        thread, ZX_THREAD_STATE_GENERAL_REGS, &regs, sizeof(regs));
     if (status != ZX_OK) {
       if (FLAG_trace_thread_interrupter) {
         OS::PrintErr("ThreadInterrupter failed to get registers: %s\n",
@@ -168,7 +159,7 @@ class ThreadInterrupterFuchsia : public AllStatic {
     // Currently we sample only threads that are associated
     // with an isolate. It is safe to call 'os_thread->thread()'
     // here as the thread which is being queried is suspended.
-    Thread* thread = os_thread->thread();
+    Thread* thread = static_cast<Thread*>(os_thread->thread());
     if (thread != NULL) {
       Profiler::SampleThread(thread, its);
     }
@@ -176,6 +167,11 @@ class ThreadInterrupterFuchsia : public AllStatic {
 
  private:
   static const char* ThreadStateGetString(uint32_t state) {
+// TODO(dje): This #ifdef is temporary to handle the transition.
+// It can be deleted once the new version of zircon rolls out.
+#ifdef ZX_THREAD_STATE_BASIC
+    state = ZX_THREAD_STATE_BASIC(state);
+#endif
     switch (state) {
       case ZX_THREAD_STATE_NEW:
         return "ZX_THREAD_STATE_NEW";

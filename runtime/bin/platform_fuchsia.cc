@@ -14,6 +14,7 @@
 #include <zircon/status.h>
 #include <zircon/syscalls.h>
 
+#include "bin/console.h"
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
 #include "bin/file.h"
@@ -146,8 +147,18 @@ const char* Platform::ResolveExecutablePath() {
   return NULL;
 }
 
+intptr_t Platform::ResolveExecutablePathInto(char* result, size_t result_size) {
+  return -1;
+}
+
 void Platform::Exit(int exit_code) {
+  Console::RestoreConfig();
+  Dart_PrepareToAbort();
   exit(exit_code);
+}
+
+void Platform::SetCoreDumpResourceLimit(int value) {
+  // Not supported.
 }
 
 }  // namespace bin

@@ -4,19 +4,19 @@
 //
 // Utility script to check that arguments are correctly passed from
 // one dart process to another using the dart:io process interface.
-import "dart:math";
 import "dart:io";
+import "dart:math";
 
 class Expect {
   static void isTrue(x) {
     if (!x) {
-      throw new Error("Not true");
+      throw new StateError("Not true");
     }
   }
 
   static void equals(x, y) {
     if (x != y) {
-      throw new Error("Not equal");
+      throw new StateError("Not equal");
     }
   }
 }

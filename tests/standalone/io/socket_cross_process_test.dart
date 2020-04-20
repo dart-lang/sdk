@@ -7,11 +7,11 @@ import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:io';
 
-const int NUM_SERVERS = 10;
+const int serversCount = 10;
 
 void main(List<String> args) {
   if (args.isEmpty) {
-    for (int i = 0; i < NUM_SERVERS; ++i) {
+    for (int i = 0; i < serversCount; ++i) {
       makeServer().then((server) {
         runClientProcess(server.port).then((_) => server.close());
       });
@@ -25,17 +25,16 @@ void main(List<String> args) {
 }
 
 Future makeServer() {
-  return ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+  return ServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     server.listen((request) {
-      request.pipe(request);
+      request.cast<List<int>>().pipe(request);
     });
     return server;
   });
 }
 
 Future runClientProcess(int port) {
-  return Process
-      .run(
+  return Process.run(
           Platform.executable,
           []
             ..addAll(Platform.executableArguments)
@@ -55,7 +54,7 @@ Future runClientProcess(int port) {
 }
 
 runClient(int port) {
-  Socket.connect(InternetAddress.LOOPBACK_IP_V4, port).then((connection) {
+  Socket.connect(InternetAddress.loopbackIPv4, port).then((connection) {
     connection.listen((_) {}, onDone: () => print('SUCCESS'));
     connection.close();
   });

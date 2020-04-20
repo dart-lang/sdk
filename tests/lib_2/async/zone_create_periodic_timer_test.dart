@@ -10,7 +10,7 @@ main() {
   Completer done = new Completer();
   List events = [];
 
-  Expect.identical(Zone.ROOT, Zone.current);
+  Expect.identical(Zone.root, Zone.current);
   Zone forked;
   forked = Zone.current.fork(specification: new ZoneSpecification(
       createPeriodicTimer: (Zone self, ZoneDelegate parent, Zone origin,
@@ -37,7 +37,7 @@ main() {
     });
   });
 
-  Expect.identical(Zone.ROOT, Zone.current);
+  Expect.identical(Zone.root, Zone.current);
   events.add("after createPeriodicTimer");
 
   done.future.whenComplete(() {

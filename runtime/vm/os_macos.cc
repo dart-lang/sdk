@@ -16,7 +16,7 @@
 #include <sys/time.h>        // NOLINT
 #include <unistd.h>          // NOLINT
 #if HOST_OS_IOS
-#include <syslog.h>      // NOLINT
+#include <syslog.h>  // NOLINT
 #endif
 
 #include "platform/utils.h"
@@ -106,16 +106,17 @@ int64_t OS::GetCurrentMonotonicMicros() {
 }
 
 int64_t OS::GetCurrentThreadCPUMicros() {
+#if HOST_OS_IOS
+  // Thread CPU time appears unreliable on iOS, sometimes incorrectly reporting
+  // no time elapsed.
+  return -1;
+#else
   mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
   thread_basic_info_data_t info_data;
   thread_basic_info_t info = &info_data;
-  mach_port_t thread_port = mach_thread_self();
-  if (thread_port == MACH_PORT_NULL) {
-    return -1;
-  }
+  mach_port_t thread_port = pthread_mach_thread_np(pthread_self());
   kern_return_t r =
       thread_info(thread_port, THREAD_BASIC_INFO, (thread_info_t)info, &count);
-  mach_port_deallocate(mach_task_self(), thread_port);
   ASSERT(r == KERN_SUCCESS);
   int64_t thread_cpu_micros =
       (info->system_time.seconds + info->user_time.seconds);
@@ -123,6 +124,7 @@ int64_t OS::GetCurrentThreadCPUMicros() {
   thread_cpu_micros += info->user_time.microseconds;
   thread_cpu_micros += info->system_time.microseconds;
   return thread_cpu_micros;
+#endif
 }
 
 intptr_t OS::ActivationFrameAlignment() {
@@ -137,8 +139,6 @@ intptr_t OS::ActivationFrameAlignment() {
   return 16;  // iOS simulator
 #elif TARGET_ARCH_X64
   return 16;  // iOS simulator
-#elif TARGET_ARCH_DBC
-  return 16;
 #else
 #error Unimplemented
 #endif
@@ -147,25 +147,6 @@ intptr_t OS::ActivationFrameAlignment() {
   // Function Call Guide".
   return 16;
 #endif  // HOST_OS_IOS
-}
-
-intptr_t OS::PreferredCodeAlignment() {
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
-    defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_DBC)
-  const int kMinimumAlignment = 32;
-#elif defined(TARGET_ARCH_ARM)
-  const int kMinimumAlignment = 16;
-#else
-#error Unsupported architecture.
-#endif
-  intptr_t alignment = kMinimumAlignment;
-  // TODO(5411554): Allow overriding default code alignment for
-  // testing purposes.
-  // Flags::DebugIsInt("codealign", &alignment);
-  ASSERT(Utils::IsPowerOfTwo(alignment));
-  ASSERT(alignment >= kMinimumAlignment);
-  ASSERT(alignment <= OS::kMaxPreferredCodeAlignment);
-  return alignment;
 }
 
 int OS::NumberOfAvailableProcessors() {
@@ -205,48 +186,9 @@ void OS::DebugBreak() {
   __builtin_trap();
 }
 
-uintptr_t DART_NOINLINE OS::GetProgramCounter() {
+DART_NOINLINE uintptr_t OS::GetProgramCounter() {
   return reinterpret_cast<uintptr_t>(
       __builtin_extract_return_addr(__builtin_return_address(0)));
-}
-
-char* OS::StrNDup(const char* s, intptr_t n) {
-// strndup has only been added to Mac OS X in 10.7. We are supplying
-// our own copy here if needed.
-#if !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) ||                 \
-    __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ <= 1060
-  intptr_t len = strlen(s);
-  if ((n < 0) || (len < 0)) {
-    return NULL;
-  }
-  if (n < len) {
-    len = n;
-  }
-  char* result = reinterpret_cast<char*>(malloc(len + 1));
-  if (result == NULL) {
-    return NULL;
-  }
-  result[len] = '\0';
-  return reinterpret_cast<char*>(memmove(result, s, len));
-#else   // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
-  return strndup(s, n);
-#endif  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
-}
-
-intptr_t OS::StrNLen(const char* s, intptr_t n) {
-// strnlen has only been added to Mac OS X in 10.7. We are supplying
-// our own copy here if needed.
-#if !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) ||                 \
-    __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ <= 1060
-  intptr_t len = 0;
-  while ((len <= n) && (*s != '\0')) {
-    s++;
-    len++;
-  }
-  return len;
-#else   // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
-  return strnlen(s, n);
-#endif  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
 }
 
 void OS::Print(const char* format, ...) {
@@ -268,22 +210,6 @@ void OS::VFPrint(FILE* stream, const char* format, va_list args) {
   fflush(stream);
 }
 
-int OS::SNPrint(char* str, size_t size, const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  int retval = VSNPrint(str, size, format, args);
-  va_end(args);
-  return retval;
-}
-
-int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
-  int retval = vsnprintf(str, size, format, args);
-  if (retval < 0) {
-    FATAL1("Fatal error in OS::VSNPrint with format '%s'", format);
-  }
-  return retval;
-}
-
 char* OS::SCreate(Zone* zone, const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -296,7 +222,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer;
@@ -310,7 +236,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Print.
   va_list print_args;
   va_copy(print_args, args);
-  VSNPrint(buffer, len + 1, format, print_args);
+  Utils::VSNPrint(buffer, len + 1, format, print_args);
   va_end(print_args);
   return buffer;
 }
@@ -322,13 +248,21 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
   int i = 0;
   if (str[0] == '-') {
     i = 1;
+  } else if (str[0] == '+') {
+    i = 1;
   }
   if ((str[i] == '0') && (str[i + 1] == 'x' || str[i + 1] == 'X') &&
       (str[i + 2] != '\0')) {
     base = 16;
   }
   errno = 0;
-  *value = strtoll(str, &endptr, base);
+  if (base == 16) {
+    // Unsigned 64-bit hexadecimal integer literals are allowed but
+    // immediately interpreted as signed 64-bit integers.
+    *value = static_cast<int64_t>(strtoull(str, &endptr, base));
+  } else {
+    *value = strtoll(str, &endptr, base);
+  }
   return ((errno == 0) && (endptr != str) && (*endptr == 0));
 }
 
@@ -348,14 +282,7 @@ void OS::PrintErr(const char* format, ...) {
 #endif
 }
 
-void OS::InitOnce() {
-  // TODO(5411554): For now we check that initonce is called only once,
-  // Once there is more formal mechanism to call InitOnce we can move
-  // this check there.
-  static bool init_once_called = false;
-  ASSERT(init_once_called == false);
-  init_once_called = true;
-
+void OS::Init() {
   // See https://github.com/dart-lang/sdk/issues/29539
   // This is a workaround for a macos bug, we eagerly call localtime_r so that
   // libnotify is initialized early before any fork happens.
@@ -372,9 +299,12 @@ void OS::InitOnce() {
   }
 }
 
-void OS::Shutdown() {}
+void OS::Cleanup() {}
+
+void OS::PrepareToAbort() {}
 
 void OS::Abort() {
+  PrepareToAbort();
   abort();
 }
 

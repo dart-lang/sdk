@@ -4,7 +4,6 @@
 
 library function_apply_mirrors_lib;
 
-@MirrorsUsed(targets: "function_apply_mirrors_lib")
 import "dart:mirrors";
 
 bar() => reflect(499).reflectee;

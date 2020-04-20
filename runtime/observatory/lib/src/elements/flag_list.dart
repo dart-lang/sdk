@@ -18,7 +18,7 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class FlagListElement extends HtmlElement implements Renderable {
+class FlagListElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<FlagListElement>('flag-list', dependencies: const [
     NavNotifyElement.tag,
@@ -28,7 +28,7 @@ class FlagListElement extends HtmlElement implements Renderable {
     ViewFooterElement.tag,
   ]);
 
-  RenderingScheduler _r;
+  RenderingScheduler<FlagListElement> _r;
 
   Stream<RenderedEvent<FlagListElement>> get onRendered => _r.onRendered;
 
@@ -47,8 +47,8 @@ class FlagListElement extends HtmlElement implements Renderable {
     assert(events != null);
     assert(repository != null);
     assert(notifications != null);
-    FlagListElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    FlagListElement e = new FlagListElement.created();
+    e._r = new RenderingScheduler<FlagListElement>(e, queue: queue);
     e._vm = vm;
     e._events = events;
     e._repository = repository;
@@ -56,7 +56,7 @@ class FlagListElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  FlagListElement.created() : super.created();
+  FlagListElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -68,7 +68,7 @@ class FlagListElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
@@ -97,26 +97,27 @@ class FlagListElement extends HtmlElement implements Renderable {
       }
     }
 
-    children = [
-      navBar([
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
+    children = <Element>[
+      navBar(<Element>[
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         navMenu('flags', link: Uris.flags()),
-        new NavRefreshElement(queue: _r.queue)
-          ..onRefresh.listen((e) async {
-            e.element.disabled = true;
-            try {
-              await _refresh();
-            } finally {
-              e.element.disabled = false;
-            }
-          }),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        (new NavRefreshElement(queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                try {
+                  await _refresh();
+                } finally {
+                  e.element.disabled = false;
+                }
+              }))
+            .element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered']
         ..children = content,
-      new ViewFooterElement(queue: _r.queue)
+      new ViewFooterElement(queue: _r.queue).element
     ];
   }
 
@@ -138,7 +139,7 @@ class FlagListElement extends HtmlElement implements Renderable {
       new DivElement()
         ..classes =
             flag.modified ? ['flag', 'modified'] : ['flag', 'unmodified']
-        ..children = [
+        ..children = <Element>[
           new SpanElement()
             ..classes = ['name']
             ..text = flag.name,

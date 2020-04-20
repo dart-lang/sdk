@@ -7,10 +7,10 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:isolate";
 import "dart:io";
+import "package:expect/expect.dart";
 
 // Test that a response line without any reason phrase is handled.
 void missingReasonPhrase(int statusCode, bool includeSpace) {
@@ -37,8 +37,8 @@ void missingReasonPhrase(int statusCode, bool includeSpace) {
 }
 
 void main() {
-  missingReasonPhrase(HttpStatus.OK, true);
-  missingReasonPhrase(HttpStatus.INTERNAL_SERVER_ERROR, true);
-  missingReasonPhrase(HttpStatus.OK, false);
-  missingReasonPhrase(HttpStatus.INTERNAL_SERVER_ERROR, false);
+  missingReasonPhrase(HttpStatus.ok, true);
+  missingReasonPhrase(HttpStatus.internalServerError, true);
+  missingReasonPhrase(HttpStatus.ok, false);
+  missingReasonPhrase(HttpStatus.internalServerError, false);
 }

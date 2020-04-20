@@ -1,0 +1,93 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application, change a file, but don't change the outline.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    sources:
+      main.dart: |
+        import 'libA.dart';
+
+        const String useMeAsAnnotation = "hello";
+
+        @useMeAsAnnotation
+        class Bar {
+          @useMeAsAnnotation
+          Bar(@useMeAsAnnotation int x) {}
+        }
+
+        @useMeAsAnnotation
+        class Foo extends Bar {
+          @useMeAsAnnotation
+          final message;
+          @useMeAsAnnotation
+          Foo(@useMeAsAnnotation this.message) : super(42);
+          @override
+          toString() { return '$message'; }
+        }
+
+        @useMeAsAnnotation
+        main() {
+          @useMeAsAnnotation
+          Foo foo = new Foo("hello");
+          whatever(foo);
+          @useMeAsAnnotation
+          CompilationStrategy compilationStrategy = CompilationStrategy.direct;
+          print(compilationStrategy);
+        }
+
+        @useMeAsAnnotation
+        enum CompilationStrategy { @useMeAsAnnotation direct, @useMeAsAnnotation toKernel, @useMeAsAnnotation toData, @useMeAsAnnotation fromData }
+      libA.dart: |
+        import 'main.dart';
+        @useMeAsAnnotation
+        whatever(Foo foo) {
+          print(foo);
+        }
+    expectedLibraryCount: 2
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'libA.dart';
+
+        const String useMeAsAnnotation = "hello";
+
+        @useMeAsAnnotation
+        class Bar {
+          @useMeAsAnnotation
+          Bar(@useMeAsAnnotation int x) {}
+        }
+
+        @useMeAsAnnotation
+        class Foo extends Bar {
+          @useMeAsAnnotation
+          final message;
+          @useMeAsAnnotation
+          Foo(@useMeAsAnnotation this.message) : super(42);
+          @override
+          toString() { return '$message'; }
+        }
+
+        @useMeAsAnnotation
+        main() {
+          @useMeAsAnnotation
+          Foo foo = new Foo("hello");
+          whatever(foo);
+          @useMeAsAnnotation
+          CompilationStrategy compilationStrategy = CompilationStrategy.direct;
+          print(compilationStrategy);
+        }
+
+        @useMeAsAnnotation
+        enum CompilationStrategy { @useMeAsAnnotation direct, @useMeAsAnnotation toKernel, @useMeAsAnnotation toData, @useMeAsAnnotation fromData }
+    expectedLibraryCount: 2
+    expectsRebuildBodiesOnly: true

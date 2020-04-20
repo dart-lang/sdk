@@ -1,0 +1,60 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with a number of modules.
+# Try out "trickery" in the module dependencies to force needing more or less
+# dill libraries.
+
+type: newworld
+modules:
+  module:
+    module/lib1.dart: |
+      import 'lib2.dart';
+
+      abstract class XSet {
+        factory XSet.identity() = XLinkedHashSet.identity;
+      }
+    module/lib2.dart: |
+      import 'lib1.dart';
+      import 'lib3.dart';
+
+      class XLinkedHashSet implements XSet {
+        factory XLinkedHashSet.identity() = XIdentityHashSet;
+      }
+    module/lib3.dart: |
+      import 'lib2.dart';
+
+      class XIdentityHashSet implements XLinkedHashSet {
+        XIdentityHashSet();
+      }
+    module/.packages: |
+      module:.
+worlds:
+  - entry: compileme.dart
+    fromComponent: true
+    sources:
+      compileme.dart: |
+        import 'package:module/lib1.dart';
+
+        main() {
+          XSet history = new XSet.identity();
+        }
+      .packages: |
+        module:module
+    modules:
+      - module
+    expectedLibraryCount: 4
+    neededDillLibraries:
+      - package:module/lib1.dart
+      - package:module/lib2.dart
+      - package:module/lib3.dart
+    expectedContent:
+      org-dartlang-test:///compileme.dart:
+        - Procedure main
+      package:module/lib1.dart:
+        - Class XSet
+      package:module/lib2.dart:
+        - Class XLinkedHashSet
+      package:module/lib3.dart:
+        - Class XIdentityHashSet

@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
+
 import "dart:isolate";
 import "dart:async";
 import "package:expect/expect.dart";
@@ -26,7 +29,7 @@ void main() {
       reply.handler = (v) {
         result.add(v);
         if (v == 2) {
-          isolate.kill(priority: Isolate.BEFORE_NEXT_EVENT);
+          isolate.kill(priority: Isolate.beforeNextEvent);
         }
         echoPort.send(v - 1);
       };

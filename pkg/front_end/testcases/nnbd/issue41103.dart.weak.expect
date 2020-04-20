@@ -1,0 +1,8 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:async" as asy;
+
+import "dart:async";
+
+static final field asy::StreamTransformer<dynamic, dynamic> t = new asy::_StreamHandlerTransformer::•<dynamic, dynamic>(handleData: (dynamic data, asy::EventSink<dynamic> sink) → asy::Future<void> => asy::Future::microtask<void>(() → void => sink.{asy::EventSink::add}(data)), handleDone: (asy::EventSink<dynamic> sink) → asy::Future<void> => asy::Future::microtask<void>(() → void => sink.{asy::EventSink::close}()));
+static method main() → void {}

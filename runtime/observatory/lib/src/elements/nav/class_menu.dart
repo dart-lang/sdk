@@ -10,10 +10,10 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class NavClassMenuElement extends HtmlElement implements Renderable {
+class NavClassMenuElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavClassMenuElement>('nav-class-menu');
 
-  RenderingScheduler _r;
+  RenderingScheduler<NavClassMenuElement> _r;
 
   Stream<RenderedEvent<NavClassMenuElement>> get onRendered => _r.onRendered;
 
@@ -34,14 +34,14 @@ class NavClassMenuElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(cls != null);
-    NavClassMenuElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    NavClassMenuElement e = new NavClassMenuElement.created();
+    e._r = new RenderingScheduler<NavClassMenuElement>(e, queue: queue);
     e._isolate = isolate;
     e._cls = cls;
     return e;
   }
 
-  NavClassMenuElement.created() : super.created();
+  NavClassMenuElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -52,12 +52,12 @@ class NavClassMenuElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    children = [
+    children = <Element>[
       navMenu(cls.name,
           content: _content, link: Uris.inspect(isolate, object: cls))
     ];

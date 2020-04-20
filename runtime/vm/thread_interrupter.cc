@@ -36,16 +36,6 @@ namespace dart {
 // The ThreadInterrupter has a single monitor (monitor_). This monitor is used
 // to synchronize startup, shutdown, and waking up from a deep sleep.
 //
-// A thread can only register and unregister itself. Each thread has a heap
-// allocated ThreadState. A thread's ThreadState is lazily allocated the first
-// time the thread is registered. A pointer to a thread's ThreadState is stored
-// in the list of threads registered to receive interrupts (threads_) and in
-// thread local storage. When a thread's ThreadState is being modified, the
-// thread local storage pointer is temporarily set to NULL while the
-// modification is occurring. After the ThreadState has been updated, the
-// thread local storage pointer is set again. This has an important side
-// effect: if the thread is interrupted by a signal handler during a ThreadState
-// update the signal handler will immediately return.
 
 DEFINE_FLAG(bool, trace_thread_interrupter, false, "Trace thread interrupter");
 
@@ -58,12 +48,20 @@ ThreadJoinId ThreadInterrupter::interrupter_thread_id_ =
 Monitor* ThreadInterrupter::monitor_ = NULL;
 intptr_t ThreadInterrupter::interrupt_period_ = 1000;
 intptr_t ThreadInterrupter::current_wait_time_ = Monitor::kNoTimeout;
+// Note this initial state means there is one sample buffer reader. This
+// allows the EnterSampleReader during Cleanup (needed to ensure the buffer can
+// be safely freed) to be balanced by a ExitSampleReader during Init.
+std::atomic<intptr_t> ThreadInterrupter::sample_buffer_lock_ = {-1};
+std::atomic<intptr_t> ThreadInterrupter::sample_buffer_waiters_ = {1};
 
-void ThreadInterrupter::InitOnce() {
+void ThreadInterrupter::Init() {
   ASSERT(!initialized_);
-  monitor_ = new Monitor();
+  if (monitor_ == NULL) {
+    monitor_ = new Monitor();
+  }
   ASSERT(monitor_ != NULL);
   initialized_ = true;
+  shutdown_ = false;
 }
 
 void ThreadInterrupter::Startup() {
@@ -83,7 +81,7 @@ void ThreadInterrupter::Startup() {
   ASSERT(interrupter_thread_id_ == OSThread::kInvalidThreadJoinId);
   {
     MonitorLocker startup_ml(monitor_);
-    OSThread::Start("ThreadInterrupter", ThreadMain, 0);
+    OSThread::Start("Dart Profiler ThreadInterrupter", ThreadMain, 0);
     while (!thread_running_) {
       startup_ml.Wait();
     }
@@ -92,9 +90,11 @@ void ThreadInterrupter::Startup() {
   if (FLAG_trace_thread_interrupter) {
     OS::PrintErr("ThreadInterrupter running.\n");
   }
+
+  ExitSampleReader();
 }
 
-void ThreadInterrupter::Shutdown() {
+void ThreadInterrupter::Cleanup() {
   {
     MonitorLocker shutdown_ml(monitor_);
     if (shutdown_) {
@@ -114,14 +114,23 @@ void ThreadInterrupter::Shutdown() {
   ASSERT(interrupter_thread_id_ != OSThread::kInvalidThreadJoinId);
   OSThread::Join(interrupter_thread_id_);
   interrupter_thread_id_ = OSThread::kInvalidThreadJoinId;
+  initialized_ = false;
 
   if (FLAG_trace_thread_interrupter) {
     OS::PrintErr("ThreadInterrupter shut down.\n");
   }
+
+  // Wait for outstanding signals.
+  EnterSampleReader();
 }
 
 // Delay between interrupts.
 void ThreadInterrupter::SetInterruptPeriod(intptr_t period) {
+  if (!initialized_) {
+    // Profiler may not be enabled.
+    return;
+  }
+  MonitorLocker ml(monitor_);
   if (shutdown_) {
     return;
   }
@@ -131,13 +140,16 @@ void ThreadInterrupter::SetInterruptPeriod(intptr_t period) {
 }
 
 void ThreadInterrupter::WakeUp() {
-  if (!initialized_) {
+  if (monitor_ == NULL) {
     // Early call.
     return;
   }
-  ASSERT(initialized_);
   {
     MonitorLocker ml(monitor_);
+    if (!initialized_) {
+      // Early call.
+      return;
+    }
     woken_up_ = true;
     if (!InDeepSleep()) {
       // No need to notify, regularly waking up.
@@ -178,6 +190,9 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
         // Woken up from deep sleep.
         ASSERT(interrupted_thread_count == 0);
         // Return to regular interrupts.
+        current_wait_time_ = interrupt_period_;
+      } else if (current_wait_time_ != interrupt_period_) {
+        // The interrupt period may have been updated via the service protocol.
         current_wait_time_ = interrupt_period_;
       }
 

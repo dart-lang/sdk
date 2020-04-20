@@ -20,7 +20,6 @@ abstract class TestingServer {
   SendPort get closeSendPort => _closePort.sendPort;
 
   Future<int> init() {
-    _closePort = new ReceivePort();
     _closePort.first.then((_) {
       close();
     });
@@ -35,6 +34,6 @@ abstract class TestingServer {
     _server.close();
   }
 
-  ServerSocket _server;
-  ReceivePort _closePort;
+  late ServerSocket _server;
+  final ReceivePort _closePort = new ReceivePort();
 }

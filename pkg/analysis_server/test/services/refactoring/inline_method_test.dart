@@ -1,10 +1,9 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 
-import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/inline_method.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -14,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_refactoring.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InlineMethodTest);
   });
@@ -22,11 +21,12 @@ main() {
 
 @reflectiveTest
 class InlineMethodTest extends RefactoringTest {
+  @override
   InlineMethodRefactoringImpl refactoring;
   bool deleteSource;
   bool inlineAll;
 
-  test_access_FunctionElement() async {
+  Future<void> test_access_FunctionElement() async {
     await indexTestUnit(r'''
 test(a, b) {
   return a + b;
@@ -44,7 +44,7 @@ main() {
     expect(refactoring.isDeclaration, isFalse);
   }
 
-  test_access_MethodElement() async {
+  Future<void> test_access_MethodElement() async {
     await indexTestUnit(r'''
 class A {
   test(a, b) {
@@ -64,7 +64,7 @@ class A {
     expect(refactoring.isDeclaration, isTrue);
   }
 
-  test_bad_async_intoSyncStar() async {
+  Future<void> test_bad_async_intoSyncStar() async {
     await indexTestUnit(r'''
 import 'dart:async';
 class A {
@@ -79,7 +79,7 @@ class A {
     return _assertConditionsFatal('Cannot inline async into sync*.');
   }
 
-  test_bad_async_targetIsSync_doesNotReturnFuture() async {
+  Future<void> test_bad_async_targetIsSync_doesNotReturnFuture() async {
     await indexTestUnit(r'''
 import 'dart:async';
 class A {
@@ -96,7 +96,7 @@ class A {
         'Cannot inline async into a function that does not return a Future.');
   }
 
-  test_bad_asyncStar() async {
+  Future<void> test_bad_asyncStar() async {
     await indexTestUnit(r'''
 import 'dart:async';
 class A {
@@ -114,7 +114,7 @@ class A {
     return _assertConditionsFatal('Cannot inline a generator.');
   }
 
-  test_bad_cascadeInvocation() async {
+  Future<void> test_bad_cascadeInvocation() async {
     await indexTestUnit(r'''
 class A {
   foo() {}
@@ -128,14 +128,14 @@ main() {
 ''');
     _createRefactoring('test() {');
     // error
-    RefactoringStatus status = await refactoring.checkAllConditions();
-    var location = new SourceRange(findOffset('..test()'), '..test()'.length);
+    var status = await refactoring.checkAllConditions();
+    var location = SourceRange(findOffset('..test()'), '..test()'.length);
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: 'Cannot inline cascade invocation.',
         expectedContextRange: location);
   }
 
-  test_bad_constructor() async {
+  Future<void> test_bad_constructor() async {
     await indexTestUnit(r'''
 class A {
   A.named() {}
@@ -146,7 +146,7 @@ class A {
     return _assertInvalidSelection();
   }
 
-  test_bad_deleteSource_inlineOne() async {
+  Future<void> test_bad_deleteSource_inlineOne() async {
     await indexTestUnit(r'''
 test(a, b) {
   return a + b;
@@ -158,7 +158,7 @@ main() {
 ''');
     _createRefactoring('test(1, 2)');
     // initial conditions
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     assertRefactoringStatusOK(status);
     refactoring.deleteSource = true;
     refactoring.inlineAll = false;
@@ -169,7 +169,7 @@ main() {
             'All references must be inlined to remove the source.');
   }
 
-  test_bad_notExecutableElement() async {
+  Future<void> test_bad_notExecutableElement() async {
     await indexTestUnit(r'''
 main() {
 }
@@ -179,7 +179,7 @@ main() {
     return _assertInvalidSelection();
   }
 
-  test_bad_notSimpleIdentifier() async {
+  Future<void> test_bad_notSimpleIdentifier() async {
     await indexTestUnit(r'''
 main() {
   var test = 42;
@@ -191,7 +191,7 @@ main() {
     return _assertInvalidSelection();
   }
 
-  test_bad_operator() async {
+  Future<void> test_bad_operator() async {
     await indexTestUnit(r'''
 class A {
   operator -(other) => this;
@@ -202,7 +202,7 @@ class A {
     return _assertConditionsFatal('Cannot inline operator.');
   }
 
-  test_bad_propertyAccessor_synthetic() async {
+  Future<void> test_bad_propertyAccessor_synthetic() async {
     await indexTestUnit(r'''
 class A {
   int fff;
@@ -217,7 +217,7 @@ main(A a) {
     return _assertInvalidSelection();
   }
 
-  test_bad_reference_toClassMethod() async {
+  Future<void> test_bad_reference_toClassMethod() async {
     await indexTestUnit(r'''
 class A {
   test(a, b) {
@@ -234,7 +234,7 @@ main() {
     return _assertConditionsFatal('Cannot inline class method reference.');
   }
 
-  test_bad_severalReturns() async {
+  Future<void> test_bad_severalReturns() async {
     await indexTestUnit(r'''
 test() {
   if (true) {
@@ -251,7 +251,7 @@ main() {
     return _assertConditionsError('Ambiguous return value.');
   }
 
-  test_cascadeInCascade() async {
+  Future<void> test_cascadeInCascade() async {
     await indexTestUnit(r'''
 class Inner {
   String a;
@@ -296,7 +296,7 @@ void main() {
 ''');
   }
 
-  test_fieldAccessor_getter() async {
+  Future<void> test_fieldAccessor_getter() async {
     await indexTestUnit(r'''
 class A {
   var f;
@@ -322,7 +322,7 @@ main() {
 ''');
   }
 
-  test_fieldAccessor_getter_PropertyAccess() async {
+  Future<void> test_fieldAccessor_getter_PropertyAccess() async {
     await indexTestUnit(r'''
 class A {
   var f;
@@ -354,7 +354,7 @@ main() {
 ''');
   }
 
-  test_fieldAccessor_setter() async {
+  Future<void> test_fieldAccessor_setter() async {
     await indexTestUnit(r'''
 class A {
   var f;
@@ -380,7 +380,7 @@ main() {
 ''');
   }
 
-  test_fieldAccessor_setter_PropertyAccess() async {
+  Future<void> test_fieldAccessor_setter_PropertyAccess() async {
     await indexTestUnit(r'''
 class A {
   var f;
@@ -412,7 +412,7 @@ main() {
 ''');
   }
 
-  test_function_expressionFunctionBody() async {
+  Future<void> test_function_expressionFunctionBody() async {
     await indexTestUnit(r'''
 test(a, b) => a + b;
 main() {
@@ -428,7 +428,7 @@ main() {
 ''');
   }
 
-  test_function_hasReturn_assign() async {
+  Future<void> test_function_hasReturn_assign() async {
     await indexTestUnit(r'''
 test(a, b) {
   print(a);
@@ -452,7 +452,7 @@ main() {
 ''');
   }
 
-  test_function_hasReturn_hasReturnType() async {
+  Future<void> test_function_hasReturn_hasReturnType() async {
     await indexTestUnit(r'''
 int test(a, b) {
   return a + b;
@@ -470,7 +470,28 @@ main() {
 ''');
   }
 
-  test_function_hasReturn_noVars_oneUsage() async {
+  Future<void> test_function_hasReturn_noExpression() async {
+    await indexTestUnit(r'''
+test(a, b) {
+  print(a);
+  print(b);
+  return;
+}
+main() {
+  test(1, 2);
+}
+''');
+    _createRefactoring('test(a, b)');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+main() {
+  print(1);
+  print(2);
+}
+''');
+  }
+
+  Future<void> test_function_hasReturn_noVars_oneUsage() async {
     await indexTestUnit(r'''
 test(a, b) {
   print(a);
@@ -492,7 +513,7 @@ main() {
 ''');
   }
 
-  test_function_multilineString() async {
+  Future<void> test_function_multilineString() async {
     await indexTestUnit(r"""
 main() {
   {
@@ -520,7 +541,8 @@ second line
 """);
   }
 
-  test_function_noReturn_hasVars_hasConflict_fieldSuperClass() async {
+  Future<void>
+      test_function_noReturn_hasVars_hasConflict_fieldSuperClass() async {
     await indexTestUnit(r'''
 class A {
   var c;
@@ -550,7 +572,8 @@ class B extends A {
 ''');
   }
 
-  test_function_noReturn_hasVars_hasConflict_fieldThisClass() async {
+  Future<void>
+      test_function_noReturn_hasVars_hasConflict_fieldThisClass() async {
     await indexTestUnit(r'''
 class A {
   var c;
@@ -576,7 +599,7 @@ class A {
 ''');
   }
 
-  test_function_noReturn_hasVars_hasConflict_localAfter() async {
+  Future<void> test_function_noReturn_hasVars_hasConflict_localAfter() async {
     await indexTestUnit(r'''
 test(a, b) {
   var c = a + b;
@@ -598,7 +621,7 @@ main() {
 ''');
   }
 
-  test_function_noReturn_hasVars_hasConflict_localBefore() async {
+  Future<void> test_function_noReturn_hasVars_hasConflict_localBefore() async {
     await indexTestUnit(r'''
 test(a, b) {
   var c = a + b;
@@ -620,7 +643,7 @@ main() {
 ''');
   }
 
-  test_function_noReturn_hasVars_noConflict() async {
+  Future<void> test_function_noReturn_hasVars_noConflict() async {
     await indexTestUnit(r'''
 test(a, b) {
   var c = a + b;
@@ -640,7 +663,7 @@ main() {
 ''');
   }
 
-  test_function_noReturn_noVars_oneUsage() async {
+  Future<void> test_function_noReturn_noVars_oneUsage() async {
     await indexTestUnit(r'''
 test(a, b) {
   print(a);
@@ -660,7 +683,7 @@ main() {
 ''');
   }
 
-  test_function_noReturn_noVars_useIndentation() async {
+  Future<void> test_function_noReturn_noVars_useIndentation() async {
     await indexTestUnit(r'''
 test(a, b) {
   print(a);
@@ -684,7 +707,7 @@ main() {
 ''');
   }
 
-  test_function_noReturn_voidReturnType() async {
+  Future<void> test_function_noReturn_voidReturnType() async {
     await indexTestUnit(r'''
 void test(a, b) {
   print(a + b);
@@ -702,7 +725,7 @@ main() {
 ''');
   }
 
-  test_function_notStatement_oneStatement_assign() async {
+  Future<void> test_function_notStatement_oneStatement_assign() async {
     await indexTestUnit(r'''
 test(int p) {
   print(p * 2);
@@ -724,7 +747,8 @@ main() {
 ''');
   }
 
-  test_function_notStatement_oneStatement_variableDeclaration() async {
+  Future<void>
+      test_function_notStatement_oneStatement_variableDeclaration() async {
     await indexTestUnit(r'''
 test(int p) {
   print(p * 2);
@@ -744,7 +768,7 @@ main() {
 ''');
   }
 
-  test_function_notStatement_severalStatements() async {
+  Future<void> test_function_notStatement_severalStatements() async {
     await indexTestUnit(r'''
 test(int p) {
   print(p);
@@ -766,7 +790,7 @@ main() {
 ''');
   }
 
-  test_function_notStatement_zeroStatements() async {
+  Future<void> test_function_notStatement_zeroStatements() async {
     await indexTestUnit(r'''
 test(int p) {
 }
@@ -784,7 +808,7 @@ main() {
 ''');
   }
 
-  test_function_singleStatement() async {
+  Future<void> test_function_singleStatement() async {
     await indexTestUnit(r'''
 var topLevelField = 0;
 test() {
@@ -804,7 +828,7 @@ main() {
 ''');
   }
 
-  test_getter_async_targetIsAsync() async {
+  Future<void> test_getter_async_targetIsAsync() async {
     await indexTestUnit(r'''
 import 'dart:async';
 class A {
@@ -826,7 +850,7 @@ class A {
 ''');
   }
 
-  test_getter_async_targetIsAsyncStar() async {
+  Future<void> test_getter_async_targetIsAsyncStar() async {
     await indexTestUnit(r'''
 import 'dart:async';
 class A {
@@ -848,7 +872,7 @@ class A {
 ''');
   }
 
-  test_getter_async_targetIsSync() async {
+  Future<void> test_getter_async_targetIsSync() async {
     await indexTestUnit(r'''
 import 'dart:async';
 class A {
@@ -870,7 +894,7 @@ class A {
 ''');
   }
 
-  test_getter_async_targetIsSync2() async {
+  Future<void> test_getter_async_targetIsSync2() async {
     await indexTestUnit(r'''
 import 'dart:async';
 class A {
@@ -898,7 +922,7 @@ class A {
 ''');
   }
 
-  test_getter_classMember_instance() async {
+  Future<void> test_getter_classMember_instance() async {
     await indexTestUnit(r'''
 class A {
   int f;
@@ -920,7 +944,7 @@ main(A a) {
 ''');
   }
 
-  test_getter_classMember_static() async {
+  Future<void> test_getter_classMember_static() async {
     await indexTestUnit(r'''
 class A {
   static int get result => 1 + 2;
@@ -940,7 +964,7 @@ main() {
 ''');
   }
 
-  test_getter_topLevel() async {
+  Future<void> test_getter_topLevel() async {
     await indexTestUnit(r'''
 String get message => 'Hello, World!';
 main() {
@@ -956,7 +980,7 @@ main() {
 ''');
   }
 
-  test_initialMode_all() async {
+  Future<void> test_initialMode_all() async {
     await indexTestUnit(r'''
 test(a, b) {
   return a + b;
@@ -972,7 +996,7 @@ main() {
     expect(refactoring.inlineAll, true);
   }
 
-  test_initialMode_single() async {
+  Future<void> test_initialMode_single() async {
     await indexTestUnit(r'''
 test(a, b) {
   return a + b;
@@ -990,7 +1014,7 @@ main() {
     expect(refactoring.inlineAll, false);
   }
 
-  test_method_async() async {
+  Future<void> test_method_async() async {
     await indexTestUnit(r'''
 import 'dart:async';
 class A {
@@ -1012,7 +1036,7 @@ class A {
 ''');
   }
 
-  test_method_async2() async {
+  Future<void> test_method_async2() async {
     await indexTestUnit(r'''
 import 'dart:async';
 class A {
@@ -1036,7 +1060,7 @@ class A {
 ''');
   }
 
-  test_method_emptyBody() async {
+  Future<void> test_method_emptyBody() async {
     await indexTestUnit(r'''
 abstract class A {
   test();
@@ -1050,7 +1074,7 @@ main(A a) {
     return _assertConditionsFatal('Cannot inline method without body.');
   }
 
-  test_method_fieldInstance() async {
+  Future<void> test_method_fieldInstance() async {
     await indexTestUnit(r'''
 class A {
   var fA;
@@ -1088,7 +1112,7 @@ main() {
 ''');
   }
 
-  test_method_fieldStatic() async {
+  Future<void> test_method_fieldStatic() async {
     await indexTestUnit(r'''
 class A {
   static var FA = 1;
@@ -1124,7 +1148,7 @@ main() {
 ''');
   }
 
-  test_method_fieldStatic_sameClass() async {
+  Future<void> test_method_fieldStatic_sameClass() async {
     await indexTestUnit(r'''
 class A {
   static var F = 1;
@@ -1148,7 +1172,7 @@ class A {
 ''');
   }
 
-  test_method_methodInstance() async {
+  Future<void> test_method_methodInstance() async {
     await indexTestUnit(r'''
 class A {
   ma() {}
@@ -1184,7 +1208,7 @@ main(B b) {
 ''');
   }
 
-  test_method_methodStatic() async {
+  Future<void> test_method_methodStatic() async {
     await indexTestUnit(r'''
 class A {
   static ma() {}
@@ -1223,7 +1247,7 @@ main(B b) {
 ''');
   }
 
-  test_method_singleStatement() async {
+  Future<void> test_method_singleStatement() async {
     await indexTestUnit(r'''
 class A {
   test() {
@@ -1245,7 +1269,7 @@ class A {
 ''');
   }
 
-  test_method_this() async {
+  Future<void> test_method_this() async {
     await indexTestUnit(r'''
 class A {
   accept(B b) {}
@@ -1279,7 +1303,7 @@ main() {
 ''');
   }
 
-  test_method_unqualifiedInvocation() async {
+  Future<void> test_method_unqualifiedInvocation() async {
     await indexTestUnit(r'''
 class A {
   test(a, b) {
@@ -1305,7 +1329,7 @@ class A {
 ''');
   }
 
-  test_namedArgument_inBody() async {
+  Future<void> test_namedArgument_inBody() async {
     await indexTestUnit(r'''
 fa(pa) => fb(pb: true);
 fb({pb: false}) {}
@@ -1324,7 +1348,7 @@ main() {
 ''');
   }
 
-  test_namedArguments() async {
+  Future<void> test_namedArguments() async {
     await indexTestUnit(r'''
 test({a: 0, b: 2}) {
   print(a + b);
@@ -1344,7 +1368,7 @@ main() {
 ''');
   }
 
-  test_noArgument_named_hasDefault() async {
+  Future<void> test_noArgument_named_hasDefault() async {
     verifyNoTestUnitErrors = false;
     await indexTestUnit(r'''
 test({a: 42}) {
@@ -1363,7 +1387,7 @@ main() {
 ''');
   }
 
-  test_noArgument_positional_hasDefault() async {
+  Future<void> test_noArgument_positional_hasDefault() async {
     verifyNoTestUnitErrors = false;
     await indexTestUnit(r'''
 test([a = 42]) {
@@ -1382,7 +1406,7 @@ main() {
 ''');
   }
 
-  test_noArgument_positional_noDefault() async {
+  Future<void> test_noArgument_positional_noDefault() async {
     verifyNoTestUnitErrors = false;
     await indexTestUnit(r'''
 test([a]) {
@@ -1401,7 +1425,7 @@ main() {
 ''');
   }
 
-  test_noArgument_required() async {
+  Future<void> test_noArgument_required() async {
     verifyNoTestUnitErrors = false;
     await indexTestUnit(r'''
 test(a) {
@@ -1413,14 +1437,14 @@ main() {
 ''');
     _createRefactoring('test();');
     // error
-    RefactoringStatus status = await refactoring.checkAllConditions();
-    var location = new SourceRange(findOffset('test();'), 'test()'.length);
+    var status = await refactoring.checkAllConditions();
+    var location = SourceRange(findOffset('test();'), 'test()'.length);
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: 'No argument for the parameter "a".',
         expectedContextRange: location);
   }
 
-  test_reference_expressionBody() async {
+  Future<void> test_reference_expressionBody() async {
     await indexTestUnit(r'''
 String message() => 'Hello, World!';
 main() {
@@ -1436,7 +1460,7 @@ main() {
 ''');
   }
 
-  test_reference_noStatement() async {
+  Future<void> test_reference_noStatement() async {
     await indexTestUnit(r'''
 test(a, b) {
   return a || b;
@@ -1460,7 +1484,7 @@ baz(x) {}
 ''');
   }
 
-  test_reference_toLocal() async {
+  Future<void> test_reference_toLocal() async {
     await indexTestUnit(r'''
 main() {
   test(a, b) {
@@ -1482,7 +1506,7 @@ main() {
 ''');
   }
 
-  test_reference_toTopLevel() async {
+  Future<void> test_reference_toTopLevel() async {
     await indexTestUnit(r'''
 test(a, b) {
   print(a);
@@ -1504,7 +1528,7 @@ main() {
 ''');
   }
 
-  test_removeEmptyLinesBefore_method() async {
+  Future<void> test_removeEmptyLinesBefore_method() async {
     await indexTestUnit(r'''
 class A {
   before() {
@@ -1534,7 +1558,7 @@ class A {
 ''');
   }
 
-  test_setter_classMember_instance() async {
+  Future<void> test_setter_classMember_instance() async {
     await indexTestUnit(r'''
 class A {
   int f;
@@ -1558,7 +1582,7 @@ main(A a) {
 ''');
   }
 
-  test_setter_topLevel() async {
+  Future<void> test_setter_topLevel() async {
     await indexTestUnit(r'''
 void set result(x) {
   print(x + 1);
@@ -1576,7 +1600,7 @@ main() {
 ''');
   }
 
-  test_singleExpression_oneUsage() async {
+  Future<void> test_singleExpression_oneUsage() async {
     await indexTestUnit(r'''
 test(a, b) {
   return a + b;
@@ -1594,7 +1618,7 @@ main() {
 ''');
   }
 
-  test_singleExpression_oneUsage_keepMethod() async {
+  Future<void> test_singleExpression_oneUsage_keepMethod() async {
     await indexTestUnit(r'''
 test(a, b) {
   return a + b;
@@ -1616,7 +1640,7 @@ main() {
 ''');
   }
 
-  test_singleExpression_twoUsages() async {
+  Future<void> test_singleExpression_twoUsages() async {
     await indexTestUnit(r'''
 test(a, b) {
   return a + b;
@@ -1636,7 +1660,7 @@ main() {
 ''');
   }
 
-  test_singleExpression_twoUsages_inlineOne() async {
+  Future<void> test_singleExpression_twoUsages_inlineOne() async {
     await indexTestUnit(r'''
 test(a, b) {
   return a + b;
@@ -1659,7 +1683,8 @@ main() {
 ''');
   }
 
-  test_singleExpression_wrapIntoParenthesized_alreadyInMethod() async {
+  Future<void>
+      test_singleExpression_wrapIntoParenthesized_alreadyInMethod() async {
     await indexTestUnit(r'''
 test(a, b) {
   return a * (b);
@@ -1677,7 +1702,7 @@ main() {
 ''');
   }
 
-  test_singleExpression_wrapIntoParenthesized_asNeeded() async {
+  Future<void> test_singleExpression_wrapIntoParenthesized_asNeeded() async {
     await indexTestUnit(r'''
 test(a, b) {
   return a * b;
@@ -1697,7 +1722,7 @@ main() {
 ''');
   }
 
-  test_singleExpression_wrapIntoParenthesized_bool() async {
+  Future<void> test_singleExpression_wrapIntoParenthesized_bool() async {
     await indexTestUnit(r'''
 test(bool a, bool b) {
   return a || b;
@@ -1718,13 +1743,13 @@ main(bool p, bool p2, bool p3) {
   }
 
   Future _assertConditionsError(String message) async {
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: message);
   }
 
   Future _assertConditionsFatal(String message) async {
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage: message);
   }
@@ -1735,7 +1760,7 @@ main(bool p, bool p2, bool p3) {
   }
 
   Future _assertSuccessfulRefactoring(String expectedCode) async {
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     assertRefactoringStatusOK(status);
     // configure
     if (deleteSource != null) {
@@ -1748,14 +1773,17 @@ main(bool p, bool p2, bool p3) {
     status = await refactoring.checkFinalConditions();
     assertRefactoringStatusOK(status);
     // change
-    SourceChange change = await refactoring.createChange();
-    this.refactoringChange = change;
+    var change = await refactoring.createChange();
+    refactoringChange = change;
     assertTestChangeResult(expectedCode);
   }
 
   void _createRefactoring(String search) {
-    int offset = findOffset(search);
-    refactoring = new InlineMethodRefactoring(
-        searchEngine, astProvider, testUnit, offset);
+    var offset = findOffset(search);
+    refactoring = InlineMethodRefactoring(
+      searchEngine,
+      testAnalysisResult,
+      offset,
+    );
   }
 }

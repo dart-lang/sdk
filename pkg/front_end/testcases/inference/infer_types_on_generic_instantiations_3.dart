@@ -11,8 +11,8 @@ class A<T> {
 }
 
 class B implements A<int> {
-  get /*@topType=int*/ x => 3;
-  get /*@topType=int*/ w => /*error:RETURN_OF_INVALID_TYPE*/ "hello";
+  get x => 3;
+  get w => /*error:RETURN_OF_INVALID_TYPE*/ "hello";
 }
 
 foo() {
@@ -20,6 +20,4 @@ foo() {
   int z = new B(). /*@target=B::x*/ x;
 }
 
-main() {
-  foo();
-}
+main() {}

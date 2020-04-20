@@ -7,8 +7,8 @@ library test;
 
 import 'dart:async';
 
-main() {
-  var /*@type=() -> Stream<num>*/ f = /*@returnType=Stream<num>*/ () async* {
+test() {
+  var /*@ type=() ->* Stream<num*>* */ f = /*@ returnType=Stream<num*>* */ () async* {
     yield 1;
     Stream<double> s;
     yield* s;
@@ -16,3 +16,5 @@ main() {
   Stream<num> g = f();
   Stream<int> h = /*info:ASSIGNMENT_CAST*/ f();
 }
+
+main() {}

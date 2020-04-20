@@ -1,0 +1,48 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/late_lowering/compound.dart:20:3: Error: Non-nullable late variable 'local' without initializer is definitely unassigned.
+//   local += 0;
+//   ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method main() → dynamic {
+  core::int? local1;
+  function #local1#get() → core::int
+    return let final core::int? #t1 = local1 in #t1.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Local 'local1' has not been initialized.") : #t1{core::int};
+  function #local1#set(core::int #t2) → dynamic
+    return local1 = #t2;
+  #local1#set.call(0);
+  self::expect(0, #local1#get.call());
+  #local1#set.call(#local1#get.call().{core::num::+}(2));
+  self::expect(2, #local1#get.call());
+  core::int? local2;
+  function #local2#get() → core::int
+    return let final core::int? #t3 = local2 in #t3.==(null) ?{core::int} local2 = 1 : #t3{core::int};
+  function #local2#set(core::int #t4) → dynamic
+    return local2 = #t4;
+  self::expect(1, #local2#get.call());
+  #local2#set.call(#local2#get.call().{core::num::+}(2));
+  self::expect(3, #local2#get.call());
+}
+static method error() → dynamic {
+  final core::int? local;
+  function #local#get() → core::int
+    return let final core::int? #t5 = local in #t5.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Local 'local' has not been initialized.") : #t5{core::int};
+  function #local#set(core::int #t6) → dynamic
+    if(local.==(null))
+      return local = #t6;
+    else
+      throw new _in::LateInitializationErrorImpl::•("Local 'local' has already been initialized.");
+  #local#set.call((let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/late_lowering/compound.dart:20:3: Error: Non-nullable late variable 'local' without initializer is definitely unassigned.
+  local += 0;
+  ^^^^^" in #local#get.call()).{core::num::+}(0));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}

@@ -1,8 +1,24 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This library re-exports front_end's timestamped_data.dart, since its API is
-// stable enough to be relied upon by clients.
+/**
+ * Analysis data for which we have a modification time.
+ */
+class TimestampedData<E> {
+  /**
+   * The modification time of the source from which the data was created.
+   */
+  final int modificationTime;
 
-export 'package:front_end/src/base/timestamped_data.dart' show TimestampedData;
+  /**
+   * The data that was created from the source.
+   */
+  final E data;
+
+  /**
+   * Initialize a newly created holder to associate the given [data] with the
+   * given [modificationTime].
+   */
+  TimestampedData(this.modificationTime, this.data);
+}

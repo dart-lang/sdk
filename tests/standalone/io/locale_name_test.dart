@@ -14,5 +14,4 @@ main() {
   }
   Expect.isNotNull(Platform.localeName);
   Expect.isTrue(Platform.localeName is String);
-  print(Platform.localeName);
 }

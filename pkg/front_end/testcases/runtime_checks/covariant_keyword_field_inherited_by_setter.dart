@@ -10,12 +10,12 @@ class C {
 }
 
 class D implements C {
-  covariant int /*@covariance=explicit*/ x;
+  covariant int x;
 }
 
 class E implements D {
   int get x => 0;
-  void set x(int /*@covariance=explicit*/ value) {}
+  void set x(int value) {}
 }
 
 main() {}

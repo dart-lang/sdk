@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.core;
 
 /**
@@ -11,9 +13,10 @@ part of dart.core;
  * It is a compile-time error for a class to attempt to extend or implement
  * Null.
  */
+@pragma("vm:entry-point")
 class Null {
   factory Null._uninstantiable() {
-    throw new UnsupportedError('class Null cannot be instantiated');
+    throw UnsupportedError('class Null cannot be instantiated');
   }
 
   external int get hashCode;

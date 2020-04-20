@@ -6,7 +6,7 @@ library testing.analyze;
 
 import 'dart:async' show Stream, Future;
 
-import 'dart:convert' show LineSplitter, UTF8;
+import 'dart:convert' show LineSplitter, utf8;
 
 import 'dart:io'
     show Directory, File, FileSystemEntity, Platform, Process, ProcessResult;
@@ -46,18 +46,23 @@ class Analyze extends Suite {
     String optionsPath = json["options"];
     Uri optionsUri = optionsPath == null ? null : base.resolve(optionsPath);
 
-    List<Uri> uris = new List<Uri>.from(
-        json["uris"].map((String relative) => base.resolve(relative)));
+    List<Uri> uris = json["uris"].map<Uri>((relative) {
+      String r = relative;
+      return base.resolve(r);
+    }).toList();
 
     List<RegExp> exclude =
-        new List<RegExp>.from(json["exclude"].map((String p) => new RegExp(p)));
+        json["exclude"].map<RegExp>((p) => new RegExp(p)).toList();
 
     Map gitGrep = json["git grep"];
     List<String> gitGrepPathspecs;
     List<String> gitGrepPatterns;
     if (gitGrep != null) {
-      gitGrepPathspecs = gitGrep["pathspecs"] ?? const <String>["."];
-      gitGrepPatterns = gitGrep["patterns"];
+      gitGrepPathspecs = gitGrep["pathspecs"] == null
+          ? const <String>["."]
+          : new List<String>.from(gitGrep["pathspecs"]);
+      if (gitGrep["patterns"] != null)
+        gitGrepPatterns = new List<String>.from(gitGrep["patterns"]);
     }
 
     return new Analyze(
@@ -132,15 +137,15 @@ class AnalyzerDiagnostic {
     return kind == null
         ? "Malformed output from dartanalyzer:\n$message"
         : "${uri.toFilePath()}:$line:$startColumn: "
-        "${kind == 'INFO' ? 'warning: hint' : kind.toLowerCase()}:\n"
-        "[$code] $message";
+            "${kind == 'INFO' ? 'warning: hint' : kind.toLowerCase()}:\n"
+            "[$code] $message";
   }
 }
 
 Stream<AnalyzerDiagnostic> parseAnalyzerOutput(
     Stream<List<int>> stream) async* {
   Stream<String> lines =
-      stream.transform(UTF8.decoder).transform(new LineSplitter());
+      stream.transform(utf8.decoder).transform(new LineSplitter());
   await for (String line in lines) {
     if (line.startsWith(">>> ")) continue;
     yield new AnalyzerDiagnostic.fromLine(line);
@@ -164,10 +169,18 @@ Future<Null> analyzeUris(
   } catch (e) {
     topLevel = Uri.base.toFilePath(windows: false);
   }
+  if (Platform.isWindows) {
+    // We need lowercase comparison on Windows to match C:/path with c:/path
+    topLevel = topLevel.toLowerCase();
+  }
 
   String toFilePath(Uri uri) {
     String path = uri.toFilePath(windows: false);
-    return path.startsWith(topLevel) ? path.substring(topLevel.length) : path;
+    return (Platform.isWindows
+            ? path.toLowerCase().startsWith(topLevel)
+            : path.startsWith(topLevel))
+        ? path.substring(topLevel.length)
+        : path;
   }
 
   Set<String> filesToAnalyze = new Set<String>();

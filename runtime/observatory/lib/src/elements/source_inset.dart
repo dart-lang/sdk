@@ -11,10 +11,10 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/script_inset.dart';
 
-class SourceInsetElement extends HtmlElement implements Renderable {
+class SourceInsetElement extends CustomElement implements Renderable {
   static const tag = const Tag<SourceInsetElement>('source-inset');
 
-  RenderingScheduler _r;
+  RenderingScheduler<SourceInsetElement> _r;
 
   Stream<RenderedEvent<SourceInsetElement>> get onRendered => _r.onRendered;
 
@@ -47,8 +47,8 @@ class SourceInsetElement extends HtmlElement implements Renderable {
     assert(events != null);
     assert(inDebuggerContext != null);
     assert(variables != null);
-    SourceInsetElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    SourceInsetElement e = new SourceInsetElement.created();
+    e._r = new RenderingScheduler<SourceInsetElement>(e, queue: queue);
     e._isolate = isolate;
     e._location = location;
     e._scripts = scripts;
@@ -60,7 +60,7 @@ class SourceInsetElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  SourceInsetElement.created() : super.created();
+  SourceInsetElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -71,20 +71,21 @@ class SourceInsetElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new ScriptInsetElement(
-          _isolate, _location.script, _scripts, _objects, _events,
-          startPos: _location.tokenPos,
-          endPos: _location.endTokenPos,
-          currentPos: _currentPos,
-          inDebuggerContext: _inDebuggerContext,
-          variables: _variables,
-          queue: _r.queue)
+              _isolate, _location.script, _scripts, _objects, _events,
+              startPos: _location.tokenPos,
+              endPos: _location.endTokenPos,
+              currentPos: _currentPos,
+              inDebuggerContext: _inDebuggerContext,
+              variables: _variables,
+              queue: _r.queue)
+          .element
     ];
   }
 }

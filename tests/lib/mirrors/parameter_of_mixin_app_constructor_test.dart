@@ -4,7 +4,6 @@
 
 library test.parameter_of_mixin_app_constructor;
 
-@MirrorsUsed(targets: "test.parameter_of_mixin_app_constructor")
 import 'dart:mirrors';
 import 'stringify.dart';
 
@@ -51,13 +50,13 @@ main() {
       '[Parameter(s(map) in s(test.parameter_of_mixin_app_constructor.MapView'
       ' with test.parameter_of_mixin_app_constructor.UnmodifiableMapMixin),'
       ' final, type = Type(s(dynamic), top-level))]',
-      soleConstructorOf(umv1.superclass).parameters);
+      soleConstructorOf(umv1.superclass!).parameters);
   expect(
       '[Parameter(s(map) in s(MapView),'
       ' type = Type(s(dynamic), top-level))]',
-      soleConstructorOf(umv1.superclass.superclass).parameters);
+      soleConstructorOf(umv1.superclass!.superclass!).parameters);
   expect('[]',
-      soleConstructorOf(umv1.superclass.superclass.superclass).parameters);
+      soleConstructorOf(umv1.superclass!.superclass!.superclass!).parameters);
 
   ClassMirror umv2 = reflectClass(UnmodifiableMapView2);
   expect(
@@ -67,8 +66,8 @@ main() {
   expect(
       '[Parameter(s(map) in s(MapView),'
       ' type = Type(s(dynamic), top-level))]',
-      soleConstructorOf(umv2.superclass).parameters);
-  expect('[]', soleConstructorOf(umv2.superclass.superclass).parameters);
+      soleConstructorOf(umv2.superclass!).parameters);
+  expect('[]', soleConstructorOf(umv2.superclass!.superclass!).parameters);
 
   ClassMirror mp = reflectClass(MorePlumbing);
   expect(
@@ -86,7 +85,7 @@ main() {
       ' with test.parameter_of_mixin_app_constructor.M1,'
       ' test.parameter_of_mixin_app_constructor.M2),'
       ' final, type = Type(s(dynamic), top-level))]',
-      soleConstructorOf(mp.superclass).parameters);
+      soleConstructorOf(mp.superclass!).parameters);
   expect(
       '[Parameter(s(p1) in s(test.parameter_of_mixin_app_constructor.S'
       ' with test.parameter_of_mixin_app_constructor.M1),'
@@ -94,15 +93,15 @@ main() {
       ' Parameter(s(p2) in s(test.parameter_of_mixin_app_constructor.S'
       ' with test.parameter_of_mixin_app_constructor.M1),'
       ' final, type = Type(s(dynamic), top-level))]',
-      soleConstructorOf(mp.superclass.superclass).parameters);
+      soleConstructorOf(mp.superclass!.superclass!).parameters);
   expect(
       '[Parameter(s(p1) in s(S),'
       ' type = Class(s(int) in s(dart.core), top-level)),'
       ' Parameter(s(p2) in s(S),'
       ' type = Class(s(String) in s(dart.core), top-level))]',
-      soleConstructorOf(mp.superclass.superclass.superclass).parameters);
+      soleConstructorOf(mp.superclass!.superclass!.superclass!).parameters);
   expect(
       '[]',
-      soleConstructorOf(mp.superclass.superclass.superclass.superclass)
+      soleConstructorOf(mp.superclass!.superclass!.superclass!.superclass!)
           .parameters);
 }

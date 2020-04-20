@@ -1,0 +1,19 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/bug32414a.dart:10:7: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//   b = 42;
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test() → void {
+  dynamic a = 5;
+  core::String* b = a.{core::Object::toString}();
+  b = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/bug32414a.dart:10:7: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+  b = 42;
+      ^" in 42 as{TypeError} core::String*;
+}
+static method main() → void {}

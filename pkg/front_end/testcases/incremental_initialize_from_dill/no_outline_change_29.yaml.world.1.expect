@@ -1,0 +1,145 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  class C extends dart.core::Object {
+    field dart.core::int? _#C#field5 = null;
+    field dart.core::bool _#C#field5#isSet = false;
+    field dart.core::int? _#C#field6 = null;
+    field dart.core::bool _#C#field6#isSet = false;
+    field dart.core::int? _#C#field7 = null;
+    field dart.core::bool _#C#field7#isSet = false;
+    field dart.core::int? _#C#field8 = null;
+    field dart.core::bool _#C#field8#isSet = false;
+    static field dart.core::int? _#field9 = null;
+    static field dart.core::bool _#field9#isSet = false;
+    static field dart.core::int? _#field10 = null;
+    static field dart.core::bool _#field10#isSet = false;
+    static field dart.core::int? _#field11 = null;
+    static field dart.core::bool _#field11#isSet = false;
+    static field dart.core::int? _#field12 = null;
+    static field dart.core::bool _#field12#isSet = false;
+    synthetic constructor •() → main::C
+      : super dart.core::Object::•()
+      ;
+    get field5() → dart.core::int? {
+      if(!this.{main::C::_#C#field5#isSet}) {
+        this.{main::C::_#C#field5#isSet} = true;
+        this.{main::C::_#C#field5} = 42;
+      }
+      return this.{main::C::_#C#field5};
+    }
+    set field5(dart.core::int? #t1) → void {
+      this.{main::C::_#C#field5#isSet} = true;
+      this.{main::C::_#C#field5} = #t1;
+    }
+    get field6() → dart.core::int?
+      return this.{main::C::_#C#field6#isSet} ?{dart.core::int?} this.{main::C::_#C#field6} : throw new dart._internal::LateInitializationErrorImpl::•("Field 'field6' has not been initialized.");
+    set field6(dart.core::int? #t2) → void {
+      this.{main::C::_#C#field6#isSet} = true;
+      this.{main::C::_#C#field6} = #t2;
+    }
+    get field7() → dart.core::int? {
+      if(!this.{main::C::_#C#field7#isSet}) {
+        final dart.core::int? #t3 = 42;
+        if(this.{main::C::_#C#field7#isSet})
+          throw new dart._internal::LateInitializationErrorImpl::•("Field 'field7' has been assigned during initialization.");
+        this.{main::C::_#C#field7#isSet} = true;
+        this.{main::C::_#C#field7} = #t3;
+      }
+      return this.{main::C::_#C#field7};
+    }
+    get field8() → dart.core::int?
+      return this.{main::C::_#C#field8#isSet} ?{dart.core::int?} this.{main::C::_#C#field8} : throw new dart._internal::LateInitializationErrorImpl::•("Field 'field8' has not been initialized.");
+    set field8(dart.core::int? #t4) → void
+      if(this.{main::C::_#C#field8#isSet})
+        throw new dart._internal::LateInitializationErrorImpl::•("Field 'field8' has already been initialized.");
+      else {
+        this.{main::C::_#C#field8#isSet} = true;
+        this.{main::C::_#C#field8} = #t4;
+      }
+    static get field9() → dart.core::int? {
+      if(!main::C::_#field9#isSet) {
+        main::C::_#field9#isSet = true;
+        main::C::_#field9 = 42;
+      }
+      return main::C::_#field9;
+    }
+    static set field9(dart.core::int? #t5) → void {
+      main::C::_#field9#isSet = true;
+      main::C::_#field9 = #t5;
+    }
+    static get field10() → dart.core::int?
+      return main::C::_#field10#isSet ?{dart.core::int?} main::C::_#field10 : throw new dart._internal::LateInitializationErrorImpl::•("Field 'field10' has not been initialized.");
+    static set field10(dart.core::int? #t6) → void {
+      main::C::_#field10#isSet = true;
+      main::C::_#field10 = #t6;
+    }
+    static get field11() → dart.core::int? {
+      if(!main::C::_#field11#isSet) {
+        final dart.core::int? #t7 = 42;
+        if(main::C::_#field11#isSet)
+          throw new dart._internal::LateInitializationErrorImpl::•("Field 'field11' has been assigned during initialization.");
+        main::C::_#field11#isSet = true;
+        main::C::_#field11 = #t7;
+      }
+      return main::C::_#field11;
+    }
+    static get field12() → dart.core::int?
+      return main::C::_#field12#isSet ?{dart.core::int?} main::C::_#field12 : throw new dart._internal::LateInitializationErrorImpl::•("Field 'field12' has not been initialized.");
+    static set field12(dart.core::int? #t8) → void
+      if(main::C::_#field12#isSet)
+        throw new dart._internal::LateInitializationErrorImpl::•("Field 'field12' has already been initialized.");
+      else {
+        main::C::_#field12#isSet = true;
+        main::C::_#field12 = #t8;
+      }
+  }
+  static field dart.core::int? _#field1 = null;
+  static field dart.core::bool _#field1#isSet = false;
+  static field dart.core::int? _#field2 = null;
+  static field dart.core::bool _#field2#isSet = false;
+  static field dart.core::int? _#field3 = null;
+  static field dart.core::bool _#field3#isSet = false;
+  static field dart.core::int? _#field4 = null;
+  static field dart.core::bool _#field4#isSet = false;
+  static get field1() → dart.core::int? {
+    if(!main::_#field1#isSet) {
+      main::_#field1#isSet = true;
+      main::_#field1 = 42;
+    }
+    return main::_#field1;
+  }
+  static set field1(dart.core::int? #t9) → void {
+    main::_#field1#isSet = true;
+    main::_#field1 = #t9;
+  }
+  static get field2() → dart.core::int?
+    return main::_#field2#isSet ?{dart.core::int?} main::_#field2 : throw new dart._internal::LateInitializationErrorImpl::•("Field 'field2' has not been initialized.");
+  static set field2(dart.core::int? #t10) → void {
+    main::_#field2#isSet = true;
+    main::_#field2 = #t10;
+  }
+  static get field3() → dart.core::int? {
+    if(!main::_#field3#isSet) {
+      final dart.core::int? #t11 = 42;
+      if(main::_#field3#isSet)
+        throw new dart._internal::LateInitializationErrorImpl::•("Field 'field3' has been assigned during initialization.");
+      main::_#field3#isSet = true;
+      main::_#field3 = #t11;
+    }
+    return main::_#field3;
+  }
+  static get field4() → dart.core::int?
+    return main::_#field4#isSet ?{dart.core::int?} main::_#field4 : throw new dart._internal::LateInitializationErrorImpl::•("Field 'field4' has not been initialized.");
+  static set field4(dart.core::int? #t12) → void
+    if(main::_#field4#isSet)
+      throw new dart._internal::LateInitializationErrorImpl::•("Field 'field4' has already been initialized.");
+    else {
+      main::_#field4#isSet = true;
+      main::_#field4 = #t12;
+    }
+  static method main() → dynamic {
+    main::field1 = 43;
+    main::field2 = 42;
+  }
+}

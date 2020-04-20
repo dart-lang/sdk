@@ -8,7 +8,6 @@
 #include "vm/debugger.h"
 
 #include "vm/code_patcher.h"
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/cpu.h"
 #include "vm/instructions.h"
 #include "vm/stub_code.h"
@@ -26,11 +25,13 @@ void CodeBreakpoint::PatchCode() {
   Code& stub_target = Code::Handle();
   switch (breakpoint_kind_) {
     case RawPcDescriptors::kIcCall:
+      stub_target = StubCode::ICCallBreakpoint().raw();
+      break;
     case RawPcDescriptors::kUnoptStaticCall:
-      stub_target = StubCode::ICCallBreakpoint_entry()->code();
+      stub_target = StubCode::UnoptStaticCallBreakpoint().raw();
       break;
     case RawPcDescriptors::kRuntimeCall:
-      stub_target = StubCode::RuntimeCallBreakpoint_entry()->code();
+      stub_target = StubCode::RuntimeCallBreakpoint().raw();
       break;
     default:
       UNREACHABLE();

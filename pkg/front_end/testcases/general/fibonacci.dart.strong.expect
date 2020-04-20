@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method fibonacci(core::int* n) → core::int* {
+  if(n.{core::num::<}(2))
+    return n;
+  return self::fibonacci(n.{core::num::-}(1)).{core::num::+}(self::fibonacci(n.{core::num::-}(2)));
+}
+static method main() → dynamic {
+  for (core::int* i = 0; i.{core::num::<}(20); i = i.{core::num::+}(1)) {
+    core::print(self::fibonacci(i));
+  }
+}

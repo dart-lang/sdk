@@ -73,7 +73,7 @@ int VMHandles::ZoneHandleCount() {
 }
 
 void HandleScope::Initialize() {
-  ASSERT(thread()->no_handle_scope_depth() == 0);
+  ASSERT(thread()->MayAllocateHandles());
   VMHandles* handles = thread()->zone()->handles();
   ASSERT(handles != NULL);
   saved_handle_block_ = handles->scoped_blocks_;
@@ -84,7 +84,7 @@ void HandleScope::Initialize() {
 #endif
 }
 
-HandleScope::HandleScope(Thread* thread) : StackResource(thread) {
+HandleScope::HandleScope(ThreadState* thread) : StackResource(thread) {
   Initialize();
 }
 
@@ -101,15 +101,5 @@ HandleScope::~HandleScope() {
   thread()->set_top_handle_scope(link_);
 #endif
 }
-
-#if defined(DEBUG)
-NoHandleScope::NoHandleScope(Thread* thread) : StackResource(thread) {
-  thread->IncrementNoHandleScopeDepth();
-}
-
-NoHandleScope::~NoHandleScope() {
-  thread()->DecrementNoHandleScopeDepth();
-}
-#endif  // defined(DEBUG)
 
 }  // namespace dart

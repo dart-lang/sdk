@@ -3,8 +3,4 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # This file contains all sources for the dart:isolate library.
-isolate_runtime_sources = [
-  "isolate_patch.dart",
-  "isolate.cc",
-  "timer_impl.dart",
-]
+isolate_runtime_cc_files = [ "isolate.cc" ]

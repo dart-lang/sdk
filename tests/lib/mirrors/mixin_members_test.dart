@@ -4,7 +4,6 @@
 
 library mixin_members_test;
 
-@MirrorsUsed(targets: "mixin_members_test")
 import "dart:mirrors";
 
 import "package:expect/expect.dart";
@@ -33,7 +32,7 @@ class M2 {
 class C extends S with M1, M2 {}
 
 membersOf(ClassMirror cm) {
-  var result = new Map();
+  var result = new Map<Symbol, dynamic>();
   cm.declarations.forEach((k, v) {
     if (v is MethodMirror && !v.isConstructor) result[k] = v;
     if (v is VariableMirror) result[k] = v;
@@ -43,9 +42,9 @@ membersOf(ClassMirror cm) {
 
 main() {
   ClassMirror cm = reflectClass(C);
-  ClassMirror sM1M2 = cm.superclass;
-  ClassMirror sM1 = sM1M2.superclass;
-  ClassMirror s = sM1.superclass;
+  ClassMirror sM1M2 = cm.superclass!;
+  ClassMirror sM1 = sM1M2.superclass!;
+  ClassMirror s = sM1.superclass!;
   expect('{}', membersOf(cm));
   expect(
       '[s(baz1), s(baz2)]',

@@ -3,24 +3,29 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/backend/il.h"
+
+#include <vector>
+
+#include "vm/compiler/backend/il_test_helper.h"
 #include "vm/unit_test.h"
 
 namespace dart {
 
-TEST_CASE(InstructionTests) {
-  TargetEntryInstr* target_instr = new TargetEntryInstr(
-      1, CatchClauseNode::kInvalidTryIndex, Thread::kNoDeoptId);
+ISOLATE_UNIT_TEST_CASE(InstructionTests) {
+  TargetEntryInstr* target_instr =
+      new TargetEntryInstr(1, kInvalidTryIndex, DeoptId::kNone);
   EXPECT(target_instr->IsBlockEntry());
   EXPECT(!target_instr->IsDefinition());
   SpecialParameterInstr* context = new SpecialParameterInstr(
-      SpecialParameterInstr::kContext, Thread::kNoDeoptId);
+      SpecialParameterInstr::kContext, DeoptId::kNone, target_instr);
   EXPECT(context->IsDefinition());
   EXPECT(!context->IsBlockEntry());
+  EXPECT(context->GetBlock() == target_instr);
 }
 
-TEST_CASE(OptimizationTests) {
-  JoinEntryInstr* join = new JoinEntryInstr(
-      1, CatchClauseNode::kInvalidTryIndex, Thread::kNoDeoptId);
+ISOLATE_UNIT_TEST_CASE(OptimizationTests) {
+  JoinEntryInstr* join =
+      new JoinEntryInstr(1, kInvalidTryIndex, DeoptId::kNone);
 
   Definition* def1 = new PhiInstr(join, 0);
   Definition* def2 = new PhiInstr(join, 0);
@@ -37,6 +42,159 @@ TEST_CASE(OptimizationTests) {
   ConstantInstr* c4 = new ConstantInstr(Object::ZoneHandle());
   EXPECT(c3->Equals(c4));
   EXPECT(!c3->Equals(c1));
+}
+
+ISOLATE_UNIT_TEST_CASE(IRTest_EliminateWriteBarrier) {
+  const char* kScript =
+      R"(
+      class Container<T> {
+        operator []=(var index, var value) {
+          return data[index] = value;
+        }
+
+        List<T> data = new List<T>()..length = 10;
+      }
+
+      Container<int> x = new Container<int>();
+
+      foo() {
+        for (int i = 0; i < 10; ++i) {
+          x[i] = i;
+        }
+      }
+    )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+
+  Invoke(root_library, "foo");
+
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  StoreIndexedInstr* store_indexed = nullptr;
+
+  ILMatcher cursor(flow_graph, entry, true);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      kMatchAndMoveBranchTrue,
+      kMoveGlob,
+      {kMatchStoreIndexed, &store_indexed},
+  }));
+
+  EXPECT(!store_indexed->value()->NeedsWriteBarrier());
+}
+
+static void ExpectStores(FlowGraph* flow_graph,
+                         const std::vector<const char*>& expected_stores) {
+  size_t next_expected_store = 0;
+  for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
+         it.Advance()) {
+      if (auto store = it.Current()->AsStoreInstanceField()) {
+        EXPECT_LT(next_expected_store, expected_stores.size());
+        EXPECT_STREQ(expected_stores[next_expected_store],
+                     store->slot().Name());
+        next_expected_store++;
+      }
+    }
+  }
+}
+
+static void RunInitializingStoresTest(
+    const Library& root_library,
+    const char* function_name,
+    CompilerPass::PipelineMode mode,
+    const std::vector<const char*>& expected_stores) {
+  const auto& function =
+      Function::Handle(GetFunction(root_library, function_name));
+  TestPipeline pipeline(function, mode);
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kApplyICData,
+      CompilerPass::kInlining,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kSelectRepresentations,
+      CompilerPass::kCanonicalize,
+      CompilerPass::kConstantPropagation,
+  });
+  ASSERT(flow_graph != nullptr);
+  ExpectStores(flow_graph, expected_stores);
+}
+
+ISOLATE_UNIT_TEST_CASE(IRTest_InitializingStores) {
+  const char* kScript = R"(
+    class Bar {
+      var f;
+      var g;
+
+      Bar({this.f, this.g});
+    }
+    Bar f1() => Bar(f: 10);
+    Bar f2() => Bar(g: 10);
+    f3() {
+      return () { };
+    }
+    f4<T>({T value}) {
+      return () { return value; };
+    }
+    main() {
+      f1();
+      f2();
+      f3();
+      f4();
+    }
+  )";
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  Invoke(root_library, "main");
+
+  RunInitializingStoresTest(root_library, "f1", CompilerPass::kJIT,
+                            /*expected_stores=*/{"f"});
+  RunInitializingStoresTest(root_library, "f2", CompilerPass::kJIT,
+                            /*expected_stores=*/{"g"});
+  RunInitializingStoresTest(root_library, "f3", CompilerPass::kJIT,
+                            /*expected_stores=*/
+                            {"Closure.function"});
+
+  // Note that in JIT mode we lower context allocation in a way that hinders
+  // removal of initializing moves so there would be some redundant stores of
+  // null left in the graph. In AOT mode we don't apply this optimization
+  // which enables us to remove more stores.
+  std::vector<const char*> expected_stores_jit;
+  std::vector<const char*> expected_stores_aot;
+  if (root_library.is_declared_in_bytecode()) {
+    // Bytecode flow graph builder doesn't provide readable
+    // variable names for captured variables. Also, bytecode may omit
+    // stores of context parent in certain cases.
+    expected_stores_jit.insert(
+        expected_stores_jit.end(),
+        {":context_var0", "Context.parent", ":context_var0",
+         "Closure.function_type_arguments", "Closure.function",
+         "Closure.context"});
+    expected_stores_aot.insert(
+        expected_stores_aot.end(),
+        {":context_var0", "Closure.function_type_arguments", "Closure.function",
+         "Closure.context"});
+  } else {
+    // These expectations are for AST-based flow graph builder.
+    expected_stores_jit.insert(expected_stores_jit.end(),
+                               {"value", "Context.parent", "Context.parent",
+                                "value", "Closure.function_type_arguments",
+                                "Closure.function", "Closure.context"});
+    expected_stores_aot.insert(expected_stores_aot.end(),
+                               {"value", "Closure.function_type_arguments",
+                                "Closure.function", "Closure.context"});
+  }
+
+  RunInitializingStoresTest(root_library, "f4", CompilerPass::kJIT,
+                            expected_stores_jit);
+  RunInitializingStoresTest(root_library, "f4", CompilerPass::kAOT,
+                            expected_stores_aot);
 }
 
 }  // namespace dart

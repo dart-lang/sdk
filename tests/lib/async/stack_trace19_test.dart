@@ -17,11 +17,11 @@ StackTrace captureStackTrace() {
 main() {
   Completer completer = new Completer();
   StackTrace trace = captureStackTrace();
-  StackTrace whenCompleteStackTrace;
+  late StackTrace whenCompleteStackTrace;
   asyncStart();
   completer.future.whenComplete(() {
     throw "other_error";
-  }).then((_) {
+  }).then<Null>((_) {
     throw "should never be reached";
   }).catchError((e, st) {
     Expect.equals("other_error", e);

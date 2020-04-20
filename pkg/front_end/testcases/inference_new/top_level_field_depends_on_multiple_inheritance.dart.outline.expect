@@ -3,44 +3,45 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::A*
     ;
 }
 class B extends self::A {
-  default constructor •() → void
+  synthetic constructor •() → self::B*
     ;
 }
 class C extends self::B {
-  default constructor •() → void
+  synthetic constructor •() → self::C*
     ;
 }
 abstract class D extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::D*
     ;
-  abstract method foo() → self::A;
+  abstract method foo() → self::A*;
 }
 abstract class E extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::E*
     ;
-  abstract method foo() → self::B;
+  abstract method foo() → self::B*;
 }
 abstract class F extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::F*
     ;
-  abstract method foo() → core::Object;
+  abstract method foo() → core::Object*;
 }
 abstract class G extends core::Object implements self::D, self::E, self::F {
-  default constructor •() → void
+  synthetic constructor •() → self::G*
     ;
+  abstract forwarding-stub method foo() → self::B*;
 }
 class H extends self::G {
-  default constructor •() → void
+  synthetic constructor •() → self::H*
     ;
-  method foo() → self::C
+  method foo() → self::C*
     ;
 }
-static field dynamic x;
-static method bar() → self::G
+static field self::B* x;
+static method bar() → self::G*
   ;
 static method main() → dynamic
   ;

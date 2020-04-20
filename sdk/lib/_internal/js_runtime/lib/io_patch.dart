@@ -2,7 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 import 'dart:_js_helper' show patch;
+import 'dart:_internal' hide Symbol;
+import 'dart:async';
+import 'dart:convert';
+import 'dart:isolate';
+import 'dart:typed_data';
 
 @patch
 class _Directory {
@@ -12,12 +19,12 @@ class _Directory {
   }
 
   @patch
-  static _setCurrent(_Namespace namespace, path) {
+  static _setCurrent(_Namespace namespace, Uint8List path) {
     throw new UnsupportedError("Directory_SetCurrent");
   }
 
   @patch
-  static _createTemp(_Namespace namespace, String path) {
+  static _createTemp(_Namespace namespace, Uint8List path) {
     throw new UnsupportedError("Directory._createTemp");
   }
 
@@ -27,22 +34,22 @@ class _Directory {
   }
 
   @patch
-  static _exists(_Namespace namespace, String path) {
+  static _exists(_Namespace namespace, Uint8List path) {
     throw new UnsupportedError("Directory._exists");
   }
 
   @patch
-  static _create(_Namespace namespace, String path) {
+  static _create(_Namespace namespace, Uint8List path) {
     throw new UnsupportedError("Directory._create");
   }
 
   @patch
-  static _deleteNative(_Namespace namespace, String path, bool recursive) {
+  static _deleteNative(_Namespace namespace, Uint8List path, bool recursive) {
     throw new UnsupportedError("Directory._deleteNative");
   }
 
   @patch
-  static _rename(_Namespace namespace, String path, String newPath) {
+  static _rename(_Namespace namespace, Uint8List path, String newPath) {
     throw new UnsupportedError("Directory._rename");
   }
 
@@ -50,7 +57,7 @@ class _Directory {
   static void _fillWithDirectoryListing(
       _Namespace namespace,
       List<FileSystemEntity> list,
-      String path,
+      Uint8List path,
       bool recursive,
       bool followLinks) {
     throw new UnsupportedError("Directory._fillWithDirectoryListing");
@@ -84,7 +91,8 @@ class FileStat {
 @patch
 class FileSystemEntity {
   @patch
-  static _getTypeNative(_Namespace namespace, String path, bool followLinks) {
+  static _getTypeNative(
+      _Namespace namespace, Uint8List path, bool followLinks) {
     throw new UnsupportedError("FileSystemEntity._getType");
   }
 
@@ -94,7 +102,7 @@ class FileSystemEntity {
   }
 
   @patch
-  static _resolveSymbolicLinks(_Namespace namespace, String path) {
+  static _resolveSymbolicLinks(_Namespace namespace, Uint8List path) {
     throw new UnsupportedError("FileSystemEntity._resolveSymbolicLinks");
   }
 }
@@ -102,77 +110,77 @@ class FileSystemEntity {
 @patch
 class _File {
   @patch
-  static _exists(_Namespace namespace, String path) {
+  static _exists(_Namespace namespace, Uint8List path) {
     throw new UnsupportedError("File._exists");
   }
 
   @patch
-  static _create(_Namespace namespace, String path) {
+  static _create(_Namespace namespace, Uint8List path) {
     throw new UnsupportedError("File._create");
   }
 
   @patch
-  static _createLink(_Namespace namespace, String path, String target) {
+  static _createLink(_Namespace namespace, Uint8List path, String target) {
     throw new UnsupportedError("File._createLink");
   }
 
   @patch
-  static _linkTarget(_Namespace namespace, String path) {
+  static _linkTarget(_Namespace namespace, Uint8List path) {
     throw new UnsupportedError("File._linkTarget");
   }
 
   @patch
-  static _deleteNative(_Namespace namespace, String path) {
+  static _deleteNative(_Namespace namespace, Uint8List path) {
     throw new UnsupportedError("File._deleteNative");
   }
 
   @patch
-  static _deleteLinkNative(_Namespace namespace, String path) {
+  static _deleteLinkNative(_Namespace namespace, Uint8List path) {
     throw new UnsupportedError("File._deleteLinkNative");
   }
 
   @patch
-  static _rename(_Namespace namespace, String oldPath, String newPath) {
+  static _rename(_Namespace namespace, Uint8List oldPath, String newPath) {
     throw new UnsupportedError("File._rename");
   }
 
   @patch
-  static _renameLink(_Namespace namespace, String oldPath, String newPath) {
+  static _renameLink(_Namespace namespace, Uint8List oldPath, String newPath) {
     throw new UnsupportedError("File._renameLink");
   }
 
   @patch
-  static _copy(_Namespace namespace, String oldPath, String newPath) {
+  static _copy(_Namespace namespace, Uint8List oldPath, String newPath) {
     throw new UnsupportedError("File._copy");
   }
 
   @patch
-  static _lengthFromPath(_Namespace namespace, String path) {
+  static _lengthFromPath(_Namespace namespace, Uint8List path) {
     throw new UnsupportedError("File._lengthFromPath");
   }
 
   @patch
-  static _lastModified(_Namespace namespace, String path) {
+  static _lastModified(_Namespace namespace, Uint8List path) {
     throw new UnsupportedError("File._lastModified");
   }
 
   @patch
-  static _lastAccessed(_Namespace namespace, String path) {
+  static _lastAccessed(_Namespace namespace, Uint8List path) {
     throw new UnsupportedError("File._lastAccessed");
   }
 
   @patch
-  static _setLastModified(_Namespace namespace, String path, int millis) {
+  static _setLastModified(_Namespace namespace, Uint8List path, int millis) {
     throw new UnsupportedError("File._setLastModified");
   }
 
   @patch
-  static _setLastAccessed(_Namespace namespace, String path, int millis) {
+  static _setLastAccessed(_Namespace namespace, Uint8List path, int millis) {
     throw new UnsupportedError("File._setLastAccessed");
   }
 
   @patch
-  static _open(_Namespace namespace, String path, int mode) {
+  static _open(_Namespace namespace, Uint8List path, int mode) {
     throw new UnsupportedError("File._open");
   }
 
@@ -343,7 +351,7 @@ class Process {
       Map<String, String> environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      ProcessStartMode mode: ProcessStartMode.NORMAL}) {
+      ProcessStartMode mode: ProcessStartMode.normal}) {
     throw new UnsupportedError("Process.start");
   }
 
@@ -353,8 +361,8 @@ class Process {
       Map<String, String> environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      Encoding stdoutEncoding: SYSTEM_ENCODING,
-      Encoding stderrEncoding: SYSTEM_ENCODING}) {
+      Encoding stdoutEncoding: systemEncoding,
+      Encoding stderrEncoding: systemEncoding}) {
     throw new UnsupportedError("Process.run");
   }
 
@@ -364,13 +372,13 @@ class Process {
       Map<String, String> environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      Encoding stdoutEncoding: SYSTEM_ENCODING,
-      Encoding stderrEncoding: SYSTEM_ENCODING}) {
+      Encoding stdoutEncoding: systemEncoding,
+      Encoding stderrEncoding: systemEncoding}) {
     throw new UnsupportedError("Process.runSync");
   }
 
   @patch
-  static bool killPid(int pid, [ProcessSignal signal = ProcessSignal.SIGTERM]) {
+  static bool killPid(int pid, [ProcessSignal signal = ProcessSignal.sigterm]) {
     throw new UnsupportedError("Process.killPid");
   }
 }
@@ -398,12 +406,19 @@ class InternetAddress {
   }
 
   @patch
-  factory InternetAddress(String address) {
+  factory InternetAddress(String address, {InternetAddressType type}) {
     throw new UnsupportedError("InternetAddress");
   }
+
+  @patch
+  factory InternetAddress.fromRawAddress(Uint8List rawAddress,
+      {InternetAddressType type}) {
+    throw new UnsupportedError("InternetAddress.fromRawAddress");
+  }
+
   @patch
   static Future<List<InternetAddress>> lookup(String host,
-      {InternetAddressType type: InternetAddressType.ANY}) {
+      {InternetAddressType type: InternetAddressType.any}) {
     throw new UnsupportedError("InternetAddress.lookup");
   }
 
@@ -425,7 +440,7 @@ class NetworkInterface {
   static Future<List<NetworkInterface>> list(
       {bool includeLoopback: false,
       bool includeLinkLocal: false,
-      InternetAddressType type: InternetAddressType.ANY}) {
+      InternetAddressType type: InternetAddressType.any}) {
     throw new UnsupportedError("NetworkInterface.list");
   }
 }
@@ -442,7 +457,7 @@ class RawServerSocket {
 @patch
 class ServerSocket {
   @patch
-  static Future<ServerSocket> bind(address, int port,
+  static Future<ServerSocket> _bind(address, int port,
       {int backlog: 0, bool v6Only: false, bool shared: false}) {
     throw new UnsupportedError("ServerSocket.bind");
   }
@@ -455,13 +470,25 @@ class RawSocket {
       {sourceAddress, Duration timeout}) {
     throw new UnsupportedError("RawSocket constructor");
   }
+
+  @patch
+  static Future<ConnectionTask<RawSocket>> startConnect(host, int port,
+      {sourceAddress}) {
+    throw new UnsupportedError("RawSocket constructor");
+  }
 }
 
 @patch
 class Socket {
   @patch
-  static Future<Socket> connect(host, int port,
+  static Future<Socket> _connect(host, int port,
       {sourceAddress, Duration timeout}) {
+    throw new UnsupportedError("Socket constructor");
+  }
+
+  @patch
+  static Future<ConnectionTask<Socket>> _startConnect(host, int port,
+      {sourceAddress}) {
     throw new UnsupportedError("Socket constructor");
   }
 }
@@ -483,9 +510,17 @@ class RawSynchronousSocket {
 }
 
 @patch
+class RawSocketOption {
+  @patch
+  static int _getOptionValue(int key) {
+    throw UnsupportedError("RawSocketOption._getOptionValue");
+  }
+}
+
+@patch
 class SecurityContext {
   @patch
-  factory SecurityContext() {
+  factory SecurityContext({bool withTrustedRoots: false}) {
     throw new UnsupportedError("SecurityContext constructor");
   }
 
@@ -512,7 +547,7 @@ class X509Certificate {
 class RawDatagramSocket {
   @patch
   static Future<RawDatagramSocket> bind(host, int port,
-      {bool reuseAddress: true}) {
+      {bool reuseAddress: true, bool reusePort: false, int ttl: 1}) {
     throw new UnsupportedError("RawDatagramSocket.bind");
   }
 }
@@ -520,7 +555,7 @@ class RawDatagramSocket {
 @patch
 class _SecureFilter {
   @patch
-  factory _SecureFilter() {
+  factory _SecureFilter._() {
     throw new UnsupportedError("_SecureFilter._SecureFilter");
   }
 }
@@ -528,7 +563,7 @@ class _SecureFilter {
 @patch
 class _StdIOUtils {
   @patch
-  static Stdin _getStdioInputStream() {
+  static Stdin _getStdioInputStream(int fd) {
     throw new UnsupportedError("StdIOUtils._getStdioInputStream");
   }
 

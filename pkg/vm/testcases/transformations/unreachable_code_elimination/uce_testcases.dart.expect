@@ -1,0 +1,91 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class TestAssertInitializer extends core::Object {
+  constructor •() → self::TestAssertInitializer*
+    : super core::Object::•() {}
+}
+static const field core::bool* constTrue = #C1;
+static const field core::bool* constFalse = #C2;
+static const field core::bool* constTrue2 = #C1;
+static const field core::bool* constFalse2 = #C2;
+static method foo() → core::bool*
+  return null;
+static method testSimpleConditions() → void {
+  {
+    core::print("1_yes");
+  }
+  {
+    core::print("3_yes");
+  }
+}
+static method testAndConditions() → void {
+  if((#C1) && self::foo()) {
+    core::print("1_yes");
+  }
+}
+static method testOrConditions() → void {
+  {
+    core::print("1_yes");
+  }
+  if((#C2) || self::foo()) {
+    core::print("2_yes");
+  }
+  {
+    core::print("4_yes");
+  }
+}
+static method testNotConditions() → void {
+  {
+    core::print("2_yes");
+  }
+}
+static method testConditionalExpressions() → dynamic {
+  core::print("1_yes");
+  core::print("4_yes ${self::foo()}");
+}
+static method testAsserts() → void {}
+static method testRemovalOfStatementBodies() → dynamic {
+  if(self::foo()) {
+  }
+  while (self::foo()) {
+  }
+  do {
+  }
+  while (self::foo())
+  for (; ; ) {
+  }
+  {
+    core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[1, 2].{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      core::int* i = :sync-for-iterator.{core::Iterator::current};
+    }
+  }
+  {}
+  try {
+  }
+  on dynamic catch(final dynamic e) {
+  }
+  {}
+  switch(42) {
+    #L1:
+    case #C3:
+      {}
+  }
+  switch(42) {
+    #L2:
+    default:
+      {}
+  }
+}
+static method main(core::List<core::String*>* args) → dynamic {
+  self::testSimpleConditions();
+  self::testAndConditions();
+  self::testOrConditions();
+  self::testNotConditions();
+  self::testConditionalExpressions();
+  self::testAsserts();
+  new self::TestAssertInitializer::•();
+  self::testRemovalOfStatementBodies();
+}

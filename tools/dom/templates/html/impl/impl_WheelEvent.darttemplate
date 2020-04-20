@@ -7,12 +7,13 @@ part of $LIBRARYNAME;
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   factory WheelEvent(String type,
-      {Window view, num deltaX: 0, num deltaY: 0, num deltaZ: 0,
+      {Window$NULLABLE view, num deltaX: 0, num deltaY: 0, num deltaZ: 0,
       int deltaMode: 0,
       int detail: 0, int screenX: 0, int screenY: 0, int clientX: 0,
       int clientY: 0, int button: 0, bool canBubble: true,
       bool cancelable: true, bool ctrlKey: false, bool altKey: false,
-      bool shiftKey: false, bool metaKey: false, EventTarget relatedTarget}) {
+      bool shiftKey: false, bool metaKey: false,
+      EventTarget$NULLABLE relatedTarget}) {
 
     var options = {
       'view': view,
@@ -54,7 +55,6 @@ $!MEMBERS
    *
    * * [WheelEvent.deltaY](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaY) from the W3C.
    */
-  @DomName('WheelEvent.deltaY')
   num get deltaY {
     if (JS('bool', '#.deltaY !== undefined', this)) {
       // W3C WheelEvent
@@ -72,7 +72,6 @@ $!MEMBERS
    *
    * * [WheelEvent.deltaX](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaX) from the W3C.
    */
-  @DomName('WheelEvent.deltaX')
   num get deltaX {
     if (JS('bool', '#.deltaX !== undefined', this)) {
       // W3C WheelEvent
@@ -82,7 +81,6 @@ $!MEMBERS
         'deltaX is not supported');
   }
 
-  @DomName('WheelEvent.deltaMode')
   int get deltaMode {
     if (JS('bool', '!!(#.deltaMode)', this)) {
       return JS('int', '#.deltaMode', this);

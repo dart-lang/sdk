@@ -1,0 +1,52 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with no packages and two libraries and three parts.
+# Update the world to move usage of one part and stop importing the second
+# library. The still referenced (though moved) part should still exist in the
+# uri to sources, but the unreferenced library and parts should not.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "b.dart";
+        main() { b(); }
+      b.dart: |
+        library libFoo;
+        // The middle-part is the kept one.
+        part 'e.dart';
+        part 'c.dart';
+        part 'd.dart';
+        b() {
+          c();
+          d();
+          e();
+        }
+      c.dart: |
+        part of libFoo;
+        c() {}
+      d.dart: |
+        part of libFoo;
+        d() {}
+      e.dart: |
+        part of libFoo;
+        e() {}
+    expectedLibraryCount: 2
+  - entry: main.dart
+    worldType: updated
+    invalidate:
+      - main.dart
+    expectInitializeFromDill: false
+    sources:
+      main.dart: |
+        library libFoo;
+        part 'c.dart';
+        main() { c(); }
+    expectedLibraryCount: 1
+    uriToSourcesDoesntInclude:
+      - b.dart
+      - d.dart
+      - e.dart

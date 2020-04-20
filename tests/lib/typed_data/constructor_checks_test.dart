@@ -5,6 +5,8 @@
 import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
+/// Check that normal dynamic invariant enforcement applies for arguments,
+/// also with these constructors of built-in types.
 checkLengthConstructors() {
   check(creator) {
     Expect.throws(() => creator(null));

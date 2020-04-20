@@ -1,21 +1,20 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 import 'dart:io' show WebSocket;
-import 'dart:convert' show JSON;
-import 'dart:async' show Future, StreamController;
+import 'dart:convert' show jsonDecode, jsonEncode;
+import 'dart:async' show Future, Stream, StreamController;
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     VM vm = isolate.owner;
 
     final serviceEvents =
-        (await vm.getEventStream('_Service')).asBroadcastStream();
+        (await vm.getEventStream('Service')).asBroadcastStream();
 
     expect(vm.services, isEmpty,
         reason: 'No service should be registered at startup');
@@ -26,11 +25,16 @@ var tests = [
     final socket = new StreamController();
 
     // Avoid to manually encode and decode messages from the stream
-    socket.stream.map(JSON.encode).pipe(_socket);
-    final client = _socket.map(JSON.decode).asBroadcastStream();
+    Stream<String> stream = socket.stream.map(jsonEncode);
+    stream.cast<Object>().pipe(_socket);
+    dynamic _decoder(dynamic obj) {
+      return jsonDecode(obj);
+    }
+
+    final client = _socket.map(_decoder).asBroadcastStream();
 
     // Note: keep this in sync with sdk/lib/vmservice.dart
-    const kServiceAlreadyRegistered = 110;
+    const kServiceAlreadyRegistered = 111;
     const kServiceAlreadyRegistered_Msg = 'Service already registered';
 
     const serviceName = 'serviceName';
@@ -40,7 +44,7 @@ var tests = [
       // Registering first service
       socket.add({
         'jsonrpc': '2.0',
-        'method': '_registerService',
+        'method': 'registerService',
         'params': {'service': serviceName, 'alias': serviceAlias}
       });
 
@@ -57,7 +61,7 @@ var tests = [
       // Registering second service
       socket.add({
         'jsonrpc': '2.0',
-        'method': '_registerService',
+        'method': 'registerService',
         'params': {'service': serviceName + '2', 'alias': serviceAlias + '2'}
       });
 
@@ -75,7 +79,7 @@ var tests = [
       socket.add({
         'jsonrpc': '2.0',
         'id': 1,
-        'method': '_registerService',
+        'method': 'registerService',
         'params': {'service': serviceName, 'alias': serviceAlias}
       });
 
@@ -99,4 +103,8 @@ var tests = [
   },
 ];
 
-main(args) => runIsolateTests(args, tests);
+main(args) => runIsolateTests(
+      args, tests,
+      // TODO(bkonyi): service extensions are not yet supported in DDS.
+      enableDds: false,
+    );

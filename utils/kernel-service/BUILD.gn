@@ -2,17 +2,121 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../../build/dart/dart_action.gni")
+import("../../runtime/runtime_args.gni")
+import("../../sdk_args.gni")
 import("../application_snapshot.gni")
-import("../../build/dart_host_toolchain.gni")
+import("../create_timestamp.gni")
 
-application_snapshot("kernel-service") {
-  dfe_script = "kernel-service.dart"
-  deps = [
-    "../../runtime/vm:kernel_platform_files($dart_host_toolchain)",
-  ]
-  main_dart = dfe_script
+group("kernel-service") {
+  if (create_kernel_service_snapshot) {
+    deps = [ ":copy_kernel-service_snapshot" ]
+  } else {
+    deps = [ ":kernel_service_dill" ]
+  }
+}
+
+kernel_application_snapshot("kernel-service_snapshot") {
+  main_dart = "../../pkg/vm/bin/kernel_service.dart"
   training_args = [
     "--train",
-    "file://" + rebase_path("../../pkg/compiler/lib/src/dart2js.dart"),
+
+    # Force triple-slashes both on Windows and otherwise.
+    # Becomes e.g. file:///full/path/to/file and "file:///C:/full/path/to/file.
+    # Without the ', "/"' part, on Linux it would get four slashes.
+    "file:///" + rebase_path("../../pkg/compiler/lib/src/dart2js.dart", "/"),
   ]
+  if (dart_platform_bytecode) {
+    training_args += [ "--bytecode" ]
+  }
+  output = "$root_gen_dir/kernel-service.dart.snapshot"
+}
+
+copy("copy_kernel-service_snapshot") {
+  deps = [ ":kernel-service_snapshot" ]
+  sources = [ "$root_gen_dir/kernel-service.dart.snapshot" ]
+  outputs = [ "$root_out_dir/kernel-service.dart.snapshot" ]
+}
+
+create_timestamp_file("frontend_server_files_stamp") {
+  path = rebase_path("../../pkg/frontend_server/lib")
+  output = "$target_gen_dir/frontend_server_files.stamp"
+}
+
+create_timestamp_file("ddc_files_stamp") {
+  path = rebase_path("../../pkg/dev_compiler/lib")
+  output = "$target_gen_dir/ddc_files.stamp"
+}
+
+application_snapshot("frontend_server") {
+  main_dart = "../../pkg/frontend_server/bin/frontend_server_starter.dart"
+  deps = [
+    ":ddc_files_stamp",
+    ":frontend_server_files_stamp",
+    "../../runtime/vm:kernel_platform_files($host_toolchain)",
+  ]
+  sdk_root = rebase_path("$root_out_dir")
+  training_args = [
+    "--train",
+    "--sdk-root=$sdk_root/",
+    "--platform=$sdk_root/vm_platform_strong.dill",
+    rebase_path(main_dart),
+  ]
+  output = "$root_out_dir/frontend_server.dart.snapshot"
+}
+
+template("kernel_service_dill") {
+  prebuilt_dart_action("kernel_service" + target_name + "_dill") {
+    deps = [
+      "../../runtime/vm:kernel_platform_files($host_toolchain)",
+      "../../runtime/vm:vm_platform",
+    ]
+    kernel_service_script = "../../pkg/vm/bin/kernel_service.dart"
+    gen_kernel_script = "../../pkg/vm/bin/gen_kernel.dart"
+
+    inputs = [
+      gen_kernel_script,
+      kernel_service_script,
+      "$root_out_dir/vm_platform_strong.dill",
+    ]
+    output = "$root_gen_dir/kernel_service" + invoker.target_name + ".dill"
+    outputs = [ output ]
+
+    depfile = "$root_gen_dir/kernel_service" + invoker.target_name + "_dill.d"
+    abs_depfile = rebase_path(depfile)
+    rebased_output = rebase_path(output, root_build_dir)
+    vm_args = [
+      "--depfile=$abs_depfile",
+      "--depfile_output_filename=$rebased_output",
+    ]
+
+    script = gen_kernel_script
+    scheme = "org-dartlang-kernel-service"
+
+    args =
+        invoker.extra_args + [
+          "--packages=" + scheme + ":///.packages",
+          "--platform=" + rebase_path("$root_out_dir/vm_platform_strong.dill"),
+          "--filesystem-root=" + rebase_path("../../"),
+          "--filesystem-scheme=" + scheme,
+          "--no-aot",
+          "--no-embed-sources",
+          "--output=" + rebase_path(output),
+        ]
+    args += [ scheme + ":///pkg/vm/bin/kernel_service.dart" ]
+    if (dart_platform_bytecode) {
+      args += [
+        "--gen-bytecode",
+        "--drop-ast",
+      ]
+    }
+  }
+}
+
+kernel_service_dill("") {
+  extra_args = []
+}
+
+kernel_service_dill("_bytecode") {
+  extra_args = [ "--gen-bytecode" ]
 }

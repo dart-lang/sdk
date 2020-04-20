@@ -1,0 +1,35 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib1.dart" as lib1 {
+
+  class A<T extends dart.core::Object* = dynamic> extends dart.core::Object {
+    synthetic constructor •() → lib1::A<lib1::A::T*>*
+      : super dart.core::Object::•()
+      ;
+    method foo(generic-covariant-impl lib1::A::T* t) → dynamic {
+      dart.core::print("foo T ${t}");
+    }
+  }
+  class B extends dart.core::Object {
+    synthetic constructor •() → lib1::B*
+      : super dart.core::Object::•()
+      ;
+    method foo(dart.core::int* t) → dynamic {
+      dart.core::print("foo int ${t}");
+    }
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib1.dart";
+
+  abstract class C extends lib1::B implements lib1::A<dart.core::int*> {
+    synthetic constructor •() → main::C*
+      : super lib1::B::•()
+      ;
+    forwarding-stub method foo(generic-covariant-impl dart.core::int* t) → dynamic
+      return super.{lib1::B::foo}(t);
+  }
+  static method main() → dynamic {
+    dart.core::print("#1");
+  }
+}

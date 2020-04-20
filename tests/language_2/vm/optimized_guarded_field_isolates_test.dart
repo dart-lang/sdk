@@ -1,6 +1,9 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
 // VMOptions=--optimization_counter_threshold=100 --no-background_compilation
 
 // Test field type tracking and field list-length tracking in the presence of
@@ -22,8 +25,8 @@ class B extends A {
   var b;
 }
 
-f1(SendPort send_port) {
-  send_port.send(new B("foo", "bar"));
+f1(Object send_port) {
+  (send_port as SendPort).send(new B("foo", "bar"));
 }
 
 test_b(B obj) => obj.a + obj.b;
@@ -37,9 +40,9 @@ test_field_type() {
     test_b(b);
   }
   Expect.equals(3, test_b(b));
-  Future<B> item = receive_port.first;
-  item.then((B value) {
-    Expect.equals("foobar", test_b(value));
+  Future item = receive_port.first;
+  item.then((value) {
+    Expect.equals("foobar", test_b(value as B));
     receive_port.close();
     asyncEnd();
   });
@@ -50,8 +53,8 @@ class C {
   final List list;
 }
 
-f2(SendPort send_port) {
-  send_port.send(new C(new List(1)));
+f2(Object send_port) {
+  (send_port as SendPort).send(new C(new List(1)));
 }
 
 test_c(C obj) => obj.list[9999];
@@ -65,9 +68,9 @@ test_list_length() {
     test_c(c);
   }
   Expect.equals(null, test_c(c));
-  Future<C> item = receive_port.first;
-  item.then((C value) {
-    Expect.throwsRangeError(() => test_c(value));
+  Future item = receive_port.first;
+  item.then((value) {
+    Expect.throwsRangeError(() => test_c(value as C));
     receive_port.close();
     asyncEnd();
   });

@@ -6,21 +6,74 @@ library fasta.testing.suite;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show File, Platform;
+import 'dart:convert' show jsonDecode;
 
-import 'dart:convert' show JSON;
+import 'dart:io' show Directory, File, Platform;
 
-import 'package:front_end/physical_file_system.dart' show PhysicalFileSystem;
+import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
+
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show
+        CompilerOptions,
+        DiagnosticMessage,
+        parseExperimentalArguments,
+        parseExperimentalFlags;
+
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show CompilerOptions, DiagnosticMessage;
+
+import 'package:front_end/src/api_prototype/experimental_flags.dart'
+    show ExperimentalFlag, defaultExperimentalFlags;
+
+import 'package:front_end/src/api_prototype/standard_file_system.dart'
+    show StandardFileSystem;
 
 import 'package:front_end/src/base/libraries_specification.dart'
-    show TargetLibrariesSpecification;
+    show LibraryInfo;
 
-import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
-    show ValidatingInstrumentation;
+import 'package:front_end/src/base/processed_options.dart'
+    show ProcessedOptions;
 
-import 'package:front_end/src/fasta/uri_translator_impl.dart';
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
 
-import 'package:kernel/ast.dart' show Library, Program;
+import 'package:front_end/src/base/command_line_options.dart';
+
+import 'package:front_end/src/base/nnbd_mode.dart';
+
+import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
+
+import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
+
+import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart'
+    show ClassHierarchyNode;
+
+import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
+    show ClassHierarchyBuilder;
+
+import 'package:front_end/src/fasta/kernel/kernel_target.dart'
+    show KernelTarget;
+
+import 'package:front_end/src/fasta/ticker.dart' show Ticker;
+
+import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
+
+import 'package:kernel/ast.dart'
+    show AwaitExpression, Component, Library, Node, Visitor;
+
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
+import 'package:kernel/core_types.dart' show CoreTypes;
+
+import 'package:kernel/kernel.dart' show loadComponentFromBytes;
+
+import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
+
+import 'package:kernel/target/changed_structure_notifier.dart'
+    show ChangedStructureNotifier;
+
+import 'package:kernel/target/targets.dart'
+    show NoneTarget, Target, TargetFlags, DiagnosticReporter;
 
 import 'package:testing/testing.dart'
     show
@@ -33,142 +86,381 @@ import 'package:testing/testing.dart'
         TestDescription,
         StdioProcess;
 
-import 'package:front_end/compiler_options.dart' show CompilerOptions;
+import 'package:vm/target/vm.dart' show VmTarget;
 
-import 'package:front_end/src/base/processed_options.dart'
-    show ProcessedOptions;
+import '../../utils/kernel_chain.dart'
+    show
+        ComponentResult,
+        KernelTextSerialization,
+        MatchContext,
+        MatchExpectation,
+        Print,
+        TypeCheck,
+        Verify,
+        WriteDill;
 
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
-
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-
-import 'package:front_end/src/fasta/deprecated_problems.dart'
-    show deprecated_InputError;
-
-import 'package:front_end/src/fasta/testing/kernel_chain.dart'
-    show MatchExpectation, Print, TypeCheck, Verify, WriteDill;
-
-import 'package:front_end/src/fasta/ticker.dart' show Ticker;
-
-import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
-
-import 'package:analyzer/src/fasta/analyzer_target.dart' show AnalyzerTarget;
-
-import 'package:front_end/src/fasta/kernel/kernel_target.dart'
-    show KernelTarget;
-
-import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
-
-import 'package:kernel/kernel.dart' show loadProgramFromBytes;
-
-import 'package:kernel/target/targets.dart' show TargetFlags;
-
-import 'package:kernel/target/vm.dart' show VmTarget;
-
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
-import 'package:kernel/core_types.dart' show CoreTypes;
+import '../../utils/validating_instrumentation.dart'
+    show ValidatingInstrumentation;
 
 export 'package:testing/testing.dart' show Chain, runMe;
 
-const String STRONG_MODE = " strong mode ";
-
 const String ENABLE_FULL_COMPILE = " full compile ";
-
-const String AST_KIND_INDEX = " AST kind index ";
 
 const String EXPECTATIONS = '''
 [
   {
-    "name": "VerificationError",
+    "name": "ExpectationFileMismatch",
+    "group": "Fail"
+  },
+  {
+    "name": "ExpectationFileMismatchSerialized",
+    "group": "Fail"
+  },
+  {
+    "name": "ExpectationFileMissing",
+    "group": "Fail"
+  },
+  {
+    "name": "InstrumentationMismatch",
     "group": "Fail"
   },
   {
     "name": "TypeCheckError",
     "group": "Fail"
+  },
+  {
+    "name": "VerificationError",
+    "group": "Fail"
+  },
+  {
+    "name": "TransformVerificationError",
+    "group": "Fail"
+  },
+  {
+    "name": "TextSerializationFailure",
+    "group": "Fail"
   }
 ]
 ''';
 
-String generateExpectationName(bool strongMode) {
-  return strongMode ? "strong" : "direct";
+const String KERNEL_TEXT_SERIALIZATION = " kernel text serialization ";
+
+final Expectation runtimeError = ExpectationSet.Default["RuntimeError"];
+
+const String experimentalFlagOptions = '--enable-experiment=';
+const String overwriteCurrentSdkVersion = '--overwrite-current-sdk-version=';
+
+class TestOptions {
+  final Map<ExperimentalFlag, bool> _experimentalFlags;
+  final bool forceLateLowering;
+  final bool forceNoExplicitGetterCalls;
+  final bool nnbdAgnosticMode;
+  final String target;
+  final String overwriteCurrentSdkVersion;
+
+  TestOptions(this._experimentalFlags,
+      {this.forceLateLowering: false,
+      this.forceNoExplicitGetterCalls: false,
+      this.nnbdAgnosticMode: false,
+      this.target: "vm",
+      // can be null
+      this.overwriteCurrentSdkVersion})
+      : assert(forceLateLowering != null),
+        assert(forceNoExplicitGetterCalls != null),
+        assert(nnbdAgnosticMode != null),
+        assert(target != null);
+
+  Map<ExperimentalFlag, bool> computeExperimentalFlags(
+      Map<ExperimentalFlag, bool> forcedExperimentalFlags) {
+    Map<ExperimentalFlag, bool> flags = new Map.from(defaultExperimentalFlags);
+    flags.addAll(_experimentalFlags);
+    flags.addAll(forcedExperimentalFlags);
+    return flags;
+  }
 }
 
-enum AstKind {
-  Analyzer,
-  Kernel,
+class LinkDependenciesOptions {
+  final Set<Uri> content;
+  final bool nnbdAgnosticMode;
+  Component component;
+  List<Iterable<String>> errors;
+
+  LinkDependenciesOptions(this.content, {this.nnbdAgnosticMode})
+      : assert(content != null),
+        assert(nnbdAgnosticMode != null);
 }
 
-class FastaContext extends ChainContext {
-  final UriTranslatorImpl uriTranslator;
+class FastaContext extends ChainContext with MatchContext {
+  final Uri baseUri;
   final List<Step> steps;
   final Uri vm;
-  final bool strongMode;
   final bool onlyCrashes;
-  final Map<Program, KernelTarget> programToTarget = <Program, KernelTarget>{};
+  final Map<ExperimentalFlag, bool> experimentalFlags;
+  final bool skipVm;
+  final bool verify;
+  final bool weak;
+  final Map<Component, KernelTarget> componentToTarget =
+      <Component, KernelTarget>{};
+  final Map<Component, List<Iterable<String>>> componentToDiagnostics =
+      <Component, List<Iterable<String>>>{};
   final Uri platformBinaries;
-  Uri platformUri;
-  Uri outlineUri;
-  Program outline;
+  final Map<Uri, UriTranslator> _uriTranslators = {};
+  final Map<Uri, TestOptions> _testOptions = {};
+  final Map<Uri, LinkDependenciesOptions> _linkDependencies = {};
+  final Map<Uri, Uri> _librariesJson = {};
 
+  @override
+  final bool updateExpectations;
+
+  @override
   final ExpectationSet expectationSet =
-      new ExpectationSet.fromJsonList(JSON.decode(EXPECTATIONS));
-  Expectation verificationError;
+      new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
+
+  Uri platformUri;
+
+  Component platform;
 
   FastaContext(
+      this.baseUri,
       this.vm,
-      this.strongMode,
       this.platformBinaries,
       this.onlyCrashes,
+      this.experimentalFlags,
       bool ignoreExpectations,
-      bool updateExpectations,
+      this.updateExpectations,
       bool updateComments,
-      bool skipVm,
-      this.uriTranslator,
+      this.skipVm,
+      bool kernelTextSerialization,
       bool fullCompile,
-      AstKind astKind)
+      this.verify,
+      this.weak)
       : steps = <Step>[
-          new Outline(fullCompile, astKind, strongMode,
-              updateComments: updateComments),
+          new Outline(fullCompile, updateComments: updateComments),
           const Print(),
           new Verify(fullCompile)
         ] {
-    verificationError = expectationSet["VerificationError"];
-    if (astKind != AstKind.Analyzer) {
+    String fullPrefix;
+    String outlinePrefix;
+    if (weak) {
+      fullPrefix = '.weak';
+      outlinePrefix = '.weak.outline';
+    } else {
+      fullPrefix = '.strong';
+      outlinePrefix = '.outline';
+    }
+    if (!ignoreExpectations) {
+      steps.add(new MatchExpectation(
+          fullCompile ? "$fullPrefix.expect" : "$outlinePrefix.expect",
+          serializeFirst: false,
+          isLastMatchStep: updateExpectations));
+      if (!updateExpectations) {
+        steps.add(new MatchExpectation(
+            fullCompile ? "$fullPrefix.expect" : "$outlinePrefix.expect",
+            serializeFirst: true,
+            isLastMatchStep: true));
+      }
+    }
+    steps.add(const TypeCheck());
+    steps.add(const EnsureNoErrors());
+    if (kernelTextSerialization) {
+      steps.add(const KernelTextSerialization());
+    }
+    if (fullCompile) {
+      steps.add(const Transform());
       if (!ignoreExpectations) {
         steps.add(new MatchExpectation(
             fullCompile
-                ? ".${generateExpectationName(strongMode)}.expect"
-                : ".outline.expect",
-            updateExpectations: updateExpectations));
+                ? "$fullPrefix.transformed.expect"
+                : "$outlinePrefix.transformed.expect",
+            serializeFirst: false,
+            isLastMatchStep: updateExpectations));
+        if (!updateExpectations) {
+          steps.add(new MatchExpectation(
+              fullCompile
+                  ? "$fullPrefix.transformed.expect"
+                  : "$outlinePrefix.transformed.expect",
+              serializeFirst: true,
+              isLastMatchStep: true));
+        }
       }
-      if (strongMode) {
-        steps.add(const TypeCheck());
-      }
-      if (fullCompile && !skipVm) {
-        steps.add(const Transform());
+      steps.add(const EnsureNoErrors());
+      if (!skipVm) {
         steps.add(const WriteDill());
         steps.add(const Run());
       }
     }
   }
 
-  Future ensurePlatformUris() async {
-    if (platformUri == null) {
-      platformUri = platformBinaries.resolve("vm_platform.dill");
-      outlineUri = platformBinaries
-          .resolve(strongMode ? "vm_outline_strong.dill" : "vm_outline.dill");
+  TestOptions _computeTestOptionsForDirectory(Directory directory) {
+    TestOptions testOptions = _testOptions[directory.uri];
+    if (testOptions == null) {
+      bool forceLateLowering = false;
+      bool forceNoExplicitGetterCalls = false;
+      bool nnbdAgnosticMode = false;
+      String target = "vm";
+      if (directory.uri == baseUri) {
+        testOptions = new TestOptions({},
+            forceLateLowering: forceLateLowering,
+            forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
+            nnbdAgnosticMode: nnbdAgnosticMode,
+            target: target);
+      } else {
+        File optionsFile =
+            new File.fromUri(directory.uri.resolve('test.options'));
+        if (optionsFile.existsSync()) {
+          List<String> experimentalFlagsArguments = [];
+          String overwriteCurrentSdkVersionArgument = null;
+          for (String line in optionsFile.readAsStringSync().split('\n')) {
+            line = line.trim();
+            if (line.startsWith(experimentalFlagOptions)) {
+              experimentalFlagsArguments =
+                  line.substring(experimentalFlagOptions.length).split('\n');
+            } else if (line.startsWith(overwriteCurrentSdkVersion)) {
+              overwriteCurrentSdkVersionArgument =
+                  line.substring(overwriteCurrentSdkVersion.length);
+            } else if (line.startsWith(Flags.forceLateLowering)) {
+              forceLateLowering = true;
+            } else if (line.startsWith(Flags.forceNoExplicitGetterCalls)) {
+              forceNoExplicitGetterCalls = true;
+            } else if (line.startsWith(Flags.forceNoExplicitGetterCalls)) {
+              forceNoExplicitGetterCalls = true;
+            } else if (line.startsWith(Flags.nnbdAgnosticMode)) {
+              nnbdAgnosticMode = true;
+            } else if (line.startsWith(Flags.target) &&
+                line.indexOf('=') == Flags.target.length) {
+              target = line.substring(Flags.target.length + 1);
+            } else if (line.isNotEmpty) {
+              throw new UnsupportedError("Unsupported test option '$line'");
+            }
+          }
+
+          testOptions = new TestOptions(
+              parseExperimentalFlags(
+                  parseExperimentalArguments(experimentalFlagsArguments),
+                  onError: (String message) => throw new ArgumentError(message),
+                  onWarning: (String message) =>
+                      throw new ArgumentError(message)),
+              forceLateLowering: forceLateLowering,
+              forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
+              nnbdAgnosticMode: nnbdAgnosticMode,
+              target: target,
+              overwriteCurrentSdkVersion: overwriteCurrentSdkVersionArgument);
+        } else {
+          testOptions = _computeTestOptionsForDirectory(directory.parent);
+        }
+      }
+      _testOptions[directory.uri] = testOptions;
+    }
+    return testOptions;
+  }
+
+  /// Computes the experimental flag for [description].
+  ///
+  /// [forcedExperimentalFlags] is used to override the default flags for
+  /// [description].
+  TestOptions computeTestOptions(TestDescription description) {
+    Directory directory = new File.fromUri(description.uri).parent;
+    return _computeTestOptionsForDirectory(directory);
+  }
+
+  Future<UriTranslator> computeUriTranslator(
+      TestDescription description) async {
+    Uri librariesSpecificationUri =
+        computeLibrariesSpecificationUri(description);
+    UriTranslator uriTranslator = _uriTranslators[librariesSpecificationUri];
+    if (uriTranslator == null) {
+      Uri sdk = Uri.base.resolve("sdk/");
+      Uri packages = Uri.base.resolve(".packages");
+      TestOptions testOptions = computeTestOptions(description);
+      CompilerOptions compilerOptions = new CompilerOptions()
+        ..onDiagnostic = (DiagnosticMessage message) {
+          throw message.plainTextFormatted.join("\n");
+        }
+        ..sdkRoot = sdk
+        ..packagesFileUri = packages
+        ..environmentDefines = {}
+        ..experimentalFlags =
+            testOptions.computeExperimentalFlags(experimentalFlags)
+        ..nnbdMode = weak
+            ? NnbdMode.Weak
+            : (testOptions.nnbdAgnosticMode
+                ? NnbdMode.Agnostic
+                : NnbdMode.Strong)
+        ..librariesSpecificationUri = librariesSpecificationUri;
+      if (testOptions.overwriteCurrentSdkVersion != null) {
+        compilerOptions.currentSdkVersion =
+            testOptions.overwriteCurrentSdkVersion;
+      }
+      ProcessedOptions options = new ProcessedOptions(options: compilerOptions);
+      uriTranslator = await options.getUriTranslator();
+      _uriTranslators[librariesSpecificationUri] = uriTranslator;
+    }
+    return uriTranslator;
+  }
+
+  /// Computes the link dependencies for [description].
+  LinkDependenciesOptions computeLinkDependenciesOptions(
+      TestDescription description) {
+    Directory directory = new File.fromUri(description.uri).parent;
+    LinkDependenciesOptions linkDependenciesOptions =
+        _linkDependencies[directory.uri];
+    if (linkDependenciesOptions == null) {
+      File optionsFile =
+          new File.fromUri(directory.uri.resolve('link.options'));
+      Set<Uri> content = new Set<Uri>();
+      bool nnbdAgnosticMode = false;
+      if (optionsFile.existsSync()) {
+        for (String line in optionsFile.readAsStringSync().split('\n')) {
+          line = line.trim();
+          if (line.isEmpty) continue;
+          if (line.startsWith(Flags.nnbdAgnosticMode)) {
+            nnbdAgnosticMode = true;
+          } else {
+            File f = new File.fromUri(description.uri.resolve(line));
+            if (!f.existsSync()) {
+              throw new UnsupportedError("No file found: $f ($line)");
+            }
+            content.add(f.uri);
+          }
+        }
+      }
+      linkDependenciesOptions = new LinkDependenciesOptions(content,
+          nnbdAgnosticMode: nnbdAgnosticMode);
+      _linkDependencies[directory.uri] = linkDependenciesOptions;
+    }
+    return linkDependenciesOptions;
+  }
+
+  /// Libraries json for [description].
+  Uri computeLibrariesSpecificationUri(TestDescription description) {
+    Directory directory = new File.fromUri(description.uri).parent;
+    if (_librariesJson.containsKey(directory.uri)) {
+      return _librariesJson[directory.uri];
+    } else {
+      Uri librariesJson;
+      File jsonFile = new File.fromUri(directory.uri.resolve('libraries.json'));
+      if (jsonFile.existsSync()) {
+        librariesJson = jsonFile.uri;
+      }
+      return _librariesJson[directory.uri] = librariesJson;
     }
   }
 
-  Future<Program> loadPlatformOutline() async {
-    if (outline == null) {
-      await ensurePlatformUris();
-      outline =
-          loadProgramFromBytes(new File.fromUri(outlineUri).readAsBytesSync());
+  Expectation get verificationError => expectationSet["VerificationError"];
+
+  Future ensurePlatformUris() async {
+    if (platformUri == null) {
+      platformUri = platformBinaries.resolve("vm_platform_strong.dill");
     }
-    return outline;
+  }
+
+  Future<Component> loadPlatform() async {
+    if (platform == null) {
+      await ensurePlatformUris();
+      platform = loadComponentFromBytes(
+          new File.fromUri(platformUri).readAsBytesSync());
+    }
+    return platform;
   }
 
   @override
@@ -184,46 +476,65 @@ class FastaContext extends ChainContext {
     return super.processTestResult(description, result, last);
   }
 
+  @override
+  Set<Expectation> processExpectedOutcomes(
+      Set<Expectation> outcomes, TestDescription description) {
+    if (skipVm && outcomes.length == 1 && outcomes.single == runtimeError) {
+      return new Set<Expectation>.from([Expectation.Pass]);
+    } else {
+      return outcomes;
+    }
+  }
+
   static Future<FastaContext> create(
       Chain suite, Map<String, String> environment) async {
-    Uri sdk = Uri.base.resolve("sdk/");
-    Uri vm = Uri.base.resolve(Platform.resolvedExecutable);
-    Uri packages = Uri.base.resolve(".packages");
-    var options = new ProcessedOptions(new CompilerOptions()
-      ..sdkRoot = sdk
-      ..packagesFileUri = packages);
-    UriTranslator uriTranslator = await options.getUriTranslator();
-    bool strongMode = environment.containsKey(STRONG_MODE);
+    Uri vm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
+    Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{};
+
+    void addForcedExperimentalFlag(String name, ExperimentalFlag flag) {
+      if (environment.containsKey(name)) {
+        experimentalFlags[flag] = environment[name] == "true";
+      }
+    }
+
+    addForcedExperimentalFlag(
+        "enableExtensionMethods", ExperimentalFlag.extensionMethods);
+    addForcedExperimentalFlag(
+        "enableNonNullable", ExperimentalFlag.nonNullable);
+
+    bool weak = environment["weak"] == "true";
     bool onlyCrashes = environment["onlyCrashes"] == "true";
     bool ignoreExpectations = environment["ignoreExpectations"] == "true";
     bool updateExpectations = environment["updateExpectations"] == "true";
     bool updateComments = environment["updateComments"] == "true";
     bool skipVm = environment["skipVm"] == "true";
+    bool verify = environment["verify"] != "false";
+    bool kernelTextSerialization =
+        environment.containsKey(KERNEL_TEXT_SERIALIZATION);
     String platformBinaries = environment["platformBinaries"];
     if (platformBinaries != null && !platformBinaries.endsWith('/')) {
       platformBinaries = '$platformBinaries/';
     }
-    String astKindString = environment[AST_KIND_INDEX];
-    AstKind astKind =
-        astKindString == null ? null : AstKind.values[int.parse(astKindString)];
     return new FastaContext(
+        suite.uri,
         vm,
-        strongMode,
         platformBinaries == null
-            ? computePlatformBinariesLocation()
+            ? computePlatformBinariesLocation(forceBuildDir: true)
             : Uri.base.resolve(platformBinaries),
         onlyCrashes,
+        experimentalFlags,
         ignoreExpectations,
         updateExpectations,
         updateComments,
         skipVm,
-        uriTranslator,
+        kernelTextSerialization,
         environment.containsKey(ENABLE_FULL_COMPILE),
-        astKind);
+        verify,
+        weak);
   }
 }
 
-class Run extends Step<Uri, int, FastaContext> {
+class Run extends Step<ComponentResult, int, FastaContext> {
   const Run();
 
   String get name => "run";
@@ -232,117 +543,265 @@ class Run extends Step<Uri, int, FastaContext> {
 
   bool get isRuntime => true;
 
-  Future<Result<int>> run(Uri uri, FastaContext context) async {
-    if (context.platformUri == null) {
-      throw "Executed `Run` step before initializing the context.";
+  Future<Result<int>> run(ComponentResult result, FastaContext context) async {
+    TestOptions testOptions = context.computeTestOptions(result.description);
+    Map<ExperimentalFlag, bool> experimentalFlags =
+        testOptions.computeExperimentalFlags(context.experimentalFlags);
+    switch (testOptions.target) {
+      case "vm":
+        if (context.platformUri == null) {
+          throw "Executed `Run` step before initializing the context.";
+        }
+        File generated = new File.fromUri(result.outputUri);
+        StdioProcess process;
+        try {
+          var args = <String>[];
+          if (experimentalFlags[ExperimentalFlag.nonNullable]) {
+            args.add("--enable-experiment=non-nullable");
+            if (!context.weak) {
+              args.add("--null-safety");
+            }
+          }
+          args.add(generated.path);
+          process = await StdioProcess.run(context.vm.toFilePath(), args);
+          print(process.output);
+        } finally {
+          await generated.parent.delete(recursive: true);
+        }
+        return process.toResult();
+      case "none":
+        return pass(0);
+      default:
+        throw new ArgumentError(
+            "Unsupported run target '${testOptions.target}'.");
     }
-    File generated = new File.fromUri(uri);
-    StdioProcess process;
-    try {
-      var args = [
-        '--kernel-binaries=${context.platformBinaries.toFilePath()}',
-        generated.path,
-        "Hello, World!"
-      ];
-      process = await StdioProcess.run(context.vm.toFilePath(), args);
-      print(process.output);
-    } finally {
-      generated.parent.delete(recursive: true);
-    }
-    return process.toResult();
   }
 }
 
-class Outline extends Step<TestDescription, Program, FastaContext> {
+class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
   final bool fullCompile;
 
-  final AstKind astKind;
-
-  final bool strongMode;
-
-  const Outline(this.fullCompile, this.astKind, this.strongMode,
-      {this.updateComments: false});
+  const Outline(this.fullCompile, {this.updateComments: false});
 
   final bool updateComments;
 
   String get name {
-    return fullCompile ? "${astKind} compile" : "outline";
+    return fullCompile ? "compile" : "outline";
   }
 
   bool get isCompiler => fullCompile;
 
-  Future<Result<Program>> run(
+  Future<Result<ComponentResult>> run(
       TestDescription description, FastaContext context) async {
-    var options = new ProcessedOptions(new CompilerOptions());
-    return await CompilerContext.runWithOptions(options, (_) async {
-      // Disable colors to ensure that expectation files are the same across
-      // platforms and independent of stdin/stderr.
-      CompilerContext.current.disableColors();
-      Program platformOutline = await context.loadPlatformOutline();
-      Ticker ticker = new Ticker();
-      DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
-          new TestVmTarget(new TargetFlags(strongMode: strongMode)));
-      dillTarget.loader.appendLibraries(platformOutline);
-      // We create a new URI translator to avoid reading platform libraries from
-      // file system.
-      UriTranslatorImpl uriTranslator = new UriTranslatorImpl(
-          const TargetLibrariesSpecification('vm'),
-          context.uriTranslator.packages);
-      KernelTarget sourceTarget = astKind == AstKind.Analyzer
-          ? new AnalyzerTarget(dillTarget, uriTranslator, strongMode)
-          : new KernelTarget(
-              PhysicalFileSystem.instance, false, dillTarget, uriTranslator);
+    List<Iterable<String>> errors = <Iterable<String>>[];
 
-      Program p;
-      try {
-        sourceTarget.read(description.uri);
-        await dillTarget.buildOutlines();
-        ValidatingInstrumentation instrumentation;
-        if (strongMode) {
-          instrumentation = new ValidatingInstrumentation();
-          await instrumentation.loadExpectations(description.uri);
-          sourceTarget.loader.instrumentation = instrumentation;
+    Uri librariesSpecificationUri =
+        context.computeLibrariesSpecificationUri(description);
+    LinkDependenciesOptions linkDependenciesOptions =
+        context.computeLinkDependenciesOptions(description);
+    TestOptions testOptions = context.computeTestOptions(description);
+    Map<ExperimentalFlag, bool> experimentalFlags =
+        testOptions.computeExperimentalFlags(context.experimentalFlags);
+    NnbdMode nnbdMode = context.weak
+        ? NnbdMode.Weak
+        : (testOptions.nnbdAgnosticMode ? NnbdMode.Agnostic : NnbdMode.Strong);
+    List<Uri> inputs = <Uri>[description.uri];
+
+    ProcessedOptions createProcessedOptions(NnbdMode nnbdMode) {
+      CompilerOptions compilerOptions = new CompilerOptions()
+        ..onDiagnostic = (DiagnosticMessage message) {
+          errors.add(message.plainTextFormatted);
         }
-        p = await sourceTarget.buildOutlines();
+        ..environmentDefines = {}
+        ..experimentalFlags = experimentalFlags
+        ..nnbdMode = nnbdMode
+        ..librariesSpecificationUri = librariesSpecificationUri;
+      if (testOptions.overwriteCurrentSdkVersion != null) {
+        compilerOptions.currentSdkVersion =
+            testOptions.overwriteCurrentSdkVersion;
+      }
+      return new ProcessedOptions(options: compilerOptions, inputs: inputs);
+    }
+
+    // Disable colors to ensure that expectation files are the same across
+    // platforms and independent of stdin/stderr.
+    colors.enableColors = false;
+
+    ProcessedOptions options = createProcessedOptions(nnbdMode);
+
+    if (linkDependenciesOptions.content.isNotEmpty &&
+        linkDependenciesOptions.component == null) {
+      // Compile linked dependency.
+      ProcessedOptions linkOptions = options;
+      if (linkDependenciesOptions.nnbdAgnosticMode) {
+        linkOptions = createProcessedOptions(NnbdMode.Agnostic);
+      }
+      await CompilerContext.runWithOptions(linkOptions, (_) async {
+        KernelTarget sourceTarget = await outlineInitialization(context,
+            description, testOptions, linkDependenciesOptions.content.toList());
+        if (linkDependenciesOptions.errors != null) {
+          errors.addAll(linkDependenciesOptions.errors);
+        }
+        Component p = await sourceTarget.buildOutlines();
         if (fullCompile) {
-          p = await sourceTarget.buildProgram();
-          instrumentation?.finish();
-          if (instrumentation != null && instrumentation.hasProblems) {
-            if (updateComments) {
-              await instrumentation.fixSource(description.uri, false);
-            } else {
-              return fail(null, instrumentation.problemsAsString);
-            }
+          p = await sourceTarget.buildComponent(verify: context.verify);
+        }
+        linkDependenciesOptions.component = p;
+        List<Library> keepLibraries = new List<Library>();
+        for (Library lib in p.libraries) {
+          if (linkDependenciesOptions.content.contains(lib.fileUri)) {
+            keepLibraries.add(lib);
           }
         }
-      } on deprecated_InputError catch (e, s) {
-        return fail(null, e.error, s);
+        p.libraries.clear();
+        p.libraries.addAll(keepLibraries);
+        linkDependenciesOptions.errors = errors.toList();
+        errors.clear();
+      });
+    }
+
+    return await CompilerContext.runWithOptions(options, (_) async {
+      KernelTarget sourceTarget = await outlineInitialization(
+          context, description, testOptions, <Uri>[description.uri],
+          alsoAppend: linkDependenciesOptions.component);
+      ValidatingInstrumentation instrumentation =
+          new ValidatingInstrumentation();
+      await instrumentation.loadExpectations(description.uri);
+      sourceTarget.loader.instrumentation = instrumentation;
+      Component p = await sourceTarget.buildOutlines();
+      context.componentToTarget.clear();
+      context.componentToTarget[p] = sourceTarget;
+      context.componentToDiagnostics.clear();
+      context.componentToDiagnostics[p] = errors;
+      Set<Uri> userLibraries = p.libraries
+          .where((Library library) =>
+              library.importUri.scheme != 'dart' &&
+              library.importUri.scheme != 'package')
+          .map((Library library) => library.importUri)
+          .toSet();
+      // Mark custom dart: libraries defined in the test-specific libraries.json
+      // file as user libraries.
+      UriTranslator uriTranslator = sourceTarget.uriTranslator;
+      userLibraries.addAll(uriTranslator.dartLibraries.allLibraries
+          .map((LibraryInfo info) => info.importUri));
+      if (fullCompile) {
+        p = await sourceTarget.buildComponent(verify: context.verify);
+        instrumentation.finish();
+        if (instrumentation.hasProblems) {
+          if (updateComments) {
+            await instrumentation.fixSource(description.uri, false);
+          } else {
+            return new Result<ComponentResult>(
+                new ComponentResult(description, p, userLibraries),
+                context.expectationSet["InstrumentationMismatch"],
+                instrumentation.problemsAsString,
+                null);
+          }
+        }
       }
-      context.programToTarget.clear();
-      context.programToTarget[p] = sourceTarget;
-      return pass(p);
+      return pass(new ComponentResult(description, p, userLibraries));
     });
+  }
+
+  Future<KernelTarget> outlineInitialization(
+      FastaContext context,
+      TestDescription description,
+      TestOptions testOptions,
+      List<Uri> entryPoints,
+      {Component alsoAppend}) async {
+    Component platform = await context.loadPlatform();
+    Ticker ticker = new Ticker();
+    UriTranslator uriTranslator =
+        await context.computeUriTranslator(description);
+    TargetFlags targetFlags = new TargetFlags(
+        forceLateLoweringForTesting: testOptions.forceLateLowering,
+        forceNoExplicitGetterCallsForTesting:
+            testOptions.forceNoExplicitGetterCalls);
+    Target target;
+    switch (testOptions.target) {
+      case "vm":
+        target = new TestVmTarget(targetFlags);
+        break;
+      case "none":
+        target = new NoneTarget(targetFlags);
+        break;
+      default:
+        throw new ArgumentError(
+            "Unsupported test target '${testOptions.target}'.");
+    }
+    DillTarget dillTarget = new DillTarget(
+      ticker,
+      uriTranslator,
+      target,
+    );
+    dillTarget.loader.appendLibraries(platform);
+    if (alsoAppend != null) {
+      dillTarget.loader.appendLibraries(alsoAppend);
+    }
+    KernelTarget sourceTarget = new KernelTarget(
+        StandardFileSystem.instance, false, dillTarget, uriTranslator);
+
+    sourceTarget.setEntryPoints(entryPoints);
+    await dillTarget.buildOutlines();
+    return sourceTarget;
   }
 }
 
-class Transform extends Step<Program, Program, FastaContext> {
+class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
   const Transform();
 
-  String get name => "transform program";
+  String get name => "transform component";
 
-  Future<Result<Program>> run(Program program, FastaContext context) async {
-    KernelTarget sourceTarget = context.programToTarget[program];
-    context.programToTarget.remove(program);
-    TestVmTarget backendTarget = sourceTarget.backendTarget;
-    backendTarget.enabled = true;
+  Future<Result<ComponentResult>> run(
+      ComponentResult result, FastaContext context) async {
+    Component component = result.component;
+    KernelTarget sourceTarget = context.componentToTarget[component];
+    context.componentToTarget.remove(component);
+    Target backendTarget = sourceTarget.backendTarget;
+    if (backendTarget is TestVmTarget) {
+      backendTarget.enabled = true;
+    }
     try {
       if (sourceTarget.loader.coreTypes != null) {
         sourceTarget.runBuildTransformations();
       }
     } finally {
-      backendTarget.enabled = false;
+      if (backendTarget is TestVmTarget) {
+        backendTarget.enabled = false;
+      }
     }
-    return pass(program);
+    List<String> errors = VerifyTransformed.verify(component);
+    if (errors.isNotEmpty) {
+      return new Result<ComponentResult>(
+          result,
+          context.expectationSet["TransformVerificationError"],
+          errors.join('\n'),
+          null);
+    }
+    return pass(result);
+  }
+}
+
+/// Visitor that checks that the component has been transformed properly.
+// TODO(johnniwinther): Add checks for all nodes that are unsupported after
+// transformation.
+class VerifyTransformed extends Visitor<void> {
+  List<String> errors = [];
+
+  @override
+  void defaultNode(Node node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitAwaitExpression(AwaitExpression node) {
+    errors.add("ERROR: Untransformed await expression: $node");
+  }
+
+  static List<String> verify(Component component) {
+    VerifyTransformed visitor = new VerifyTransformed();
+    component.accept(visitor);
+    return visitor.errors;
   }
 }
 
@@ -353,20 +812,68 @@ class TestVmTarget extends VmTarget {
 
   String get name => "vm";
 
+  @override
   void performModularTransformationsOnLibraries(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
-      {void logger(String msg)}) {
+      Component component,
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      List<Library> libraries,
+      Map<String, String> environmentDefines,
+      DiagnosticReporter diagnosticReporter,
+      ReferenceFromIndex referenceFromIndex,
+      {void logger(String msg),
+      ChangedStructureNotifier changedStructureNotifier}) {
     if (enabled) {
       super.performModularTransformationsOnLibraries(
-          coreTypes, hierarchy, libraries,
+          component,
+          coreTypes,
+          hierarchy,
+          libraries,
+          environmentDefines,
+          diagnosticReporter,
+          referenceFromIndex,
           logger: logger);
     }
   }
+}
 
-  void performGlobalTransformations(CoreTypes coreTypes, Program program,
-      {void logger(String msg)}) {
-    if (enabled) {
-      super.performGlobalTransformations(coreTypes, program, logger: logger);
+class EnsureNoErrors
+    extends Step<ComponentResult, ComponentResult, FastaContext> {
+  const EnsureNoErrors();
+
+  String get name => "check errors";
+
+  Future<Result<ComponentResult>> run(
+      ComponentResult result, FastaContext context) async {
+    List<Iterable<String>> errors =
+        context.componentToDiagnostics[result.component];
+    return errors.isEmpty
+        ? pass(result)
+        : fail(
+            result,
+            "Unexpected errors:\n"
+            "${errors.map((error) => error.join('\n')).join('\n\n')}");
+  }
+}
+
+class MatchHierarchy
+    extends Step<ComponentResult, ComponentResult, FastaContext> {
+  const MatchHierarchy();
+
+  String get name => "check hierarchy";
+
+  Future<Result<ComponentResult>> run(
+      ComponentResult result, FastaContext context) async {
+    Component component = result.component;
+    Uri uri =
+        component.uriToSource.keys.firstWhere((uri) => uri?.scheme == "file");
+    KernelTarget target = context.componentToTarget[component];
+    ClassHierarchyBuilder hierarchy = target.loader.builderHierarchy;
+    StringBuffer sb = new StringBuffer();
+    for (ClassHierarchyNode node in hierarchy.nodes.values) {
+      sb.writeln(node);
     }
+    return context.match<ComponentResult>(
+        ".hierarchy.expect", "$sb", uri, result);
   }
 }

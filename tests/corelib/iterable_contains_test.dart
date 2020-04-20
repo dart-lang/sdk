@@ -15,8 +15,8 @@ test(list, notInList) {
     Expect.isFalse(list.contains(notInList), "!$list.contains($notInList)");
   }
 
-  List fixedList = new List(list.length);
-  List growList = new List();
+  List fixedList = new List.filled(list.length, null);
+  List growList = [];
   for (int i = 0; i < list.length; i++) {
     fixedList[i] = list[i];
     growList.add(list[i]);
@@ -35,14 +35,14 @@ class Niet {
 }
 
 main() {
-  test(const <String>["a", "b", "c", null], "d");
-  test(const <int>[1, 2, 3, null], 0);
+  test(const <String?>["a", "b", "c", null], "d");
+  test(const <int?>[1, 2, 3, null], 0);
   test(const <bool>[true, false], null);
-  test(const <C>[const C(), const C(), null], new C());
-  test(<C>[new C(), new C(), new C(), null], new C());
-  test(const <double>[0.0, 1.0, 5e-324, 1e+308, double.INFINITY], 2.0);
+  test(const <C?>[const C(), const C(), null], new C());
+  test(<C?>[new C(), new C(), new C(), null], new C());
+  test(const <double>[0.0, 1.0, 5e-324, 1e+308, double.infinity], 2.0);
   Expect.isTrue(const <double>[-0.0].contains(0.0));
-  Expect.isFalse(const <double>[double.NAN].contains(double.NAN));
+  Expect.isFalse(const <double>[double.nan].contains(double.nan));
   var niet = new Niet();
   Expect.isFalse([niet].contains(niet));
 }

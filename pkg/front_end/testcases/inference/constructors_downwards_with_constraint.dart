@@ -12,5 +12,5 @@ class B extends A {}
 class Foo<T extends A> {}
 
 void main() {
-  Foo<B> foo = new /*@typeArgs=B*/ Foo();
+  Foo<B> foo = new /*@ typeArgs=B* */ Foo();
 }

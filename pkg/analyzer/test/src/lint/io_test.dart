@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -49,20 +49,20 @@ defineTests() {
   group('processing', () {
     group('files', () {
       test('dart', () {
-        var file = new File('foo.dart');
+        var file = File('foo.dart');
         expect(isLintable(file), isTrue);
       });
       test('pubspec', () {
-        var file = new File('pubspec.yaml');
+        var file = File('pubspec.yaml');
         expect(isLintable(file), isTrue);
       });
       test('_pubspec', () {
         // Analyzable for testing purposes
-        var file = new File('_pubspec.yaml');
+        var file = File('_pubspec.yaml');
         expect(isLintable(file), isTrue);
       });
       test('text', () {
-        var file = new File('foo.txt');
+        var file = File('foo.txt');
         expect(isLintable(file), isFalse);
       });
       test('hidden dirs', () {

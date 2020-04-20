@@ -1,0 +1,495 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "dart:collection";
+
+  abstract class _WithListMixin&Object&ListMixin extends dart.core::Object implements dart.collection::ListMixin<dart.core::int*> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+    const synthetic constructor •() → main::_WithListMixin&Object&ListMixin*
+      : super dart.core::Object::•()
+      ;
+    get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ iterator() → dart.core::Iterator<dart.core::int*>*
+      return new dart._internal::ListIterator::•<dart.core::int*>(this);
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ elementAt(dart.core::int* index) → dart.core::int*
+      return this.{dart.core::List::[]}(index);
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ followedBy(generic-covariant-impl dart.core::Iterable<dart.core::int*>* other) → dart.core::Iterable<dart.core::int*>*
+      return dart._internal::FollowedByIterable::firstEfficient<dart.core::int*>(this, other);
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ forEach((dart.core::int*) →* void action) → void {
+      dart.core::int* length = this.{dart.core::List::length};
+      for (dart.core::int* i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
+        action.call(this.{dart.core::List::[]}(i));
+        if(!length.{dart.core::num::==}(this.{dart.core::List::length})) {
+          throw new dart.core::ConcurrentModificationError::•(this);
+        }
+      }
+    }
+    @#C3
+    get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ isEmpty() → dart.core::bool*
+      return this.{dart.core::List::length}.{dart.core::num::==}(0);
+    get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ isNotEmpty() → dart.core::bool*
+      return !this.{dart.collection::ListMixin::isEmpty};
+    get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ first() → dart.core::int* {
+      if(this.{dart.core::List::length}.{dart.core::num::==}(0))
+        throw dart._internal::IterableElementError::noElement();
+      return this.{dart.core::List::[]}(0);
+    }
+    set /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ first(generic-covariant-impl dart.core::int* value) → void {
+      if(this.{dart.core::List::length}.{dart.core::num::==}(0))
+        throw dart._internal::IterableElementError::noElement();
+      this.{dart.core::List::[]=}(0, value);
+    }
+    get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ last() → dart.core::int* {
+      if(this.{dart.core::List::length}.{dart.core::num::==}(0))
+        throw dart._internal::IterableElementError::noElement();
+      return this.{dart.core::List::[]}(this.{dart.core::List::length}.{dart.core::num::-}(1));
+    }
+    set /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ last(generic-covariant-impl dart.core::int* value) → void {
+      if(this.{dart.core::List::length}.{dart.core::num::==}(0))
+        throw dart._internal::IterableElementError::noElement();
+      this.{dart.core::List::[]=}(this.{dart.core::List::length}.{dart.core::num::-}(1), value);
+    }
+    get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ single() → dart.core::int* {
+      if(this.{dart.core::List::length}.{dart.core::num::==}(0))
+        throw dart._internal::IterableElementError::noElement();
+      if(this.{dart.core::List::length}.{dart.core::num::>}(1))
+        throw dart._internal::IterableElementError::tooMany();
+      return this.{dart.core::List::[]}(0);
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ contains(dart.core::Object* element) → dart.core::bool* {
+      dart.core::int* length = this.{dart.core::List::length};
+      for (dart.core::int* i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
+        if(this.{dart.core::List::[]}(i).{dart.core::Object::==}(element))
+          return true;
+        if(!length.{dart.core::num::==}(this.{dart.core::List::length})) {
+          throw new dart.core::ConcurrentModificationError::•(this);
+        }
+      }
+      return false;
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ every((dart.core::int*) →* dart.core::bool* test) → dart.core::bool* {
+      dart.core::int* length = this.{dart.core::List::length};
+      for (dart.core::int* i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
+        if(!test.call(this.{dart.core::List::[]}(i)))
+          return false;
+        if(!length.{dart.core::num::==}(this.{dart.core::List::length})) {
+          throw new dart.core::ConcurrentModificationError::•(this);
+        }
+      }
+      return true;
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ any((dart.core::int*) →* dart.core::bool* test) → dart.core::bool* {
+      dart.core::int* length = this.{dart.core::List::length};
+      for (dart.core::int* i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
+        if(test.call(this.{dart.core::List::[]}(i)))
+          return true;
+        if(!length.{dart.core::num::==}(this.{dart.core::List::length})) {
+          throw new dart.core::ConcurrentModificationError::•(this);
+        }
+      }
+      return false;
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ firstWhere((dart.core::int*) →* dart.core::bool* test, {generic-covariant-impl () →* dart.core::int* orElse = #C2}) → dart.core::int* {
+      dart.core::int* length = this.{dart.core::List::length};
+      for (dart.core::int* i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
+        dart.core::int* element = this.{dart.core::List::[]}(i);
+        if(test.call(element))
+          return element;
+        if(!length.{dart.core::num::==}(this.{dart.core::List::length})) {
+          throw new dart.core::ConcurrentModificationError::•(this);
+        }
+      }
+      if(!orElse.{dart.core::Object::==}(null))
+        return orElse.call();
+      throw dart._internal::IterableElementError::noElement();
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ lastWhere((dart.core::int*) →* dart.core::bool* test, {generic-covariant-impl () →* dart.core::int* orElse = #C2}) → dart.core::int* {
+      dart.core::int* length = this.{dart.core::List::length};
+      for (dart.core::int* i = length.{dart.core::num::-}(1); i.{dart.core::num::>=}(0); i = i.{dart.core::num::-}(1)) {
+        dart.core::int* element = this.{dart.core::List::[]}(i);
+        if(test.call(element))
+          return element;
+        if(!length.{dart.core::num::==}(this.{dart.core::List::length})) {
+          throw new dart.core::ConcurrentModificationError::•(this);
+        }
+      }
+      if(!orElse.{dart.core::Object::==}(null))
+        return orElse.call();
+      throw dart._internal::IterableElementError::noElement();
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ singleWhere((dart.core::int*) →* dart.core::bool* test, {generic-covariant-impl () →* dart.core::int* orElse = #C2}) → dart.core::int* {
+      dart.core::int* length = this.{dart.core::List::length};
+      dart.core::int* match;
+      dart.core::bool* matchFound = false;
+      for (dart.core::int* i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
+        dart.core::int* element = this.{dart.core::List::[]}(i);
+        if(test.call(element)) {
+          if(matchFound) {
+            throw dart._internal::IterableElementError::tooMany();
+          }
+          matchFound = true;
+          match = element;
+        }
+        if(!length.{dart.core::num::==}(this.{dart.core::List::length})) {
+          throw new dart.core::ConcurrentModificationError::•(this);
+        }
+      }
+      if(matchFound)
+        return match;
+      if(!orElse.{dart.core::Object::==}(null))
+        return orElse.call();
+      throw dart._internal::IterableElementError::noElement();
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ join([dart.core::String* separator = #C4]) → dart.core::String* {
+      if(this.{dart.core::List::length}.{dart.core::num::==}(0))
+        return "";
+      dart.core::StringBuffer* buffer = let final dart.core::StringBuffer* #t1 = new dart.core::StringBuffer::•() in let final void #t2 = #t1.{dart.core::StringBuffer::writeAll}(this, separator) in #t1;
+      return buffer.{dart.core::StringBuffer::toString}();
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ where((dart.core::int*) →* dart.core::bool* test) → dart.core::Iterable<dart.core::int*>*
+      return new dart._internal::WhereIterable::•<dart.core::int*>(this, test);
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ whereType<T extends dart.core::Object* = dynamic>() → dart.core::Iterable<main::_WithListMixin&Object&ListMixin::whereType::T*>*
+      return new dart._internal::WhereTypeIterable::•<main::_WithListMixin&Object&ListMixin::whereType::T*>(this);
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ map<T extends dart.core::Object* = dynamic>((dart.core::int*) →* main::_WithListMixin&Object&ListMixin::map::T* f) → dart.core::Iterable<main::_WithListMixin&Object&ListMixin::map::T*>*
+      return new dart._internal::MappedListIterable::•<dart.core::int*, main::_WithListMixin&Object&ListMixin::map::T*>(this, f);
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ expand<T extends dart.core::Object* = dynamic>((dart.core::int*) →* dart.core::Iterable<main::_WithListMixin&Object&ListMixin::expand::T*>* f) → dart.core::Iterable<main::_WithListMixin&Object&ListMixin::expand::T*>*
+      return new dart._internal::ExpandIterable::•<dart.core::int*, main::_WithListMixin&Object&ListMixin::expand::T*>(this, f);
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ reduce(generic-covariant-impl (dart.core::int*, dart.core::int*) →* dart.core::int* combine) → dart.core::int* {
+      dart.core::int* length = this.{dart.core::List::length};
+      if(length.{dart.core::num::==}(0))
+        throw dart._internal::IterableElementError::noElement();
+      dart.core::int* value = this.{dart.core::List::[]}(0);
+      for (dart.core::int* i = 1; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
+        value = combine.call(value, this.{dart.core::List::[]}(i));
+        if(!length.{dart.core::num::==}(this.{dart.core::List::length})) {
+          throw new dart.core::ConcurrentModificationError::•(this);
+        }
+      }
+      return value;
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ fold<T extends dart.core::Object* = dynamic>(main::_WithListMixin&Object&ListMixin::fold::T* initialValue, (main::_WithListMixin&Object&ListMixin::fold::T*, dart.core::int*) →* main::_WithListMixin&Object&ListMixin::fold::T* combine) → main::_WithListMixin&Object&ListMixin::fold::T* {
+      main::_WithListMixin&Object&ListMixin::fold::T* value = initialValue;
+      dart.core::int* length = this.{dart.core::List::length};
+      for (dart.core::int* i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
+        value = combine.call(value, this.{dart.core::List::[]}(i));
+        if(!length.{dart.core::num::==}(this.{dart.core::List::length})) {
+          throw new dart.core::ConcurrentModificationError::•(this);
+        }
+      }
+      return value;
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ skip(dart.core::int* count) → dart.core::Iterable<dart.core::int*>*
+      return new dart._internal::SubListIterable::•<dart.core::int*>(this, count, null);
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ skipWhile((dart.core::int*) →* dart.core::bool* test) → dart.core::Iterable<dart.core::int*>* {
+      return new dart._internal::SkipWhileIterable::•<dart.core::int*>(this, test);
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ take(dart.core::int* count) → dart.core::Iterable<dart.core::int*>*
+      return new dart._internal::SubListIterable::•<dart.core::int*>(this, 0, count);
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ takeWhile((dart.core::int*) →* dart.core::bool* test) → dart.core::Iterable<dart.core::int*>* {
+      return new dart._internal::TakeWhileIterable::•<dart.core::int*>(this, test);
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toList({dart.core::bool* growable = #C5}) → dart.core::List<dart.core::int*>* {
+      dart.core::List<dart.core::int*>* result;
+      if(growable) {
+        result = let final dart.core::List<dart.core::int*>* #t3 = <dart.core::int*>[] in let final void #t4 = #t3.{dart.core::List::length} = this.{dart.core::List::length} in #t3;
+      }
+      else {
+        result = dart.core::_List::•<dart.core::int*>(this.{dart.core::List::length});
+      }
+      for (dart.core::int* i = 0; i.{dart.core::num::<}(this.{dart.core::List::length}); i = i.{dart.core::num::+}(1)) {
+        result.{dart.core::List::[]=}(i, this.{dart.core::List::[]}(i));
+      }
+      return result;
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toSet() → dart.core::Set<dart.core::int*>* {
+      dart.core::Set<dart.core::int*>* result = dart.collection::LinkedHashSet::•<dart.core::int*>();
+      for (dart.core::int* i = 0; i.{dart.core::num::<}(this.{dart.core::List::length}); i = i.{dart.core::num::+}(1)) {
+        result.{dart.core::Set::add}(this.{dart.core::List::[]}(i));
+      }
+      return result;
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ add(generic-covariant-impl dart.core::int* element) → void {
+      this.{dart.core::List::[]=}(let final dart.core::int* #t5 = this.{dart.core::List::length} in let final dart.core::int* #t6 = this.{dart.core::List::length} = #t5.{dart.core::num::+}(1) in #t5, element);
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ addAll(generic-covariant-impl dart.core::Iterable<dart.core::int*>* iterable) → void {
+      dart.core::int* i = this.{dart.core::List::length};
+      {
+        dart.core::Iterator<dart.core::int*>* :sync-for-iterator = iterable.{dart.core::Iterable::iterator};
+        for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(); ) {
+          dart.core::int* element = :sync-for-iterator.{dart.core::Iterator::current};
+          {
+            assert(this.{dart.core::List::length}.{dart.core::num::==}(i) || (throw new dart.core::ConcurrentModificationError::•(this)));
+            this.{dart.core::List::length} = i.{dart.core::num::+}(1);
+            this.{dart.core::List::[]=}(i, element);
+            i = i.{dart.core::num::+}(1);
+          }
+        }
+      }
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ remove(dart.core::Object* element) → dart.core::bool* {
+      for (dart.core::int* i = 0; i.{dart.core::num::<}(this.{dart.core::List::length}); i = i.{dart.core::num::+}(1)) {
+        if(this.{dart.core::List::[]}(i).{dart.core::Object::==}(element)) {
+          this.{dart.collection::ListMixin::_closeGap}(i, i.{dart.core::num::+}(1));
+          return true;
+        }
+      }
+      return false;
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _closeGap(dart.core::int* start, dart.core::int* end) → void {
+      dart.core::int* length = this.{dart.core::List::length};
+      assert(0.{dart.core::num::<=}(start));
+      assert(start.{dart.core::num::<}(end));
+      assert(end.{dart.core::num::<=}(length));
+      dart.core::int* size = end.{dart.core::num::-}(start);
+      for (dart.core::int* i = end; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
+        this.{dart.core::List::[]=}(i.{dart.core::num::-}(size), this.{dart.core::List::[]}(i));
+      }
+      this.{dart.core::List::length} = length.{dart.core::num::-}(size);
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ removeWhere((dart.core::int*) →* dart.core::bool* test) → void {
+      this.{dart.collection::ListMixin::_filter}(test, false);
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ retainWhere((dart.core::int*) →* dart.core::bool* test) → void {
+      this.{dart.collection::ListMixin::_filter}(test, true);
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _filter((dart.core::int*) →* dart.core::bool* test, dart.core::bool* retainMatching) → void {
+      dart.core::List<dart.core::int*>* retained = <dart.core::int*>[];
+      dart.core::int* length = this.{dart.core::List::length};
+      for (dart.core::int* i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
+        dart.core::int* element = this.{dart.core::List::[]}(i);
+        if(test.call(element).{dart.core::Object::==}(retainMatching)) {
+          retained.{dart.core::List::add}(element);
+        }
+        if(!length.{dart.core::num::==}(this.{dart.core::List::length})) {
+          throw new dart.core::ConcurrentModificationError::•(this);
+        }
+      }
+      if(!retained.{dart.core::List::length}.{dart.core::num::==}(this.{dart.core::List::length})) {
+        this.{dart.collection::ListMixin::setRange}(0, retained.{dart.core::List::length}, retained);
+        this.{dart.core::List::length} = retained.{dart.core::List::length};
+      }
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ clear() → void {
+      this.{dart.core::List::length} = 0;
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ cast<R extends dart.core::Object* = dynamic>() → dart.core::List<main::_WithListMixin&Object&ListMixin::cast::R*>*
+      return dart.core::List::castFrom<dart.core::int*, main::_WithListMixin&Object&ListMixin::cast::R*>(this);
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ removeLast() → dart.core::int* {
+      if(this.{dart.core::List::length}.{dart.core::num::==}(0)) {
+        throw dart._internal::IterableElementError::noElement();
+      }
+      dart.core::int* result = this.{dart.core::List::[]}(this.{dart.core::List::length}.{dart.core::num::-}(1));
+      this.{dart.core::List::length} = this.{dart.core::List::length}.{dart.core::num::-}(1);
+      return result;
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ sort([(dart.core::int*, dart.core::int*) →* dart.core::int* compare = #C2]) → void {
+      dart._internal::Sort::sort<dart.core::int*>(this, let final (dart.core::int*, dart.core::int*) →* dart.core::int* #t7 = compare in #t7.{dart.core::Object::==}(null) ?{(dart.core::int*, dart.core::int*) →* dart.core::int*} #C6 : #t7);
+    }
+    static method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _compareAny(dynamic a, dynamic b) → dart.core::int* {
+      return dart.core::Comparable::compare(a as{TypeError,ForDynamic} dart.core::Comparable<dynamic>*, b as{TypeError,ForDynamic} dart.core::Comparable<dynamic>*);
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ shuffle([dart.math::Random* random = #C2]) → void {
+      random.{dart.core::Object::==}(null) ?{dart.math::Random*} random = dart.math::Random::•() : null;
+      dart.core::int* length = this.{dart.core::List::length};
+      while (length.{dart.core::num::>}(1)) {
+        dart.core::int* pos = random.{dart.math::Random::nextInt}(length);
+        length = length.{dart.core::num::-}(1);
+        dart.core::int* tmp = this.{dart.core::List::[]}(length);
+        this.{dart.core::List::[]=}(length, this.{dart.core::List::[]}(pos));
+        this.{dart.core::List::[]=}(pos, tmp);
+      }
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ asMap() → dart.core::Map<dart.core::int*, dart.core::int*>* {
+      return new dart._internal::ListMapView::•<dart.core::int*>(this);
+    }
+    operator /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ +(generic-covariant-impl dart.core::List<dart.core::int*>* other) → dart.core::List<dart.core::int*>* {
+      dart.core::List<dart.core::int*>* result = let final dart.core::List<dart.core::int*>* #t8 = <dart.core::int*>[] in let final void #t9 = #t8.{dart.core::List::length} = this.{dart.core::List::length}.{dart.core::num::+}(other.{dart.core::List::length}) in #t8;
+      result.{dart.core::List::setRange}(0, this.{dart.core::List::length}, this);
+      result.{dart.core::List::setRange}(this.{dart.core::List::length}, result.{dart.core::List::length}, other);
+      return result;
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ sublist(dart.core::int* start, [dart.core::int* end = #C2]) → dart.core::List<dart.core::int*>* {
+      dart.core::int* listLength = this.{dart.core::List::length};
+      end.{dart.core::num::==}(null) ?{dart.core::int*} end = listLength : null;
+      dart.core::RangeError::checkValidRange(start, end, listLength);
+      dart.core::int* length = end.{dart.core::num::-}(start);
+      dart.core::List<dart.core::int*>* result = let final dart.core::List<dart.core::int*>* #t10 = <dart.core::int*>[] in let final void #t11 = #t10.{dart.core::List::length} = length in #t10;
+      for (dart.core::int* i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
+        result.{dart.core::List::[]=}(i, this.{dart.core::List::[]}(start.{dart.core::num::+}(i)));
+      }
+      return result;
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ getRange(dart.core::int* start, dart.core::int* end) → dart.core::Iterable<dart.core::int*>* {
+      dart.core::RangeError::checkValidRange(start, end, this.{dart.core::List::length});
+      return new dart._internal::SubListIterable::•<dart.core::int*>(this, start, end);
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ removeRange(dart.core::int* start, dart.core::int* end) → void {
+      dart.core::RangeError::checkValidRange(start, end, this.{dart.core::List::length});
+      if(end.{dart.core::num::>}(start)) {
+        this.{dart.collection::ListMixin::_closeGap}(start, end);
+      }
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ fillRange(dart.core::int* start, dart.core::int* end, [generic-covariant-impl dart.core::int* fill = #C2]) → void {
+      dart.core::RangeError::checkValidRange(start, end, this.{dart.core::List::length});
+      for (dart.core::int* i = start; i.{dart.core::num::<}(end); i = i.{dart.core::num::+}(1)) {
+        this.{dart.core::List::[]=}(i, fill);
+      }
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ setRange(dart.core::int* start, dart.core::int* end, generic-covariant-impl dart.core::Iterable<dart.core::int*>* iterable, [dart.core::int* skipCount = #C7]) → void {
+      dart.core::RangeError::checkValidRange(start, end, this.{dart.core::List::length});
+      dart.core::int* length = end.{dart.core::num::-}(start);
+      if(length.{dart.core::num::==}(0))
+        return;
+      dart.core::RangeError::checkNotNegative(skipCount, "skipCount");
+      dart.core::List<dart.core::int*>* otherList;
+      dart.core::int* otherStart;
+      if(iterable is dart.core::List<dart.core::int*>*) {
+        otherList = iterable{dart.core::List<dart.core::int*>*};
+        otherStart = skipCount;
+      }
+      else {
+        otherList = iterable.{dart.core::Iterable::skip}(skipCount).{dart.core::Iterable::toList}(growable: false);
+        otherStart = 0;
+      }
+      if(otherStart.{dart.core::num::+}(length).{dart.core::num::>}(otherList.{dart.core::List::length})) {
+        throw dart._internal::IterableElementError::tooFew();
+      }
+      if(otherStart.{dart.core::num::<}(start)) {
+        for (dart.core::int* i = length.{dart.core::num::-}(1); i.{dart.core::num::>=}(0); i = i.{dart.core::num::-}(1)) {
+          this.{dart.core::List::[]=}(start.{dart.core::num::+}(i), otherList.{dart.core::List::[]}(otherStart.{dart.core::num::+}(i)));
+        }
+      }
+      else {
+        for (dart.core::int* i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
+          this.{dart.core::List::[]=}(start.{dart.core::num::+}(i), otherList.{dart.core::List::[]}(otherStart.{dart.core::num::+}(i)));
+        }
+      }
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ replaceRange(dart.core::int* start, dart.core::int* end, generic-covariant-impl dart.core::Iterable<dart.core::int*>* newContents) → void {
+      dart.core::RangeError::checkValidRange(start, end, this.{dart.core::List::length});
+      if(!(newContents is dart._internal::EfficientLengthIterable<dynamic>*)) {
+        newContents = newContents.{dart.core::Iterable::toList}();
+      }
+      dart.core::int* removeLength = end.{dart.core::num::-}(start);
+      dart.core::int* insertLength = newContents.{dart.core::Iterable::length};
+      if(removeLength.{dart.core::num::>=}(insertLength)) {
+        dart.core::int* insertEnd = start.{dart.core::num::+}(insertLength);
+        this.{dart.collection::ListMixin::setRange}(start, insertEnd, newContents);
+        if(removeLength.{dart.core::num::>}(insertLength)) {
+          this.{dart.collection::ListMixin::_closeGap}(insertEnd, end);
+        }
+      }
+      else {
+        dart.core::int* delta = insertLength.{dart.core::num::-}(removeLength);
+        dart.core::int* newLength = this.{dart.core::List::length}.{dart.core::num::+}(delta);
+        dart.core::int* insertEnd = start.{dart.core::num::+}(insertLength);
+        this.{dart.core::List::length} = newLength;
+        this.{dart.collection::ListMixin::setRange}(insertEnd, newLength, this, end);
+        this.{dart.collection::ListMixin::setRange}(start, insertEnd, newContents);
+      }
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ indexOf(generic-covariant-impl dart.core::Object* element, [dart.core::int* start = #C7]) → dart.core::int* {
+      if(start.{dart.core::num::<}(0))
+        start = 0;
+      for (dart.core::int* i = start; i.{dart.core::num::<}(this.{dart.core::List::length}); i = i.{dart.core::num::+}(1)) {
+        if(this.{dart.core::List::[]}(i).{dart.core::Object::==}(element))
+          return i;
+      }
+      return 1.{dart.core::int::unary-}();
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ indexWhere((dart.core::int*) →* dart.core::bool* test, [dart.core::int* start = #C7]) → dart.core::int* {
+      if(start.{dart.core::num::<}(0))
+        start = 0;
+      for (dart.core::int* i = start; i.{dart.core::num::<}(this.{dart.core::List::length}); i = i.{dart.core::num::+}(1)) {
+        if(test.call(this.{dart.core::List::[]}(i)))
+          return i;
+      }
+      return 1.{dart.core::int::unary-}();
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ lastIndexOf(generic-covariant-impl dart.core::Object* element, [dart.core::int* start = #C2]) → dart.core::int* {
+      if(start.{dart.core::num::==}(null) || start.{dart.core::num::>=}(this.{dart.core::List::length}))
+        start = this.{dart.core::List::length}.{dart.core::num::-}(1);
+      for (dart.core::int* i = start; i.{dart.core::num::>=}(0); i = i.{dart.core::num::-}(1)) {
+        if(this.{dart.core::List::[]}(i).{dart.core::Object::==}(element))
+          return i;
+      }
+      return 1.{dart.core::int::unary-}();
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ lastIndexWhere((dart.core::int*) →* dart.core::bool* test, [dart.core::int* start = #C2]) → dart.core::int* {
+      if(start.{dart.core::num::==}(null) || start.{dart.core::num::>=}(this.{dart.core::List::length}))
+        start = this.{dart.core::List::length}.{dart.core::num::-}(1);
+      for (dart.core::int* i = start; i.{dart.core::num::>=}(0); i = i.{dart.core::num::-}(1)) {
+        if(test.call(this.{dart.core::List::[]}(i)))
+          return i;
+      }
+      return 1.{dart.core::int::unary-}();
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ insert(dart.core::int* index, generic-covariant-impl dart.core::int* element) → void {
+      dart.core::ArgumentError::checkNotNull<dart.core::int*>(index, "index");
+      dart.core::RangeError::checkValueInInterval(index, 0, this.{dart.core::List::length}, "index");
+      if(index.{dart.core::num::==}(this.{dart.core::List::length})) {
+        this.{dart.collection::ListMixin::add}(element);
+        return;
+      }
+      this.{dart.core::List::length} = this.{dart.core::List::length}.{dart.core::num::+}(1);
+      this.{dart.collection::ListMixin::setRange}(index.{dart.core::num::+}(1), this.{dart.core::List::length}, this, index);
+      this.{dart.core::List::[]=}(index, element);
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ removeAt(dart.core::int* index) → dart.core::int* {
+      dart.core::int* result = this.{dart.core::List::[]}(index);
+      this.{dart.collection::ListMixin::_closeGap}(index, index.{dart.core::num::+}(1));
+      return result;
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ insertAll(dart.core::int* index, generic-covariant-impl dart.core::Iterable<dart.core::int*>* iterable) → void {
+      dart.core::RangeError::checkValueInInterval(index, 0, this.{dart.core::List::length}, "index");
+      if(!(iterable is dart._internal::EfficientLengthIterable<dynamic>*) || dart.core::identical(iterable, this)) {
+        iterable = iterable.{dart.core::Iterable::toList}();
+      }
+      dart.core::int* insertionLength = iterable.{dart.core::Iterable::length};
+      this.{dart.core::List::length} = this.{dart.core::List::length}.{dart.core::num::+}(insertionLength);
+      if(!iterable.{dart.core::Iterable::length}.{dart.core::num::==}(insertionLength)) {
+        this.{dart.core::List::length} = this.{dart.core::List::length}.{dart.core::num::-}(insertionLength);
+        throw new dart.core::ConcurrentModificationError::•(iterable);
+      }
+      this.{dart.collection::ListMixin::setRange}(index.{dart.core::num::+}(insertionLength), this.{dart.core::List::length}, this, index);
+      this.{dart.collection::ListMixin::setAll}(index, iterable);
+    }
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ setAll(dart.core::int* index, generic-covariant-impl dart.core::Iterable<dart.core::int*>* iterable) → void {
+      if(iterable is dart.core::List<dynamic>*) {
+        this.{dart.collection::ListMixin::setRange}(index, index.{dart.core::num::+}(iterable.{dart.core::Iterable::length}), iterable);
+      }
+      else {
+        {
+          dart.core::Iterator<dart.core::int*>* :sync-for-iterator = iterable.{dart.core::Iterable::iterator};
+          for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(); ) {
+            dart.core::int* element = :sync-for-iterator.{dart.core::Iterator::current};
+            {
+              this.{dart.core::List::[]=}(let final dart.core::int* #t12 = index in let final dart.core::int* #t13 = index = #t12.{dart.core::num::+}(1) in #t12, element);
+            }
+          }
+        }
+      }
+    }
+    get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ reversed() → dart.core::Iterable<dart.core::int*>*
+      return new dart._internal::ReversedListIterable::•<dart.core::int*>(this);
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toString() → dart.core::String*
+      return dart.collection::IterableBase::iterableToFullString(this, "[", "]");
+  }
+  class WithListMixin extends main::_WithListMixin&Object&ListMixin {
+    field dart.core::int* length = 2;
+    synthetic constructor •() → main::WithListMixin*
+      : super main::_WithListMixin&Object&ListMixin::•()
+      ;
+    operator [](dart.core::int* index) → dart.core::int*
+      return index;
+    operator []=(dart.core::int* index, generic-covariant-impl dart.core::int* value) → void
+      return null;
+  }
+}
+constants  {
+  #C1 = "vm:prefer-inline"
+  #C2 = null
+  #C3 = dart.core::pragma {name:#C1, options:#C2}
+  #C4 = ""
+  #C5 = true
+  #C6 = tearoff dart.collection::ListMixin::_compareAny
+  #C7 = 0
+}

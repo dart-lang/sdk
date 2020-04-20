@@ -1,0 +1,27 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class Foo extends core::Object {
+  synthetic constructor •() → self::Foo*
+    : super core::Object::•()
+    ;
+  abstract method _foo() → void;
+}
+class Bar extends self::Foo {
+  synthetic constructor •() → self::Bar*
+    : super self::Foo::•()
+    ;
+  method noSuchMethod(core::Invocation* invocation) → dynamic
+    return null;
+  no-such-method-forwarder method _foo() → void
+    return this.{self::Bar::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = #org-dartlang-testcase:///private_same.dart::_foo
+  #C2 = <core::Type*>[]
+  #C3 = <dynamic>[]
+  #C4 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C3}
+}

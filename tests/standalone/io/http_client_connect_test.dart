@@ -17,7 +17,7 @@ import "package:expect/expect.dart";
 void testGetEmptyRequest() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
-      request.pipe(request.response);
+      request.cast<List<int>>().pipe(request.response);
     });
 
     var client = new HttpClient();
@@ -35,7 +35,7 @@ void testGetDataRequest() {
     var data = "lalala".codeUnits;
     server.listen((request) {
       request.response.add(data);
-      request.pipe(request.response);
+      request.cast<List<int>>().pipe(request.response);
     });
 
     var client = new HttpClient();
@@ -55,7 +55,9 @@ void testGetDataRequest() {
 void testGetInvalidHost() {
   asyncStart();
   var client = new HttpClient();
-  client.get("__SOMETHING_INVALID__", 8888, "/").catchError((error) {
+  Future<HttpClientRequest?>.value(
+          client.get("__SOMETHING_INVALID__", 8888, "/"))
+      .catchError((error) {
     client.close();
     asyncEnd();
   });
@@ -147,6 +149,7 @@ void testGetDataServerForceClose() {
   });
 }
 
+typedef Future<HttpClientRequest> Callback1(String a1, int a2, String a3);
 void testOpenEmptyRequest() {
   var client = new HttpClient();
   var methods = [
@@ -162,10 +165,11 @@ void testOpenEmptyRequest() {
     HttpServer.bind("127.0.0.1", 0).then((server) {
       server.listen((request) {
         Expect.equals(method[1], request.method);
-        request.pipe(request.response);
+        request.cast<List<int>>().pipe(request.response);
       });
 
-      method[0]("127.0.0.1", server.port, "/")
+      Callback1 cb = method[0] as Callback1;
+      cb("127.0.0.1", server.port, "/")
           .then((request) => request.close())
           .then((response) {
         response.listen((data) {}, onDone: server.close);
@@ -174,6 +178,7 @@ void testOpenEmptyRequest() {
   }
 }
 
+typedef Future<HttpClientRequest> Callback2(Uri a1);
 void testOpenUrlEmptyRequest() {
   var client = new HttpClient();
   var methods = [
@@ -189,10 +194,11 @@ void testOpenUrlEmptyRequest() {
     HttpServer.bind("127.0.0.1", 0).then((server) {
       server.listen((request) {
         Expect.equals(method[1], request.method);
-        request.pipe(request.response);
+        request.cast<List<int>>().pipe(request.response);
       });
 
-      method[0](Uri.parse("http://127.0.0.1:${server.port}/"))
+      Callback2 cb = method[0] as Callback2;
+      cb(Uri.parse("http://127.0.0.1:${server.port}/"))
           .then((request) => request.close())
           .then((response) {
         response.listen((data) {}, onDone: server.close);
@@ -216,8 +222,10 @@ void testNoBuffer() {
         .get("127.0.0.1", server.port, "/")
         .then((request) => request.close())
         .then((clientResponse) {
-      var iterator = new StreamIterator(
-          clientResponse.transform(UTF8.decoder).transform(new LineSplitter()));
+      var iterator = new StreamIterator(clientResponse
+          .cast<List<int>>()
+          .transform(utf8.decoder)
+          .transform(new LineSplitter()));
       iterator.moveNext().then((hasValue) {
         Expect.isTrue(hasValue);
         Expect.equals('init', iterator.current);

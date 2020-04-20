@@ -1,0 +1,9 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field () →* core::String* g;
+static method f() → core::String*
+  ;
+static method main() → dynamic
+  ;

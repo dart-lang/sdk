@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_FLOW_GRAPH_H_
 #define RUNTIME_VM_COMPILER_BACKEND_FLOW_GRAPH_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/bit_vector.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/growable_array.h"
@@ -14,9 +18,12 @@
 
 namespace dart {
 
-class FlowGraphBuilder;
-class ValueInliningContext;
+class LoopHierarchy;
 class VariableLivenessAnalysis;
+
+namespace compiler {
+class GraphIntrinsifier;
+}
 
 class BlockIterator : public ValueObject {
  public:
@@ -73,27 +80,79 @@ struct ConstantPoolTrait {
   }
 };
 
+struct PrologueInfo {
+  // The first blockid used for prologue building.  This information can be used
+  // by the inliner for budget calculations: The prologue code falls away when
+  // inlining, so we should not include it in the budget.
+  intptr_t min_block_id;
+
+  // The last blockid used for prologue building.  This information can be used
+  // by the inliner for budget calculations: The prologue code falls away when
+  // inlining, so we should not include it in the budget.
+  intptr_t max_block_id;
+
+  PrologueInfo(intptr_t min, intptr_t max)
+      : min_block_id(min), max_block_id(max) {}
+
+  bool Contains(intptr_t block_id) const {
+    return min_block_id <= block_id && block_id <= max_block_id;
+  }
+};
+
 // Class to encapsulate the construction and manipulation of the flow graph.
 class FlowGraph : public ZoneAllocated {
  public:
   FlowGraph(const ParsedFunction& parsed_function,
             GraphEntryInstr* graph_entry,
-            intptr_t max_block_id);
+            intptr_t max_block_id,
+            PrologueInfo prologue_info);
 
   // Function properties.
   const ParsedFunction& parsed_function() const { return parsed_function_; }
   const Function& function() const { return parsed_function_.function(); }
-  intptr_t parameter_count() const {
-    return num_copied_params_ + num_non_copied_params_;
-  }
+
+  // The number of directly accessable parameters (above the frame pointer).
+  // All other parameters can only be indirectly loaded via metadata found in
+  // the arguments descriptor.
+  intptr_t num_direct_parameters() const { return num_direct_parameters_; }
+
+  // The number of words on the stack used by the direct parameters.
+  intptr_t direct_parameters_size() const { return direct_parameters_size_; }
+
+  // The number of variables (or boxes) which code can load from / store to.
+  // The SSA renaming will insert phi's for them (and only them - i.e. there
+  // will be no phi insertion for [LocalVariable]s pointing to the expression
+  // stack!).
   intptr_t variable_count() const {
-    return parameter_count() + parsed_function_.num_stack_locals();
+    return num_direct_parameters_ + parsed_function_.num_stack_locals();
   }
+
+  // The number of variables during OSR, which may include stack slots
+  // that pass in initial contents for the expression stack.
+  intptr_t osr_variable_count() const {
+    ASSERT(IsCompiledForOsr());
+    return variable_count() + graph_entry()->osr_entry()->stack_depth();
+  }
+
+  // This function returns the offset (in words) of the [index]th
+  // parameter, relative to the first parameter.
+  // If [last_slot] is true it gives the offset of the last slot of that
+  // location, otherwise it returns the first one.
+  static intptr_t ParameterOffsetAt(const Function& function,
+                                    intptr_t index,
+                                    bool last_slot = true);
+
+  static Representation ParameterRepresentationAt(const Function& function,
+                                                  intptr_t index);
+
+  static Representation ReturnRepresentationOf(const Function& function);
+
+  // The number of variables (or boxes) inside the functions frame - meaning
+  // below the frame pointer.  This does not include the expression stack.
   intptr_t num_stack_locals() const {
     return parsed_function_.num_stack_locals();
   }
-  intptr_t num_copied_params() const { return num_copied_params_; }
-  intptr_t num_non_copied_params() const { return num_non_copied_params_; }
+
   bool IsIrregexpFunction() const { return function().IsIrregexpFunction(); }
 
   LocalVariable* CurrentContextVar() const {
@@ -101,8 +160,29 @@ class FlowGraph : public ZoneAllocated {
   }
 
   intptr_t CurrentContextEnvIndex() const {
-    return parsed_function().current_context_var()->BitIndexIn(
-        num_non_copied_params_);
+    if (function().HasBytecode()) {
+      return -1;
+    }
+
+    return EnvIndex(parsed_function().current_context_var());
+  }
+
+  intptr_t RawTypeArgumentEnvIndex() const {
+    return EnvIndex(parsed_function().RawTypeArgumentsVariable());
+  }
+
+  intptr_t ArgumentDescriptorEnvIndex() const {
+    return EnvIndex(parsed_function().arg_desc_var());
+  }
+
+  intptr_t EnvIndex(const LocalVariable* variable) const {
+    ASSERT(!variable->is_captured());
+    return num_direct_parameters_ - variable->index().value();
+  }
+
+  static bool NeedsPairLocation(Representation representation) {
+    return representation == kUnboxedInt64 &&
+           compiler::target::kIntSpillFactor == 2;
   }
 
   // Flow graph orders.
@@ -135,6 +215,12 @@ class FlowGraph : public ZoneAllocated {
                                 intptr_t deopt_id,
                                 TokenPosition token_pos);
 
+  Definition* CreateCheckBound(Definition* length,
+                               Definition* index,
+                               intptr_t deopt_id);
+
+  void AddExactnessGuard(InstanceCallInstr* call, intptr_t receiver_cid);
+
   intptr_t current_ssa_temp_index() const { return current_ssa_temp_index_; }
   void set_current_ssa_temp_index(intptr_t index) {
     current_ssa_temp_index_ = index;
@@ -144,8 +230,13 @@ class FlowGraph : public ZoneAllocated {
     return current_ssa_temp_index();
   }
 
-  bool InstanceCallNeedsClassCheck(InstanceCallInstr* call,
-                                   RawFunction::Kind kind) const;
+  enum class ToCheck { kNoCheck, kCheckNull, kCheckCid };
+
+  // Uses CHA to determine if the called method can be overridden.
+  // Return value indicates that the call needs no check at all,
+  // just a null check, or a full class check.
+  ToCheck CheckForInstanceCall(InstanceCallInstr* call,
+                               RawFunction::Kind kind) const;
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread()->zone(); }
@@ -161,10 +252,6 @@ class FlowGraph : public ZoneAllocated {
 
   ConstantInstr* constant_dead() const { return constant_dead_; }
 
-  ConstantInstr* constant_empty_context() const {
-    return constant_empty_context_;
-  }
-
   intptr_t alloc_ssa_temp_index() { return current_ssa_temp_index_++; }
 
   void AllocateSSAIndexes(Definition* def) {
@@ -177,8 +264,17 @@ class FlowGraph : public ZoneAllocated {
 
   intptr_t InstructionCount() const;
 
+  // Returns the definition for the object from the constant pool if
+  // one exists, otherwise returns nullptr.
+  ConstantInstr* GetExistingConstant(const Object& object) const;
+
+  // Always returns a definition for the object from the constant pool,
+  // allocating one if it doesn't already exist.
   ConstantInstr* GetConstant(const Object& object);
-  void AddToInitialDefinitions(Definition* defn);
+
+  void AddToGraphInitialDefinitions(Definition* defn);
+  void AddToInitialDefinitions(BlockEntryWithInitialDefs* entry,
+                               Definition* defn);
 
   enum UseKind { kEffect, kValue };
 
@@ -199,8 +295,7 @@ class FlowGraph : public ZoneAllocated {
   void ComputeSSA(intptr_t next_virtual_register_number,
                   ZoneGrowableArray<Definition*>* inlining_parameters);
 
-  // Verification methods for debugging.
-  bool VerifyUseLists();
+  // Verification method for debugging.
   bool VerifyRedefinitions();
 
   void DiscoverBlocks();
@@ -216,7 +311,11 @@ class FlowGraph : public ZoneAllocated {
                                         CompileType compile_type);
 
   // Remove the redefinition instructions inserted to inhibit code motion.
-  void RemoveRedefinitions();
+  void RemoveRedefinitions(bool keep_checks = false);
+
+  // Insert PushArgument instructions and remove explicit def-use
+  // relations between calls and their arguments.
+  void InsertPushArguments();
 
   // Copy deoptimization target from one instruction to another if we still
   // have to keep deoptimization environment at gotos for LICM purposes.
@@ -235,20 +334,27 @@ class FlowGraph : public ZoneAllocated {
   // after this point.
   void disallow_licm() { licm_allowed_ = false; }
 
-  const ZoneGrowableArray<BlockEntryInstr*>& LoopHeaders() {
-    if (loop_headers_ == NULL) {
-      loop_headers_ = ComputeLoops();
+  PrologueInfo prologue_info() const { return prologue_info_; }
+
+  // Computes the loop hierarchy of the flow graph on demand.
+  const LoopHierarchy& GetLoopHierarchy() {
+    if (loop_hierarchy_ == nullptr) {
+      loop_hierarchy_ = ComputeLoops();
     }
-    return *loop_headers_;
+    return loop_hierarchy();
   }
 
-  const ZoneGrowableArray<BlockEntryInstr*>* loop_headers() const {
-    return loop_headers_;
-  }
+  const LoopHierarchy& loop_hierarchy() const { return *loop_hierarchy_; }
 
-  // Finds natural loops in the flow graph and attaches a list of loop
-  // body blocks for each loop header.
-  ZoneGrowableArray<BlockEntryInstr*>* ComputeLoops() const;
+  // Resets the loop hierarchy of the flow graph. Use this to
+  // force a recomputation of loop detection by the next call
+  // to GetLoopHierarchy() (note that this does not immediately
+  // reset the loop_info fields of block entries, although
+  // these will be overwritten by that next call).
+  void ResetLoopHierarchy() {
+    loop_hierarchy_ = nullptr;
+    loop_invariant_loads_ = nullptr;
+  }
 
   // Per loop header invariant loads sets. Each set contains load id for
   // those loads that are not affected by anything in the loop and can be
@@ -263,12 +369,6 @@ class FlowGraph : public ZoneAllocated {
 
   bool IsCompiledForOsr() const { return graph_entry()->IsCompiledForOsr(); }
 
-  void AddToDeferredPrefixes(ZoneGrowableArray<const LibraryPrefix*>* from);
-
-  ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes() const {
-    return deferred_prefixes_;
-  }
-
   BitVector* captured_parameters() const { return captured_parameters_; }
 
   intptr_t inlining_id() const { return inlining_id_; }
@@ -276,6 +376,10 @@ class FlowGraph : public ZoneAllocated {
 
   // Returns true if any instructions were canonicalized away.
   bool Canonicalize();
+
+  // Attaches new ICData's to static/instance calls which don't already have
+  // them.
+  void PopulateWithICData(const Function& function);
 
   void SelectRepresentations();
 
@@ -291,15 +395,6 @@ class FlowGraph : public ZoneAllocated {
   // Merge instructions (only per basic-block).
   void TryOptimizePatterns();
 
-  ZoneGrowableArray<TokenPosition>* await_token_positions() const {
-    return await_token_positions_;
-  }
-
-  void set_await_token_positions(
-      ZoneGrowableArray<TokenPosition>* await_token_positions) {
-    await_token_positions_ = await_token_positions;
-  }
-
   // Replaces uses that are dominated by dom of 'def' with 'other'.
   // Note: uses that occur at instruction dom itself are not dominated by it.
   static void RenameDominatedUses(Definition* def,
@@ -310,19 +405,59 @@ class FlowGraph : public ZoneAllocated {
   // values that are dominated by a redefinition are renamed.
   void RenameUsesDominatedByRedefinitions();
 
+  bool should_print() const { return should_print_; }
+
+  //
+  // High-level utilities.
+  //
+
+  // Logical-AND (for use in short-circuit diamond).
+  struct LogicalAnd {
+    LogicalAnd(ComparisonInstr* x, ComparisonInstr* y) : oper1(x), oper2(y) {}
+    ComparisonInstr* oper1;
+    ComparisonInstr* oper2;
+  };
+
+  // Constructs a diamond control flow at the instruction, inheriting
+  // properties from inherit and using the given compare. Returns the
+  // join (and true/false blocks in out parameters). Updates dominance
+  // relation, but not the succ/pred ordering on block.
+  JoinEntryInstr* NewDiamond(Instruction* instruction,
+                             Instruction* inherit,
+                             ComparisonInstr* compare,
+                             TargetEntryInstr** block_true,
+                             TargetEntryInstr** block_false);
+
+  // As above, but with a short-circuit on two comparisons.
+  JoinEntryInstr* NewDiamond(Instruction* instruction,
+                             Instruction* inherit,
+                             const LogicalAnd& condition,
+                             TargetEntryInstr** block_true,
+                             TargetEntryInstr** block_false);
+
+  // Adds a 2-way phi.
+  PhiInstr* AddPhi(JoinEntryInstr* join, Definition* d1, Definition* d2);
+
+  // SSA transformation methods and fields.
+  void ComputeDominators(GrowableArray<BitVector*>* dominance_frontier);
+
+  void CreateCommonConstants();
+
  private:
+  friend class FlowGraphCompiler;  // TODO(ajcbik): restructure
+  friend class FlowGraphChecker;
   friend class IfConverter;
   friend class BranchSimplifier;
   friend class ConstantPropagator;
   friend class DeadCodeElimination;
-
-  // SSA transformation methods and fields.
-  void ComputeDominators(GrowableArray<BitVector*>* dominance_frontier);
+  friend class compiler::GraphIntrinsifier;
 
   void CompressPath(intptr_t start_index,
                     intptr_t current_index,
                     GrowableArray<intptr_t>* parent,
                     GrowableArray<intptr_t>* label);
+
+  void AddSyntheticPhis(BlockEntryInstr* block);
 
   void Rename(GrowableArray<PhiInstr*>* live_phis,
               VariableLivenessAnalysis* variable_liveness,
@@ -330,7 +465,21 @@ class FlowGraph : public ZoneAllocated {
   void RenameRecursive(BlockEntryInstr* block_entry,
                        GrowableArray<Definition*>* env,
                        GrowableArray<PhiInstr*>* live_phis,
-                       VariableLivenessAnalysis* variable_liveness);
+                       VariableLivenessAnalysis* variable_liveness,
+                       ZoneGrowableArray<Definition*>* inlining_parameters);
+
+  void PopulateEnvironmentFromFunctionEntry(
+      FunctionEntryInstr* function_entry,
+      GrowableArray<Definition*>* env,
+      GrowableArray<PhiInstr*>* live_phis,
+      VariableLivenessAnalysis* variable_liveness,
+      ZoneGrowableArray<Definition*>* inlining_parameters);
+
+  void PopulateEnvironmentFromOsrEntry(OsrEntryInstr* osr_entry,
+                                       GrowableArray<Definition*>* env);
+
+  void PopulateEnvironmentFromCatchEntry(CatchBlockEntryInstr* catch_entry,
+                                         GrowableArray<Definition*>* env);
 
   void AttachEnvironment(Instruction* instr, GrowableArray<Definition*>* env);
 
@@ -344,16 +493,18 @@ class FlowGraph : public ZoneAllocated {
   void ReplacePredecessor(BlockEntryInstr* old_block,
                           BlockEntryInstr* new_block);
 
-  // Find the natural loop for the back edge m->n and attach loop
-  // information to block n (loop header). The algorithm is described in
-  // "Advanced Compiler Design & Implementation" (Muchnick) p192.
-  // Returns a BitVector indexed by block pre-order number where each bit
-  // indicates membership in the loop.
-  BitVector* FindLoop(BlockEntryInstr* m, BlockEntryInstr* n) const;
+  // Finds the blocks in the natural loop for the back edge m->n. The
+  // algorithm is described in "Advanced Compiler Design & Implementation"
+  // (Muchnick) p192. Returns a BitVector indexed by block pre-order
+  // number where each bit indicates membership in the loop.
+  BitVector* FindLoopBlocks(BlockEntryInstr* m, BlockEntryInstr* n) const;
+
+  // Finds the natural loops in the flow graph and attaches the loop
+  // information to each entry block. Returns the loop hierarchy.
+  LoopHierarchy* ComputeLoops() const;
 
   void InsertConversionsFor(Definition* def);
   void ConvertUse(Value* use, Representation from);
-  void ConvertEnvironmentUse(Value* use, Representation from);
   void InsertConversion(Representation from,
                         Representation to,
                         Value* use,
@@ -388,8 +539,8 @@ class FlowGraph : public ZoneAllocated {
 
   // Flow graph fields.
   const ParsedFunction& parsed_function_;
-  const intptr_t num_copied_params_;
-  const intptr_t num_non_copied_params_;
+  intptr_t num_direct_parameters_;
+  intptr_t direct_parameters_size_;
   GraphEntryInstr* graph_entry_;
   GrowableArray<BlockEntryInstr*> preorder_;
   GrowableArray<BlockEntryInstr*> postorder_;
@@ -397,18 +548,20 @@ class FlowGraph : public ZoneAllocated {
   GrowableArray<BlockEntryInstr*> optimized_block_order_;
   ConstantInstr* constant_null_;
   ConstantInstr* constant_dead_;
-  ConstantInstr* constant_empty_context_;
 
   bool licm_allowed_;
 
-  ZoneGrowableArray<BlockEntryInstr*>* loop_headers_;
+  const PrologueInfo prologue_info_;
+
+  // Loop related fields.
+  LoopHierarchy* loop_hierarchy_;
   ZoneGrowableArray<BitVector*>* loop_invariant_loads_;
-  ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;
-  ZoneGrowableArray<TokenPosition>* await_token_positions_;
+
   DirectChainedHashMap<ConstantPoolTrait> constant_instr_pool_;
   BitVector* captured_parameters_;
 
   intptr_t inlining_id_;
+  bool should_print_;
 };
 
 class LivenessAnalysis : public ValueObject {

@@ -4,7 +4,6 @@
 
 library test.top_level_accessors_test;
 
-@MirrorsUsed(targets: "test.top_level_accessors_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -15,7 +14,7 @@ get accessor => field;
 
 set accessor(value) {
   field = value;
-  return 'fisk';
+  return 'fisk'; //# 01: compile-time error
 }
 
 main() {

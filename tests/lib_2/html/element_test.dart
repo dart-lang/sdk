@@ -4,8 +4,8 @@
 
 library ElementTest;
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
+import 'package:async_helper/async_minitest.dart';
+import 'package:expect/expect.dart';
 import 'dart:async';
 import 'dart:html';
 import 'dart:svg' as svg;
@@ -21,14 +21,10 @@ expectLargeRect(Rectangle rect) {
 }
 
 void testUnsupported(String name, void f()) {
-  test(name, () {
-    expect(f, throwsUnsupportedError);
-  });
+  test(name, () => Expect.throwsUnsupportedError(f));
 }
 
 main() {
-  useHtmlIndividualConfiguration();
-
   var isHRElement = predicate((x) => x is HRElement, 'is a HRElement');
   var isBRElement = predicate((x) => x is BRElement, 'is a BRElement');
   var isInputElement =
@@ -85,7 +81,7 @@ main() {
 
   group('constructors', () {
     test('error', () {
-      expect(() => new Element.html('<br/><br/>'), throwsStateError);
+      Expect.throwsStateError(() => new Element.html('<br/><br/>'));
     });
 
     test('.html has no parent',
@@ -126,7 +122,8 @@ main() {
 
     test('.html caption', () {
       var table = new TableElement();
-      TableCaptionElement node = table.createFragment('<caption><p>Table 1.').nodes.single;
+      TableCaptionElement node =
+          table.createFragment('<caption><p>Table 1.').nodes.single;
       expect(
           node,
           predicate(
@@ -150,7 +147,8 @@ main() {
     test('.html tbody', () {
       var innerHtml = '<tr><td headers="n r1">Sad</td><td>Happy</td></tr>';
       var table = new TableElement();
-      TableSectionElement node = table.createFragment('<tbody>$innerHtml').nodes.single;
+      TableSectionElement node =
+          table.createFragment('<tbody>$innerHtml').nodes.single;
       expect(
           node,
           predicate(
@@ -165,7 +163,8 @@ main() {
     test('.html thead', () {
       var innerHtml = '<tr><th id="n">Negative</th><th>Positive</th></tr>';
       var table = new TableElement();
-      TableSectionElement node = table.createFragment('<thead>$innerHtml').nodes.single;
+      TableSectionElement node =
+          table.createFragment('<thead>$innerHtml').nodes.single;
       expect(
           node,
           predicate(
@@ -180,7 +179,8 @@ main() {
     test('.html tfoot', () {
       var innerHtml = '<tr><th>percentage</th><td>34.3%</td></tr>';
       var table = new TableElement();
-      TableSectionElement node = table.createFragment('<tfoot>$innerHtml').nodes.single;
+      TableSectionElement node =
+          table.createFragment('<tfoot>$innerHtml').nodes.single;
       expect(
           node,
           predicate(
@@ -196,7 +196,8 @@ main() {
       var table = new TableElement();
       document.body.append(table);
       var tBody = table.createTBody();
-      TableRowElement node = tBody.createFragment('<tr><td>foo<td>bar').nodes.single;
+      TableRowElement node =
+          tBody.createFragment('<tr><td>foo<td>bar').nodes.single;
       expect(
           node, predicate((x) => x is TableRowElement, 'is a TableRowElement'));
       expect(node.tagName, 'TR');
@@ -351,6 +352,7 @@ main() {
           treeSanitizer: new NullTreeSanitizer());
       final attributes = element.attributes;
       expect(attributes['class'], 'foo');
+      startsWith(match) => predicate((x) => x is String && x.startsWith(match));
       expect(attributes['style'], startsWith('overflow: hidden'));
       expect(attributes['data-foo'], 'bar');
       expect(attributes['data-foo2'], 'bar2');
@@ -640,8 +642,8 @@ main() {
     });
   });
 
-  group('queryAll', () {
-    List<Element> getQueryAll() {
+  group('querySelectorAll', () {
+    List<Element> getQuerySelectorAll() {
       return new Element.html("""
 <div>
   <hr/>
@@ -652,59 +654,61 @@ main() {
   </p>
   <hr class='q'/>
 </div>
-""").queryAll('.q');
+""").querySelectorAll('.q');
     }
 
-    List<Element> getEmptyQueryAll() => new Element.tag('div').queryAll('img');
+    List<Element> getEmptyQuerySelectorAll() =>
+        new Element.tag('div').querySelectorAll('img');
 
     test('last', () {
-      expect(getQueryAll().last, isHRElement);
+      expect(getQuerySelectorAll().last, isHRElement);
     });
 
     test('forEach', () {
       var els = [];
-      getQueryAll().forEach((el) => els.add(el));
+      getQuerySelectorAll().forEach((el) => els.add(el));
       expect(els[0], isAnchorElement);
       expect(els[1], isSpanElement);
       expect(els[2], isHRElement);
     });
 
     test('map', () {
-      var texts = getQueryAll().map((el) => el.text).toList();
+      var texts = getQuerySelectorAll().map((el) => el.text).toList();
       expect(texts, equals(['Dart!', 'Hello', '']));
     });
 
     test('where', () {
-      var filtered = getQueryAll().where((n) => n is SpanElement).toList();
+      var filtered =
+          getQuerySelectorAll().where((n) => n is SpanElement).toList();
       expect(filtered.length, 1);
       expect(filtered[0], isSpanElement);
       expect(filtered, isElementList);
     });
 
     test('every', () {
-      var el = getQueryAll();
+      var el = getQuerySelectorAll();
       expect(el.every((n) => n is Element), isTrue);
       expect(el.every((n) => n is SpanElement), isFalse);
     });
 
     test('any', () {
-      var el = getQueryAll();
+      var el = getQuerySelectorAll();
       expect(el.any((n) => n is SpanElement), isTrue);
       expect(el.any((n) => n is svg.SvgElement), isFalse);
     });
 
     test('isEmpty', () {
-      expect(getEmptyQueryAll().isEmpty, isTrue);
-      expect(getQueryAll().isEmpty, isFalse);
+      expect(getEmptyQuerySelectorAll().isEmpty, isTrue);
+      expect(getQuerySelectorAll().isEmpty, isFalse);
     });
 
     test('length', () {
-      expect(getEmptyQueryAll().length, 0);
-      expect(getQueryAll().length, 3);
+      expect(getEmptyQuerySelectorAll().length, 0);
+      expect(getQuerySelectorAll().length, 3);
     });
 
     test('[]', () {
-      var els = getQueryAll();
+      var els = getQuerySelectorAll();
       expect(els[0], isAnchorElement);
       expect(els[1], isSpanElement);
       expect(els[2], isHRElement);
@@ -712,7 +716,7 @@ main() {
 
     test('iterator', () {
       var els = [];
-      for (var subel in getQueryAll()) {
+      for (var subel in getQuerySelectorAll()) {
         els.add(subel);
       }
       expect(els[0], isAnchorElement);
@@ -721,31 +725,34 @@ main() {
     });
 
     test('sublist', () {
-      expect(getQueryAll().sublist(1, 2) is List<Element>, isTrue);
+      expect(getQuerySelectorAll().sublist(1, 2) is List<Element>, isTrue);
     });
 
-    testUnsupported('[]=', () => getQueryAll()[1] = new Element.tag('br'));
-    testUnsupported('add', () => getQueryAll().add(new Element.tag('br')));
+    testUnsupported(
+        '[]=', () => getQuerySelectorAll()[1] = new Element.tag('br'));
+    testUnsupported(
+        'add', () => getQuerySelectorAll().add(new Element.tag('br')));
 
     testUnsupported('addAll', () {
-      getQueryAll().addAll([
+      getQuerySelectorAll().addAll([
         new Element.tag('span'),
         new Element.tag('a'),
         new Element.tag('h1')
       ]);
     });
 
-    testUnsupported('sort', () => getQueryAll().sort((a1, a2) => 0));
+    testUnsupported('sort', () => getQuerySelectorAll().sort((a1, a2) => 0));
 
     testUnsupported('setRange', () {
-      getQueryAll().setRange(0, 1, [new BRElement()]);
+      getQuerySelectorAll().setRange(0, 1, [new BRElement()]);
     });
 
-    testUnsupported('removeRange', () => getQueryAll().removeRange(0, 1));
+    testUnsupported(
+        'removeRange', () => getQuerySelectorAll().removeRange(0, 1));
 
-    testUnsupported('clear', () => getQueryAll().clear());
+    testUnsupported('clear', () => getQuerySelectorAll().clear());
 
-    testUnsupported('removeLast', () => getQueryAll().removeLast());
+    testUnsupported('removeLast', () => getQuerySelectorAll().removeLast());
   });
 
   group('functional', () {
@@ -801,7 +808,7 @@ main() {
 
       document.body.onClick
           .matches('.selector')
-          .listen(expectAsync((Event event) {
+          .listen(expectAsync1((Event event) {
         expect(event.currentTarget, document.body);
         expect(event.target, clickOne);
         expect(event.matchingTarget, selectorOne);
@@ -809,7 +816,7 @@ main() {
 
       selectorOne.onClick
           .matches('.selector')
-          .listen(expectAsync((Event event) {
+          .listen(expectAsync1((Event event) {
         expect(event.currentTarget, selectorOne);
         expect(event.target, clickOne);
         expect(event.matchingTarget, selectorOne);
@@ -839,30 +846,30 @@ main() {
       document.body.append(elem6);
 
       var firedEvent = false;
-      var elems = queryAll('.a');
-      queryAll('.a').onClick.listen((event) {
+      var elems = querySelectorAll('.a');
+      querySelectorAll('.a').onClick.listen((event) {
         firedEvent = true;
       });
       expect(firedEvent, false);
-      query('.c').click();
+      querySelector('.c').click();
       expect(firedEvent, false);
-      query('#wat').click();
+      querySelector('#wat').click();
       expect(firedEvent, true);
 
       var firedEvent4 = false;
-      queryAll('.a').onClick.matches('.d').listen((event) {
+      querySelectorAll('.a').onClick.matches('.d').listen((event) {
         firedEvent4 = true;
       });
       expect(firedEvent4, false);
-      query('.c').click();
+      querySelector('.c').click();
       expect(firedEvent4, false);
-      query('#wat').click();
+      querySelector('#wat').click();
       expect(firedEvent4, false);
-      query('#cookie').click();
+      querySelector('#cookie').click();
       expect(firedEvent4, true);
 
       var firedEvent2 = false;
-      queryAll('.a').onClick.listen((event) {
+      querySelectorAll('.a').onClick.listen((event) {
         firedEvent2 = true;
       });
       Element elem2 = new Element.html('<div class="a"><br/>');
@@ -874,7 +881,7 @@ main() {
       expect(firedEvent2, false);
 
       var firedEvent3 = false;
-      queryAll(':root').onClick.matches('.a').listen((event) {
+      querySelectorAll(':root').onClick.matches('.a').listen((event) {
         firedEvent3 = true;
       });
       Element elem3 = new Element.html('<div class="d"><br/>');
@@ -886,11 +893,11 @@ main() {
       expect(firedEvent3, true);
 
       var firedEvent5 = false;
-      queryAll(':root').onClick.matches('.e').listen((event) {
+      querySelectorAll(':root').onClick.matches('.e').listen((event) {
         firedEvent5 = true;
       });
       expect(firedEvent5, false);
-      query('.i').click();
+      querySelector('.i').click();
       expect(firedEvent5, true);
     });
 
@@ -942,7 +949,7 @@ main() {
 
     ElementList<Element> makeElementList() =>
         (new Element.html("<div>Foo<br/><!--baz--><br/><br/></div>"))
-            .queryAll('br');
+            .querySelectorAll('br');
 
     test('hashCode', () {
       var nodes = makeElementList();

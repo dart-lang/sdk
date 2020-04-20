@@ -8,11 +8,11 @@ library test;
 typedef void F<T>(T x);
 
 class C<T> {
-  F<T> operator /*@genericContravariant=true*/ [](int i) => null;
+  F<T> operator [](int i) => null;
 }
 
 F<num> test(C<num> c) {
-  return c /*@checkReturn=(num) -> void*/ [0];
+  return c /*@ checkReturn=(num*) ->* void */ [0];
 }
 
 main() {}

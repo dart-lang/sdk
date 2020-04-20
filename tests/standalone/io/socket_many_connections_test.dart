@@ -1,6 +1,9 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
 //
 // Test creating a large number of socket connections.
 library ServerTest;
@@ -12,27 +15,27 @@ import "dart:io";
 import "dart:isolate";
 part "testing_server.dart";
 
-const CONNECTIONS = 200;
+const connectionsCount = 200;
 
 class SocketManyConnectionsTest {
   SocketManyConnectionsTest.start()
       : _connections = 0,
-        _sockets = new List<Socket>(CONNECTIONS) {
+        _sockets = new List<Socket?>.filled(connectionsCount, null) {
     initialize();
   }
 
   void run() {
     void connectHandler() {
       _connections++;
-      if (_connections == CONNECTIONS) {
-        for (int i = 0; i < CONNECTIONS; i++) {
-          _sockets[i].destroy();
+      if (_connections == connectionsCount) {
+        for (int i = 0; i < connectionsCount; i++) {
+          _sockets[i]!.destroy();
         }
         close();
       }
     }
 
-    for (int i = 0; i < CONNECTIONS; i++) {
+    for (int i = 0; i < connectionsCount; i++) {
       Socket.connect(TestingServer.HOST, _port).then((socket) {
         Expect.isNotNull(socket);
         _sockets[i] = socket;
@@ -56,9 +59,9 @@ class SocketManyConnectionsTest {
     asyncEnd();
   }
 
-  int _port;
-  SendPort _closeSendPort;
-  List<Socket> _sockets;
+  late int _port;
+  late SendPort _closeSendPort;
+  List<Socket?> _sockets;
   int _connections;
 }
 

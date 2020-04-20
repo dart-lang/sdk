@@ -15,9 +15,9 @@
 
 #include "bin/directory.h"
 #include "bin/file.h"
-#include "bin/log.h"
 #include "bin/secure_socket_filter.h"
 #include "bin/secure_socket_utils.h"
+#include "platform/syslog.h"
 
 namespace dart {
 namespace bin {

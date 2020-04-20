@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion_contributor_util.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LibraryPrefixContributorTest);
   });
@@ -19,11 +19,11 @@ main() {
 @reflectiveTest
 class LibraryPrefixContributorTest extends DartCompletionContributorTest {
   void assertSuggestLibraryPrefixes(List<String> expectedPrefixes) {
-    for (String prefix in expectedPrefixes) {
-      CompletionSuggestion cs = assertSuggest(prefix,
+    for (var prefix in expectedPrefixes) {
+      var cs = assertSuggest(prefix,
           csKind: CompletionSuggestionKind.IDENTIFIER,
           relevance: DART_RELEVANCE_DEFAULT);
-      Element element = cs.element;
+      var element = cs.element;
       expect(element, isNotNull);
       expect(element.kind, equals(ElementKind.LIBRARY));
       expect(element.parameters, isNull);
@@ -37,34 +37,34 @@ class LibraryPrefixContributorTest extends DartCompletionContributorTest {
 
   @override
   DartCompletionContributor createContributor() {
-    return new LibraryPrefixContributor();
+    return LibraryPrefixContributor();
   }
 
-  test_Block() async {
+  Future<void> test_Block() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource('/testAB.dart', '''
+    addSource('/home/test/lib/ab.dart', '''
 export "dart:math" hide max;
 class A {int x;}
 @deprecated D1() {int x;}
 class _B {boo() { partBoo() {}} }''');
-    addSource('/testCD.dart', '''
+    addSource('/home/test/lib/cd.dart', '''
 String T1;
 var _T2;
 class C { }
 class D { }''');
-    addSource('/testEEF.dart', '''
+    addSource('/home/test/lib/eef.dart', '''
 class EE { }
 class F { }''');
-    addSource('/testG.dart', 'class G { }');
-    addSource('/testH.dart', '''
+    addSource('/home/test/lib/g.dart', 'class G { }');
+    addSource('/home/test/lib/h.dart', '''
 class H { }
 int T3;
 var _T4;'''); // not imported
     addTestSource('''
-import "/testAB.dart";
-import "/testCD.dart" hide D;
-import "/testEEF.dart" show EE;
-import "/testG.dart" as g;
+import "ab.dart";
+import "cd.dart" hide D;
+import "eef.dart" show EE;
+import "g.dart" as g;
 int T5;
 var _T6;
 String get T7 => 'hello';
@@ -87,7 +87,7 @@ class Z { }''');
     assertSuggestLibraryPrefixes(['g']);
   }
 
-  test_Block_final_final() async {
+  Future<void> test_Block_final_final() async {
     // Block  BlockFunctionBody  MethodDeclaration
     addSource('/testAB.dart', '''
 export "dart:math" hide max;
@@ -108,10 +108,10 @@ class H { }
 int T3;
 var _T4;'''); // not imported
     addTestSource('''
-import "/testAB.dart";
-import "/testCD.dart" hide D;
-import "/testEEF.dart" show EE;
-import "/testG.dart" as g;
+import "testAB.dart";
+import "testCD.dart" hide D;
+import "testEEF.dart" show EE;
+import "testG.dart" as g;
 int T5;
 var _T6;
 String get T7 => 'hello';
@@ -134,7 +134,7 @@ class Z { }''');
     assertSuggestLibraryPrefixes(['g']);
   }
 
-  test_Block_final_var() async {
+  Future<void> test_Block_final_var() async {
     // Block  BlockFunctionBody  MethodDeclaration
     addSource('/testAB.dart', '''
 export "dart:math" hide max;
@@ -155,10 +155,10 @@ class H { }
 int T3;
 var _T4;'''); // not imported
     addTestSource('''
-import "/testAB.dart";
-import "/testCD.dart" hide D;
-import "/testEEF.dart" show EE;
-import "/testG.dart" as g;
+import "testAB.dart";
+import "testCD.dart" hide D;
+import "testEEF.dart" show EE;
+import "testG.dart" as g;
 int T5;
 var _T6;
 String get T7 => 'hello';
@@ -181,12 +181,12 @@ class Z { }''');
     assertSuggestLibraryPrefixes(['g']);
   }
 
-  test_ClassDeclaration_body() async {
+  Future<void> test_ClassDeclaration_body() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 class B { }''');
     addTestSource('''
-import "testB.dart" as x;
+import "b.dart" as x;
 @deprecated class A {^}
 class _B {}
 A T;''');
@@ -196,12 +196,12 @@ A T;''');
     assertSuggestLibraryPrefixes(['x']);
   }
 
-  test_ClassDeclaration_body_final() async {
+  Future<void> test_ClassDeclaration_body_final() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 class B { }''');
     addTestSource('''
-import "testB.dart" as x;
+import "b.dart" as x;
 class A {final ^}
 class _B {}
 A T;''');
@@ -211,12 +211,12 @@ A T;''');
     assertSuggestLibraryPrefixes(['x']);
   }
 
-  test_ClassDeclaration_body_final_field() async {
+  Future<void> test_ClassDeclaration_body_final_field() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 class B { }''');
     addTestSource('''
-import "testB.dart" as x;
+import "b.dart" as x;
 class A {final ^ A(){}}
 class _B {}
 A T;''');
@@ -226,12 +226,12 @@ A T;''');
     assertSuggestLibraryPrefixes(['x']);
   }
 
-  test_ClassDeclaration_body_final_field2() async {
+  Future<void> test_ClassDeclaration_body_final_field2() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 class B { }''');
     addTestSource('''
-import "testB.dart" as Soo;
+import "b.dart" as Soo;
 class A {final S^ A();}
 class _B {}
 A Sew;''');
@@ -241,12 +241,12 @@ A Sew;''');
     assertSuggestLibraryPrefixes(['Soo']);
   }
 
-  test_ClassDeclaration_body_final_final() async {
+  Future<void> test_ClassDeclaration_body_final_final() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 class B { }''');
     addTestSource('''
-import "testB.dart" as x;
+import "b.dart" as x;
 class A {final ^ final foo;}
 class _B {}
 A T;''');
@@ -256,12 +256,12 @@ A T;''');
     assertSuggestLibraryPrefixes(['x']);
   }
 
-  test_ClassDeclaration_body_final_var() async {
+  Future<void> test_ClassDeclaration_body_final_var() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 class B { }''');
     addTestSource('''
-import "testB.dart" as x;
+import "b.dart" as x;
 class A {final ^ var foo;}
 class _B {}
 A T;''');
@@ -271,52 +271,51 @@ A T;''');
     assertSuggestLibraryPrefixes(['x']);
   }
 
-  test_InstanceCreationExpression() async {
-    addSource('/testA.dart', '''
+  Future<void> test_InstanceCreationExpression() async {
+    addSource('/home/test/lib/a.dart', '''
 class A {foo(){var f; {var x;}}}
 class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
     addTestSource('''
-import "/testA.dart" as t;
+import "a.dart" as t;
 import "dart:math" as math;
 main() {new ^ String x = "hello";}''');
     await computeSuggestions();
     assertSuggestLibraryPrefixes(['math', 't']);
   }
 
-  test_InstanceCreationExpression2() async {
+  Future<void> test_InstanceCreationExpression2() async {
     addTestSource('import "dart:convert" as json;f() {var x=new js^}');
     await computeSuggestions();
     assertSuggestLibraryPrefixes(['json']);
   }
 
-  test_InstanceCreationExpression_inPart() async {
-    addSource('/testA.dart', '''
+  Future<void> test_InstanceCreationExpression_inPart() async {
+    addSource('/home/test/lib/a.dart', '''
 class A {foo(){var f; {var x;}}}
 class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 library testB;
-import "/testA.dart" as t;
+import "a.dart" as t;
 import "dart:math" as math;
-part "$testFile"
+part "test.dart";
 main() {new ^ String x = "hello";}''');
     addTestSource('''
 part of testB;
 main() {new ^ String x = "hello";}''');
-    await computeLibrariesContaining();
     await computeSuggestions();
     assertSuggestLibraryPrefixes(['math', 't']);
   }
 
-  test_InstanceCreationExpression_inPart_detached() async {
-    addSource('/testA.dart', '''
+  Future<void> test_InstanceCreationExpression_inPart_detached() async {
+    addSource('/home/test/lib/a.dart', '''
 class A {foo(){var f; {var x;}}}
 class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 library testB;
-import "/testA.dart" as t;
+import "a.dart" as t;
 import "dart:math" as math;
 //part "$testFile"
 main() {new ^ String x = "hello";}''');

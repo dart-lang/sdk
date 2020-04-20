@@ -9,12 +9,12 @@ class MySink implements Sink<List<int>> {
   List<int> accumulated = <int>[];
   bool isClosed = false;
 
-  add(List<int> list) {
+  int add(List<int> list) {
     accumulated.addAll(list);
     return list.length;
   }
 
-  close() {
+  String close() {
     isClosed = true;
     // Returning a value here triggered a bug, where the caller was trying to
     // pass the value through its 'void' return type.

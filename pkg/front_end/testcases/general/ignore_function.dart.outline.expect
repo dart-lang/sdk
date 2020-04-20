@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    ;
+  operator ==(dynamic other) → core::bool*
+    ;
+}
+class B extends core::Object implements self::Function {
+  synthetic constructor •() → self::B*
+    ;
+  operator ==(dynamic other) → core::bool*
+    ;
+}
+class Function extends core::Object {
+  synthetic constructor •() → self::Function*
+    ;
+  operator ==(core::Object* other) → core::bool*
+    ;
+}
+static method main() → dynamic
+  ;

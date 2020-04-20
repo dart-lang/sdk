@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 // Conversions for IDBKey.
 //
 // Per http://www.w3.org/TR/IndexedDB/#key-construct
@@ -76,8 +78,11 @@ abstract class _StructuredClone {
 
   cleanupSlots() {} // Will be needed if we mark objects with a property.
   bool cloneNotRequired(object);
+  JSObject newJsObject();
+  void forEachObjectKey(object, action(key, value));
+  void putIntoObject(object, key, value);
   newJsMap();
-  newJsList(length);
+  List newJsList(length);
   void putIntoMap(map, key, value);
 
   // Returns the input, or a clone of the input.
@@ -128,16 +133,29 @@ abstract class _StructuredClone {
       // non-native properties or methods from interceptors and such, e.g.
       // an immutability marker. So we  had to stop doing that.
       var slot = findSlot(e);
-      var copy = readSlot(slot);
+      var copy = JS('returns:List|Null;creates:;', '#', readSlot(slot));
       if (copy != null) return copy;
       copy = copyList(e, slot);
+      return copy;
+    }
+
+    if (e is JSObject) {
+      var slot = findSlot(e);
+      var copy = readSlot(slot);
+      if (copy != null) return copy;
+      copy = newJsObject();
+      writeSlot(slot, copy);
+      // TODO: Consider inlining this so we don't allocate a closure.
+      forEachObjectKey(e, (key, value) {
+        putIntoObject(copy, key, walk(value));
+      });
       return copy;
     }
 
     throw new UnimplementedError('structured clone of other type');
   }
 
-  copyList(List e, int slot) {
+  List copyList(List e, int slot) {
     int i = 0;
     int length = e.length;
     var copy = newJsList(length);
@@ -198,11 +216,11 @@ abstract class _AcceptStructuredClone {
   }
 
   /// Iterate over the JS properties.
-  forEachJsField(object, action);
+  forEachJsField(object, action(key, value));
 
   /// Create a new Dart list of the given length. May create a native List or
   /// a JsArray, depending if we're in Dartium or dart2js.
-  newDartList(length);
+  List newDartList(length);
 
   walk(e) {
     if (e == null) return e;
@@ -220,7 +238,7 @@ abstract class _AcceptStructuredClone {
     }
 
     if (isJavaScriptPromise(e)) {
-      return convertNativePromiseToDartFuture(e);
+      return promiseToFuture(e);
     }
 
     if (isJavaScriptSimpleObject(e)) {
@@ -237,24 +255,25 @@ abstract class _AcceptStructuredClone {
     }
 
     if (isJavaScriptArray(e)) {
-      var slot = findSlot(e);
-      var copy = readSlot(slot);
+      var l = JS<List>('returns:List;creates:;', '#', e);
+      var slot = findSlot(l);
+      var copy = JS<List>('returns:List|Null;creates:;', '#', readSlot(slot));
       if (copy != null) return copy;
 
-      int length = e.length;
+      int length = l.length;
       // Since a JavaScript Array is an instance of Dart List, we can modify it
       // in-place unless we must copy.
-      copy = mustCopy ? newDartList(length) : e;
+      copy = mustCopy ? newDartList(length) : l;
       writeSlot(slot, copy);
 
       for (int i = 0; i < length; i++) {
-        copy[i] = walk(e[i]);
+        copy[i] = walk(l[i]);
       }
       return copy;
     }
 
     // Assume anything else is already a valid Dart object, either by having
-    // already been processed, or e.g. a clonable native class.
+    // already been processed, or e.g. a cloneable native class.
     return e;
   }
 

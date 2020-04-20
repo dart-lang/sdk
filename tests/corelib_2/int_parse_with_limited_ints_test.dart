@@ -1,10 +1,8 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--limit-ints-to-64-bits
 
-// Test for int.parse in --limit-ints-to-64-bits mode (with limited 64-bit
-// integers).
+// Test for int.parse with limited 64-bit integers.
 
 import "package:expect/expect.dart";
 
@@ -20,10 +18,7 @@ main() {
   Expect.equals(0x7fffffffffffffff, int.parse("0x7fffffffffffffff"));
   Expect.equals(-0x7fffffffffffffff, int.parse("-0x7fffffffffffffff"));
   Expect.equals(-0x7fffffffffffffff - 1, int.parse("-0x8000000000000000"));
-
-  Expect.throwsFormatException(() => int.parse("0x8000000000000000"));
-  Expect.equals(ERROR, int.parse("0x8000000000000000", onError: returnError));
-  Expect.equals(ERROR, int.parse("-0x8000000000000001", onError: returnError));
+  Expect.equals(1 << 63, int.parse("0x8000000000000000"));
 
   Expect.equals(8999999999999999999, int.parse("8999999999999999999"));
   Expect.equals(-8999999999999999999, int.parse("-8999999999999999999"));
@@ -31,6 +26,7 @@ main() {
   Expect.equals(-9223372036854775807, int.parse("-9223372036854775807"));
   Expect.equals(-9223372036854775807 - 1, int.parse("-9223372036854775808"));
 
+  Expect.equals(ERROR, int.parse("-0x8000000000000001", onError: returnError));
   Expect.equals(ERROR, int.parse("9223372036854775808", onError: returnError));
   Expect.equals(ERROR, int.parse("9223372036854775809", onError: returnError));
   Expect.equals(ERROR, int.parse("-9223372036854775809", onError: returnError));

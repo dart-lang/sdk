@@ -66,7 +66,7 @@ main() {
       new Stream.fromIterable([1, 1, 2, 2, 1, 3])
           .map((v) => new T(v))
           .distinct()
-          .transform(reifyErrors)
+          .transform(reifyErrors.cast<T, dynamic>())
           .map((v) => v is T ? v.value : "$v"),
       [1, "[2]", "[2]", 3],
       "==-throws");
@@ -120,7 +120,7 @@ class T {
       other is T && ((other.value == 2) ? throw 2 : (value == other.value));
 }
 
-final reifyErrors =
+StreamTransformer<Object, dynamic> reifyErrors =
     new StreamTransformer.fromHandlers(handleError: (e, s, sink) {
   sink.add("[$e]");
 });

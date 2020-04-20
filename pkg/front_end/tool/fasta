@@ -10,7 +10,7 @@ set -e
 
 REPO_DIR="$(cd ${BASH_SOURCE%/*} && git rev-parse --show-toplevel)"
 
-DART_VM="${REPO_DIR}/sdk/bin/dart"
+DART_VM=${DART_VM-"${REPO_DIR}/sdk/bin/dart"}
 
 TOOL_DIR="${REPO_DIR}/pkg/front_end/tool/_fasta"
 
@@ -23,22 +23,22 @@ function stop {
 
 export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
 
+EXTRA_VM_ARGS=()
+
+while [[ "$1" == -* ]]; do
+  EXTRA_VM_ARGS+=("$1")
+  shift
+done
+
 case "${1//_/-}" in
   abcompile) SCRIPT="${TOOL_DIR}/abcompile.dart";;
-  analyzer-compile)
-    stop "'$1' isn't supported anymore, please use 'compile' instead."
-    ;;
   compile) SCRIPT="${TOOL_DIR}/compile.dart";;
   compile-platform) SCRIPT="${TOOL_DIR}/compile_platform.dart";;
   log) SCRIPT="${TOOL_DIR}/log_analyzer.dart";;
   logd) SCRIPT="${TOOL_DIR}/log_collector.dart";;
   outline) SCRIPT="${TOOL_DIR}/outline.dart";;
   parser) SCRIPT="${TOOL_DIR}/parser.dart";;
-  run)
-    stop "'$1' isn't supported anymore, please use 'kernel-service' instead."
-    ;;
   scanner) SCRIPT="${TOOL_DIR}/scanner.dart";;
-  dump-partial) SCRIPT="${TOOL_DIR}/dump_partial.dart";;
   dump-ir)
     SCRIPT="${KERNEL_BIN}/dump.dart"
     if [ "$#" = "2" ]; then
@@ -49,20 +49,12 @@ case "${1//_/-}" in
       stop "Usage: $1 dillfile [output]"
     fi
     ;;
-  kernel-service)
-    shift
-    PATCHED_SDK_DIR=$(
-      ls -d {xcodebuild,out}/${DART_CONFIGURATION} 2>/dev/null \
-        | head -1)
-    exec "${DART_VM}" -DDFE_VERBOSE=true \
-         --kernel-binaries=${PATCHED_SDK_DIR} \
-         --dfe="${REPO_DIR}/utils/kernel-service/kernel-service.dart" "$@"
-    ;;
   testing)
     SCRIPT="${REPO_DIR}/pkg/testing/bin/testing.dart"
     set -- "$@" "--config=${REPO_DIR}/pkg/front_end/testing.json"
     ;;
   generate-messages) SCRIPT="${TOOL_DIR}/generate_messages.dart";;
+  generate-experimental-flags) SCRIPT="${TOOL_DIR}/generate_experimental_flags.dart";;
   *)
     stop "'$1' isn't a valid subcommand."
     ;;
@@ -70,4 +62,4 @@ esac
 
 shift
 
-exec "${DART_VM}" -c "${SCRIPT}" "$@"
+exec "${DART_VM}" "${EXTRA_VM_ARGS[@]}" --enable-asserts "${SCRIPT}" "$@"

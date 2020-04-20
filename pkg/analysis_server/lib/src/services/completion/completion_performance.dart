@@ -1,19 +1,47 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/generated/source.dart';
+/// Compute a string representing a code completion operation at the
+/// given source and location.
+///
+/// This string is useful for displaying to users in a diagnostic context.
+String computeCompletionSnippet(String contents, int offset) {
+  if (contents == null ||
+      offset == null ||
+      offset < 0 ||
+      contents.length < offset) {
+    return '???';
+  }
+  var start = offset;
+  while (start > 0) {
+    var ch = contents[start - 1];
+    if (ch == '\r' || ch == '\n') {
+      break;
+    }
+    --start;
+  }
+  var end = offset;
+  while (end < contents.length) {
+    var ch = contents[end];
+    if (ch == '\r' || ch == '\n') {
+      break;
+    }
+    ++end;
+  }
+  var prefix = contents.substring(start, offset);
+  var suffix = contents.substring(offset, end);
+  return '$prefix^$suffix';
+}
 
-/**
- * Overall performance of a code completion operation.
- */
+/// Overall performance of a code completion operation.
 class CompletionPerformance {
-  final DateTime start = new DateTime.now();
-  final Map<String, Duration> _startTimes = new Map<String, Duration>();
-  final Stopwatch _stopwatch = new Stopwatch();
+  final DateTime start = DateTime.now();
+  final Map<String, Duration> _startTimes = <String, Duration>{};
+  final Stopwatch _stopwatch = Stopwatch();
   final List<OperationPerformance> operations = <OperationPerformance>[];
 
-  Source source;
+  String path;
   String snippet = '';
   int notificationCount = -1;
   int suggestionCountFirst = -1;
@@ -25,12 +53,7 @@ class CompletionPerformance {
   }
 
   int get elapsedInMilliseconds =>
-      operations.length > 0 ? operations.last.elapsed.inMilliseconds : 0;
-
-  int get firstNotificationInMilliseconds =>
-      _firstNotification != null ? _firstNotification.inMilliseconds : 0;
-
-  String get startTimeAndMs => '${start.millisecondsSinceEpoch} - $start';
+      operations.isNotEmpty ? operations.last.elapsed.inMilliseconds : 0;
 
   String get suggestionCount {
     if (notificationCount < 1) return '';
@@ -38,14 +61,14 @@ class CompletionPerformance {
     return '$suggestionCountFirst,  $suggestionCountLast';
   }
 
-  void complete([String tag = null]) {
+  void complete([String tag]) {
     _stopwatch.stop();
     _logDuration(tag ?? 'total time', _stopwatch.elapsed);
   }
 
   void logElapseTime(String tag) {
-    Duration end = _stopwatch.elapsed;
-    Duration start = _startTimes[tag];
+    var end = _stopwatch.elapsed;
+    var start = _startTimes[tag];
     if (start == null) {
       _logDuration(tag, null);
       return null;
@@ -63,54 +86,20 @@ class CompletionPerformance {
   }
 
   void setContentsAndOffset(String contents, int offset) {
-    snippet = _computeSnippet(contents, offset);
+    snippet = computeCompletionSnippet(contents, offset);
   }
 
   void _logDuration(String tag, Duration elapsed) {
-    operations.add(new OperationPerformance(tag, elapsed));
-  }
-
-  static String _computeSnippet(String contents, int offset) {
-    if (contents == null ||
-        offset == null ||
-        offset < 0 ||
-        contents.length < offset) {
-      return '???';
-    }
-    int start = offset;
-    while (start > 0) {
-      String ch = contents[start - 1];
-      if (ch == '\r' || ch == '\n') {
-        break;
-      }
-      --start;
-    }
-    int end = offset;
-    while (end < contents.length) {
-      String ch = contents[end];
-      if (ch == '\r' || ch == '\n') {
-        break;
-      }
-      ++end;
-    }
-    String prefix = contents.substring(start, offset);
-    String suffix = contents.substring(offset, end);
-    return '$prefix^$suffix';
+    operations.add(OperationPerformance(tag, elapsed));
   }
 }
 
-/**
- * The performance of an operation when computing code completion.
- */
+/// The performance of an operation when computing code completion.
 class OperationPerformance {
-  /**
-   * The name of the operation
-   */
+  /// The name of the operation
   final String name;
 
-  /**
-   * The elapse time or `null` if undefined.
-   */
+  /// The elapse time or `null` if undefined.
   final Duration elapsed;
 
   OperationPerformance(this.name, this.elapsed);

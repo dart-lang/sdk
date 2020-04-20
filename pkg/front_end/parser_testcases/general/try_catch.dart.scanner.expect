@@ -1,0 +1,9 @@
+main() {
+try {} catch (e, s) {}
+}
+
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+try[KeywordToken] {[BeginToken]}[SimpleToken] catch[KeywordToken] ([BeginToken]e[StringToken],[SimpleToken] s[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

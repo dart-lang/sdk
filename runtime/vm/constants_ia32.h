@@ -5,7 +5,14 @@
 #ifndef RUNTIME_VM_CONSTANTS_IA32_H_
 #define RUNTIME_VM_CONSTANTS_IA32_H_
 
+#ifndef RUNTIME_VM_CONSTANTS_H_
+#error Do not include constants_ia32.h directly; use constants.h instead.
+#endif
+
 #include "platform/assert.h"
+#include "platform/globals.h"
+
+#include "vm/constants_base.h"
 
 namespace dart {
 
@@ -34,6 +41,10 @@ enum ByteRegister {
   kNoByteRegister = -1  // Signals an illegal register.
 };
 
+inline ByteRegister ByteRegisterOf(Register reg) {
+  return static_cast<ByteRegister>(reg);
+}
+
 enum XmmRegister {
   XMM0 = 0,
   XMM1 = 1,
@@ -49,31 +60,94 @@ enum XmmRegister {
 
 // Architecture independent aliases.
 typedef XmmRegister FpuRegister;
-const FpuRegister FpuTMP = XMM0;
+const FpuRegister FpuTMP = XMM7;
 const int kNumberOfFpuRegisters = kNumberOfXmmRegisters;
 const FpuRegister kNoFpuRegister = kNoXmmRegister;
+
+extern const char* cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* fpu_reg_names[kNumberOfXmmRegisters];
 
 // Register aliases.
 const Register TMP = kNoRegister;   // No scratch register used by assembler.
 const Register TMP2 = kNoRegister;  // No second assembler scratch register.
-const Register CTX = EDI;  // Location of current context at method entry.
 const Register CODE_REG = EDI;
 const Register PP = kNoRegister;     // No object pool pointer.
 const Register SPREG = ESP;          // Stack pointer register.
 const Register FPREG = EBP;          // Frame pointer register.
-const Register ICREG = ECX;          // IC data register.
 const Register ARGS_DESC_REG = EDX;  // Arguments descriptor register.
 const Register THR = ESI;            // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = EBX;
 const Register CALLEE_SAVED_TEMP2 = EDI;
 
-// Exception object is passed in this register to the catch handlers when an
-// exception is thrown.
+// ABI for catch-clause entry point.
 const Register kExceptionObjectReg = EAX;
-
-// Stack trace object is passed in this register to the catch handlers when
-// an exception is thrown.
 const Register kStackTraceObjectReg = EDX;
+
+// ABI for write barrier stub.
+const Register kWriteBarrierObjectReg = EDX;
+const Register kWriteBarrierValueReg = kNoRegister;
+const Register kWriteBarrierSlotReg = EDI;
+
+// ABI for allocation stubs.
+const Register kAllocationStubTypeArgumentsReg = EDX;
+
+// ABI for instantiation stubs.
+struct InstantiationABI {
+  static const Register kUninstantiatedTypeArgumentsReg = EBX;
+  static const Register kInstantiatorTypeArgumentsReg = EDX;
+  static const Register kFunctionTypeArgumentsReg = ECX;
+  static const Register kResultTypeArgumentsReg = EAX;
+  static const Register kResultTypeReg = EAX;
+};
+
+// Calling convention when calling SubtypeTestCacheStub.
+// Although ia32 uses a stack-based calling convention, we keep the same
+// 'TypeTestABI' name for symmetry with other architectures with a proper ABI.
+// Note that ia32 has no support for type testing stubs.
+struct TypeTestABI {
+  static const Register kInstanceReg = EAX;
+  static const Register kDstTypeReg = EBX;
+  static const Register kInstantiatorTypeArgumentsReg = EDX;
+  static const Register kFunctionTypeArgumentsReg = ECX;
+  static const Register kSubtypeTestCacheReg =
+      EDI;  // On ia32 we don't use CODE_REG.
+
+  // For call to InstanceOfStub.
+  static const Register kResultReg = kNoRegister;
+};
+
+// ABI for InitStaticFieldStub.
+struct InitStaticFieldABI {
+  static const Register kFieldReg = EAX;
+};
+
+// ABI for InitInstanceFieldStub.
+struct InitInstanceFieldABI {
+  static const Register kInstanceReg = EAX;
+  static const Register kFieldReg = EBX;
+};
+
+// ABI for ThrowStub.
+struct ThrowABI {
+  static const Register kExceptionReg = EAX;
+};
+
+// ABI for ReThrowStub.
+struct ReThrowABI {
+  static const Register kExceptionReg = EAX;
+  static const Register kStackTraceReg = EBX;
+};
+
+// ABI for AssertBooleanStub.
+struct AssertBooleanABI {
+  static const Register kObjectReg = EAX;
+};
+
+// ABI for RangeErrorStub.
+struct RangeErrorABI {
+  static const Register kLengthReg = EAX;
+  static const Register kIndexReg = EBX;
+};
 
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFF;
@@ -90,46 +164,6 @@ enum ScaleFactor {
   TIMES_8 = 3,
   TIMES_16 = 4,
   TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
-};
-
-enum Condition {
-  OVERFLOW = 0,
-  NO_OVERFLOW = 1,
-  BELOW = 2,
-  ABOVE_EQUAL = 3,
-  EQUAL = 4,
-  NOT_EQUAL = 5,
-  BELOW_EQUAL = 6,
-  ABOVE = 7,
-  SIGN = 8,
-  NOT_SIGN = 9,
-  PARITY_EVEN = 10,
-  PARITY_ODD = 11,
-  LESS = 12,
-  GREATER_EQUAL = 13,
-  LESS_EQUAL = 14,
-  GREATER = 15,
-
-  ZERO = EQUAL,
-  NOT_ZERO = NOT_EQUAL,
-  NEGATIVE = SIGN,
-  POSITIVE = NOT_SIGN,
-  CARRY = BELOW,
-  NOT_CARRY = ABOVE_EQUAL,
-
-  // Platform-independent variants declared for all platforms
-  // EQUAL,
-  // NOT_EQUAL,
-  // LESS,
-  // LESS_EQUAL,
-  // GREATER_EQUAL,
-  // GREATER,
-  UNSIGNED_LESS = BELOW,
-  UNSIGNED_LESS_EQUAL = BELOW_EQUAL,
-  UNSIGNED_GREATER = ABOVE,
-  UNSIGNED_GREATER_EQUAL = ABOVE_EQUAL,
-
-  INVALID_CONDITION = 16
 };
 
 class Instr {
@@ -159,6 +193,61 @@ class Instr {
 // The largest multibyte nop we will emit.  This could go up to 15 if it
 // becomes important to us.
 const int MAX_NOP_SIZE = 8;
+
+class CallingConventions {
+ public:
+  static const Register ArgumentRegisters[];
+  static const intptr_t kArgumentRegisters = 0;
+  static const intptr_t kFpuArgumentRegisters = 0;
+  static const intptr_t kNumArgRegs = 0;
+
+  static const XmmRegister FpuArgumentRegisters[];
+  static const intptr_t kXmmArgumentRegisters = 0;
+  static const intptr_t kNumFpuArgRegs = 0;
+
+  static constexpr intptr_t kCalleeSaveCpuRegisters =
+      (1 << EDI) | (1 << ESI) | (1 << EBX);
+
+  static const bool kArgumentIntRegXorFpuReg = false;
+
+  static constexpr Register kReturnReg = EAX;
+  static constexpr Register kSecondReturnReg = EDX;
+
+  // Floating point values are returned on the "FPU stack" (in "ST" registers).
+  // However, we use XMM0 in our compiler pipeline as the location.
+  // The move from and to ST is done in FfiCallInstr::EmitNativeCode and
+  // NativeReturnInstr::EmitNativeCode.
+  static constexpr XmmRegister kReturnFpuReg = XMM0;
+
+  static constexpr Register kFirstCalleeSavedCpuReg = EBX;
+  static constexpr Register kFirstNonArgumentRegister = EAX;
+  static constexpr Register kSecondNonArgumentRegister = ECX;
+  static constexpr Register kStackPointerRegister = SPREG;
+
+  // Whether larger than wordsize arguments are aligned to even registers.
+  static constexpr AlignmentStrategy kArgumentRegisterAlignment =
+      kAlignedToWordSize;
+
+  // How stack arguments are aligned.
+  static constexpr AlignmentStrategy kArgumentStackAlignment =
+      kAlignedToWordSize;
+
+  // How fields in composites are aligned.
+#if defined(_WIN32)
+  static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
+#else
+  static constexpr AlignmentStrategy kFieldAlignment =
+      kAlignedToValueSizeBut8AlignedTo4;
+#endif
+
+  // Whether 1 or 2 byte-sized arguments or return values are passed extended
+  // to 4 bytes.
+  static constexpr ExtensionStrategy kReturnRegisterExtension = kNotExtended;
+  static constexpr ExtensionStrategy kArgumentRegisterExtension = kNotExtended;
+  static constexpr ExtensionStrategy kArgumentStackExtension = kExtendedTo4;
+};
+
+const uword kBreakInstructionFiller = 0xCCCCCCCC;
 
 }  // namespace dart
 

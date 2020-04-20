@@ -5,7 +5,7 @@
 // Test the event/callback protocol of the stream implementations.
 library stream_state_test;
 
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 import 'stream_state_helper.dart';
 

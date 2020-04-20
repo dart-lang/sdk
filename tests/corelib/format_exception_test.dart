@@ -19,8 +19,6 @@ main() {
   test(e, "", null, null, "FormatException");
   e = new FormatException("");
   test(e, "", null, null, "FormatException");
-  e = new FormatException(null);
-  test(e, null, null, null, "FormatException");
 
   e = new FormatException("message");
   test(e, "message", null, null, "FormatException: message");

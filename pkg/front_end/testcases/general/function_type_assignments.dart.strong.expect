@@ -1,0 +1,45 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/function_type_assignments.dart:11:12: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'String'.
+// String x = identity; // No bound
+//            ^
+//
+// pkg/front_end/testcases/general/function_type_assignments.dart:12:12: Error: A value of type 'T Function<T extends Object>(T)' can't be assigned to a variable of type 'String'.
+//  - 'Object' is from 'dart:core'.
+// String y = identityObject; // Object bound
+//            ^
+//
+// pkg/front_end/testcases/general/function_type_assignments.dart:13:12: Error: A value of type 'T Function<T extends List<T>>(T)' can't be assigned to a variable of type 'String'.
+//  - 'List' is from 'dart:core'.
+// String z = identityList; // List<T> bound
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field core::String* x = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/function_type_assignments.dart:11:12: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'String'.
+String x = identity; // No bound
+           ^" in (#C1) as{TypeError} core::String*;
+static field core::String* y = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/general/function_type_assignments.dart:12:12: Error: A value of type 'T Function<T extends Object>(T)' can't be assigned to a variable of type 'String'.
+ - 'Object' is from 'dart:core'.
+String y = identityObject; // Object bound
+           ^" in (#C2) as{TypeError} core::String*;
+static field core::String* z = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/general/function_type_assignments.dart:13:12: Error: A value of type 'T Function<T extends List<T>>(T)' can't be assigned to a variable of type 'String'.
+ - 'List' is from 'dart:core'.
+String z = identityList; // List<T> bound
+           ^" in (#C3) as{TypeError} core::String*;
+static method identity<T extends core::Object* = dynamic>(self::identity::T* t) → self::identity::T*
+  return t;
+static method identityObject<T extends core::Object* = core::Object*>(self::identityObject::T* t) → self::identityObject::T*
+  return t;
+static method identityList<T extends core::List<self::identityList::T*>* = core::List<dynamic>*>(self::identityList::T* t) → self::identityList::T*
+  return t;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = tearoff self::identity
+  #C2 = tearoff self::identityObject
+  #C3 = tearoff self::identityList
+}

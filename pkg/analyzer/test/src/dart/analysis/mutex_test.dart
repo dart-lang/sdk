@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18,18 +18,18 @@ main() {
 class MutexTest {
   test_acquire() async {
     var values = <int>[];
-    var mutex = new Mutex();
+    var mutex = Mutex();
     await Future.wait([
-      new Future(() async {
+      Future(() async {
         await mutex.acquire();
         try {
-          await new Future.delayed(new Duration(milliseconds: 10));
+          await Future.delayed(Duration(milliseconds: 10));
           values.add(1);
         } finally {
           mutex.release();
         }
       }),
-      new Future(() async {
+      Future(() async {
         await mutex.acquire();
         try {
           values.add(2);
@@ -46,15 +46,15 @@ class MutexTest {
 
   test_guard() async {
     var values = <int>[];
-    var mutex = new Mutex();
+    var mutex = Mutex();
     await Future.wait([
-      new Future(() async {
+      Future(() async {
         await mutex.guard(() async {
-          await new Future.delayed(new Duration(milliseconds: 10));
+          await Future.delayed(Duration(milliseconds: 10));
           values.add(1);
         });
       }),
-      new Future(() async {
+      Future(() async {
         await mutex.guard(() async {
           values.add(2);
         });
@@ -67,14 +67,14 @@ class MutexTest {
   }
 
   test_release_noLock() {
-    var mutex = new Mutex();
+    var mutex = Mutex();
     expect(() {
       mutex.release();
     }, throwsStateError);
   }
 
   test_release_noLock_alreadyReleased() async {
-    var mutex = new Mutex();
+    var mutex = Mutex();
     await mutex.acquire();
     mutex.release();
     expect(() {

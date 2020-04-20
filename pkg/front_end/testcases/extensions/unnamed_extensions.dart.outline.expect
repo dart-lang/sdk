@@ -1,0 +1,66 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  field core::int* field;
+  constructor •(core::int* field) → self::Class1*
+    ;
+  method toString() → core::String*
+    ;
+}
+class Class2 extends core::Object {
+  field core::int* field;
+  constructor •(core::int* field) → self::Class2*
+    ;
+  method toString() → core::String*
+    ;
+}
+extension _extension#0 on self::Class1* {
+  method method = self::_extension#0|method;
+  tearoff method = self::_extension#0|get#method;
+  method genericMethod = self::_extension#0|genericMethod;
+  tearoff genericMethod = self::_extension#0|get#genericMethod;
+  get property = self::_extension#0|get#property;
+  set property = self::_extension#0|set#property;
+}
+extension _extension#1 on self::Class2* {
+  method method = self::_extension#1|method;
+  tearoff method = self::_extension#1|get#method;
+  method genericMethod = self::_extension#1|genericMethod;
+  tearoff genericMethod = self::_extension#1|get#genericMethod;
+  get property = self::_extension#1|get#property;
+  set property = self::_extension#1|set#property;
+}
+static method _extension#0|method(final self::Class1* #this) → core::int*
+  ;
+static method _extension#0|get#method(final self::Class1* #this) → () →* core::int*
+  return () → core::int* => self::_extension#0|method(#this);
+static method _extension#0|genericMethod<T extends core::num* = dynamic>(final self::Class1* #this, self::_extension#0|genericMethod::T* t) → core::int*
+  ;
+static method _extension#0|get#genericMethod(final self::Class1* #this) → <T extends core::num* = dynamic>(T*) →* core::int*
+  return <T extends core::num* = dynamic>(T* t) → core::int* => self::_extension#0|genericMethod<T*>(#this, t);
+static method _extension#0|get#property(final self::Class1* #this) → core::int*
+  ;
+static method _extension#0|set#property(final self::Class1* #this, core::int* value) → void
+  ;
+static method _extension#1|method(final self::Class2* #this) → core::int*
+  ;
+static method _extension#1|get#method(final self::Class2* #this) → () →* core::int*
+  return () → core::int* => self::_extension#1|method(#this);
+static method _extension#1|genericMethod<T extends core::num* = dynamic>(final self::Class2* #this, self::_extension#1|genericMethod::T* t) → core::int*
+  ;
+static method _extension#1|get#genericMethod(final self::Class2* #this) → <T extends core::num* = dynamic>(T*) →* core::int*
+  return <T extends core::num* = dynamic>(T* t) → core::int* => self::_extension#1|genericMethod<T*>(#this, t);
+static method _extension#1|get#property(final self::Class2* #this) → core::int*
+  ;
+static method _extension#1|set#property(final self::Class2* #this, core::int* value) → void
+  ;
+static method main() → dynamic
+  ;
+static method testExtension1() → dynamic
+  ;
+static method testExtension2() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

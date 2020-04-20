@@ -1,0 +1,48 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/definite_assignment_and_completion.dart:10:10: Error: Non-nullable variable 'x' must be assigned before it can be used.
+//   return x;
+//          ^
+//
+// pkg/front_end/testcases/nnbd/definite_assignment_and_completion.dart:28:12: Error: Non-nullable variable 'x' must be assigned before it can be used.
+//     return x;
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object /*hasConstConstructor*/  {
+  final field core::int x;
+  const constructor •(core::int x) → self::Class
+    : self::Class::x = x, super core::Object::•()
+    ;
+  method foo() → core::int {
+    core::int x;
+    return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/definite_assignment_and_completion.dart:28:12: Error: Non-nullable variable 'x' must be assigned before it can be used.
+    return x;
+           ^" in x;
+  }
+  method bar() → core::int
+    return 0;
+  method baz(core::int x) → core::int {
+    return x;
+  }
+  method boz(core::int x) → core::int
+    return x;
+}
+static method foo() → core::int {
+  core::int x;
+  return let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/definite_assignment_and_completion.dart:10:10: Error: Non-nullable variable 'x' must be assigned before it can be used.
+  return x;
+         ^" in x;
+}
+static method bar() → core::int
+  return 0;
+static method baz(core::int x) → core::int {
+  return x;
+}
+static method boz(core::int x) → core::int
+  return x;
+static method main() → dynamic {}

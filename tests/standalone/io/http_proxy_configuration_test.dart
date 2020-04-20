@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import "dart:io";
+import "package:expect/expect.dart";
 
 expect(expected, String uri, environment) {
   Expect.equals(
@@ -12,7 +12,7 @@ expect(expected, String uri, environment) {
           environment: environment));
 }
 
-expectDirect(String uri, environment) {
+expectDirect(String uri, Map<String, String> environment) {
   Expect.equals(
       "DIRECT",
       HttpClient.findProxyFromEnvironment(Uri.parse(uri),

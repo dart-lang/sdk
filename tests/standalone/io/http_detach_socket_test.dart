@@ -151,7 +151,7 @@ void testUpgradedConnection() {
       if (request.headers.value('upgrade') == 'mine') {
         asyncStart();
         request.response.detachSocket().then((socket) {
-          socket.pipe(socket).then((_) {
+          socket.cast<List<int>>().pipe(socket).then((_) {
             asyncEnd();
           });
         });
@@ -178,7 +178,7 @@ void testUpgradedConnection() {
             });
             socket.add([0]);
             socket.close();
-            socket.fold([], (l, d) => l..addAll(d)).then((data) {
+            socket.fold<List<int>>([], (l, d) => l..addAll(d)).then((data) {
               asyncEnd();
               Expect.listEquals([0], data);
             });

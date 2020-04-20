@@ -1,0 +1,39 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+}
+class C extends core::Object {
+  field self::A* aField = null;
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  set aSetter(self::A* value) → void {}
+  method test() → void {
+    self::A* aLocal;
+    for (final dynamic #t1 in self::f<dynamic>()) {
+      aLocal = #t1;
+    }
+    for (final dynamic #t2 in self::f<dynamic>()) {
+      this.{self::C::aField} = #t2;
+    }
+    for (final dynamic #t3 in self::f<dynamic>()) {
+      this.{self::C::aSetter} = #t3;
+    }
+    for (final dynamic #t4 in self::f<dynamic>()) {
+      self::aTopLevel = #t4;
+    }
+    for (final dynamic #t5 in self::f<dynamic>()) {
+      self::aTopLevelSetter = #t5;
+    }
+  }
+}
+static field self::A* aTopLevel;
+static method f<T extends core::Object* = dynamic>() → self::f::T*
+  return null;
+static set aTopLevelSetter(self::A* value) → void {}
+static method main() → dynamic {}

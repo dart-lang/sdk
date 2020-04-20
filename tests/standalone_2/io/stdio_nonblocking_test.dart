@@ -12,9 +12,13 @@ import "package:expect/expect.dart";
 void main() {
   var script =
       Platform.script.resolve("stdio_nonblocking_script.dart").toFilePath();
-  Process
-      .run(Platform.executable, [script],
-          stdoutEncoding: ASCII, stderrEncoding: ASCII)
+  Process.run(
+          Platform.executable,
+          []
+            ..addAll(Platform.executableArguments)
+            ..add(script),
+          stdoutEncoding: ascii,
+          stderrEncoding: ascii)
       .then((result) {
     print(result.stdout);
     print(result.stderr);

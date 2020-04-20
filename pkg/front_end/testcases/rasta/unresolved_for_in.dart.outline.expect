@@ -2,9 +2,11 @@ library;
 import self as self;
 import "dart:core" as core;
 
-typedef VoidFunction = () → void;
+import "dart:collection" as collection;
+
+typedef VoidFunction = () →* void;
 class Fisk extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::Fisk*
     ;
   method it1(dynamic x) → dynamic
     ;

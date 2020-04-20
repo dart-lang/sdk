@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*@testedFeatures=inference*/
-var /*@topType=int*/ x = 2;
+var x = 2;
 
 main() {
   x;

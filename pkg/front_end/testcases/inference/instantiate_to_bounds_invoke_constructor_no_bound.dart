@@ -8,5 +8,5 @@ library test;
 class C<T> {}
 
 main() {
-  var /*@type=C<dynamic>*/ v = new /*@typeArgs=dynamic*/ C();
+  var /*@ type=C<dynamic>* */ v = new /*@ typeArgs=dynamic */ C();
 }

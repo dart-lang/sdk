@@ -25,7 +25,7 @@ enum _SortingField { externalSize, peer, finalizerCallback }
 
 enum _SortingDirection { ascending, descending }
 
-class PersistentHandlesPageElement extends HtmlElement implements Renderable {
+class PersistentHandlesPageElement extends CustomElement implements Renderable {
   static const tag = const Tag<PersistentHandlesPageElement>(
       'persistent-handles-page',
       dependencies: const [
@@ -71,8 +71,9 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
     assert(notifications != null);
     assert(repository != null);
     assert(objects != null);
-    PersistentHandlesPageElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    PersistentHandlesPageElement e = new PersistentHandlesPageElement.created();
+    e._r =
+        new RenderingScheduler<PersistentHandlesPageElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -82,7 +83,7 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  PersistentHandlesPageElement.created() : super.created();
+  PersistentHandlesPageElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -95,19 +96,20 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
-      navBar([
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+    children = <Element>[
+      navBar(<Element>[
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
         navMenu('persistent handles'),
-        new NavRefreshElement(queue: _r.queue)
-          ..onRefresh.listen((_) => _refresh()),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        (new NavRefreshElement(queue: _r.queue)
+              ..onRefresh.listen((_) => _refresh()))
+            .element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ])
     ]
       ..addAll(_createHandlers('Persistent Handles',
@@ -128,20 +130,21 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
     return [
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h1()
             ..text = items == null ? '$name' : '$name (${items.length})',
           new HRElement(),
         ],
       new DivElement()
         ..classes = ['persistent-handles']
-        ..children = [
+        ..children = <Element>[
           items == null
               ? (new HeadingElement.h2()
                 ..classes = ['content-centered-big']
                 ..text = 'Loading...')
               : new VirtualCollectionElement(create, update,
-                  items: items, createHeader: createHeader, queue: _r.queue)
+                      items: items, createHeader: createHeader, queue: _r.queue)
+                  .element
         ]
     ];
   }
@@ -161,19 +164,25 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
     }
     switch (_sortingDirection) {
       case _SortingDirection.ascending:
-        return (a, b) => getter(a).compareTo(getter(b));
+        int sort(M.WeakPersistentHandle a, M.WeakPersistentHandle b) {
+          return getter(a).compareTo(getter(b));
+        }
+        return sort;
       case _SortingDirection.descending:
-        return (a, b) => getter(b).compareTo(getter(a));
+        int sort(M.WeakPersistentHandle a, M.WeakPersistentHandle b) {
+          return getter(b).compareTo(getter(a));
+        }
+        return sort;
     }
   }
 
-  static Element _createLine() => new DivElement()
+  static HtmlElement _createLine() => new DivElement()
     ..classes = ['collection-item']
     ..text = 'object';
 
-  static Element _createWeakLine() => new DivElement()
+  static HtmlElement _createWeakLine() => new DivElement()
     ..classes = ['weak-item']
-    ..children = [
+    ..children = <Element>[
       new SpanElement()
         ..classes = ['external-size']
         ..text = '0B',
@@ -189,7 +198,7 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
   List<HtmlElement> _createWeakHeader() => [
         new DivElement()
           ..classes = ['weak-item']
-          ..children = [
+          ..children = <Element>[
             _createHeaderButton(const ['external-size'], 'External Size',
                 _SortingField.externalSize, _SortingDirection.descending),
             _createHeaderButton(const ['peer'], 'Peer', _SortingField.peer,
@@ -230,7 +239,8 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
     _r.dirty();
   }
 
-  void _updateWeakLine(Element e, M.WeakPersistentHandle item, index) {
+  void _updateWeakLine(Element e, itemDynamic, index) {
+    M.WeakPersistentHandle item = itemDynamic;
     e.children[0].text = Utils.formatSize(_getExternalSize(item));
     e.children[1].text = '${_getPeer(item)}';
     e.children[2] = anyRef(_isolate, item.object, _objects, queue: _r.queue)
@@ -240,8 +250,9 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
       ..title = '${_getFinalizerCallback(item)}';
   }
 
-  void _updateLine(Element e, M.PersistentHandle item, index) {
-    e.children = [
+  void _updateLine(Element e, itemDynamic, index) {
+    M.PersistentHandle item = itemDynamic;
+    e.children = <Element>[
       anyRef(_isolate, item.object, _objects, queue: _r.queue)
         ..classes = ['object']
     ];

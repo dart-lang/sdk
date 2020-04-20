@@ -1,0 +1,8 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic
+  ;
+static method f(dynamic x) → core::double*
+  ;

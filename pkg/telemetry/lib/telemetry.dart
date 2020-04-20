@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:usage/src/usage_impl.dart';
 import 'package:usage/src/usage_impl_io.dart';
@@ -12,9 +13,6 @@ import 'package:usage/usage.dart';
 import 'package:usage/usage_io.dart';
 
 export 'package:usage/usage.dart' show Analytics;
-
-// TODO(devoncarew): Hard-coded to off for now. Remove when we're ready to ship.
-final bool _HARD_CODE_OFF = true;
 
 // TODO(devoncarew): Don't show the UI until we're ready to ship.
 final bool SHOW_ANALYTICS_UI = false;
@@ -38,8 +36,10 @@ final String analyticsNotice =
 ///
 /// An example return value might be `'Analytics are currently enabled (and can
 /// be disabled with --no-analytics).'`
-String createAnalyticsStatusMessage(bool enabled,
-    {String command: 'analytics'}) {
+String createAnalyticsStatusMessage(
+  bool enabled, {
+  String command: 'analytics',
+}) {
   String currentState = enabled ? 'enabled' : 'disabled';
   String toggleState = enabled ? 'disabled' : 'enabled';
   String commandToggle = enabled ? 'no-$command' : command;
@@ -53,45 +53,72 @@ String createAnalyticsStatusMessage(bool enabled,
 ///
 /// This analytics instance will share a common enablement state with the rest
 /// of the Dart SDK tools.
-Analytics createAnalyticsInstance(String trackingId, String applicationName,
-    {bool disableForSession: false}) {
+Analytics createAnalyticsInstance(
+  String trackingId,
+  String applicationName, {
+  bool disableForSession = false,
+  bool forceEnabled = false,
+}) {
   Directory dir = getDartStorageDirectory();
+  if (dir == null) {
+    // Some systems don't support user home directories; for those, fail
+    // gracefully by returning a disabled analytics object.
+    return new _DisabledAnalytics(trackingId, applicationName);
+  }
+
   if (!dir.existsSync()) {
-    dir.createSync();
+    try {
+      dir.createSync();
+    } catch (e) {
+      // If we can't create the directory for the analytics settings, fail
+      // gracefully by returning a disabled analytics object.
+      return new _DisabledAnalytics(trackingId, applicationName);
+    }
   }
 
-  if (_HARD_CODE_OFF) {
-    disableForSession = true;
-  }
-
-  File file = new File(path.join(dir.path, _settingsFileName));
+  File settingsFile = new File(path.join(dir.path, _settingsFileName));
   return new _TelemetryAnalytics(
-      trackingId, applicationName, getDartVersion(), file, disableForSession);
+    trackingId,
+    applicationName,
+    getDartVersion(),
+    settingsFile,
+    disableForSession: disableForSession,
+    forceEnabled: forceEnabled,
+  );
 }
 
 /// The directory used to store the analytics settings file.
 ///
 /// Typically, the directory is `~/.dart/` (and the settings file is
 /// `analytics.json`).
-Directory getDartStorageDirectory() =>
-    new Directory(path.join(userHomeDir(), _dartDirectoryName));
+///
+/// This can return null under some conditions, including when the user's home
+/// directory does not exist.
+@visibleForTesting
+Directory getDartStorageDirectory() {
+  Directory homeDirectory = new Directory(userHomeDir());
+  if (!homeDirectory.existsSync()) return null;
+
+  return new Directory(path.join(homeDirectory.path, _dartDirectoryName));
+}
 
 /// Return the version of the Dart SDK.
 String getDartVersion() => usage_io.getDartVersion();
 
 class _TelemetryAnalytics extends AnalyticsImpl {
   final bool disableForSession;
+  final bool forceEnabled;
 
   _TelemetryAnalytics(
     String trackingId,
     String applicationName,
     String applicationVersion,
-    File file,
-    this.disableForSession,
-  )
-      : super(
+    File settingsFile, {
+    @required this.disableForSession,
+    @required this.forceEnabled,
+  }) : super(
           trackingId,
-          new IOPersistentProperties.fromFile(file),
+          new IOPersistentProperties.fromFile(settingsFile),
           new IOPostHandler(),
           applicationName: applicationName,
           applicationVersion: applicationVersion,
@@ -107,20 +134,60 @@ class _TelemetryAnalytics extends AnalyticsImpl {
     if (disableForSession || isRunningOnBot()) {
       return false;
     }
-    return super.enabled;
+
+    // This is only used in special cases.
+    if (forceEnabled) {
+      return true;
+    }
+
+    // If there's no explicit setting (enabled or disabled) then we don't send.
+    return (properties['enabled'] as bool) ?? false;
   }
 }
 
+class _DisabledAnalytics extends AnalyticsMock {
+  @override
+  final String trackingId;
+  @override
+  final String applicationName;
+
+  _DisabledAnalytics(this.trackingId, this.applicationName);
+
+  @override
+  bool get enabled => false;
+}
+
+/// Detect whether we're running on a bot or in a continuous testing
+/// environment.
+///
+/// We should periodically keep this code up to date with
+/// https://github.com/flutter/flutter/blob/master/packages/flutter_tools/lib/src/base/utils.dart#L20.
 bool isRunningOnBot() {
-  // - https://docs.travis-ci.com/user/environment-variables/
-  // - https://www.appveyor.com/docs/environment-variables/
-  // - CHROME_HEADLESS and BUILDBOT_BUILDERNAME are properties on Chrome infra
-  //   bots.
-  return Platform.environment['TRAVIS'] == 'true' ||
-      Platform.environment['BOT'] == 'true' ||
-      Platform.environment['CONTINUOUS_INTEGRATION'] == 'true' ||
-      Platform.environment['CHROME_HEADLESS'] == '1' ||
-      Platform.environment.containsKey('BUILDBOT_BUILDERNAME') ||
-      Platform.environment.containsKey('APPVEYOR') ||
-      Platform.environment.containsKey('CI');
+  final Map<String, String> env = Platform.environment;
+
+  return env['BOT'] != 'false' &&
+      (env['BOT'] == 'true'
+          // https://docs.travis-ci.com/user/environment-variables/#Default-Environment-Variables
+          ||
+          env['TRAVIS'] == 'true' ||
+          env['CONTINUOUS_INTEGRATION'] == 'true' ||
+          env.containsKey('CI') // Travis and AppVeyor
+
+          // https://www.appveyor.com/docs/environment-variables/
+          ||
+          env.containsKey('APPVEYOR')
+
+          // https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html
+          ||
+          (env.containsKey('AWS_REGION') &&
+              env.containsKey('CODEBUILD_INITIATOR'))
+
+          // https://wiki.jenkins.io/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-belowJenkinsSetEnvironmentVariables
+          ||
+          env.containsKey('JENKINS_URL')
+
+          // Properties on Flutter's Chrome Infra bots.
+          ||
+          env['CHROME_HEADLESS'] == '1' ||
+          env.containsKey('BUILDBOT_BUILDERNAME'));
 }

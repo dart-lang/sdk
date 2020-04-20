@@ -86,7 +86,7 @@ class Events implements EventSink {
     events.add(new DataEvent(value));
   }
 
-  void addError(error, [StackTrace stackTrace]) {
+  void addError(error, [StackTrace? stackTrace]) {
     if (trace) print("Events#$hashCode: addError($error)");
     events.add(new ErrorEvent(error));
   }
@@ -100,7 +100,7 @@ class Events implements EventSink {
   /**
    * Error shorthand, for writing events manually.
    */
-  void error(var value, [StackTrace stackTrace]) {
+  void error(var value, [StackTrace? stackTrace]) {
     addError(value, stackTrace);
   }
 
@@ -130,7 +130,7 @@ class Events implements EventSink {
    * Should only be used when there is a subscription. That is, after a
    * call to [subscribeTo].
    */
-  void pause([Future resumeSignal]) {
+  void pause([Future? resumeSignal]) {
     throw new StateError("Not capturing events.");
   }
 
@@ -151,7 +151,7 @@ class Events implements EventSink {
 }
 
 class CaptureEvents extends Events {
-  StreamSubscription subscription;
+  late StreamSubscription subscription;
   bool cancelOnError = false;
 
   CaptureEvents(Stream stream, {bool cancelOnError: false}) {
@@ -160,14 +160,14 @@ class CaptureEvents extends Events {
         onError: addError, onDone: close, cancelOnError: cancelOnError);
   }
 
-  void addError(error, [stackTrace]) {
+  void addError(error, [StackTrace? stackTrace]) {
     super.addError(error, stackTrace);
     if (cancelOnError) {
       onDoneSignal.complete();
     }
   }
 
-  void pause([Future resumeSignal]) {
+  void pause([Future? resumeSignal]) {
     if (trace) print("Events#$hashCode: pause");
     subscription.pause(resumeSignal);
   }

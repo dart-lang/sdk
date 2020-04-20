@@ -3,21 +3,21 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::A*
     ;
-  operator +(dynamic other) → core::int
+  operator +(dynamic other) → core::int*
     ;
-  operator -(dynamic other) → core::double
+  operator -(dynamic other) → core::double*
     ;
 }
 class B extends core::Object {
-  field self::A a;
-  default constructor •() → void
+  field self::A* a;
+  synthetic constructor •() → self::B*
     ;
 }
-static field dynamic v_prefix_pp;
-static field dynamic v_prefix_mm;
-static field dynamic v_postfix_pp;
-static field dynamic v_postfix_mm;
+static field core::int* v_prefix_pp;
+static field core::double* v_prefix_mm;
+static field self::A* v_postfix_pp;
+static field self::A* v_postfix_mm;
 static method main() → dynamic
   ;

@@ -1,0 +1,8 @@
+; RUN: echo this is a test > %t1
+; RUN: echo this is a test > %t2
+; RUN: cmp %t1 %t2
+; RUN: echo this is a percent sign: % > %t3
+; RUN: cmp %t3 %p/Inputs/percent.test
+; RUN: %{bit} %p/Inputs/basic_input.test %P > %t.test
+; RUN: echo Commands run: 1 > %t.test2
+; RUN: cmp %t.test %t.test2

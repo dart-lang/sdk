@@ -8,10 +8,9 @@
 #include "vm/cpu.h"
 #include "vm/cpu_x64.h"
 
-#include "vm/compiler/assembler/assembler.h"
-#include "vm/constants_x64.h"
+#include "vm/constants.h"
 #include "vm/cpuinfo.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 
@@ -27,19 +26,23 @@ const char* CPU::Id() {
   return "x64";
 }
 
+const char* HostCPUFeatures::hardware_ = nullptr;
 bool HostCPUFeatures::sse2_supported_ = true;
 bool HostCPUFeatures::sse4_1_supported_ = false;
-const char* HostCPUFeatures::hardware_ = NULL;
+bool HostCPUFeatures::popcnt_supported_ = false;
+bool HostCPUFeatures::abm_supported_ = false;
+
 #if defined(DEBUG)
 bool HostCPUFeatures::initialized_ = false;
 #endif
 
-void HostCPUFeatures::InitOnce() {
-  CpuInfo::InitOnce();
+void HostCPUFeatures::Init() {
+  CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
   sse4_1_supported_ = CpuInfo::FieldContains(kCpuInfoFeatures, "sse4_1") ||
                       CpuInfo::FieldContains(kCpuInfoFeatures, "sse4.1");
-
+  popcnt_supported_ = CpuInfo::FieldContains(kCpuInfoFeatures, "popcnt");
+  abm_supported_ = CpuInfo::FieldContains(kCpuInfoFeatures, "abm");
 #if defined(DEBUG)
   initialized_ = true;
 #endif

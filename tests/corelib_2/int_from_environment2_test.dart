@@ -6,9 +6,9 @@
 import "package:expect/expect.dart";
 
 main() {
-  Expect.isNull(const int.fromEnvironment('a'));
-  Expect.isNull(const int.fromEnvironment('b'));
-  Expect.isNull(const int.fromEnvironment('c'));
-  Expect.isNull(const int.fromEnvironment('d'));
-  Expect.isNull(const int.fromEnvironment('e'));
+  Expect.equals(0, const int.fromEnvironment('a'));
+  Expect.equals(0, const int.fromEnvironment('b'));
+  Expect.equals(0, const int.fromEnvironment('c'));
+  Expect.equals(0, const int.fromEnvironment('d'));
+  Expect.equals(0, const int.fromEnvironment('e'));
 }

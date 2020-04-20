@@ -22,7 +22,7 @@ class D {
 }
 
 void main() {
-  var /*@type=D*/ d1 = new D();
+  var /*@ type=D* */ d1 = new D();
   print(d1. /*@target=D::c*/ c. /*@target=C::b*/ b. /*@target=B::a*/ a
       . /*@target=A::x*/ x);
 

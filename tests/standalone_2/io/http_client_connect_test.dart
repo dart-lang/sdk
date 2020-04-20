@@ -17,7 +17,7 @@ import "package:expect/expect.dart";
 void testGetEmptyRequest() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
-      request.pipe(request.response);
+      request.cast<List<int>>().pipe(request.response);
     });
 
     var client = new HttpClient();
@@ -35,7 +35,7 @@ void testGetDataRequest() {
     var data = "lalala".codeUnits;
     server.listen((request) {
       request.response.add(data);
-      request.pipe(request.response);
+      request.cast<List<int>>().pipe(request.response);
     });
 
     var client = new HttpClient();
@@ -163,7 +163,7 @@ void testOpenEmptyRequest() {
     HttpServer.bind("127.0.0.1", 0).then((server) {
       server.listen((request) {
         Expect.equals(method[1], request.method);
-        request.pipe(request.response);
+        request.cast<List<int>>().pipe(request.response);
       });
 
       Callback1 cb = method[0] as Callback1;
@@ -192,7 +192,7 @@ void testOpenUrlEmptyRequest() {
     HttpServer.bind("127.0.0.1", 0).then((server) {
       server.listen((request) {
         Expect.equals(method[1], request.method);
-        request.pipe(request.response);
+        request.cast<List<int>>().pipe(request.response);
       });
 
       Callback2 cb = method[0] as Callback2;
@@ -220,8 +220,10 @@ void testNoBuffer() {
         .get("127.0.0.1", server.port, "/")
         .then((request) => request.close())
         .then((clientResponse) {
-      var iterator = new StreamIterator(
-          clientResponse.transform(UTF8.decoder).transform(new LineSplitter()));
+      var iterator = new StreamIterator(clientResponse
+          .cast<List<int>>()
+          .transform(utf8.decoder)
+          .transform(new LineSplitter()));
       iterator.moveNext().then((hasValue) {
         Expect.isTrue(hasValue);
         Expect.equals('init', iterator.current);

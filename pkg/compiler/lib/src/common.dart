@@ -18,3 +18,5 @@ export 'diagnostics/spannable.dart'
         Spannable,
         SpannableAssertionFailure;
 export 'helpers/helpers.dart';
+
+bool retainDataForTesting = false;

@@ -37,9 +37,7 @@ main() {
   Expect.isFalse(st.iterator is Iterator<int>);
   test(["0", "1", "2", "3", "4"], st);
 
-  if (typeAssertionsEnabled) {
-    Expect.throws(() => new Iterable<String>.generate(5));
-  }
+  Expect.throws(() => new Iterable<String>.generate(5));
 
   // Omitted generator function means `(int x) => x`, and the type parameters
   // must then be compatible with `int`.
@@ -57,12 +55,7 @@ main() {
 
   // Invalid types:
   Expect.throws(() => new Iterable<String>.generate(5));
-  if (typeAssertionsEnabled) { //                                       //# 01: ok
-    Expect.throws(() => new Iterable<Null>.generate(5).elementAt(2));   //# 01: continued
-  } else { //                                                           //# 01: continued
-    Iterable<dynamic> iter5 = new Iterable<Null>.generate(5); //        //# 01: continued
-    Expect.equals(2, iter5.elementAt(2)); //                            //# 01: continued
-  } //                                                                  //# 01: continued
+  Expect.throws(() => new Iterable<Null>.generate(5).elementAt(2));   //# 01: ok
   Expect.throws(() => new Iterable<bool>.generate(5));
 
   // Regression: https://github.com/dart-lang/sdk/issues/26358

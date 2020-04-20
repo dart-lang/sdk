@@ -10,7 +10,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/source_link.dart';
 
-class IsolateLocationElement extends HtmlElement implements Renderable {
+class IsolateLocationElement extends CustomElement implements Renderable {
   static const tag = const Tag<IsolateLocationElement>('isolate-location',
       dependencies: const [FunctionRefElement.tag, SourceLinkElement.tag]);
 
@@ -30,15 +30,15 @@ class IsolateLocationElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(events != null);
     assert(scripts != null);
-    IsolateLocationElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    IsolateLocationElement e = new IsolateLocationElement.created();
+    e._r = new RenderingScheduler<IsolateLocationElement>(e, queue: queue);
     e._isolate = isolate;
     e._events = events;
     e._scripts = scripts;
     return e;
   }
 
-  IsolateLocationElement.created() : super.created();
+  IsolateLocationElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -51,7 +51,7 @@ class IsolateLocationElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
     _debugSubscription.cancel();
     _isolateSubscription.cancel();
@@ -60,28 +60,30 @@ class IsolateLocationElement extends HtmlElement implements Renderable {
   void render() {
     switch (_isolate.status) {
       case M.IsolateStatus.loading:
-        children = [new SpanElement()..text = 'not yet runnable'];
+        children = <Element>[new SpanElement()..text = 'not yet runnable'];
         break;
       case M.IsolateStatus.running:
-        children = [
+        children = <Element>[
           new SpanElement()..text = 'at ',
           new FunctionRefElement(
-              _isolate, M.topFrame(_isolate.pauseEvent).function,
-              queue: _r.queue),
+                  _isolate, M.topFrame(_isolate.pauseEvent).function,
+                  queue: _r.queue)
+              .element,
           new SpanElement()..text = ' (',
           new SourceLinkElement(
-              _isolate, M.topFrame(_isolate.pauseEvent).location, _scripts,
-              queue: _r.queue),
+                  _isolate, M.topFrame(_isolate.pauseEvent).location, _scripts,
+                  queue: _r.queue)
+              .element,
           new SpanElement()..text = ') '
         ];
         break;
       case M.IsolateStatus.paused:
         if (_isolate.pauseEvent is M.PauseStartEvent) {
-          children = [new SpanElement()..text = 'at isolate start'];
+          children = <Element>[new SpanElement()..text = 'at isolate start'];
         } else if (_isolate.pauseEvent is M.PauseExitEvent) {
-          children = [new SpanElement()..text = 'at isolate exit'];
+          children = <Element>[new SpanElement()..text = 'at isolate exit'];
         } else if (_isolate.pauseEvent is M.NoneEvent) {
-          children = [new SpanElement()..text = 'not yet runnable'];
+          children = <Element>[new SpanElement()..text = 'not yet runnable'];
         } else {
           final content = <Element>[];
           if (_isolate.pauseEvent is M.PauseBreakpointEvent) {
@@ -93,12 +95,14 @@ class IsolateLocationElement extends HtmlElement implements Renderable {
             content.addAll([
               new SpanElement()..text = ' at ',
               new FunctionRefElement(
-                  _isolate, M.topFrame(_isolate.pauseEvent).function,
-                  queue: _r.queue),
+                      _isolate, M.topFrame(_isolate.pauseEvent).function,
+                      queue: _r.queue)
+                  .element,
               new SpanElement()..text = ' (',
-              new SourceLinkElement(
-                  _isolate, M.topFrame(_isolate.pauseEvent).location, _scripts,
-                  queue: _r.queue),
+              new SourceLinkElement(_isolate,
+                      M.topFrame(_isolate.pauseEvent).location, _scripts,
+                      queue: _r.queue)
+                  .element,
               new SpanElement()..text = ') '
             ]);
           }

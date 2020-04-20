@@ -1,74 +1,97 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
-// VMOptions=--use_compactor_evacuating
-// VMOptions=--use_compactor_sliding
+// VMOptions=
+// VMOptions=--use_compactor
+// VMOptions=--use_compactor --force_evacuation
 
-import 'package:observatory/heap_snapshot.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 // small example from [Lenguaer & Tarjan 1979]
 class R {
+  // All fields are marked with @pragma("vm:entry-point")
+  // in order to make sure they are not removed by the tree shaker
+  // even though they are never read.
+  @pragma("vm:entry-point")
   var x;
+  @pragma("vm:entry-point")
   var y;
+  @pragma("vm:entry-point")
   var z;
 }
 
 class A {
+  @pragma("vm:entry-point")
   var x;
 }
 
 class B {
+  @pragma("vm:entry-point")
   var x;
+  @pragma("vm:entry-point")
   var y;
+  @pragma("vm:entry-point")
   var z;
 }
 
 class C {
+  @pragma("vm:entry-point")
   var x;
+  @pragma("vm:entry-point")
   var y;
 }
 
 class D {
+  @pragma("vm:entry-point")
   var x;
 }
 
 class E {
+  @pragma("vm:entry-point")
   var x;
 }
 
 class F {
+  @pragma("vm:entry-point")
   var x;
 }
 
 class G {
+  @pragma("vm:entry-point")
   var x;
+  @pragma("vm:entry-point")
   var y;
 }
 
 class H {
+  @pragma("vm:entry-point")
   var x;
+  @pragma("vm:entry-point")
   var y;
 }
 
 class I {
+  @pragma("vm:entry-point")
   var x;
 }
 
 class J {
+  @pragma("vm:entry-point")
   var x;
 }
 
 class K {
+  @pragma("vm:entry-point")
   var x;
+  @pragma("vm:entry-point")
   var y;
 }
 
 class L {
+  @pragma("vm:entry-point")
   var x;
 }
 
@@ -112,32 +135,27 @@ buildGraph() {
   l.x = h;
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
-    final rootLib = await isolate.rootLibrary.load();
-    final raw =
-        await isolate.fetchHeapSnapshot(M.HeapSnapshotRoots.vm, false).last;
-    final snapshot = new HeapSnapshot();
-    await snapshot.loadProgress(isolate, raw).last;
+    final graph = await isolate.fetchHeapSnapshot().done;
 
     node(String className) {
-      var cls = rootLib.classes.singleWhere((cls) => cls.name == className);
-      return snapshot.graph.vertices.singleWhere((v) => v.vmCid == cls.vmCid);
+      return graph.objects.singleWhere((v) => v.klass.name == className);
     }
 
-    expect(node('I').dominator, equals(node('R')));
-    expect(node('K').dominator, equals(node('R')));
-    expect(node('C').dominator, equals(node('R')));
-    expect(node('H').dominator, equals(node('R')));
-    expect(node('E').dominator, equals(node('R')));
-    expect(node('A').dominator, equals(node('R')));
-    expect(node('D').dominator, equals(node('R')));
-    expect(node('B').dominator, equals(node('R')));
+    expect(node('I').parent, equals(node('R')));
+    expect(node('K').parent, equals(node('R')));
+    expect(node('C').parent, equals(node('R')));
+    expect(node('H').parent, equals(node('R')));
+    expect(node('E').parent, equals(node('R')));
+    expect(node('A').parent, equals(node('R')));
+    expect(node('D').parent, equals(node('R')));
+    expect(node('B').parent, equals(node('R')));
 
-    expect(node('F').dominator, equals(node('C')));
-    expect(node('G').dominator, equals(node('C')));
-    expect(node('J').dominator, equals(node('G')));
-    expect(node('L').dominator, equals(node('D')));
+    expect(node('F').parent, equals(node('C')));
+    expect(node('G').parent, equals(node('C')));
+    expect(node('J').parent, equals(node('G')));
+    expect(node('L').parent, equals(node('D')));
 
     expect(node('R'), isNotNull); // The field.
   },

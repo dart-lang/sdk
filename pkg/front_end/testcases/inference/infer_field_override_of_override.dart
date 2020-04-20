@@ -14,7 +14,7 @@ abstract class B extends A {
 }
 
 class C extends B {
-  var /*@topType=int*/ x;
+  var x;
 }
 
 main() {}

@@ -12,18 +12,6 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
     groupName: 'vm',
     subgroups: const <BuildSubgroup>[
       const BuildSubgroup(shardNames: const <String>[
-        'vm-mac-debug-simdbc64-be',
-      ], testSteps: const <String>[
-        'vm tests',
-        'checked vm tests',
-      ]),
-      const BuildSubgroup(shardNames: const <String>[
-        'vm-mac-release-simdbc64-be',
-      ], testSteps: const <String>[
-        'vm tests',
-        'checked vm tests',
-      ]),
-      const BuildSubgroup(shardNames: const <String>[
         'vm-linux-debug-x64-be',
       ], testSteps: const <String>[
         'vm tests',
@@ -287,12 +275,6 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'checked vm tests',
       ]),
       const BuildSubgroup(shardNames: const <String>[
-        'vm-mac-debug-simdbc64-reload-be',
-      ], testSteps: const <String>[
-        'vm tests',
-        'checked vm tests',
-      ]),
-      const BuildSubgroup(shardNames: const <String>[
         'vm-linux-release-x64-reload-be',
       ], testSteps: const <String>[
         'vm tests',
@@ -300,12 +282,6 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
       ]),
       const BuildSubgroup(shardNames: const <String>[
         'vm-linux-release-x64-reload-rollback-be',
-      ], testSteps: const <String>[
-        'vm tests',
-        'checked vm tests',
-      ]),
-      const BuildSubgroup(shardNames: const <String>[
-        'vm-mac-release-simdbc64-reload-be',
       ], testSteps: const <String>[
         'vm tests',
         'checked vm tests',
@@ -746,19 +722,19 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'pkg-mac10.11-release-be',
       ], testSteps: const <String>[
         'package unit tests',
-        'third_party/pkg_tested unit tests',
+        'third_party pkg_tested unit tests',
       ]),
       const BuildSubgroup(shardNames: const <String>[
         'pkg-linux-release-be',
       ], testSteps: const <String>[
         'package unit tests',
-        'third_party/pkg_tested unit tests',
+        'third_party pkg_tested unit tests',
       ]),
       const BuildSubgroup(shardNames: const <String>[
         'pkg-win7-release-be',
       ], testSteps: const <String>[
         'package unit tests',
-        'third_party/pkg_tested unit tests',
+        'third_party pkg_tested unit tests',
       ]),
     ],
   ),

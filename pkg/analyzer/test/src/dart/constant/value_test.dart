@@ -1,16 +1,16 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.dart.constant.value_test;
-
+import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/test_support.dart';
+import '../../../generated/test_analysis_context.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -21,11 +21,18 @@ main() {
 const int LONG_MAX_VALUE = 0x7fffffffffffffff;
 
 final Matcher throwsEvaluationException =
-    throwsA(new isInstanceOf<EvaluationException>());
+    throwsA(TypeMatcher<EvaluationException>());
 
 @reflectiveTest
-class DartObjectImplTest extends EngineTestCase {
-  TypeProvider _typeProvider = new TestTypeProvider();
+class DartObjectImplTest {
+  TypeProvider _typeProvider;
+  TypeSystemImpl _typeSystem;
+
+  void setUp() {
+    var analysisContext = TestAnalysisContext();
+    _typeProvider = analysisContext.typeProviderLegacy;
+    _typeSystem = analysisContext.typeSystemLegacy;
+  }
 
   void test_add_knownDouble_knownDouble() {
     _assertAdd(_doubleValue(3.0), _doubleValue(1.0), _doubleValue(2.0));
@@ -96,27 +103,27 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_bitAnd_knownInt_knownInt() {
-    _assertBitAnd(_intValue(2), _intValue(6), _intValue(3));
+    _assertEagerAnd(_intValue(2), _intValue(6), _intValue(3));
   }
 
   void test_bitAnd_knownInt_knownString() {
-    _assertBitAnd(null, _intValue(6), _stringValue("3"));
+    _assertEagerAnd(null, _intValue(6), _stringValue("3"));
   }
 
   void test_bitAnd_knownInt_unknownInt() {
-    _assertBitAnd(_intValue(null), _intValue(6), _intValue(null));
+    _assertEagerAnd(_intValue(null), _intValue(6), _intValue(null));
   }
 
   void test_bitAnd_knownString_knownInt() {
-    _assertBitAnd(null, _stringValue("6"), _intValue(3));
+    _assertEagerAnd(null, _stringValue("6"), _intValue(3));
   }
 
   void test_bitAnd_unknownInt_knownInt() {
-    _assertBitAnd(_intValue(null), _intValue(null), _intValue(3));
+    _assertEagerAnd(_intValue(null), _intValue(null), _intValue(3));
   }
 
   void test_bitAnd_unknownInt_unknownInt() {
-    _assertBitAnd(_intValue(null), _intValue(null), _intValue(null));
+    _assertEagerAnd(_intValue(null), _intValue(null), _intValue(null));
   }
 
   void test_bitNot_knownInt() {
@@ -132,51 +139,51 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_bitOr_knownInt_knownInt() {
-    _assertBitOr(_intValue(7), _intValue(6), _intValue(3));
+    _assertEagerOr(_intValue(7), _intValue(6), _intValue(3));
   }
 
   void test_bitOr_knownInt_knownString() {
-    _assertBitOr(null, _intValue(6), _stringValue("3"));
+    _assertEagerOr(null, _intValue(6), _stringValue("3"));
   }
 
   void test_bitOr_knownInt_unknownInt() {
-    _assertBitOr(_intValue(null), _intValue(6), _intValue(null));
+    _assertEagerOr(_intValue(null), _intValue(6), _intValue(null));
   }
 
   void test_bitOr_knownString_knownInt() {
-    _assertBitOr(null, _stringValue("6"), _intValue(3));
+    _assertEagerOr(null, _stringValue("6"), _intValue(3));
   }
 
   void test_bitOr_unknownInt_knownInt() {
-    _assertBitOr(_intValue(null), _intValue(null), _intValue(3));
+    _assertEagerOr(_intValue(null), _intValue(null), _intValue(3));
   }
 
   void test_bitOr_unknownInt_unknownInt() {
-    _assertBitOr(_intValue(null), _intValue(null), _intValue(null));
+    _assertEagerOr(_intValue(null), _intValue(null), _intValue(null));
   }
 
   void test_bitXor_knownInt_knownInt() {
-    _assertBitXor(_intValue(5), _intValue(6), _intValue(3));
+    _assertEagerXor(_intValue(5), _intValue(6), _intValue(3));
   }
 
   void test_bitXor_knownInt_knownString() {
-    _assertBitXor(null, _intValue(6), _stringValue("3"));
+    _assertEagerXor(null, _intValue(6), _stringValue("3"));
   }
 
   void test_bitXor_knownInt_unknownInt() {
-    _assertBitXor(_intValue(null), _intValue(6), _intValue(null));
+    _assertEagerXor(_intValue(null), _intValue(6), _intValue(null));
   }
 
   void test_bitXor_knownString_knownInt() {
-    _assertBitXor(null, _stringValue("6"), _intValue(3));
+    _assertEagerXor(null, _stringValue("6"), _intValue(3));
   }
 
   void test_bitXor_unknownInt_knownInt() {
-    _assertBitXor(_intValue(null), _intValue(null), _intValue(3));
+    _assertEagerXor(_intValue(null), _intValue(null), _intValue(3));
   }
 
   void test_bitXor_unknownInt_unknownInt() {
-    _assertBitXor(_intValue(null), _intValue(null), _intValue(null));
+    _assertEagerXor(_intValue(null), _intValue(null), _intValue(null));
   }
 
   void test_concatenate_knownInt_knownString() {
@@ -291,19 +298,35 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_equalEqual_list_empty() {
-    _assertEqualEqual(null, _listValue(), _listValue());
+    _assertEqualEqual(
+      null,
+      _listValue(_typeProvider.intType, []),
+      _listValue(_typeProvider.intType, []),
+    );
   }
 
   void test_equalEqual_list_false() {
-    _assertEqualEqual(null, _listValue(), _listValue());
+    _assertEqualEqual(
+      null,
+      _listValue(_typeProvider.intType, []),
+      _listValue(_typeProvider.intType, []),
+    );
   }
 
   void test_equalEqual_map_empty() {
-    _assertEqualEqual(null, _mapValue(), _mapValue());
+    _assertEqualEqual(
+      null,
+      _mapValue(_typeProvider.intType, _typeProvider.stringType, []),
+      _mapValue(_typeProvider.intType, _typeProvider.stringType, []),
+    );
   }
 
   void test_equalEqual_map_false() {
-    _assertEqualEqual(null, _mapValue(), _mapValue());
+    _assertEqualEqual(
+      null,
+      _mapValue(_typeProvider.intType, _typeProvider.stringType, []),
+      _mapValue(_typeProvider.intType, _typeProvider.stringType, []),
+    );
   }
 
   void test_equalEqual_null() {
@@ -327,26 +350,38 @@ class DartObjectImplTest extends EngineTestCase {
 
   void test_equals_list_false_differentSizes() {
     expect(
-        _listValue([_boolValue(true)]) ==
-            _listValue([_boolValue(true), _boolValue(false)]),
+        _listValue(_typeProvider.boolType, [_boolValue(true)]) ==
+            _listValue(
+                _typeProvider.boolType, [_boolValue(true), _boolValue(false)]),
         isFalse);
   }
 
   void test_equals_list_false_sameSize() {
-    expect(_listValue([_boolValue(true)]) == _listValue([_boolValue(false)]),
+    expect(
+        _listValue(_typeProvider.boolType, [_boolValue(true)]) ==
+            _listValue(_typeProvider.boolType, [_boolValue(false)]),
         isFalse);
   }
 
   void test_equals_list_true_empty() {
-    expect(_listValue(), _listValue());
+    expect(
+      _listValue(_typeProvider.intType, []),
+      _listValue(_typeProvider.intType, []),
+    );
   }
 
   void test_equals_list_true_nonEmpty() {
-    expect(_listValue([_boolValue(true)]), _listValue([_boolValue(true)]));
+    expect(
+      _listValue(_typeProvider.boolType, [_boolValue(true)]),
+      _listValue(_typeProvider.boolType, [_boolValue(true)]),
+    );
   }
 
   void test_equals_map_true_empty() {
-    expect(_mapValue(), _mapValue());
+    expect(
+      _mapValue(_typeProvider.intType, _typeProvider.stringType, []),
+      _mapValue(_typeProvider.intType, _typeProvider.stringType, []),
+    );
   }
 
   void test_equals_symbol_false() {
@@ -388,36 +423,46 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_getValue_list_empty() {
-    Object result = _listValue().toListValue();
+    Object result = _listValue(_typeProvider.intType, []).toListValue();
     _assertInstanceOfObjectArray(result);
     List<Object> array = result as List<Object>;
     expect(array, hasLength(0));
   }
 
   void test_getValue_list_valid() {
-    Object result = _listValue([_intValue(23)]).toListValue();
+    Object result =
+        _listValue(_typeProvider.intType, [_intValue(23)]).toListValue();
     _assertInstanceOfObjectArray(result);
     List<Object> array = result as List<Object>;
     expect(array, hasLength(1));
   }
 
   void test_getValue_map_empty() {
-    Object result = _mapValue().toMapValue();
-    EngineTestCase.assertInstanceOf((obj) => obj is Map, Map, result);
-    Map map = result as Map;
-    expect(map, hasLength(0));
+    Map result = _mapValue(_typeProvider.intType, _typeProvider.stringType, [])
+        .toMapValue();
+    expect(result, hasLength(0));
   }
 
   void test_getValue_map_valid() {
-    Object result =
-        _mapValue([_stringValue("key"), _stringValue("value")]).toMapValue();
-    EngineTestCase.assertInstanceOf((obj) => obj is Map, Map, result);
-    Map map = result as Map;
-    expect(map, hasLength(1));
+    Map result = _mapValue(_typeProvider.stringType, _typeProvider.stringType,
+        [_stringValue("key"), _stringValue("value")]).toMapValue();
+    expect(result, hasLength(1));
   }
 
   void test_getValue_null() {
     expect(_nullValue().isNull, isTrue);
+  }
+
+  void test_getValue_set_empty() {
+    DartObjectImpl object = _setValue(_typeProvider.intType, null);
+    Set<DartObject> set = object.toSetValue();
+    expect(set, hasLength(0));
+  }
+
+  void test_getValue_set_valid() {
+    DartObjectImpl object = _setValue(_typeProvider.intType, {_intValue(23)});
+    Set<DartObject> set = object.toSetValue();
+    expect(set, hasLength(1));
   }
 
   void test_getValue_string_known() {
@@ -587,10 +632,6 @@ class DartObjectImplTest extends EngineTestCase {
     expect(_doubleValue(null).hasKnownValue, isFalse);
   }
 
-  void test_hasKnownValue_dynamic() {
-    expect(_dynamicValue().hasKnownValue, isTrue);
-  }
-
   void test_hasKnownValue_int_known() {
     expect(_intValue(23).hasKnownValue, isTrue);
   }
@@ -600,43 +641,30 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_hasKnownValue_list_empty() {
-    expect(_listValue().hasKnownValue, isTrue);
-  }
-
-  void test_hasKnownValue_list_invalidElement() {
-    expect(_listValue([_dynamicValue()]).hasKnownValue, isTrue);
+    expect(_listValue(_typeProvider.intType, []).hasKnownValue, isTrue);
   }
 
   void test_hasKnownValue_list_valid() {
-    expect(_listValue([_intValue(23)]).hasKnownValue, isTrue);
-  }
-
-  void test_hasKnownValue_map_empty() {
-    expect(_mapValue().hasKnownValue, isTrue);
-  }
-
-  void test_hasKnownValue_map_invalidKey() {
-    expect(_mapValue([_dynamicValue(), _stringValue("value")]).hasKnownValue,
+    expect(_listValue(_typeProvider.intType, [_intValue(23)]).hasKnownValue,
         isTrue);
   }
 
-  void test_hasKnownValue_map_invalidValue() {
-    expect(_mapValue([_stringValue("key"), _dynamicValue()]).hasKnownValue,
+  void test_hasKnownValue_map_empty() {
+    expect(
+        _mapValue(_typeProvider.intType, _typeProvider.stringType, [])
+            .hasKnownValue,
         isTrue);
   }
 
   void test_hasKnownValue_map_valid() {
     expect(
-        _mapValue([_stringValue("key"), _stringValue("value")]).hasKnownValue,
+        _mapValue(_typeProvider.stringType, _typeProvider.stringType,
+            [_stringValue("key"), _stringValue("value")]).hasKnownValue,
         isTrue);
   }
 
   void test_hasKnownValue_null() {
     expect(_nullValue().hasKnownValue, isTrue);
-  }
-
-  void test_hasKnownValue_num() {
-    expect(_numValue().hasKnownValue, isFalse);
   }
 
   void test_hasKnownValue_string_known() {
@@ -683,22 +711,109 @@ class DartObjectImplTest extends EngineTestCase {
     _assertIdentical(_boolValue(null), _intValue(null), _intValue(3));
   }
 
-  void test_identical_list_empty() {
-    _assertIdentical(_boolValue(true), _listValue(), _listValue());
+  void test_identical_intZero_doubleZero() {
+    // Used in Flutter:
+    // const bool kIsWeb = identical(0, 0.0);
+    _assertIdentical(_boolValue(true), _intValue(0), _doubleValue(0.0));
   }
 
-  void test_identical_list_false() {
+  void test_identical_list_empty() {
     _assertIdentical(
-        _boolValue(false), _listValue(), _listValue([_intValue(3)]));
+      _boolValue(true),
+      _listValue(_typeProvider.intType, []),
+      _listValue(_typeProvider.intType, []),
+    );
+  }
+
+  void test_identical_list_false_differentTypes() {
+    _assertIdentical(
+      _boolValue(false),
+      _listValue(_typeProvider.intType, []),
+      _listValue(_typeProvider.doubleType, []),
+    );
+  }
+
+  void test_identical_list_false_differentValues() {
+    _assertIdentical(_boolValue(false), _listValue(_typeProvider.intType, []),
+        _listValue(_typeProvider.intType, [_intValue(3)]));
+  }
+
+  void test_identical_list_true_equalTypes() {
+    _assertIdentical(
+      _boolValue(true),
+      _listValue(_typeProvider.intType, []),
+      _listValue(_typeProvider.intType, []),
+    );
+  }
+
+  void test_identical_list_true_equalTypesRuntime() {
+    _assertIdentical(
+      _boolValue(true),
+      _listValue(
+        _typeProvider.objectType,
+        [],
+      ),
+      _listValue(
+        _typeProvider.futureOrElement.instantiate(
+          typeArguments: [_typeProvider.objectType],
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+        [],
+      ),
+    );
   }
 
   void test_identical_map_empty() {
-    _assertIdentical(_boolValue(true), _mapValue(), _mapValue());
+    _assertIdentical(
+      _boolValue(true),
+      _mapValue(_typeProvider.intType, _typeProvider.stringType, []),
+      _mapValue(_typeProvider.intType, _typeProvider.stringType, []),
+    );
   }
 
-  void test_identical_map_false() {
-    _assertIdentical(_boolValue(false), _mapValue(),
-        _mapValue([_intValue(1), _intValue(2)]));
+  void test_identical_map_false_differentEntries() {
+    _assertIdentical(
+      _boolValue(false),
+      _mapValue(_typeProvider.intType, _typeProvider.intType, []),
+      _mapValue(
+        _typeProvider.intType,
+        _typeProvider.intType,
+        [_intValue(1), _intValue(2)],
+      ),
+    );
+  }
+
+  void test_identical_map_false_differentTypes() {
+    _assertIdentical(
+      _boolValue(false),
+      _mapValue(_typeProvider.boolType, _typeProvider.intType, []),
+      _mapValue(_typeProvider.intType, _typeProvider.intType, []),
+    );
+
+    _assertIdentical(
+      _boolValue(false),
+      _mapValue(_typeProvider.intType, _typeProvider.boolType, []),
+      _mapValue(_typeProvider.intType, _typeProvider.intType, []),
+    );
+  }
+
+  void test_identical_map_true_equalTypesRuntime() {
+    _assertIdentical(
+      _boolValue(true),
+      _mapValue(
+        _typeProvider.intType,
+        _typeProvider.objectType,
+        [],
+      ),
+      _mapValue(
+        _typeProvider.intType,
+        _typeProvider.futureOrElement.instantiate(
+          typeArguments: [_typeProvider.objectType],
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+        [],
+      ),
+    );
   }
 
   void test_identical_null() {
@@ -793,10 +908,6 @@ class DartObjectImplTest extends EngineTestCase {
     expect(_doubleValue(null).isBoolNumStringOrNull, isTrue);
   }
 
-  void test_isBoolNumStringOrNull_dynamic() {
-    expect(_dynamicValue().isBoolNumStringOrNull, isTrue);
-  }
-
   void test_isBoolNumStringOrNull_int_known() {
     expect(_intValue(23).isBoolNumStringOrNull, isTrue);
   }
@@ -806,15 +917,12 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_isBoolNumStringOrNull_list() {
-    expect(_listValue().isBoolNumStringOrNull, isFalse);
+    expect(
+        _listValue(_typeProvider.intType, []).isBoolNumStringOrNull, isFalse);
   }
 
   void test_isBoolNumStringOrNull_null() {
     expect(_nullValue().isBoolNumStringOrNull, isTrue);
-  }
-
-  void test_isBoolNumStringOrNull_num() {
-    expect(_numValue().isBoolNumStringOrNull, isTrue);
   }
 
   void test_isBoolNumStringOrNull_string_known() {
@@ -960,69 +1068,63 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_logicalAnd_false_false() {
-    _assertLogicalAnd(_boolValue(false), _boolValue(false), _boolValue(false));
+    _assertLazyAnd(_boolValue(false), _boolValue(false), _boolValue(false));
   }
 
   void test_logicalAnd_false_null() {
-    expect(() {
-      _assertLogicalAnd(_boolValue(false), _boolValue(false), _nullValue());
-    }, throwsEvaluationException);
+    _assertLazyAnd(_boolValue(false), _boolValue(false), _nullValue());
   }
 
   void test_logicalAnd_false_string() {
-    expect(() {
-      _assertLogicalAnd(
-          _boolValue(false), _boolValue(false), _stringValue("false"));
-    }, throwsEvaluationException);
+    _assertLazyAnd(_boolValue(false), _boolValue(false), _stringValue("false"));
   }
 
   void test_logicalAnd_false_true() {
-    _assertLogicalAnd(_boolValue(false), _boolValue(false), _boolValue(true));
+    _assertLazyAnd(_boolValue(false), _boolValue(false), _boolValue(true));
   }
 
   void test_logicalAnd_null_false() {
     expect(() {
-      _assertLogicalAnd(_boolValue(false), _nullValue(), _boolValue(false));
+      _assertLazyAnd(_boolValue(false), _nullValue(), _boolValue(false));
     }, throwsEvaluationException);
   }
 
   void test_logicalAnd_null_true() {
     expect(() {
-      _assertLogicalAnd(_boolValue(false), _nullValue(), _boolValue(true));
+      _assertLazyAnd(_boolValue(false), _nullValue(), _boolValue(true));
     }, throwsEvaluationException);
   }
 
   void test_logicalAnd_string_false() {
     expect(() {
-      _assertLogicalAnd(
+      _assertLazyAnd(
           _boolValue(false), _stringValue("true"), _boolValue(false));
     }, throwsEvaluationException);
   }
 
   void test_logicalAnd_string_true() {
     expect(() {
-      _assertLogicalAnd(
+      _assertLazyAnd(
           _boolValue(false), _stringValue("false"), _boolValue(true));
     }, throwsEvaluationException);
   }
 
   void test_logicalAnd_true_false() {
-    _assertLogicalAnd(_boolValue(false), _boolValue(true), _boolValue(false));
+    _assertLazyAnd(_boolValue(false), _boolValue(true), _boolValue(false));
   }
 
   void test_logicalAnd_true_null() {
-    _assertLogicalAnd(null, _boolValue(true), _nullValue());
+    _assertLazyAnd(null, _boolValue(true), _nullValue());
   }
 
   void test_logicalAnd_true_string() {
     expect(() {
-      _assertLogicalAnd(
-          _boolValue(false), _boolValue(true), _stringValue("true"));
+      _assertLazyAnd(_boolValue(false), _boolValue(true), _stringValue("true"));
     }, throwsEvaluationException);
   }
 
   void test_logicalAnd_true_true() {
-    _assertLogicalAnd(_boolValue(true), _boolValue(true), _boolValue(true));
+    _assertLazyAnd(_boolValue(true), _boolValue(true), _boolValue(true));
   }
 
   void test_logicalNot_false() {
@@ -1048,69 +1150,62 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_logicalOr_false_false() {
-    _assertLogicalOr(_boolValue(false), _boolValue(false), _boolValue(false));
+    _assertLazyOr(_boolValue(false), _boolValue(false), _boolValue(false));
   }
 
   void test_logicalOr_false_null() {
-    _assertLogicalOr(null, _boolValue(false), _nullValue());
+    _assertLazyOr(null, _boolValue(false), _nullValue());
   }
 
   void test_logicalOr_false_string() {
     expect(() {
-      _assertLogicalOr(
+      _assertLazyOr(
           _boolValue(false), _boolValue(false), _stringValue("false"));
     }, throwsEvaluationException);
   }
 
   void test_logicalOr_false_true() {
-    _assertLogicalOr(_boolValue(true), _boolValue(false), _boolValue(true));
+    _assertLazyOr(_boolValue(true), _boolValue(false), _boolValue(true));
   }
 
   void test_logicalOr_null_false() {
     expect(() {
-      _assertLogicalOr(_boolValue(false), _nullValue(), _boolValue(false));
+      _assertLazyOr(_boolValue(false), _nullValue(), _boolValue(false));
     }, throwsEvaluationException);
   }
 
   void test_logicalOr_null_true() {
     expect(() {
-      _assertLogicalOr(_boolValue(true), _nullValue(), _boolValue(true));
+      _assertLazyOr(_boolValue(true), _nullValue(), _boolValue(true));
     }, throwsEvaluationException);
   }
 
   void test_logicalOr_string_false() {
     expect(() {
-      _assertLogicalOr(
-          _boolValue(false), _stringValue("true"), _boolValue(false));
+      _assertLazyOr(_boolValue(false), _stringValue("true"), _boolValue(false));
     }, throwsEvaluationException);
   }
 
   void test_logicalOr_string_true() {
     expect(() {
-      _assertLogicalOr(
-          _boolValue(true), _stringValue("false"), _boolValue(true));
+      _assertLazyOr(_boolValue(true), _stringValue("false"), _boolValue(true));
     }, throwsEvaluationException);
   }
 
   void test_logicalOr_true_false() {
-    _assertLogicalOr(_boolValue(true), _boolValue(true), _boolValue(false));
+    _assertLazyOr(_boolValue(true), _boolValue(true), _boolValue(false));
   }
 
   void test_logicalOr_true_null() {
-    expect(() {
-      _assertLogicalOr(_boolValue(true), _boolValue(true), _nullValue());
-    }, throwsEvaluationException);
+    _assertLazyOr(_boolValue(true), _boolValue(true), _nullValue());
   }
 
   void test_logicalOr_true_string() {
-    expect(() {
-      _assertLogicalOr(
-          _boolValue(true), _boolValue(true), _stringValue("true"));
-    }, throwsEvaluationException);
+    _assertLazyOr(_boolValue(true), _boolValue(true), _stringValue("true"));
   }
 
   void test_logicalOr_true_true() {
-    _assertLogicalOr(_boolValue(true), _boolValue(true), _boolValue(true));
+    _assertLazyOr(_boolValue(true), _boolValue(true), _boolValue(true));
   }
 
   void test_minus_knownDouble_knownDouble() {
@@ -1298,6 +1393,10 @@ class DartObjectImplTest extends EngineTestCase {
     _assertRemainder(_intValue(1), _intValue(7), _intValue(2));
   }
 
+  void test_remainder_knownInt_knownInt_zero() {
+    _assertRemainder(null, _intValue(7), _intValue(0));
+  }
+
   void test_remainder_knownInt_knownString() {
     _assertRemainder(null, _intValue(7), _stringValue("2"));
   }
@@ -1334,16 +1433,24 @@ class DartObjectImplTest extends EngineTestCase {
     _assertShiftLeft(_intValue(48), _intValue(6), _intValue(3));
   }
 
+  void test_shiftLeft_knownInt_knownInt_negative() {
+    _assertShiftLeft(null, _intValue(1), _intValue(-1));
+  }
+
   void test_shiftLeft_knownInt_knownString() {
     _assertShiftLeft(null, _intValue(6), _stringValue(null));
   }
 
   void test_shiftLeft_knownInt_tooLarge() {
     _assertShiftLeft(
-        _intValue(null),
-        _intValue(6),
-        new DartObjectImpl(
-            _typeProvider.intType, new IntState(LONG_MAX_VALUE)));
+      _intValue(null),
+      _intValue(6),
+      DartObjectImpl(
+        _typeSystem,
+        _typeProvider.intType,
+        IntState(LONG_MAX_VALUE),
+      ),
+    );
   }
 
   void test_shiftLeft_knownInt_unknownInt() {
@@ -1366,16 +1473,24 @@ class DartObjectImplTest extends EngineTestCase {
     _assertShiftRight(_intValue(6), _intValue(48), _intValue(3));
   }
 
+  void test_shiftRight_knownInt_knownInt_negative() {
+    _assertShiftRight(null, _intValue(1), _intValue(-1));
+  }
+
   void test_shiftRight_knownInt_knownString() {
     _assertShiftRight(null, _intValue(48), _stringValue(null));
   }
 
   void test_shiftRight_knownInt_tooLarge() {
     _assertShiftRight(
-        _intValue(null),
-        _intValue(48),
-        new DartObjectImpl(
-            _typeProvider.intType, new IntState(LONG_MAX_VALUE)));
+      _intValue(null),
+      _intValue(48),
+      DartObjectImpl(
+        _typeSystem,
+        _typeProvider.intType,
+        IntState(LONG_MAX_VALUE),
+      ),
+    );
   }
 
   void test_shiftRight_knownInt_unknownInt() {
@@ -1469,28 +1584,10 @@ class DartObjectImplTest extends EngineTestCase {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.add(_typeProvider, right);
+        left.add(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.add(_typeProvider, right);
-      expect(result, isNotNull);
-      expect(result, expected);
-    }
-  }
-
-  /**
-   * Assert that the result of bit-anding the [left] and [right] operands is the
-   * [expected] value, or that the operation throws an exception if the expected
-   * value is `null`.
-   */
-  void _assertBitAnd(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
-    if (expected == null) {
-      expect(() {
-        left.bitAnd(_typeProvider, right);
-      }, throwsEvaluationException);
-    } else {
-      DartObjectImpl result = left.bitAnd(_typeProvider, right);
+      DartObjectImpl result = left.add(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1503,46 +1600,10 @@ class DartObjectImplTest extends EngineTestCase {
   void _assertBitNot(DartObjectImpl expected, DartObjectImpl operand) {
     if (expected == null) {
       expect(() {
-        operand.bitNot(_typeProvider);
+        operand.bitNot(_typeSystem);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = operand.bitNot(_typeProvider);
-      expect(result, isNotNull);
-      expect(result, expected);
-    }
-  }
-
-  /**
-   * Assert that the result of bit-oring the [left] and [right] operands is the
-   * [expected] value, or that the operation throws an exception if the expected
-   * value is `null`.
-   */
-  void _assertBitOr(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
-    if (expected == null) {
-      expect(() {
-        left.bitOr(_typeProvider, right);
-      }, throwsEvaluationException);
-    } else {
-      DartObjectImpl result = left.bitOr(_typeProvider, right);
-      expect(result, isNotNull);
-      expect(result, expected);
-    }
-  }
-
-  /**
-   * Assert that the result of bit-xoring the [left] and [right] operands is the
-   * [expected] value, or that the operation throws an exception if the expected
-   * value is `null`.
-   */
-  void _assertBitXor(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
-    if (expected == null) {
-      expect(() {
-        left.bitXor(_typeProvider, right);
-      }, throwsEvaluationException);
-    } else {
-      DartObjectImpl result = left.bitXor(_typeProvider, right);
+      DartObjectImpl result = operand.bitNot(_typeSystem);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1557,10 +1618,10 @@ class DartObjectImplTest extends EngineTestCase {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.concatenate(_typeProvider, right);
+        left.concatenate(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.concatenate(_typeProvider, right);
+      DartObjectImpl result = left.concatenate(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1575,10 +1636,64 @@ class DartObjectImplTest extends EngineTestCase {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.divide(_typeProvider, right);
+        left.divide(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.divide(_typeProvider, right);
+      DartObjectImpl result = left.divide(_typeSystem, right);
+      expect(result, isNotNull);
+      expect(result, expected);
+    }
+  }
+
+  /**
+   * Assert that the result of bit-anding the [left] and [right] operands is the
+   * [expected] value, or that the operation throws an exception if the expected
+   * value is `null`.
+   */
+  void _assertEagerAnd(
+      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+    if (expected == null) {
+      expect(() {
+        left.eagerAnd(_typeSystem, right, false);
+      }, throwsEvaluationException);
+    } else {
+      DartObjectImpl result = left.eagerAnd(_typeSystem, right, false);
+      expect(result, isNotNull);
+      expect(result, expected);
+    }
+  }
+
+  /**
+   * Assert that the result of bit-oring the [left] and [right] operands is the
+   * [expected] value, or that the operation throws an exception if the expected
+   * value is `null`.
+   */
+  void _assertEagerOr(
+      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+    if (expected == null) {
+      expect(() {
+        left.eagerOr(_typeSystem, right, false);
+      }, throwsEvaluationException);
+    } else {
+      DartObjectImpl result = left.eagerOr(_typeSystem, right, false);
+      expect(result, isNotNull);
+      expect(result, expected);
+    }
+  }
+
+  /**
+   * Assert that the result of bit-xoring the [left] and [right] operands is the
+   * [expected] value, or that the operation throws an exception if the expected
+   * value is `null`.
+   */
+  void _assertEagerXor(
+      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+    if (expected == null) {
+      expect(() {
+        left.eagerXor(_typeSystem, right, false);
+      }, throwsEvaluationException);
+    } else {
+      DartObjectImpl result = left.eagerXor(_typeSystem, right, false);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1593,10 +1708,10 @@ class DartObjectImplTest extends EngineTestCase {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.equalEqual(_typeProvider, right);
+        left.equalEqual(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.equalEqual(_typeProvider, right);
+      DartObjectImpl result = left.equalEqual(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1611,10 +1726,10 @@ class DartObjectImplTest extends EngineTestCase {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.greaterThan(_typeProvider, right);
+        left.greaterThan(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.greaterThan(_typeProvider, right);
+      DartObjectImpl result = left.greaterThan(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1629,10 +1744,10 @@ class DartObjectImplTest extends EngineTestCase {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.greaterThanOrEqual(_typeProvider, right);
+        left.greaterThanOrEqual(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.greaterThanOrEqual(_typeProvider, right);
+      DartObjectImpl result = left.greaterThanOrEqual(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1644,7 +1759,7 @@ class DartObjectImplTest extends EngineTestCase {
    */
   void _assertIdentical(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
-    DartObjectImpl result = left.isIdentical(_typeProvider, right);
+    DartObjectImpl result = left.isIdentical2(_typeSystem, right);
     expect(result, isNotNull);
     expect(result, expected);
   }
@@ -1662,10 +1777,46 @@ class DartObjectImplTest extends EngineTestCase {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.integerDivide(_typeProvider, right);
+        left.integerDivide(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.integerDivide(_typeProvider, right);
+      DartObjectImpl result = left.integerDivide(_typeSystem, right);
+      expect(result, isNotNull);
+      expect(result, expected);
+    }
+  }
+
+  /**
+   * Assert that the result of logical-anding the [left] and [right] operands is
+   * the [expected] value, or that the operation throws an exception if the
+   * expected value is `null`.
+   */
+  void _assertLazyAnd(
+      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+    if (expected == null) {
+      expect(() {
+        left.lazyAnd(_typeSystem, () => right);
+      }, throwsEvaluationException);
+    } else {
+      DartObjectImpl result = left.lazyAnd(_typeSystem, () => right);
+      expect(result, isNotNull);
+      expect(result, expected);
+    }
+  }
+
+  /**
+   * Assert that the result of logical-oring the [left] and [right] operands is
+   * the [expected] value, or that the operation throws an exception if the
+   * expected value is `null`.
+   */
+  void _assertLazyOr(
+      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+    if (expected == null) {
+      expect(() {
+        left.lazyOr(_typeSystem, () => right);
+      }, throwsEvaluationException);
+    } else {
+      DartObjectImpl result = left.lazyOr(_typeSystem, () => right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1680,10 +1831,10 @@ class DartObjectImplTest extends EngineTestCase {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.lessThan(_typeProvider, right);
+        left.lessThan(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.lessThan(_typeProvider, right);
+      DartObjectImpl result = left.lessThan(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1698,28 +1849,10 @@ class DartObjectImplTest extends EngineTestCase {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.lessThanOrEqual(_typeProvider, right);
+        left.lessThanOrEqual(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.lessThanOrEqual(_typeProvider, right);
-      expect(result, isNotNull);
-      expect(result, expected);
-    }
-  }
-
-  /**
-   * Assert that the result of logical-anding the [left] and [right] operands is
-   * the [expected] value, or that the operation throws an exception if the
-   * expected value is `null`.
-   */
-  void _assertLogicalAnd(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
-    if (expected == null) {
-      expect(() {
-        left.logicalAnd(_typeProvider, right);
-      }, throwsEvaluationException);
-    } else {
-      DartObjectImpl result = left.logicalAnd(_typeProvider, right);
+      DartObjectImpl result = left.lessThanOrEqual(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1732,28 +1865,10 @@ class DartObjectImplTest extends EngineTestCase {
   void _assertLogicalNot(DartObjectImpl expected, DartObjectImpl operand) {
     if (expected == null) {
       expect(() {
-        operand.logicalNot(_typeProvider);
+        operand.logicalNot(_typeSystem);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = operand.logicalNot(_typeProvider);
-      expect(result, isNotNull);
-      expect(result, expected);
-    }
-  }
-
-  /**
-   * Assert that the result of logical-oring the [left] and [right] operands is
-   * the [expected] value, or that the operation throws an exception if the
-   * expected value is `null`.
-   */
-  void _assertLogicalOr(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
-    if (expected == null) {
-      expect(() {
-        left.logicalOr(_typeProvider, right);
-      }, throwsEvaluationException);
-    } else {
-      DartObjectImpl result = left.logicalOr(_typeProvider, right);
+      DartObjectImpl result = operand.logicalNot(_typeSystem);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1768,10 +1883,10 @@ class DartObjectImplTest extends EngineTestCase {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.minus(_typeProvider, right);
+        left.minus(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.minus(_typeProvider, right);
+      DartObjectImpl result = left.minus(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1784,10 +1899,10 @@ class DartObjectImplTest extends EngineTestCase {
   void _assertNegated(DartObjectImpl expected, DartObjectImpl operand) {
     if (expected == null) {
       expect(() {
-        operand.negated(_typeProvider);
+        operand.negated(_typeSystem);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = operand.negated(_typeProvider);
+      DartObjectImpl result = operand.negated(_typeSystem);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1802,10 +1917,10 @@ class DartObjectImplTest extends EngineTestCase {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.notEqual(_typeProvider, right);
+        left.notEqual(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.notEqual(_typeProvider, right);
+      DartObjectImpl result = left.notEqual(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1818,10 +1933,10 @@ class DartObjectImplTest extends EngineTestCase {
   void _assertPerformToString(DartObjectImpl expected, DartObjectImpl operand) {
     if (expected == null) {
       expect(() {
-        operand.performToString(_typeProvider);
+        operand.performToString(_typeSystem);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = operand.performToString(_typeProvider);
+      DartObjectImpl result = operand.performToString(_typeSystem);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1836,10 +1951,10 @@ class DartObjectImplTest extends EngineTestCase {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.remainder(_typeProvider, right);
+        left.remainder(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.remainder(_typeProvider, right);
+      DartObjectImpl result = left.remainder(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1854,10 +1969,10 @@ class DartObjectImplTest extends EngineTestCase {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.shiftLeft(_typeProvider, right);
+        left.shiftLeft(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.shiftLeft(_typeProvider, right);
+      DartObjectImpl result = left.shiftLeft(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1872,10 +1987,10 @@ class DartObjectImplTest extends EngineTestCase {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.shiftRight(_typeProvider, right);
+        left.shiftRight(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.shiftRight(_typeProvider, right);
+      DartObjectImpl result = left.shiftRight(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1888,10 +2003,10 @@ class DartObjectImplTest extends EngineTestCase {
   void _assertStringLength(DartObjectImpl expected, DartObjectImpl operand) {
     if (expected == null) {
       expect(() {
-        operand.stringLength(_typeProvider);
+        operand.stringLength(_typeSystem);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = operand.stringLength(_typeProvider);
+      DartObjectImpl result = operand.stringLength(_typeSystem);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1906,10 +2021,10 @@ class DartObjectImplTest extends EngineTestCase {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.times(_typeProvider, right);
+        left.times(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.times(_typeProvider, right);
+      DartObjectImpl result = left.times(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1917,75 +2032,122 @@ class DartObjectImplTest extends EngineTestCase {
 
   DartObjectImpl _boolValue(bool value) {
     if (value == null) {
-      return new DartObjectImpl(
-          _typeProvider.boolType, BoolState.UNKNOWN_VALUE);
+      return DartObjectImpl(
+        _typeSystem,
+        _typeProvider.boolType,
+        BoolState.UNKNOWN_VALUE,
+      );
     } else if (identical(value, false)) {
-      return new DartObjectImpl(_typeProvider.boolType, BoolState.FALSE_STATE);
+      return DartObjectImpl(
+        _typeSystem,
+        _typeProvider.boolType,
+        BoolState.FALSE_STATE,
+      );
     } else if (identical(value, true)) {
-      return new DartObjectImpl(_typeProvider.boolType, BoolState.TRUE_STATE);
+      return DartObjectImpl(
+        _typeSystem,
+        _typeProvider.boolType,
+        BoolState.TRUE_STATE,
+      );
     }
     fail("Invalid boolean value used in test");
-    return null;
   }
 
   DartObjectImpl _doubleValue(double value) {
     if (value == null) {
-      return new DartObjectImpl(
-          _typeProvider.doubleType, DoubleState.UNKNOWN_VALUE);
+      return DartObjectImpl(
+        _typeSystem,
+        _typeProvider.doubleType,
+        DoubleState.UNKNOWN_VALUE,
+      );
     } else {
-      return new DartObjectImpl(
-          _typeProvider.doubleType, new DoubleState(value));
+      return DartObjectImpl(
+        _typeSystem,
+        _typeProvider.doubleType,
+        DoubleState(value),
+      );
     }
-  }
-
-  DartObjectImpl _dynamicValue() {
-    return new DartObjectImpl(
-        _typeProvider.nullType, DynamicState.DYNAMIC_STATE);
   }
 
   DartObjectImpl _intValue(int value) {
     if (value == null) {
-      return new DartObjectImpl(_typeProvider.intType, IntState.UNKNOWN_VALUE);
+      return DartObjectImpl(
+        _typeSystem,
+        _typeProvider.intType,
+        IntState.UNKNOWN_VALUE,
+      );
     } else {
-      return new DartObjectImpl(_typeProvider.intType, new IntState(value));
+      return DartObjectImpl(
+        _typeSystem,
+        _typeProvider.intType,
+        IntState(value),
+      );
     }
   }
 
   DartObjectImpl _listValue(
-      [List<DartObjectImpl> elements = DartObjectImpl.EMPTY_LIST]) {
-    return new DartObjectImpl(_typeProvider.listType, new ListState(elements));
+    DartType elementType,
+    List<DartObjectImpl> elements,
+  ) {
+    return DartObjectImpl(
+      _typeSystem,
+      _typeProvider.listType2(elementType),
+      ListState(elements),
+    );
   }
 
-  DartObjectImpl _mapValue(
-      [List<DartObjectImpl> keyElementPairs = DartObjectImpl.EMPTY_LIST]) {
+  DartObjectImpl _mapValue(DartType keyType, DartType valueType,
+      List<DartObjectImpl> keyValuePairs) {
     Map<DartObjectImpl, DartObjectImpl> map =
-        new Map<DartObjectImpl, DartObjectImpl>();
-    int count = keyElementPairs.length;
+        <DartObjectImpl, DartObjectImpl>{};
+    int count = keyValuePairs.length;
     for (int i = 0; i < count;) {
-      map[keyElementPairs[i++]] = keyElementPairs[i++];
+      map[keyValuePairs[i++]] = keyValuePairs[i++];
     }
-    return new DartObjectImpl(_typeProvider.mapType, new MapState(map));
+    return DartObjectImpl(
+      _typeSystem,
+      _typeProvider.mapType2(keyType, valueType),
+      MapState(map),
+    );
   }
 
   DartObjectImpl _nullValue() {
-    return new DartObjectImpl(_typeProvider.nullType, NullState.NULL_STATE);
+    return DartObjectImpl(
+      _typeSystem,
+      _typeProvider.nullType,
+      NullState.NULL_STATE,
+    );
   }
 
-  DartObjectImpl _numValue() {
-    return new DartObjectImpl(_typeProvider.nullType, NumState.UNKNOWN_VALUE);
+  DartObjectImpl _setValue(DartType type, Set<DartObjectImpl> elements) {
+    return DartObjectImpl(
+      _typeSystem,
+      type,
+      SetState(elements ?? <DartObjectImpl>{}),
+    );
   }
 
   DartObjectImpl _stringValue(String value) {
     if (value == null) {
-      return new DartObjectImpl(
-          _typeProvider.stringType, StringState.UNKNOWN_VALUE);
+      return DartObjectImpl(
+        _typeSystem,
+        _typeProvider.stringType,
+        StringState.UNKNOWN_VALUE,
+      );
     } else {
-      return new DartObjectImpl(
-          _typeProvider.stringType, new StringState(value));
+      return DartObjectImpl(
+        _typeSystem,
+        _typeProvider.stringType,
+        StringState(value),
+      );
     }
   }
 
   DartObjectImpl _symbolValue(String value) {
-    return new DartObjectImpl(_typeProvider.symbolType, new SymbolState(value));
+    return DartObjectImpl(
+      _typeSystem,
+      _typeProvider.symbolType,
+      SymbolState(value),
+    );
   }
 }

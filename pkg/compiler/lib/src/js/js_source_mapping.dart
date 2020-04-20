@@ -63,6 +63,7 @@ class SourceMapperProviderImpl implements SourceMapperProvider {
 
   SourceMapperProviderImpl(this.provider);
 
+  @override
   SourceMapper createSourceMapper(String name) {
     return new SourceLocationsMapper(provider.createSourceLocations(name));
   }
@@ -73,6 +74,16 @@ class SourceMapperProviderImpl implements SourceMapperProvider {
 abstract class SourceMapper {
   /// Associate [codeOffset] with [sourceLocation] for [node].
   void register(Node node, int codeOffset, SourceLocation sourceLocation);
+
+  /// Associate [codeOffset] with an inlining call at [sourceLocation].
+  void registerPush(
+      int codeOffset, SourceLocation sourceLocation, String inlinedMethodName);
+
+  /// Associate [codeOffset] with an inlining return.
+  ///
+  /// If [isEmpty] is true, also associate that the inlining stack is empty at
+  /// [codeOffset].
+  void registerPop(int codeOffset, {bool isEmpty: false});
 }
 
 /// An implementation of [SourceMapper] that stores the information directly
@@ -85,6 +96,17 @@ class SourceLocationsMapper implements SourceMapper {
   @override
   void register(Node node, int codeOffset, SourceLocation sourceLocation) {
     sourceLocations.addSourceLocation(codeOffset, sourceLocation);
+  }
+
+  @override
+  void registerPush(
+      int codeOffset, SourceLocation sourceLocation, String inlinedMethodName) {
+    sourceLocations.addPush(codeOffset, sourceLocation, inlinedMethodName);
+  }
+
+  @override
+  void registerPop(int codeOffset, {bool isEmpty: false}) {
+    sourceLocations.addPop(codeOffset, isEmpty);
   }
 }
 

@@ -9,7 +9,7 @@
 
 namespace dart {
 
-class HashMap {
+class SimpleHashMap {
  public:
   typedef bool (*MatchFun)(void* key1, void* key2);
 
@@ -17,9 +17,9 @@ class HashMap {
 
   // initial_capacity is the size of the initial hash map;
   // it must be a power of 2 (and thus must not be 0).
-  HashMap(MatchFun match, uint32_t initial_capacity);
+  SimpleHashMap(MatchFun match, uint32_t initial_capacity);
 
-  ~HashMap();
+  ~SimpleHashMap();
 
   static bool SamePointerValue(void* key1, void* key2) { return key1 == key2; }
 
@@ -43,7 +43,7 @@ class HashMap {
                   reinterpret_cast<char*>(key2)) == 0;
   }
 
-  // HashMap entries are (key, value, hash) triplets.
+  // SimpleHashMap entries are (key, value, hash) triplets.
   // Some clients may not need to use the value slot
   // (e.g. implementers of sets, where the key is the value).
   struct Entry {
@@ -62,7 +62,7 @@ class HashMap {
 
   // Removes the entry with matching key.
   //
-  // WARNING: This method cannot be called while iterating a `HashMap`
+  // WARNING: This method cannot be called while iterating a `SimpleHashMap`
   // otherwise the iteration might step over elements!
   void Remove(void* key, uint32_t hash);
 
@@ -101,7 +101,7 @@ class HashMap {
   void Resize();
 
   friend class IntSet;  // From hashmap_test.cc
-  DISALLOW_COPY_AND_ASSIGN(HashMap);
+  DISALLOW_COPY_AND_ASSIGN(SimpleHashMap);
 };
 
 }  // namespace dart

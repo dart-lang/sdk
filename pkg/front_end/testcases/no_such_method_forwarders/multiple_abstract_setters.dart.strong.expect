@@ -1,0 +1,48 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  set foo(core::int* value) → void {}
+  get bar() → core::int*
+    return null;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B*
+    : super core::Object::•()
+    ;
+  set foo(core::double* value) → void {}
+  get bar() → core::double*
+    return null;
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  set foo(core::num* value) → void {}
+  get bar() → core::Null?
+    return null;
+}
+class D extends core::Object implements self::C, self::A, self::B {
+  synthetic constructor •() → self::D*
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation* _) → dynamic
+    return null;
+  no-such-method-forwarder get bar() → core::Null?
+    return this.{self::D::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::Null?;
+  no-such-method-forwarder set foo(core::num* value) → void
+    return this.{self::D::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = #bar
+  #C2 = <core::Type*>[]
+  #C3 = <dynamic>[]
+  #C4 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C3}
+  #C5 = #foo=
+}

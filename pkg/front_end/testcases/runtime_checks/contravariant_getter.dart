@@ -8,14 +8,14 @@ library test;
 typedef void F<T>(T x);
 
 class C<T> {
-  F<T> /*@genericContravariant=true*/ y;
-  void f(T /*@covariance=genericInterface, genericImpl*/ value) {
-    this.y /*@callKind=closure*/ (value);
+  F<T> y;
+  void f(T value) {
+    this.y(value);
   }
 }
 
 void g(C<num> c) {
-  c.y /*@checkGetterReturn=(num) -> void*/ /*@callKind=closure*/ (1.5);
+  c.y /*@ checkGetterReturn=(num*) ->* void */ (1.5);
 }
 
 void main() {}

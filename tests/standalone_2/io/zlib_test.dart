@@ -26,8 +26,9 @@ void testZLibDeflateEmpty() {
 void testZLibDeflateEmptyGzip() {
   asyncStart();
   var controller = new StreamController(sync: true);
-  controller.stream.transform(new ZLibEncoder(gzip: true, level: 6)).fold([],
-      (buffer, data) {
+  controller.stream
+      .transform(new ZLibEncoder(gzip: true, level: 6))
+      .fold(<int>[], (buffer, data) {
     buffer.addAll(data);
     return buffer;
   }).then((data) {
@@ -145,11 +146,11 @@ void testZLibDeflateInvalidLevel() {
 void testZLibInflate(List<int> data) {
   [true, false].forEach((gzip) {
     [
-      ZLibOption.STRATEGY_FILTERED,
-      ZLibOption.STRATEGY_HUFFMAN_ONLY,
-      ZLibOption.STRATEGY_RLE,
-      ZLibOption.STRATEGY_FIXED,
-      ZLibOption.STRATEGY_DEFAULT
+      ZLibOption.strategyFiltered,
+      ZLibOption.strategyHuffmanOnly,
+      ZLibOption.strategyRle,
+      ZLibOption.strategyFixed,
+      ZLibOption.strategyDefault,
     ].forEach((strategy) {
       [3, 6, 9].forEach((level) {
         asyncStart();

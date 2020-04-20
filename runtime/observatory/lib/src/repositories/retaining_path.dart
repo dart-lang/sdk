@@ -9,7 +9,7 @@ class RetainingPathRepository implements M.RetainingPathRepository {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
     final response = await isolate
-        .invokeRpc('_getRetainingPath', {'targetId': id, 'limit': 100});
+        .invokeRpc('getRetainingPath', {'targetId': id, 'limit': 100});
     return new S.RetainingPath(response);
   }
 }

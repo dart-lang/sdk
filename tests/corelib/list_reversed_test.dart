@@ -15,12 +15,12 @@ class ThrowMarker {
 
 void testOperations() {
   // Comparison lists.
-  List l = const [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-  List r = const [10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
+  var l = const [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  var r = const [10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
   // A base list that starts out like l.
-  List base = l.toList();
+  var base = l.toList();
   // A lazy reverse of base.
-  Iterable reversed = base.reversed;
+  var reversed = base.reversed;
 
   Expect.listEquals(r, reversed.toList());
   Expect.listEquals(l, reversed.toList().reversed.toList());
@@ -47,7 +47,7 @@ void testOperations() {
   Expect.listEquals(subr,
       reversed.skip(2).toList().reversed.skip(2).toList().reversed.toList());
 
-  void testList(List list) {
+  void testList(List<int> list) {
     var throws = const ThrowMarker();
     void testEquals(v1, v2, path) {
       if (v1 is Iterable) {
@@ -61,20 +61,20 @@ void testOperations() {
           index++;
         }
         if (i2.moveNext()) {
-          Expect
-              .fail("Too many actual values. Actual[$index] == ${i2.current}");
+          Expect.fail(
+              "Too many actual values. Actual[$index] == ${i2.current}");
         }
       } else {
         Expect.equals(v1, v2, path);
       }
     }
 
-    void testOp(operation(Iterable reversedList), name) {
-      List reversedList = new List(list.length);
-      for (int i = 0; i < list.length; i++) {
-        reversedList[i] = list[list.length - 1 - i];
-      }
-      Iterable reversed = list.reversed;
+    void testOp(operation(Iterable<int> reversedList), name) {
+      var reversedList = [
+        for (var i = 0; i < list.length; i++) list[list.length - 1 - i]
+      ];
+
+      var reversed = list.reversed;
       var expect;
       try {
         expect = operation(reversedList);
@@ -106,7 +106,7 @@ void testOperations() {
     testOp((i) => i.every((n) => n < 5), "every<5");
     testOp((i) => i.every((n) => n < 10), "every<10");
     testOp((i) => i.reduce((a, b) => a + b), "reduce-sum");
-    testOp((i) => i.fold(0, (a, b) => a + b), "fold-sum");
+    testOp((i) => i.fold/*<int>*/(0, (a, b) => a + b), "fold-sum");
     testOp((i) => i.join("-"), "join-");
     testOp((i) => i.join(""), "join");
     testOp((i) => i.join(), "join-null");

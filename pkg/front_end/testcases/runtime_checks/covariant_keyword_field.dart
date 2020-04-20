@@ -10,11 +10,11 @@ class C {
 }
 
 class D implements C {
-  covariant int /*@covariance=explicit*/ x;
+  covariant int x;
 }
 
 class E implements D {
-  int /*@covariance=explicit*/ x;
+  int x;
 }
 
 main() {}

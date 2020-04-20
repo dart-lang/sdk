@@ -38,11 +38,11 @@ abstract class QueueTest {
     queue.removeFirst();
     checkQueue(queue, 3, 1110);
 
-    int mapTest(int value) {
-      return value ~/ 10;
+    dynamic mapTest(dynamic value) {
+      return (value as int) ~/ 10;
     }
 
-    bool is10(int value) {
+    bool is10(dynamic value) {
       return (value == 10);
     }
 
@@ -58,7 +58,7 @@ abstract class QueueTest {
 
     Expect.equals(true, queue.any(is10));
 
-    bool isInstanceOfInt(int value) {
+    bool isInstanceOfInt(dynamic value) {
       return (value is int);
     }
 
@@ -66,7 +66,7 @@ abstract class QueueTest {
 
     Expect.equals(false, queue.every(is10));
 
-    bool is1(int value) {
+    bool is1(dynamic value) {
       return (value == 1);
     }
 
@@ -100,8 +100,8 @@ abstract class QueueTest {
 
     queue.addLast(3);
     Expect.equals(3, queue.last);
-    bool isGreaterThanOne(int value) {
-      return (value > 1);
+    bool isGreaterThanOne(dynamic value) {
+      return ((value as int) > 1);
     }
 
     other = newQueueFrom(queue.where(isGreaterThanOne));
@@ -126,8 +126,8 @@ abstract class QueueTest {
   void checkQueue(Queue queue, int expectedSize, int expectedSum) {
     testLength(expectedSize, queue);
     int sum = 0;
-    void sumElements(int value) {
-      sum += value;
+    void sumElements(dynamic value) {
+      sum += value as int;
     }
 
     queue.forEach(sumElements);
@@ -158,11 +158,9 @@ abstract class QueueTest {
     testLength(3, queue3);
 
     int sum = 0;
-    void f(e) {
-      sum += e;
+    void f(dynamic e) {
+      sum += (e as int);
     }
-
-    ;
 
     set.forEach(f);
     Expect.equals(7, sum);
@@ -244,11 +242,9 @@ abstract class QueueTest {
         queue.toList());
 
     // Regression test: http://dartbug.com/16270
-    // These should all do nothing, and should not throw.
+    // This should do nothing, and should not throw.
     Queue emptyQueue = newQueue();
     emptyQueue.remove(0);
-    emptyQueue.removeWhere((x) => null);
-    emptyQueue.retainWhere((x) => null);
   }
 
   void testLarge() {
@@ -415,18 +411,18 @@ class DoubleLinkedQueueTest extends QueueTest {
     queue2.addAll(queue1);
 
     Expect.equals(queue1.length, queue2.length);
-    DoubleLinkedQueueEntry<int> entry1 = queue1.firstEntry();
-    DoubleLinkedQueueEntry<int> entry2 = queue2.firstEntry();
+    DoubleLinkedQueueEntry<int>? entry1 = queue1.firstEntry();
+    DoubleLinkedQueueEntry<int>? entry2 = queue2.firstEntry();
     while (entry1 != null) {
       Expect.equals(true, !identical(entry1, entry2));
       entry1 = entry1.nextEntry();
-      entry2 = entry2.nextEntry();
+      entry2 = entry2!.nextEntry();
     }
     Expect.equals(null, entry2);
 
-    var firstEntry = queue1.firstEntry();
-    var secondEntry = queue1.firstEntry().nextEntry();
-    var thirdEntry = queue1.lastEntry();
+    var firstEntry = queue1.firstEntry()!;
+    var secondEntry = queue1.firstEntry()!.nextEntry()!;
+    var thirdEntry = queue1.lastEntry()!;
     firstEntry.prepend(4);
     firstEntry.append(5);
     secondEntry.prepend(6);
@@ -450,8 +446,8 @@ void linkEntryTest() {
 
   entry.append(37);
   entry.prepend(87);
-  var prev = entry.previousEntry();
-  var next = entry.nextEntry();
+  var prev = entry.previousEntry()!;
+  var next = entry.nextEntry()!;
   Expect.equals(42, entry.element);
   Expect.equals(37, next.element);
   Expect.equals(87, prev.element);

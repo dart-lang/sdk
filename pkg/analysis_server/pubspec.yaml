@@ -1,27 +1,35 @@
 name: analysis_server
-version: 0.1.1-dev
-author: Dart Team <misc@dartlang.org>
-description: A server that performs analysis of Dart code over character streams using JSON-RPC encoded information.
-homepage: http://www.dartlang.org
+publish_to: none
+
 environment:
-  sdk: '>=1.12.0 <2.0.0'
+  sdk: '>=2.6.0 <3.0.0'
+
 dependencies:
-  analyzer: ^0.30.0
-  args: '>=0.13.0 <0.14.0'
-  dart_style: '^1.0.6'
-  intl: ^0.15.0
-  isolate: '>=0.2.2 <2.0.0'
-  linter: ^0.1.16
+  analyzer: any
+  analyzer_plugin: any
+  args: any
+  charcode: any
+  convert: any
+  crypto: any
+  dart_style: any
+  front_end: any
+  linter: any
   logging: any
-  package_config: '>=0.1.5 <2.0.0'
+  meta: any
+  nnbd_migration: any
+  pub_semver: any
+  source_span: any
+  stream_channel: any
+  package_config: any
   path: any
-  plugin: ^0.2.0
-  telemetry: ^0.0.1
-  usage: ^3.2.0+1
+  tflite_native: any
   watcher: any
   yaml: any
+
 dev_dependencies:
+  analysis_tool: any
   html: any
-  test_reflective_loader: ^0.1.0
-  mockito: ^2.0.2
-  test: ^0.12.17
+  http: any
+  pedantic: ^1.8.0
+  test_reflective_loader: any
+  test: any

@@ -80,12 +80,16 @@ enum ProcessSignals {
 // To be kept in sync with ProcessStartMode consts in sdk/lib/io/process.dart.
 enum ProcessStartMode {
   kNormal = 0,
-  kDetached = 1,
-  kDetachedWithStdio = 2,
+  kInheritStdio = 1,
+  kDetached = 2,
+  kDetachedWithStdio = 3,
 };
 
 class Process {
  public:
+  static void Init();
+  static void Cleanup();
+
   // Start a new process providing access to stdin, stdout, stderr and
   // process exit streams.
   static int Start(Namespace* namespc,
@@ -152,6 +156,9 @@ class Process {
   static int64_t CurrentRSS();
   static int64_t MaxRSS();
   static void GetRSSInformation(int64_t* max_rss, int64_t* current_rss);
+
+  static bool ModeIsAttached(ProcessStartMode mode);
+  static bool ModeHasStdio(ProcessStartMode mode);
 
  private:
   static int global_exit_code_;
@@ -247,6 +254,9 @@ class BufferListBase {
     uint8_t* buffer;
     intptr_t buffer_position = 0;
     Dart_Handle result = IOBuffer::Allocate(data_size_, &buffer);
+    if (Dart_IsNull(result)) {
+      return DartUtils::NewDartOSError();
+    }
     if (Dart_IsError(result)) {
       Free();
       return result;

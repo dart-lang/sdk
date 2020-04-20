@@ -40,7 +40,7 @@ void main() {
 
   var re = new RegExp('(s)');
 
-  dynamic foo(Match m) {
+  String foo(Match m) {
     return "42";
   }
 

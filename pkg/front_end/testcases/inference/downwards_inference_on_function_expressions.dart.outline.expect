@@ -1,0 +1,9 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef Function2<contravariant S extends core::Object* = dynamic, T extends core::Object* = dynamic> = (S*) →* T*;
+static method test() → void
+  ;
+static method main() → dynamic
+  ;

@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
+// dart2jsOptions=--omit-implicit-checks
+
 // Test that native methods with unnamed optional arguments are called with the
 // number of arguments in the call site AND the call site is inlined.
 
@@ -18,8 +22,10 @@ class A {
 }
 
 class B {
+  @pragma('dart2js:noElision')
   static var g;
-  @NoInline()
+
+  @pragma('dart2js:noInline')
   method1(a) {
     g = '(Method1Tag)'; // Tag to identify compiled JavaScript method.
     A x = makeA();
@@ -30,7 +36,7 @@ class B {
     return x.foo(3, 10, 30);
   }
 
-  @NoInline()
+  @pragma('dart2js:noInline')
   method2() {
     g = '(Method2Tag)';
     A x = makeA();
@@ -39,7 +45,7 @@ class B {
     return r1 + r2;
   }
 
-  @NoInline()
+  @pragma('dart2js:noInline')
   method3() {
     g = '(Method3Tag)';
     A x = makeA();
@@ -77,45 +83,27 @@ void setup() {
 })()""");
 }
 
-bool get isCheckedMode {
-  int i = 0;
-  try {
-    i = 'a';
-  } catch (e) {
-    return true;
-  }
-  return false;
-}
-
 void match(String s, String pattern1) {
   var pattern2 = pattern1.replaceAll(' ', '');
   Expect.isTrue(s.contains(pattern1) || s.contains(pattern2),
-      "expected $pattern1 or $pattern2");
+      "expected $pattern1 or $pattern2 in '$s'");
 }
 
 void nomatch(String s, String pattern1) {
   var pattern2 = pattern1.replaceAll(' ', '');
   Expect.isFalse(s.contains(pattern1) || s.contains(pattern2),
-      "should not have $pattern1 or $pattern2");
+      "should not have $pattern1 or $pattern2 in '$s'");
 }
 
 test1() {
   String method1 = findMethodTextContaining(new B(), '(Method1Tag)');
   Expect.isNotNull(method1, 'No method found containing "(Method1Tag)"');
 
-  if (isCheckedMode) {
-    match(method1, r'foo()');
-    // TODO: inlining in checked mode.
-    nomatch(method1, r'foo(1)');
-    //  t1.foo$3(x, 3, 10, 30)  or  y.EL(z,3,10,30)
-    match(method1, r', 3, 10, 30)');
-  } else {
-    // Direct (inlined) calls don't have $3 or minified names.
-    match(method1, r'.foo()');
-    match(method1, r'.foo(1)');
-    match(method1, r'.foo(2, 10)');
-    match(method1, r'.foo(3, 10, 30)');
-  }
+  // Direct (inlined) calls don't have $3 or minified names.
+  match(method1, r'.foo()');
+  match(method1, r'.foo(1)');
+  match(method1, r'.foo(2, 10)');
+  match(method1, r'.foo(3, 10, 30)');
 
   // Ensure the methods are compiled by calling them.
   var a = makeA();

@@ -9,6 +9,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/socket_base.h"
 #include "include/dart_api.h"
 #include "platform/assert.h"
 
@@ -19,6 +20,7 @@ namespace bin {
 // Some classes, like File and Directory, list their implementations in
 // builtin_natives.cc instead.
 #define IO_NATIVE_LIST(V)                                                      \
+  V(CLI_WaitForEvent, 1)                                                       \
   V(Crypto_GetRandomBytes, 1)                                                  \
   V(Directory_Create, 2)                                                       \
   V(Directory_CreateTemp, 2)                                                   \
@@ -80,6 +82,7 @@ namespace bin {
   V(Filter_Process, 4)                                                         \
   V(Filter_Processed, 3)                                                       \
   V(InternetAddress_Parse, 1)                                                  \
+  V(InternetAddress_RawAddrToString, 1)                                        \
   V(IOService_NewServicePort, 0)                                               \
   V(Namespace_Create, 2)                                                       \
   V(Namespace_GetDefault, 0)                                                   \
@@ -108,6 +111,7 @@ namespace bin {
   V(Process_ClearSignalHandler, 1)                                             \
   V(ProcessInfo_CurrentRSS, 0)                                                 \
   V(ProcessInfo_MaxRSS, 0)                                                     \
+  V(RawSocketOption_GetOptionValue, 1)                                         \
   V(SecureSocket_Connect, 7)                                                   \
   V(SecureSocket_Destroy, 1)                                                   \
   V(SecureSocket_FilterPointer, 1)                                             \
@@ -126,16 +130,21 @@ namespace bin {
   V(SecurityContext_TrustBuiltinRoots, 1)                                      \
   V(SecurityContext_UseCertificateChainBytes, 3)                               \
   V(ServerSocket_Accept, 2)                                                    \
-  V(ServerSocket_CreateBindListen, 6)                                          \
+  V(ServerSocket_CreateBindListen, 7)                                          \
+  V(ServerSocket_CreateUnixDomainBindListen, 5)                                \
   V(SocketBase_IsBindError, 2)                                                 \
   V(Socket_Available, 1)                                                       \
-  V(Socket_CreateBindConnect, 4)                                               \
-  V(Socket_CreateBindDatagram, 4)                                              \
-  V(Socket_CreateConnect, 3)                                                   \
+  V(Socket_AvailableDatagram, 1)                                               \
+  V(Socket_CreateBindConnect, 5)                                               \
+  V(Socket_CreateUnixDomainBindConnect, 4)                                     \
+  V(Socket_CreateBindDatagram, 6)                                              \
+  V(Socket_CreateConnect, 4)                                                   \
+  V(Socket_CreateUnixDomainConnect, 3)                                         \
   V(Socket_GetPort, 1)                                                         \
   V(Socket_GetRemotePeer, 1)                                                   \
   V(Socket_GetError, 1)                                                        \
   V(Socket_GetOption, 3)                                                       \
+  V(Socket_GetRawOption, 4)                                                    \
   V(Socket_GetSocketId, 1)                                                     \
   V(Socket_GetStdioHandle, 2)                                                  \
   V(Socket_GetType, 1)                                                         \
@@ -145,14 +154,15 @@ namespace bin {
   V(Socket_RecvFrom, 1)                                                        \
   V(Socket_SendTo, 6)                                                          \
   V(Socket_SetOption, 4)                                                       \
-  V(Socket_SetSocketId, 2)                                                     \
+  V(Socket_SetRawOption, 4)                                                    \
+  V(Socket_SetSocketId, 3)                                                     \
   V(Socket_WriteList, 4)                                                       \
-  V(Stdin_ReadByte, 0)                                                         \
-  V(Stdin_GetEchoMode, 0)                                                      \
-  V(Stdin_SetEchoMode, 1)                                                      \
-  V(Stdin_GetLineMode, 0)                                                      \
-  V(Stdin_SetLineMode, 1)                                                      \
-  V(Stdin_AnsiSupported, 0)                                                    \
+  V(Stdin_ReadByte, 1)                                                         \
+  V(Stdin_GetEchoMode, 1)                                                      \
+  V(Stdin_SetEchoMode, 2)                                                      \
+  V(Stdin_GetLineMode, 1)                                                      \
+  V(Stdin_SetLineMode, 2)                                                      \
+  V(Stdin_AnsiSupported, 1)                                                    \
   V(Stdout_GetTerminalSize, 1)                                                 \
   V(Stdout_AnsiSupported, 1)                                                   \
   V(StringToSystemEncoding, 1)                                                 \
@@ -168,6 +178,9 @@ namespace bin {
   V(SynchronousSocket_ReadList, 4)                                             \
   V(SynchronousSocket_WriteList, 4)                                            \
   V(SystemEncodingToString, 1)                                                 \
+  V(X509_Der, 1)                                                               \
+  V(X509_Pem, 1)                                                               \
+  V(X509_Sha1, 1)                                                              \
   V(X509_Subject, 1)                                                           \
   V(X509_Issuer, 1)                                                            \
   V(X509_StartValidity, 1)                                                     \
@@ -186,7 +199,7 @@ Dart_NativeFunction IONativeLookup(Dart_Handle name,
                                    bool* auto_setup_scope) {
   const char* function_name = NULL;
   Dart_Handle result = Dart_StringToCString(name, &function_name);
-  DART_CHECK_VALID(result);
+  ASSERT(!Dart_IsError(result));
   ASSERT(function_name != NULL);
   ASSERT(auto_setup_scope != NULL);
   *auto_setup_scope = true;

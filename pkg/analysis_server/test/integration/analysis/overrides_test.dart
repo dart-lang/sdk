@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OverridesTest);
   });
@@ -16,9 +16,9 @@ main() {
 
 @reflectiveTest
 class OverridesTest extends AbstractAnalysisServerIntegrationTest {
-  test_overrides() {
-    String pathname = sourcePath('test.dart');
-    String text = r'''
+  Future<void> test_overrides() {
+    var pathname = sourcePath('test.dart');
+    var text = r'''
 abstract class Interface1 {
   method0();
   method1();
@@ -62,10 +62,10 @@ class Target extends Base implements Interface1, Interface2 {
       overrides = params.overrides;
     });
     return analysisFinished.then((_) {
-      int targetOffset = text.indexOf('Target');
+      var targetOffset = text.indexOf('Target');
       Override findOverride(String methodName) {
-        int methodOffset = text.indexOf(methodName, targetOffset);
-        for (Override override in overrides) {
+        var methodOffset = text.indexOf(methodName, targetOffset);
+        for (var override in overrides) {
           if (override.offset == methodOffset) {
             return override;
           }
@@ -75,7 +75,7 @@ class Target extends Base implements Interface1, Interface2 {
 
       void checkOverrides(String methodName, bool expectedOverridesBase,
           List<String> expectedOverridesInterfaces) {
-        Override override = findOverride(methodName);
+        var override = findOverride(methodName);
         if (!expectedOverridesBase && expectedOverridesInterfaces.isEmpty) {
           // This method overrides nothing, so it should not appear in the
           // overrides list.
@@ -85,21 +85,21 @@ class Target extends Base implements Interface1, Interface2 {
           expect(override, isNotNull);
         }
         expect(override.length, equals(methodName.length));
-        OverriddenMember superclassMember = override.superclassMember;
+        var superclassMember = override.superclassMember;
         if (expectedOverridesBase) {
           expect(superclassMember.element.name, equals(methodName));
           expect(superclassMember.className, equals('Base'));
         } else {
           expect(superclassMember, isNull);
         }
-        List<OverriddenMember> interfaceMembers = override.interfaceMembers;
+        var interfaceMembers = override.interfaceMembers;
         if (expectedOverridesInterfaces.isNotEmpty) {
           expect(interfaceMembers, isNotNull);
-          Set<String> actualOverridesInterfaces = new Set<String>();
-          for (OverriddenMember overriddenMember in interfaceMembers) {
+          var actualOverridesInterfaces = <String>{};
+          for (var overriddenMember in interfaceMembers) {
             expect(overriddenMember.element.name, equals(methodName));
-            String className = overriddenMember.className;
-            bool wasAdded = actualOverridesInterfaces.add(className);
+            var className = overriddenMember.className;
+            var wasAdded = actualOverridesInterfaces.add(className);
             expect(wasAdded, isTrue);
           }
           expect(actualOverridesInterfaces,

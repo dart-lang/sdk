@@ -1,0 +1,86 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Check some basic incremental serialization functionality.
+
+type: newworld
+incrementalSerialization: true
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "dart:core";
+        import "package:package2/lib2.dart";
+        import "package:package2/lib3.dart";
+        main() {
+          lib2();
+          lib3();
+        }
+      package1/lib1.dart:
+        lib1() {
+          return 42;
+        }
+      package2/lib2.dart:
+        lib2() {
+          return 42;
+        }
+      package2/lib3.dart:
+        import "package:package1/lib1.dart";
+        lib3() {
+          return lib1();
+        }
+      .packages: |
+        package1:package1
+        package2:package2
+    expectedLibraryCount: 4
+    incrementalSerializationDoesWork: true
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import "package:package1/lib1.dart";
+        main() {
+          lib1();
+        }
+    expectedLibraryCount: 2
+    incrementalSerializationDoesWork: true
+    serializationShouldNotInclude:
+      # It would be a weird bundling up if including package2 here.
+      - package:package2/lib2.dart
+      - package:package2/lib3.dart
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import "package:package2/lib2.dart";
+        main() {
+          lib2();
+        }
+    expectedLibraryCount: 2
+    incrementalSerializationDoesWork: true
+    brandNewIncrementalSerializationAllowDifferent: true
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+      - package:package1/lib1.dart
+    sources:
+      main.dart: |
+        import "package:package2/lib2.dart";
+        main() {
+          lib2();
+        }
+      package1/lib1.dart:
+        lib1_1() {
+          return 42;
+        }
+    expectedLibraryCount: 2
+    incrementalSerializationDoesWork: true

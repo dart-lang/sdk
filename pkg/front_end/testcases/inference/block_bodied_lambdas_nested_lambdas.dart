@@ -6,8 +6,8 @@
 library test;
 
 main() {
-  var /*@type=() -> (int) -> double*/ f = /*@returnType=(int) -> double*/ () {
-    return /*@returnType=double*/ (int x) {
+  var /*@ type=() ->* (int*) ->* double* */ f = /*@ returnType=(int*) ->* double* */ () {
+    return /*@ returnType=double* */ (int x) {
       return 2.0 /*@target=double::**/ * x;
     };
   };

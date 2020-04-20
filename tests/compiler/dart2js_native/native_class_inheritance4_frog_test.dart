@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import "native_testing.dart";
 
 // Additional Dart code may be 'placed on' hidden native classes.  With
@@ -111,7 +113,7 @@ testBasicB_typed() {
 testAB_dynamic() {
   setup(); // Fresh constructors.
 
-  var things = [makeA(), makeB()];
+  var things = <dynamic>[makeA(), makeB()];
   var a = things[0];
   var b = things[1];
 

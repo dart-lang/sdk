@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'dart:html';
 import 'dart:svg' as svg;
 
+import "package:expect/expect.dart";
 import 'package:expect/minitest.dart';
 
 // Test for `querySelectorAll(xxx).classes.op()` where the query returns mixed
@@ -27,11 +28,47 @@ Element makeElementsContainer() {
 
 Element elementsContainer;
 
+/// Test top-level querySelectorAll with generics.
+topLevelQuerySelector() {
+  var noElementsTop = querySelectorAll<svg.PathElement>('.no');
+  expect(noElementsTop.length, 0);
+  expect(noElementsTop is List, true);
+
+  // Expect runtime error all elements in the list are not the proper type.
+  Expect.throwsAssertionError(() => querySelectorAll<svg.CircleElement>('path'),
+      'All elements not of type CircleElement');
+
+  var simpleElems = querySelectorAll('circle');
+  expect(simpleElems.length, 1);
+  expect(simpleElems is List, true);
+  expect(simpleElems is List<dynamic>, true);
+  expect(simpleElems is List<svg.CircleElement>, false);
+  expect(simpleElems[0] is svg.CircleElement, true);
+
+  var varElementsFromTop = querySelectorAll<svg.CircleElement>('circle');
+  expect(varElementsFromTop.length, 1);
+  expect(varElementsFromTop is List, true);
+  expect(varElementsFromTop is List<svg.CircleElement>, true);
+  expect(varElementsFromTop[0] is svg.CircleElement, true);
+  expect(varElementsFromTop is List<svg.PathElement>, false);
+  expect(varElementsFromTop[0] is svg.PathElement, false);
+
+  List<svg.CircleElement> elementsFromTop =
+      querySelectorAll<svg.CircleElement>('circle');
+  expect(elementsFromTop is List, true);
+  expect(elementsFromTop is List<svg.CircleElement>, true);
+  expect(elementsFromTop[0] is svg.CircleElement, true);
+  expect(elementsFromTop.length, 1);
+}
+
 ElementList<Element> elementsSetup() {
   elementsContainer = makeElementsContainer();
   document.documentElement.children.add(elementsContainer);
   var elements = document.querySelectorAll('.yes');
   expect(elements.length, 4);
+
+  topLevelQuerySelector();
+
   return elements;
 }
 
@@ -102,7 +139,7 @@ main() {
   test('listAdd', () {
     var elements = elementsSetup();
     var added = elements.classes.add('lassie');
-    expect(added, isNull);
+    expect(added, isFalse);
 
     expect(view(elements.classes), '[classy, foo, lassie, quux, qux, yes]');
     expect(

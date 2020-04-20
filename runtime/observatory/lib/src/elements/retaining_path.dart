@@ -11,7 +11,7 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 
-class RetainingPathElement extends HtmlElement implements Renderable {
+class RetainingPathElement extends CustomElement implements Renderable {
   static const tag = const Tag<RetainingPathElement>('retaining-path',
       dependencies: const [CurlyBlockElement.tag, InstanceRefElement.tag]);
 
@@ -36,8 +36,8 @@ class RetainingPathElement extends HtmlElement implements Renderable {
     assert(object != null);
     assert(retainingPaths != null);
     assert(objects != null);
-    RetainingPathElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    RetainingPathElement e = new RetainingPathElement.created();
+    e._r = new RenderingScheduler<RetainingPathElement>(e, queue: queue);
     e._isolate = isolate;
     e._object = object;
     e._retainingPaths = retainingPaths;
@@ -45,7 +45,7 @@ class RetainingPathElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  RetainingPathElement.created() : super.created();
+  RetainingPathElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -56,7 +56,7 @@ class RetainingPathElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
@@ -72,7 +72,7 @@ class RetainingPathElement extends HtmlElement implements Renderable {
               e.control.disabled = false;
             }
           });
-    children = [curlyBlock];
+    children = <Element>[curlyBlock.element];
     _r.waitFor([curlyBlock.onRendered.first]);
   }
 
@@ -87,13 +87,13 @@ class RetainingPathElement extends HtmlElement implements Renderable {
       return [new SpanElement()..text = 'Loading'];
     }
 
-    var elements = new List();
+    var elements = <Element>[];
     bool first = true;
     for (var item in _path.elements) {
       elements.add(_createItem(item, first));
       first = false;
     }
-    elements.add(_createGCRootItem());
+    elements.add(_createGCRootItem(_path.gcRootType));
     return elements;
   }
 
@@ -103,12 +103,8 @@ class RetainingPathElement extends HtmlElement implements Renderable {
     if (first) {
       // No prefix.
     } else if (item.parentField != null) {
-      content.add(new SpanElement()
-        ..children = [
-          new SpanElement()..text = 'retained by ',
-          anyRef(_isolate, item.parentField, _objects, queue: _r.queue),
-          new SpanElement()..text = ' of ',
-        ]);
+      content
+          .add(new SpanElement()..text = 'retained by ${item.parentField} of ');
     } else if (item.parentListIndex != null) {
       content.add(new SpanElement()
         ..text = 'retained by [ ${item.parentListIndex} ] of ');
@@ -126,9 +122,9 @@ class RetainingPathElement extends HtmlElement implements Renderable {
       ..children = content;
   }
 
-  Element _createGCRootItem() {
+  Element _createGCRootItem(String gcRootType) {
     return new DivElement()
       ..classes = ['indent']
-      ..text = 'retained by a GC root';
+      ..text = 'retained by a GC root ($gcRootType)';
   }
 }

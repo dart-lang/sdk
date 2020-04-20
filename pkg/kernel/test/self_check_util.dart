@@ -15,7 +15,7 @@ import 'package:kernel/src/tool/batch_util.dart';
 ///
 /// The test can either be run with a single file passed on the command line
 /// or run in batch mode.
-runSelfCheck(List<String> args, Future runTest(String filename)) {
+runSelfCheck(List<String> args, void runTest(String filename)) {
   Future<CompilerOutcome> batchMain(List<String> arguments) async {
     if (arguments.length != 1) {
       throw 'Exactly one argument expected';
@@ -24,7 +24,7 @@ runSelfCheck(List<String> args, Future runTest(String filename)) {
     if (!filename.endsWith('.dill')) {
       throw 'File does not have expected .dill extension: $filename';
     }
-    await runTest(filename);
+    runTest(filename);
     return CompilerOutcome.Ok;
   }
 

@@ -5,7 +5,7 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=Map<Null, Null>*/ x = /*@typeArgs=Null, Null*/ {null: null};
+var x = /*@ typeArgs=Null?, Null? */ {null: null};
 
 main() {
   x;

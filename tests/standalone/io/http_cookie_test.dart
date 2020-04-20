@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-import "dart:async";
 import "dart:io";
+
+import "package:expect/expect.dart";
 
 void testCookies() {
   var cookies = [
@@ -58,6 +58,32 @@ void testCookies() {
   });
 }
 
+void testValidateCookieWithDoubleQuotes() {
+  Expect.equals(Cookie('key', 'value').toString(), 'key=value; HttpOnly');
+  Expect.equals(Cookie('key', '').toString(), 'key=; HttpOnly');
+  Expect.equals(Cookie('key', '""').toString(), 'key=""; HttpOnly');
+  Expect.equals(Cookie('key', '"value"').toString(), 'key="value"; HttpOnly');
+  Expect.equals(Cookie.fromSetCookieValue('key=value; HttpOnly').toString(),
+      'key=value; HttpOnly');
+  Expect.equals(
+      Cookie.fromSetCookieValue('key=; HttpOnly').toString(), 'key=; HttpOnly');
+  Expect.equals(Cookie.fromSetCookieValue('key=""; HttpOnly').toString(),
+      'key=""; HttpOnly');
+  Expect.equals(Cookie.fromSetCookieValue('key="value"; HttpOnly').toString(),
+      'key="value"; HttpOnly');
+  Expect.throwsFormatException(() => Cookie('key', '"'));
+  Expect.throwsFormatException(() => Cookie('key', '"""'));
+  Expect.throwsFormatException(() => Cookie('key', '"x""'));
+  Expect.throwsFormatException(() => Cookie('key', '"x"y"'));
+  Expect.throwsFormatException(
+      () => Cookie.fromSetCookieValue('key="; HttpOnly'));
+  Expect.throwsFormatException(
+      () => Cookie.fromSetCookieValue('key="""; HttpOnly'));
+  Expect.throwsFormatException(
+      () => Cookie.fromSetCookieValue('key="x""; HttpOnly'));
+}
+
 void main() {
   testCookies();
+  testValidateCookieWithDoubleQuotes();
 }

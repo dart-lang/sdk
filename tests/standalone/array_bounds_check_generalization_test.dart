@@ -60,7 +60,7 @@ test5(a, b, k0) {
   return e;
 }
 
-test6(a, M, N) {
+test6(List<int> a, int M, int N) {
   var e = 0;
   for (var i = 0; i < N; i++) {
     for (var j = 0; j < M; j++) {

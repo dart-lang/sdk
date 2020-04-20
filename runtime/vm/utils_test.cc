@@ -98,30 +98,121 @@ VM_UNIT_TEST_CASE(RoundUpToPowerOfTwo) {
   EXPECT_EQ(0x10000000U, Utils::RoundUpToPowerOfTwo(0x08765432));
 }
 
-VM_UNIT_TEST_CASE(CountOneBits) {
-  EXPECT_EQ(0, Utils::CountOneBits(0));
-  EXPECT_EQ(1, Utils::CountOneBits(0x00000010));
-  EXPECT_EQ(1, Utils::CountOneBits(0x00010000));
-  EXPECT_EQ(1, Utils::CountOneBits(0x10000000));
-  EXPECT_EQ(4, Utils::CountOneBits(0x10101010));
-  EXPECT_EQ(8, Utils::CountOneBits(0x03030303));
-  EXPECT_EQ(32, Utils::CountOneBits(0xFFFFFFFF));
+VM_UNIT_TEST_CASE(CountOneBits32) {
+  EXPECT_EQ(0, Utils::CountOneBits32(0));
+  EXPECT_EQ(1, Utils::CountOneBits32(0x00000010));
+  EXPECT_EQ(1, Utils::CountOneBits32(0x00010000));
+  EXPECT_EQ(1, Utils::CountOneBits32(0x10000000));
+  EXPECT_EQ(4, Utils::CountOneBits32(0x10101010));
+  EXPECT_EQ(8, Utils::CountOneBits32(0x03030303));
+  EXPECT_EQ(32, Utils::CountOneBits32(0xFFFFFFFF));
 }
 
-VM_UNIT_TEST_CASE(CountZeros) {
-  EXPECT_EQ(0, Utils::CountTrailingZeros(0x1));
-  EXPECT_EQ(kBitsPerWord - 1, Utils::CountLeadingZeros(0x1));
-  EXPECT_EQ(1, Utils::CountTrailingZeros(0x2));
-  EXPECT_EQ(kBitsPerWord - 2, Utils::CountLeadingZeros(0x2));
-  EXPECT_EQ(0, Utils::CountTrailingZeros(0x3));
-  EXPECT_EQ(kBitsPerWord - 2, Utils::CountLeadingZeros(0x3));
-  EXPECT_EQ(2, Utils::CountTrailingZeros(0x4));
-  EXPECT_EQ(kBitsPerWord - 3, Utils::CountLeadingZeros(0x4));
-  EXPECT_EQ(0, Utils::CountTrailingZeros(kUwordMax));
-  EXPECT_EQ(0, Utils::CountLeadingZeros(kUwordMax));
+VM_UNIT_TEST_CASE(CountOneBits64) {
+  EXPECT_EQ(0, Utils::CountOneBits64(DART_UINT64_C(0)));
+  EXPECT_EQ(1, Utils::CountOneBits64(DART_UINT64_C(0x00000010)));
+  EXPECT_EQ(1, Utils::CountOneBits64(DART_UINT64_C(0x00010000)));
+  EXPECT_EQ(1, Utils::CountOneBits64(DART_UINT64_C(0x10000000)));
+  EXPECT_EQ(4, Utils::CountOneBits64(DART_UINT64_C(0x10101010)));
+  EXPECT_EQ(8, Utils::CountOneBits64(DART_UINT64_C(0x03030303)));
+  EXPECT_EQ(32, Utils::CountOneBits64(DART_UINT64_C(0xFFFFFFFF)));
+  EXPECT_EQ(2, Utils::CountOneBits64(DART_UINT64_C(0x0000001000000010)));
+  EXPECT_EQ(2, Utils::CountOneBits64(DART_UINT64_C(0x0001000000010000)));
+  EXPECT_EQ(2, Utils::CountOneBits64(DART_UINT64_C(0x1000000010000000)));
+  EXPECT_EQ(8, Utils::CountOneBits64(DART_UINT64_C(0x1010101010101010)));
+  EXPECT_EQ(16, Utils::CountOneBits64(DART_UINT64_C(0x0303030303030303)));
+  EXPECT_EQ(64, Utils::CountOneBits64(DART_UINT64_C(0xFFFFFFFFFFFFFFFF)));
+}
+
+VM_UNIT_TEST_CASE(CountOneBitsWord) {
+  EXPECT_EQ(0, Utils::CountOneBitsWord(0));
+  EXPECT_EQ(1, Utils::CountOneBitsWord(0x00000010));
+  EXPECT_EQ(1, Utils::CountOneBitsWord(0x00010000));
+  EXPECT_EQ(1, Utils::CountOneBitsWord(0x10000000));
+  EXPECT_EQ(4, Utils::CountOneBitsWord(0x10101010));
+  EXPECT_EQ(8, Utils::CountOneBitsWord(0x03030303));
+  EXPECT_EQ(32, Utils::CountOneBitsWord(0xFFFFFFFF));
+#if defined(ARCH_IS_64_BIT)
+  EXPECT_EQ(2, Utils::CountOneBitsWord(0x0000001000000010));
+  EXPECT_EQ(2, Utils::CountOneBitsWord(0x0001000000010000));
+  EXPECT_EQ(2, Utils::CountOneBitsWord(0x1000000010000000));
+  EXPECT_EQ(8, Utils::CountOneBitsWord(0x1010101010101010));
+  EXPECT_EQ(16, Utils::CountOneBitsWord(0x0303030303030303));
+  EXPECT_EQ(64, Utils::CountOneBitsWord(0xFFFFFFFFFFFFFFFF));
+#endif
+}
+
+VM_UNIT_TEST_CASE(CountTrailingZeros32) {
+  EXPECT_EQ(0, Utils::CountTrailingZeros32(0x1));
+  EXPECT_EQ(1, Utils::CountTrailingZeros32(0x2));
+  EXPECT_EQ(4, Utils::CountTrailingZeros32(0x0f0f0));
+  EXPECT_EQ(31, Utils::CountTrailingZeros32(0x80000000));
+  EXPECT_EQ(32, Utils::CountTrailingZeros32(0x0));
+}
+
+VM_UNIT_TEST_CASE(CountTrailingZeros64) {
+  EXPECT_EQ(0, Utils::CountTrailingZeros64(0x1));
+  EXPECT_EQ(1, Utils::CountTrailingZeros64(0x2));
+  EXPECT_EQ(4, Utils::CountTrailingZeros64(0x0f0f0));
+  EXPECT_EQ(63, Utils::CountTrailingZeros64(0x8000000000000000LLU));
+  EXPECT_EQ(64, Utils::CountTrailingZeros64(0x0));
+}
+
+VM_UNIT_TEST_CASE(CountLeadingZeros32) {
+  EXPECT_EQ(32, Utils::CountLeadingZeros32(0x0));
+  EXPECT_EQ(31, Utils::CountLeadingZeros32(0x1));
+  EXPECT_EQ(4, Utils::CountLeadingZeros32(0x0F0F0000));
+  EXPECT_EQ(1, Utils::CountLeadingZeros32(0x7FFFFFFF));
+  EXPECT_EQ(0, Utils::CountLeadingZeros32(0xFFFFFFFF));
+}
+
+VM_UNIT_TEST_CASE(CountLeadingZeros64) {
+  EXPECT_EQ(64, Utils::CountLeadingZeros64(0x0));
+  EXPECT_EQ(63, Utils::CountLeadingZeros64(0x1));
+  EXPECT_EQ(4, Utils::CountLeadingZeros64(0x0F0F000000000000LLU));
+  EXPECT_EQ(1, Utils::CountLeadingZeros64(0x7FFFFFFFFFFFFFFFLLU));
+  EXPECT_EQ(0, Utils::CountLeadingZeros64(0xFFFFFFFFFFFFFFFFLLU));
+}
+
+VM_UNIT_TEST_CASE(CountZerosWord) {
+  EXPECT_EQ(kBitsPerWord, Utils::CountTrailingZerosWord(0x0));
+  EXPECT_EQ(kBitsPerWord, Utils::CountLeadingZerosWord(0x0));
+  EXPECT_EQ(0, Utils::CountTrailingZerosWord(0x1));
+  EXPECT_EQ(kBitsPerWord - 1, Utils::CountLeadingZerosWord(0x1));
+  EXPECT_EQ(1, Utils::CountTrailingZerosWord(0x2));
+  EXPECT_EQ(kBitsPerWord - 2, Utils::CountLeadingZerosWord(0x2));
+  EXPECT_EQ(0, Utils::CountTrailingZerosWord(0x3));
+  EXPECT_EQ(kBitsPerWord - 2, Utils::CountLeadingZerosWord(0x3));
+  EXPECT_EQ(2, Utils::CountTrailingZerosWord(0x4));
+  EXPECT_EQ(kBitsPerWord - 3, Utils::CountLeadingZerosWord(0x4));
+  EXPECT_EQ(0, Utils::CountTrailingZerosWord(kUwordMax));
+  EXPECT_EQ(0, Utils::CountLeadingZerosWord(kUwordMax));
   static const uword kTopBit = static_cast<uword>(1) << (kBitsPerWord - 1);
-  EXPECT_EQ(kBitsPerWord - 1, Utils::CountTrailingZeros(kTopBit));
-  EXPECT_EQ(0, Utils::CountLeadingZeros(kTopBit));
+  EXPECT_EQ(kBitsPerWord - 1, Utils::CountTrailingZerosWord(kTopBit));
+  EXPECT_EQ(0, Utils::CountLeadingZerosWord(kTopBit));
+}
+
+VM_UNIT_TEST_CASE(ReverseBits32) {
+  EXPECT_EQ(0xffffffffU, Utils::ReverseBits32(0xffffffffU));
+  EXPECT_EQ(0xf0000000U, Utils::ReverseBits32(0x0000000fU));
+  EXPECT_EQ(0x00000001U, Utils::ReverseBits32(0x80000000U));
+  EXPECT_EQ(0x22222222U, Utils::ReverseBits32(0x44444444U));
+  EXPECT_EQ(0x1E6A2C48U, Utils::ReverseBits32(0x12345678U));
+}
+
+VM_UNIT_TEST_CASE(ReverseBits64) {
+  EXPECT_EQ(0xffffffffffffffffLLU, Utils::ReverseBits64(0xffffffffffffffffLLU));
+  EXPECT_EQ(0xf000000000000000LLU, Utils::ReverseBits64(0x000000000000000fLLU));
+  EXPECT_EQ(0x0000000000000001LLU, Utils::ReverseBits64(0x8000000000000000LLU));
+  EXPECT_EQ(0x2222222222222222LLU, Utils::ReverseBits64(0x4444444444444444LLU));
+  EXPECT_EQ(0x8f7b3d591e6a2c48LLU, Utils::ReverseBits64(0x123456789abcdef1LLU));
+}
+
+VM_UNIT_TEST_CASE(ReverseBitsWord) {
+  const uword kOne = static_cast<uword>(1);
+  const uword kTopBit = kOne << (kBitsPerWord - 1);
+  EXPECT_EQ(kTopBit, Utils::ReverseBitsWord(kOne));
+  EXPECT_EQ(kOne, Utils::ReverseBitsWord(kTopBit));
 }
 
 VM_UNIT_TEST_CASE(IsInt) {
@@ -194,6 +285,7 @@ VM_UNIT_TEST_CASE(Endianity) {
   EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value32be)[1]);
   EXPECT_EQ(0xf1, reinterpret_cast<uint8_t*>(&value32be)[2]);
   EXPECT_EQ(0xf2, reinterpret_cast<uint8_t*>(&value32be)[3]);
+  EXPECT_EQ(0xf1f2u, Utils::BigEndianToHost32(value32be));
 
   uint32_t value32le = Utils::HostToLittleEndian32(0xf1f2);
   EXPECT_EQ(0xf2, reinterpret_cast<uint8_t*>(&value32le)[0]);
@@ -220,6 +312,7 @@ VM_UNIT_TEST_CASE(Endianity) {
   EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value64le)[5]);
   EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value64le)[6]);
   EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value64le)[7]);
+  EXPECT_EQ(0xf1f2f3f4ul, Utils::LittleEndianToHost64(value64le));
 }
 
 VM_UNIT_TEST_CASE(DoublesBitEqual) {
@@ -228,6 +321,33 @@ VM_UNIT_TEST_CASE(DoublesBitEqual) {
   EXPECT(Utils::DoublesBitEqual(0.0, 0.0));
   EXPECT(!Utils::DoublesBitEqual(0.0, -0.0));
   EXPECT(Utils::DoublesBitEqual(NAN, NAN));
+}
+
+VM_UNIT_TEST_CASE(NBitMask) {
+#if defined(ARCH_IS_64_BIT)
+  EXPECT_EQ(0ull, Utils::NBitMask(0));
+  EXPECT_EQ(0x1ull, Utils::NBitMask(1));
+  EXPECT_EQ(0x3ull, Utils::NBitMask(2));
+  EXPECT_EQ(0xfull, Utils::NBitMask(4));
+  EXPECT_EQ(0xffull, Utils::NBitMask(8));
+  EXPECT_EQ(0xffffull, Utils::NBitMask(16));
+  EXPECT_EQ(0x1ffffull, Utils::NBitMask(17));
+  EXPECT_EQ(0x7fffffffull, Utils::NBitMask(31));
+  EXPECT_EQ(0xffffffffull, Utils::NBitMask(32));
+  EXPECT_EQ(0x1ffffffffull, Utils::NBitMask(33));
+  EXPECT_EQ(0x7fffffffffffffffull, Utils::NBitMask(kBitsPerWord - 1));
+  EXPECT_EQ(0xffffffffffffffffull, Utils::NBitMask(kBitsPerWord));
+#else
+  EXPECT_EQ(0u, Utils::NBitMask(0));
+  EXPECT_EQ(0x1u, Utils::NBitMask(1));
+  EXPECT_EQ(0x3u, Utils::NBitMask(2));
+  EXPECT_EQ(0xfu, Utils::NBitMask(4));
+  EXPECT_EQ(0xffu, Utils::NBitMask(8));
+  EXPECT_EQ(0xffffu, Utils::NBitMask(16));
+  EXPECT_EQ(0x1ffffu, Utils::NBitMask(17));
+  EXPECT_EQ(0x7fffffffu, Utils::NBitMask(kBitsPerWord - 1));
+  EXPECT_EQ(0xffffffffu, Utils::NBitMask(kBitsPerWord));
+#endif
 }
 
 }  // namespace dart

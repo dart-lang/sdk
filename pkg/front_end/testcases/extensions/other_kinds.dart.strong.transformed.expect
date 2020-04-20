@@ -1,0 +1,52 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A1 extends core::Object {
+  field core::int* _instanceField = null;
+  static field core::int* _staticField = 0;
+  synthetic constructor •() → self::A1*
+    : super core::Object::•()
+    ;
+  method getInstanceField() → core::int*
+    return this.{self::A1::_instanceField};
+  method setInstanceField(core::int* value) → void {
+    this.{self::A1::_instanceField} = value;
+  }
+  static method getStaticField() → core::int*
+    return self::A1::_staticField;
+  static method setStaticField(core::int* value) → void {
+    self::A1::_staticField = value;
+  }
+}
+extension A2 on self::A1* {
+  get instanceProperty = self::A2|get#instanceProperty;
+  operator + = self::A2|+;
+  operator - = self::A2|-;
+  operator unary- = self::A2|unary-;
+  static field staticField = self::A2|staticField;
+  static get staticProperty = get self::A2|staticProperty;
+  set instanceProperty = self::A2|set#instanceProperty;
+  static set staticProperty = set self::A2|staticProperty;
+}
+static field core::int* A2|staticField = self::A1::getStaticField();
+static method A2|get#instanceProperty(final self::A1* #this) → core::int*
+  return #this.{self::A1::getInstanceField}();
+static method A2|set#instanceProperty(final self::A1* #this, core::int* value) → void {
+  #this.{self::A1::setInstanceField}(value);
+}
+static method A2|+(final self::A1* #this, core::int* value) → core::int* {
+  return #this.{self::A1::getInstanceField}().{core::num::+}(value);
+}
+static method A2|-(final self::A1* #this, core::int* value) → core::int* {
+  return #this.{self::A1::getInstanceField}().{core::num::-}(value);
+}
+static method A2|unary-(final self::A1* #this) → core::int* {
+  return #this.{self::A1::getInstanceField}().{core::int::unary-}();
+}
+static get A2|staticProperty() → core::int*
+  return self::A1::getStaticField();
+static set A2|staticProperty(core::int* value) → void {
+  self::A1::setStaticField(value);
+}
+static method main() → dynamic {}

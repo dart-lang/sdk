@@ -10,17 +10,25 @@ declare_args() {
   # the target toolchain.
   target_sysroot = ""
 
-  # Whether the Debian wheezy sysroot should be used.
-  dart_use_wheezy_sysroot = false
+  # Whether the Debian sysroot should be used.
+  dart_use_debian_sysroot = false
 }
 
-if (is_linux && dart_use_wheezy_sysroot) {
+if (is_linux && dart_use_debian_sysroot) {
   if (current_cpu == "x86") {
-    target_sysroot = rebase_path("//build/linux/debian_wheezy_i386-sysroot")
+    target_sysroot =
+        rebase_path("//build/linux/debian_jessie_i386-sysroot", root_build_dir)
   } else if (current_cpu == "x64") {
-    target_sysroot = rebase_path("//build/linux/debian_wheezy_amd64-sysroot")
+    target_sysroot =
+        rebase_path("//build/linux/debian_jessie_amd64-sysroot", root_build_dir)
+  } else if (current_cpu == "arm") {
+    target_sysroot =
+        rebase_path("//build/linux/debian_jessie_arm-sysroot", root_build_dir)
+  } else if (current_cpu == "arm64") {
+    target_sysroot =
+        rebase_path("//build/linux/debian_jessie_arm64-sysroot", root_build_dir)
   } else {
-    print("There is no Debian wheezy sysroot present for $current_cpu")
+    print("There is no Debian sysroot present for $current_cpu")
     assert(false)
   }
 }
@@ -29,17 +37,7 @@ if (current_toolchain == default_toolchain && target_sysroot != "") {
   sysroot = target_sysroot
 } else if (is_android) {
   import("//build/config/android/config.gni")
-  if (current_cpu == "x86") {
-    sysroot = rebase_path("$android_ndk_root/$x86_android_sysroot_subdir")
-  } else if (current_cpu == "arm") {
-    sysroot = rebase_path("$android_ndk_root/$arm_android_sysroot_subdir")
-  } else if (current_cpu == "x64") {
-    sysroot = rebase_path("$android_ndk_root/$x86_64_android_sysroot_subdir")
-  } else if (current_cpu == "arm64") {
-    sysroot = rebase_path("$android_ndk_root/$arm64_android_sysroot_subdir")
-  } else {
-    sysroot = ""
-  }
+  sysroot = rebase_path("$android_ndk_root/sysroot")
 } else if (is_mac) {
   import("//build/config/mac/mac_sdk.gni")
   sysroot = mac_sdk_path

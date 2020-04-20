@@ -30,9 +30,9 @@ void main() {
 }
 
 void testDirectConversions() {
-  for (var codec in [LATIN1, new Latin1Codec()]) {
+  for (var codec in [latin1, new Latin1Codec()]) {
     for (var latin1String in latin1Strings) {
-      List bytes = codec.encoder.convert(latin1String);
+      var bytes = codec.encoder.convert(latin1String);
       Expect.listEquals(latin1String.codeUnits.toList(), bytes, latin1String);
       String roundTripString = codec.decoder.convert(bytes);
       Expect.equals(latin1String, roundTripString);
@@ -43,7 +43,7 @@ void testDirectConversions() {
     for (var nonLatin1String in nonLatin1Strings) {
       Expect.throws(() {
         print(codec.encoder.convert(nonLatin1String));
-      }, null, nonLatin1String);
+      }, (_) => true, nonLatin1String);
     }
 
     var encode = codec.encoder.convert;
@@ -99,15 +99,14 @@ void testDirectConversions() {
   Expect.equals("\x00\x01\xFF\uFFFD\x00", decoded);
   decoded = allowInvalidCodec.decoder.convert(invalidBytes);
   Expect.equals("\x00\x01\xFF\uFFFD\x00", decoded);
-  decoded = LATIN1.decode(invalidBytes, allowInvalid: true);
+  decoded = latin1.decode(invalidBytes, allowInvalid: true);
   Expect.equals("\x00\x01\xFF\uFFFD\x00", decoded);
 }
 
 List<int> encode(
     String str, int chunkSize, Converter<String, List<int>> converter) {
   List<int> bytes = <int>[];
-  ChunkedConversionSink byteSink =
-      new ByteConversionSink.withCallback(bytes.addAll);
+  var byteSink = new ByteConversionSink.withCallback(bytes.addAll);
   var stringConversionSink = converter.startChunkedConversion(byteSink);
   for (int i = 0; i < str.length; i += chunkSize) {
     if (i + chunkSize <= str.length) {
@@ -139,7 +138,7 @@ String decode(
 void testChunkedConversions() {
   // Check encoding.
   for (var converter in [
-    LATIN1.encoder,
+    latin1.encoder,
     new Latin1Codec().encoder,
     new Latin1Encoder()
   ]) {
@@ -151,14 +150,14 @@ void testChunkedConversions() {
       }
       for (var nonLatin1String in nonLatin1Strings) {
         Expect.throws(() {
-          encode(nonLatin1Strings, chunkSize, converter);
+          encode(nonLatin1String, chunkSize, converter);
         });
       }
     }
   }
   // Check decoding.
   for (var converter in [
-    LATIN1.decoder,
+    latin1.decoder,
     new Latin1Codec().decoder,
     new Latin1Decoder()
   ]) {

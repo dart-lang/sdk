@@ -4,7 +4,6 @@
 
 library test.local_function_is_static;
 
-@MirrorsUsed(targets: "test.local_function_is_static")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

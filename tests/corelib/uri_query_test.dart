@@ -18,7 +18,7 @@ void testEncodeQueryComponent() {
 }
 
 void testQueryParameters() {
-  test(String query, Map<String, String> parameters, [String normalizedQuery]) {
+  test(String query, Map<String, String?> parameters, [String? normalizedQuery]) {
     if (normalizedQuery == null) normalizedQuery = query;
     check(uri) {
       Expect.isTrue(uri.hasQuery);
@@ -100,21 +100,21 @@ void testQueryParameters() {
     }
     unencoded.writeCharCode(i);
   }
-  encoded = encoded.toString();
-  unencoded = unencoded.toString();
-  test("a=$encoded", {"a": unencoded});
-  test("a=$encoded&b=$encoded", {"a": unencoded, "b": unencoded});
+  var encodedStr = encoded.toString();
+  var unencodedStr = unencoded.toString();
+  test("a=$encodedStr", {"a": unencodedStr});
+  test("a=$encodedStr&b=$encodedStr", {"a": unencodedStr, "b": unencodedStr});
 
-  var map = new Map();
-  map[unencoded] = unencoded;
-  test("$encoded=$encoded", map);
-  test("$encoded=$allEncoded", map, "$encoded=$encoded");
-  test("$allEncoded=$encoded", map, "$encoded=$encoded");
-  test("$allEncoded=$allEncoded", map, "$encoded=$encoded");
-  map[unencoded] = null;
-  test("$encoded", map);
-  map[unencoded] = "";
-  test("$encoded", map);
+  var map = <String, String?>{};
+  map[unencodedStr] = unencodedStr;
+  test("$encodedStr=$encodedStr", map);
+  test("$encodedStr=$allEncoded", map, "$encodedStr=$encodedStr");
+  test("$allEncoded=$encodedStr", map, "$encodedStr=$encodedStr");
+  test("$allEncoded=$allEncoded", map, "$encodedStr=$encodedStr");
+  map[unencodedStr] = null;
+  test("$encodedStr", map);
+  map[unencodedStr] = "";
+  test("$encodedStr", map);
 }
 
 testInvalidQueryParameters() {
@@ -150,15 +150,13 @@ testInvalidQueryParameters() {
 
 testQueryParametersImmutableMap() {
   test(map) {
-    bool isUnsupported(e) => e is UnsupportedError;
-
     Expect.isTrue(map.containsValue("b"));
     Expect.isTrue(map.containsKey("a"));
     Expect.equals("b", map["a"]);
-    Expect.throws(() => map["a"] = "c", isUnsupported);
-    Expect.throws(() => map.putIfAbsent("b", () => "e"), isUnsupported);
-    Expect.throws(() => map.remove("a"), isUnsupported);
-    Expect.throws(() => map.clear(), isUnsupported);
+    Expect.throwsUnsupportedError(() => map["a"] = "c");
+    Expect.throwsUnsupportedError(() => map.putIfAbsent("b", () => "e"));
+    Expect.throwsUnsupportedError(() => map.remove("a"));
+    Expect.throwsUnsupportedError(() => map.clear());
     var count = 0;
     map.forEach((key, value) => count++);
     Expect.equals(2, count);

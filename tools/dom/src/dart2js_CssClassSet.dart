@@ -15,8 +15,8 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
   final List<CssClassSetImpl> _sets;
 
   factory _MultiElementCssClassSet(Iterable<Element> elements) {
-    return new _MultiElementCssClassSet._(
-        elements, elements.map((Element e) => e.classes).toList());
+    return new _MultiElementCssClassSet._(elements,
+        new List<CssClassSetImpl>.from(elements.map((Element e) => e.classes)));
   }
 
   _MultiElementCssClassSet._(this._elementIterable, this._sets);
@@ -140,7 +140,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     return value is String && _classListContains(_classListOf(_element), value);
   }
 
-  @ForceInline()
+  @pragma('dart2js:tryInline')
   static bool _add(Element _element, String value) {
     DomTokenList list = _classListOf(_element);
     // Compute returned result independently of action upon the set.
@@ -149,7 +149,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     return added;
   }
 
-  @ForceInline()
+  @pragma('dart2js:tryInline')
   static bool _remove(Element _element, String value) {
     DomTokenList list = _classListOf(_element);
     bool removed = _classListContainsBeforeAddOrRemove(list, value);
@@ -193,9 +193,9 @@ class _ElementCssClassSet extends CssClassSetImpl {
     }
   }
 
-  static void _removeAll(Element _element, Iterable<String> iterable) {
+  static void _removeAll(Element _element, Iterable<Object> iterable) {
     DomTokenList list = _classListOf(_element);
-    for (var value in iterable) {
+    for (String value in iterable) {
       _classListRemove(list, value);
     }
   }

@@ -2,34 +2,74 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
+import 'dart:io' show exitCode;
 
-import 'package:front_end/compilation_message.dart';
-import 'package:front_end/byte_store.dart';
-import 'package:front_end/compiler_options.dart';
-import 'package:front_end/file_system.dart';
-import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:front_end/src/fasta/problems.dart' show unimplemented;
-import 'package:front_end/src/fasta/severity.dart';
-import 'package:front_end/src/fasta/ticker.dart';
-import 'package:front_end/src/fasta/uri_translator.dart';
-import 'package:front_end/src/fasta/uri_translator_impl.dart';
-import 'package:front_end/src/multi_root_file_system.dart';
-import 'package:kernel/kernel.dart' show Program, CanonicalName;
-import 'package:kernel/target/targets.dart';
-import 'package:kernel/target/vm.dart';
-import 'package:package_config/packages.dart' show Packages;
-import 'package:package_config/src/packages_impl.dart'
-    show NonFilePackagesDirectoryPackages, MapPackages;
-import 'package:package_config/packages_file.dart' as package_config;
-import 'package:source_span/source_span.dart' show SourceSpan, SourceLocation;
-import 'package:front_end/src/fasta/command_line_reporting.dart'
-    as command_line_reporting;
+import 'dart:async' show Future;
+
+import 'dart:typed_data' show Uint8List;
+
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
-import 'libraries_specification.dart';
+import 'package:kernel/kernel.dart' show CanonicalName, Component, Location;
+
+import 'package:kernel/target/targets.dart'
+    show NoneTarget, Target, TargetFlags;
+
+import 'package:package_config/package_config.dart';
+
+import '../api_prototype/compiler_options.dart'
+    show CompilerOptions, DiagnosticMessage;
+
+import '../api_prototype/experimental_flags.dart'
+    show defaultExperimentalFlags, ExperimentalFlag, expiredExperimentalFlags;
+
+import '../api_prototype/file_system.dart'
+    show FileSystem, FileSystemEntity, FileSystemException;
+
+import '../api_prototype/terminal_color_support.dart'
+    show printDiagnosticMessage;
+
+import '../fasta/command_line_reporting.dart' as command_line_reporting;
+
+import '../fasta/compiler_context.dart' show CompilerContext;
+
+import '../fasta/fasta_codes.dart'
+    show
+        FormattedMessage,
+        LocatedMessage,
+        Message,
+        messageCantInferPackagesFromManyInputs,
+        messageCantInferPackagesFromPackageUri,
+        messageInternalProblemProvidedBothCompileSdkAndSdkSummary,
+        messageMissingInput,
+        noLength,
+        templateCannotReadSdkSpecification,
+        templateCantReadFile,
+        templateDebugTrace,
+        templateInputFileNotFound,
+        templateInternalProblemUnsupported,
+        templatePackagesFileFormat,
+        templateSdkRootNotFound,
+        templateSdkSpecificationNotFound,
+        templateSdkSummaryNotFound;
+
+import '../fasta/messages.dart' show getLocation;
+
+import '../fasta/problems.dart' show DebugAbort, unimplemented;
+
+import '../fasta/ticker.dart' show Ticker;
+
+import '../fasta/uri_translator.dart' show UriTranslator;
+
+import 'libraries_specification.dart'
+    show
+        LibrariesSpecification,
+        LibrariesSpecificationException,
+        TargetLibrariesSpecification;
+
+import 'nnbd_mode.dart';
 
 /// All options needed for the front end implementation.
 ///
@@ -50,31 +90,32 @@ class ProcessedOptions {
 
   /// The package map derived from the options, or `null` if the package map has
   /// not been computed yet.
-  Packages _packages;
+  PackageConfig _packages;
+
+  /// The uri for .packages derived from the options, or `null` if the package
+  /// map has not been computed yet or there is no .packages in effect.
+  Uri _packagesUri;
+  Uri get packagesUri => _packagesUri;
 
   /// The object that knows how to resolve "package:" and "dart:" URIs,
   /// or `null` if it has not been computed yet.
-  UriTranslatorImpl _uriTranslator;
+  UriTranslator _uriTranslator;
 
   /// The SDK summary, or `null` if it has not been read yet.
   ///
-  /// A summary, also referred to as "outline" internally, is a [Program] where
-  /// all method bodies are left out. In essence, it contains just API
-  /// signatures and constants. When strong-mode is enabled, the summary already
-  /// includes inferred types.
-  Program _sdkSummaryProgram;
+  /// A summary, also referred to as "outline" internally, is a [Component]
+  /// where all method bodies are left out. In essence, it contains just API
+  /// signatures and constants. The summary should include inferred top-level
+  /// types unless legacy mode is enabled.
+  Component _sdkSummaryComponent;
 
-  /// The summary for each uri in `options.inputSummaries`.
+  /// The component for each uri in `options.additionalDills`.
   ///
-  /// A summary, also referred to as "outline" internally, is a [Program] where
-  /// all method bodies are left out. In essence, it contains just API
-  /// signatures and constants. When strong-mode is enabled, the summary already
-  /// includes inferred types.
-  List<Program> _inputSummariesPrograms;
-
-  /// Other programs that are meant to be linked and compiled with the input
-  /// sources.
-  List<Program> _linkedDependencies;
+  /// A summary, also referred to as "outline" internally, is a [Component]
+  /// where all method bodies are left out. In essence, it contains just API
+  /// signatures and constants. The summaries should include inferred top-level
+  /// types unless legacy mode is enabled.
+  List<Component> _additionalDillComponents;
 
   /// The location of the SDK, or `null` if the location hasn't been determined
   /// yet.
@@ -91,13 +132,15 @@ class ProcessedOptions {
   }
 
   List<int> _sdkSummaryBytes;
+  bool _triedLoadingSdkSummary = false;
 
   /// Get the bytes of the SDK outline, if any.
   Future<List<int>> loadSdkSummaryBytes() async {
-    if (_sdkSummaryBytes == null) {
+    if (_sdkSummaryBytes == null && !_triedLoadingSdkSummary) {
       if (sdkSummary == null) return null;
-      var entry = fileSystem.entityForUri(sdkSummary);
-      _sdkSummaryBytes = await entry.readAsBytes();
+      FileSystemEntity entry = fileSystem.entityForUri(sdkSummary);
+      _sdkSummaryBytes = await _readAsBytes(entry);
+      _triedLoadingSdkSummary = true;
     }
     return _sdkSummaryBytes;
   }
@@ -110,11 +153,15 @@ class ProcessedOptions {
 
   Ticker ticker;
 
+  Uri get packagesUriRaw => _raw.packagesFileUri;
+
   bool get verbose => _raw.verbose;
 
   bool get verify => _raw.verify;
 
   bool get debugDump => _raw.debugDump;
+
+  bool get omitPlatform => _raw.omitPlatform;
 
   bool get setExitCodeOnProblem => _raw.setExitCodeOnProblem;
 
@@ -124,16 +171,7 @@ class ProcessedOptions {
 
   bool get throwOnWarningsForDebugging => _raw.throwOnWarningsForDebugging;
 
-  bool get throwOnNitsForDebugging => _raw.throwOnNitsForDebugging;
-
-  /// Like [CompilerOptions.chaseDependencies] but with the appropriate default
-  /// value filled in.
-  bool get chaseDependencies => _raw.chaseDependencies ?? !_modularApi;
-
-  /// Whether the compiler was invoked with a modular API.
-  ///
-  /// Used to determine the default behavior for [chaseDependencies].
-  final bool _modularApi;
+  NnbdMode get nnbdMode => _raw.nnbdMode;
 
   /// The entry-points provided to the compiler.
   final List<Uri> inputs;
@@ -141,68 +179,88 @@ class ProcessedOptions {
   /// The Uri where output is generated, may be null.
   final Uri output;
 
+  final Map<String, String> environmentDefines;
+
+  bool get errorOnUnevaluatedConstant => _raw.errorOnUnevaluatedConstant;
+
+  /// The number of fatal diagnostics encountered so far.
+  int fatalDiagnosticCount = 0;
+
   /// Initializes a [ProcessedOptions] object wrapping the given [rawOptions].
-  ProcessedOptions(CompilerOptions rawOptions,
-      [this._modularApi = false, this.inputs = const [], this.output])
-      : this._raw = rawOptions,
+  ProcessedOptions({CompilerOptions options, List<Uri> inputs, this.output})
+      : this._raw = options ?? new CompilerOptions(),
+        this.inputs = inputs ?? <Uri>[],
+        // TODO(askesc): Copy the map when kernel_service supports that.
+        this.environmentDefines = options?.environmentDefines,
         // TODO(sigmund, ahe): create ticker even earlier or pass in a stopwatch
         // collecting time since the start of the VM.
-        ticker = new Ticker(isVerbose: rawOptions.verbose);
+        this.ticker = new Ticker(isVerbose: options?.verbose ?? false);
 
-  /// The logger to report compilation progress.
-  PerformanceLog get logger {
-    return _raw.logger;
-  }
-
-  /// The byte storage to get and put serialized data.
-  ByteStore get byteStore {
-    return _raw.byteStore;
-  }
-
-  bool get _reportMessages => _raw.reportMessages ?? (_raw.onError == null);
-
-  void report(LocatedMessage message, Severity severity) {
-    if (_raw.onError != null) {
-      _raw.onError(new _CompilationMessage(message, severity));
+  FormattedMessage format(
+      LocatedMessage message, Severity severity, List<LocatedMessage> context) {
+    int offset = message.charOffset;
+    Uri uri = message.uri;
+    Location location = offset == -1 ? null : getLocation(uri, offset);
+    String formatted =
+        command_line_reporting.format(message, severity, location: location);
+    List<FormattedMessage> formattedContext;
+    if (context != null && context.isNotEmpty) {
+      formattedContext = new List<FormattedMessage>(context.length);
+      for (int i = 0; i < context.length; i++) {
+        formattedContext[i] = format(context[i], Severity.context, null);
+      }
     }
-
-    if (_reportMessages) command_line_reporting.report(message, severity);
+    return message.withFormatting(formatted, location?.line ?? -1,
+        location?.column ?? -1, severity, formattedContext);
   }
 
+  void report(LocatedMessage message, Severity severity,
+      {List<LocatedMessage> context}) {
+    if (command_line_reporting.isHidden(severity)) return;
+    if (command_line_reporting.isCompileTimeError(severity)) {
+      CompilerContext.current.logError(message, severity);
+    }
+    if (CompilerContext.current.options.setExitCodeOnProblem) {
+      exitCode = 1;
+    }
+    reportDiagnosticMessage(format(message, severity, context));
+    if (command_line_reporting.shouldThrowOn(severity)) {
+      if (fatalDiagnosticCount++ < _raw.skipForDebugging) {
+        // Skip this one. The interesting one comes later.
+        return;
+      }
+      if (_raw.skipForDebugging < 0) {
+        print(templateDebugTrace
+            .withArguments("$severity", "${StackTrace.current}")
+            .message);
+      } else {
+        throw new DebugAbort(
+            message.uri, message.charOffset, severity, StackTrace.current);
+      }
+    }
+  }
+
+  void reportDiagnosticMessage(DiagnosticMessage message) {
+    (_raw.onDiagnostic ?? _defaultDiagnosticMessageHandler)(message);
+  }
+
+  void _defaultDiagnosticMessageHandler(DiagnosticMessage message) {
+    printDiagnosticMessage(message, print);
+  }
+
+  // TODO(askesc): Remove this and direct callers directly to report.
   void reportWithoutLocation(Message message, Severity severity) {
-    if (_raw.onError != null) {
-      _raw.onError(
-          new _CompilationMessage(message.withLocation(null, -1), severity));
-    }
-
-    if (_reportMessages) {
-      command_line_reporting.reportWithoutLocation(message, severity);
-    }
+    report(message.withoutLocation(), severity);
   }
 
   /// Runs various validations checks on the input options. For instance,
   /// if an option is a path to a file, it checks that the file exists.
-  Future<bool> validateOptions() async {
+  Future<bool> validateOptions({bool errorOnMissingInput: true}) async {
     if (verbose) print(debugString());
 
-    if (inputs.isEmpty) {
+    if (errorOnMissingInput && inputs.isEmpty) {
       reportWithoutLocation(messageMissingInput, Severity.error);
       return false;
-    }
-
-    for (var source in inputs) {
-      // Note: we don't translate Uris at this point because some of the
-      // validation further below must be done before we even construct an
-      // UriTranslator
-      // TODO(sigmund): consider validating dart/packages uri right after we
-      // build the uri translator.
-      if (source.scheme != 'dart' &&
-          source.scheme != 'package' &&
-          !await fileSystem.entityForUri(source).exists()) {
-        reportWithoutLocation(
-            templateInputFileNotFound.withArguments(source), Severity.error);
-        return false;
-      }
     }
 
     if (_raw.sdkRoot != null &&
@@ -212,7 +270,7 @@ class ProcessedOptions {
       return false;
     }
 
-    var summary = sdkSummary;
+    Uri summary = sdkSummary;
     if (summary != null && !await fileSystem.entityForUri(summary).exists()) {
       reportWithoutLocation(
           templateSdkSummaryNotFound.withArguments(summary), Severity.error);
@@ -225,6 +283,16 @@ class ProcessedOptions {
           Severity.internalProblem);
       return false;
     }
+
+    for (Uri source in _raw.additionalDills) {
+      // TODO(ahe): Remove this check, the compiler itself should handle and
+      // recover from this.
+      if (!await fileSystem.entityForUri(source).exists()) {
+        reportWithoutLocation(
+            templateInputFileNotFound.withArguments(source), Severity.error);
+        return false;
+      }
+    }
     return true;
   }
 
@@ -236,87 +304,121 @@ class ProcessedOptions {
 
   /// Get the [FileSystem] which should be used by the front end to access
   /// files.
-  ///
-  /// If the client supplied roots using [CompilerOptions.multiRoots], the
-  /// returned [FileSystem] will automatically perform the appropriate mapping.
   FileSystem get fileSystem => _fileSystem ??= _createFileSystem();
 
-  /// Whether to interpret Dart sources in strong-mode.
-  bool get strongMode => _raw.strongMode;
+  /// Clear the file system so any CompilerOptions fileSystem change will have
+  /// effect.
+  void clearFileSystemCache() => _fileSystem = null;
+
+  /// Whether to generate bytecode.
+  bool get bytecode => _raw.bytecode;
+
+  /// Whether to write a file (e.g. a dill file) when reporting a crash.
+  bool get writeFileOnCrashReport => _raw.writeFileOnCrashReport;
+
+  /// The current sdk version string, e.g. "2.6.0-edge.sha1hash".
+  /// For instance used for language versioning (specifying the maximum
+  /// version).
+  String get currentSdkVersion => _raw.currentSdkVersion;
 
   Target _target;
-  Target get target => _target ??=
-      _raw.target ?? new VmTarget(new TargetFlags(strongMode: strongMode));
+  Target get target =>
+      _target ??= _raw.target ?? new NoneTarget(new TargetFlags());
 
-  /// Get an outline program that summarizes the SDK, if any.
-  // TODO(sigmund): move, this doesn't feel like an "option".
-  Future<Program> loadSdkSummary(CanonicalName nameRoot) async {
-    if (_sdkSummaryProgram == null) {
-      if (sdkSummary == null) return null;
-      var bytes = await loadSdkSummaryBytes();
-      _sdkSummaryProgram = loadProgram(bytes, nameRoot);
+  bool isExperimentEnabled(ExperimentalFlag flag) {
+    assert(defaultExperimentalFlags.containsKey(flag),
+        "No default value for $flag.");
+    assert(expiredExperimentalFlags.containsKey(flag),
+        "No expired value for $flag.");
+    if (expiredExperimentalFlags[flag]) {
+      return defaultExperimentalFlags[flag];
     }
-    return _sdkSummaryProgram;
+    return _raw.experimentalFlags[flag] ?? defaultExperimentalFlags[flag];
   }
 
-  /// Get the summary programs for each of the underlying `inputSummaries`
+  /// Get an outline component that summarizes the SDK, if any.
+  // TODO(sigmund): move, this doesn't feel like an "option".
+  Future<Component> loadSdkSummary(CanonicalName nameRoot) async {
+    if (_sdkSummaryComponent == null) {
+      if (sdkSummary == null) return null;
+      List<int> bytes = await loadSdkSummaryBytes();
+      if (bytes != null && bytes.isNotEmpty) {
+        _sdkSummaryComponent = loadComponent(bytes, nameRoot);
+      }
+    }
+    return _sdkSummaryComponent;
+  }
+
+  void set sdkSummaryComponent(Component platform) {
+    if (_sdkSummaryComponent != null) {
+      throw new StateError("sdkSummary already loaded.");
+    }
+    _sdkSummaryComponent = platform;
+  }
+
+  /// Get the components for each of the underlying `additionalDill`
   /// provided via [CompilerOptions].
   // TODO(sigmund): move, this doesn't feel like an "option".
-  Future<List<Program>> loadInputSummaries(CanonicalName nameRoot) async {
-    if (_inputSummariesPrograms == null) {
-      var uris = _raw.inputSummaries;
-      if (uris == null || uris.isEmpty) return const <Program>[];
-      // TODO(sigmund): throttle # of concurrent opreations.
-      var allBytes = await Future
-          .wait(uris.map((uri) => fileSystem.entityForUri(uri).readAsBytes()));
-      _inputSummariesPrograms =
-          allBytes.map((bytes) => loadProgram(bytes, nameRoot)).toList();
+  Future<List<Component>> loadAdditionalDills(CanonicalName nameRoot) async {
+    if (_additionalDillComponents == null) {
+      List<Uri> uris = _raw.additionalDills;
+      if (uris == null || uris.isEmpty) return const <Component>[];
+      // TODO(sigmund): throttle # of concurrent operations.
+      List<List<int>> allBytes = await Future.wait(
+          uris.map((uri) => _readAsBytes(fileSystem.entityForUri(uri))));
+      _additionalDillComponents = allBytes
+          .where((bytes) => bytes != null)
+          .map((bytes) => loadComponent(bytes, nameRoot))
+          .toList();
     }
-    return _inputSummariesPrograms;
+    return _additionalDillComponents;
   }
 
-  /// Load each of the [CompilerOptions.linkedDependencies] programs.
-  // TODO(sigmund): move, this doesn't feel like an "option".
-  Future<List<Program>> loadLinkDependencies(CanonicalName nameRoot) async {
-    if (_linkedDependencies == null) {
-      var uris = _raw.linkedDependencies;
-      if (uris == null || uris.isEmpty) return const <Program>[];
-      // TODO(sigmund): throttle # of concurrent opreations.
-      var allBytes = await Future
-          .wait(uris.map((uri) => fileSystem.entityForUri(uri).readAsBytes()));
-      _linkedDependencies =
-          allBytes.map((bytes) => loadProgram(bytes, nameRoot)).toList();
+  void set loadAdditionalDillsComponents(List<Component> components) {
+    if (_additionalDillComponents != null) {
+      throw new StateError("inputAdditionalDillsComponents already loaded.");
     }
-    return _linkedDependencies;
+    _additionalDillComponents = components;
   }
 
   /// Helper to load a .dill file from [uri] using the existing [nameRoot].
-  Program loadProgram(List<int> bytes, CanonicalName nameRoot) {
-    Program program = new Program(nameRoot: nameRoot);
+  Component loadComponent(List<int> bytes, CanonicalName nameRoot,
+      {bool alwaysCreateNewNamedNodes}) {
+    Component component =
+        target.configureComponent(new Component(nameRoot: nameRoot));
     // TODO(ahe): Pass file name to BinaryBuilder.
     // TODO(ahe): Control lazy loading via an option.
-    new BinaryBuilder(bytes, null, false).readProgram(program);
-    return program;
+    new BinaryBuilder(bytes,
+            filename: null,
+            disableLazyReading: false,
+            alwaysCreateNewNamedNodes: alwaysCreateNewNamedNodes)
+        .readComponent(component);
+    return component;
   }
 
   /// Get the [UriTranslator] which resolves "package:" and "dart:" URIs.
   ///
   /// This is an asynchronous method since file system operations may be
   /// required to locate/read the packages file as well as SDK metadata.
-  Future<UriTranslatorImpl> getUriTranslator() async {
+  Future<UriTranslator> getUriTranslator({bool bypassCache: false}) async {
+    if (bypassCache) {
+      _uriTranslator = null;
+      _packages = null;
+    }
     if (_uriTranslator == null) {
       ticker.logMs("Started building UriTranslator");
-      var libraries = await _computeLibrarySpecification();
+      TargetLibrariesSpecification libraries =
+          await _computeLibrarySpecification();
       ticker.logMs("Read libraries file");
-      var packages = await _getPackages();
+      PackageConfig packages = await _getPackages();
       ticker.logMs("Read packages file");
-      _uriTranslator = new UriTranslatorImpl(libraries, packages);
+      _uriTranslator = new UriTranslator(libraries, packages);
     }
     return _uriTranslator;
   }
 
   Future<TargetLibrariesSpecification> _computeLibrarySpecification() async {
-    var name = target.name;
+    String name = target.name;
     // TODO(sigmund): Eek! We should get to the point where there is no
     // fasta-specific targets and the target names are meaningful.
     if (name.endsWith('_fasta')) name = name.substring(0, name.length - 6);
@@ -332,10 +434,10 @@ class ProcessedOptions {
       return new TargetLibrariesSpecification(name);
     }
 
-    var json =
+    String json =
         await fileSystem.entityForUri(librariesSpecificationUri).readAsString();
     try {
-      var spec =
+      LibrariesSpecification spec =
           await LibrariesSpecification.parse(librariesSpecificationUri, json);
       return spec.specificationFor(name);
     } on LibrariesSpecificationException catch (e) {
@@ -350,8 +452,9 @@ class ProcessedOptions {
   ///
   /// This is an asynchronous getter since file system operations may be
   /// required to locate/read the packages file.
-  Future<Packages> _getPackages() async {
+  Future<PackageConfig> _getPackages() async {
     if (_packages != null) return _packages;
+    _packagesUri = null;
     if (_raw.packagesFileUri != null) {
       return _packages = await createPackagesFromFile(_raw.packagesFileUri);
     }
@@ -361,37 +464,126 @@ class ProcessedOptions {
       // the same .packages file from all of the inputs.
       reportWithoutLocation(
           messageCantInferPackagesFromManyInputs, Severity.error);
-      return _packages = Packages.noPackages;
+      return _packages = PackageConfig.empty;
+    }
+    if (inputs.isEmpty) {
+      return _packages = PackageConfig.empty;
     }
 
-    var input = inputs.first;
+    Uri input = inputs.first;
 
-    // When compiling the SDK the input files are normaly `dart:` URIs.
-    if (input.scheme == 'dart') return _packages = Packages.noPackages;
+    // When compiling the SDK the input files are normally `dart:` URIs.
+    if (input.scheme == 'dart') return _packages = PackageConfig.empty;
 
     if (input.scheme == 'packages') {
-      report(messageCantInferPackagesFromPackageUri.withLocation(input, -1),
+      report(
+          messageCantInferPackagesFromPackageUri.withLocation(
+              input, -1, noLength),
           Severity.error);
-      return _packages = Packages.noPackages;
+      return _packages = PackageConfig.empty;
     }
 
     return _packages = await _findPackages(inputs.first);
   }
 
-  /// Create a [Packages] given the Uri to a `.packages` file.
-  Future<Packages> createPackagesFromFile(Uri file) async {
+  Future<Uint8List> _readFile(Uri uri, bool reportError) async {
     try {
-      List<int> contents = await fileSystem.entityForUri(file).readAsBytes();
-      Map<String, Uri> map = package_config.parse(contents, file);
-      return new MapPackages(map);
-    } catch (e) {
-      report(
-          templateCannotReadPackagesFile
-              .withArguments("$e")
-              .withLocation(file, -1),
-          Severity.error);
-      return Packages.noPackages;
+      // TODO(ahe): We need to compute line endings for this file.
+      FileSystemEntity entityForUri = fileSystem.entityForUri(uri);
+      if (!reportError && !await entityForUri.exists()) return null;
+      List<int> fileContents = await entityForUri.readAsBytes();
+      if (fileContents is Uint8List) {
+        return fileContents;
+      } else {
+        return new Uint8List.fromList(fileContents);
+      }
+    } on FileSystemException catch (e) {
+      if (reportError) {
+        reportWithoutLocation(
+            templateCantReadFile.withArguments(uri, e.message), Severity.error);
+      }
     }
+    return null;
+  }
+
+  /// Create a [PackageConfig] given the Uri to a `.packages` or
+  /// `package_config.json` file.
+  ///
+  /// If the file doesn't exist, it returns null (and an error is reported
+  /// based in [forceCreation]).
+  /// If the file does exist but is invalid an error is always reported and an
+  /// empty package config is returned.
+  Future<PackageConfig> _createPackagesFromFile(
+      Uri requestedUri, bool forceCreation, bool requireJson) async {
+    Uint8List contents = await _readFile(requestedUri, forceCreation);
+    if (contents == null) {
+      if (forceCreation) {
+        _packagesUri = null;
+        return PackageConfig.empty;
+      }
+      return null;
+    }
+
+    _packagesUri = requestedUri;
+    try {
+      void Function(Object error) onError = (Object error) {
+        if (error is FormatException) {
+          report(
+              templatePackagesFileFormat
+                  .withArguments(error.message)
+                  .withLocation(requestedUri, error.offset, noLength),
+              Severity.error);
+        } else {
+          reportWithoutLocation(
+              templateCantReadFile.withArguments(requestedUri, "$error"),
+              Severity.error);
+        }
+      };
+      if (requireJson) {
+        return PackageConfig.parseBytes(contents, requestedUri,
+            onError: onError);
+      }
+      return await loadPackageConfigUri(requestedUri, preferNewest: false,
+          loader: (uri) {
+        if (uri != requestedUri) {
+          throw new StateError(
+              "Unexpected request from package config package");
+        }
+        return new Future.value(contents);
+      }, onError: onError);
+    } on FormatException catch (e) {
+      report(
+          templatePackagesFileFormat
+              .withArguments(e.message)
+              .withLocation(requestedUri, e.offset, noLength),
+          Severity.error);
+    } catch (e) {
+      reportWithoutLocation(
+          templateCantReadFile.withArguments(requestedUri, "$e"),
+          Severity.error);
+    }
+    _packagesUri = null;
+    return PackageConfig.empty;
+  }
+
+  /// Create a [PackageConfig] given the Uri to a `.packages` or
+  /// `package_config.json` file.
+  ///
+  /// Note that if a `.packages` file is provided and an appropriately placed
+  /// (relative to the .packages file) `package_config.json` file exists, the
+  /// `package_config.json` file will be used instead.
+  Future<PackageConfig> createPackagesFromFile(Uri file) async {
+    // If the input is a ".packages" file we assume the standard layout, and
+    // if a ".dart_tool/package_config.json" exists, we'll use that (and require
+    // it to be a json file).
+    if (file.path.endsWith("/.packages")) {
+      // .packages -> try the package_config first.
+      Uri tryFirst = file.resolve(".dart_tool/package_config.json");
+      PackageConfig result =
+          await _createPackagesFromFile(tryFirst, false, true);
+      if (result != null) return result;
+    }
+    return _createPackagesFromFile(file, true, false);
   }
 
   /// Finds a package resolution strategy using a [FileSystem].
@@ -399,50 +591,37 @@ class ProcessedOptions {
   /// The [scriptUri] points to a Dart script with a valid scheme accepted by
   /// the [FileSystem].
   ///
-  /// This function first tries to locate a `.packages` file in the `scriptUri`
-  /// directory. If that is not found, it instead checks for the presence of a
-  /// `packages/` directory in the same place.  If that also fails, it starts
-  /// checking parent directories for a `.packages` file, and stops if it finds
-  /// it.  Otherwise it gives up and returns [Packages.noPackages].
+  /// This function first tries to locate a `.dart_tool/package_config.json`
+  /// (then a `.packages`) file in the `scriptUri` directory.
+  /// If that is not found, it starts checking parent directories, and stops if
+  /// it finds it. Otherwise it gives up and returns [PackageConfig.empty].
   ///
-  /// Note: this is a fork from `package:package_config/discovery.dart` to adapt
-  /// it to use [FileSystem]. The logic here is a mix of the logic in the
-  /// `findPackagesFromFile` and `findPackagesFromNonFile`:
-  ///
-  ///    * Like `findPackagesFromFile` resolution searches for parent
-  ///    directories
-  ///
-  ///    * Like `findPackagesFromNonFile` if we resolve packages as the
-  ///    `packages/` directory, we can't provide a list of packages that are
-  ///    visible.
-  Future<Packages> _findPackages(Uri scriptUri) async {
-    var dir = scriptUri.resolve('.');
+  /// Note: this is a fork from `package:package_config`s discovery to make sure
+  /// we use the expected error reporting etc.
+  Future<PackageConfig> _findPackages(Uri scriptUri) async {
+    Uri dir = scriptUri.resolve('.');
     if (!dir.isAbsolute) {
       reportWithoutLocation(
           templateInternalProblemUnsupported
               .withArguments("Expected input Uri to be absolute: $scriptUri."),
           Severity.internalProblem);
-      return Packages.noPackages;
+      return PackageConfig.empty;
     }
 
     Future<Uri> checkInDir(Uri dir) async {
-      Uri candidate = dir.resolve('.packages');
+      Uri candidate = dir.resolve('.dart_tool/package_config.json');
+      if (await fileSystem.entityForUri(candidate).exists()) return candidate;
+      candidate = dir.resolve('.packages');
       if (await fileSystem.entityForUri(candidate).exists()) return candidate;
       return null;
     }
 
     // Check for $cwd/.packages
-    var candidate = await checkInDir(dir);
+    Uri candidate = await checkInDir(dir);
     if (candidate != null) return createPackagesFromFile(candidate);
 
-    // Check for $cwd/packages/
-    var packagesDir = dir.resolve("packages/");
-    if (await fileSystem.entityForUri(packagesDir).exists()) {
-      return new NonFilePackagesDirectoryPackages(packagesDir);
-    }
-
     // Check for cwd(/..)+/.packages
-    var parentDir = dir.resolve('..');
+    Uri parentDir = dir.resolve('..');
     while (parentDir.path != dir.path) {
       candidate = await checkInDir(parentDir);
       if (candidate != null) break;
@@ -451,19 +630,19 @@ class ProcessedOptions {
     }
 
     if (candidate != null) return createPackagesFromFile(candidate);
-    return Packages.noPackages;
+    return PackageConfig.empty;
   }
 
   bool _computedSdkDefaults = false;
 
   /// Ensure [_sdkRoot], [_sdkSummary] and [_librarySpecUri] are initialized.
   ///
-  /// If they are not set explicitly, they are infered based on the default
+  /// If they are not set explicitly, they are inferred based on the default
   /// behavior described in [CompilerOptions].
   void _ensureSdkDefaults() {
     if (_computedSdkDefaults) return;
     _computedSdkDefaults = true;
-    var root = _raw.sdkRoot;
+    Uri root = _raw.sdkRoot;
     if (root != null) {
       // Normalize to always end in '/'
       if (!root.path.endsWith('/')) {
@@ -482,7 +661,7 @@ class ProcessedOptions {
       // Infer based on the sdkRoot, but only when `compileSdk` is false,
       // otherwise the default intent was to compile the sdk from sources and
       // not to load an sdk summary file.
-      _sdkSummary = root?.resolve("vm_outline.dill");
+      _sdkSummary = root?.resolve("vm_platform_strong.dill");
     }
 
     if (_raw.librariesSpecificationUri != null) {
@@ -493,41 +672,12 @@ class ProcessedOptions {
   }
 
   /// Create a [FileSystem] specific to the current options.
-  ///
-  /// If `_raw.multiRoots` is not empty, the file-system will implement the
-  /// semantics of multiple roots. If [chaseDependencies] is false, the
-  /// resulting file system will be hermetic.
   FileSystem _createFileSystem() {
-    var result = _raw.fileSystem;
-    // Note: hermetic checks are done before translating multi-root URIs, so
-    // the order in which we create the file systems below is relevant.
-    if (!_raw.multiRoots.isEmpty) {
-      result = new MultiRootFileSystem('multi-root', _raw.multiRoots, result);
-    }
-    if (!chaseDependencies) {
-      var allInputs = inputs.toSet();
-      allInputs.addAll(_raw.inputSummaries);
-      allInputs.addAll(_raw.linkedDependencies);
-
-      if (sdkSummary != null) allInputs.add(sdkSummary);
-
-      if (_raw.sdkRoot != null) {
-        // TODO(sigmund): refine this, we should be more explicit about when
-        // sdkRoot and libraries.json are allowed to be used.
-        allInputs.add(sdkRoot);
-        allInputs.add(sdkRoot.resolve("lib/libraries.json"));
-      }
-
-      /// Note: Searching the file-system for the package-config is not
-      /// supported in hermetic builds.
-      if (_raw.packagesFileUri != null) allInputs.add(_raw.packagesFileUri);
-      result = new HermeticFileSystem(allInputs, result);
-    }
-    return result;
+    return _raw.fileSystem;
   }
 
   String debugString() {
-    var sb = new StringBuffer();
+    StringBuffer sb = new StringBuffer();
     writeList(String name, List elements) {
       if (elements.isEmpty) {
         sb.writeln('$name: <empty>');
@@ -542,19 +692,14 @@ class ProcessedOptions {
     sb.writeln('Inputs: ${inputs}');
     sb.writeln('Output: ${output}');
 
-    sb.writeln('Was error handler provided: '
-        '${_raw.onError == null ? "no" : "yes"}');
+    sb.writeln('Was diagnostic message handler provided: '
+        '${_raw.onDiagnostic == null ? "no" : "yes"}');
 
     sb.writeln('FileSystem: ${_fileSystem.runtimeType} '
         '(provided: ${_raw.fileSystem.runtimeType})');
 
-    writeList('Input Summaries', _raw.inputSummaries);
-    writeList('Linked Dependencies', _raw.linkedDependencies);
-    writeList('Multiroots', _raw.multiRoots);
+    writeList('Additional Dills', _raw.additionalDills);
 
-    sb.writeln('Modular: ${_modularApi}');
-    sb.writeln('Hermetic: ${!chaseDependencies} (provided: '
-        '${_raw.chaseDependencies == null ? null : !_raw.chaseDependencies})');
     sb.writeln('Packages uri: ${_raw.packagesFileUri}');
     sb.writeln('Packages: ${_packages}');
 
@@ -564,18 +709,29 @@ class ProcessedOptions {
         '(provided: ${_raw.librariesSpecificationUri})');
     sb.writeln('SDK summary: ${_sdkSummary} (provided: ${_raw.sdkSummary})');
 
-    sb.writeln('Strong: ${strongMode}');
     sb.writeln('Target: ${_target?.name} (provided: ${_raw.target?.name})');
 
     sb.writeln('throwOnErrorsForDebugging: ${throwOnErrorsForDebugging}');
     sb.writeln('throwOnWarningsForDebugging: ${throwOnWarningsForDebugging}');
-    sb.writeln('throwOnNitsForDebugging: ${throwOnNitsForDebugging}');
     sb.writeln('exit on problem: ${setExitCodeOnProblem}');
     sb.writeln('Embed sources: ${embedSourceText}');
     sb.writeln('debugDump: ${debugDump}');
     sb.writeln('verbose: ${verbose}');
     sb.writeln('verify: ${verify}');
     return '$sb';
+  }
+
+  Future<List<int>> _readAsBytes(FileSystemEntity file) async {
+    try {
+      return await file.readAsBytes();
+    } on FileSystemException catch (error) {
+      report(
+          templateCantReadFile
+              .withArguments(error.uri, error.message)
+              .withoutLocation(),
+          Severity.error);
+      return null;
+    }
   }
 }
 
@@ -602,32 +758,5 @@ class HermeticAccessException extends FileSystemException {
             'but it was not explicitly listed as an input.');
 
   @override
-  String toString() => message;
-}
-
-/// Wraps a [LocatedMessage] to implement the public [CompilationMessage] API.
-class _CompilationMessage implements CompilationMessage {
-  final LocatedMessage _original;
-  final Severity severity;
-
-  String get message => _original.message;
-
-  String get tip => _original.tip;
-
-  String get analyzerCode => _original.code.analyzerCode;
-
-  String get dart2jsCode => _original.code.dart2jsCode;
-
-  SourceSpan get span {
-    if (_original.charOffset == -1) {
-      if (_original.uri == null) return null;
-      return new SourceLocation(0, sourceUrl: _original.uri).pointSpan();
-    }
-    return new SourceLocation(_original.charOffset, sourceUrl: _original.uri)
-        .pointSpan();
-  }
-
-  _CompilationMessage(this._original, this.severity);
-
   String toString() => message;
 }

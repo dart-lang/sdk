@@ -9,23 +9,21 @@ import '../util/util.dart';
 typedef void Trace(String message,
     {bool condition(String stackTrace), int limit, bool throwOnPrint});
 
-/**
- * Helper method for printing stack traces for debugging.
- *
- * [message] is printed as the header of the stack trace.
- *
- * If [condition] is provided, the stack trace is only printed if [condition]
- * returns [:true:] on the stack trace text. This can be used to filter the
- * printed stack traces based on their content. For instance only print stack
- * traces that contain specific paths.
- *
- * If [limit] is provided, the stack trace is limited to [limit] entries.
- *
- * If [throwOnPrint] is `true`, [message] will be thrown after the stack trace
- * has been printed. Together with [condition] this can be used to discover
- * unknown call-sites in tests by filtering known call-sites and throwning
- * otherwise.
- */
+/// Helper method for printing stack traces for debugging.
+///
+/// [message] is printed as the header of the stack trace.
+///
+/// If [condition] is provided, the stack trace is only printed if [condition]
+/// returns [:true:] on the stack trace text. This can be used to filter the
+/// printed stack traces based on their content. For instance only print stack
+/// traces that contain specific paths.
+///
+/// If [limit] is provided, the stack trace is limited to [limit] entries.
+///
+/// If [throwOnPrint] is `true`, [message] will be thrown after the stack trace
+/// has been printed. Together with [condition] this can be used to discover
+/// unknown call-sites in tests by filtering known call-sites and throwning
+/// otherwise.
 Trace get trace {
   enableDebugMode();
   return _trace;
@@ -234,6 +232,7 @@ class StackTraceLines {
     return sb.toString();
   }
 
+  @override
   String toString() {
     return prettify();
   }
@@ -271,6 +270,7 @@ class StackTraceLine {
     sb.write('$fileText $lineNoText$columnNoText $method\n');
   }
 
+  @override
   int get hashCode {
     return 13 * index +
         17 * file.hashCode +
@@ -279,6 +279,7 @@ class StackTraceLine {
         29 * method.hashCode;
   }
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! StackTraceLine) return false;
@@ -289,26 +290,25 @@ class StackTraceLine {
         method == other.method;
   }
 
+  @override
   String toString() => "$method @ $file [$lineNo:$columnNo]";
 }
 
 // TODO(johnniwinther): Use this format for --throw-on-error.
-/**
- * Converts the normal VM stack trace into a more compact and readable format.
- *
- * The output format is [: <file> . . . <lineNo>:<columnNo> <method> :] where
- * [: <file> :] is file name, [: <lineNo> :] is the line number,
- * [: <columnNo> :] is the column number, and [: <method> :] is the method name.
- *
- * If [rangeStart] and/or [rangeEnd] are provided, only the lines within the
- * range are included.
- * If [showColumnNo] is [:false:], the [: :<columnNo> :] part is omitted.
- * If [showDots] is [:true:], the space between [: <file> :] and [: <lineNo> :]
- * is padded with dots on every other line.
- * If [filePrefix] is provided, then for  every file name thats starts with
- * [filePrefix] only the remainder is printed.
- * If [lambda] is non-null, anonymous closures are printed as [lambda].
- */
+/// Converts the normal VM stack trace into a more compact and readable format.
+///
+/// The output format is `<file> . . . <lineNo>:<columnNo> <method>` where
+/// `<file>` is file name, `<lineNo>` is the line number, `<columnNo>` is the
+/// column number, and `<method>` is the method name.
+///
+/// If [rangeStart] and/or [rangeEnd] are provided, only the lines within the
+/// range are included.
+/// If [showColumnNo] is `false`, the `:<columnNo>` part is omitted.
+/// If [showDots] is `true`, the space between `<file>` and `<lineNo>` is padded
+/// with dots on every other line.
+/// If [filePrefix] is provided, then for  every file name thats starts with
+/// [filePrefix] only the remainder is printed.
+/// If [lambda] is non-null, anonymous closures are printed as [lambda].
 String prettifyStackTrace(StackTrace stackTrace,
     {int rangeStart,
     int rangeEnd,
@@ -324,12 +324,10 @@ String prettifyStackTrace(StackTrace stackTrace,
       .prettify(showColumnNo: showColumnNo, showDots: showDots);
 }
 
-/**
- * Pads (or truncates) [text] to the [intendedLength].
- *
- * If [padLeft] is [:true:] the text is padding inserted to the left of [text].
- * A repetition of the [dots] text is used for padding.
- */
+/// Pads (or truncates) [text] to the [intendedLength].
+///
+/// If [padLeft] is [:true:] the text is padding inserted to the left of [text].
+/// A repetition of the [dots] text is used for padding.
 String pad(String text, int intendedLength,
     {bool padLeft: false, String dots: ' '}) {
   if (text.length == intendedLength) return text;

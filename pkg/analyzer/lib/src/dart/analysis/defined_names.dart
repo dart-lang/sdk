@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,11 +8,11 @@ import 'package:analyzer/dart/ast/ast.dart';
  * Compute the [DefinedNames] for the given [unit].
  */
 DefinedNames computeDefinedNames(CompilationUnit unit) {
-  DefinedNames names = new DefinedNames();
+  DefinedNames names = DefinedNames();
 
   void appendName(Set<String> names, SimpleIdentifier node) {
     String name = node?.name;
-    if (name != null && name.length != 0) {
+    if (name != null && name.isNotEmpty) {
       names.add(name);
     }
   }
@@ -33,6 +33,9 @@ DefinedNames computeDefinedNames(CompilationUnit unit) {
       if (member is ClassDeclaration) {
         member.members.forEach(appendClassMemberName);
       }
+      if (member is MixinDeclaration) {
+        member.members.forEach(appendClassMemberName);
+      }
     } else if (member is TopLevelVariableDeclaration) {
       for (VariableDeclaration variable in member.variables.variables) {
         appendName(names.topLevelNames, variable.name);
@@ -48,6 +51,6 @@ DefinedNames computeDefinedNames(CompilationUnit unit) {
  * Defined top-level and class member names.
  */
 class DefinedNames {
-  final Set<String> topLevelNames = new Set<String>();
-  final Set<String> classMemberNames = new Set<String>();
+  final Set<String> topLevelNames = <String>{};
+  final Set<String> classMemberNames = <String>{};
 }

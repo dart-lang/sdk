@@ -14,23 +14,23 @@ class B {
 }
 
 class C extends A {
-  var /*@topType=int*/ x;
+  var x;
 }
 
 class D extends B {
-  var /*@topType=int*/ x;
+  var x;
 }
 
 class E implements A {
-  var /*@topType=int*/ x;
+  var x;
 }
 
 class F implements B {
-  var /*@topType=int*/ x;
+  var x;
 }
 
 class G extends Object with B {
-  var /*@topType=int*/ x;
+  var x;
 }
 
 main() {}

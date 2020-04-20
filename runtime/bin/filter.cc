@@ -240,12 +240,17 @@ void FUNCTION_NAME(Filter_Processed)(Dart_NativeArguments args) {
   intptr_t read = filter->Processed(
       filter->processed_buffer(), filter->processed_buffer_size(), flush, end);
   if (read < 0) {
-    Dart_ThrowException(DartUtils::NewInternalError("Filter error, bad data"));
+    Dart_ThrowException(
+        DartUtils::NewDartFormatException("Filter error, bad data"));
   } else if (read == 0) {
     Dart_SetReturnValue(args, Dart_Null());
   } else {
     uint8_t* io_buffer;
     Dart_Handle result = IOBuffer::Allocate(read, &io_buffer);
+    if (Dart_IsNull(result)) {
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+      return;
+    }
     memmove(io_buffer, filter->processed_buffer(), read);
     Dart_SetReturnValue(args, result);
   }
@@ -289,6 +294,16 @@ ZLibDeflateFilter::~ZLibDeflateFilter() {
 
 bool ZLibDeflateFilter::Init() {
   int window_bits = window_bits_;
+  if ((raw_ || gzip_) && (window_bits == 8)) {
+    // zlib deflater does not work with windows size of 8 bits. Old versions
+    // of zlib would silently upgrade window size to 9 bits, newer versions
+    // return Z_STREAM_ERROR if window size is 8 bits but the stream header
+    // is suppressed. To maintain the old behavior upgrade window size here.
+    // This is safe because you can inflate a stream deflated with zlib
+    // using 9-bits with 8-bits window.
+    // For more details see https://crbug.com/691074.
+    window_bits = 9;
+  }
   if (raw_) {
     window_bits = -window_bits;
   } else if (gzip_) {

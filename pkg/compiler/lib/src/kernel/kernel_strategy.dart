@@ -4,75 +4,270 @@
 
 library dart2js.kernel.frontend_strategy;
 
-import '../../compiler_new.dart' as api;
+import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
+
 import '../common.dart';
 import '../common/backend_api.dart';
+import '../common/names.dart' show Uris;
 import '../common/resolution.dart';
 import '../common/tasks.dart';
 import '../common/work.dart';
 import '../common_elements.dart';
-import '../elements/elements.dart';
+import '../compiler.dart';
+import '../deferred_load.dart' show DeferredLoadTask;
 import '../elements/entities.dart';
-import '../elements/types.dart';
 import '../enqueue.dart';
 import '../environment.dart' as env;
 import '../frontend_strategy.dart';
-import '../js_backend/backend.dart';
+import '../ir/annotations.dart';
+import '../ir/closure.dart' show ClosureScopeModel;
+import '../ir/impact.dart';
+import '../ir/modular.dart';
+import '../ir/scope.dart' show ScopeModel;
+import '../js_backend/annotations.dart';
+import '../js_backend/backend_impact.dart';
 import '../js_backend/backend_usage.dart';
+import '../js_backend/custom_elements_analysis.dart';
+import '../js_backend/field_analysis.dart' show KFieldAnalysis;
+import '../js_backend/impact_transformer.dart';
 import '../js_backend/interceptor_data.dart';
-import '../js_backend/mirrors_analysis.dart';
-import '../js_backend/mirrors_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
-import '../js_backend/runtime_types.dart';
-import '../js_model/closure.dart' show ScopeModel;
-import '../library_loader.dart';
+import '../js_backend/resolution_listener.dart';
+import '../js_backend/runtime_types_resolution.dart';
+import '../kernel/dart2js_target.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
 import '../options.dart';
-import '../patch_parser.dart';
-import '../resolved_uri_translator.dart';
-import '../serialization/task.dart';
-import '../universe/class_hierarchy_builder.dart';
+import '../universe/class_hierarchy.dart';
+import '../universe/resolution_world_builder.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
-import '../world.dart';
+import '../util/enumset.dart';
+import 'deferred_load.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
+import 'loader.dart';
 
 /// Front end strategy that loads '.dill' files and builds a resolved element
 /// model from kernel IR nodes.
-class KernelFrontEndStrategy extends FrontendStrategyBase {
+class KernelFrontendStrategy extends FrontendStrategy {
+  final NativeBasicDataBuilderImpl nativeBasicDataBuilder =
+      new NativeBasicDataBuilderImpl();
+  NativeBasicData _nativeBasicData;
   CompilerOptions _options;
-  KernelToElementMapForImpactImpl _elementMap;
+  CompilerTask _compilerTask;
+  KernelToElementMapImpl _elementMap;
+  RuntimeTypesNeedBuilder _runtimeTypesNeedBuilder;
 
-  KernelAnnotationProcessor _annotationProcesser;
+  KernelAnnotationProcessor _annotationProcessor;
 
-  final Map<MemberEntity, ScopeModel> closureModels =
-      <MemberEntity, ScopeModel>{};
+  final Map<MemberEntity, ClosureScopeModel> closureModels = {};
 
-  KernelFrontEndStrategy(
-      this._options, DiagnosticReporter reporter, env.Environment environment) {
-    _elementMap = new KernelToElementMapForImpactImpl(
-        reporter, environment, this, _options);
+  ModularStrategy _modularStrategy;
+  IrAnnotationData _irAnnotationData;
+
+  NativeDataBuilderImpl _nativeDataBuilder;
+  NativeDataBuilder get nativeDataBuilder => _nativeDataBuilder;
+
+  BackendUsageBuilder _backendUsageBuilder;
+
+  NativeResolutionEnqueuer _nativeResolutionEnqueuer;
+
+  /// Resolution support for generating table of interceptors and
+  /// constructors for custom elements.
+  CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
+
+  KFieldAnalysis _fieldAnalysis;
+
+  @override
+  NoSuchMethodRegistry noSuchMethodRegistry;
+
+  KernelFrontendStrategy(this._compilerTask, this._options,
+      DiagnosticReporter reporter, env.Environment environment) {
+    assert(_compilerTask != null);
+    _elementMap =
+        new KernelToElementMapImpl(reporter, environment, this, _options);
+    _modularStrategy = new KernelModularStrategy(_compilerTask, _elementMap);
+    _backendUsageBuilder = new BackendUsageBuilderImpl(this);
+    noSuchMethodRegistry = new NoSuchMethodRegistryImpl(
+        commonElements, new KernelNoSuchMethodResolver(_elementMap));
+  }
+
+  NativeResolutionEnqueuer get nativeResolutionEnqueuerForTesting =>
+      _nativeResolutionEnqueuer;
+
+  KFieldAnalysis get fieldAnalysisForTesting => _fieldAnalysis;
+
+  @override
+  void onResolutionStart() {
+    // TODO(johnniwinther): Avoid the compiler.elementEnvironment.getThisType
+    // calls. Currently needed to ensure resolution of the classes for various
+    // queries in native behavior computation, inference and codegen.
+    elementEnvironment.getThisType(commonElements.jsArrayClass);
+    elementEnvironment.getThisType(commonElements.jsExtendableArrayClass);
+
+    _validateInterceptorImplementsAllObjectMethods(
+        commonElements.jsInterceptorClass);
+    // The null-interceptor must also implement *all* methods.
+    _validateInterceptorImplementsAllObjectMethods(commonElements.jsNullClass);
+  }
+
+  void _validateInterceptorImplementsAllObjectMethods(
+      ClassEntity interceptorClass) {
+    if (interceptorClass == null) return;
+    ClassEntity objectClass = commonElements.objectClass;
+    elementEnvironment.forEachClassMember(objectClass,
+        (_, MemberEntity member) {
+      MemberEntity interceptorMember = elementEnvironment
+          .lookupLocalClassMember(interceptorClass, member.name);
+      // Interceptors must override all Object methods due to calling convention
+      // differences.
+      assert(
+          interceptorMember.enclosingClass == interceptorClass,
+          failedAt(
+              interceptorMember,
+              "Member ${member.name} not overridden in ${interceptorClass}. "
+              "Found $interceptorMember from "
+              "${interceptorMember.enclosingClass}."));
+    });
   }
 
   @override
-  LibraryLoaderTask createLibraryLoader(
-      ResolvedUriTranslator uriTranslator,
-      ScriptLoader scriptLoader,
-      api.CompilerInput compilerInput,
-      ElementScanner scriptScanner,
-      LibraryDeserializer deserializer,
-      PatchResolverFunction patchResolverFunc,
-      PatchParserTask patchParser,
-      env.Environment environment,
-      DiagnosticReporter reporter,
-      Measurer measurer) {
-    return new KernelLibraryLoaderTask(_options.platformBinaries,
-        _options.packageConfig, _elementMap, compilerInput, reporter, measurer,
-        verbose: _options.verbose);
+  ResolutionEnqueuer createResolutionEnqueuer(
+      CompilerTask task, Compiler compiler) {
+    RuntimeTypesNeedBuilder rtiNeedBuilder = _createRuntimeTypesNeedBuilder();
+    BackendImpacts impacts =
+        new BackendImpacts(commonElements, compiler.options);
+    _nativeResolutionEnqueuer = new NativeResolutionEnqueuer(
+        compiler.options,
+        elementEnvironment,
+        commonElements,
+        _elementMap.types,
+        new BaseNativeClassFinder(elementEnvironment, nativeBasicData));
+    _nativeDataBuilder = new NativeDataBuilderImpl(nativeBasicData);
+    _customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
+        elementEnvironment,
+        commonElements,
+        nativeBasicData,
+        _backendUsageBuilder);
+    _fieldAnalysis = new KFieldAnalysis(this);
+    ClassQueries classQueries = new KernelClassQueries(elementMap);
+    ClassHierarchyBuilder classHierarchyBuilder =
+        new ClassHierarchyBuilder(commonElements, classQueries);
+    AnnotationsDataBuilder annotationsDataBuilder =
+        new AnnotationsDataBuilder();
+    // TODO(johnniwinther): This is a hack. The annotation data is built while
+    // using it. With CFE constants the annotations data can be built fully
+    // before creating the resolution enqueuer.
+    AnnotationsData annotationsData = new AnnotationsDataImpl(
+        compiler.options, annotationsDataBuilder.pragmaAnnotations);
+    ImpactTransformer impactTransformer = new JavaScriptImpactTransformer(
+        elementEnvironment,
+        commonElements,
+        impacts,
+        nativeBasicData,
+        _nativeResolutionEnqueuer,
+        _backendUsageBuilder,
+        _customElementsResolutionAnalysis,
+        rtiNeedBuilder,
+        classHierarchyBuilder,
+        annotationsData);
+    InterceptorDataBuilder interceptorDataBuilder =
+        new InterceptorDataBuilderImpl(
+            nativeBasicData, elementEnvironment, commonElements);
+    return new ResolutionEnqueuer(
+        task,
+        compiler.reporter,
+        new ResolutionEnqueuerListener(
+            compiler.options,
+            elementEnvironment,
+            commonElements,
+            impacts,
+            nativeBasicData,
+            interceptorDataBuilder,
+            _backendUsageBuilder,
+            noSuchMethodRegistry,
+            _customElementsResolutionAnalysis,
+            _nativeResolutionEnqueuer,
+            _fieldAnalysis,
+            compiler.deferredLoadTask),
+        new ResolutionWorldBuilderImpl(
+            _options,
+            elementMap,
+            elementEnvironment,
+            _elementMap.types,
+            commonElements,
+            nativeBasicData,
+            nativeDataBuilder,
+            interceptorDataBuilder,
+            _backendUsageBuilder,
+            rtiNeedBuilder,
+            _fieldAnalysis,
+            _nativeResolutionEnqueuer,
+            noSuchMethodRegistry,
+            annotationsDataBuilder,
+            const StrongModeWorldStrategy(),
+            classHierarchyBuilder,
+            classQueries),
+        new KernelWorkItemBuilder(
+            _compilerTask,
+            elementMap,
+            nativeBasicData,
+            nativeDataBuilder,
+            annotationsDataBuilder,
+            impactTransformer,
+            closureModels,
+            compiler.impactCache,
+            _fieldAnalysis,
+            _modularStrategy,
+            _irAnnotationData),
+        annotationsData);
   }
+
+  @override
+  void onResolutionEnd() {
+    assert(_annotationProcessor != null,
+        "AnnotationProcessor has not been created.");
+    _annotationProcessor.processJsInteropAnnotations(
+        nativeBasicData, nativeDataBuilder);
+  }
+
+  @override
+  NativeBasicData get nativeBasicData {
+    if (_nativeBasicData == null) {
+      _nativeBasicData = nativeBasicDataBuilder.close(elementEnvironment);
+      assert(
+          _nativeBasicData != null,
+          failedAt(NO_LOCATION_SPANNABLE,
+              "NativeBasicData has not been computed yet."));
+    }
+    return _nativeBasicData;
+  }
+
+  @override
+  void registerLoadedLibraries(KernelResult kernelResult) {
+    _elementMap.addComponent(kernelResult.component);
+    _irAnnotationData = processAnnotations(
+        new ModularCore(kernelResult.component, _elementMap.constantEvaluator));
+    _annotationProcessor = new KernelAnnotationProcessor(
+        elementMap, nativeBasicDataBuilder, _irAnnotationData);
+    for (Uri uri in kernelResult.libraries) {
+      LibraryEntity library = elementEnvironment.lookupLibrary(uri);
+      if (maybeEnableNative(library.canonicalUri)) {
+        _annotationProcessor.extractNativeAnnotations(library);
+      }
+      _annotationProcessor.extractJsInteropAnnotations(library);
+      if (uri == Uris.dart_html) {
+        _backendUsageBuilder.registerHtmlIsLoaded();
+      }
+    }
+  }
+
+  IrAnnotationData get irAnnotationDataForTesting => _irAnnotationData;
+
+  ModularStrategy get modularStrategyForTesting => _modularStrategy;
 
   @override
   ElementEnvironment get elementEnvironment => _elementMap.elementEnvironment;
@@ -80,80 +275,25 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   @override
   CommonElements get commonElements => _elementMap.commonElements;
 
-  DartTypes get dartTypes => _elementMap.types;
-
-  KernelToElementMapForImpact get elementMap => _elementMap;
+  KernelToElementMap get elementMap => _elementMap;
 
   @override
-  AnnotationProcessor get annotationProcesser => _annotationProcesser ??=
-      new KernelAnnotationProcessor(elementMap, nativeBasicDataBuilder);
+  DeferredLoadTask createDeferredLoadTask(Compiler compiler) =>
+      new KernelDeferredLoadTask(compiler, _elementMap);
 
   @override
-  NativeClassFinder createNativeClassFinder(NativeBasicData nativeBasicData) {
-    return new BaseNativeClassFinder(_elementMap.elementEnvironment,
-        elementMap.commonElements, nativeBasicData);
-  }
-
-  NoSuchMethodResolver createNoSuchMethodResolver() {
-    return new KernelNoSuchMethodResolver(elementMap);
-  }
-
-  /// Computes the main function from [mainLibrary] adding additional world
-  /// impact to [impactBuilder].
-  FunctionEntity computeMain(
-      LibraryEntity mainLibrary, WorldImpactBuilder impactBuilder) {
+  FunctionEntity computeMain(WorldImpactBuilder impactBuilder) {
     return elementEnvironment.mainFunction;
   }
 
-  MirrorsDataBuilder createMirrorsDataBuilder() {
-    return new MirrorsDataBuilderImpl(elementEnvironment, commonElements);
+  RuntimeTypesNeedBuilder _createRuntimeTypesNeedBuilder() {
+    return _runtimeTypesNeedBuilder ??= _options.disableRtiOptimization
+        ? const TrivialRuntimeTypesNeedBuilder()
+        : new RuntimeTypesNeedBuilderImpl(elementEnvironment);
   }
 
-  MirrorsResolutionAnalysis createMirrorsResolutionAnalysis(
-      JavaScriptBackend backend) {
-    return new MirrorsResolutionAnalysisImpl();
-  }
-
-  RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder() {
-    return new RuntimeTypesNeedBuilderImpl(
-        elementEnvironment, _elementMap.types);
-  }
-
-  ResolutionWorldBuilder createResolutionWorldBuilder(
-      NativeBasicData nativeBasicData,
-      NativeDataBuilder nativeDataBuilder,
-      InterceptorDataBuilder interceptorDataBuilder,
-      BackendUsageBuilder backendUsageBuilder,
-      RuntimeTypesNeedBuilder rtiNeedBuilder,
-      NativeResolutionEnqueuer nativeResolutionEnqueuer,
-      SelectorConstraintsStrategy selectorConstraintsStrategy,
-      ClassHierarchyBuilder classHierarchyBuilder,
-      ClassQueries classQueries) {
-    return new KernelResolutionWorldBuilder(
-        _options,
-        elementMap,
-        nativeBasicData,
-        nativeDataBuilder,
-        interceptorDataBuilder,
-        backendUsageBuilder,
-        rtiNeedBuilder,
-        nativeResolutionEnqueuer,
-        selectorConstraintsStrategy,
-        classHierarchyBuilder,
-        classQueries);
-  }
-
-  WorkItemBuilder createResolutionWorkItemBuilder(
-      NativeBasicData nativeBasicData,
-      NativeDataBuilder nativeDataBuilder,
-      ImpactTransformer impactTransformer) {
-    return new KernelWorkItemBuilder(elementMap, nativeBasicData,
-        nativeDataBuilder, impactTransformer, closureModels);
-  }
-
-  ClassQueries createClassQueries() {
-    return new KernelClassQueries(elementMap);
-  }
+  RuntimeTypesNeedBuilder get runtimeTypesNeedBuilderForTesting =>
+      _runtimeTypesNeedBuilder;
 
   @override
   SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement) {
@@ -162,101 +302,162 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
 }
 
 class KernelWorkItemBuilder implements WorkItemBuilder {
-  final KernelToElementMapForImpactImpl _elementMap;
+  final CompilerTask _compilerTask;
+  final KernelToElementMapImpl _elementMap;
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
-  final Map<MemberEntity, ScopeModel> closureModels;
+  final AnnotationsDataBuilder _annotationsDataBuilder;
+  final Map<MemberEntity, ClosureScopeModel> _closureModels;
+  final Map<Entity, WorldImpact> _impactCache;
+  final KFieldAnalysis _fieldAnalysis;
+  final ModularStrategy _modularStrategy;
+  final IrAnnotationData _irAnnotationData;
 
   KernelWorkItemBuilder(
+      this._compilerTask,
       this._elementMap,
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
+      this._annotationsDataBuilder,
       this._impactTransformer,
-      this.closureModels)
+      this._closureModels,
+      this._impactCache,
+      this._fieldAnalysis,
+      this._modularStrategy,
+      this._irAnnotationData)
       : _nativeMemberResolver = new KernelNativeMemberResolver(
             _elementMap, nativeBasicData, nativeDataBuilder);
 
   @override
   WorkItem createWorkItem(MemberEntity entity) {
-    return new KernelWorkItem(_elementMap, _impactTransformer,
-        _nativeMemberResolver, entity, closureModels);
+    return new KernelWorkItem(
+        _compilerTask,
+        _elementMap,
+        _impactTransformer,
+        _nativeMemberResolver,
+        _annotationsDataBuilder,
+        entity,
+        _closureModels,
+        _impactCache,
+        _fieldAnalysis,
+        _modularStrategy,
+        _irAnnotationData);
   }
 }
 
-class KernelWorkItem implements ResolutionWorkItem {
-  final KernelToElementMapForImpactImpl _elementMap;
+class KernelWorkItem implements WorkItem {
+  final CompilerTask _compilerTask;
+  final KernelToElementMapImpl _elementMap;
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
+  final AnnotationsDataBuilder _annotationsDataBuilder;
+  @override
   final MemberEntity element;
-  final Map<MemberEntity, ScopeModel> closureModels;
+  final Map<MemberEntity, ClosureScopeModel> _closureModels;
+  final Map<Entity, WorldImpact> _impactCache;
+  final KFieldAnalysis _fieldAnalysis;
+  final ModularStrategy _modularStrategy;
+  final IrAnnotationData _irAnnotationData;
 
-  KernelWorkItem(this._elementMap, this._impactTransformer,
-      this._nativeMemberResolver, this.element, this.closureModels);
+  KernelWorkItem(
+      this._compilerTask,
+      this._elementMap,
+      this._impactTransformer,
+      this._nativeMemberResolver,
+      this._annotationsDataBuilder,
+      this.element,
+      this._closureModels,
+      this._impactCache,
+      this._fieldAnalysis,
+      this._modularStrategy,
+      this._irAnnotationData);
 
   @override
   WorldImpact run() {
-    _nativeMemberResolver.resolveNativeMember(element);
-    ResolutionImpact impact = _elementMap.computeWorldImpact(element);
-    ScopeModel closureModel = _elementMap.computeScopeModel(element);
-    if (closureModel != null) {
-      closureModels[element] = closureModel;
+    return _compilerTask.measure(() {
+      ir.Member node = _elementMap.getMemberNode(element);
+      _nativeMemberResolver.resolveNativeMember(node, _irAnnotationData);
+
+      List<PragmaAnnotationData> pragmaAnnotationData =
+          _modularStrategy.getPragmaAnnotationData(node);
+
+      EnumSet<PragmaAnnotation> annotations = processMemberAnnotations(
+          _elementMap.options,
+          _elementMap.reporter,
+          _elementMap.getMemberNode(element),
+          pragmaAnnotationData);
+      _annotationsDataBuilder.registerPragmaAnnotations(element, annotations);
+
+      ModularMemberData modularMemberData =
+          _modularStrategy.getModularMemberData(node, annotations);
+      ScopeModel scopeModel = modularMemberData.scopeModel;
+      if (scopeModel.closureScopeModel != null) {
+        _closureModels[element] = scopeModel.closureScopeModel;
+      }
+      if (element.isField && !element.isInstanceMember) {
+        _fieldAnalysis.registerStaticField(
+            element, scopeModel.initializerComplexity);
+      }
+      ImpactBuilderData impactBuilderData = modularMemberData.impactBuilderData;
+      return _compilerTask.measureSubtask('worldImpact', () {
+        ResolutionImpact impact = _elementMap.computeWorldImpact(
+            element,
+            scopeModel.variableScopeModel,
+            new Set<PragmaAnnotation>.from(
+                annotations.iterable(PragmaAnnotation.values)),
+            impactBuilderData: impactBuilderData);
+        WorldImpact worldImpact =
+            _impactTransformer.transformResolutionImpact(impact);
+        if (_impactCache != null) {
+          _impactCache[element] = worldImpact;
+        }
+        return worldImpact;
+      });
+    });
+  }
+
+  @override
+  String toString() => 'KernelWorkItem($element)';
+}
+
+/// If `true` kernel impacts are computed as [ImpactData] directly on kernel
+/// and converted to the K model afterwards. This is a pre-step to modularizing
+/// the world impact computation.
+bool useImpactDataForTesting = false;
+
+class KernelModularStrategy extends ModularStrategy {
+  final CompilerTask _compilerTask;
+  final KernelToElementMapImpl _elementMap;
+
+  KernelModularStrategy(this._compilerTask, this._elementMap);
+
+  @override
+  List<PragmaAnnotationData> getPragmaAnnotationData(ir.Member node) {
+    return computePragmaAnnotationDataFromIr(node);
+  }
+
+  @override
+  ModularMemberData getModularMemberData(
+      ir.Member node, EnumSet<PragmaAnnotation> annotations) {
+    ScopeModel scopeModel = _compilerTask.measureSubtask('closures',
+        () => new ScopeModel.from(node, _elementMap.constantEvaluator));
+    ImpactBuilderData impactBuilderData;
+    if (useImpactDataForTesting) {
+      // TODO(johnniwinther): Always create and use the [ImpactBuilderData].
+      // Currently it is a bit half-baked since we cannot compute data that
+      // depend on metadata, so these parts of the impact data need to be
+      // computed during conversion to [ResolutionImpact].
+      impactBuilderData = _compilerTask.measureSubtask('worldImpact', () {
+        ImpactBuilder builder = new ImpactBuilder(
+            new ir.StaticTypeContext(node, _elementMap.typeEnvironment),
+            _elementMap.classHierarchy,
+            scopeModel.variableScopeModel,
+            useAsserts: _elementMap.options.enableUserAssertions,
+            inferEffectivelyFinalVariableTypes:
+                !annotations.contains(PragmaAnnotation.disableFinal));
+        return builder.computeImpact(node);
+      });
     }
-    return _impactTransformer.transformResolutionImpact(impact);
-  }
-}
-
-/// Mock implementation of [MirrorsDataImpl].
-class MirrorsDataBuilderImpl extends MirrorsDataImpl {
-  MirrorsDataBuilderImpl(
-      ElementEnvironment elementEnvironment, CommonElements commonElements)
-      : super(null, null, elementEnvironment, commonElements);
-
-  @override
-  void registerUsedMember(MemberEntity member) {}
-
-  @override
-  void computeMembersNeededForReflection(
-      ResolutionWorldBuilder worldBuilder, ClosedWorld closedWorld) {
-    // TODO(redemption): Support dart:mirrors.
-    createImmutableSets();
-  }
-
-  @override
-  void maybeMarkClosureAsNeededForReflection(ClassEntity closureClass,
-      FunctionEntity callMethod, Local localFunction) {}
-
-  @override
-  void registerConstSymbol(String name) {}
-
-  @override
-  void registerMirrorUsage(
-      Set<String> symbols, Set<Element> targets, Set<Element> metaTargets) {}
-}
-
-/// Mock implementation of [MirrorsResolutionAnalysis].
-class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
-  @override
-  void onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {}
-
-  @override
-  MirrorsCodegenAnalysis close() {
-    // TODO(redemption): Implement this.
-    return new MirrorsCodegenAnalysisImpl();
-  }
-
-  @override
-  void onResolutionComplete() {}
-}
-
-class MirrorsCodegenAnalysisImpl implements MirrorsCodegenAnalysis {
-  @override
-  int get preMirrorsMethodCount {
-    // TODO(redemption): Implement this.
-    return null;
-  }
-
-  @override
-  void onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
-    // TODO(redemption): Implement this.
+    return new ModularMemberData(scopeModel, impactBuilderData);
   }
 }

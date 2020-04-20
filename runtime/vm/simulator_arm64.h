@@ -16,7 +16,7 @@
 #error Do not include simulator_arm64.h directly; use simulator.h.
 #endif
 
-#include "vm/constants_arm64.h"
+#include "vm/constants.h"
 
 namespace dart {
 
@@ -75,20 +75,16 @@ class Simulator {
 
   // High address.
   uword stack_base() const { return stack_base_; }
+  // Limit for StackOverflowError.
+  uword overflow_stack_limit() const { return overflow_stack_limit_; }
   // Low address.
   uword stack_limit() const { return stack_limit_; }
 
   // Accessor to the instruction counter.
   uint64_t get_icount() const { return icount_; }
 
-  // The thread's top_exit_frame_info refers to a Dart frame in the simulator
-  // stack. The simulator's top_exit_frame_info refers to a C++ frame in the
-  // native stack.
-  uword top_exit_frame_info() const { return top_exit_frame_info_; }
-  void set_top_exit_frame_info(uword value) { top_exit_frame_info_ = value; }
-
   // Call on program start.
-  static void InitOnce();
+  static void Init();
 
   // Dart generally calls into generated code with 4 parameters. This is a
   // convenience function, which sets up the simulator state and grabs the
@@ -142,12 +138,12 @@ class Simulator {
   int64_t pc_;
   char* stack_;
   uword stack_limit_;
+  uword overflow_stack_limit_;
   uword stack_base_;
   bool pc_modified_;
   uint64_t icount_;
   static int64_t flag_stop_sim_at_;
   SimulatorSetjmpBuffer* last_setjmp_buffer_;
-  uword top_exit_frame_info_;
 
   // Registered breakpoints.
   Instr* break_pc_;
@@ -174,11 +170,13 @@ class Simulator {
   inline int16_t ReadH(uword addr, Instr* instr);
   inline void WriteH(uword addr, uint16_t value, Instr* instr);
 
-  inline uint32_t ReadWU(uword addr, Instr* instr);
+  inline uint32_t ReadWU(uword addr,
+                         Instr* instr,
+                         bool must_be_aligned = false);
   inline int32_t ReadW(uword addr, Instr* instr);
   inline void WriteW(uword addr, uint32_t value, Instr* instr);
 
-  inline intptr_t ReadX(uword addr, Instr* instr);
+  inline intptr_t ReadX(uword addr, Instr* instr, bool must_be_aligned = false);
   inline void WriteX(uword addr, intptr_t value, Instr* instr);
 
   // Synchronization primitives support.

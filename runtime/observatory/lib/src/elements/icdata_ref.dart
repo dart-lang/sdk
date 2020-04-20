@@ -9,7 +9,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class ICDataRefElement extends HtmlElement implements Renderable {
+class ICDataRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<ICDataRefElement>('icdata-ref');
 
   RenderingScheduler<ICDataRefElement> _r;
@@ -26,14 +26,14 @@ class ICDataRefElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(icdata != null);
-    ICDataRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    ICDataRefElement e = new ICDataRefElement.created();
+    e._r = new RenderingScheduler<ICDataRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._icdata = icdata;
     return e;
   }
 
-  ICDataRefElement.created() : super.created();
+  ICDataRefElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -45,13 +45,13 @@ class ICDataRefElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new AnchorElement(href: Uris.inspect(_isolate, object: _icdata))
-        ..children = [
+        ..children = <Element>[
           new SpanElement()
             ..classes = ['emphasize']
             ..text = 'ICData',

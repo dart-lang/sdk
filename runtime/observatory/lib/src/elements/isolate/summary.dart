@@ -5,6 +5,7 @@
 import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M;
+import 'package:observatory/utils.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
@@ -13,7 +14,7 @@ import 'package:observatory/src/elements/isolate/location.dart';
 import 'package:observatory/src/elements/isolate/run_state.dart';
 import 'package:observatory/src/elements/isolate/shared_summary.dart';
 
-class IsolateSummaryElement extends HtmlElement implements Renderable {
+class IsolateSummaryElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<IsolateSummaryElement>('isolate-summary', dependencies: const [
     IsolateRefElement.tag,
@@ -42,8 +43,8 @@ class IsolateSummaryElement extends HtmlElement implements Renderable {
     assert(isolates != null);
     assert(events != null);
     assert(scripts != null);
-    IsolateSummaryElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    IsolateSummaryElement e = new IsolateSummaryElement.created();
+    e._r = new RenderingScheduler<IsolateSummaryElement>(e, queue: queue);
     e._isolate = isolate;
     e._isolates = isolates;
     e._events = events;
@@ -51,7 +52,7 @@ class IsolateSummaryElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  IsolateSummaryElement.created() : super.created();
+  IsolateSummaryElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -63,43 +64,121 @@ class IsolateSummaryElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
     if (_loadedIsolate == null) {
-      children = [
+      children = <Element>[
         new SpanElement()..text = 'loading ',
-        new IsolateRefElement(_isolate, _events, queue: _r.queue)
+        new IsolateRefElement(_isolate, _events, queue: _r.queue).element
       ];
     } else {
-      children = [
-        new DivElement()
-          ..classes = ['flex-row']
-          ..children = [
-            new DivElement()
-              ..classes = ['isolate-ref-container']
-              ..children = [
-                new IsolateRefElement(_isolate, _events, queue: _r.queue)
-              ],
-            new DivElement()..style.flex = '1',
-            new DivElement()
-              ..classes = ['flex-row', 'isolate-state-container']
-              ..children = [
-                new IsolateRunStateElement(_isolate, _events, queue: _r.queue),
-                new IsolateLocationElement(_isolate, _events, _scripts,
-                    queue: _r.queue),
-                new SpanElement()..text = ' [',
-                new AnchorElement(href: Uris.debugger(_isolate))
-                  ..text = 'debug',
-                new SpanElement()..text = ']'
-              ]
-          ],
+      children = <Element>[
+        linkAndStatusRow(),
         new BRElement(),
-        new IsolateSharedSummaryElement(_isolate, _events, queue: _r.queue)
+        memoryRow(),
+        new BRElement(),
+        toolsRow(),
       ];
     }
+  }
+
+  Element linkAndStatusRow() {
+    return new DivElement()
+      ..classes = ['flex-row-wrap']
+      ..children = <Element>[
+        new DivElement()
+          ..classes = ['isolate-ref-container']
+          ..children = <Element>[
+            new IsolateRefElement(_isolate, _events, queue: _r.queue).element
+          ],
+        new DivElement()..style.flex = '1',
+        new DivElement()
+          ..classes = ['flex-row', 'isolate-state-container']
+          ..children = <Element>[
+            new IsolateRunStateElement(_isolate, _events, queue: _r.queue)
+                .element,
+            new IsolateLocationElement(_isolate, _events, _scripts,
+                    queue: _r.queue)
+                .element,
+            new SpanElement()..text = ' [',
+            new AnchorElement(href: Uris.debugger(_isolate))..text = 'debug',
+            new SpanElement()..text = ']'
+          ]
+      ];
+  }
+
+  Element memoryRow() {
+    final isolate = _isolate as M.Isolate;
+    final newHeapUsed = Utils.formatSize(isolate.newSpace.used);
+    final newHeapCapacity = Utils.formatSize(isolate.newSpace.capacity);
+    final oldHeapUsed = Utils.formatSize(isolate.oldSpace.used);
+    final oldHeapCapacity = Utils.formatSize(isolate.oldSpace.capacity);
+    final heapUsed =
+        Utils.formatSize(isolate.newSpace.used + isolate.oldSpace.used);
+    final heapCapacity =
+        Utils.formatSize(isolate.newSpace.capacity + isolate.oldSpace.capacity);
+    return new DivElement()
+      ..classes = ['flex-row-wrap-right']
+      ..children = <Element>[
+        new DivElement()
+          ..style.padding = '5px'
+          ..text = 'new-space $newHeapUsed of $newHeapCapacity',
+        new DivElement()
+          ..style.padding = '5px'
+          ..text = '/',
+        new DivElement()
+          ..style.padding = '5px'
+          ..text = 'old-space $oldHeapUsed of $oldHeapCapacity',
+        new DivElement()
+          ..style.padding = '5px'
+          ..text = '/',
+        new DivElement()
+          ..style.padding = '5px'
+          ..text = 'heap $heapUsed of $heapCapacity',
+      ];
+  }
+
+  Element toolsRow() {
+    return new DivElement()
+      ..classes = ['flex-row-spaced']
+      ..children = <Element>[
+        new AnchorElement(href: Uris.debugger(_isolate))
+          ..classes = ['flex-item-even']
+          ..text = 'debugger',
+        new AnchorElement(href: Uris.classTree(_isolate))
+          ..classes = ['flex-item-even']
+          ..text = 'class hierarchy',
+        new AnchorElement(href: Uris.cpuProfiler(_isolate))
+          ..classes = ['flex-item-even']
+          ..text = 'cpu profile',
+        new AnchorElement(href: Uris.cpuProfilerTable(_isolate))
+          ..classes = ['flex-item-even']
+          ..text = 'cpu profile (table)',
+        new AnchorElement(href: Uris.allocationProfiler(_isolate))
+          ..classes = ['flex-item-even']
+          ..text = 'allocation profile',
+        new AnchorElement(href: Uris.heapSnapshot(_isolate))
+          ..classes = ['flex-item-even']
+          ..text = 'heap snapshot',
+        new AnchorElement(href: Uris.heapMap(_isolate))
+          ..classes = ['flex-item-even']
+          ..text = 'heap map',
+        new AnchorElement(href: Uris.metrics(_isolate))
+          ..classes = ['flex-item-even']
+          ..text = 'metrics',
+        new AnchorElement(href: Uris.persistentHandles(_isolate))
+          ..classes = ['flex-item-even']
+          ..text = 'persistent handles',
+        new AnchorElement(href: Uris.ports(_isolate))
+          ..classes = ['flex-item-even']
+          ..text = 'ports',
+        new AnchorElement(href: Uris.logging(_isolate))
+          ..classes = ['flex-item-even']
+          ..text = 'logging',
+      ];
   }
 
   Future _load() async {

@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,25 +10,34 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetSubscriptionsTest);
   });
 }
 
+/// Wrapper around the test package's `fail` function.
+///
+/// Unlike the test package's `fail` function, this function is not annotated
+/// with @alwaysThrows, so we can call it at the top of a test method without
+/// causing the rest of the method to be flagged as dead code.
+void _fail(String message) {
+  fail(message);
+}
+
 @reflectiveTest
 class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
   @failingTest
-  test_setSubscriptions() {
+  Future<void> test_setSubscriptions() {
     // This test times out on the bots and has been disabled to keep them green.
     // We need to discover the cause and re-enable it.
 
-    fail(
+    _fail(
         'This test times out on the bots and has been disabled to keep them green.'
         'We need to discover the cause and re-enable it.');
 
-    bool statusReceived = false;
-    Completer analysisBegun = new Completer();
+    var statusReceived = false;
+    var analysisBegun = Completer();
     onServerStatus.listen((_) {
       statusReceived = true;
     });
@@ -38,7 +47,7 @@ class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
       }
     });
     return sendServerSetSubscriptions([]).then((_) {
-      String pathname = sourcePath('test.dart');
+      var pathname = sourcePath('test.dart');
       writeFile(pathname, '''
 main() {
   var x;

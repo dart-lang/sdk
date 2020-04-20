@@ -43,7 +43,7 @@ void main() {
   var regexp = new RegExp(regexp_string);
 
   for (var i = 0; i < 10; i++) {
-    var matches = regexp.firstMatch("a");
+    var matches = regexp.firstMatch("a")!;
     var count = 0;
     assertEquals(num_captures + 1, matches.groupCount + 1);
   }

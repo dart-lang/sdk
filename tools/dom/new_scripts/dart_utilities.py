@@ -25,7 +25,6 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 """Functions shared by various parts of the code generator.
 
 Extends IdlType and IdlUnion type with |enum_validation_expression| property.
@@ -33,12 +32,10 @@ Extends IdlType and IdlUnion type with |enum_validation_expression| property.
 Design doc: http://www.chromium.org/developers/design-documents/idl-compiler
 """
 
-
 ################################################################################
 # Utility function exposed for Dart CodeGenerator. Only 6 methods are special
 # to Dart the rest delegate to the v8_utilities functions.
 ################################################################################
-
 
 import v8_types  # Required
 import v8_utilities
@@ -47,11 +44,12 @@ import v8_utilities
 def _scoped_name(interface, definition, base_name):
     # partial interfaces are implemented as separate classes, with their members
     # implemented as static member functions
-    partial_interface_implemented_as = definition.extended_attributes.get('PartialInterfaceImplementedAs')
+    partial_interface_implemented_as = definition.extended_attributes.get(
+        'PartialInterfaceImplementedAs')
     if partial_interface_implemented_as:
         return '%s::%s' % (partial_interface_implemented_as, base_name)
     if (definition.is_static or
-        definition.name in ('Constructor', 'NamedConstructor')):
+            definition.name in ('Constructor', 'NamedConstructor')):
         return '%s::%s' % (v8_utilities.cpp_name(interface), base_name)
     return 'receiver->%s' % base_name
 
@@ -104,12 +102,16 @@ _CALL_WITH_VALUES = [
 
 def _call_with_arguments(member, call_with_values=None):
     # Optional parameter so setter can override with [SetterCallWith]
-    call_with_values = call_with_values or member.extended_attributes.get('CallWith')
+    call_with_values = call_with_values or member.extended_attributes.get(
+        'CallWith')
     if not call_with_values:
         return []
-    return [_CALL_WITH_ARGUMENTS[value]
-            for value in _CALL_WITH_VALUES
-            if v8_utilities.extended_attribute_value_contains(call_with_values, value)]
+    return [
+        _CALL_WITH_ARGUMENTS[value]
+        for value in _CALL_WITH_VALUES
+        if v8_utilities.extended_attribute_value_contains(
+            call_with_values, value)
+    ]
 
 
 # [DeprecateAs]
@@ -139,8 +141,10 @@ def _measure_as(definition_or_member):
 
 
 class dart_utilities_monkey():
+
     def __init__(self):
         self.base_class_name = 'dart_utilities'
+
 
 DartUtilities = dart_utilities_monkey()
 
@@ -151,11 +155,9 @@ DartUtilities.capitalize = v8_utilities.capitalize
 DartUtilities.cpp_name = v8_utilities.cpp_name
 DartUtilities.deprecate_as = _deprecate_as
 DartUtilities.extended_attribute_value_contains = v8_utilities.extended_attribute_value_contains
-DartUtilities.gc_type = v8_utilities.gc_type
 DartUtilities.has_extended_attribute = v8_utilities.has_extended_attribute
 DartUtilities.has_extended_attribute_value = v8_utilities.has_extended_attribute_value
 DartUtilities.measure_as = _measure_as
-DartUtilities.runtime_enabled_function_name = v8_utilities.runtime_enabled_function_name
 DartUtilities.scoped_name = _scoped_name
 DartUtilities.strip_suffix = v8_utilities.strip_suffix
 DartUtilities.uncapitalize = v8_utilities.uncapitalize

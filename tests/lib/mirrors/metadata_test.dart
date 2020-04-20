@@ -4,7 +4,6 @@
 
 library test.metadata_test;
 
-@MirrorsUsed(targets: "test.metadata_test")
 import 'dart:mirrors';
 
 const string = 'a metadata string';
@@ -62,17 +61,17 @@ main() {
   ClassMirror myClassMirror = reflectClass(MyClass);
   checkMetadata(myClassMirror, [symbol, string]);
   LibraryMirror lib = mirrors.findLibrary(#test.metadata_test);
-  MethodMirror function = lib.declarations[#main];
+  MethodMirror function = lib.declarations[#main] as MethodMirror;
   checkMetadata(function, [symbol, string, symbol]);
-  MethodMirror method = myClassMirror.declarations[#myMethod];
+  MethodMirror method = myClassMirror.declarations[#myMethod] as MethodMirror;
   checkMetadata(method, [string, symbol, string]);
-  method = myClassMirror.declarations[#myOtherMethod];
+  method = myClassMirror.declarations[#myOtherMethod] as MethodMirror;
   checkMetadata(method, []);
 
-  VariableMirror xMirror = myClassMirror.declarations[#x];
+  VariableMirror xMirror = myClassMirror.declarations[#x] as VariableMirror;
   checkMetadata(xMirror, [hest, hest, symbol]);
 
-  VariableMirror yMirror = myClassMirror.declarations[#y];
+  VariableMirror yMirror = myClassMirror.declarations[#y] as VariableMirror;
   checkMetadata(yMirror, []);
 
   // TODO(ahe): Test local functions.

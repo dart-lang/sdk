@@ -4,11 +4,50 @@
 
 import java.io.*;
 import java.util.*;
-import org.antlr.runtime.*;
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.dfa.*;
+import org.antlr.v4.runtime.atn.*;
 
 class ParsingResult {
   public int numberOfFileArguments;
   public int numberOfFailures;
+}
+
+class DartErrorListener implements ANTLRErrorListener {
+  public void reportAmbiguity(
+      Parser recognizer,
+      DFA dfa,
+      int startIndex,
+      int stopIndex,
+      boolean exact,
+      BitSet ambigAlts,
+      ATNConfigSet configs) {}
+
+  public void reportAttemptingFullContext(
+      Parser recognizer,
+      DFA dfa,
+      int startIndex,
+      int stopIndex,
+      BitSet conflictingAlts,
+      ATNConfigSet configs) {}
+
+  public void reportContextSensitivity(
+      Parser recognizer,
+      DFA dfa,
+      int startIndex,
+      int stopIndex,
+      int prediction,
+      ATNConfigSet configs) {}
+
+  public void syntaxError(
+      Recognizer<?,?> recognizer,
+      Object offendingSymbol,
+      int line,
+      int charPositionInLine,
+      String msg,
+      RecognitionException e) {
+    if (!DartParser.errorHasOccurred) DartParser.prepareForErrors();
+  }
 }
 
 /// Class for `main` which will parse files given as command line arguments.
@@ -19,8 +58,8 @@ public class SpecParser {
   }
 
   private static void compileTimeErrorExit() {
-    // Terminate with exit code indicating compile-time error.
-    System.exit(254);
+    // Terminate with exit code indicating a parse error.
+    System.exit(245);
   }
 
   private static void helpAndExit() {
@@ -54,7 +93,8 @@ public class SpecParser {
       result = parseFiles(lineArgs);
       // Write stderr end token and flush.
       System.err.println(">>> EOF STDERR");
-      String resultPassString = result.numberOfFailures == 0 ? "PASS" : "FAIL";
+      String resultPassString =
+          result.numberOfFailures == 0 ? "PASS" : "PARSE_FAIL";
       System.out.println(">>> TEST " + resultPassString + " " +
           (System.currentTimeMillis() - startTime) + "ms");
       startTime = System.currentTimeMillis();
@@ -82,8 +122,11 @@ public class SpecParser {
         continue;
       }
       if (verbose) System.err.println("Parsing file: " + filePath);
-      DartParser parser = new DartParser(new CommonTokenStream(
-          new DartLexer(new ANTLRFileStream(filePath))));
+      DartLexer lexer = new DartLexer(new ANTLRFileStream(filePath));
+      DartParser parser = new DartParser(new CommonTokenStream(lexer));
+      ANTLRErrorListener errorListener = new DartErrorListener();
+      lexer.addErrorListener(errorListener);
+      parser.addErrorListener(errorListener);
       if (!parser.parseLibrary(filePath)) result.numberOfFailures++;
     }
     return result;

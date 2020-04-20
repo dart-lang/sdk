@@ -8,11 +8,27 @@
 #include "vm/allocation.h"
 #include "vm/globals.h"
 
+#include "include/dart_api.h"
+
 namespace dart {
 
-#ifndef PRODUCT
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
-class Mutex;
+// An abstract representation of comments associated with the given code
+// object. We assume that comments are sorted by PCOffset.
+class CodeComments : public ValueObject {
+ public:
+  CodeComments() = default;
+  virtual ~CodeComments() = default;
+
+  virtual intptr_t Length() const = 0;
+  virtual intptr_t PCOffsetAt(intptr_t index) const = 0;
+  virtual const char* CommentAt(intptr_t index) const = 0;
+};
+
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+
+#if !defined(PRODUCT)
 
 // Object observing code creation events. Used by external profilers and
 // debuggers to map address ranges to function names.
@@ -32,15 +48,20 @@ class CodeObserver {
                       uword base,
                       uword prologue_offset,
                       uword size,
-                      bool optimized) = 0;
+                      bool optimized,
+                      const CodeComments* comments) = 0;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CodeObserver);
 };
 
+class Mutex;
+
 class CodeObservers : public AllStatic {
  public:
-  static void InitOnce();
+  static void Init();
+
+  static void RegisterExternal(Dart_CodeObserver observer);
 
   static void Register(CodeObserver* observer);
 
@@ -49,12 +70,13 @@ class CodeObservers : public AllStatic {
                         uword base,
                         uword prologue_offset,
                         uword size,
-                        bool optimized);
+                        bool optimized,
+                        const CodeComments* comments);
 
   // Returns true if there is at least one active code observer.
   static bool AreActive();
 
-  static void DeleteAll();
+  static void Cleanup();
 
   static Mutex* mutex() { return mutex_; }
 
@@ -64,7 +86,7 @@ class CodeObservers : public AllStatic {
   static CodeObserver** observers_;
 };
 
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT)
 
 }  // namespace dart
 

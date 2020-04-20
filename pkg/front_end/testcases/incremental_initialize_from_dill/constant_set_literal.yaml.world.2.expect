@@ -1,0 +1,25 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  static const field dart.core::Set<dart.core::int*>* bar = #C5;
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart";
+
+  static const field dart.core::Set<dart.core::String*>* foo = #C8;
+  static method main() → dynamic {
+    dart.core::print(#C8);
+    dart.core::print(#C5);
+  }
+}
+constants  {
+  #C1 = 42
+  #C2 = null
+  #C3 = <dynamic>[#C1, #C2]
+  #C4 = dart.core::_ImmutableMap<dart.core::int*, dart.core::Null?> {_kvPairs:#C3}
+  #C5 = dart.collection::_UnmodifiableSet<dart.core::int*> {_map:#C4}
+  #C6 = <dynamic>[]
+  #C7 = dart.core::_ImmutableMap<dart.core::String*, dart.core::Null?> {_kvPairs:#C6}
+  #C8 = dart.collection::_UnmodifiableSet<dart.core::String*> {_map:#C7}
+}

@@ -1,0 +1,15 @@
+# Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $runtime != none ]
+LibTest/core/Uri/hasEmptyPath_A01_t01: RuntimeError
+LibTest/core/Uri/parse_A05_t01: RuntimeError
+
+[ $compiler != dart2js && $runtime != none && $runtime != vm && !$checked ]
+LibTest/async/Future/catchError_A03_t05: RuntimeError
+
+[ $compiler == fasta || $runtime == dart_precompiled || $runtime == vm ]
+LayoutTests/fast/*: SkipByDesign # DOM not supported on VM.
+LibTest/html/*: SkipByDesign # dart:html not supported on VM.
+WebPlatformTest/*: SkipByDesign # dart:html not supported on VM.

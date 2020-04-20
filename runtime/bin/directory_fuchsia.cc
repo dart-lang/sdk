@@ -10,7 +10,7 @@
 #include <dirent.h>          // NOLINT
 #include <errno.h>           // NOLINT
 #include <fcntl.h>           // NOLINT
-#include <fdio/namespace.h>  // NOLINT
+#include <lib/fdio/namespace.h>  // NOLINT
 #include <stdlib.h>          // NOLINT
 #include <string.h>          // NOLINT
 #include <sys/param.h>       // NOLINT
@@ -82,7 +82,7 @@ void PathBuffer::Reset(intptr_t new_length) {
 // These are scanned to detect loops while doing a recursive directory listing.
 struct LinkList {
   dev_t dev;
-  ino64_t ino;
+  ino_t ino;
   LinkList* next;
 };
 
@@ -95,7 +95,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
     ASSERT(lister_ == 0);
     NamespaceScope ns(listing->namespc(), listing->path_buffer().AsString());
     const int listingfd =
-        TEMP_FAILURE_RETRY(openat64(ns.fd(), ns.path(), O_DIRECTORY));
+        TEMP_FAILURE_RETRY(openat(ns.fd(), ns.path(), O_DIRECTORY));
     if (listingfd < 0) {
       done_ = true;
       return kListError;
@@ -148,8 +148,8 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
         if (!listing->follow_links()) {
           return kListLink;
         }
-      // Else fall through to next case.
-      // Fall through.
+        // Else fall through to next case.
+        FALL_THROUGH;
       case DT_UNKNOWN: {
         // On some file systems the entry type is not determined by
         // readdir. For those and for links we use stat to determine
@@ -157,10 +157,10 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
         // the file pointed to.
         NamespaceScope ns(listing->namespc(),
                           listing->path_buffer().AsString());
-        struct stat64 entry_info;
+        struct stat entry_info;
         int stat_success;
         stat_success = TEMP_FAILURE_RETRY(
-            fstatat64(ns.fd(), ns.path(), &entry_info, AT_SYMLINK_NOFOLLOW));
+            fstatat(ns.fd(), ns.path(), &entry_info, AT_SYMLINK_NOFOLLOW));
         if (stat_success == -1) {
           return kListError;
         }
@@ -177,7 +177,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
             previous = previous->next;
           }
           stat_success =
-              TEMP_FAILURE_RETRY(fstatat64(ns.fd(), ns.path(), &entry_info, 0));
+              TEMP_FAILURE_RETRY(fstatat(ns.fd(), ns.path(), &entry_info, 0));
           if (stat_success == -1) {
             // Report a broken link as a link, even if follow_links is true.
             return kListLink;
@@ -248,9 +248,9 @@ void DirectoryListingEntry::ResetLink() {
 Directory::ExistsResult Directory::Exists(Namespace* namespc,
                                           const char* dir_name) {
   NamespaceScope ns(namespc, dir_name);
-  struct stat64 entry_info;
+  struct stat entry_info;
   const int success =
-      TEMP_FAILURE_RETRY(fstatat64(ns.fd(), ns.path(), &entry_info, 0));
+      TEMP_FAILURE_RETRY(fstatat(ns.fd(), ns.path(), &entry_info, 0));
   if (success == 0) {
     if (S_ISDIR(entry_info.st_mode)) {
       return EXISTS;
@@ -366,9 +366,9 @@ static bool DeleteDir(int dirfd, char* dir_name, PathBuffer* path) {
 static bool DeleteRecursively(int dirfd, PathBuffer* path) {
   // Do not recurse into links for deletion. Instead delete the link.
   // If it's a file, delete it.
-  struct stat64 st;
+  struct stat st;
   if (TEMP_FAILURE_RETRY(
-          fstatat64(dirfd, path->AsString(), &st, AT_SYMLINK_NOFOLLOW)) == -1) {
+          fstatat(dirfd, path->AsString(), &st, AT_SYMLINK_NOFOLLOW)) == -1) {
     return false;
   } else if (!S_ISDIR(st.st_mode)) {
     return (NO_RETRY_EXPECTED(unlinkat(dirfd, path->AsString(), 0)) == 0);
@@ -381,7 +381,7 @@ static bool DeleteRecursively(int dirfd, PathBuffer* path) {
   // Not a link. Attempt to open as a directory and recurse into the
   // directory.
   const int fd =
-      TEMP_FAILURE_RETRY(openat64(dirfd, path->AsString(), O_DIRECTORY));
+      TEMP_FAILURE_RETRY(openat(dirfd, path->AsString(), O_DIRECTORY));
   if (fd < 0) {
     return false;
   }
@@ -443,9 +443,9 @@ static bool DeleteRecursively(int dirfd, PathBuffer* path) {
         // On some file systems the entry type is not determined by
         // readdir. For those we use lstat to determine the entry
         // type.
-        struct stat64 entry_info;
-        if (TEMP_FAILURE_RETRY(fstatat64(dirfd, path->AsString(), &entry_info,
-                                         AT_SYMLINK_NOFOLLOW)) == -1) {
+        struct stat entry_info;
+        if (TEMP_FAILURE_RETRY(fstatat(dirfd, path->AsString(), &entry_info,
+                                       AT_SYMLINK_NOFOLLOW)) == -1) {
           break;
         }
         path->Reset(path_length);

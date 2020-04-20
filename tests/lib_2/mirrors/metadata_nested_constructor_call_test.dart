@@ -1,4 +1,3 @@
-// compile options: --emit-metadata
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -7,7 +6,6 @@
 
 library test.metadata_nested_constructor_call;
 
-@MirrorsUsed(targets: "test.metadata_nested_constructor_call")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
@@ -36,10 +34,10 @@ class D {}
 @Box(const MutableBox(const Box())) // //# 02: compile-time error
 class E {}
 
-@Box(Box()) // //# 03: compile-time error
+@Box(Box())
 class F {}
 
-@Box(Box(const Box())) // //# 04: compile-time error
+@Box(Box(const Box()))
 class G {}
 
 @Box(Box(const MutableBox())) // //# 05: compile-time error

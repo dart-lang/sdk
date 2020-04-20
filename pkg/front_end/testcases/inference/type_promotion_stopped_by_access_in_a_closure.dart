@@ -8,8 +8,8 @@ library test;
 main() {
   num n = null;
   if (n is int) {
-    var /*@type=num*/ i = n;
-    /*@returnType=Null*/ () {
+    var /*@ type=num* */ i = n;
+    /*@ returnType=Null? */ () {
       n;
     };
   }

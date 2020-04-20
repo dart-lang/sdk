@@ -3,52 +3,52 @@ import self as self;
 import "dart:core" as core;
 
 class Index extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::Index*
     ;
 }
 class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::A*
     ;
-  operator +(self::F v) → self::C
+  operator +(self::F* v) → self::C*
     ;
-  operator -(core::int i) → self::C
+  operator -(core::int* i) → self::C*
     ;
 }
 class B extends self::A {
-  default constructor •() → void
+  synthetic constructor •() → self::B*
     ;
-  operator +(self::E v) → self::D
+  operator +(self::E* v) → self::D*
     ;
-  operator -(core::int i) → self::D
+  operator -(core::int* i) → self::D*
     ;
 }
 class C extends self::B {
-  default constructor •() → void
+  synthetic constructor •() → self::C*
     ;
 }
 class D extends self::C {
-  default constructor •() → void
+  synthetic constructor •() → self::D*
     ;
 }
 class E extends self::D {
-  default constructor •() → void
+  synthetic constructor •() → self::E*
     ;
 }
 class F extends self::E {
-  default constructor •() → void
+  synthetic constructor •() → self::F*
     ;
 }
 class Test extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::Test*
     ;
-  operator [](self::Index i) → self::B
+  operator [](self::Index* i) → self::B*
     ;
-  operator []=(self::Index i, self::A v) → void
+  operator []=(self::Index* i, self::A* v) → void
     ;
   method test() → void
     ;
 }
-static method f<T extends core::Object>() → self::f::T
+static method f<T extends core::Object* = dynamic>() → self::f::T*
   ;
 static method main() → dynamic
   ;

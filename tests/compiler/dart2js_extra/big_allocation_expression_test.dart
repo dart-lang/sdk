@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // This program crashes the SSA backend. http://dartbug.com/24635.
 
 import "package:expect/expect.dart";
@@ -12,7 +14,7 @@ class A {
 
   factory A(a, x) = A.q;
 
-  // @NoInline()  // This annotation causes the test to compile on SSA backend.
+  // @pragma('dart2js:noInline')  // This annotation causes the test to compile on SSA backend.
   A.q(this.a, x) : b = x == null ? null : new W(x);
 }
 

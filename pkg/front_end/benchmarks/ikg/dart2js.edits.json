@@ -8,7 +8,7 @@
   {
     "name": "optionslib",
     "edits": [
-      ["pkg/compiler/lib/src/options.dart", "_extractStringOption", "_extractStringOptionReplacement"]
+      ["package:compiler/src/options.dart", "_extractStringOption", "_extractStringOptionReplacement"]
     ]
   }
 ]

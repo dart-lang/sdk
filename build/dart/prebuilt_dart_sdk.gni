@@ -1,0 +1,25 @@
+# Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../executable_suffix.gni")
+
+_dart_root = rebase_path("../..")
+
+_prebuilt_dart_exe =
+    "$_dart_root/tools/sdks/dart-sdk/bin/dart$executable_suffix"
+
+# When the first argument is "exec_script", gn_run_binary.py always exits with
+# status 0, but gives non-empty output when the command it is given fails.
+_prebuilt_dart_exe_trial = exec_script("../gn_run_binary.py",
+                                       [
+                                         "exec_script",
+                                         _prebuilt_dart_exe,
+                                         "--version",
+                                       ],
+                                       "string")
+if (_prebuilt_dart_exe_trial == "") {
+  prebuilt_dart_exe_works = true
+} else {
+  prebuilt_dart_exe_works = false
+}

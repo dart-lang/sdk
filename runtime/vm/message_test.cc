@@ -29,9 +29,11 @@ TEST_CASE(MessageQueue_BasicOperations) {
   const char* str6 = "msg6";
 
   // Add two messages.
-  Message* msg1 = new Message(port, AllocMsg(str1), strlen(str1) + 1,
-                              Message::kNormalPriority);
-  queue.Enqueue(msg1, false);
+  std::unique_ptr<Message> msg =
+      Message::New(port, AllocMsg(str1), strlen(str1) + 1, nullptr,
+                   Message::kNormalPriority);
+  Message* msg1 = msg.get();
+  queue.Enqueue(std::move(msg), false);
   EXPECT(queue.Length() == 1);
   EXPECT(!queue.IsEmpty());
   it.Reset(&queue);
@@ -39,9 +41,10 @@ TEST_CASE(MessageQueue_BasicOperations) {
   EXPECT(it.Next() == msg1);
   EXPECT(!it.HasNext());
 
-  Message* msg2 = new Message(port, AllocMsg(str2), strlen(str2) + 1,
-                              Message::kNormalPriority);
-  queue.Enqueue(msg2, false);
+  msg = Message::New(port, AllocMsg(str2), strlen(str2) + 1, nullptr,
+                     Message::kNormalPriority);
+  Message* msg2 = msg.get();
+  queue.Enqueue(std::move(msg), false);
   EXPECT(queue.Length() == 2);
   EXPECT(!queue.IsEmpty());
   it.Reset(&queue);
@@ -59,9 +62,9 @@ TEST_CASE(MessageQueue_BasicOperations) {
   EXPECT(queue.FindMessageById(0x1) == NULL);
 
   // Remove message 1
-  Message* msg = queue.Dequeue();
-  EXPECT(msg != NULL);
-  EXPECT_STREQ(str1, reinterpret_cast<char*>(msg->data()));
+  msg = queue.Dequeue();
+  EXPECT(msg != nullptr);
+  EXPECT_STREQ(str1, reinterpret_cast<char*>(msg->snapshot()));
   EXPECT(!queue.IsEmpty());
 
   it.Reset(&queue);
@@ -70,56 +73,49 @@ TEST_CASE(MessageQueue_BasicOperations) {
 
   // Remove message 2
   msg = queue.Dequeue();
-  EXPECT(msg != NULL);
-  EXPECT_STREQ(str2, reinterpret_cast<char*>(msg->data()));
+  EXPECT(msg != nullptr);
+  EXPECT_STREQ(str2, reinterpret_cast<char*>(msg->snapshot()));
   EXPECT(queue.IsEmpty());
 
-  Message* msg3 = new Message(Message::kIllegalPort, AllocMsg(str3),
-                              strlen(str3) + 1, Message::kNormalPriority);
-  queue.Enqueue(msg3, true);
+  msg = Message::New(Message::kIllegalPort, AllocMsg(str3), strlen(str3) + 1,
+                     nullptr, Message::kNormalPriority);
+  queue.Enqueue(std::move(msg), true);
   EXPECT(!queue.IsEmpty());
 
-  Message* msg4 = new Message(Message::kIllegalPort, AllocMsg(str4),
-                              strlen(str4) + 1, Message::kNormalPriority);
-  queue.Enqueue(msg4, true);
+  msg = Message::New(Message::kIllegalPort, AllocMsg(str4), strlen(str4) + 1,
+                     nullptr, Message::kNormalPriority);
+  queue.Enqueue(std::move(msg), true);
   EXPECT(!queue.IsEmpty());
 
-  Message* msg5 = new Message(port, AllocMsg(str5), strlen(str5) + 1,
-                              Message::kNormalPriority);
-  queue.Enqueue(msg5, false);
+  msg = Message::New(port, AllocMsg(str5), strlen(str5) + 1, nullptr,
+                     Message::kNormalPriority);
+  queue.Enqueue(std::move(msg), false);
   EXPECT(!queue.IsEmpty());
 
-  Message* msg6 = new Message(Message::kIllegalPort, AllocMsg(str6),
-                              strlen(str6) + 1, Message::kNormalPriority);
-  queue.Enqueue(msg6, true);
-  EXPECT(!queue.IsEmpty());
-
-  msg = queue.Dequeue();
-  EXPECT(msg != NULL);
-  EXPECT_STREQ(str3, reinterpret_cast<char*>(msg->data()));
+  msg = Message::New(Message::kIllegalPort, AllocMsg(str6), strlen(str6) + 1,
+                     nullptr, Message::kNormalPriority);
+  queue.Enqueue(std::move(msg), true);
   EXPECT(!queue.IsEmpty());
 
   msg = queue.Dequeue();
-  EXPECT(msg != NULL);
-  EXPECT_STREQ(str4, reinterpret_cast<char*>(msg->data()));
+  EXPECT(msg != nullptr);
+  EXPECT_STREQ(str3, reinterpret_cast<char*>(msg->snapshot()));
   EXPECT(!queue.IsEmpty());
 
   msg = queue.Dequeue();
-  EXPECT(msg != NULL);
-  EXPECT_STREQ(str6, reinterpret_cast<char*>(msg->data()));
+  EXPECT(msg != nullptr);
+  EXPECT_STREQ(str4, reinterpret_cast<char*>(msg->snapshot()));
   EXPECT(!queue.IsEmpty());
 
   msg = queue.Dequeue();
-  EXPECT(msg != NULL);
-  EXPECT_STREQ(str5, reinterpret_cast<char*>(msg->data()));
+  EXPECT(msg != nullptr);
+  EXPECT_STREQ(str6, reinterpret_cast<char*>(msg->snapshot()));
+  EXPECT(!queue.IsEmpty());
+
+  msg = queue.Dequeue();
+  EXPECT(msg != nullptr);
+  EXPECT_STREQ(str5, reinterpret_cast<char*>(msg->snapshot()));
   EXPECT(queue.IsEmpty());
-
-  delete msg1;
-  delete msg2;
-  delete msg3;
-  delete msg4;
-  delete msg5;
-  delete msg6;
 }
 
 TEST_CASE(MessageQueue_Clear) {
@@ -131,18 +127,17 @@ TEST_CASE(MessageQueue_Clear) {
   const char* str2 = "msg2";
 
   // Add two messages.
-  Message* msg1 = new Message(port1, AllocMsg(str1), strlen(str1) + 1,
-                              Message::kNormalPriority);
-  queue.Enqueue(msg1, false);
-  Message* msg2 = new Message(port2, AllocMsg(str2), strlen(str2) + 1,
-                              Message::kNormalPriority);
-  queue.Enqueue(msg2, false);
+  std::unique_ptr<Message> msg;
+  msg = Message::New(port1, AllocMsg(str1), strlen(str1) + 1, nullptr,
+                     Message::kNormalPriority);
+  queue.Enqueue(std::move(msg), false);
+  msg = Message::New(port2, AllocMsg(str2), strlen(str2) + 1, nullptr,
+                     Message::kNormalPriority);
+  queue.Enqueue(std::move(msg), false);
 
   EXPECT(!queue.IsEmpty());
   queue.Clear();
   EXPECT(queue.IsEmpty());
-
-  // msg1 and msg2 already delete by FlushAll.
 }
 
 }  // namespace dart

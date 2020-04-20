@@ -9,88 +9,36 @@ part of $LIBRARYNAME;
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
 
-  @DomName('Document.body')
-  BodyElement body;
+  BodyElement$NULLABLE get body native;
+  set body(BodyElement$NULLABLE value) native;
 
   /// UNSTABLE: Chrome-only - create a Range from the given point.
-  @DomName('Document.caretRangeFromPoint')
   @Unstable()
-  Range caretRangeFromPoint(int x, int y) {
+  Range caretRangeFromPoint(int$NULLABLE x, int$NULLABLE y) {
     return _caretRangeFromPoint(x, y);
   }
 
-  @DomName('Document.elementFromPoint')
-  Element elementFromPoint(int x, int y) {
+  Element$NULLABLE elementFromPoint(int x, int y) {
     return _elementFromPoint(x, y);
   }
 
-  /**
-   * Checks if the getCssCanvasContext API is supported on the current platform.
-   *
-   * See also:
-   *
-   * * [getCssCanvasContext]
-   */
-  static bool get supportsCssCanvasContext =>
-      JS('bool', '!!(document.getCSSCanvasContext)');
+  HeadElement$NULLABLE get head => _head;
 
-
-  /**
-   * Gets a CanvasRenderingContext which can be used as the CSS background of an
-   * element.
-   *
-   * CSS:
-   *
-   *     background: -webkit-canvas(backgroundCanvas)
-   *
-   * Generate the canvas:
-   *
-   *     var context = document.getCssCanvasContext('2d', 'backgroundCanvas',
-   *         100, 100);
-   *     context.fillStyle = 'red';
-   *     context.fillRect(0, 0, 100, 100);
-   *
-   * See also:
-   *
-   * * [supportsCssCanvasContext]
-   * * [CanvasElement.getContext]
-   */
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  @DomName('Document.getCSSCanvasContext')
-  CanvasRenderingContext getCssCanvasContext(String contextId, String name,
-      int width, int height) {
-      if (HtmlDocument.supportsCssCanvasContext)
-        return JS('CanvasRenderingContext', '#.getCSSCanvasContext(#, #, #, #)', this, contextId, name, width, height);
-      throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('Document.head')
-  HeadElement get head => _head;
-
-  @DomName('Document.lastModified')
   String get lastModified => _lastModified;
 
-  @DomName('Document.preferredStylesheetSet')
-  String get preferredStylesheetSet => _preferredStylesheetSet;
+  String$NULLABLE get preferredStylesheetSet => _preferredStylesheetSet;
 
-  @DomName('Document.referrer')
   String get referrer => _referrer;
 
-  @DomName('Document.selectedStylesheetSet')
-  String get selectedStylesheetSet => _selectedStylesheetSet;
-  set selectedStylesheetSet(String value) {
+  String$NULLABLE get selectedStylesheetSet => _selectedStylesheetSet;
+  set selectedStylesheetSet(String$NULLABLE value) {
     _selectedStylesheetSet = value;
   }
 
-  @DomName('Document.styleSheets')
   List<StyleSheet> get styleSheets => _styleSheets;
 
-  @DomName('Document.title')
   String get title => _title;
 
-  @DomName('Document.title')
   set title(String value) {
     _title = value;
   }
@@ -102,21 +50,18 @@ $!MEMBERS
    *
    * ## Other resources
    *
-   * * [Using the fullscreen
-   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
-   *   from WebPlatform.org.
+   * * [Fullscreen
+   *   API](https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API)
+   *   from MDN.
    * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
    */
-  @DomName('Document.webkitExitFullscreen')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
   void exitFullscreen() {
     _webkitExitFullscreen();
   }
 
 
-  @Experimental()
   /**
    * Register a custom subclass of Element to be instantiatable by the DOM.
    *
@@ -158,16 +103,14 @@ $!MEMBERS
    * `<input is="x-bar"></input>`
    *
    */
-  void registerElement(String tag, Type customElementClass,
-      {String extendsTag}) {
-    _registerCustomElement(JS('', 'window'), this, tag, customElementClass,
-        extendsTag);
+  Function registerElement2(String tag, [Map$NULLABLE options]) {
+    return _registerCustomElement(JS('', 'window'), this, tag, options);
   }
 
   /** *Deprecated*: use [registerElement] instead. */
   @deprecated
-  @Experimental()
-  void register(String tag, Type customElementClass, {String extendsTag}) {
+  void register(String tag, Type customElementClass,
+      {String$NULLABLE extendsTag}) {
     return registerElement(tag, customElementClass, extendsTag: extendsTag);
   }
 
@@ -177,11 +120,9 @@ $!MEMBERS
    *
    * See [EventStreamProvider] for usage information.
    */
-  @DomName('Document.visibilityChange')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
-  @Experimental()
   static const EventStreamProvider<Event> visibilityChangeEvent =
       const _CustomEventStreamProvider<Event>(
         _determineVisibilityChangeEventType);
@@ -203,7 +144,6 @@ $!MEMBERS
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
-  @Experimental()
   Stream<Event> get onVisibilityChange =>
       visibilityChangeEvent.forTarget(this);
 
@@ -215,8 +155,8 @@ $!MEMBERS
   ///
   /// If the type is not a direct subclass of HtmlElement then the extendsTag
   /// parameter must be provided.
-  @Experimental()
-  ElementUpgrader createElementUpgrader(Type type, {String extendsTag}) {
+  ElementUpgrader createElementUpgrader(Type type,
+      {String$NULLABLE extendsTag}) {
     return new _JSElementUpgrader(this, type, extendsTag);
   }
 }

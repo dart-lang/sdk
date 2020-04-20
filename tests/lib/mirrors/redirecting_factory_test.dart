@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library lib;
-
-@MirrorsUsed(targets: "lib")
 import "dart:mirrors";
 import "package:expect/expect.dart";
 import "stringify.dart";
@@ -32,33 +29,35 @@ class Class<T1, T2> {
   }
 
   factory Class.redirectingFactoryMoreNamedOptional(a, {b}) =
-      Class.factoryMoreNamedOptional;
+      Class<T1, T2>.factoryMoreNamedOptional;
 
   factory Class.factoryMoreUnnamedOptional(a, [b = 0, c = 2]) {
     return new Class<T1, T2>(a - b - c);
   }
 
   factory Class.redirectingFactoryMoreUnnamedOptional(a, [b]) =
-      Class.factoryMoreUnnamedOptional;
+      Class<T1, T2>.factoryMoreUnnamedOptional;
 
-  factory Class.redirectingFactoryStringIntTypeParameters(a, b) =
-      Class<String, int>.factoryNoOptional;
+  factory Class.redirectingFactoryStringIntTypeParameters(a, b) = Class //
+      <String, int> //# 03: compile-time error
+      .factoryNoOptional;
 
-  factory Class.redirectingFactoryStringTypeParameters(a, b) = Class
-        <String> // //# 02: static type warning
+  factory Class.redirectingFactoryStringTypeParameters(a, b) = Class //
+      <String> //# 02: compile-time error
       .factoryNoOptional;
 
   factory Class.redirectingFactoryTypeParameters(a, b) =
       Class<T1, T2>.factoryNoOptional;
 
-  factory Class.redirectingFactoryReversedTypeParameters(a, b) =
-      Class<T2, T1>.factoryNoOptional;
+  factory Class.redirectingFactoryReversedTypeParameters(a, b) = Class //
+      <T2, T1> //# 04: compile-time error
+      .factoryNoOptional;
 }
 
 main() {
   var classMirror = reflectClass(Class);
 
-  var instanceMirror = classMirror.newInstance(const Symbol(''), [2]);
+  var instanceMirror = classMirror.newInstance(Symbol.empty, [2]);
   Expect.equals(2, instanceMirror.reflectee.field);
 
   instanceMirror =

@@ -8,11 +8,11 @@ library test;
 class B {}
 
 class C extends B {
-  var /*@topType=dynamic*/ z;
+  var z;
 }
 
 void test(B x) {
-  var /*@type=C*/ y = x is C ? /*@promotedType=C*/ x : new C();
+  var /*@ type=C* */ y = x is C ? /*@ promotedType=C* */ x : new C();
   print(y. /*@target=C::z*/ z);
 }
 

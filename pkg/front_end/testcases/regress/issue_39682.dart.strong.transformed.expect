@@ -1,0 +1,29 @@
+library;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue_39682_lib.dart" deferred as foo;
+
+static method main() → dynamic {
+  () →* asy::Future<dynamic>* f = #C1;
+  f.call();
+  core::print(self::__loadLibrary_foo());
+}
+static method __loadLibrary_foo() → core::String* {
+  return "I'll call my methods what I want!";
+}
+static method _#loadLibrary_foo() → asy::Future<dynamic>*
+  return LoadLibrary(foo);
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+static method foo() → dynamic {
+  core::print("foo!");
+}
+
+constants  {
+  #C1 = tearoff self::_#loadLibrary_foo
+}

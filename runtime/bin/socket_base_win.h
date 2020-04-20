@@ -9,6 +9,7 @@
 #error Do not include socket_base_win.h directly. Use socket_base.h.
 #endif
 
+#include <afunix.h>
 #include <iphlpapi.h>
 #include <mswsock.h>
 #include <winsock2.h>

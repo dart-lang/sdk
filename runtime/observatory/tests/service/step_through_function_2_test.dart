@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'test_helper.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 const int LINE = 11;
 const String file = "step_through_function_2_test.dart";
@@ -16,6 +16,7 @@ code() {
   fooXYZ2(42);
 }
 
+// ignore: unused_element
 int _xyz = -1;
 
 fooXYZ1(int i) {
@@ -42,34 +43,34 @@ class Bar {
 
 List<String> stops = [];
 List<String> expected = [
-  "$file:${LINE+0}:5", // after 'code'
-  "$file:${LINE+1}:17", // on 'Bar'
+  "$file:${LINE + 0}:5", // after 'code'
+  "$file:${LINE + 1}:17", // on 'Bar'
 
-  "$file:${LINE+2}:7", // on 'barXYZ1'
-  "$file:${LINE+21}:15", // on 'i'
-  "$file:${LINE+22}:14", // on '-'
-  "$file:${LINE+22}:5", // on '_xyz'
-  "$file:${LINE+23}:3", // on '}'
+  "$file:${LINE + 2}:7", // on 'barXYZ1'
+  "$file:${LINE + 22}:15", // on 'i'
+  "$file:${LINE + 23}:14", // on '-'
+  "$file:${LINE + 23}:5", // on '_xyz'
+  "$file:${LINE + 24}:3", // on '}'
 
-  "$file:${LINE+3}:7", // on 'barXYZ2'
-  "$file:${LINE+25}:15", // on 'i'
-  "$file:${LINE+26}:5", // on '_xyz'
-  "$file:${LINE+27}:3", // on '}'
+  "$file:${LINE + 3}:7", // on 'barXYZ2'
+  "$file:${LINE + 26}:15", // on 'i'
+  "$file:${LINE + 27}:5", // on '_xyz'
+  "$file:${LINE + 28}:3", // on '}'
 
-  "$file:${LINE+4}:3", // on 'fooXYZ1'
-  "$file:${LINE+10}:13", // on 'i'
-  "$file:${LINE+11}:12", // on '-'
-  "$file:${LINE+12}:1", // on '}'
+  "$file:${LINE + 4}:3", // on 'fooXYZ1'
+  "$file:${LINE + 11}:13", // on 'i'
+  "$file:${LINE + 12}:12", // on '-'
+  "$file:${LINE + 13}:1", // on '}'
 
-  "$file:${LINE+5}:3", // on 'fooXYZ2'
-  "$file:${LINE+14}:13", // on 'i'
-  "$file:${LINE+15}:3", // on '_xyz'
-  "$file:${LINE+16}:1", // on '}'
+  "$file:${LINE + 5}:3", // on 'fooXYZ2'
+  "$file:${LINE + 15}:13", // on 'i'
+  "$file:${LINE + 16}:3", // on '_xyz'
+  "$file:${LINE + 17}:1", // on '}'
 
-  "$file:${LINE+6}:1" // on ending '}'
+  "$file:${LINE + 6}:1" // on ending '}'
 ];
 
-var tests = [
+var tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtLine(LINE),
   runStepIntoThroughProgramRecordingStops(stops),

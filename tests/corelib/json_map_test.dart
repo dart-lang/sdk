@@ -5,20 +5,20 @@
 library json_map_test;
 
 import "package:expect/expect.dart";
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 import 'dart:collection' show LinkedHashMap, HashMap;
 
 bool useReviver = false;
-Map jsonify(Map map) {
-  String encoded = JSON.encode(map);
+Map<String, dynamic> jsonify(Map map) {
+  String encoded = json.encode(map);
   return useReviver
-      ? JSON.decode(encoded, reviver: (key, value) => value)
-      : JSON.decode(encoded);
+      ? json.decode(encoded, reviver: (key, value) => value)
+      : json.decode(encoded);
 }
 
 List listEach(Map map) {
   var result = [];
-  map.forEach((String key, value) {
+  map.forEach((key, value) {
     result.add(key);
     result.add(value);
   });
@@ -35,7 +35,10 @@ void test(bool revive) {
   testEmpty(jsonify({}));
   testAtoB(jsonify({'a': 'b'}));
 
-  Map map = jsonify({});
+  // You can write 'Map<String, dynamic>' here (or 'var' which infers the
+  // same), but if you write just 'Map' as the type, then the type of the
+  // constant argument in the addAll below is not inferred correctly.
+  var map = jsonify({});
   map['a'] = 'b';
   testAtoB(map);
 
@@ -102,7 +105,7 @@ void testAtoB(Map map) {
 }
 
 void testLookupNonExistingKeys(Map map) {
-  for (String key in ['__proto__', 'null', null]) {
+  for (var key in ['__proto__', 'null', null]) {
     Expect.isNull(map[key]);
     Expect.isFalse(map.containsKey(key));
   }
@@ -298,9 +301,15 @@ void testConcurrentModifications() {
 }
 
 void testType() {
-  Expect.isTrue(jsonify({}) is Map);
-  Expect.isTrue(jsonify({}) is Map<String, dynamic>);
-  Expect.isFalse(jsonify({}) is Map<int, dynamic>);
+  var map = jsonify({});
+  var type = "${map.runtimeType}";
+
+  // The documentation of json.decode doesn't actually specify that it returns
+  // a map (it's marked dynamic), but it's a reasonable expectation if you
+  // don't provide a reviver function.
+  Expect.isTrue(map is Map, type);
+  Expect.isTrue(map is Map<String, dynamic>, type);
+  Expect.isFalse(map is Map<int, dynamic>, type);
 }
 
 void testClear() {

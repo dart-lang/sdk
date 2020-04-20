@@ -10,10 +10,96 @@
 #include "vm/object.h"
 #include "vm/raw_object.h"
 #include "vm/resolver.h"
+#include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/visitor.h"
 
 namespace dart {
+
+IsolateObjectStore::IsolateObjectStore(ObjectStore* object_store)
+    : object_store_(object_store) {}
+
+IsolateObjectStore::~IsolateObjectStore() {}
+
+void IsolateObjectStore::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  ASSERT(visitor != NULL);
+  visitor->set_gc_root_type("isolate_object store");
+  visitor->VisitPointers(from(), to());
+  visitor->clear_gc_root_type();
+}
+
+void IsolateObjectStore::Init() {
+#define INIT_FIELD(Type, name) name##_ = Type::null();
+  ISOLATE_OBJECT_STORE_FIELD_LIST(INIT_FIELD, INIT_FIELD)
+#undef INIT_FIELD
+
+  for (RawObject** current = from(); current <= to(); current++) {
+    ASSERT(*current == Object::null());
+  }
+}
+
+#ifndef PRODUCT
+void IsolateObjectStore::PrintToJSONObject(JSONObject* jsobj) {
+  jsobj->AddProperty("type", "_IsolateObjectStore");
+
+  {
+    JSONObject fields(jsobj, "fields");
+    Object& value = Object::Handle();
+#define PRINT_OBJECT_STORE_FIELD(type, name)                                   \
+  value = name##_;                                                             \
+  fields.AddProperty(#name "_", value);
+    ISOLATE_OBJECT_STORE_FIELD_LIST(PRINT_OBJECT_STORE_FIELD,
+                                    PRINT_OBJECT_STORE_FIELD);
+#undef PRINT_OBJECT_STORE_FIELD
+  }
+}
+#endif  // !PRODUCT
+
+static RawUnhandledException* CreatePreallocatedUnandledException(
+    Zone* zone,
+    const Object& out_of_memory) {
+  // Allocate pre-allocated unhandled exception object initialized with the
+  // pre-allocated OutOfMemoryError.
+  const UnhandledException& unhandled_exception =
+      UnhandledException::Handle(UnhandledException::New(
+          Instance::Cast(out_of_memory), StackTrace::Handle(zone)));
+  return unhandled_exception.raw();
+}
+
+static RawStackTrace* CreatePreallocatedStackTrace(Zone* zone) {
+  const Array& code_array = Array::Handle(
+      zone, Array::New(StackTrace::kPreallocatedStackdepth, Heap::kOld));
+  const Array& pc_offset_array = Array::Handle(
+      zone, Array::New(StackTrace::kPreallocatedStackdepth, Heap::kOld));
+  const StackTrace& stack_trace =
+      StackTrace::Handle(zone, StackTrace::New(code_array, pc_offset_array));
+  // Expansion of inlined functions requires additional memory at run time,
+  // avoid it.
+  stack_trace.set_expand_inlined(false);
+  return stack_trace.raw();
+}
+
+RawError* IsolateObjectStore::PreallocateObjects() {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
+  ASSERT(isolate != NULL && isolate->isolate_object_store() == this);
+  ASSERT(preallocated_stack_trace() == StackTrace::null());
+  resume_capabilities_ = GrowableObjectArray::New();
+  exit_listeners_ = GrowableObjectArray::New();
+  error_listeners_ = GrowableObjectArray::New();
+
+  // Allocate pre-allocated unhandled exception object initialized with the
+  // pre-allocated OutOfMemoryError.
+  const Object& out_of_memory =
+      Object::Handle(zone, object_store_->out_of_memory());
+  set_preallocated_unhandled_exception(UnhandledException::Handle(
+      CreatePreallocatedUnandledException(zone, out_of_memory)));
+  set_preallocated_stack_trace(
+      StackTrace::Handle(CreatePreallocatedStackTrace(zone)));
+
+  return Error::null();
+}
 
 ObjectStore::ObjectStore() {
 #define INIT_FIELD(Type, name) name##_ = Type::null();
@@ -29,20 +115,19 @@ ObjectStore::~ObjectStore() {}
 
 void ObjectStore::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
+  visitor->set_gc_root_type("object store");
   visitor->VisitPointers(from(), to());
+  visitor->clear_gc_root_type();
 }
 
-void ObjectStore::Init(Isolate* isolate) {
-  ASSERT(isolate->object_store() == NULL);
-  ObjectStore* store = new ObjectStore();
-  isolate->set_object_store(store);
+void ObjectStore::InitStubs() {
+#define DO(member, name) set_##member(StubCode::name());
+  OBJECT_STORE_STUB_CODE_LIST(DO)
+#undef DO
 }
 
 #ifndef PRODUCT
 void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
-  if (!FLAG_support_service) {
-    return;
-  }
   jsobj->AddProperty("type", "_ObjectStore");
 
   {
@@ -57,63 +142,46 @@ void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
 }
 #endif  // !PRODUCT
 
+static RawInstance* AllocateObjectByClassName(const Library& library,
+                                              const String& class_name) {
+  const Class& cls = Class::Handle(library.LookupClassAllowPrivate(class_name));
+  ASSERT(!cls.IsNull());
+  return Instance::New(cls);
+}
+
 RawError* ObjectStore::PreallocateObjects() {
   Thread* thread = Thread::Current();
+  IsolateGroup* isolate_group = thread->isolate_group();
   Isolate* isolate = thread->isolate();
-  Zone* zone = thread->zone();
-  ASSERT(isolate != NULL && isolate->object_store() == this);
+  // Either we are the object store on isolate group, or isolate group has no
+  // object store and we are the object store on the isolate.
+  ASSERT(isolate_group != NULL && (isolate_group->object_store() == this ||
+                                   (isolate_group->object_store() == nullptr &&
+                                    isolate->object_store() == this)));
+
   if (this->stack_overflow() != Instance::null()) {
     ASSERT(this->out_of_memory() != Instance::null());
-    ASSERT(this->preallocated_stack_trace() != StackTrace::null());
     return Error::null();
   }
   ASSERT(this->stack_overflow() == Instance::null());
   ASSERT(this->out_of_memory() == Instance::null());
-  ASSERT(this->preallocated_stack_trace() == StackTrace::null());
-
-  this->pending_deferred_loads_ = GrowableObjectArray::New();
 
   this->closure_functions_ = GrowableObjectArray::New();
-  this->resume_capabilities_ = GrowableObjectArray::New();
-  this->exit_listeners_ = GrowableObjectArray::New();
-  this->error_listeners_ = GrowableObjectArray::New();
 
   Object& result = Object::Handle();
   const Library& library = Library::Handle(Library::CoreLibrary());
 
-  result =
-      DartLibraryCalls::InstanceCreate(library, Symbols::StackOverflowError(),
-                                       Symbols::Dot(), Object::empty_array());
+  result = AllocateObjectByClassName(library, Symbols::StackOverflowError());
   if (result.IsError()) {
     return Error::Cast(result).raw();
   }
   set_stack_overflow(Instance::Cast(result));
 
-  result =
-      DartLibraryCalls::InstanceCreate(library, Symbols::OutOfMemoryError(),
-                                       Symbols::Dot(), Object::empty_array());
+  result = AllocateObjectByClassName(library, Symbols::OutOfMemoryError());
   if (result.IsError()) {
     return Error::Cast(result).raw();
   }
   set_out_of_memory(Instance::Cast(result));
-
-  // Allocate pre-allocated unhandled exception object initialized with the
-  // pre-allocated OutOfMemoryError.
-  const UnhandledException& unhandled_exception =
-      UnhandledException::Handle(UnhandledException::New(
-          Instance::Cast(result), StackTrace::Handle(zone)));
-  set_preallocated_unhandled_exception(unhandled_exception);
-
-  const Array& code_array = Array::Handle(
-      zone, Array::New(StackTrace::kPreallocatedStackdepth, Heap::kOld));
-  const Array& pc_offset_array = Array::Handle(
-      zone, Array::New(StackTrace::kPreallocatedStackdepth, Heap::kOld));
-  const StackTrace& stack_trace =
-      StackTrace::Handle(zone, StackTrace::New(code_array, pc_offset_array));
-  // Expansion of inlined functions requires additional memory at run time,
-  // avoid it.
-  stack_trace.set_expand_inlined(false);
-  set_preallocated_stack_trace(stack_trace);
 
   return Error::null();
 }
@@ -128,59 +196,57 @@ RawFunction* ObjectStore::PrivateObjectLookup(const String& name) {
 }
 
 void ObjectStore::InitKnownObjects() {
-#ifdef DART_PRECOMPILED_RUNTIME
-  // These objects are only needed for code generation.
-  return;
-#else
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  Class& cls = Class::Handle(zone);
+  const Library& collection_lib = Library::Handle(zone, collection_library());
+  cls = collection_lib.LookupClassAllowPrivate(Symbols::_LinkedHashSet());
+  ASSERT(!cls.IsNull());
+  set_linked_hash_set_class(cls);
+
+#ifdef DART_PRECOMPILED_RUNTIME
+  // The rest of these objects are only needed for code generation.
+  return;
+#else
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL && isolate->object_store() == this);
 
-  const Library& async_lib = Library::Handle(async_library());
+  const Library& async_lib = Library::Handle(zone, async_library());
   ASSERT(!async_lib.IsNull());
-  Class& cls = Class::Handle(zone);
   cls = async_lib.LookupClass(Symbols::Future());
   ASSERT(!cls.IsNull());
   set_future_class(cls);
   cls = async_lib.LookupClass(Symbols::Completer());
   ASSERT(!cls.IsNull());
   set_completer_class(cls);
-  cls = async_lib.LookupClass(Symbols::StreamIterator());
-  ASSERT(!cls.IsNull());
-  set_stream_iterator_class(cls);
 
   String& function_name = String::Handle(zone);
   Function& function = Function::Handle(zone);
-  function_name ^= async_lib.PrivateName(Symbols::SetAsyncThreadStackTrace());
+  function_name = async_lib.PrivateName(Symbols::SetAsyncThreadStackTrace());
   ASSERT(!function_name.IsNull());
-  function ^=
-      Resolver::ResolveStatic(async_lib, Object::null_string(), function_name,
-                              0, 1, Object::null_array());
+  function = Resolver::ResolveStatic(async_lib, Object::null_string(),
+                                     function_name, 0, 1, Object::null_array());
   ASSERT(!function.IsNull());
   set_async_set_thread_stack_trace(function);
 
-  function_name ^= async_lib.PrivateName(Symbols::ClearAsyncThreadStackTrace());
+  function_name = async_lib.PrivateName(Symbols::ClearAsyncThreadStackTrace());
   ASSERT(!function_name.IsNull());
-  function ^=
-      Resolver::ResolveStatic(async_lib, Object::null_string(), function_name,
-                              0, 0, Object::null_array());
+  function = Resolver::ResolveStatic(async_lib, Object::null_string(),
+                                     function_name, 0, 0, Object::null_array());
   ASSERT(!function.IsNull());
   set_async_clear_thread_stack_trace(function);
 
-  function_name ^= async_lib.PrivateName(Symbols::AsyncStarMoveNextHelper());
+  function_name = async_lib.PrivateName(Symbols::AsyncStarMoveNextHelper());
   ASSERT(!function_name.IsNull());
-  function ^=
-      Resolver::ResolveStatic(async_lib, Object::null_string(), function_name,
-                              0, 1, Object::null_array());
+  function = Resolver::ResolveStatic(async_lib, Object::null_string(),
+                                     function_name, 0, 1, Object::null_array());
   ASSERT(!function.IsNull());
   set_async_star_move_next_helper(function);
 
-  function_name ^= async_lib.PrivateName(Symbols::_CompleteOnAsyncReturn());
+  function_name = async_lib.PrivateName(Symbols::_CompleteOnAsyncReturn());
   ASSERT(!function_name.IsNull());
-  function ^=
-      Resolver::ResolveStatic(async_lib, Object::null_string(), function_name,
-                              0, 2, Object::null_array());
+  function = Resolver::ResolveStatic(async_lib, Object::null_string(),
+                                     function_name, 0, 2, Object::null_array());
   ASSERT(!function.IsNull());
   set_complete_on_async_return(function);
   if (FLAG_async_debugger) {
@@ -197,7 +263,7 @@ void ObjectStore::InitKnownObjects() {
   if (FLAG_async_debugger) {
     // Disable debugging and inlining of all functions on the
     // _AsyncStarStreamController class.
-    const Array& functions = Array::Handle(cls.functions());
+    const Array& functions = Array::Handle(zone, cls.functions());
     for (intptr_t i = 0; i < functions.Length(); i++) {
       function ^= functions.At(i);
       if (function.IsNull()) {
@@ -208,14 +274,26 @@ void ObjectStore::InitKnownObjects() {
     }
   }
 
-  const Library& internal_lib = Library::Handle(_internal_library());
+  const Library& internal_lib = Library::Handle(zone, _internal_library());
   cls = internal_lib.LookupClass(Symbols::Symbol());
   set_symbol_class(cls);
 
-  const Library& core_lib = Library::Handle(core_library());
+  const Library& core_lib = Library::Handle(zone, core_library());
   cls = core_lib.LookupClassAllowPrivate(Symbols::_CompileTimeError());
   ASSERT(!cls.IsNull());
   set_compiletime_error_class(cls);
+
+  cls = core_lib.LookupClassAllowPrivate(Symbols::Pragma());
+  ASSERT(!cls.IsNull());
+  set_pragma_class(cls);
+  set_pragma_name(Field::Handle(zone, cls.LookupField(Symbols::name())));
+  set_pragma_options(Field::Handle(zone, cls.LookupField(Symbols::options())));
+
+  cls = core_lib.LookupClassAllowPrivate(Symbols::_GrowableList());
+  ASSERT(!cls.IsNull());
+  growable_list_factory_ =
+      cls.LookupFactoryAllowPrivate(Symbols::_GrowableListFactory());
+  ASSERT(growable_list_factory_ != Function::null());
 
   // Cache the core private functions used for fast instance of checks.
   simple_instance_of_function_ =
@@ -224,6 +302,34 @@ void ObjectStore::InitKnownObjects() {
       PrivateObjectLookup(Symbols::_simpleInstanceOfTrue());
   simple_instance_of_false_function_ =
       PrivateObjectLookup(Symbols::_simpleInstanceOfFalse());
+
+  // Ensure AddSmiSmiCheckForFastSmiStubs run by the background compiler
+  // will not create new functions.
+  const Class& smi_class = Class::Handle(zone, this->smi_class());
+  function_name =
+      Function::CreateDynamicInvocationForwarderName(Symbols::Plus());
+  Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
+  function_name =
+      Function::CreateDynamicInvocationForwarderName(Symbols::Minus());
+  Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
+  function_name =
+      Function::CreateDynamicInvocationForwarderName(Symbols::Equals());
+  Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
+  function_name =
+      Function::CreateDynamicInvocationForwarderName(Symbols::LAngleBracket());
+  Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
+  function_name =
+      Function::CreateDynamicInvocationForwarderName(Symbols::RAngleBracket());
+  Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
+  function_name =
+      Function::CreateDynamicInvocationForwarderName(Symbols::BitAnd());
+  Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
+  function_name =
+      Function::CreateDynamicInvocationForwarderName(Symbols::BitOr());
+  Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
+  function_name =
+      Function::CreateDynamicInvocationForwarderName(Symbols::Star());
+  Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
 #endif
 }
 

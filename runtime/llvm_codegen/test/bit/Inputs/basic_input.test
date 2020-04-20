@@ -1,0 +1,1 @@
+; RUN: %{codegen} %p/../../codegen/Inputs/hello.sexp

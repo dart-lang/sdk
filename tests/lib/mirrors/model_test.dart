@@ -8,12 +8,10 @@ import 'package:expect/expect.dart';
 
 import 'model.dart';
 
-isNoSuchMethodError(e) => e is NoSuchMethodError;
-
 main() {
-  var a = new A();
-  var b = new B();
-  var c = new C();
+  dynamic a = new A();
+  dynamic b = new B();
+  dynamic c = new C();
 
   Expect.isNull(a.field);
   Expect.equals('B:get field', b.field);
@@ -47,17 +45,11 @@ main() {
   Expect.equals('aMethod', b.aMethod());
   Expect.equals('aMethod', c.aMethod());
 
-  Expect.throws(() {
-    a.bMethod();
-  }, isNoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => a.bMethod());
   Expect.equals('bMethod', b.bMethod());
   Expect.equals('bMethod', c.bMethod());
 
-  Expect.throws(() {
-    a.cMethod();
-  }, isNoSuchMethodError);
-  Expect.throws(() {
-    b.cMethod();
-  }, isNoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => a.cMethod());
+  Expect.throwsNoSuchMethodError(() => b.cMethod());
   Expect.equals('cMethod', c.cMethod());
 }

@@ -4,7 +4,6 @@
 
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
 
 import "package:expect/expect.dart";
 
@@ -92,16 +91,7 @@ void doTestSync() {
   Expect.isFalse(dir4.existsSync());
   // stat.
   FileStat dirstat = dir2.statSync();
-  Expect.equals(FileSystemEntityType.DIRECTORY, dirstat.type);
-  // current.
-  Expect.isNotNull(Directory.current);
-  Expect.equals(Directory.current.path, (new Directory("/")).path);
-  Directory.current = "/dir1";
-  Expect.isNotNull(Directory.current);
-  Expect.equals(Directory.current.path, (new Directory("/dir1")).path);
-  Directory.current = "/";
-  Expect.isNotNull(Directory.current);
-  Expect.equals(Directory.current.path, (new Directory("/")).path);
+  Expect.equals(FileSystemEntityType.directory, dirstat.type);
 }
 
 doTestAsync() async {
@@ -187,38 +177,7 @@ doTestAsync() async {
   Expect.isFalse(await dir4.exists());
   // stat.
   FileStat dirstat = await dir2.stat();
-  Expect.equals(FileSystemEntityType.DIRECTORY, dirstat.type);
-}
-
-isolateTestFn(msg) {
-  SendPort sp = msg;
-  bool gotRoot = Directory.current.path == "/";
-  Directory.current = "/dir1/dir2";
-  bool didChange = Directory.current.path == "/dir1/dir2";
-  sp.send(gotRoot && didChange);
-}
-
-// Check that Isolates can have different cwds.
-doIsolateTest() async {
-  Directory.current = "/dir1";
-  ReceivePort rp = new ReceivePort();
-  Isolate isolate =
-      await Isolate.spawn(isolateTestFn, rp.sendPort, paused: true);
-  isolate.resume(isolate.pauseCapability);
-
-  bool isolateSuccess = await rp.first;
-  Expect.isTrue(isolateSuccess);
-  Expect.equals(Directory.current.path, "/dir1");
-}
-
-List<String> packageOptions() {
-  if (Platform.packageRoot != null) {
-    return <String>["--package-root=${Platform.packageRoot}"];
-  } else if (Platform.packageConfig != null) {
-    return <String>["--packages=${Platform.packageConfig}"];
-  } else {
-    return <String>[];
-  }
+  Expect.equals(FileSystemEntityType.directory, dirstat.type);
 }
 
 void setupTest() {
@@ -233,7 +192,7 @@ void setupTest() {
       ..writeAsStringSync(file1str);
 
     // Run the test and capture stdout.
-    var args = packageOptions();
+    var args = <String>[]..addAll(Platform.executableArguments);
     args.addAll([
       "--namespace=${namespace.path}",
       Platform.script.toFilePath(),
@@ -257,7 +216,6 @@ main(List<String> arguments) async {
   if (arguments.contains("--run")) {
     doTestSync();
     await doTestAsync();
-    await doIsolateTest();
   } else {
     setupTest();
   }

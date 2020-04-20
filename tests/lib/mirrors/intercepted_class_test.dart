@@ -6,7 +6,6 @@
 
 library test.intercepted_class_test;
 
-@MirrorsUsed(targets: "dart.core")
 import 'dart:mirrors';
 
 import 'stringify.dart' show stringify, expect;

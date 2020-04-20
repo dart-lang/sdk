@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 Future setupTCP() async {
@@ -14,7 +14,7 @@ Future setupTCP() async {
   // to allow us to query them from the other isolate.
   var serverSocket = await io.ServerSocket.bind('127.0.0.1', 0);
   serverSocket.listen((s) {
-    s.transform(UTF8.decoder).listen(print);
+    utf8.decoder.bind(s).listen(print);
     s.close();
   });
   var socket = await io.Socket.connect("127.0.0.1", serverSocket.port);
@@ -27,7 +27,7 @@ Future setupTCP() async {
   await socket2.flush();
 }
 
-var tcpTests = [
+var tcpTests = <IsolateTest>[
   // Initial.
   (Isolate isolate) async {
     var result =

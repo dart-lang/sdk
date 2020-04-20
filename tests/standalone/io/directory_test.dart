@@ -194,11 +194,10 @@ class DirectoryTest {
           if (++errors == 2) {
             d.delete(recursive: true).then((_) => asyncEnd());
           }
-          return true;
         }
 
-        long.delete().catchError(onError);
-        long.delete(recursive: true).catchError(onError);
+        Future<void>.value(long.delete()).catchError(onError);
+        Future<void>.value(long.delete(recursive: true)).catchError(onError);
       });
     });
   }
@@ -359,8 +358,8 @@ class DirectoryTest {
     String template = 'dart_temp_dir';
     if (base.existsSync()) {
       asyncStart();
-      Future.wait([base.createTemp(template), base.createTemp(template)]).then(
-          (tempDirs) {
+      Future.wait([base.createTemp(template), base.createTemp(template)])
+          .then((tempDirs) {
         Expect.notEquals(tempDirs[0].path, tempDirs[1].path);
         for (Directory t in tempDirs) {
           Expect.isTrue(t.existsSync());
@@ -453,9 +452,8 @@ class DirectoryTest {
 
 class NestedTempDirectoryTest {
   List<Directory> createdDirectories;
-  Directory current;
 
-  NestedTempDirectoryTest.run() : createdDirectories = new List<Directory>() {
+  NestedTempDirectoryTest.run() : createdDirectories = <Directory>[] {
     Directory.systemTemp.createTemp('dart_directory').then(createPhaseCallback);
   }
 
@@ -475,7 +473,7 @@ class NestedTempDirectoryTest {
 
   void deletePhaseCallback() {
     if (!createdDirectories.isEmpty) {
-      current = createdDirectories.removeLast();
+      final current = createdDirectories.removeLast();
       current.deleteSync();
       deletePhaseCallback();
     }
@@ -487,7 +485,7 @@ class NestedTempDirectoryTest {
   }
 }
 
-String illegalTempDirectoryLocation() {
+String? illegalTempDirectoryLocation() {
   // Determine a platform specific illegal location for a temporary directory.
   var os = Platform.operatingSystem;
   if (os == "linux" || os == "macos") {
@@ -513,7 +511,7 @@ testCreateTempError() {
 
   asyncStart();
   var future = new Directory(location).createTemp('dart_tempdir');
-  future.catchError((_) => asyncEnd());
+  Future<Directory?>.value(future).catchError((_) => asyncEnd());
 }
 
 testCreateExistingSync() {

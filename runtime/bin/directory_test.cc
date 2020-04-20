@@ -5,8 +5,6 @@
 #include "bin/directory.h"
 #include "include/dart_api.h"
 #include "platform/assert.h"
-#include "vm/isolate.h"
-#include "vm/thread.h"
 #include "vm/unit_test.h"
 
 namespace dart {

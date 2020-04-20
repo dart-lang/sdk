@@ -9,9 +9,6 @@ class A<T> {
   A(T x);
 }
 
-var /*@topType=List<A<int>>*/ t2 = /*@typeArgs=A<int>*/ [
-  new
-      /*error:TOP_LEVEL_TYPE_ARGUMENTS*/ /*@typeArgs=int*/ A(2)
-];
+var t2 = /*@ typeArgs=A<int*>* */ [new /*@ typeArgs=int* */ A(2)];
 
 main() {}

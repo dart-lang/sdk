@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+// @dart = 2.7
+
+/*member: main:[null]*/
 main() {
   getTopLevelFieldUninitialized();
   getStaticFieldUninitialized();
@@ -22,10 +24,10 @@ main() {
 /// Static get of an uninitialized top level field.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _field1:[null]*/
+/*member: _field1:[null]*/
 var _field1;
 
-/*element: getTopLevelFieldUninitialized:[null]*/
+/*member: getTopLevelFieldUninitialized:[null]*/
 getTopLevelFieldUninitialized() => _field1;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -33,21 +35,21 @@ getTopLevelFieldUninitialized() => _field1;
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class1 {
-  /*element: Class1.field:[null]*/
+  /*member: Class1.field:[null]*/
   static var field;
 }
 
-/*element: getStaticFieldUninitialized:[null]*/
+/*member: getStaticFieldUninitialized:[null]*/
 getStaticFieldUninitialized() => Class1.field;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Static get of an initialized top level field.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _field2:[exact=JSUInt31]*/
+/*member: _field2:[exact=JSUInt31]*/
 var _field2 = 42;
 
-/*element: getTopLevelFieldInitialized:[exact=JSUInt31]*/
+/*member: getTopLevelFieldInitialized:[exact=JSUInt31]*/
 getTopLevelFieldInitialized() => _field2;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -55,11 +57,11 @@ getTopLevelFieldInitialized() => _field2;
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class2 {
-  /*element: Class2.field:[exact=JSUInt31]*/
+  /*member: Class2.field:[exact=JSUInt31]*/
   static var field = 42;
 }
 
-/*element: getStaticFieldInitialized:[exact=JSUInt31]*/
+/*member: getStaticFieldInitialized:[exact=JSUInt31]*/
 getStaticFieldInitialized() => Class2.field;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -67,13 +69,13 @@ getStaticFieldInitialized() => Class2.field;
 /// null.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _method3:[exact=JSUInt31]*/
+/*member: _method3:[exact=JSUInt31]*/
 _method3() => 42;
 
-/*element: _field3:[null|exact=JSUInt31]*/
+/*member: _field3:[null|exact=JSUInt31]*/
 var _field3 = _method3();
 
-/*element: getTopLevelFieldInitializedPotentiallyNull:[null|exact=JSUInt31]*/
+/*member: getTopLevelFieldInitializedPotentiallyNull:[null|exact=JSUInt31]*/
 getTopLevelFieldInitializedPotentiallyNull() => _field3;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -81,24 +83,24 @@ getTopLevelFieldInitializedPotentiallyNull() => _field3;
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class3 {
-  /*element: Class3.method:[exact=JSUInt31]*/
+  /*member: Class3.method:[exact=JSUInt31]*/
   static method() => 42;
 
-  /*element: Class3.field:[null|exact=JSUInt31]*/
+  /*member: Class3.field:[null|exact=JSUInt31]*/
   static var field = method();
 }
 
-/*element: getStaticFieldInitializedPotentiallyNull:[null|exact=JSUInt31]*/
+/*member: getStaticFieldInitializedPotentiallyNull:[null|exact=JSUInt31]*/
 getStaticFieldInitializedPotentiallyNull() => Class3.field;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Static get of a top level method.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _method4:[exact=JSUInt31]*/
+/*member: _method4:[exact=JSUInt31]*/
 _method4() => 42;
 
-/*element: getTopLevelMethod:[subclass=Closure]*/
+/*member: getTopLevelMethod:[subclass=Closure]*/
 getTopLevelMethod() => _method4;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -106,21 +108,21 @@ getTopLevelMethod() => _method4;
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class4 {
-  /*element: Class4.method:[exact=JSUInt31]*/
+  /*member: Class4.method:[exact=JSUInt31]*/
   static method() => 42;
 }
 
-/*element: getStaticMethod:[subclass=Closure]*/
+/*member: getStaticMethod:[subclass=Closure]*/
 getStaticMethod() => Class4.method;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Static get of a top level getter.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _getter1:[exact=JSUInt31]*/
+/*member: _getter1:[exact=JSUInt31]*/
 get _getter1 => 42;
 
-/*element: getTopLevelGetter:[exact=JSUInt31]*/
+/*member: getTopLevelGetter:[exact=JSUInt31]*/
 getTopLevelGetter() => _getter1;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -128,9 +130,9 @@ getTopLevelGetter() => _getter1;
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class5 {
-  /*element: Class5.getter:[exact=JSUInt31]*/
+  /*member: Class5.getter:[exact=JSUInt31]*/
   static get getter => 42;
 }
 
-/*element: getStaticGetter:[exact=JSUInt31]*/
+/*member: getStaticGetter:[exact=JSUInt31]*/
 getStaticGetter() => Class5.getter;

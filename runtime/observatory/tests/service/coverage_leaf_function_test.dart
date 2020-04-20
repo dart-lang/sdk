@@ -1,10 +1,9 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 import 'service_test_common.dart';
 import 'dart:developer';
@@ -28,7 +27,7 @@ bool allRangesCompiled(coverage) {
   return true;
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     var stack = await isolate.getStack();
@@ -45,12 +44,12 @@ var tests = [
 
     var expectedRange = {
       'scriptIndex': 0,
-      'startPos': ifKernel(456, 26),
-      'endPos': ifKernel(499, 37),
+      'startPos': 384,
+      'endPos': 434,
       'compiled': true,
       'coverage': {
-        'hits': ifKernel([], []),
-        'misses': ifKernel([456], [26])
+        'hits': [],
+        'misses': [384]
       }
     };
 
@@ -86,12 +85,12 @@ var tests = [
 
     var expectedRange = {
       'scriptIndex': 0,
-      'startPos': ifKernel(456, 26),
-      'endPos': ifKernel(499, 37),
+      'startPos': 384,
+      'endPos': 434,
       'compiled': true,
       'coverage': {
-        'hits': ifKernel([456], [26]),
-        'misses': ifKernel([], [])
+        'hits': [384],
+        'misses': []
       }
     };
 

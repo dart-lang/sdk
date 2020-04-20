@@ -11,7 +11,7 @@ class A {
   A(this.foo);
 
   bool operator ==(Object other) =>
-      other is A && /*@promotedType=A*/ other
+      other is A && /*@ promotedType=A* */ other
               . /*@target=A::foo*/ foo /*@target=String::==*/ ==
           this. /*@target=A::foo*/ foo;
 }

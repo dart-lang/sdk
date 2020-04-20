@@ -80,10 +80,11 @@ class ForInTest {
 
   static void testClosure() {
     Set<int> set = getSmallSet();
-    List<Function> closures = new List(set.length);
+    List<Function> closures = [];
     int index = 0;
     for (var i in set) {
-      closures[index++] = () => i;
+      closures.add(() => i);
+      index++;
     }
 
     Expect.equals(index, set.length);

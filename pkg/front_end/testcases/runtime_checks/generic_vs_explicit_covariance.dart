@@ -6,17 +6,17 @@
 library test;
 
 abstract class A {
-  void set x(covariant Object /*@covariance=explicit*/ value);
+  void set x(covariant Object value);
 }
 
 class B implements A {
-  void f(covariant Object /*@covariance=explicit*/ x) {}
-  Object /*@covariance=explicit*/ x; // covariant
+  void f(covariant Object x) {}
+  Object x; // covariant
 }
 
 class C<T> implements B {
-  void f(T /*@covariance=explicit, genericInterface*/ x) {}
-  T /*@covariance=explicit, genericInterface*/ x;
+  void f(T x) {}
+  T x;
 }
 
 main() {}

@@ -104,6 +104,76 @@ void testValidIpv6Uri() {
   Expect.equals(80, uri.port);
   Expect.equals('', uri.path);
   Expect.equals(path.toLowerCase(), uri.toString());
+
+  // Checks for ZoneID in RFC 6874
+  path = 'https://[fe80::a%en1]:443/index.html';
+  uri = Uri.parse(path);
+  Expect.equals('https', uri.scheme);
+  Expect.equals('fe80::a%25en1', uri.host);
+  Expect.equals(443, uri.port);
+  Expect.equals('/index.html', uri.path);
+  Expect.equals('https://[fe80::a%25en1]/index.html', uri.toString());
+
+  path = 'https://[fe80::a%25eE1]:443/index.html';
+  uri = Uri.parse(path);
+  Expect.equals('https', uri.scheme);
+  Expect.equals('fe80::a%25eE1', uri.host);
+  Expect.equals(443, uri.port);
+  Expect.equals('/index.html', uri.path);
+  Expect.equals('https://[fe80::a%25eE1]/index.html', uri.toString());
+
+  // Recognize bare '%' and transform into '%25'
+  path = 'https://[fe80::a%1]:443/index.html';
+  uri = Uri.parse(path);
+  Expect.equals('https', uri.scheme);
+  Expect.equals('fe80::a%251', uri.host);
+  Expect.equals(443, uri.port);
+  Expect.equals('/index.html', uri.path);
+  Expect.equals('https://[fe80::a%251]/index.html', uri.toString());
+
+  path = 'https://[ff02::5678%pvc1.3]/index.html';
+  uri = Uri.parse(path);
+  Expect.equals('https', uri.scheme);
+  Expect.equals('ff02::5678%25pvc1.3', uri.host);
+  Expect.equals('/index.html', uri.path);
+  Expect.equals('https://[ff02::5678%25pvc1.3]/index.html', uri.toString());
+
+  // ZoneID contains percent encoded
+  path = 'https://[ff02::1%%321]/index.html';
+  uri = Uri.parse(path);
+  Expect.equals('https', uri.scheme);
+  Expect.equals('ff02::1%2521', uri.host);
+  Expect.equals('/index.html', uri.path);
+  Expect.equals('https://[ff02::1%2521]/index.html', uri.toString());
+
+  path = 'https://[ff02::1%321]/index.html';
+  uri = Uri.parse(path);
+  Expect.equals('https', uri.scheme);
+  Expect.equals('ff02::1%25321', uri.host);
+  Expect.equals('/index.html', uri.path);
+  Expect.equals('https://[ff02::1%25321]/index.html', uri.toString());
+
+  // Lower cases
+  path = 'https://[ff02::1%1%41]/index.html';
+  uri = Uri.parse(path);
+  Expect.equals('https', uri.scheme);
+  Expect.equals('ff02::1%251a', uri.host);
+  Expect.equals('/index.html', uri.path);
+  Expect.equals('https://[ff02::1%251a]/index.html', uri.toString());
+
+  path = 'https://[fe80::8eae:4c4d:fee9:8434%rename3]/index.html';
+  uri = Uri.parse(path);
+  Expect.equals('https', uri.scheme);
+  Expect.equals('fe80::8eae:4c4d:fee9:8434%25rename3', uri.host);
+  Expect.equals('/index.html', uri.path);
+  Expect.equals('https://[fe80::8eae:4c4d:fee9:8434%25rename3]/index.html',
+      uri.toString());
+
+  // Test construtors with host name
+  uri = Uri(scheme: 'https', host: '[ff02::5678%pvc1.3]');
+  uri = Uri(scheme: 'https', host: '[fe80::a%1]');
+  uri = Uri(scheme: 'https', host: '[fe80::a%25eE1]');
+  uri = Uri(scheme: 'https', host: '[fe80::a%en1]');
 }
 
 void testParseIPv6Address() {
@@ -112,8 +182,7 @@ void testParseIPv6Address() {
   }
 
   void fail(String host) {
-    Expect.throws(
-        () => Uri.parseIPv6Address(host), (e) => e is FormatException);
+    Expect.throwsFormatException(() => Uri.parseIPv6Address(host));
   }
 
   pass('::127.0.0.1', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 0, 0, 1]);

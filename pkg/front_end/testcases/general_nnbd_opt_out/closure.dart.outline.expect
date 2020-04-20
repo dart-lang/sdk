@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  field self::Bar* _field;
+  synthetic constructor •() → self::Foo*
+    ;
+}
+class Bar extends core::Object {
+  synthetic constructor •() → self::Bar*
+    ;
+}
+static method useCallback(dynamic callback) → dynamic
+  ;
+static method main() → dynamic
+  ;

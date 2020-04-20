@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.async;
 
 /// A type representing values that are either `Future<T>` or `T`.
@@ -12,8 +14,6 @@ part of dart.async;
 ///
 /// It is a compile-time error for any class to extend, mix in or implement
 /// `FutureOr`.
-///
-/// Note: the `FutureOr<T>` type is interpreted as `dynamic` in non strong-mode.
 ///
 /// # Examples
 /// ``` dart
@@ -34,7 +34,7 @@ part of dart.async;
 /// means that `FutureOr<Object>` is equivalent to `Object`.
 ///
 /// As a corollary, `FutureOr<Object>` is equivalent to
-/// `FutureOr<FutureOr<Object>>`, `FutureOr<Future<Object>> is equivalent to
+/// `FutureOr<FutureOr<Object>>`, `FutureOr<Future<Object>>` is equivalent to
 /// `Future<Object>`.
 abstract class FutureOr<T> {
   // Private generative constructor, so that it is not subclassable, mixable, or
@@ -148,10 +148,12 @@ abstract class FutureOr<T> {
  */
 abstract class Future<T> {
   /// A `Future<Null>` completed with `null`.
-  static final _Future<Null> _nullFuture = new _Future<Null>.value(null);
+  static final _Future<Null> _nullFuture =
+      new _Future<Null>.zoneValue(null, Zone.root);
 
   /// A `Future<bool>` completed with `false`.
-  static final _Future<bool> _falseFuture = new _Future<bool>.value(false);
+  static final _Future<bool> _falseFuture =
+      new _Future<bool>.zoneValue(false, Zone.root);
 
   /**
    * Creates a future containing the result of calling [computation]
@@ -222,9 +224,6 @@ abstract class Future<T> {
       var result = computation();
       if (result is Future<T>) {
         return result;
-      } else if (result is Future) {
-        // TODO(lrn): Remove this case for Dart 2.0.
-        return new _Future<T>.immediate(result);
       } else {
         return new _Future<T>.value(result);
       }
@@ -255,6 +254,7 @@ abstract class Future<T> {
    *
    * Use [Completer] to create a future and complete it later.
    */
+  @pragma("vm:entry-point")
   factory Future.value([FutureOr<T> value]) {
     return new _Future<T>.immediate(value);
   }
@@ -267,19 +267,20 @@ abstract class Future<T> {
    * If an error handler isn't added before the future completes, the error
    * will be considered unhandled.
    *
-   * If [error] is `null`, it is replaced by a [NullThrownError].
+   * The [error] must not be `null`.
    *
    * Use [Completer] to create a future and complete it later.
    */
   factory Future.error(Object error, [StackTrace stackTrace]) {
-    error = _nonNullError(error);
-    if (!identical(Zone.current, _ROOT_ZONE)) {
+    ArgumentError.checkNotNull(error, "error");
+    if (!identical(Zone.current, _rootZone)) {
       AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
       if (replacement != null) {
         error = _nonNullError(replacement.error);
         stackTrace = replacement.stackTrace;
       }
     }
+    stackTrace ??= AsyncError.defaultStackTrace(error);
     return new _Future<T>.immediateError(error, stackTrace);
   }
 
@@ -287,7 +288,11 @@ abstract class Future<T> {
    * Creates a future that runs its computation after a delay.
    *
    * The [computation] will be executed after the given [duration] has passed,
-   * and the future is completed with the result of the computation,
+   * and the future is completed with the result of the computation.
+   *
+   * If [computation] returns a future,
+   * the future returned by this constructor will complete with the value or
+   * error of that future.
    *
    * If the duration is 0 or less,
    * it completes no sooner than in the next event-loop iteration,
@@ -306,10 +311,14 @@ abstract class Future<T> {
   factory Future.delayed(Duration duration, [FutureOr<T> computation()]) {
     _Future<T> result = new _Future<T>();
     new Timer(duration, () {
-      try {
-        result._complete(computation?.call());
-      } catch (e, s) {
-        _completeWithErrorCallback(result, e, s);
+      if (computation == null) {
+        result._complete(null);
+      } else {
+        try {
+          result._complete(computation());
+        } catch (e, s) {
+          _completeWithErrorCallback(result, e, s);
+        }
       }
     });
     return result;
@@ -319,11 +328,12 @@ abstract class Future<T> {
    * Waits for multiple futures to complete and collects their results.
    *
    * Returns a future which will complete once all the provided futures
-   * have completed, either with their results, or with an error if either
+   * have completed, either with their results, or with an error if any
    * of the provided futures fail.
    *
    * The value of the returned future will be a list of all the values that
-   * were produced.
+   * were produced in the order that the futures are provided by iterating
+   * [futures].
    *
    * If any future completes with an error,
    * then the returned future completes with that error.
@@ -354,7 +364,7 @@ abstract class Future<T> {
     // Handle an error from any of the futures.
     // TODO(jmesserly): use `void` return type once it can be inferred for the
     // `then` call below.
-    handleError(theError, theStackTrace) {
+    handleError(Object theError, StackTrace theStackTrace) {
       remaining--;
       if (values != null) {
         if (cleanUp != null) {
@@ -450,7 +460,7 @@ abstract class Future<T> {
     var onValue = (T value) {
       if (!completer.isCompleted) completer.complete(value);
     };
-    var onError = (error, stack) {
+    var onError = (error, StackTrace stack) {
       if (!completer.isCompleted) completer.completeError(error, stack);
     };
     for (var future in futures) {
@@ -514,7 +524,7 @@ abstract class Future<T> {
    */
   static Future doWhile(FutureOr<bool> action()) {
     _Future doneSignal = new _Future();
-    var nextIteration;
+    void Function(bool) nextIteration;
     // Bind this callback explicitly so that each iteration isn't bound in the
     // context of all the previous iterations' callbacks.
     // This avoids, e.g., deeply nested stack traces from the stack trace
@@ -552,10 +562,14 @@ abstract class Future<T> {
    *
    * If [onError] is provided, and this future completes with an error,
    * the `onError` callback is called with that error and its stack trace.
-   * The `onError` callback must accept either one argument or two arguments.
+   * The `onError` callback must accept either one argument or two arguments
+   * where the latter is a [StackTrace].
    * If `onError` accepts two arguments,
    * it is called with both the error and the stack trace,
    * otherwise it is called with just the error object.
+   * The `onError` callback must return a value or future that can be used
+   * to complete the returned future, so it must be something assignable to
+   * `FutureOr<R>`.
    *
    * Returns a new [Future]
    * which is completed with the result of the call to `onValue`
@@ -586,7 +600,7 @@ abstract class Future<T> {
    * has completed with an error then the error is reported as unhandled error.
    * See the description on [Future].
    */
-  Future<S> then<S>(FutureOr<S> onValue(T value), {Function onError});
+  Future<R> then<R>(FutureOr<R> onValue(T value), {Function onError});
 
   /**
    * Handles errors emitted by this [Future].
@@ -625,8 +639,6 @@ abstract class Future<T> {
   // - (dynamic, StackTrace) -> FutureOr<T>
   // Given that there is a `test` function that is usually used to do an
   // `isCheck` we should also expect functions that take a specific argument.
-  // Note: making `catchError` return a `Future<T>` in non-strong mode could be
-  // a breaking change.
   Future<T> catchError(Function onError, {bool test(Object error)});
 
   /**
@@ -864,7 +876,7 @@ abstract class Completer<T> {
    * Completing a future with an error indicates that an exception was thrown
    * while trying to produce a value.
    *
-   * If [error] is `null`, it is replaced by a [NullThrownError].
+   * The [error] must not be `null`.
    *
    * If `error` is a `Future`, the future itself is used as the error value.
    * If you want to complete with the result of the future, you can use:
@@ -894,23 +906,26 @@ abstract class Completer<T> {
 }
 
 // Helper function completing a _Future with error, but checking the zone
-// for error replacement first.
-void _completeWithErrorCallback(_Future result, error, stackTrace) {
+// for error replacement first and missing stack trace.
+void _completeWithErrorCallback(_Future result, error, StackTrace stackTrace) {
   AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
   if (replacement != null) {
     error = _nonNullError(replacement.error);
     stackTrace = replacement.stackTrace;
   }
+  stackTrace ??= AsyncError.defaultStackTrace(error);
   result._completeError(error, stackTrace);
 }
 
 // Like [_completeWithErrorCallback] but completes asynchronously.
-void _asyncCompleteWithErrorCallback(_Future result, error, stackTrace) {
+void _asyncCompleteWithErrorCallback(
+    _Future result, error, StackTrace stackTrace) {
   AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
   if (replacement != null) {
     error = _nonNullError(replacement.error);
     stackTrace = replacement.stackTrace;
   }
+  stackTrace ??= AsyncError.defaultStackTrace(error);
   result._asyncCompleteError(error, stackTrace);
 }
 

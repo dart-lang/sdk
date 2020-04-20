@@ -32,14 +32,20 @@ abstract class EnumSet<E> {
   /// The bit mask of the shifted indices for the enum values in this set.
   int get value;
 
-  /// Adds [enumValue] to this set.
-  void add(E enumValue);
+  /// Sets the enum values in this set through a bit mask of the shifted enum
+  /// value indices.
+  void set value(int mask);
+
+  /// Adds [enumValue] to this set. Returns `true` if the set was changed by
+  /// this action.
+  bool add(E enumValue);
 
   /// Adds all enum values in [set] to this set.
   void addAll(EnumSet<E> set);
 
-  /// Removes [enumValue] from this set.
-  void remove(E enumValue);
+  /// Removes [enumValue] from this set. Returns `true` if the set was changed
+  /// by this action.
+  bool remove(E enumValue);
 
   /// Removes all enum values in [set] from this set. The set of removed values
   /// is returned.
@@ -48,6 +54,12 @@ abstract class EnumSet<E> {
   /// Returns a new set containing all values in both this and the [other] set.
   EnumSet<E> intersection(EnumSet<E> other) {
     return new EnumSet.fromValue(value & other.value);
+  }
+
+  /// Returns a new set containing all values either in this set or in the
+  /// [other] set.
+  EnumSet<E> union(EnumSet<E> other) {
+    return new EnumSet.fromValue(value | other.value);
   }
 
   /// Returns a new set containing all values in this set that are not in the
@@ -88,14 +100,20 @@ abstract class EnumSet<E> {
   /// Returns `true` if this set is not empty.
   bool get isNotEmpty => value != 0;
 
+  /// Returns a new mutable enum set that contains the values of this set.
+  EnumSet<E> clone() => new EnumSet<E>.fromValue(value);
+
+  @override
   int get hashCode => value.hashCode * 19;
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! EnumSet<E>) return false;
     return value == other.value;
   }
 
+  @override
   String toString() {
     if (value == 0) return '0';
     int index = value.bitLength - 1;
@@ -128,8 +146,15 @@ class _EnumSet<E> extends EnumSet<E> {
   int get value => _value;
 
   @override
-  void add(E enumValue) {
+  void set value(int mask) {
+    _value = mask;
+  }
+
+  @override
+  bool add(E enumValue) {
+    int before = _value;
     _value |= 1 << (enumValue as dynamic).index;
+    return _value != before;
   }
 
   @override
@@ -138,8 +163,10 @@ class _EnumSet<E> extends EnumSet<E> {
   }
 
   @override
-  void remove(E enumValue) {
+  bool remove(E enumValue) {
+    int before = _value;
     _value &= ~(1 << (enumValue as dynamic).index);
+    return _value != before;
   }
 
   @override
@@ -157,6 +184,7 @@ class _EnumSet<E> extends EnumSet<E> {
 
 /// Immutable implementation of [EnumSet].
 class _ConstEnumSet<E> extends EnumSet<E> {
+  @override
   final int value;
 
   const _ConstEnumSet(this.value) : super._();
@@ -174,7 +202,12 @@ class _ConstEnumSet<E> extends EnumSet<E> {
   }
 
   @override
-  void add(E enumValue) {
+  void set value(int mask) {
+    throw new UnsupportedError('EnumSet.value=');
+  }
+
+  @override
+  bool add(E enumValue) {
     throw new UnsupportedError('EnumSet.add');
   }
 
@@ -185,16 +218,36 @@ class _ConstEnumSet<E> extends EnumSet<E> {
 
   @override
   void clear() {
-    throw new UnsupportedError('EnumSet.clear');
+    if (isEmpty) {
+      // We allow this no-op operation on an immutable set to support using a
+      // constant empty set together with mutable sets where applicable.
+    } else {
+      throw new UnsupportedError('EnumSet.clear');
+    }
   }
 
   @override
-  void remove(E enumValue) {
+  bool remove(E enumValue) {
+    if (isEmpty) {
+      // We allow this no-op operation on an immutable set to support using a
+      // constant empty set together with mutable sets where applicable.
+      return false;
+    }
     throw new UnsupportedError('EnumSet.remove');
   }
 
   @override
   EnumSet<E> removeAll(EnumSet<E> set) {
+    if (isEmpty) {
+      // We allow this no-op operation on an immutable set to support using a
+      // constant empty set together with mutable sets where applicable.
+      return this;
+    }
+    if (set.isEmpty) {
+      // We allow this no-op operation on an immutable set to support using a
+      // constant empty set together with mutable sets where applicable.
+      return set.clone();
+    }
     throw new UnsupportedError('EnumSet.removeAll');
   }
 }

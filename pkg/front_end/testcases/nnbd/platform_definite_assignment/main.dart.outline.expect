@@ -1,0 +1,40 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "dart:test";
+
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+
+@_in::patch
+class Class<T extends core::num = core::num> extends core::Object /*hasConstConstructor*/  {
+  final field core::int a;
+  final field self2::Class::T b;
+  const constructor constConstructor(core::int a, self2::Class::T b) → self2::Class<self2::Class::T>
+    : self2::Class::a = a, self2::Class::b = b, super core::Object::•()
+    ;
+  constructor constructor(core::int a, self2::Class::T b) → self2::Class<self2::Class::T>
+    ;
+  @_in::patch
+  external constructor patchedConstructor(core::int a, self2::Class::T b) → self2::Class<self2::Class::T>
+    ;
+  method method(core::int a) → core::int
+    ;
+  @_in::patch
+  external method patchedMethod(core::int a) → core::int;
+  method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod(core::int i) → core::int
+    ;
+}
+static method method(core::int a) → core::int
+  ;
+@_in::patch
+external static abstract method patchedMethod(core::int a) → void;
+static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod(core::int i) → core::int
+  ;

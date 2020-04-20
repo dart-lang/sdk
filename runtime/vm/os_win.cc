@@ -79,7 +79,7 @@ const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
                                          : zone_information.StandardName;
   intptr_t utf8_len =
       WideCharToMultiByte(CP_UTF8, 0, wchar_name, -1, NULL, 0, NULL, NULL);
-  char* name = Thread::Current()->zone()->Alloc<char>(utf8_len + 1);
+  char* name = ThreadState::Current()->zone()->Alloc<char>(utf8_len + 1);
   WideCharToMultiByte(CP_UTF8, 0, wchar_name, -1, name, utf8_len, NULL, NULL);
   name[utf8_len] = '\0';
   return name;
@@ -188,18 +188,6 @@ intptr_t OS::ActivationFrameAlignment() {
 #endif
 }
 
-intptr_t OS::PreferredCodeAlignment() {
-  ASSERT(32 <= OS::kMaxPreferredCodeAlignment);
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
-    defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_DBC)
-  return 32;
-#elif defined(TARGET_ARCH_ARM)
-  return 16;
-#else
-#error Unsupported architecture.
-#endif
-}
-
 int OS::NumberOfAvailableProcessors() {
   SYSTEM_INFO info;
   GetSystemInfo(&info);
@@ -237,26 +225,6 @@ DART_NOINLINE uintptr_t OS::GetProgramCounter() {
   return reinterpret_cast<uintptr_t>(_ReturnAddress());
 }
 
-char* OS::StrNDup(const char* s, intptr_t n) {
-  intptr_t len = strlen(s);
-  if ((n < 0) || (len < 0)) {
-    return NULL;
-  }
-  if (n < len) {
-    len = n;
-  }
-  char* result = reinterpret_cast<char*>(malloc(len + 1));
-  if (result == NULL) {
-    return NULL;
-  }
-  result[len] = '\0';
-  return reinterpret_cast<char*>(memmove(result, s, len));
-}
-
-intptr_t OS::StrNLen(const char* s, intptr_t n) {
-  return strnlen(s, n);
-}
-
 void OS::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -267,48 +235,6 @@ void OS::Print(const char* format, ...) {
 void OS::VFPrint(FILE* stream, const char* format, va_list args) {
   vfprintf(stream, format, args);
   fflush(stream);
-}
-
-int OS::SNPrint(char* str, size_t size, const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  int retval = VSNPrint(str, size, format, args);
-  va_end(args);
-  return retval;
-}
-
-int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
-  if (str == NULL || size == 0) {
-    int retval = _vscprintf(format, args);
-    if (retval < 0) {
-      FATAL1("Fatal error in OS::VSNPrint with format '%s'", format);
-    }
-    return retval;
-  }
-  va_list args_copy;
-  va_copy(args_copy, args);
-  int written = _vsnprintf(str, size, format, args_copy);
-  va_end(args_copy);
-  if (written < 0) {
-    // _vsnprintf returns -1 if the number of characters to be written is
-    // larger than 'size', so we call _vscprintf which returns the number
-    // of characters that would have been written.
-    va_list args_retry;
-    va_copy(args_retry, args);
-    written = _vscprintf(format, args_retry);
-    if (written < 0) {
-      FATAL1("Fatal error in OS::VSNPrint with format '%s'", format);
-    }
-    va_end(args_retry);
-  }
-  // Make sure to zero-terminate the string if the output was
-  // truncated or if there was an error.
-  // The static cast is safe here as we have already determined that 'written'
-  // is >= 0.
-  if (static_cast<size_t>(written) >= size) {
-    str[size - 1] = '\0';
-  }
-  return written;
 }
 
 char* OS::SCreate(Zone* zone, const char* format, ...) {
@@ -323,7 +249,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer;
@@ -337,7 +263,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Print.
   va_list print_args;
   va_copy(print_args, args);
-  VSNPrint(buffer, len + 1, format, print_args);
+  Utils::VSNPrint(buffer, len + 1, format, print_args);
   va_end(print_args);
   return buffer;
 }
@@ -349,13 +275,21 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
   int i = 0;
   if (str[0] == '-') {
     i = 1;
+  } else if (str[0] == '+') {
+    i = 1;
   }
   if ((str[i] == '0') && (str[i + 1] == 'x' || str[i + 1] == 'X') &&
       (str[i + 2] != '\0')) {
     base = 16;
   }
   errno = 0;
-  *value = _strtoi64(str, &endptr, base);
+  if (base == 16) {
+    // Unsigned 64-bit hexadecimal integer literals are allowed but
+    // immediately interpreted as signed 64-bit integers.
+    *value = static_cast<int64_t>(_strtoui64(str, &endptr, base));
+  } else {
+    *value = _strtoi64(str, &endptr, base);
+  }
   return ((errno == 0) && (endptr != str) && (*endptr == 0));
 }
 
@@ -368,18 +302,15 @@ void OS::PrintErr(const char* format, ...) {
   va_end(args);
 }
 
-void OS::InitOnce() {
-  // TODO(5411554): For now we check that initonce is called only once,
-  // Once there is more formal mechanism to call InitOnce we can move
-  // this check there.
+void OS::Init() {
   static bool init_once_called = false;
-  ASSERT(init_once_called == false);
+  if (init_once_called) {
+    return;
+  }
   init_once_called = true;
   // Do not pop up a message box when abort is called.
   _set_abort_behavior(0, _WRITE_ABORT_MSG);
-  ThreadLocalData::InitOnce();
-  MonitorWaitData::monitor_wait_data_key_ = OSThread::CreateThreadLocal();
-  MonitorData::GetMonitorWaitDataForThread();
+  ThreadLocalData::Init();
   LARGE_INTEGER ticks_per_sec;
   if (!QueryPerformanceFrequency(&ticks_per_sec)) {
     qpc_ticks_per_second = 0;
@@ -388,14 +319,18 @@ void OS::InitOnce() {
   }
 }
 
-void OS::Shutdown() {
+void OS::Cleanup() {
   // TODO(zra): Enable once VM can shutdown cleanly.
-  // ThreadLocalData::Shutdown();
+  // ThreadLocalData::Cleanup();
+}
+
+void OS::PrepareToAbort() {
+  // TODO(zra): Remove once VM shuts down cleanly.
+  private_flag_windows_run_tls_destructors = false;
 }
 
 void OS::Abort() {
-  // TODO(zra): Remove once VM shuts down cleanly.
-  private_flag_windows_run_tls_destructors = false;
+  PrepareToAbort();
   abort();
 }
 

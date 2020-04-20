@@ -17,10 +17,9 @@ import 'dart:math' as Math;
 const int NUM_TESTS = 300;
 const int MAX_COLLECTION_SIZE = 7;
 
-Math.Random rand;
+final rand = Math.Random();
 
 main() {
-  rand = new Math.Random();
   smokeTest();
   exactTest();
   inexactTest();
@@ -144,7 +143,7 @@ void inexactTest() {
  * If exact is true, the returned collections will not be, and will not contain
  * a collection with ill-defined iteration order (i.e., a HashSet or HashMap).
  */
-Object randomCollection(int size, StringBuffer stringRep, {bool exact}) {
+Object randomCollection(int size, StringBuffer stringRep, {bool exact = false}) {
   return randomCollectionHelper(size, exact, stringRep, []);
 }
 
@@ -242,7 +241,7 @@ populateRandomCollection(int size, bool exact, StringBuffer stringRep,
 
   stringRep.write(delimiters[0]);
 
-  List indices = [];
+  List<int> indices = [];
   for (int i = 0; i < size; i++) {
     indices.add(stringRep.length);
     if (i != 0) stringRep.write(', ');

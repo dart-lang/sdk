@@ -19,7 +19,7 @@ File scriptSource = new File(
     Platform.script.resolve("http_server_response_test.dart").toFilePath());
 
 void testServerRequest(void handler(server, request),
-    {int bytes, bool closeClient}) {
+    {int? bytes, bool closeClient = false}) {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.defaultResponseHeaders.clear();
     server.listen((request) {
@@ -37,7 +37,7 @@ void testServerRequest(void handler(server, request),
       int received = 0;
       var subscription;
       subscription = response.listen((data) {
-        if (closeClient == true) {
+        if (closeClient) {
           subscription.cancel();
           client.close();
         } else {
@@ -67,6 +67,7 @@ void testResponseDone() {
   testServerRequest((server, request) {
     new File("__nonexistent_file_")
         .openRead()
+        .cast<List<int>>()
         .pipe(request.response)
         .catchError((e) {
       server.close();
@@ -103,7 +104,7 @@ void testResponseAddStream() {
   }, bytes: bytes * 2);
 
   testServerRequest((server, request) {
-    var controller = new StreamController(sync: true);
+    var controller = new StreamController<List<int>>(sync: true);
     request.response.addStream(controller.stream).then((response) {
       response.close();
       response.done.then((_) => server.close());
@@ -122,6 +123,7 @@ void testResponseAddStream() {
   testServerRequest((server, request) {
     new File("__nonexistent_file_")
         .openRead()
+        .cast<List<int>>()
         .pipe(request.response)
         .catchError((e) {
       server.close();
@@ -257,7 +259,7 @@ void testIgnoreRequestData() {
       request.add(new Uint8List(1024 * 1024));
       return request.close();
     }).then((response) {
-      response.fold(0, (s, b) => s + b.length).then((bytes) {
+      response.fold<int>(0, (s, b) => s + b.length).then((bytes) {
         Expect.equals(8, bytes);
         server.close();
       });

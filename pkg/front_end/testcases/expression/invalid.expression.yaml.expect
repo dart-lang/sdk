@@ -1,0 +1,13 @@
+Errors: {
+  org-dartlang-debug:synthetic_debug_expression:1:5: Error: Can't find ')' to match '('.
+  *foo(3,
+      ^
+  org-dartlang-debug:synthetic_debug_expression:1:1: Error: Expected an identifier, but got '*'.
+  *foo(3,
+  ^
+  org-dartlang-debug:synthetic_debug_expression:1:2: Error: Method not found: 'foo'.
+  *foo(3,
+   ^^^
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:1: Error: This couldn't be parsed.\n*foo(3,\n^".*(invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:2: Error: Method not found: 'foo'.\n*foo(3,\n ^^^");

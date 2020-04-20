@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_STACK_FRAME_ARM_H_
 #define RUNTIME_VM_STACK_FRAME_ARM_H_
 
+#if !defined(RUNTIME_VM_STACK_FRAME_H_)
+#error Do not include stack_frame_arm.h directly; use stack_frame.h instead.
+#endif
+
 namespace dart {
 
 /* ARM Dart Frame Layout
@@ -42,6 +46,7 @@ static const int kSavedCallerFpSlotFromFp = 0;
 static const int kSavedCallerPcSlotFromFp = 1;
 static const int kParamEndSlotFromFp = 1;  // One slot past last parameter.
 static const int kCallerSpSlotFromFp = 2;
+static const int kLastParamSlotFromEntrySp = 0;
 
 // Entry and exit frame layout.
 #if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
@@ -53,6 +58,15 @@ static const int kExitLinkSlotFromEntryFp = -27;
 COMPILE_ASSERT(kAbiPreservedCpuRegCount == 7);
 COMPILE_ASSERT(kAbiPreservedFpuRegCount == 4);
 #endif
+
+// For FFI native -> Dart callbacks, the number of stack slots between arguments
+// passed on stack and arguments saved in callback prologue.
+//
+// 2 = return adddress (1) + saved frame pointer (1).
+//
+// If NativeCallbackTrampolines::Enabled(), then
+// kNativeCallbackTrampolineStackDelta must be added as well.
+constexpr intptr_t kCallbackSlotsBeforeSavedArguments = 2;
 
 }  // namespace dart
 

@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
@@ -18,7 +18,7 @@ testFunction() async {
   return z;
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     // Make sure we are in the right place.
@@ -27,7 +27,7 @@ var tests = [
     expect(stack.type, equals('Stack'));
     expect(await stack['frames'][topFrame].location.getLine(), 16);
 
-    var result = await isolate.evalFrame(topFrame, "x");
+    Instance result = await isolate.evalFrame(topFrame, "x");
     print(result);
     expect(result.valueAsString, equals("3"));
   },
@@ -40,7 +40,7 @@ var tests = [
     expect(stack.type, equals('Stack'));
     expect(await stack['frames'][topFrame].location.getLine(), 18);
 
-    var result = await isolate.evalFrame(topFrame, "z");
+    Instance result = await isolate.evalFrame(topFrame, "z");
     print(result);
     expect(result.valueAsString, equals("7"));
   },

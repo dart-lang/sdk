@@ -5,15 +5,15 @@
 // Dart test program for testing file I/O.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 import "package:path/path.dart";
 
-String tempDirectory;
+late String tempDirectory;
 
 void main() {
   if (Platform.isWindows) {
@@ -101,9 +101,7 @@ testWindowsCases() {
 Future createTempDirectories() {
   return Directory.systemTemp
       .createTemp('dart_parent_')
-      .then((dir) {
-        tempDirectory = dir.path;
-      })
+      .then((dir) => tempDirectory = dir.path)
       .then((_) => new File(join(tempDirectory, 'file1')).create())
       .then((_) => new Link(join(tempDirectory, 'link1')).create('.'))
       .then((_) => new Directory(join(tempDirectory, 'dir1')).create());

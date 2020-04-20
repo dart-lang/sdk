@@ -1,32 +1,35 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:front_end/byte_store.dart';
-import 'package:front_end/src/base/performace_logger.dart';
-import 'package:mockito/mockito.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
-
-import '../../context/mock_sdk.dart';
 
 /**
  * Finds an [Element] with the given [name].
  */
 Element findChildElement(Element root, String name, [ElementKind kind]) {
-  Element result = null;
-  root.accept(new _ElementVisitorFunctionWrapper((Element element) {
+  Element result;
+  root.accept(_ElementVisitorFunctionWrapper((Element element) {
     if (element.name != name) {
       return;
     }
@@ -38,68 +41,75 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
   return result;
 }
 
-typedef bool Predicate<E>(E argument);
+typedef Predicate<E> = bool Function(E argument);
 
-/**
- * A function to be called for every [Element].
- */
-typedef void _ElementVisitorFunction(Element element);
+/// A function to be called for every [Element].
+typedef _ElementVisitorFunction = void Function(Element element);
 
-class BaseAnalysisDriverTest {
-  final MemoryResourceProvider provider = new MemoryResourceProvider();
+class BaseAnalysisDriverTest with ResourceProviderMixin {
   DartSdk sdk;
-  final ByteStore byteStore = new MemoryByteStore();
-  final FileContentOverlay contentOverlay = new FileContentOverlay();
+  final ByteStore byteStore = MemoryByteStore();
+  final FileContentOverlay contentOverlay = FileContentOverlay();
 
-  final StringBuffer logBuffer = new StringBuffer();
+  final StringBuffer logBuffer = StringBuffer();
   PerformanceLog logger;
 
-  final UriResolver generatedUriResolver = new _GeneratedUriResolverMock();
+  final _GeneratedUriResolverMock generatedUriResolver =
+      _GeneratedUriResolverMock();
   AnalysisDriverScheduler scheduler;
   AnalysisDriver driver;
   final List<AnalysisStatus> allStatuses = <AnalysisStatus>[];
-  final List<AnalysisResult> allResults = <AnalysisResult>[];
+  final List<ResolvedUnitResult> allResults = <ResolvedUnitResult>[];
   final List<ExceptionResult> allExceptions = <ExceptionResult>[];
 
   String testProject;
   String testFile;
   String testCode;
 
+  List<String> enabledExperiments = [];
+
   bool get disableChangesAndCacheAllResults => false;
 
-  void addTestFile(String content, {bool priority: false}) {
+  void addTestFile(String content, {bool priority = false}) {
     testCode = content;
-    provider.newFile(testFile, content);
+    newFile(testFile, content: content);
     driver.addFile(testFile);
     if (priority) {
       driver.priorityFiles = [testFile];
     }
   }
 
-  AnalysisDriver createAnalysisDriver({SummaryDataStore externalSummaries}) {
-    return new AnalysisDriver(
+  AnalysisDriver createAnalysisDriver(
+      {Map<String, List<Folder>> packageMap,
+      SummaryDataStore externalSummaries}) {
+    packageMap ??= <String, List<Folder>>{
+      'test': [getFolder(testProject)],
+      'aaa': [getFolder('/aaa/lib')],
+      'bbb': [getFolder('/bbb/lib')],
+    };
+    return AnalysisDriver(
         scheduler,
         logger,
-        provider,
+        resourceProvider,
         byteStore,
         contentOverlay,
         null,
-        new SourceFactory([
-          new DartUriResolver(sdk),
+        SourceFactory([
+          DartUriResolver(sdk),
           generatedUriResolver,
-          new PackageMapUriResolver(provider, <String, List<Folder>>{
-            'test': [provider.getFolder(testProject)]
-          }),
-          new ResourceUriResolver(provider)
-        ], null, provider),
+          PackageMapUriResolver(resourceProvider, packageMap),
+          ResourceUriResolver(resourceProvider)
+        ]),
         createAnalysisOptions(),
+        packages: Packages.empty,
         disableChangesAndCacheAllResults: disableChangesAndCacheAllResults,
+        enableIndex: true,
         externalSummaries: externalSummaries);
   }
 
-  AnalysisOptionsImpl createAnalysisOptions() => new AnalysisOptionsImpl()
-    ..strongMode = true
-    ..enableUriInPartOf = true;
+  AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
+    ..useFastaParser = analyzer.Parser.useFasta
+    ..contextFeatures = FeatureSet.fromEnableFlags(enabledExperiments);
 
   int findOffset(String search) {
     int offset = testCode.indexOf(search);
@@ -131,11 +141,11 @@ class BaseAnalysisDriverTest {
   }
 
   void setUp() {
-    sdk = new MockSdk(resourceProvider: provider);
-    testProject = _p('/test/lib');
-    testFile = _p('/test/lib/test.dart');
-    logger = new PerformanceLog(logBuffer);
-    scheduler = new AnalysisDriverScheduler(logger);
+    sdk = MockSdk(resourceProvider: resourceProvider);
+    testProject = convertPath('/test/lib');
+    testFile = convertPath('/test/lib/test.dart');
+    logger = PerformanceLog(logBuffer);
+    scheduler = AnalysisDriverScheduler(logger);
     driver = createAnalysisDriver();
     scheduler.start();
     scheduler.status.listen(allStatuses.add);
@@ -144,8 +154,6 @@ class BaseAnalysisDriverTest {
   }
 
   void tearDown() {}
-
-  String _p(String path) => provider.convertPath(path);
 }
 
 /**
@@ -156,10 +164,39 @@ class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor {
 
   _ElementVisitorFunctionWrapper(this.function);
 
+  @override
   visitElement(Element element) {
     function(element);
     super.visitElement(element);
   }
 }
 
-class _GeneratedUriResolverMock extends Mock implements UriResolver {}
+class _GeneratedUriResolverMock implements UriResolver {
+  Source Function(Uri, Uri) resolveAbsoluteFunction;
+
+  Uri Function(Source) restoreAbsoluteFunction;
+
+  @override
+  void clearCache() {}
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    if (resolveAbsoluteFunction != null) {
+      return resolveAbsoluteFunction(uri, actualUri);
+    }
+    return null;
+  }
+
+  @override
+  Uri restoreAbsolute(Source source) {
+    if (restoreAbsoluteFunction != null) {
+      return restoreAbsoluteFunction(source);
+    }
+    return null;
+  }
+}

@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 testNormalizePath() {
-  test(String expected, String path, {String scheme, String host}) {
+  test(String expected, String path, {String? scheme, String? host}) {
     var uri = new Uri(scheme: scheme, host: host, path: path);
     Expect.equals(expected, uri.toString());
     if (scheme == null && host == null) {

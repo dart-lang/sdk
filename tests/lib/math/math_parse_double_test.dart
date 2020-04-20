@@ -10,7 +10,7 @@ library math_parse_double_test;
 import "package:expect/expect.dart";
 
 void parseDoubleThrowsFormatException(str) {
-  Expect.throws(() => double.parse(str), (e) => e is FormatException);
+  Expect.throwsFormatException(() => double.parse(str));
 }
 
 void runTest(double expected, String input) {
@@ -58,7 +58,7 @@ final TESTS = [
   [5.0, "5"],
   [123456700.0, "1234567.e2"],
   [123456700.0, "1234567.e+2"],
-  [double.INFINITY, "Infinity"],
+  [double.infinity, "Infinity"],
   [5e-324, "5e-324"], // min-pos.
   // Same, without exponential.
   [
@@ -77,7 +77,7 @@ final TESTS = [
   [4295967296.0, "4295967296"], // min int not-uint32
   [1.7976931348623157e+308, "1.7976931348623157e+308"], // Max finite
   [1.7976931348623157e+308, "1.7976931348623158e+308"], // Max finite
-  [double.INFINITY, "1.7976931348623159e+308"], // Infinity
+  [double.infinity, "1.7976931348623159e+308"], // Infinity
   [.049999999999999994, ".049999999999999994"], // not 0.5
   [.05, ".04999999999999999935"],
   [4503599627370498.0, "4503599627370497.5"],
@@ -88,7 +88,7 @@ final TESTS = [
 
 void main() {
   for (var test in TESTS) {
-    runTest(test[0], test[1]);
+    runTest(test[0] as double, test[1] as String);
   }
 
   Expect.equals(true, double.parse("-0").isNegative);

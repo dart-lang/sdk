@@ -1,0 +1,15 @@
+NOTICE: Stream was rewritten by parser!
+
+class C {
+C()
+{}operator/
+(): super();
+}
+
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+C[StringToken]([BeginToken])[SimpleToken]
+{[SyntheticBeginToken]}[SyntheticToken]operator[SyntheticKeywordToken]/[SimpleToken]
+([SyntheticBeginToken])[SyntheticToken]:[SimpleToken] super[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

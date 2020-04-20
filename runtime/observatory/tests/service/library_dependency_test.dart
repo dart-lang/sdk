@@ -1,21 +1,24 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 export 'dart:collection';
 import 'dart:mirrors' as mirrors;
 import 'dart:convert' deferred as convert;
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
-    var lib = await isolate.rootLibrary.load();
-    // Use mirrors to shutup the analyzer.
+    await isolate.load();
+    Library lib = isolate.rootLibrary;
+    await lib.load();
+
+    // Avoid unused import warning from the analyzer.
     mirrors.currentMirrorSystem();
+
     importOf(String uri) {
       return lib.dependencies.singleWhere((dep) => dep.target.uri == uri);
     }

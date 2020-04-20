@@ -1,7 +1,7 @@
 To build Dart for Mac and Linux, we pull Fuchsia's buildtools, which is also
-used by Flutter. Fuchsia's buildtools includes gn, ninja, and the clang
-toolchain. Fuchsia buildtools vends clang-format as part of the clang toolchain.
-Since Fuchsia's buildtools doesn't vend a clang toolchain for Windows, we can't
+used by Flutter. Fuchsia's buildtools includes gn, and the clang toolchain.
+Fuchsia buildtools vends clang-format as part of the clang toolchain. Since
+Fuchsia's buildtools doesn't vend a clang toolchain for Windows, we can't
 get a Windows clang-format binary from it. Therefore, from Chromium's buildtools
 here:
 

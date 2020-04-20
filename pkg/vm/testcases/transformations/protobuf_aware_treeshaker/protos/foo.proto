@@ -1,0 +1,36 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+message FooKeep {
+  BarKeep barKeep = 1;
+  BarKeep barDrop = 2;
+  map<string, BarKeep> mapKeep = 3;
+  map<string, ZopDrop> mapDrop = 4;
+  int32 aKeep = 5;
+  HasKeep hasKeep = 6;
+  ClearKeep clearKeep = 7;
+}
+
+message BarKeep {
+  int32 aKeep = 1;
+  int32 bDrop = 2;
+}
+
+message HasKeep {
+  int32 aDrop = 1;
+}
+
+message ClearKeep {
+  int32 aDrop = 1;
+}
+
+message ZopDrop {
+  int32 aDrop = 1;
+}
+
+message MobDrop {
+  int32 aDrop = 1;
+}

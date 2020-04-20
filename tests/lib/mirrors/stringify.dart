@@ -9,14 +9,15 @@ import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
-name(DeclarationMirror mirror) {
+String name(DeclarationMirror? mirror) {
   return (mirror == null) ? '<null>' : stringify(mirror.simpleName);
 }
 
-stringifyMap(Map map) {
+String stringifyMap(Map map) {
   var buffer = new StringBuffer();
   bool first = true;
-  for (String key in map.keys.map(MirrorSystem.getName).toList()..sort()) {
+  var names = map.keys.map((s) => MirrorSystem.getName(s)).toList()..sort();
+  for (String key in names) {
     if (!first) buffer.write(', ');
     first = false;
     buffer.write(key);
@@ -26,7 +27,7 @@ stringifyMap(Map map) {
   return '{$buffer}';
 }
 
-stringifyIterable(Iterable list) {
+String stringifyIterable(Iterable list) {
   var buffer = new StringBuffer();
   bool first = true;
   for (String value in list.map(stringify)) {
@@ -37,7 +38,7 @@ stringifyIterable(Iterable list) {
   return '[$buffer]';
 }
 
-stringifyInstance(InstanceMirror instance) {
+String stringifyInstance(InstanceMirror instance) {
   var buffer = new StringBuffer();
   if (instance.hasReflectee) {
     buffer.write('value = ${stringify(instance.reflectee)}');
@@ -45,9 +46,9 @@ stringifyInstance(InstanceMirror instance) {
   return 'Instance(${buffer})';
 }
 
-stringifySymbol(Symbol symbol) => 's(${MirrorSystem.getName(symbol)})';
+String stringifySymbol(Symbol symbol) => 's(${MirrorSystem.getName(symbol)})';
 
-writeDeclarationOn(DeclarationMirror mirror, StringBuffer buffer) {
+void writeDeclarationOn(DeclarationMirror mirror, StringBuffer buffer) {
   buffer.write(stringify(mirror.simpleName));
   if (mirror.owner != null) {
     buffer.write(' in ');
@@ -57,19 +58,19 @@ writeDeclarationOn(DeclarationMirror mirror, StringBuffer buffer) {
   if (mirror.isTopLevel) buffer.write(', top-level');
 }
 
-writeVariableOn(VariableMirror variable, StringBuffer buffer) {
+void writeVariableOn(VariableMirror variable, StringBuffer buffer) {
   writeDeclarationOn(variable, buffer);
   if (variable.isStatic) buffer.write(', static');
   if (variable.isFinal) buffer.write(', final');
 }
 
-stringifyVariable(VariableMirror variable) {
+String stringifyVariable(VariableMirror variable) {
   var buffer = new StringBuffer();
   writeVariableOn(variable, buffer);
   return 'Variable($buffer)';
 }
 
-stringifyParameter(ParameterMirror parameter) {
+String stringifyParameter(ParameterMirror parameter) {
   var buffer = new StringBuffer();
   writeVariableOn(parameter, buffer);
   if (parameter.isOptional) buffer.write(', optional');
@@ -83,26 +84,26 @@ stringifyParameter(ParameterMirror parameter) {
   return 'Parameter($buffer)';
 }
 
-stringifyTypeVariable(TypeVariableMirror typeVariable) {
+String stringifyTypeVariable(TypeVariableMirror typeVariable) {
   var buffer = new StringBuffer();
   writeDeclarationOn(typeVariable, buffer);
   buffer.write(', upperBound = ${stringify(typeVariable.upperBound)}');
   return 'TypeVariable($buffer)';
 }
 
-stringifyType(TypeMirror type) {
+String stringifyType(TypeMirror type) {
   var buffer = new StringBuffer();
   writeDeclarationOn(type, buffer);
   return 'Type($buffer)';
 }
 
-stringifyClass(ClassMirror cls) {
+String stringifyClass(ClassMirror cls) {
   var buffer = new StringBuffer();
   writeDeclarationOn(cls, buffer);
   return 'Class($buffer)';
 }
 
-stringifyMethod(MethodMirror method) {
+String stringifyMethod(MethodMirror method) {
   var buffer = new StringBuffer();
   writeDeclarationOn(method, buffer);
   if (method.isAbstract) buffer.write(', abstract');
@@ -114,9 +115,9 @@ stringifyMethod(MethodMirror method) {
   return 'Method($buffer)';
 }
 
-stringifyDependencies(LibraryMirror l) {
+String stringifyDependencies(LibraryMirror l) {
   n(s) => s is Symbol ? MirrorSystem.getName(s) : s;
-  compareDep(a, b) {
+  int compareDep(a, b) {
     if (a.targetLibrary == b.targetLibrary) {
       if ((a.prefix != null) && (b.prefix != null)) {
         return n(a.prefix).compareTo(n(b.prefix));
@@ -127,8 +128,8 @@ stringifyDependencies(LibraryMirror l) {
         .compareTo(n(b.targetLibrary.simpleName));
   }
 
-  compareCom(a, b) => n(a.identifier).compareTo(n(b.identifier));
-  compareFirst(a, b) => a[0].compareTo(b[0]);
+  int compareCom(a, b) => n(a.identifier).compareTo(n(b.identifier));
+  int compareFirst(a, b) => a[0].compareTo(b[0]);
   sortBy(c, p) => new List.from(c)..sort(p);
 
   var buffer = new StringBuffer();
@@ -140,7 +141,7 @@ stringifyDependencies(LibraryMirror l) {
     if (dep.prefix != null) buffer.write(' as ${n(dep.prefix)}');
     buffer.write('\n');
 
-    List flattenedCombinators = new List();
+    var flattenedCombinators = <dynamic>[];
     dep.combinators.forEach((com) {
       com.identifiers.forEach((ident) {
         flattenedCombinators.add([n(ident), com.isShow, com.isHide]);
@@ -157,7 +158,8 @@ stringifyDependencies(LibraryMirror l) {
   return buffer.toString();
 }
 
-stringify(value) {
+String stringify(value) {
+  if (value == null) return '<null>';
   if (value is Map) return stringifyMap(value);
   if (value is Iterable) return stringifyIterable(value);
   if (value is InstanceMirror) return stringifyInstance(value);
@@ -170,18 +172,19 @@ stringify(value) {
   if (value is ClassMirror) return stringifyClass(value);
   if (value is TypeVariableMirror) return stringifyTypeVariable(value);
   if (value is TypeMirror) return stringifyType(value);
-  if (value == null) return '<null>';
   throw 'Unexpected value: $value';
 }
 
-expect(expected, actual, [String reason]) {
+void expect(expected, actual, [String reason = ""]) {
   Expect.stringEquals(expected, stringify(actual), reason);
 }
 
-compareSymbols(Symbol a, Symbol b) {
+int compareSymbols(Symbol a, Symbol b) {
   return MirrorSystem.getName(a).compareTo(MirrorSystem.getName(b));
 }
 
-simpleNames(Iterable<Mirror> i) => i.map((e) => e.simpleName);
+Iterable<Symbol> simpleNames(Iterable<Mirror> i) =>
+    i.map((e) => (e as DeclarationMirror).simpleName);
 
-sort(Iterable<Symbol> symbols) => symbols.toList()..sort(compareSymbols);
+List<Symbol> sort(Iterable<Symbol> symbols) =>
+    symbols.toList()..sort(compareSymbols);

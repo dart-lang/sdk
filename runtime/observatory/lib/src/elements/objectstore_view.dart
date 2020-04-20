@@ -19,7 +19,7 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class ObjectStoreViewElement extends HtmlElement implements Renderable {
+class ObjectStoreViewElement extends CustomElement implements Renderable {
   static const tag = const Tag<ObjectStoreViewElement>('objectstore-view',
       dependencies: const [
         InstanceRefElement.tag,
@@ -61,8 +61,8 @@ class ObjectStoreViewElement extends HtmlElement implements Renderable {
     assert(notifications != null);
     assert(stores != null);
     assert(objects != null);
-    ObjectStoreViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    ObjectStoreViewElement e = new ObjectStoreViewElement.created();
+    e._r = new RenderingScheduler<ObjectStoreViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -72,7 +72,7 @@ class ObjectStoreViewElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  ObjectStoreViewElement.created() : super.created();
+  ObjectStoreViewElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -85,23 +85,24 @@ class ObjectStoreViewElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
     final fields = _store?.fields?.toList(growable: false);
-    children = [
-      navBar([
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
-        new NavRefreshElement(disabled: _store == null, queue: _r.queue)
-          ..onRefresh.listen((e) => _refresh()),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+    children = <Element>[
+      navBar(<Element>[
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
+        (new NavRefreshElement(disabled: _store == null, queue: _r.queue)
+              ..onRefresh.listen((e) => _refresh()))
+            .element,
+        (new NavNotifyElement(_notifications, queue: _r.queue).element)
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h1()
             ..text = fields == null
                 ? 'Object Store'
@@ -112,21 +113,21 @@ class ObjectStoreViewElement extends HtmlElement implements Renderable {
               : (new DivElement()
                 ..classes = ['memberList']
                 ..children = fields
-                    .map((field) => new DivElement()
+                    .map<Element>((field) => new DivElement()
                       ..classes = ['memberItem']
-                      ..children = [
+                      ..children = <Element>[
                         new DivElement()
                           ..classes = ['memberName']
                           ..text = field.name,
                         new DivElement()
                           ..classes = ['memberValue']
-                          ..children = [
+                          ..children = <Element>[
                             anyRef(_isolate, field.value, _objects,
                                 queue: _r.queue)
                           ]
                       ])
                     .toList()),
-          new ViewFooterElement(queue: _r.queue)
+          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }

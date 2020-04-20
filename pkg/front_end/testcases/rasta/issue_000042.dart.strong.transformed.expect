@@ -1,0 +1,75 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/issue_000042.dart:6:13: Error: Unexpected token ','.
+//   for (var x, y in []) {}
+//             ^
+//
+// pkg/front_end/testcases/rasta/issue_000042.dart:6:8: Error: A for-in loop can't have more than one loop variable.
+//   for (var x, y in []) {}
+//        ^^^
+//
+// pkg/front_end/testcases/rasta/issue_000042.dart:7:8: Error: A continue statement can't be used outside of a loop or switch statement.
+// Try removing the continue statement.
+//   L: { continue L; }
+//        ^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/issue_000042.dart:8:18: Error: A continue statement can't be used outside of a loop or switch statement.
+// Try removing the continue statement.
+//   L: if (true) { continue L; }
+//                  ^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  {
+    invalid-expression "pkg/front_end/testcases/rasta/issue_000042.dart:6:8: Error: A for-in loop can't have more than one loop variable.
+  for (var x, y in []) {}
+       ^^^";
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t1 = :sync-for-iterator.{core::Iterator::current};
+        {
+          invalid-expression "pkg/front_end/testcases/rasta/issue_000042.dart:6:8: Error: A for-in loop can't have more than one loop variable.
+  for (var x, y in []) {}
+       ^^^";
+          dynamic x;
+          dynamic y;
+        }
+      }
+    }
+  }
+  #L1:
+  {
+    break #L1;
+  }
+  #L2:
+  if(true) {
+    break #L2;
+  }
+  #L3:
+  switch(1) {
+    #L4:
+    case #C1:
+      {
+        break #L3;
+      }
+    #L5:
+    case #C2:
+      {
+        break #L3;
+      }
+  }
+  try {
+  }
+  on core::NoSuchMethodError* catch(no-exception-var) {
+  }
+}
+
+constants  {
+  #C1 = 1
+  #C2 = 2
+}

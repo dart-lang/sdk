@@ -10,27 +10,27 @@ import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(T x) {}
-  dynamic noSuchMethod(/*@topType=Invocation*/ invocation);
+  dynamic noSuchMethod(invocation) => null;
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
 void test() {
   MyFuture<bool> f;
-  Future<int> t1 = f. /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
-      /*@returnType=Future<int>*/ (/*@type=bool*/ x) async =>
+  Future<int> t1 = f. /*@ typeArgs=int* */ /*@target=MyFuture::then*/ then(
+      /*@ returnType=Future<int*>* */ (/*@ type=bool* */ x) async =>
           x ? 2 : await new MyFuture<int>.value(3));
-  Future<int> t2 = f. /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
-      /*@returnType=Future<int>*/ (/*@type=bool*/ x) async {
+  Future<int> t2 = f. /*@ typeArgs=int* */ /*@target=MyFuture::then*/ then(
+      /*@ returnType=Future<int*>* */ (/*@ type=bool* */ x) async {
     return /*info:DOWN_CAST_COMPOSITE*/ await x
         ? 2
         : new MyFuture<int>.value(3);
   });
-  Future<int> t5 = f. /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
+  Future<int> t5 = f. /*@ typeArgs=int* */ /*@target=MyFuture::then*/ then(
       /*info:INFERRED_TYPE_CLOSURE,error:INVALID_CAST_FUNCTION_EXPR*/
-      /*@returnType=Object*/ (/*@type=bool*/ x) =>
+      /*@ returnType=FutureOr<int*>* */ (/*@ type=bool* */ x) =>
           x ? 2 : new MyFuture<int>.value(3));
-  Future<int> t6 = f. /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
-      /*@returnType=FutureOr<int>*/ (/*@type=bool*/ x) {
+  Future<int> t6 = f. /*@ typeArgs=int* */ /*@target=MyFuture::then*/ then(
+      /*@ returnType=FutureOr<int*>* */ (/*@ type=bool* */ x) {
     return /*info:DOWN_CAST_COMPOSITE*/ x ? 2 : new MyFuture<int>.value(3);
   });
 }

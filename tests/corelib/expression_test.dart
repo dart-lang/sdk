@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 class ExpressionTest {
   ExpressionTest() {}
 
-  int foo;
+  int foo = -1;
 
   static testMain() {
     var test = new ExpressionTest();
@@ -51,7 +51,7 @@ class ExpressionTest {
     Expect.equals(6, (x ^ y));
   }
 
-  operator [](int index) {
+  int operator [](int index) {
     return foo;
   }
 

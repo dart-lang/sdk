@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object? = core::Object?, S extends core::Object = core::Object> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T%, self::A::S>
+    ;
+  method hest<generic-covariant-impl X extends self::A::T% = self::A::T%, Y extends core::List<self::A::hest::X%> = core::List<self::A::T%>, Z extends core::List<self::A::hest::X?> = core::List<self::A::T?>>() → dynamic
+    ;
+  method fisk<generic-covariant-impl X extends self::A::S = self::A::S, Y extends core::List<self::A::fisk::X> = core::List<self::A::S>, Z extends core::List<self::A::fisk::X?> = core::List<self::A::S?>>() → dynamic
+    ;
+  method mus<X extends core::Object? = core::Object?, Y extends core::List<self::A::mus::X%> = core::List<core::Object?>, Z extends core::List<self::A::mus::X?> = core::List<core::Object?>>() → dynamic
+    ;
+}
+static method foo<T extends core::Object? = core::Object?, S extends core::List<self::foo::T%> = core::List<core::Object?>>(self::foo::T% t) → dynamic
+  ;
+static method bar<T extends core::Object? = core::Object?, S extends core::List<self::bar::T?> = core::List<core::Object?>>(self::bar::T% t) → dynamic
+  ;
+static method baz(core::int? x, core::int y) → dynamic
+  ;
+static method main() → dynamic
+  ;

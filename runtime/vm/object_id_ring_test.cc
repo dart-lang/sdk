@@ -7,6 +7,7 @@
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
 #include "vm/globals.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -127,87 +128,86 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  Dart_Handle moved_handle;
   intptr_t list_length = 0;
   EXPECT_VALID(result);
   EXPECT(!Dart_IsNull(result));
   EXPECT(Dart_IsList(result));
   EXPECT_VALID(Dart_ListLength(result, &list_length));
   EXPECT_EQ(3, list_length);
+
   Isolate* isolate = thread->isolate();
-  Heap* heap = isolate->heap();
   ObjectIdRing* ring = isolate->object_id_ring();
   ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
-  RawObject* raw_obj = Api::UnwrapHandle(result);
-  // Located in new heap.
-  EXPECT(raw_obj->IsNewObject());
-  EXPECT_NE(Object::null(), raw_obj);
-  intptr_t raw_obj_id1 = ring->GetIdForObject(raw_obj);
-  EXPECT_EQ(0, raw_obj_id1);
-  // Get id 0 again.
-  EXPECT_EQ(raw_obj_id1, ring->GetIdForObject(raw_obj, ObjectIdRing::kReuseId));
-  // Add to ring a second time.
-  intptr_t raw_obj_id2 = ring->GetIdForObject(raw_obj);
-  EXPECT_EQ(1, raw_obj_id2);
-  // Get id 0 again.
-  EXPECT_EQ(raw_obj_id1, ring->GetIdForObject(raw_obj, ObjectIdRing::kReuseId));
-  RawObject* raw_obj1 = ring->GetObjectForId(raw_obj_id1, &kind);
-  EXPECT_EQ(ObjectIdRing::kValid, kind);
-  RawObject* raw_obj2 = ring->GetObjectForId(raw_obj_id2, &kind);
-  EXPECT_EQ(ObjectIdRing::kValid, kind);
-  EXPECT_NE(Object::null(), raw_obj1);
-  EXPECT_NE(Object::null(), raw_obj2);
-  EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj1));
-  EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj2));
+
   {
-    TransitionNativeToVM transition(thread);
+    TransitionNativeToVM to_vm(thread);
+    RawObject* raw_obj = Api::UnwrapHandle(result);
+    // Located in new heap.
+    EXPECT(raw_obj->IsNewObject());
+    EXPECT_NE(Object::null(), raw_obj);
+    intptr_t raw_obj_id1 = ring->GetIdForObject(raw_obj);
+    EXPECT_EQ(0, raw_obj_id1);
+    // Get id 0 again.
+    EXPECT_EQ(raw_obj_id1,
+              ring->GetIdForObject(raw_obj, ObjectIdRing::kReuseId));
+    // Add to ring a second time.
+    intptr_t raw_obj_id2 = ring->GetIdForObject(raw_obj);
+    EXPECT_EQ(1, raw_obj_id2);
+    // Get id 0 again.
+    EXPECT_EQ(raw_obj_id1,
+              ring->GetIdForObject(raw_obj, ObjectIdRing::kReuseId));
+    RawObject* raw_obj1 = ring->GetObjectForId(raw_obj_id1, &kind);
+    EXPECT_EQ(ObjectIdRing::kValid, kind);
+    RawObject* raw_obj2 = ring->GetObjectForId(raw_obj_id2, &kind);
+    EXPECT_EQ(ObjectIdRing::kValid, kind);
+    EXPECT_NE(Object::null(), raw_obj1);
+    EXPECT_NE(Object::null(), raw_obj2);
+    EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj1));
+    EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj2));
     // Force a scavenge.
-    heap->CollectGarbage(Heap::kNew);
+    GCTestHelper::CollectNewSpace();
+    RawObject* raw_object_moved1 = ring->GetObjectForId(raw_obj_id1, &kind);
+    EXPECT_EQ(ObjectIdRing::kValid, kind);
+    RawObject* raw_object_moved2 = ring->GetObjectForId(raw_obj_id2, &kind);
+    EXPECT_EQ(ObjectIdRing::kValid, kind);
+    EXPECT_NE(Object::null(), raw_object_moved1);
+    EXPECT_NE(Object::null(), raw_object_moved2);
+    EXPECT_EQ(RawObject::ToAddr(raw_object_moved1),
+              RawObject::ToAddr(raw_object_moved2));
+    // Test that objects have moved.
+    EXPECT_NE(RawObject::ToAddr(raw_obj1),
+              RawObject::ToAddr(raw_object_moved1));
+    EXPECT_NE(RawObject::ToAddr(raw_obj2),
+              RawObject::ToAddr(raw_object_moved2));
+    // Test that we still point at the same list.
+    moved_handle = Api::NewHandle(thread, raw_object_moved1);
+    // Test id reuse.
+    EXPECT_EQ(raw_obj_id1,
+              ring->GetIdForObject(raw_object_moved1, ObjectIdRing::kReuseId));
   }
-  RawObject* raw_object_moved1 = ring->GetObjectForId(raw_obj_id1, &kind);
-  EXPECT_EQ(ObjectIdRing::kValid, kind);
-  RawObject* raw_object_moved2 = ring->GetObjectForId(raw_obj_id2, &kind);
-  EXPECT_EQ(ObjectIdRing::kValid, kind);
-  EXPECT_NE(Object::null(), raw_object_moved1);
-  EXPECT_NE(Object::null(), raw_object_moved2);
-  EXPECT_EQ(RawObject::ToAddr(raw_object_moved1),
-            RawObject::ToAddr(raw_object_moved2));
-  // Test that objects have moved.
-  EXPECT_NE(RawObject::ToAddr(raw_obj1), RawObject::ToAddr(raw_object_moved1));
-  EXPECT_NE(RawObject::ToAddr(raw_obj2), RawObject::ToAddr(raw_object_moved2));
-  // Test that we still point at the same list.
-  Dart_Handle moved_handle = Api::NewHandle(thread, raw_object_moved1);
   EXPECT_VALID(moved_handle);
   EXPECT(!Dart_IsNull(moved_handle));
   EXPECT(Dart_IsList(moved_handle));
   EXPECT_VALID(Dart_ListLength(moved_handle, &list_length));
   EXPECT_EQ(3, list_length);
-  // Test id reuse.
-  EXPECT_EQ(raw_obj_id1,
-            ring->GetIdForObject(raw_object_moved1, ObjectIdRing::kReuseId));
 }
 
 // Test that the ring table is updated with nulls when the old GC collects.
 ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
   Isolate* isolate = thread->isolate();
-  Heap* heap = isolate->heap();
   ObjectIdRing* ring = isolate->object_id_ring();
 
   ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
   intptr_t raw_obj_id1 = -1;
   intptr_t raw_obj_id2 = -1;
   {
-    Dart_EnterScope();
-    Dart_Handle result;
-    // Create a string in the old heap.
-    result = Api::NewHandle(thread, String::New("old", Heap::kOld));
-    EXPECT_VALID(result);
-    intptr_t string_length = 0;
-    // Inspect string.
-    EXPECT(!Dart_IsNull(result));
-    EXPECT(Dart_IsString(result));
-    EXPECT_VALID(Dart_StringLength(result, &string_length));
-    EXPECT_EQ(3, string_length);
-    RawObject* raw_obj = Api::UnwrapHandle(result);
+    HandleScope handle_scope(thread);
+    const String& str = String::Handle(String::New("old", Heap::kOld));
+    EXPECT(!str.IsNull());
+    EXPECT_EQ(3, str.Length());
+
+    RawObject* raw_obj = Object::RawCast(str.raw());
     // Verify that it is located in old heap.
     EXPECT(raw_obj->IsOldObject());
     EXPECT_NE(Object::null(), raw_obj);
@@ -223,13 +223,12 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
     EXPECT_NE(Object::null(), raw_obj2);
     EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj1));
     EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj2));
-    // Exit scope. Freeing result handle.
-    Dart_ExitScope();
+    // Exit scope. Freeing String handle.
   }
   // Force a GC. No reference exist to the old string anymore. It should be
   // collected and the object id ring will now return the null object for
   // those ids.
-  heap->CollectGarbage(Heap::kOld);
+  GCTestHelper::CollectOldSpace();
   RawObject* raw_object_moved1 = ring->GetObjectForId(raw_obj_id1, &kind);
   EXPECT_EQ(ObjectIdRing::kCollected, kind);
   EXPECT_EQ(Object::null(), raw_object_moved1);

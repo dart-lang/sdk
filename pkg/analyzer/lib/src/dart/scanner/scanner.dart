@@ -1,21 +1,21 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.dart.scanner.scanner;
-
+import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
+    show translateErrorToken;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart'
+    show Token, TokenType;
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:front_end/src/fasta/scanner.dart' as fasta;
-import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
-import 'package:front_end/src/scanner/scanner.dart' as fe;
-import 'package:front_end/src/scanner/token.dart' show Token, TokenType;
+import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
-export 'package:front_end/src/scanner/scanner.dart' show KeywordState;
 
 /**
  * The class `Scanner` implements a scanner for Dart code.
@@ -27,53 +27,7 @@ export 'package:front_end/src/scanner/scanner.dart' show KeywordState;
  * any context, so it always resolves such conflicts by scanning the longest
  * possible token.
  */
-class Scanner extends fe.Scanner {
-  /**
-   * The source being scanned.
-   */
-  final Source source;
-
-  /**
-   * The error listener that will be informed of any errors that are found
-   * during the scan.
-   */
-  final AnalysisErrorListener _errorListener;
-
-  /**
-   * Initialize a newly created scanner to scan characters from the given
-   * [source]. The given character [reader] will be used to read the characters
-   * in the source. The given [_errorListener] will be informed of any errors
-   * that are found.
-   */
-  factory Scanner(Source source, CharacterReader reader,
-          AnalysisErrorListener errorListener) =>
-      fe.Scanner.useFasta
-          ? new Scanner.fasta(source, errorListener,
-              contents: reader.getContents(), offset: reader.offset)
-          : new Scanner._(source, reader, errorListener);
-
-  factory Scanner.fasta(Source source, AnalysisErrorListener errorListener,
-      {String contents, int offset: -1}) {
-    return new _Scanner2(
-        source, contents ?? source.contents.data, offset, errorListener);
-  }
-
-  Scanner._(this.source, CharacterReader reader, this._errorListener)
-      : super.create(reader);
-
-  @override
-  void reportError(
-      ScannerErrorCode errorCode, int offset, List<Object> arguments) {
-    _errorListener
-        .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
-  }
-}
-
-/**
- * Replacement scanner based on fasta.
- */
-class _Scanner2 implements Scanner {
-  @override
+class Scanner {
   final Source source;
 
   /**
@@ -97,61 +51,91 @@ class _Scanner2 implements Scanner {
    */
   bool _preserveComments = true;
 
-  @override
   final List<int> lineStarts = <int>[];
 
-  @override
   Token firstToken;
 
-  @override
-  bool scanGenericMethodComments = false;
+  /**
+   * A flag indicating whether the scanner should recognize the `>>>` operator
+   * and the `>>>=` operator.
+   *
+   * Use [configureFeatures] rather than this field.
+   */
+  bool enableGtGtGt = false;
 
-  @override
-  bool scanLazyAssignmentOperators = false;
+  /**
+   * A flag indicating whether the scanner should recognize the `late` and
+   * `required` keywords.
+   *
+   * Use [configureFeatures] rather than this field.
+   */
+  bool enableNonNullable = false;
 
-  _Scanner2(
+  fasta.LanguageVersionToken _languageVersion;
+
+  FeatureSet _featureSet;
+
+  /**
+   * Initialize a newly created scanner to scan characters from the given
+   * [source]. The given character [reader] will be used to read the characters
+   * in the source. The given [_errorListener] will be informed of any errors
+   * that are found.
+   */
+  factory Scanner(Source source, CharacterReader reader,
+          AnalysisErrorListener errorListener) =>
+      Scanner.fasta(source, errorListener,
+          contents: reader.getContents(), offset: reader.offset);
+
+  factory Scanner.fasta(Source source, AnalysisErrorListener errorListener,
+      {String contents, int offset = -1}) {
+    return Scanner._(
+        source, contents ?? source.contents.data, offset, errorListener);
+  }
+
+  Scanner._(
       this.source, this._contents, this._readerOffset, this._errorListener) {
     lineStarts.add(0);
   }
 
-  @override
-  bool get hasUnmatchedGroups {
-    throw 'unsupported operation';
-  }
+  /**
+   * The features associated with this scanner.
+   *
+   * If a language version comment (e.g. '// @dart = 2.3') is detected
+   * when calling [tokenize] and this field is non-null, then this field
+   * will be updated to contain a downgraded feature set based upon the
+   * language version specified.
+   *
+   * Use [configureFeatures] to set the features.
+   */
+  FeatureSet get featureSet => _featureSet;
 
-  @override
+  /**
+   * The language version override specified for this compilation unit using a
+   * token like '// @dart = 2.7', or `null` if no override is specified.
+   */
+  fasta.LanguageVersionToken get languageVersion => _languageVersion;
+
   set preserveComments(bool preserveComments) {
     this._preserveComments = preserveComments;
   }
 
-  @override
-  Token get tail {
-    throw 'unsupported operation';
+  /// Configures the scanner appropriately for the given [featureSet].
+  ///
+  /// TODO(paulberry): stop exposing `enableGtGtGt` and `enableNonNullable` so
+  /// that callers are forced to use this API.  Note that this would be a
+  /// breaking change.
+  void configureFeatures(FeatureSet featureSet) {
+    this._featureSet = featureSet;
+    enableGtGtGt = featureSet.isEnabled(Feature.triple_shift);
+    enableNonNullable = featureSet.isEnabled(Feature.non_nullable);
   }
 
-  @override
-  void appendToken(Token token) {
-    throw 'unsupported operation';
-  }
-
-  @override
-  int bigSwitch(int next) {
-    throw 'unsupported operation';
-  }
-
-  @override
-  void recordStartOfLine() {
-    throw 'unsupported operation';
-  }
-
-  @override
   void reportError(
       ScannerErrorCode errorCode, int offset, List<Object> arguments) {
     _errorListener
-        .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
+        .onError(AnalysisError(source, offset, 1, errorCode, arguments));
   }
 
-  @override
   void setSourceStart(int line, int column) {
     int offset = _readerOffset;
     if (line < 1 || column < 1 || offset < 0 || (line + column - 2) >= offset) {
@@ -164,12 +148,19 @@ class _Scanner2 implements Scanner {
     lineStarts.add(offset - column + 1);
   }
 
-  @override
-  Token tokenize() {
+  /// The fasta parser handles error tokens produced by the scanner
+  /// but the old parser used by angular does not
+  /// and expects that scanner errors to be reported by this method.
+  /// Set [reportScannerErrors] `true` when using the old parser.
+  Token tokenize({bool reportScannerErrors = true}) {
     fasta.ScannerResult result = fasta.scanString(_contents,
+        configuration: _featureSet != null
+            ? buildConfig(_featureSet)
+            : fasta.ScannerConfiguration(
+                enableTripleShift: enableGtGtGt,
+                enableNonNullable: enableNonNullable),
         includeComments: _preserveComments,
-        scanGenericMethodComments: scanGenericMethodComments,
-        scanLazyAssignmentOperators: scanLazyAssignmentOperators);
+        languageVersionChanged: _languageVersionChanged);
 
     // fasta pretends there is an additional line at EOF
     result.lineStarts.removeLast();
@@ -179,12 +170,19 @@ class _Scanner2 implements Scanner {
 
     lineStarts.addAll(result.lineStarts);
     fasta.Token token = result.tokens;
-    // The default recovery strategy used by scanString
-    // places all error tokens at the head of the stream.
-    while (token.type == TokenType.BAD_INPUT) {
-      translateErrorToken(token, reportError);
-      token = token.next;
+
+    // The fasta parser handles error tokens produced by the scanner
+    // but the old parser used by angular does not
+    // and expects that scanner errors to be reported here
+    if (reportScannerErrors) {
+      // The default recovery strategy used by scanString
+      // places all error tokens at the head of the stream.
+      while (token.type == TokenType.BAD_INPUT) {
+        translateErrorToken(token, reportError);
+        token = token.next;
+      }
     }
+
     firstToken = token;
     // Update all token offsets based upon the reader's starting offset
     if (_readerOffset != -1) {
@@ -196,4 +194,26 @@ class _Scanner2 implements Scanner {
     }
     return firstToken;
   }
+
+  void _languageVersionChanged(
+      fasta.Scanner scanner, fasta.LanguageVersionToken languageVersion) {
+    if (languageVersion.major >= 0 && languageVersion.minor >= 0) {
+      _languageVersion = languageVersion;
+      if (_featureSet != null) {
+        _featureSet = _featureSet.restrictToVersion(
+            Version(languageVersion.major, languageVersion.minor, 0));
+        scanner.configuration = buildConfig(_featureSet);
+      }
+    }
+  }
+
+  /// Return a ScannerConfiguration based upon the specified feature set.
+  static fasta.ScannerConfiguration buildConfig(FeatureSet featureSet) =>
+      featureSet == null
+          ? fasta.ScannerConfiguration()
+          : fasta.ScannerConfiguration(
+              enableExtensionMethods:
+                  featureSet.isEnabled(Feature.extension_methods),
+              enableTripleShift: featureSet.isEnabled(Feature.triple_shift),
+              enableNonNullable: featureSet.isEnabled(Feature.non_nullable));
 }

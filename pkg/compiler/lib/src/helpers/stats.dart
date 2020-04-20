@@ -212,6 +212,7 @@ class StatsOutput {
 class DebugOutput implements StatsOutput {
   const DebugOutput();
 
+  @override
   void println(String text) => debugPrint(text);
 }
 
@@ -222,6 +223,7 @@ class SinkOutput implements StatsOutput {
 
   SinkOutput(this.sink);
 
+  @override
   void println(String text) {
     sink.add(text);
     sink.add('\n');
@@ -272,6 +274,7 @@ abstract class StatsPrinter {
 
 /// Abstract base class for [ConsolePrinter] and [XMLPrinter].
 abstract class BasePrinter extends StatsPrinter with Indentation {
+  @override
   final int examples;
   final StatsOutput output;
 
@@ -287,6 +290,7 @@ class ConsolePrinter extends BasePrinter {
   ConsolePrinter({StatsOutput output: const DebugOutput(), int examples: 10})
       : super(output: output, examples: examples);
 
+  @override
   void open(String id,
       [Map<String, dynamic> data = const <String, dynamic>{}]) {
     if (extraLevel > 0) return;
@@ -316,17 +320,20 @@ class ConsolePrinter extends BasePrinter {
     indentMore();
   }
 
+  @override
   void close(String id) {
     if (extraLevel > 0) return;
 
     indentLess();
   }
 
+  @override
   void beginExtra() {
     if (extraLevel == 0) output.println('$indentation...');
     extraLevel++;
   }
 
+  @override
   void endExtra() {
     extraLevel--;
   }
@@ -340,6 +347,7 @@ class XMLPrinter extends BasePrinter {
   XMLPrinter({output: const DebugOutput(), int examples: 10})
       : super(output: output, examples: examples);
 
+  @override
   void start(String id) {
     if (!opened) {
       output.println('<?xml version="1.0" encoding="UTF-8"?>');
@@ -348,10 +356,12 @@ class XMLPrinter extends BasePrinter {
     open(id);
   }
 
+  @override
   void end(String id) {
     close(id);
   }
 
+  @override
   void open(String id,
       [Map<String, dynamic> data = const <String, dynamic>{}]) {
     StringBuffer sb = new StringBuffer();
@@ -367,15 +377,18 @@ class XMLPrinter extends BasePrinter {
     indentMore();
   }
 
+  @override
   void close(String id) {
     indentLess();
     output.println('${indentation}</$id>');
   }
 
+  @override
   void beginExtra() {
     open('extra');
   }
 
+  @override
   void endExtra() {
     close('extra');
   }
@@ -450,6 +463,7 @@ class _StackTraceNode implements Comparable<_StackTraceNode> {
     }
   }
 
+  @override
   int compareTo(_StackTraceNode other) {
     // Sorts in decreasing count order.
     return other.count - count;
@@ -479,6 +493,7 @@ class _StackTraceNode implements Comparable<_StackTraceNode> {
     }
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     printOn(sb, '');
@@ -493,6 +508,7 @@ class _StackTraceTree extends _StackTraceNode {
 
   _StackTraceTree(this.id, this.sampleFrequency) : super.root();
 
+  @override
   void dumpTraces(StatsPrinter printer) {
     printer.open('trace', {
       'id': id,
@@ -519,10 +535,12 @@ class ActiveStats implements Stats {
   Map<dynamic, Map<dynamic, List>> countersMap =
       <dynamic, Map<dynamic, List>>{};
   Map<dynamic, _StackTraceTree> traceMap = {};
+  @override
   int stackTraceSampleFrequency = 1;
 
   ActiveStats(StatsPrinter this.printer);
 
+  @override
   void recordMap(id, key, value, {fromExisting(value)}) {
     Map map = maps.putIfAbsent(id, () => {});
     if (fromExisting != null && map.containsKey(key)) {
@@ -532,24 +550,28 @@ class ActiveStats implements Stats {
     }
   }
 
+  @override
   Map getMap(key) {
     return maps[key];
   }
 
+  @override
   void recordFrequency(id, value, [example]) {
-    Map<int, List> map = frequencyMaps.putIfAbsent(id, () => {});
+    Map<dynamic, List> map = frequencyMaps.putIfAbsent(id, () => {});
     map.putIfAbsent(value, () => []);
     map[value].add(example);
   }
 
+  @override
   void recordFrequencies(id, Map<dynamic, Iterable> frequencyMap) {
-    Map<int, List> map = frequencyMaps.putIfAbsent(id, () => {});
+    Map<dynamic, List> map = frequencyMaps.putIfAbsent(id, () => {});
     frequencyMap.forEach((value, examples) {
       map.putIfAbsent(value, () => []);
       map[value].addAll(examples);
     });
   }
 
+  @override
   Iterable recordedFrequencies(id, value) {
     Map<dynamic, List> map = frequencyMaps[id];
     if (map == null) return const [];
@@ -558,15 +580,18 @@ class ActiveStats implements Stats {
     return list;
   }
 
+  @override
   void recordCounter(id, [reason, example]) {
     Map<dynamic, List> map = countersMap.putIfAbsent(id, () => {});
     map.putIfAbsent(reason, () => []).add(example);
   }
 
+  @override
   void recordElement(key, element, {data}) {
     setsMap.putIfAbsent(key, () => new Map())[element] = data;
   }
 
+  @override
   void recordTrace(key, {int sampleFrequency}) {
     if (sampleFrequency == null) {
       sampleFrequency = stackTraceSampleFrequency;
@@ -576,12 +601,14 @@ class ActiveStats implements Stats {
         .sample();
   }
 
+  @override
   Iterable getList(String key) {
     Map map = setsMap[key];
     if (map == null) return const [];
     return map.keys;
   }
 
+  @override
   void dumpStats({void beforeClose()}) {
     printer.start('stats');
     dumpFrequencies();
@@ -688,6 +715,7 @@ class ActiveStats implements Stats {
     tree.dumpTraces(printer);
   }
 
+  @override
   void dumpCorrelation(keyA, Iterable a, keyB, Iterable b,
       {Map dataA, Map dataB}) {
     printer.child('correlations', {'title': '$keyA vs $keyB'}, () {
@@ -707,7 +735,7 @@ class ActiveStats implements Stats {
       {int limit, Map dataMap, bool includeCount: true}) {
     if (limit == 0) return;
 
-    Map childData = {};
+    Map<String, dynamic> childData = {};
     Iterable nonNullIterable = iterable.where((e) => e != null);
     if (nonNullIterable.isEmpty && !includeCount) {
       childData['name'] = title;
@@ -748,11 +776,11 @@ class ActiveStats implements Stats {
 ///
 /// If [isValidKey] is provided, this is used to determine with a value of [map]
 /// is a potential key of the inversion map.
-Map<dynamic, Set> inverseMap(Map map,
-    {bool equals(key1, key2),
-    int hashCode(key),
-    bool isValidKey(potentialKey)}) {
-  Map<dynamic, Set> result = new LinkedHashMap<dynamic, Set>(
+Map<V, Set<K>> inverseMap<K, V>(Map<K, V> map,
+    {bool equals(V key1, V key2),
+    int hashCode(V key),
+    bool isValidKey(V potentialKey)}) {
+  Map<V, Set<K>> result = new LinkedHashMap<V, Set<K>>(
       equals: equals, hashCode: hashCode, isValidKey: isValidKey);
   map.forEach((k, v) {
     if (isValidKey == null || isValidKey(v)) {
@@ -767,11 +795,11 @@ Map<dynamic, Set> inverseMap(Map map,
 /// the assumption that all keys are [Comparable].
 /// Otherwise, the keys are sorted as string using their `toString`
 /// representation.
-Map trySortMap(Map map) {
-  Iterable iterable = map.keys.where((k) => k != null);
+Map<K, V> trySortMap<K, V>(Map<K, V> map) {
+  Iterable<K> iterable = map.keys.where((K k) => k != null);
   if (iterable.isEmpty) return map;
   var key = iterable.first;
-  if (key is Comparable) {
+  if (key is Comparable<K>) {
     return sortMap(map);
   }
   return sortMap(map, (a, b) => '$a'.compareTo('$b'));
@@ -779,10 +807,10 @@ Map trySortMap(Map map) {
 
 /// Returns a new map in which the keys of [map] are sorted using [compare].
 /// If [compare] is null, the keys must be [Comparable].
-Map sortMap(Map map, [int compare(a, b)]) {
-  List keys = map.keys.toList();
+Map<K, V> sortMap<K, V>(Map<K, V> map, [int compare(K a, K b)]) {
+  List<K> keys = map.keys.toList();
   keys.sort(compare);
-  Map sortedMap = new Map();
-  keys.forEach((k) => sortedMap[k] = map[k]);
+  Map<K, V> sortedMap = new Map<K, V>();
+  keys.forEach((K k) => sortedMap[k] = map[k]);
   return sortedMap;
 }

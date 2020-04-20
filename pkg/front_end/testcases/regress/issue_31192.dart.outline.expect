@@ -1,0 +1,19 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_31192.dart:7:17: Error: Expected an assignment after the field name.
+// To initialize a field, use the syntax 'name = value'.
+//   Increment() : x++ {}
+//                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Increment extends core::Object {
+  field core::int* x;
+  constructor •() → self::Increment*
+    ;
+}
+static method main() → dynamic
+  ;

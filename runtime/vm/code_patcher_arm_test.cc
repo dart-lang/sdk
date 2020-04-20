@@ -35,8 +35,8 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   const String& target_name = String::Handle(String::New("targetFunction"));
   const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 1;
-  const Array& args_descriptor = Array::Handle(
-      ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs, Object::null_array()));
+  const Array& args_descriptor = Array::Handle(ArgumentsDescriptor::NewBoxed(
+      kTypeArgsLen, kNumArgs, Object::null_array()));
   const ICData& ic_data = ICData::ZoneHandle(ICData::New(
       function, target_name, args_descriptor, 15, 1, ICData::kInstance));
 
@@ -44,7 +44,7 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   __ set_constant_pool_allowed(true);
 
   __ LoadObject(R9, ic_data);
-  __ BranchLinkPatchable(*StubCode::OneArgCheckInlineCache_entry());
+  __ BranchLinkPatchable(StubCode::OneArgCheckInlineCache());
   __ Ret();
 }
 

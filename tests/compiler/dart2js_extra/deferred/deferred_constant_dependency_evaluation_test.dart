@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // This is a regression test for dartbug.com/26406. We test that the deferred
 // loader analyzer doesn't trip over constant expression evaluation.
 //

@@ -6,10 +6,6 @@
 
 library index;
 
-@MirrorsUsed(
-    targets: const [Bar, Foo],
-    symbols: const ['bar', 'getBar', 'foo', 'getFoo'],
-    override: '*')
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

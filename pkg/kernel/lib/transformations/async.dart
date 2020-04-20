@@ -5,6 +5,7 @@
 library kernel.transformations.async;
 
 import '../kernel.dart';
+import '../type_environment.dart';
 import 'continuation.dart';
 
 /// A transformer that introduces temporary variables for all subexpressions
@@ -80,7 +81,12 @@ class ExpressionLifter extends Transformer {
 
   ExpressionLifter(this.continuationRewriter);
 
-  Block blockOf(List<Statement> stmts) => new Block(stmts.reversed.toList());
+  StaticTypeContext get _staticTypeContext =>
+      continuationRewriter.staticTypeContext;
+
+  Block blockOf(List<Statement> statements) {
+    return new Block(statements.reversed.toList());
+  }
 
   /// Rewrite a toplevel expression (toplevel wrt. a statement).
   ///
@@ -90,37 +96,42 @@ class ExpressionLifter extends Transformer {
   /// surrounding context.
   Expression rewrite(Expression expression, List<Statement> outer) {
     assert(statements.isEmpty);
-    assert(nameIndex == 0);
+    var saved = seenAwait;
     seenAwait = false;
-    Expression result = expression.accept(this);
+    Expression result = expression.accept<TreeNode>(this);
     outer.addAll(statements.reversed);
     statements.clear();
-    nameIndex = 0;
+    seenAwait = seenAwait || saved;
     return result;
   }
 
   // Perform an action with a given list of statements so that it cannot emit
   // statements into the 'outer' list.
   Expression delimit(Expression action(), List<Statement> inner) {
-    var index = nameIndex;
     var outer = statements;
     statements = inner;
     Expression result = action();
-    nameIndex = index;
     statements = outer;
     return result;
   }
 
   // Name an expression by emitting an assignment to a temporary variable.
-  VariableGet name(Expression expr) {
-    VariableDeclaration temp = allocateTemporary(nameIndex);
-    statements.add(new ExpressionStatement(new VariableSet(temp, expr)));
-    return new VariableGet(temp);
+  Expression name(Expression expr) {
+    // Allocate as dynamic as temps might be reused with different types.
+    VariableDeclaration temp =
+        allocateTemporary(nameIndex, const DynamicType());
+    statements.add(ExpressionStatement(VariableSet(temp, expr)));
+    // Type annotate the get via an unsafe cast since all temps are allocated
+    // as dynamic.
+    DartType type = expr.getStaticType(_staticTypeContext);
+    return StaticInvocation(continuationRewriter.helper.unsafeCast,
+        Arguments(<Expression>[VariableGet(temp)], types: <DartType>[type]));
   }
 
-  VariableDeclaration allocateTemporary(int index) {
+  VariableDeclaration allocateTemporary(int index,
+      [DartType type = const DynamicType()]) {
     for (var i = variables.length; i <= index; i++) {
-      variables.add(new VariableDeclaration(":async_temporary_${i}"));
+      variables.add(VariableDeclaration(":async_temporary_${i}", type: type));
     }
     return variables[index];
   }
@@ -153,11 +164,12 @@ class ExpressionLifter extends Transformer {
   // Getting a final or const variable is not an effect so it can be evaluated
   // after an await to its right.
   TreeNode visitVariableGet(VariableGet expr) {
+    Expression result = expr;
     if (seenAwait && !expr.variable.isFinal && !expr.variable.isConst) {
-      expr = name(expr);
+      result = name(expr);
       ++nameIndex;
     }
-    return expr;
+    return result;
   }
 
   // Transform an expression given an action to transform the children.  For
@@ -181,8 +193,12 @@ class ExpressionLifter extends Transformer {
 
     // 4. If the expression was named then the variables used for children are
     // no longer live but the variable used for the expression is.
+    // On the other hand, a sibling to the left (yet to be processed) cannot
+    // reuse any of the variables used here, as the assignments in the children
+    // (here) would overwrite assignments in the siblings to the left,
+    // possibly before the use of the overwritten values.
     if (shouldName) {
-      nameIndex = index + 1;
+      if (index + 1 > nameIndex) nameIndex = index + 1;
       seenAwait = true;
     }
     return result;
@@ -207,25 +223,25 @@ class ExpressionLifter extends Transformer {
 
   TreeNode visitPropertySet(PropertySet expr) {
     return transform(expr, () {
-      expr.value = expr.value.accept(this)..parent = expr;
-      expr.receiver = expr.receiver.accept(this)..parent = expr;
+      expr.value = expr.value.accept<TreeNode>(this)..parent = expr;
+      expr.receiver = expr.receiver.accept<TreeNode>(this)..parent = expr;
     });
   }
 
   TreeNode visitDirectPropertySet(DirectPropertySet expr) {
     return transform(expr, () {
-      expr.value = expr.value.accept(this)..parent = expr;
-      expr.receiver = expr.receiver.accept(this)..parent = expr;
+      expr.value = expr.value.accept<TreeNode>(this)..parent = expr;
+      expr.receiver = expr.receiver.accept<TreeNode>(this)..parent = expr;
     });
   }
 
   TreeNode visitArguments(Arguments args) {
     for (var named in args.named.reversed) {
-      named.value = named.value.accept(this)..parent = named;
+      named.value = named.value.accept<TreeNode>(this)..parent = named;
     }
     var positional = args.positional;
     for (var i = positional.length - 1; i >= 0; --i) {
-      positional[i] = positional[i].accept(this)..parent = args;
+      positional[i] = positional[i].accept<TreeNode>(this)..parent = args;
     }
     // Returns the arguments, which is assumed at the call sites because they do
     // not replace the arguments or set parent pointers.
@@ -235,14 +251,14 @@ class ExpressionLifter extends Transformer {
   TreeNode visitMethodInvocation(MethodInvocation expr) {
     return transform(expr, () {
       visitArguments(expr.arguments);
-      expr.receiver = expr.receiver.accept(this)..parent = expr;
+      expr.receiver = expr.receiver.accept<TreeNode>(this)..parent = expr;
     });
   }
 
   TreeNode visitDirectMethodInvocation(DirectMethodInvocation expr) {
     return transform(expr, () {
       visitArguments(expr.arguments);
-      expr.receiver = expr.receiver.accept(this)..parent = expr;
+      expr.receiver = expr.receiver.accept<TreeNode>(this)..parent = expr;
     });
   }
 
@@ -268,7 +284,7 @@ class ExpressionLifter extends Transformer {
     return transform(expr, () {
       var expressions = expr.expressions;
       for (var i = expressions.length - 1; i >= 0; --i) {
-        expressions[i] = expressions[i].accept(this)..parent = expr;
+        expressions[i] = expressions[i].accept<TreeNode>(this)..parent = expr;
       }
     });
   }
@@ -277,7 +293,8 @@ class ExpressionLifter extends Transformer {
     return transform(expr, () {
       var expressions = expr.expressions;
       for (var i = expressions.length - 1; i >= 0; --i) {
-        expressions[i] = expr.expressions[i].accept(this)..parent = expr;
+        expressions[i] = expr.expressions[i].accept<TreeNode>(this)
+          ..parent = expr;
       }
     });
   }
@@ -285,8 +302,8 @@ class ExpressionLifter extends Transformer {
   TreeNode visitMapLiteral(MapLiteral expr) {
     return transform(expr, () {
       for (var entry in expr.entries.reversed) {
-        entry.value = entry.value.accept(this)..parent = entry;
-        entry.key = entry.key.accept(this)..parent = entry;
+        entry.value = entry.value.accept<TreeNode>(this)..parent = entry;
+        entry.key = entry.key.accept<TreeNode>(this)..parent = entry;
       }
     });
   }
@@ -298,15 +315,16 @@ class ExpressionLifter extends Transformer {
     // Right is delimited because it is conditionally evaluated.
     var rightStatements = <Statement>[];
     seenAwait = false;
-    expr.right = delimit(() => expr.right.accept(this), rightStatements)
-      ..parent = expr;
+    expr.right =
+        delimit(() => expr.right.accept<TreeNode>(this), rightStatements)
+          ..parent = expr;
     var rightAwait = seenAwait;
 
     if (rightStatements.isEmpty) {
       // Easy case: right did not emit any statements.
       seenAwait = shouldName;
       return transform(expr, () {
-        expr.left = expr.left.accept(this)..parent = expr;
+        expr.left = expr.left.accept<TreeNode>(this)..parent = expr;
         seenAwait = seenAwait || rightAwait;
       });
     }
@@ -324,7 +342,10 @@ class ExpressionLifter extends Transformer {
     // so any statements it emits occur after in the accumulated list (that is,
     // so they occur before in the corresponding block).
     var rightBody = blockOf(rightStatements);
-    var result = allocateTemporary(nameIndex);
+    var result = allocateTemporary(
+        nameIndex,
+        _staticTypeContext.typeEnvironment.coreTypes
+            .boolRawType(_staticTypeContext.nonNullable));
     rightBody.addStatement(new ExpressionStatement(new VariableSet(
         result,
         new MethodInvocation(expr.right, new Name('=='),
@@ -344,7 +365,7 @@ class ExpressionLifter extends Transformer {
     statements.add(new ExpressionStatement(new VariableSet(result, test)));
 
     seenAwait = false;
-    test.receiver = test.receiver.accept(this)..parent = test;
+    test.receiver = test.receiver.accept<TreeNode>(this)..parent = test;
 
     ++nameIndex;
     seenAwait = seenAwait || rightAwait;
@@ -356,24 +377,35 @@ class ExpressionLifter extends Transformer {
     // evaluated.
     var shouldName = seenAwait;
 
+    final savedNameIndex = nameIndex;
+
     var thenStatements = <Statement>[];
     seenAwait = false;
-    expr.then = delimit(() => expr.then.accept(this), thenStatements)
+    expr.then = delimit(() => expr.then.accept<TreeNode>(this), thenStatements)
       ..parent = expr;
     var thenAwait = seenAwait;
 
+    final thenNameIndex = nameIndex;
+    nameIndex = savedNameIndex;
+
     var otherwiseStatements = <Statement>[];
     seenAwait = false;
-    expr.otherwise =
-        delimit(() => expr.otherwise.accept(this), otherwiseStatements)
-          ..parent = expr;
+    expr.otherwise = delimit(
+        () => expr.otherwise.accept<TreeNode>(this), otherwiseStatements)
+      ..parent = expr;
     var otherwiseAwait = seenAwait;
+
+    // Only one side of this branch will get executed at a time, so just make
+    // sure we have enough temps for either, not both at the same time.
+    if (thenNameIndex > nameIndex) {
+      nameIndex = thenNameIndex;
+    }
 
     if (thenStatements.isEmpty && otherwiseStatements.isEmpty) {
       // Easy case: neither then nor otherwise emitted any statements.
       seenAwait = shouldName;
       return transform(expr, () {
-        expr.condition = expr.condition.accept(this)..parent = expr;
+        expr.condition = expr.condition.accept<TreeNode>(this)..parent = expr;
         seenAwait = seenAwait || thenAwait || otherwiseAwait;
       });
     }
@@ -386,7 +418,7 @@ class ExpressionLifter extends Transformer {
     // } else {
     //   t = [right];
     // }
-    var result = allocateTemporary(nameIndex);
+    var result = allocateTemporary(nameIndex, expr.staticType);
     var thenBody = blockOf(thenStatements);
     var otherwiseBody = blockOf(otherwiseStatements);
     thenBody.addStatement(
@@ -397,7 +429,7 @@ class ExpressionLifter extends Transformer {
     statements.add(branch);
 
     seenAwait = false;
-    branch.condition = branch.condition.accept(this)..parent = branch;
+    branch.condition = branch.condition.accept<TreeNode>(this)..parent = branch;
 
     ++nameIndex;
     seenAwait = seenAwait || thenAwait || otherwiseAwait;
@@ -408,27 +440,56 @@ class ExpressionLifter extends Transformer {
   TreeNode visitAwaitExpression(AwaitExpression expr) {
     final R = continuationRewriter;
     var shouldName = seenAwait;
-    var result = new VariableGet(asyncResult);
+    var type = expr.getStaticType(_staticTypeContext);
+    Expression result = new VariableGet(asyncResult);
+    if (type is! DynamicType) {
+      int fileOffset = expr.operand.fileOffset;
+      if (fileOffset == TreeNode.noOffset) {
+        fileOffset = expr.fileOffset;
+      }
+      assert(fileOffset != TreeNode.noOffset);
+      result = new StaticInvocation(
+          continuationRewriter.helper.unsafeCast,
+          new Arguments(<Expression>[result], types: <DartType>[type])
+            ..fileOffset = fileOffset)
+        ..fileOffset = fileOffset;
+    }
 
     // The statements are in reverse order, so name the result first if
     // necessary and then add the two other statements in reverse.
     if (shouldName) result = name(result);
-    statements.add(R.createContinuationPoint()..fileOffset = expr.fileOffset);
     Arguments arguments = new Arguments(<Expression>[
       expr.operand,
       new VariableGet(R.thenContinuationVariable),
       new VariableGet(R.catchErrorContinuationVariable),
       new VariableGet(R.nestedClosureVariable),
     ]);
-    statements.add(new ExpressionStatement(
-        new StaticInvocation(R.helper.awaitHelper, arguments)
-          ..fileOffset = expr.fileOffset));
+
+    // We are building
+    //
+    //     [yield] (let _ = _awaitHelper(...) in null)
+    //
+    // to ensure that :await_jump_var and :await_jump_ctx are updated
+    // before _awaitHelper is invoked (see BuildYieldStatement in
+    // StreamingFlowGraphBuilder for details of how [yield] is translated to
+    // IL). This guarantees that recursive invocation of the current function
+    // would continue from the correct "jump" position. Recursive invocations
+    // arise if future we are awaiting completes synchronously. Builtin Future
+    // implementation don't complete synchronously, but Flutter's
+    // SynchronousFuture do (see bug http://dartbug.com/32098 for more details).
+    statements.add(R.createContinuationPoint(new Let(
+        new VariableDeclaration(null,
+            initializer: new StaticInvocation(R.helper.awaitHelper, arguments)
+              ..fileOffset = expr.fileOffset),
+        new NullLiteral()))
+      ..fileOffset = expr.fileOffset);
 
     seenAwait = false;
     var index = nameIndex;
-    arguments.positional[0] = expr.operand.accept(this)..parent = arguments;
+    arguments.positional[0] = expr.operand.accept<TreeNode>(this)
+      ..parent = arguments;
 
-    if (shouldName) nameIndex = index + 1;
+    if (shouldName && index + 1 > nameIndex) nameIndex = index + 1;
     seenAwait = true;
     return result;
   }
@@ -439,15 +500,12 @@ class ExpressionLifter extends Transformer {
   }
 
   TreeNode visitLet(Let expr) {
-    var shouldName = seenAwait;
-
-    seenAwait = false;
-    var body = expr.body.accept(this);
+    var body = expr.body.accept<TreeNode>(this);
 
     VariableDeclaration variable = expr.variable;
     if (seenAwait) {
-      // The body in `let var x = initializer in body` contained an await.  We
-      // will produce the sequence of statements:
+      // There is an await in the body of `let var x = initializer in body` or
+      // to its right.  We will produce the sequence of statements:
       //
       // <initializer's statements>
       // var x = <initializer's value>
@@ -463,29 +521,66 @@ class ExpressionLifter extends Transformer {
       statements.add(variable);
       var index = nameIndex;
       seenAwait = false;
-      variable.initializer = variable.initializer.accept(this)
+      variable.initializer = variable.initializer.accept<TreeNode>(this)
         ..parent = variable;
       // Temporaries used in the initializer or the body are not live but the
       // temporary used for the body is.
-      nameIndex = index + 1;
+      if (index + 1 > nameIndex) nameIndex = index + 1;
       seenAwait = true;
       return body;
     } else {
       // The body in `let x = initializer in body` did not contain an await.  We
       // can leave a let expression.
-      seenAwait = shouldName;
       return transform(expr, () {
         // The body has already been translated.
         expr.body = body..parent = expr;
-        variable.initializer = variable.initializer.accept(this)
+        variable.initializer = variable.initializer.accept<TreeNode>(this)
           ..parent = variable;
       });
     }
   }
 
   visitFunctionNode(FunctionNode node) {
-    var nestedRewriter =
-        new RecursiveContinuationRewriter(continuationRewriter.helper);
+    var nestedRewriter = new RecursiveContinuationRewriter(
+        continuationRewriter.helper, _staticTypeContext);
     return node.accept(nestedRewriter);
+  }
+
+  TreeNode visitBlockExpression(BlockExpression expr) {
+    return transform(expr, () {
+      expr.value = expr.value.accept<TreeNode>(this)..parent = expr;
+      List<Statement> body = <Statement>[];
+      for (Statement stmt in expr.body.statements.reversed) {
+        Statement translation = stmt.accept<TreeNode>(this);
+        if (translation != null) body.add(translation);
+      }
+      expr.body = new Block(body.reversed.toList())..parent = expr;
+    });
+  }
+
+  TreeNode defaultStatement(Statement stmt) {
+    // This method translates a statement nested in an expression (e.g., in a
+    // block expression).  It produces a translated statement, a list of
+    // statements which are side effects necessary for any await, and a flag
+    // indicating whether there was an await in the statement or to its right.
+    // The translated statement can be null in the case where there was already
+    // an await to the right.
+
+    // The translation is accumulating two lists of statements, an inner list
+    // which is a reversed list of effects needed for the current expression and
+    // an outer list which represents the block containing the current
+    // statement.  We need to preserve both of those from side effects.
+    List<Statement> savedInner = statements;
+    List<Statement> savedOuter = continuationRewriter.statements;
+    statements = <Statement>[];
+    continuationRewriter.statements = <Statement>[];
+    stmt.accept(continuationRewriter);
+
+    List<Statement> results = continuationRewriter.statements;
+    statements = savedInner;
+    continuationRewriter.statements = savedOuter;
+    if (!seenAwait && results.length == 1) return results.first;
+    statements.addAll(results.reversed);
+    return null;
   }
 }

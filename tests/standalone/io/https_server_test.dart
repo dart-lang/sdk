@@ -12,7 +12,7 @@ import "dart:isolate";
 
 import "package:expect/expect.dart";
 
-InternetAddress HOST;
+late InternetAddress HOST;
 
 String localFile(path) => Platform.script.resolve(path).toFilePath();
 
@@ -69,6 +69,7 @@ void testEarlyClientClose() {
       String name = Platform.script.toFilePath();
       new File(name)
           .openRead()
+          .cast<List<int>>()
           .pipe(request.response)
           .catchError((e) {/* ignore */});
     });

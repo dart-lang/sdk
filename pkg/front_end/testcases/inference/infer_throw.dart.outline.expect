@@ -1,0 +1,11 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::bool* t;
+static field dynamic a;
+static field core::int* b;
+static field core::int* c;
+static field core::int* d;
+static method main() → dynamic
+  ;

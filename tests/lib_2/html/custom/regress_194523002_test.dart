@@ -3,13 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Regression test for CL 194523002.
-
-library js_custom_test;
-
-import 'package:unittest/html_individual_config.dart';
-import 'package:unittest/unittest.dart';
 import 'dart:html';
-import '../utils.dart';
+
+import 'package:async_helper/async_minitest.dart';
+
+import 'utils.dart';
 
 class A extends HtmlElement {
   static final tag = 'x-a';
@@ -17,19 +15,10 @@ class A extends HtmlElement {
   A.created() : super.created();
 }
 
-main() {
-  useHtmlIndividualConfiguration();
-
+main() async {
   // Adapted from Blink's
   // fast/dom/custom/constructor-calls-created-synchronously test.
 
-  var registered = false;
-  setUp(() {
-    return customElementsReady.then((_) {
-      if (!registered) {
-        registered = true;
-        document.registerElement(A.tag, A);
-      }
-    });
-  });
+  await customElementsReady;
+  document.registerElement2(A.tag, {'prototype': A});
 }

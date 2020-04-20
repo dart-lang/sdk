@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateContextTest);
   });
@@ -15,10 +15,9 @@ main() {
 
 @reflectiveTest
 class CreateContextTest extends AbstractAnalysisServerIntegrationTest {
-  test_create() async {
+  Future<void> test_create() async {
     standardAnalysisSetup();
-    String contextId =
-        (await sendExecutionCreateContext(sourceDirectory.path)).id;
+    var contextId = (await sendExecutionCreateContext(sourceDirectory.path)).id;
     expect(contextId, isNotNull);
   }
 }

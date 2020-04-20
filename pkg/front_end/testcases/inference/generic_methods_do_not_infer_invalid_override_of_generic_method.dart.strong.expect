@@ -1,22 +1,46 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:13:3: Error: Declared type variables of 'D.m' doesn't match those on overridden method 'C.m'.
+//   m(x) => x;
+//   ^
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:9:5: Context: This is the overridden method ('m').
+//   T m<T>(T x) => x;
+//     ^
+//
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:13:3: Error: The return type of the method 'D.m' is 'dynamic', which does not match the return type, 'T', of the overridden method, 'C.m'.
+// Change to a subtype of 'T'.
+//   m(x) => x;
+//   ^
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:9:5: Context: This is the overridden method ('m').
+//   T m<T>(T x) => x;
+//     ^
+//
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:18:74: Error: Expected 0 type arguments.
+//       . /*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/ /*@target=D::m*/ m<int>(
+//                                                                          ^
+//
 import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
-  method m<T extends core::Object>(self::C::m::T x) → self::C::m::T
+  method m<T extends core::Object* = dynamic>(self::C::m::T* x) → self::C::m::T*
     return x;
 }
 class D extends self::C {
-  default constructor •() → void
+  synthetic constructor •() → self::D*
     : super self::C::•()
     ;
   method m(dynamic x) → dynamic
     return x;
 }
 static method main() → dynamic {
-  core::int y = new self::D::•().{self::D::m}<core::int>(42);
+  core::int* y = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:18:74: Error: Expected 0 type arguments.
+      . /*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/ /*@target=D::m*/ m<int>(
+                                                                         ^" in new self::D::•().{self::D::m}<core::int*>(42);
   core::print(y);
 }

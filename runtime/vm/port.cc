@@ -4,6 +4,8 @@
 
 #include "vm/port.h"
 
+#include <utility>
+
 #include "platform/utils.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
@@ -82,14 +84,20 @@ const char* PortMap::PortStateString(PortState kind) {
 }
 
 Dart_Port PortMap::AllocatePort() {
-  const Dart_Port kMASK = 0x3fffffff;
-  Dart_Port result = prng_->NextUInt32() & kMASK;
+  Dart_Port result;
 
   // Keep getting new values while we have an illegal port number or the port
   // number is already in use.
-  while ((result == 0) || (FindPort(result) >= 0)) {
-    result = prng_->NextUInt32() & kMASK;
-  }
+  do {
+    // Ensure port ids are representable in JavaScript for the benefit of
+    // vm-service clients such as Observatory.
+    const Dart_Port kMask1 = 0xFFFFFFFFFFFFF;
+    // Ensure port ids are never valid object pointers so that reinterpreting
+    // an object pointer as a port id never produces a used port id.
+    const Dart_Port kMask2 = 0x3;
+    result = (prng_->NextUInt64() & kMask1) | kMask2;
+    ASSERT(!reinterpret_cast<RawObject*>(result)->IsWellFormed());
+  } while (FindPort(result) >= 0);
 
   ASSERT(result != 0);
   ASSERT(FindPort(result) < 0);
@@ -107,7 +115,7 @@ void PortMap::SetPortState(Dart_Port port, PortState state) {
     map_[index].handler->increment_live_ports();
   }
   if (FLAG_trace_isolates) {
-    OS::Print(
+    OS::PrintErr(
         "[^] Port (%s) -> (%s): \n"
         "\thandler:    %s\n"
         "\tport:       %" Pd64 "\n",
@@ -168,7 +176,7 @@ Dart_Port PortMap::CreatePort(MessageHandler* handler) {
   MaintainInvariants();
 
   if (FLAG_trace_isolates) {
-    OS::Print(
+    OS::PrintErr(
         "[+] Opening port: \n"
         "\thandler:    %s\n"
         "\tport:       %" Pd64 "\n",
@@ -236,11 +244,13 @@ void PortMap::ClosePorts(MessageHandler* handler) {
   handler->CloseAllPorts();
 }
 
-bool PortMap::PostMessage(Message* message) {
+bool PortMap::PostMessage(std::unique_ptr<Message> message,
+                          bool before_events) {
   MutexLocker ml(mutex_);
   intptr_t index = FindPort(message->dest_port());
   if (index < 0) {
-    delete message;
+    // Ownership of external data remains with the poster.
+    message->DropFinalizers();
     return false;
   }
   ASSERT(index >= 0);
@@ -248,7 +258,7 @@ bool PortMap::PostMessage(Message* message) {
   MessageHandler* handler = map_[index].handler;
   ASSERT(map_[index].port != 0);
   ASSERT((handler != NULL) && (handler != deleted_entry_));
-  handler->PostMessage(message);
+  handler->PostMessage(std::move(message), before_events);
   return true;
 }
 
@@ -276,26 +286,46 @@ Isolate* PortMap::GetIsolate(Dart_Port id) {
   return handler->isolate();
 }
 
-void PortMap::InitOnce() {
-  mutex_ = new Mutex();
+void PortMap::Init() {
+  if (mutex_ == NULL) {
+    mutex_ = new Mutex();
+  }
+  ASSERT(mutex_ != NULL);
   prng_ = new Random();
 
   static const intptr_t kInitialCapacity = 8;
   // TODO(iposva): Verify whether we want to keep exponentially growing.
   ASSERT(Utils::IsPowerOfTwo(kInitialCapacity));
-  map_ = new Entry[kInitialCapacity];
-  memset(map_, 0, kInitialCapacity * sizeof(Entry));
-  capacity_ = kInitialCapacity;
+  if (map_ == NULL) {
+    // TODO(bkonyi): don't keep map_ after Dart_Cleanup.
+    map_ = new Entry[kInitialCapacity];
+    capacity_ = kInitialCapacity;
+  }
+  memset(map_, 0, capacity_ * sizeof(Entry));
   used_ = 0;
   deleted_ = 0;
+}
+
+void PortMap::Cleanup() {
+  ASSERT(map_ != NULL);
+  ASSERT(prng_ != NULL);
+  for (intptr_t i = 0; i < capacity_; ++i) {
+    auto handler = map_[i].handler;
+    if (handler != NULL && handler != deleted_entry_) {
+      ClosePorts(handler);
+      delete handler;
+    }
+  }
+  delete prng_;
+  prng_ = NULL;
+  // TODO(bkonyi): find out why deleting map_ sometimes causes crashes.
+  // delete[] map_;
+  // map_ = NULL;
 }
 
 void PortMap::PrintPortsForMessageHandler(MessageHandler* handler,
                                           JSONStream* stream) {
 #ifndef PRODUCT
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", "_Ports");
   Object& msg_handler = Object::Handle();
@@ -323,9 +353,9 @@ void PortMap::DebugDumpForMessageHandler(MessageHandler* handler) {
   for (intptr_t i = 0; i < capacity_; i++) {
     if (map_[i].handler == handler) {
       if (map_[i].state == kLivePort) {
-        OS::Print("Live Port = %" Pd64 "\n", map_[i].port);
+        OS::PrintErr("Live Port = %" Pd64 "\n", map_[i].port);
         msg_handler = DartLibraryCalls::LookupHandler(map_[i].port);
-        OS::Print("Handler = %s\n", msg_handler.ToCString());
+        OS::PrintErr("Handler = %s\n", msg_handler.ToCString());
       }
     }
   }

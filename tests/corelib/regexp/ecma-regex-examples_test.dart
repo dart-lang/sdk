@@ -47,7 +47,7 @@ void main() {
 
   var regex06 = new RegExp(r"^(a+)\1*,\1+$");
   Expect.equals(
-      "aaaaaaaaaa,aaaaaaaaaaaaaaa".replaceAllMapped(regex06, (m) => m.group(1)),
+      "aaaaaaaaaa,aaaaaaaaaaaaaaa".replaceAllMapped(regex06, (m) => m.group(1)!),
       "aaaaa");
 
   var regex07 = new RegExp(r"(z)((a+)?(b+)?(c))*");

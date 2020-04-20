@@ -8,34 +8,44 @@ import 'dart:io';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
-import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/kernel.dart';
+import 'package:kernel/src/tool/command_line_util.dart';
+
+void usage() {
+  print("Split a dill file into separate dill files (one library per file).");
+  print("Dart internal libraries are not included in the output.");
+  print("");
+  print("Usage: dart <script> dillFile.dill");
+  print("The given argument should be an existing file");
+  print("that is valid to load as a dill file.");
+  exit(1);
+}
 
 main(args) async {
-  Program binary = loadProgramFromBinary(args[0]);
+  CommandLineHelper.requireExactlyOneArgument(args, usage,
+      requireFileExists: true);
+  Component binary = CommandLineHelper.tryLoadDill(args[0]);
 
   int part = 1;
-  binary.libraries.forEach((lib) => lib.isExternal = true);
   for (int i = 0; i < binary.libraries.length; ++i) {
     Library lib = binary.libraries[i];
     if (lib.name?.startsWith("dart.") == true ||
         lib.name == "builtin" ||
-        lib.name == "nativewrappers") return;
-    lib.isExternal = false;
+        lib.name == "nativewrappers") continue;
     String path = args[0] + ".part${part++}.dill";
-    await writeProgramToFile(binary, path);
+    await writeComponentToFile(binary, path, lib);
     print("Wrote $path");
-    lib.isExternal = true;
   }
 }
 
-Future<Null> writeProgramToFile(Program program, String path) async {
+Future<Null> writeComponentToFile(
+    Component component, String path, Library wantedLibrary) async {
   File output = new File(path);
   IOSink sink = output.openWrite();
   try {
     BinaryPrinter printer =
-        new LimitedBinaryPrinter(sink, (lib) => !lib.isExternal, false);
-    printer.writeProgramFile(program);
+        new BinaryPrinter(sink, libraryFilter: (lib) => lib == wantedLibrary);
+    printer.writeComponentFile(component);
   } finally {
     await sink.close();
   }

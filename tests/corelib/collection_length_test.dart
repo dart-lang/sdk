@@ -49,14 +49,14 @@ void testList(List list, n) {
   testLength(list, n);
 }
 
-void testLength(var lengthable, int size) {
+void testLength(dynamic lengthable, int size) {
   print(lengthable.runtimeType); // Show what hangs the test.
   int length = 0;
   // If length, isEmpty or isNotEmpty is not a constant-time (or very fast)
   // operation, this will timeout.
   for (int i = 0; i < 100000; i++) {
-    if (!lengthable.isEmpty) length += lengthable.length;
-    if (lengthable.isNotEmpty) length += lengthable.length;
+    if (!lengthable.isEmpty) length += lengthable.length as int;
+    if (lengthable.isNotEmpty) length += lengthable.length as int;
   }
   if (length != size * 200000) throw "Bad length: $length / size: $size";
 }
@@ -70,7 +70,8 @@ main() {
   testCollection(new LinkedHashSet(), N);
   testCollection(new ListQueue(), N);
   testCollection(new DoubleLinkedQueue(), N);
-  testList(new List()..length = N, N);
-  testList(new List(N), N);
+  testList([]..length = N, N);
+  testList(new List.filled(0, null, growable: true)..length = N, N);
+  testList(new List.filled(N, null), N);
   testString(N);
 }

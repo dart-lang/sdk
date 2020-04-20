@@ -10,12 +10,14 @@ Fun simplifyPassThroughArrowFunCallBody(Fun fn) {
   if (fn.body is Block && fn.body.statements.length == 1) {
     var stat = fn.body.statements.single;
     if (stat is Return && stat.value is Call) {
-      Call call = stat.value;
-      if (call.target is ArrowFun && call.arguments.isEmpty) {
-        ArrowFun innerFun = call.target;
-        if (innerFun.params.isEmpty) {
-          return new Fun(fn.params, innerFun.body,
-              typeParams: fn.typeParams, returnType: fn.returnType);
+      var call = stat.value as Call;
+      var innerFun = call.target;
+      if (innerFun is ArrowFun &&
+          call.arguments.isEmpty &&
+          innerFun.params.isEmpty) {
+        var body = innerFun.body;
+        if (body is Block) {
+          return Fun(fn.params, body);
         }
       }
     }
@@ -23,18 +25,20 @@ Fun simplifyPassThroughArrowFunCallBody(Fun fn) {
   return fn;
 }
 
-/// Transform the function so the last parameter is always returned.
-///
-/// This is useful for indexed set methods, which otherwise would not have
-/// the right return value in JS.
-Block alwaysReturnLastParameter(Block body, Parameter lastParam) {
-  Statement blockBody = body;
-  if (Return.foundIn(body)) {
-    // If a return is inside body, transform `(params) { body }` to
-    // `(params) { (() => { body })(); return value; }`.
-    // TODO(jmesserly): we could instead generate the return differently,
-    // and avoid the immediately invoked function.
-    blockBody = new Call(new ArrowFun([], body), []).toStatement();
+Set<String> findMutatedVariables(Node scope) {
+  var v = MutationVisitor();
+  scope.accept(v);
+  return v.mutated;
+}
+
+class MutationVisitor extends BaseVisitor<void> {
+  /// Using Identifier names instead of a more precise key may result in
+  /// mutations being imprecisely reported when variables shadow each other.
+  final mutated = <String>{};
+  @override
+  void visitAssignment(node) {
+    var id = node.leftHandSide;
+    if (id is Identifier) mutated.add(id.name);
+    super.visitAssignment(node);
   }
-  return new Block([blockBody, new Return(lastParam)]);
 }

@@ -1,10 +1,17 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29981.dart:6:3: Error: Expected 1 type arguments.
+//   C<String, String> field;
+//   ^
+//
 import self as self;
 import "dart:core" as core;
 
-class C<T extends core::Object> extends core::Object {
-  field self::C<dynamic> field;
-  default constructor •() → void
+class C<T extends core::Object* = dynamic> extends core::Object {
+  field invalid-type field;
+  synthetic constructor •() → self::C<self::C::T*>*
     ;
 }
 static method main() → dynamic

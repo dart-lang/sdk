@@ -5,24 +5,24 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_BLOCK_SCHEDULER_H_
 #define RUNTIME_VM_COMPILER_BACKEND_BLOCK_SCHEDULER_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/allocation.h"
 
 namespace dart {
 
 class FlowGraph;
 
-class BlockScheduler : public ValueObject {
+class BlockScheduler : public AllStatic {
  public:
-  explicit BlockScheduler(FlowGraph* flow_graph) : flow_graph_(flow_graph) {}
-
-  FlowGraph* flow_graph() const { return flow_graph_; }
-
-  void AssignEdgeWeights() const;
-
-  void ReorderBlocks() const;
+  static void AssignEdgeWeights(FlowGraph* flow_graph);
+  static void ReorderBlocks(FlowGraph* flow_graph);
 
  private:
-  FlowGraph* const flow_graph_;
+  static void ReorderBlocksAOT(FlowGraph* flow_graph);
+  static void ReorderBlocksJIT(FlowGraph* flow_graph);
 };
 
 }  // namespace dart

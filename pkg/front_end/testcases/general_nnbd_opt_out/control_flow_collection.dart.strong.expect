@@ -1,0 +1,72 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method main() → dynamic {
+  final core::List<core::int*>* aList = block {
+    final core::List<core::int*>* #t1 = <core::int*>[];
+    #t1.{core::List::add}(1);
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      #t1.{core::List::add}(2);
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      #t1.{core::List::add}(3);
+    else
+      #t1.{core::List::add}(1.{core::int::unary-}());
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+        #t1.{core::List::add}(4);
+    for (core::int* i in <core::int*>[5, 6, 7])
+      #t1.{core::List::add}(i);
+    for (core::int* i in <core::int*>[8, 9, 10])
+      if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+        #t1.{core::List::add}(i);
+    for (core::int* i = 11; i.{core::num::<=}(14); i = i.{core::num::+}(1))
+      #t1.{core::List::add}(i);
+  } =>#t1;
+  final core::Set<core::int*>* aSet = block {
+    final core::Set<core::int*>* #t2 = col::LinkedHashSet::•<core::int*>();
+    #t2.{core::Set::add}(1);
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      #t2.{core::Set::add}(2);
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      #t2.{core::Set::add}(3);
+    else
+      #t2.{core::Set::add}(1.{core::int::unary-}());
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+        #t2.{core::Set::add}(4);
+    for (core::int* i in <core::int*>[5, 6, 7])
+      #t2.{core::Set::add}(i);
+    for (core::int* i in <core::int*>[8, 9, 10])
+      if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+        #t2.{core::Set::add}(i);
+    for (core::int* i = 11; i.{core::num::<=}(14); i = i.{core::num::+}(1))
+      #t2.{core::Set::add}(i);
+  } =>#t2;
+  final core::Map<core::int*, core::int*>* aMap = block {
+    final core::Map<core::int*, core::int*>* #t3 = <core::int*, core::int*>{};
+    #t3.{core::Map::[]=}(1, 1);
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      #t3.{core::Map::[]=}(2, 2);
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      #t3.{core::Map::[]=}(3, 3);
+    else
+      #t3.{core::Map::[]=}(1.{core::int::unary-}(), 1.{core::int::unary-}());
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+        #t3.{core::Map::[]=}(4, 4);
+    for (core::int* i in <core::int*>[5, 6, 7])
+      #t3.{core::Map::[]=}(i, i);
+    for (core::int* i in <core::int*>[8, 9, 10])
+      if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+        #t3.{core::Map::[]=}(i, i);
+    for (core::int* i = 11; i.{core::num::<=}(14); i = i.{core::num::+}(1))
+      #t3.{core::Map::[]=}(i, i);
+  } =>#t3;
+  core::print(aList);
+  core::print(aSet);
+  core::print(aMap);
+}
+static method oracle() → dynamic
+  return true;

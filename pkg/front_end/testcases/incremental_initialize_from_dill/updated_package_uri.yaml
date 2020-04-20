@@ -1,0 +1,43 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with a .packages file.
+# Then change which file should be the .packages file to use, and everything
+# should now be relative to the new .packages file.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "package:example/b.dart";
+        main() {
+          print("hello");
+          b();
+        }
+      package_0.1.0/a.dart: |
+        a() {
+          la1();
+        }
+        la1() {
+          print("v0.1.0");
+        }
+      package_0.1.0/b.dart: |
+        import "a.dart";
+        b() {
+          a();
+        }
+      .packages: example:package_0.1.0
+    expectedLibraryCount: 3
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    sources:
+      package_0.1.1/b.dart: |
+        b() {
+          print("hello from v0.1.1");
+        }
+      .packages2: example:package_0.1.1
+    dotPackagesFile: .packages2
+    expectedLibraryCount: 2

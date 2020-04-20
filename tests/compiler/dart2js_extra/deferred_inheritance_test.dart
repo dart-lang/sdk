@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /// Regression test for --fast-startup. The compiler used to emit inherit calls
 /// on each fragment even for classes that were already loaded on a different
 /// fragment. As a result, the inheritance chain was overwritten in non-chrome
@@ -18,8 +20,8 @@ class B extends A {}
 /// If the check `y is A` is generated as `y.$isA` then the issue is not
 /// exposed. We use `AssumeDynamic` to ensure that we generate as `y instanceof
 /// A` in JS.
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 check(y) => Expect.isTrue(y is A);
 
 main() {

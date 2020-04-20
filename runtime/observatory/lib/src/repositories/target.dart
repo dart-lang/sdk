@@ -4,7 +4,7 @@
 
 part of repositories;
 
-typedef bool IsConnectedVMTargetDelegate(Target);
+typedef bool IsConnectedVMTargetDelegate(M.Target target);
 
 class TargetChangeEvent implements M.TargetChangeEvent {
   final TargetRepository repository;
@@ -51,7 +51,7 @@ class TargetRepository implements M.TargetRepository {
     _store();
   }
 
-  Iterable<SC.WebSocketVMTarget> list() => _list;
+  Iterable<M.Target> list() => _list.toList();
 
   void setCurrent(M.Target t) {
     SC.WebSocketVMTarget target = t as SC.WebSocketVMTarget;
@@ -85,7 +85,9 @@ class TargetRepository implements M.TargetRepository {
     if (loaded == null) {
       return;
     }
-    _list.addAll(loaded.map((i) => new SC.WebSocketVMTarget.fromMap(i)));
+    for (var i in loaded) {
+      _list.add(new SC.WebSocketVMTarget.fromMap(i));
+    }
     _list.sort((SC.WebSocketVMTarget a, SC.WebSocketVMTarget b) {
       return b.lastConnectionTime.compareTo(a.lastConnectionTime);
     });
@@ -117,8 +119,8 @@ class TargetRepository implements M.TargetRepository {
     final Uri wsAddress = new Uri(
       scheme: 'ws',
       host: host ?? serverAddress.host,
-      port: int.parse(port ?? '', onError: (_) => serverAddress.port),
-      path: '/ws',
+      port: int.tryParse(port ?? '') ?? serverAddress.port,
+      path: serverAddress.path.isEmpty ? '/ws' : serverAddress.path + 'ws',
     );
     return wsAddress.toString();
   }

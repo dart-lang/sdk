@@ -1,0 +1,74 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  static field core::int? lateStaticField1Init;
+  static field core::int? _#lateStaticField1;
+  static field core::bool _#lateStaticField1#isSet;
+  static field core::int? lateStaticField2Init;
+  static field core::int? _#lateStaticField2;
+  static field core::bool _#lateStaticField2#isSet;
+  field core::int? lateInstanceFieldInit;
+  field core::int? _#Class#lateInstanceField;
+  field core::bool _#Class#lateInstanceField#isSet;
+  generic-covariant-impl field self::Class::T? lateGenericInstanceFieldInit;
+  final field self::Class::T? field;
+  field self::Class::T? _#Class#lateGenericInstanceField;
+  field core::bool _#Class#lateGenericInstanceField#isSet;
+  constructor •(self::Class::T? field) → self::Class<self::Class::T%>
+    ;
+  static method initLateStaticField1(core::int value) → core::int?
+    ;
+  static get lateStaticField1() → core::int?;
+  static method initLateStaticField2(core::int value) → core::int?
+    ;
+  static get lateStaticField2() → core::int?;
+  static method staticMethod() → dynamic
+    ;
+  method initLateInstanceField(core::int value) → core::int?
+    ;
+  get lateInstanceField() → core::int?;
+  method initLateGenericInstanceField(generic-covariant-impl self::Class::T? value) → self::Class::T?
+    ;
+  get lateGenericInstanceField() → self::Class::T?;
+  method instanceMethod() → dynamic
+    ;
+}
+extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {
+  static field lateExtensionField1Init = self::Extension|lateExtensionField1Init;
+  static method initLateExtensionField1 = self::Extension|initLateExtensionField1;
+  static field lateExtensionField1 = self::_#Extension|lateExtensionField1;
+  static field lateExtensionField1 = self::_#Extension|lateExtensionField1#isSet;
+  static get lateExtensionField1 = get self::Extension|lateExtensionField1;
+  static field lateExtensionField2Init = self::Extension|lateExtensionField2Init;
+  static method initLateExtensionField2 = self::Extension|initLateExtensionField2;
+  static field lateExtensionField2 = self::_#Extension|lateExtensionField2;
+  static field lateExtensionField2 = self::_#Extension|lateExtensionField2#isSet;
+  static get lateExtensionField2 = get self::Extension|lateExtensionField2;
+  static method staticMethod = self::Extension|staticMethod;
+}
+static field core::int? lateTopLevelField1Init;
+static field core::int? _#lateTopLevelField1;
+static field core::bool _#lateTopLevelField1#isSet;
+static field core::int? Extension|lateExtensionField1Init;
+static field core::int? _#Extension|lateExtensionField1;
+static field core::bool _#Extension|lateExtensionField1#isSet;
+static field core::int? Extension|lateExtensionField2Init;
+static field core::int? _#Extension|lateExtensionField2;
+static field core::bool _#Extension|lateExtensionField2#isSet;
+static method initLateTopLevelField1(core::int value) → core::int?
+  ;
+static get lateTopLevelField1() → core::int?;
+static method Extension|initLateExtensionField1(core::int value) → core::int?
+  ;
+static get Extension|lateExtensionField1() → core::int?;
+static method Extension|initLateExtensionField2(core::int value) → core::int?
+  ;
+static get Extension|lateExtensionField2() → core::int?;
+static method Extension|staticMethod() → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

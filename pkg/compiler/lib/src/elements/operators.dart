@@ -26,6 +26,7 @@ class UnaryOperator {
   Selector get selector => new Selector(SelectorKind.OPERATOR,
       new PublicName(selectorName), CallStructure.NO_ARGS);
 
+  @override
   String toString() => name;
 
   /// The unary ! operator.
@@ -78,6 +79,7 @@ enum BinaryOperatorKind {
   MOD,
   SHL,
   SHR,
+  SHRU,
   GTEQ,
   GT,
   LTEQ,
@@ -102,6 +104,7 @@ class BinaryOperator {
 
   String get selectorName => name;
 
+  @override
   String toString() => name;
 
   /// The == operator.
@@ -146,6 +149,10 @@ class BinaryOperator {
   /// The binary >> operator.
   static const BinaryOperator SHR =
       const BinaryOperator._(BinaryOperatorKind.SHR, '>>');
+
+  /// The binary >>> operator.
+  static const BinaryOperator SHRU =
+      const BinaryOperator._(BinaryOperatorKind.SHRU, '>>');
 
   /// The binary >= operator.
   static const BinaryOperator GTEQ =
@@ -224,6 +231,8 @@ class BinaryOperator {
         return SHL;
       case '>>':
         return SHR;
+      case '>>>':
+        return SHRU;
       case '>=':
         return GTEQ;
       case '>':
@@ -268,6 +277,8 @@ class BinaryOperator {
         return SHL;
       case BinaryOperatorKind.SHR:
         return SHR;
+      case BinaryOperatorKind.SHRU:
+        return SHRU;
       case BinaryOperatorKind.GTEQ:
         return GTEQ;
       case BinaryOperatorKind.GT:
@@ -297,8 +308,10 @@ class BinaryOperator {
 class _NotEqualsOperator extends BinaryOperator {
   const _NotEqualsOperator() : super._(BinaryOperatorKind.NOT_EQ, '!=');
 
+  @override
   bool get isUserDefinable => false;
 
+  @override
   String get selectorName => '==';
 }
 
@@ -308,8 +321,10 @@ class _LogicalOperator extends BinaryOperator {
   const _LogicalOperator(BinaryOperatorKind kind, String name)
       : super._(kind, name);
 
+  @override
   bool get isUserDefinable => false;
 
+  @override
   String get selectorName => null;
 }
 
@@ -318,201 +333,9 @@ class _IfNullOperator extends BinaryOperator {
   const _IfNullOperator(BinaryOperatorKind kind, String name)
       : super._(kind, name);
 
+  @override
   bool get isUserDefinable => false;
 
+  @override
   String get selectorName => '??';
-}
-
-enum AssignmentOperatorKind {
-  ASSIGN,
-  IF_NULL,
-  ADD,
-  SUB,
-  MUL,
-  DIV,
-  IDIV,
-  MOD,
-  SHL,
-  SHR,
-  AND,
-  OR,
-  XOR,
-}
-
-class AssignmentOperator {
-  final AssignmentOperatorKind kind;
-  final BinaryOperator binaryOperator;
-  final String name;
-  final bool isUserDefinable;
-
-  const AssignmentOperator._(this.kind, this.name, this.binaryOperator,
-      {this.isUserDefinable: true});
-
-  String get selectorName {
-    return binaryOperator != null ? binaryOperator.selectorName : null;
-  }
-
-  String toString() => name;
-
-  /// The = operator.
-  static const AssignmentOperator ASSIGN = const AssignmentOperator._(
-      AssignmentOperatorKind.ASSIGN, '=', null,
-      isUserDefinable: false);
-
-  /// The ??= operator.
-  static const AssignmentOperator IF_NULL = const AssignmentOperator._(
-      AssignmentOperatorKind.IF_NULL, '??=', BinaryOperator.IF_NULL,
-      isUserDefinable: false);
-
-  /// The += assignment operator.
-  static const AssignmentOperator ADD = const AssignmentOperator._(
-      AssignmentOperatorKind.ADD, '+=', BinaryOperator.ADD);
-
-  /// The -= assignment operator.
-  static const AssignmentOperator SUB = const AssignmentOperator._(
-      AssignmentOperatorKind.SUB, '-=', BinaryOperator.SUB);
-
-  /// The *= assignment operator.
-  static const AssignmentOperator MUL = const AssignmentOperator._(
-      AssignmentOperatorKind.MUL, '*=', BinaryOperator.MUL);
-
-  /// The /= assignment operator.
-  static const AssignmentOperator DIV = const AssignmentOperator._(
-      AssignmentOperatorKind.DIV, '/=', BinaryOperator.DIV);
-
-  /// The ~/= assignment operator.
-  static const AssignmentOperator IDIV = const AssignmentOperator._(
-      AssignmentOperatorKind.IDIV, '~/=', BinaryOperator.IDIV);
-
-  /// The %= assignment operator.
-  static const AssignmentOperator MOD = const AssignmentOperator._(
-      AssignmentOperatorKind.MOD, '%=', BinaryOperator.MOD);
-
-  /// The <<= assignment operator.
-  static const AssignmentOperator SHL = const AssignmentOperator._(
-      AssignmentOperatorKind.SHL, '<<=', BinaryOperator.SHL);
-
-  /// The >>= assignment operator.
-  static const AssignmentOperator SHR = const AssignmentOperator._(
-      AssignmentOperatorKind.SHR, '>>=', BinaryOperator.SHR);
-
-  /// The &= assignment operator.
-  static const AssignmentOperator AND = const AssignmentOperator._(
-      AssignmentOperatorKind.AND, '&=', BinaryOperator.AND);
-
-  /// The |= assignment operator.
-  static const AssignmentOperator OR = const AssignmentOperator._(
-      AssignmentOperatorKind.OR, '|=', BinaryOperator.OR);
-
-  /// The ^= assignment operator.
-  static const AssignmentOperator XOR = const AssignmentOperator._(
-      AssignmentOperatorKind.XOR, '^=', BinaryOperator.XOR);
-
-  static AssignmentOperator parse(String value) {
-    switch (value) {
-      case '=':
-        return ASSIGN;
-      case '??=':
-        return IF_NULL;
-      case '*=':
-        return MUL;
-      case '/=':
-        return DIV;
-      case '%=':
-        return MOD;
-      case '~/=':
-        return IDIV;
-      case '+=':
-        return ADD;
-      case '-=':
-        return SUB;
-      case '<<=':
-        return SHL;
-      case '>>=':
-        return SHR;
-      case '&=':
-        return AND;
-      case '^=':
-        return XOR;
-      case '|=':
-        return OR;
-      default:
-        return null;
-    }
-  }
-
-  // ignore: MISSING_RETURN
-  static AssignmentOperator fromKind(AssignmentOperatorKind kind) {
-    switch (kind) {
-      case AssignmentOperatorKind.ASSIGN:
-        return ASSIGN;
-      case AssignmentOperatorKind.IF_NULL:
-        return IF_NULL;
-      case AssignmentOperatorKind.ADD:
-        return ADD;
-      case AssignmentOperatorKind.SUB:
-        return SUB;
-      case AssignmentOperatorKind.MUL:
-        return MUL;
-      case AssignmentOperatorKind.DIV:
-        return DIV;
-      case AssignmentOperatorKind.IDIV:
-        return IDIV;
-      case AssignmentOperatorKind.MOD:
-        return MOD;
-      case AssignmentOperatorKind.SHL:
-        return SHL;
-      case AssignmentOperatorKind.SHR:
-        return SHR;
-      case AssignmentOperatorKind.AND:
-        return AND;
-      case AssignmentOperatorKind.OR:
-        return OR;
-      case AssignmentOperatorKind.XOR:
-        return XOR;
-    }
-  }
-}
-
-enum IncDecOperatorKind { INC, DEC }
-
-class IncDecOperator {
-  final IncDecOperatorKind kind;
-  final String name;
-  final BinaryOperator binaryOperator;
-
-  const IncDecOperator._(this.kind, this.name, this.binaryOperator);
-
-  String get selectorName => binaryOperator.selectorName;
-
-  String toString() => name;
-
-  /// The prefix/postfix ++ operator.
-  static const IncDecOperator INC =
-      const IncDecOperator._(IncDecOperatorKind.INC, '++', BinaryOperator.ADD);
-
-  /// The prefix/postfix -- operator.
-  static const IncDecOperator DEC =
-      const IncDecOperator._(IncDecOperatorKind.DEC, '--', BinaryOperator.SUB);
-
-  static IncDecOperator parse(String value) {
-    switch (value) {
-      case '++':
-        return INC;
-      case '--':
-        return DEC;
-      default:
-        return null;
-    }
-  }
-
-  // ignore: MISSING_RETURN
-  static IncDecOperator fromKind(IncDecOperatorKind kind) {
-    switch (kind) {
-      case IncDecOperatorKind.INC:
-        return INC;
-      case IncDecOperatorKind.DEC:
-        return DEC;
-    }
-  }
 }

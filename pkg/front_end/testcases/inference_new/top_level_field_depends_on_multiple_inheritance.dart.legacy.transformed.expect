@@ -1,0 +1,54 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    : super self::A::•()
+    ;
+}
+class C extends self::B {
+  synthetic constructor •() → self::C*
+    : super self::B::•()
+    ;
+}
+abstract class D extends core::Object {
+  synthetic constructor •() → self::D*
+    : super core::Object::•()
+    ;
+  abstract method foo() → self::A*;
+}
+abstract class E extends core::Object {
+  synthetic constructor •() → self::E*
+    : super core::Object::•()
+    ;
+  abstract method foo() → self::B*;
+}
+abstract class F extends core::Object {
+  synthetic constructor •() → self::F*
+    : super core::Object::•()
+    ;
+  abstract method foo() → core::Object*;
+}
+abstract class G extends core::Object implements self::D, self::E, self::F {
+  synthetic constructor •() → self::G*
+    : super core::Object::•()
+    ;
+  abstract forwarding-stub method foo() → self::B*;
+}
+class H extends self::G {
+  synthetic constructor •() → self::H*
+    : super self::G::•()
+    ;
+  method foo() → self::C*
+    return new self::C::•();
+}
+static field dynamic x = self::bar().foo();
+static method bar() → self::G*
+  return new self::H::•();
+static method main() → dynamic {}

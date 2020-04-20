@@ -4,11 +4,11 @@
 
 import 'dart:io';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'test_helper.dart';
 
-var tests = [
+var tests = <VMTest>[
   (VM vm) async {
     // Simple heartbeat test to ensure we can fetch Observatory resources.
     var heartBeatUrl =
@@ -22,4 +22,8 @@ var tests = [
   }
 ];
 
-main(args) async => runVMTests(args, tests);
+main(args) async => runVMTests(
+      args, tests,
+      // TODO(bkonyi): DDS doesn't forward Observatory assets properly yet.
+      enableDds: false,
+    );

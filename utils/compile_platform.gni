@@ -2,29 +2,53 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("../build/dart_host_toolchain.gni")
-import("../build/prebuilt_dart_sdk.gni")
+import("../build/dart/dart_action.gni")
 
 _dart_root = get_path_info("..", "abspath")
 
 template("compile_platform") {
-  assert(defined(invoker.sources), "Need 'sources' in $target_name")
+  assert(defined(invoker.libraries_specification_uri),
+         "Need 'libraries_specification_uri' in $target_name")
   assert(defined(invoker.outputs), "Need 'outputs' in $target_name")
   assert(defined(invoker.args), "Need 'args' in $target_name")
+  if (defined(invoker.single_root_scheme)) {
+    assert(defined(invoker.single_root_base),
+           "Need 'single_root_base' in $target_name")
+  }
+  if (defined(invoker.single_root_base)) {
+    assert(defined(invoker.single_root_scheme),
+           "Need 'single_root_scheme' in $target_name")
+  }
   assert(!defined(invoker.script), "Remove 'script' from $target_name")
   assert(!defined(invoker.depfile), "Remove 'depfile' from $target_name")
 
-  action(target_name) {
-    script = "$_dart_root/tools/compile_platform.py"
+  # In order to automatically compute dependencies, we need to add a dependency
+  # on vm_outline.dill. This is used to include the source code of Fasta itself
+  # in the dependency file. Without this, a change to Fasta wouldn't cause the
+  # platform dill files to be rebuilt.  However, when building
+  # vm_outline_strong.dill, we shouldn't list it as a dependency as this would
+  # lead to cyclic dependencies.
+  add_implicit_vm_platform_dependency = true
+  if (defined(invoker.add_implicit_vm_platform_dependency)) {
+    add_implicit_vm_platform_dependency =
+        invoker.add_implicit_vm_platform_dependency
+  }
 
-    sources = invoker.sources
+  outline = "vm_outline_strong.dill"
+  if (defined(invoker.outline)) {
+    outline = invoker.outline
+  }
+
+  prebuilt_dart_action(target_name) {
+    script = "$_dart_root/pkg/front_end/tool/_fasta/compile_platform.dart"
+
+    packages = "$_dart_root/.packages"
 
     outputs = invoker.outputs
 
     inputs = []
     deps = []
     args = []
-
     if (defined(invoker.deps)) {
       deps += invoker.deps
     }
@@ -33,21 +57,26 @@ template("compile_platform") {
       inputs += invoker.inputs
     }
 
+    if (add_implicit_vm_platform_dependency) {
+      inputs += [ "$root_out_dir/$outline" ]
+      deps += [ "$_dart_root/runtime/vm:vm_platform" ]
+    }
     depfile = outputs[0] + ".d"
 
-    if (!prebuilt_dart_exe_works) {
-      deps += [ "$_dart_root/runtime/bin:dart_bootstrap($dart_host_toolchain)" ]
-      dart_out_dir = get_label_info(
-              "$_dart_root/runtime/bin:dart_bootstrap($dart_host_toolchain)",
-              "root_out_dir")
-      args += [
-        "--dart-executable",
-        rebase_path("$dart_out_dir/dart_bootstrap$executable_suffix"),
-      ]
-    }
-
     args += invoker.args
-    args += rebase_path(sources, root_build_dir)
+    if (defined(invoker.single_root_scheme)) {
+      args += [ "--single-root-scheme=" + invoker.single_root_scheme ]
+    }
+    if (defined(invoker.single_root_base)) {
+      args += [ "--single-root-base=" + invoker.single_root_base ]
+    }
+    if (defined(invoker.single_root_scheme)) {
+      args += [ invoker.libraries_specification_uri ]
+    } else {
+      args +=
+          [ rebase_path(invoker.libraries_specification_uri, root_build_dir) ]
+    }
+    args += [ rebase_path("$root_out_dir/$outline", root_build_dir) ]
     args += rebase_path(outputs, root_build_dir)
   }
 }

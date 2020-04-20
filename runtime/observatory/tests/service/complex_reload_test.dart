@@ -1,7 +1,6 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'test_helper.dart';
 import 'dart:async';
@@ -11,7 +10,7 @@ import 'dart:io';
 import 'service_test_common.dart';
 import 'package:observatory/service.dart';
 import 'package:path/path.dart' as path;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 // Chop off the file name.
 String baseDirectory = path.dirname(Platform.script.path) + '/';
@@ -40,7 +39,7 @@ Future<String> invokeTest(Isolate isolate) async {
   return result.valueAsString;
 }
 
-var tests = [
+var tests = <IsolateTest>[
   // Stopped at 'debugger' statement.
   hasStoppedAtBreakpoint,
   // Resume the isolate into the while loop.
@@ -53,17 +52,17 @@ var tests = [
     await vm.reloadIsolates();
     expect(vm.isolates.length, 2);
 
-    // Find the slave isolate.
-    Isolate slaveIsolate =
+    // Find the spawned isolate.
+    Isolate spawnedIsolate =
         vm.isolates.firstWhere((Isolate i) => i != mainIsolate);
-    expect(slaveIsolate, isNotNull);
+    expect(spawnedIsolate, isNotNull);
 
     // Invoke test in v1.
-    String v1 = await invokeTest(slaveIsolate);
+    String v1 = await invokeTest(spawnedIsolate);
     expect(v1, 'apple');
 
     // Reload to v2.
-    var response = await slaveIsolate.reloadSources(
+    var response = await spawnedIsolate.reloadSources(
       rootLibUri: v2Uri.toString(),
       packagesUri: v2PackagesUri.toString(),
     );
@@ -71,17 +70,17 @@ var tests = [
     expect(response['success'], isTrue);
 
     // Invoke test in v2.
-    String v2 = await invokeTest(slaveIsolate);
+    String v2 = await invokeTest(spawnedIsolate);
     expect(v2, 'fooLib');
 
     // Reload to v3.
-    response = await slaveIsolate.reloadSources(
+    response = await spawnedIsolate.reloadSources(
       rootLibUri: v3Uri.toString(),
     );
     expect(response['success'], isTrue);
 
     // Invoke test in v3.
-    String v3 = await invokeTest(slaveIsolate);
+    String v3 = await invokeTest(spawnedIsolate);
     expect(v3, 'cabbage');
   }
 ];

@@ -1,0 +1,46 @@
+Problems reported:
+
+parser/error_recovery/issue_39026.crash:2:8: Operator declarations must be preceded by the keyword 'operator'.
+    co <{
+       ^
+
+parser/error_recovery/issue_39026.crash:2:8: A method declaration needs an explicit list of parameters.
+    co <{
+       ^
+
+beginCompilationUnit(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(A, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, A)
+      handleNoType(A)
+      handleClassExtends(null)
+      handleClassNoWithClause()
+      handleClassOrMixinImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinBody(DeclarationKind.Class, {)
+        beginMetadataStar(co)
+        endMetadataStar(0)
+        beginMember()
+          handleRecoverableError(MissingOperatorKeyword, <, <)
+          beginMethod(null, null, null, null, null, operator)
+            handleIdentifier(co, typeReference)
+            handleNoTypeArguments(operator)
+            handleType(co, null)
+            handleOperatorName(operator, <)
+            handleNoTypeVariables({)
+            handleRecoverableError(MissingMethodParameters, <, <)
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+            endBlockFunctionBody(0, {, })
+          endClassMethod(null, co, (, null, })
+        endMember()
+      endClassOrMixinBody(DeclarationKind.Class, 1, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration()
+endCompilationUnit(1, )

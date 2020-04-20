@@ -9,7 +9,7 @@ T f<T>() => null;
 
 class C {
   final int x;
-  C() : this.x = /*@typeArgs=int*/ f();
+  C() : this.x = /*@ typeArgs=int* */ f();
 }
 
 main() {}

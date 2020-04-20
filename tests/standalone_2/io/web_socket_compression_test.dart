@@ -52,7 +52,7 @@ class SecurityConfiguration {
     for (int i = 0; i < 16; i++) {
       nonceData[i] = random.nextInt(256);
     }
-    String nonce = BASE64.encode(nonceData);
+    String nonce = base64.encode(nonceData);
 
     uri = new Uri(
         scheme: uri.scheme == "wss" ? "https" : "http",
@@ -66,13 +66,13 @@ class SecurityConfiguration {
       if (uri.userInfo != null && !uri.userInfo.isEmpty) {
         // If the URL contains user information use that for basic
         // authorization.
-        String auth = BASE64.encode(UTF8.encode(uri.userInfo));
-        request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
+        String auth = base64.encode(utf8.encode(uri.userInfo));
+        request.headers.set(HttpHeaders.authorizationHeader, "Basic $auth");
       }
       // Setup the initial handshake.
       request.headers
-        ..set(HttpHeaders.CONNECTION, "Upgrade")
-        ..set(HttpHeaders.UPGRADE, "websocket")
+        ..set(HttpHeaders.connectionHeader, "Upgrade")
+        ..set(HttpHeaders.upgradeHeader, "websocket")
         ..set("Sec-WebSocket-Key", nonce)
         ..set("Cache-Control", "no-cache")
         ..set("Sec-WebSocket-Version", "13")
@@ -168,16 +168,18 @@ class SecurityConfiguration {
     asyncStart();
     createServer().then((server) {
       server.listen((request) {
-        Expect.equals('Upgrade', request.headers.value(HttpHeaders.CONNECTION));
-        Expect.equals('websocket', request.headers.value(HttpHeaders.UPGRADE));
+        Expect.equals(
+            'Upgrade', request.headers.value(HttpHeaders.connectionHeader));
+        Expect.equals(
+            'websocket', request.headers.value(HttpHeaders.upgradeHeader));
 
         var key = request.headers.value('Sec-WebSocket-Key');
         var digest = sha1.convert("$key$WEB_SOCKET_GUID".codeUnits);
-        var accept = BASE64.encode(digest.bytes);
+        var accept = base64.encode(digest.bytes);
         request.response
-          ..statusCode = HttpStatus.SWITCHING_PROTOCOLS
-          ..headers.add(HttpHeaders.CONNECTION, "Upgrade")
-          ..headers.add(HttpHeaders.UPGRADE, "websocket")
+          ..statusCode = HttpStatus.switchingProtocols
+          ..headers.add(HttpHeaders.connectionHeader, "Upgrade")
+          ..headers.add(HttpHeaders.upgradeHeader, "websocket")
           ..headers.add("Sec-WebSocket-Accept", accept)
           ..headers.add(
               "Sec-WebSocket-Extensions",
@@ -207,7 +209,8 @@ class SecurityConfiguration {
   }
 
   void testReturnHeaders(String headerValue, String expected,
-      {CompressionOptions serverCompression: CompressionOptions.DEFAULT}) {
+      {CompressionOptions serverCompression:
+          CompressionOptions.compressionDefault}) {
     asyncStart();
     createServer().then((server) {
       server.listen((request) {
@@ -227,7 +230,7 @@ class SecurityConfiguration {
 
       var url = '${secure ? "wss" : "ws"}://$HOST_NAME:${server.port}/';
       createWebsocket(url, headerValue).then((HttpClientResponse response) {
-        Expect.equals(response.statusCode, HttpStatus.SWITCHING_PROTOCOLS);
+        Expect.equals(response.statusCode, HttpStatus.switchingProtocols);
         print(response.headers.value('Sec-WebSocket-Extensions'));
         Expect.equals(
             response.headers.value("Sec-WebSocket-Extensions"), expected);
@@ -361,7 +364,7 @@ class SecurityConfiguration {
         'permessage-deflate; client_max_window_bits=15',
         serverCompression: compression);
 
-    compression = CompressionOptions.DEFAULT;
+    compression = CompressionOptions.compressionDefault;
     testClientRequestHeaders(compression);
     compression = new CompressionOptions(
         clientNoContextTakeover: true, serverNoContextTakeover: true);

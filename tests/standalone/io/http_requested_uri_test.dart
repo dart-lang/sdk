@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 import "dart:async";
 import "dart:io";
+import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 
 const sendPath = '/path?a=b#c';
 const expectedPath = '/path?a=b';

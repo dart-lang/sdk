@@ -7,10 +7,10 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
+import "package:expect/expect.dart";
 
 const SERVER_ADDRESS = "127.0.0.1";
 
@@ -29,7 +29,7 @@ void testWriteDestroyServer() {
       }
 
       socket.listen((e) {
-        if (e == RawSocketEvent.WRITE) {
+        if (e == RawSocketEvent.write) {
           if (offset == buffer.length) {
             socket.close();
           } else {
@@ -42,9 +42,9 @@ void testWriteDestroyServer() {
     RawSocket.connect(SERVER_ADDRESS, server.port).then((socket) {
       var bytes = 0;
       socket.listen((e) {
-        if (e == RawSocketEvent.READ) {
-          bytes += socket.read().length;
-        } else if (e == RawSocketEvent.READ_CLOSED) {
+        if (e == RawSocketEvent.read) {
+          bytes += socket.read()!.length;
+        } else if (e == RawSocketEvent.readClosed) {
           Expect.equals(WROTE, bytes);
           socket.close();
           server.close();
@@ -60,9 +60,9 @@ void testWriteDestroyClient() {
     server.listen((socket) {
       var bytes = 0;
       socket.listen((e) {
-        if (e == RawSocketEvent.READ) {
-          bytes += socket.read().length;
-        } else if (e == RawSocketEvent.READ_CLOSED) {
+        if (e == RawSocketEvent.read) {
+          bytes += socket.read()!.length;
+        } else if (e == RawSocketEvent.readClosed) {
           Expect.equals(WROTE, bytes);
           socket.close();
           server.close();
@@ -81,7 +81,7 @@ void testWriteDestroyClient() {
       }
 
       socket.listen((e) {
-        if (e == RawSocketEvent.WRITE) {
+        if (e == RawSocketEvent.write) {
           if (offset == buffer.length) {
             socket.close();
           } else {

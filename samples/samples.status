@@ -2,34 +2,37 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[$runtime == vm && $compiler == none && $system == fuchsia]
-*: Skip  # Not yet triaged.
+[ $arch == arm ]
+sample_extension/test/*: Skip # Issue 14705
 
-[ $browser ]
-# Skip tests that uses dart:io
-build_dart: Skip
-build_dart_simple: Skip
-sample_extension: Skip
+[ $builder_tag == asan ]
+ffi/samples_test: SkipByDesign # FFI skips, see ffi.status
+
+[ $builder_tag == optimization_counter_threshold ]
+sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign # This test is too slow for testing with low optimization counter threshold.
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
-[ $compiler == dart2analyzer ]
-build_dart: Skip
-
-[ $compiler == dart2analyzer && $builder_tag == strong ]
-*: Skip # Issue 28649
-
-[ $arch == arm ]
-sample_extension/test/*: Skip # Issue 14705
-
-[ $compiler == precompiler ]
-sample_extension/test/*: Skip # These tests attempt to spawn another script using the precompiled runtime.
-
-[ $compiler == none && $runtime == vm && $system == windows && $mode == debug ]
+[ $compiler == none && $mode == debug && $runtime == vm && $system == windows ]
 sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # Issue 28842
 
-[ $compiler == dartkp ]
-sample_extension/test/sample_extension_app_snapshot_test: RuntimeError
-sample_extension/test/sample_extension_script_snapshot_test: RuntimeError
-sample_extension/test/sample_extension_test: RuntimeError
+[ $compiler == none && $runtime == vm && $system == fuchsia ]
+*: Skip # Not yet triaged.
+
+[ $arch == simarm || $arch == simarm64 ]
+ffi/*: SkipByDesign # FFI skips, see ffi.status
+
+[ $arch != x64 || $compiler != dartk || $system != linux || $hot_reload || $hot_reload_rollback ]
+ffi/sqlite/test/sqlite_test: SkipByDesign # FFI not supported or libsqlite3.so not available.
+
+[ $compiler == app_jitk || $compiler == dartkp ]
+sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign
+sample_extension/test/sample_extension_test: SkipByDesign
+
+[ $runtime == d8 || $browser ]
+ffi/*: SkipByDesign # Skip tests that use dart:ffi.
+sample_extension/*: SkipByDesign # Skip tests that use dart:io.
+
+[ $hot_reload || $hot_reload_rollback ]
+sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign # Cannot reload with URI pointing to app snapshot.

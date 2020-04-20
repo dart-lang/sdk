@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of _js_helper;
 
 stringIndexOfStringUnchecked(receiver, other, startIndex) {
@@ -18,6 +20,11 @@ substring2Unchecked(receiver, startIndex, endIndex) {
 
 stringContainsStringUnchecked(receiver, other, startIndex) {
   return stringIndexOfStringUnchecked(receiver, other, startIndex) >= 0;
+}
+
+List<String> stringSplitUnchecked(String receiver, pattern) {
+  return new JSArray<String>.markGrowable(JS(
+      'returns:JSExtendableArray;new:true', '#.split(#)', receiver, pattern));
 }
 
 class StringMatch implements Match {
@@ -112,12 +119,23 @@ stringContainsUnchecked(receiver, other, startIndex) {
   }
 }
 
-stringReplaceJS(receiver, replacer, replacement) {
-  // The JavaScript String.replace method recognizes replacement
-  // patterns in the replacement string. Dart does not have that
-  // behavior.
-  replacement = JS('String', r'#.replace(/\$/g, "$$$$")', replacement);
-  return JS('String', r'#.replace(#, #)', receiver, replacer, replacement);
+String stringReplaceJS(String receiver, jsRegExp, String replacement) {
+  return JS('String', r'#.replace(#, #)', receiver, jsRegExp,
+      escapeReplacement(replacement));
+}
+
+String escapeReplacement(String replacement) {
+  // The JavaScript `String.prototype.replace` method recognizes replacement
+  // patterns in the replacement string. Dart does not have that behavior, so
+  // the replacement patterns need to be escaped.
+
+  // `String.prototype.replace` tends to be slower when there are replacement
+  // patterns, and the escaping itself uses replacement patterns, so it is
+  // worthwhile checking for `$` first.
+  if (stringContainsStringUnchecked(replacement, r'$', 0)) {
+    return JS('String', r'#.replace(/\$/g, "$$$$")', replacement);
+  }
+  return replacement;
 }
 
 stringReplaceFirstRE(receiver, regexp, replacement, startIndex) {
@@ -131,38 +149,73 @@ stringReplaceFirstRE(receiver, regexp, replacement, startIndex) {
 /// Returns a string for a RegExp pattern that matches [string]. This is done by
 /// escaping all RegExp metacharacters.
 quoteStringForRegExp(string) {
-  return JS('String', r'#.replace(/[[\]{}()*+?.\\^$|]/g, "\\$&")', string);
+  // We test and replace essentially the same RegExp because replacement when
+  // there are replacement patterns is slow enough to be worth avoiding.
+  if (JS('bool', r'/[[\]{}()*+?.\\^$|]/.test(#)', string)) {
+    return JS('String', r'#.replace(/[[\]{}()*+?.\\^$|]/g, "\\$&")', string);
+  }
+  return string;
 }
 
 stringReplaceAllUnchecked(receiver, pattern, replacement) {
   checkString(replacement);
   if (pattern is String) {
-    if (pattern == "") {
-      if (receiver == "") {
-        return JS('String', '#', replacement); // help type inference.
-      } else {
-        StringBuffer result = new StringBuffer('');
-        int length = receiver.length;
-        result.write(replacement);
-        for (int i = 0; i < length; i++) {
-          result.write(receiver[i]);
-          result.write(replacement);
-        }
-        return result.toString();
-      }
-    } else {
-      var quoted = quoteStringForRegExp(pattern);
-      var replacer = JS('', "new RegExp(#, 'g')", quoted);
-      return stringReplaceJS(receiver, replacer, replacement);
-    }
-  } else if (pattern is JSSyntaxRegExp) {
+    return stringReplaceAllUncheckedString(receiver, pattern, replacement);
+  }
+
+  if (pattern is JSSyntaxRegExp) {
     var re = regExpGetGlobalNative(pattern);
     return stringReplaceJS(receiver, re, replacement);
-  } else {
-    checkNull(pattern);
-    // TODO(floitsch): implement generic String.replace (with patterns).
-    throw "String.replaceAll(Pattern) UNIMPLEMENTED";
   }
+
+  checkNull(pattern);
+  // TODO(floitsch): implement generic String.replace (with patterns).
+  throw "String.replaceAll(Pattern) UNIMPLEMENTED";
+}
+
+/// Replaces all non-overlapping occurences of [pattern] in [receiver] with
+/// [replacement].  This should be replace with
+/// (String.prototype.replaceAll)[https://github.com/tc39/proposal-string-replace-all]
+/// when available.
+String stringReplaceAllUncheckedString(
+    String receiver, String pattern, String replacement) {
+  if (pattern == "") {
+    if (receiver == "") {
+      return JS('String', '#', replacement); // help type inference.
+    }
+    StringBuffer result = new StringBuffer('');
+    int length = receiver.length;
+    result.write(replacement);
+    for (int i = 0; i < length; i++) {
+      result.write(receiver[i]);
+      result.write(replacement);
+    }
+    return result.toString();
+  }
+
+  if (!const bool.fromEnvironment(
+      'dart2js.testing.String.replaceAll.force.regexp')) {
+    // First check for no match.
+    int index = stringIndexOfStringUnchecked(receiver, pattern, 0);
+    if (index < 0) return receiver;
+
+    // The fastest approach in general is to replace with a global RegExp, but
+    // this requires the receiver string to be long enough to amortize the cost
+    // of creating the RegExp, and the replacement to have no '$' patterns,
+    // which tend to make `String.prototype.replace` much slower. In these
+    // cases, using split-join usually wins.
+    if (receiver.length < 500 ||
+        stringContainsStringUnchecked(replacement, r'$', 0)) {
+      return stringReplaceAllUsingSplitJoin(receiver, pattern, replacement);
+    }
+  }
+  var quoted = quoteStringForRegExp(pattern);
+  var replacer = JS('', "new RegExp(#, 'g')", quoted);
+  return stringReplaceJS(receiver, replacer, replacement);
+}
+
+String stringReplaceAllUsingSplitJoin(receiver, pattern, replacement) {
+  return JS('String', '#.split(#).join(#)', receiver, pattern, replacement);
 }
 
 String _matchString(Match match) => match[0];

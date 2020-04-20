@@ -5,8 +5,7 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=() -> Future<int>*/ f = /*@returnType=Future<int>*/ () async =>
-    0;
+var f = /*@ returnType=Future<int*>* */ () async => 0;
 
 main() {
   f;

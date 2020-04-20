@@ -6,10 +6,10 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
-#include "bin/embedded_dart_io.h"
 #include "bin/io_buffer.h"
 #include "bin/utils.h"
 
+#include "include/bin/dart_io_api.h"
 #include "include/dart_api.h"
 #include "include/dart_tools_api.h"
 
@@ -56,7 +56,13 @@ bool File::WriteFully(const void* buffer, int64_t num_bytes) {
   int64_t remaining = num_bytes;
   const char* current_buffer = reinterpret_cast<const char*>(buffer);
   while (remaining > 0) {
-    int64_t bytes_written = Write(current_buffer, remaining);
+    // On Windows, narrowing conversion from int64_t to DWORD will cause
+    // unexpected error.
+    // On MacOS, a single write() with more than kMaxInt32 will have
+    // "invalid argument" error.
+    // Therefore, limit the size for single write.
+    int64_t byte_to_write = remaining > kMaxInt32 ? kMaxInt32 : remaining;
+    int64_t bytes_written = Write(current_buffer, byte_to_write);
     if (bytes_written < 0) {
       return false;
     }

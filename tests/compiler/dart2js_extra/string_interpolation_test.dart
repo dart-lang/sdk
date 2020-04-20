@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Note: This test relies on LF line endings in the source file.
 
 import "package:expect/expect.dart";
@@ -13,7 +15,7 @@ int ifun() => 37;
 double dfun() => 2.71828;
 bool bfun() => true;
 String sfun() => "sfun";
-void nfun() => null;
+nfun() => null;
 
 void testEscapes() {
   // Test that escaping the '$' prevents string interpolation.
@@ -56,9 +58,9 @@ void testMultiLine() {
       "\n",
       """${''}
 """);
-  Expect.equals("\r", """${''}""");
+  Expect.equals("\n", """${''}""");
   Expect.equals(
-      "\r\n",
+      "\n",
       """${''}
 """);
   Expect.equals("\n", """${'\n'}""");

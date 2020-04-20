@@ -2,16 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart._vmservice;
 
 enum MessageType { Request, Notification, Response }
 
 class Message {
-  final Completer _completer = new Completer.sync();
+  final Completer<Response> _completer = new Completer<Response>.sync();
   bool get completed => _completer.isCompleted;
 
   /// Future of response.
-  Future<String> get response => _completer.future;
+  Future<Response> get response => _completer.future;
   Client client;
 
   // Is a notification message (no serial)
@@ -20,27 +22,11 @@ class Message {
   // Client-side identifier for this message.
   final serial;
 
-  // In new messages.
   final String method;
-
-  // In old messages.
-  final List path = new List();
 
   final Map params = new Map();
   final Map result = new Map();
   final Map error = new Map();
-
-  void _setPath(List<String> pathSegments) {
-    if (pathSegments == null) {
-      return;
-    }
-    pathSegments.forEach((String segment) {
-      if (segment == null || segment == '') {
-        return;
-      }
-      path.add(segment);
-    });
-  }
 
   factory Message.fromJsonRpc(Client client, Map map) {
     if (map.containsKey('id')) {
@@ -139,11 +125,11 @@ class Message {
   }
 
   dynamic toJson() {
-    return {'path': path, 'params': params};
+    throw 'unsupported';
   }
 
   dynamic forwardToJson([Map overloads]) {
-    var json = {'jsonrpc': '2.0', 'id': serial};
+    Map<dynamic, dynamic> json = {'jsonrpc': '2.0', 'id': serial};
     switch (type) {
       case MessageType.Request:
       case MessageType.Notification:
@@ -170,24 +156,22 @@ class Message {
   // elements in the list are strings, making consumption by C++ simpler.
   // This has a side effect that boolean literal values like true become 'true'
   // and thus indistinguishable from the string literal 'true'.
-  List _makeAllString(List list) {
+  List<String> _makeAllString(List list) {
     if (list == null) {
       return null;
     }
+    var new_list = new List<String>(list.length);
     for (var i = 0; i < list.length; i++) {
-      if (list[i] is String) {
-        continue;
-      }
-      list[i] = list[i].toString();
+      new_list[i] = list[i].toString();
     }
-    return list;
+    return new_list;
   }
 
-  Future<String> send(SendPort sendPort) {
+  Future<Response> sendToIsolate(SendPort sendPort) {
     final receivePort = new RawReceivePort();
     receivePort.handler = (value) {
       receivePort.close();
-      _completer.complete(value);
+      _setResponseFromPort(value);
     };
     var keys = _makeAllString(params.keys.toList(growable: false));
     var values = _makeAllString(params.values.toList(growable: false));
@@ -200,12 +184,8 @@ class Message {
       ..[5] = values;
     if (!sendIsolateServiceMessage(sendPort, request)) {
       receivePort.close();
-      _completer.complete(JSON.encode({
-        'type': 'ServiceError',
-        'id': '',
-        'kind': 'InternalError',
-        'message': 'could not send message [${serial}] to isolate',
-      }));
+      _completer.complete(new Response.internalError(
+          'could not send message [${serial}] to isolate'));
     }
     return _completer.future;
   }
@@ -231,47 +211,52 @@ class Message {
     }
   }
 
-  Future<String> sendToVM() {
+  Future<Response> sendToVM() {
     final receivePort = new RawReceivePort();
     receivePort.handler = (value) {
       receivePort.close();
-      _completer.complete(value);
+      _setResponseFromPort(value);
     };
+    var keys = params.keys.toList(growable: false);
+    var values = params.values.toList(growable: false);
+    if (!_methodNeedsObjectParameters(method)) {
+      keys = _makeAllString(keys);
+      values = _makeAllString(values);
+    }
+
+    final request = new List(6)
+      ..[0] = 0 // Make room for OOB message type.
+      ..[1] = receivePort.sendPort
+      ..[2] = serial
+      ..[3] = method
+      ..[4] = keys
+      ..[5] = values;
+
     if (_methodNeedsObjectParameters(method)) {
       // We use a different method invocation path here.
-      var keys = params.keys.toList(growable: false);
-      var values = params.values.toList(growable: false);
-      var request = new List(6)
-        ..[0] = 0 // Make room for OOB message type.
-        ..[1] = receivePort.sendPort
-        ..[2] = serial
-        ..[3] = method
-        ..[4] = keys
-        ..[5] = values;
       sendObjectRootServiceMessage(request);
-      return _completer.future;
     } else {
-      var keys = _makeAllString(params.keys.toList(growable: false));
-      var values = _makeAllString(params.values.toList(growable: false));
-      var request = new List(6)
-        ..[0] = 0 // Make room for OOB message type.
-        ..[1] = receivePort.sendPort
-        ..[2] = serial
-        ..[3] = method
-        ..[4] = keys
-        ..[5] = values;
       sendRootServiceMessage(request);
-      return _completer.future;
     }
+
+    return _completer.future;
+  }
+
+  void _setResponseFromPort(dynamic response) {
+    if (response == null) {
+      // We should only have a null response for Notifications.
+      assert(type == MessageType.Notification);
+      return null;
+    }
+    _completer.complete(Response.from(response));
   }
 
   void setResponse(String response) {
-    _completer.complete(response);
+    _completer.complete(new Response(ResponsePayloadKind.String, response));
   }
 
   void setErrorResponse(int code, String details) {
-    _completer
-        .complete(encodeRpcError(this, code, details: '$method: $details'));
+    setResponse(encodeRpcError(this, code, details: '$method: $details'));
   }
 }
 

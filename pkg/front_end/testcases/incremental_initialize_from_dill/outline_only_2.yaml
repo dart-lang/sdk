@@ -1,0 +1,21 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with the option of only getting an outline.
+# This is a reproduction of http://dartbug.com/36498.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        abstract class Foo {
+          int get foo;
+        }
+
+        class Bar implements Foo {
+          static int _foo = 0;
+          final foo = _foo++;
+        }
+    outlineOnly: true

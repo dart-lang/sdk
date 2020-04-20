@@ -10,18 +10,23 @@ namespace dart {
 
 #ifndef PRODUCT
 
-static RawObject* ExecuteScript(const char* script) {
-  Dart_Handle h_lib = TestCase::LoadTestScript(script, NULL);
-  EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
-  return Api::UnwrapHandle(h_lib);
+static RawObject* ExecuteScript(const char* script, bool allow_errors = false) {
+  Dart_Handle lib;
+  {
+    TransitionVMToNative transition(Thread::Current());
+    if (allow_errors) {
+      lib = TestCase::LoadTestScriptWithErrors(script, NULL);
+    } else {
+      lib = TestCase::LoadTestScript(script, NULL);
+    }
+    EXPECT_VALID(lib);
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    EXPECT_VALID(result);
+  }
+  return Api::UnwrapHandle(lib);
 }
 
-TEST_CASE(SourceReport_Coverage_NoCalls) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NoCalls) {
   char buffer[1024];
   const char* kScript =
       "main() {\n"
@@ -32,7 +37,6 @@ TEST_CASE(SourceReport_Coverage_NoCalls) {
   ASSERT(!lib.IsNull());
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
-
   SourceReport report(SourceReport::kCoverage);
   JSONStream js;
   report.PrintJSON(&js, script);
@@ -41,16 +45,16 @@ TEST_CASE(SourceReport_Coverage_NoCalls) {
       "{\"type\":\"SourceReport\",\"ranges\":"
 
       // One compiled range, one hit at function declaration.
-      "[{\"scriptIndex\":0,\"startPos\":0,\"endPos\":5,\"compiled\":true,"
+      "[{\"scriptIndex\":0,\"startPos\":0,\"endPos\":9,\"compiled\":true,"
       "\"coverage\":{\"hits\":[0],\"misses\":[]}}],"
 
       // One script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
-      "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
       buffer);
 }
 
-TEST_CASE(SourceReport_Coverage_SimpleCall) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_SimpleCall) {
   char buffer[1024];
   const char* kScript =
       "helper0() {}\n"
@@ -78,23 +82,23 @@ TEST_CASE(SourceReport_Coverage_SimpleCall) {
       "{\"type\":\"SourceReport\",\"ranges\":["
 
       // One range compiled with one hit at function declaration (helper0).
-      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":4,\"compiled\":true,"
+      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":11,\"compiled\":true,"
       "\"coverage\":{\"hits\":[0],\"misses\":[]}},"
 
       // One range not compiled (helper1).
-      "{\"scriptIndex\":0,\"startPos\":6,\"endPos\":10,\"compiled\":false},"
+      "{\"scriptIndex\":0,\"startPos\":13,\"endPos\":24,\"compiled\":false},"
 
       // One range with two hits and a miss (main).
-      "{\"scriptIndex\":0,\"startPos\":12,\"endPos\":39,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[12,23],\"misses\":[32]}}],"
+      "{\"scriptIndex\":0,\"startPos\":26,\"endPos\":94,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[26,53],\"misses\":[79]}}],"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
-      "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
       buffer);
 }
 
-TEST_CASE(SourceReport_Coverage_ForceCompile) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_ForceCompile) {
   char buffer[1024];
   const char* kScript =
       "helper0() {}\n"
@@ -118,28 +122,29 @@ TEST_CASE(SourceReport_Coverage_ForceCompile) {
   report.PrintJSON(&js, script);
   ElideJSONSubstring("classes", js.ToCString(), buffer);
   ElideJSONSubstring("libraries", buffer, buffer);
+
   EXPECT_STREQ(
       "{\"type\":\"SourceReport\",\"ranges\":["
 
       // One range compiled with one hit at function declaration (helper0).
-      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":4,\"compiled\":true,"
+      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":11,\"compiled\":true,"
       "\"coverage\":{\"hits\":[0],\"misses\":[]}},"
 
       // This range is compiled even though it wasn't called (helper1).
-      "{\"scriptIndex\":0,\"startPos\":6,\"endPos\":10,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[],\"misses\":[6]}},"
+      "{\"scriptIndex\":0,\"startPos\":13,\"endPos\":24,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[],\"misses\":[13]}},"
 
       // One range with two hits and a miss (main).
-      "{\"scriptIndex\":0,\"startPos\":12,\"endPos\":39,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[12,23],\"misses\":[32]}}],"
+      "{\"scriptIndex\":0,\"startPos\":26,\"endPos\":94,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[26,53],\"misses\":[79]}}],"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
-      "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
       buffer);
 }
 
-TEST_CASE(SourceReport_Coverage_UnusedClass_NoForceCompile) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_NoForceCompile) {
   char buffer[1024];
   const char* kScript =
       "helper0() {}\n"
@@ -165,23 +170,23 @@ TEST_CASE(SourceReport_Coverage_UnusedClass_NoForceCompile) {
       "{\"type\":\"SourceReport\",\"ranges\":["
 
       // UnusedClass is not compiled.
-      "{\"scriptIndex\":0,\"startPos\":6,\"endPos\":20,\"compiled\":false},"
+      "{\"scriptIndex\":0,\"startPos\":13,\"endPos\":55,\"compiled\":false},"
 
       // helper0 is compiled.
-      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":4,\"compiled\":true,"
+      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":11,\"compiled\":true,"
       "\"coverage\":{\"hits\":[0],\"misses\":[]}},"
 
       // One range with two hits (main).
-      "{\"scriptIndex\":0,\"startPos\":22,\"endPos\":32,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[22,27],\"misses\":[]}}],"
+      "{\"scriptIndex\":0,\"startPos\":57,\"endPos\":79,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[57,68],\"misses\":[]}}],"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
-      "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
       buffer);
 }
 
-TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompile) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompile) {
   char buffer[1024];
   const char* kScript =
       "helper0() {}\n"
@@ -207,24 +212,24 @@ TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompile) {
       "{\"type\":\"SourceReport\",\"ranges\":["
 
       // UnusedClass.helper1 is compiled.
-      "{\"scriptIndex\":0,\"startPos\":10,\"endPos\":18,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[],\"misses\":[10,14]}},"
+      "{\"scriptIndex\":0,\"startPos\":30,\"endPos\":53,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[],\"misses\":[30,42]}},"
 
       // helper0 is compiled.
-      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":4,\"compiled\":true,"
+      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":11,\"compiled\":true,"
       "\"coverage\":{\"hits\":[0],\"misses\":[]}},"
 
       // One range with two hits (main).
-      "{\"scriptIndex\":0,\"startPos\":22,\"endPos\":32,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[22,27],\"misses\":[]}}],"
+      "{\"scriptIndex\":0,\"startPos\":57,\"endPos\":79,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[57,68],\"misses\":[]}}],"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
-      "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
       buffer);
 }
 
-TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
   char buffer[1024];
   const char* kScript =
       "helper0() {}\n"
@@ -236,7 +241,7 @@ TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
       "}";
 
   Library& lib = Library::Handle();
-  lib ^= ExecuteScript(kScript);
+  lib ^= ExecuteScript(kScript, true);
   ASSERT(!lib.IsNull());
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
@@ -250,27 +255,29 @@ TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
       "{\"type\":\"SourceReport\",\"ranges\":["
 
       // UnusedClass has a syntax error.
-      "{\"scriptIndex\":0,\"startPos\":10,\"endPos\":18,\"compiled\":false,"
+      "{\"scriptIndex\":0,\"startPos\":30,\"endPos\":53,\"compiled\":false,"
       "\"error\":{\"type\":\"@Error\",\"_vmType\":\"LanguageError\","
       "\"kind\":\"LanguageError\",\"id\":\"objects\\/0\","
-      "\"message\":\"'test-lib': error: line 3 pos 26: unexpected token '}'\\n"
-      "  helper1() { helper0()+ }\\n                         ^\\n\"}},"
+      "\"message\":\"'file:\\/\\/\\/test-lib': error: "
+      "\\/test-lib:3:26: "
+      "Error: This couldn't be parsed.\\n"
+      "  helper1() { helper0()+ }\\n                         ^\"}},"
 
       // helper0 is compiled.
-      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":4,\"compiled\":true,"
+      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":11,\"compiled\":true,"
       "\"coverage\":{\"hits\":[0],\"misses\":[]}},"
 
       // One range with two hits (main).
-      "{\"scriptIndex\":0,\"startPos\":22,\"endPos\":32,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[22,27],\"misses\":[]}}],"
+      "{\"scriptIndex\":0,\"startPos\":57,\"endPos\":79,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[57,68],\"misses\":[]}}],"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
-      "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
       buffer);
 }
 
-TEST_CASE(SourceReport_Coverage_NestedFunctions) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NestedFunctions) {
   char buffer[1024];
   const char* kScript =
       "helper0() {\n"
@@ -298,34 +305,35 @@ TEST_CASE(SourceReport_Coverage_NestedFunctions) {
   report.PrintJSON(&js, script);
   ElideJSONSubstring("classes", js.ToCString(), buffer);
   ElideJSONSubstring("libraries", buffer, buffer);
+
   EXPECT_STREQ(
       "{\"type\":\"SourceReport\",\"ranges\":["
 
       // One range compiled with one hit (helper0).
-      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":22,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[0,18],\"misses\":[]}},"
+      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":73,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[0,69],\"misses\":[]}},"
 
       // One range not compiled (helper1).
-      "{\"scriptIndex\":0,\"startPos\":24,\"endPos\":28,\"compiled\":false},"
+      "{\"scriptIndex\":0,\"startPos\":75,\"endPos\":86,\"compiled\":false},"
 
       // One range with two hits and a miss (main).
-      "{\"scriptIndex\":0,\"startPos\":30,\"endPos\":57,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[30,41],\"misses\":[50]}},"
+      "{\"scriptIndex\":0,\"startPos\":88,\"endPos\":156,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[88,115],\"misses\":[141]}},"
 
       // Nested range compiled (nestedHelper0).
-      "{\"scriptIndex\":0,\"startPos\":5,\"endPos\":9,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[5],\"misses\":[]}},"
+      "{\"scriptIndex\":0,\"startPos\":14,\"endPos\":31,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[14],\"misses\":[]}},"
 
       // Nested range not compiled (nestedHelper1).
-      "{\"scriptIndex\":0,\"startPos\":11,\"endPos\":15,\"compiled\":false}],"
+      "{\"scriptIndex\":0,\"startPos\":35,\"endPos\":52,\"compiled\":false}],"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
-      "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
       buffer);
 }
 
-TEST_CASE(SourceReport_Coverage_RestrictedRange) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_RestrictedRange) {
   char buffer[1024];
   const char* kScript =
       "helper0() {\n"
@@ -356,27 +364,28 @@ TEST_CASE(SourceReport_Coverage_RestrictedRange) {
   report.PrintJSON(&js, script, helper.token_pos(), helper.end_token_pos());
   ElideJSONSubstring("classes", js.ToCString(), buffer);
   ElideJSONSubstring("libraries", buffer, buffer);
+
   EXPECT_STREQ(
       "{\"type\":\"SourceReport\",\"ranges\":["
 
       // One range compiled with one hit (helper0).
-      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":22,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[0,18],\"misses\":[]}},"
+      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":73,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[0,69],\"misses\":[]}},"
 
       // Nested range compiled (nestedHelper0).
-      "{\"scriptIndex\":0,\"startPos\":5,\"endPos\":9,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[5],\"misses\":[]}},"
+      "{\"scriptIndex\":0,\"startPos\":14,\"endPos\":31,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[14],\"misses\":[]}},"
 
       // Nested range not compiled (nestedHelper1).
-      "{\"scriptIndex\":0,\"startPos\":11,\"endPos\":15,\"compiled\":false}],"
+      "{\"scriptIndex\":0,\"startPos\":35,\"endPos\":52,\"compiled\":false}],"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
-      "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
       buffer);
 }
 
-TEST_CASE(SourceReport_Coverage_AllFunctions) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_AllFunctions) {
   const char* kScript =
       "helper0() {}\n"
       "helper1() {}\n"
@@ -405,8 +414,8 @@ TEST_CASE(SourceReport_Coverage_AllFunctions) {
 
   // Make sure that the main function was found.
   EXPECT_SUBSTRING(
-      "\"startPos\":12,\"endPos\":39,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[12,23],\"misses\":[32]}",
+      "\"startPos\":26,\"endPos\":94,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[26,53],\"misses\":[79]}",
       result);
 
   // More than one script is referenced in the report.
@@ -415,7 +424,7 @@ TEST_CASE(SourceReport_Coverage_AllFunctions) {
   EXPECT_SUBSTRING("\"scriptIndex\":2", result);
 }
 
-TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
   const char* kScript =
       "helper0() {}\n"
       "helper1() {}\n"
@@ -436,10 +445,7 @@ TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
 
   // We generate a report with all functions in the VM.
   Script& null_script = Script::Handle();
-  {
-    TransitionNativeToVM transition(Thread::Current());
-    report.PrintJSON(&js, null_script);
-  }
+  report.PrintJSON(&js, null_script);
   const char* result = js.ToCString();
 
   // Sanity check the header.
@@ -447,8 +453,8 @@ TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
 
   // Make sure that the main function was found.
   EXPECT_SUBSTRING(
-      "\"startPos\":12,\"endPos\":39,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[12,23],\"misses\":[32]}",
+      "\"startPos\":26,\"endPos\":94,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[26,53],\"misses\":[79]}",
       result);
 
   // More than one script is referenced in the report.
@@ -457,7 +463,7 @@ TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
   EXPECT_SUBSTRING("\"scriptIndex\":2", result);
 }
 
-TEST_CASE(SourceReport_CallSites_SimpleCall) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_SimpleCall) {
   char buffer[1024];
   const char* kScript =
       "helper0() {}\n"
@@ -481,29 +487,29 @@ TEST_CASE(SourceReport_CallSites_SimpleCall) {
       "{\"type\":\"SourceReport\",\"ranges\":["
 
       // One range compiled with no callsites (helper0).
-      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":4,\"compiled\":true,"
+      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":11,\"compiled\":true,"
       "\"callSites\":[]},"
 
       // One range not compiled (helper1).
-      "{\"scriptIndex\":0,\"startPos\":6,\"endPos\":10,\"compiled\":false},"
+      "{\"scriptIndex\":0,\"startPos\":13,\"endPos\":24,\"compiled\":false},"
 
       // One range compiled with one callsite (main).
-      "{\"scriptIndex\":0,\"startPos\":12,\"endPos\":22,\"compiled\":true,"
+      "{\"scriptIndex\":0,\"startPos\":26,\"endPos\":48,\"compiled\":true,"
       "\"callSites\":["
-      "{\"name\":\"helper0\",\"tokenPos\":17,\"cacheEntries\":["
+      "{\"name\":\"helper0\",\"tokenPos\":37,\"cacheEntries\":["
       "{\"target\":{\"type\":\"@Function\",\"fixedId\":true,\"id\":\"\","
       "\"name\":\"helper0\",\"owner\":{\"type\":\"@Library\",\"fixedId\":true,"
-      "\"id\":\"\",\"name\":\"\",\"uri\":\"test-lib\"},"
+      "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"},"
       "\"_kind\":\"RegularFunction\",\"static\":true,\"const\":false,"
       "\"_intrinsic\":false,\"_native\":false},\"count\":1}]}]}],"
 
       // One script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
-      "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
       buffer);
 }
 
-TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
   char buffer[1024];
   const char* kScript =
       "class Common {\n"
@@ -540,10 +546,10 @@ TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
       "{\"type\":\"SourceReport\",\"ranges\":["
 
       // One range...
-      "{\"scriptIndex\":0,\"startPos\":24,\"endPos\":37,\"compiled\":true,"
+      "{\"scriptIndex\":0,\"startPos\":60,\"endPos\":88,\"compiled\":true,"
 
       // With one call site...
-      "\"callSites\":[{\"name\":\"func\",\"tokenPos\":32,\"cacheEntries\":["
+      "\"callSites\":[{\"name\":\"dyn:func\",\"tokenPos\":80,\"cacheEntries\":["
 
       // First receiver: "Common", called twice.
       "{\"receiver\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
@@ -573,11 +579,11 @@ TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
 
       // One script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
-      "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
       buffer);
 }
 
-TEST_CASE(SourceReport_MultipleReports) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_MultipleReports) {
   char buffer[1024];
   const char* kScript =
       "helper0() {}\n"
@@ -601,31 +607,31 @@ TEST_CASE(SourceReport_MultipleReports) {
       "{\"type\":\"SourceReport\",\"ranges\":["
 
       // One range compiled with no callsites (helper0).
-      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":4,\"compiled\":true,"
+      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":11,\"compiled\":true,"
       "\"callSites\":[],"
       "\"coverage\":{\"hits\":[0],\"misses\":[]}},"
 
       // One range not compiled (helper1).
-      "{\"scriptIndex\":0,\"startPos\":6,\"endPos\":10,\"compiled\":false},"
+      "{\"scriptIndex\":0,\"startPos\":13,\"endPos\":24,\"compiled\":false},"
 
       // One range compiled with one callsite (main).
-      "{\"scriptIndex\":0,\"startPos\":12,\"endPos\":22,\"compiled\":true,"
+      "{\"scriptIndex\":0,\"startPos\":26,\"endPos\":48,\"compiled\":true,"
       "\"callSites\":["
-      "{\"name\":\"helper0\",\"tokenPos\":17,\"cacheEntries\":["
+      "{\"name\":\"helper0\",\"tokenPos\":37,\"cacheEntries\":["
       "{\"target\":{\"type\":\"@Function\",\"fixedId\":true,\"id\":\"\","
       "\"name\":\"helper0\",\"owner\":{\"type\":\"@Library\",\"fixedId\":true,"
-      "\"id\":\"\",\"name\":\"\",\"uri\":\"test-lib\"},"
+      "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"},"
       "\"_kind\":\"RegularFunction\",\"static\":true,\"const\":false,"
       "\"_intrinsic\":false,\"_native\":false},\"count\":1}]}],"
-      "\"coverage\":{\"hits\":[12,17],\"misses\":[]}}],"
+      "\"coverage\":{\"hits\":[26,37],\"misses\":[]}}],"
 
       // One script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
-      "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
       buffer);
 }
 
-TEST_CASE(SourceReport_PossibleBreakpoints_Simple) {
+ISOLATE_UNIT_TEST_CASE(SourceReport_PossibleBreakpoints_Simple) {
   char buffer[1024];
   const char* kScript =
       "helper0() {}\n"
@@ -653,19 +659,64 @@ TEST_CASE(SourceReport_PossibleBreakpoints_Simple) {
       "{\"type\":\"SourceReport\",\"ranges\":["
 
       // helper0.
-      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":4,\"compiled\":true,"
-      "\"possibleBreakpoints\":[1,4]},"
+      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":11,\"compiled\":true,"
+      "\"possibleBreakpoints\":[7,11]},"
 
       // One range not compiled (helper1).
-      "{\"scriptIndex\":0,\"startPos\":6,\"endPos\":10,\"compiled\":false},"
+      "{\"scriptIndex\":0,\"startPos\":13,\"endPos\":24,\"compiled\":false},"
 
       // main.
-      "{\"scriptIndex\":0,\"startPos\":12,\"endPos\":39,\"compiled\":true,"
-      "\"possibleBreakpoints\":[13,23,32,39]}],"
+      "{\"scriptIndex\":0,\"startPos\":26,\"endPos\":94,\"compiled\":true,"
+      "\"possibleBreakpoints\":[30,53,79,94]}],"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
-      "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
+      buffer);
+}
+
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue35453_NoSuchMethod) {
+  char buffer[1024];
+  const char* kScript =
+      "class Foo {\n"
+      "  void bar() {}\n"
+      "}\n"
+      "class Unused implements Foo {\n"
+      "  dynamic noSuchMethod(_) {}\n"
+      "}\n"
+      "void main() {\n"
+      "  Foo().bar();\n"
+      "}\n";
+
+  Library& lib = Library::Handle();
+  lib ^= ExecuteScript(kScript);
+  ASSERT(!lib.IsNull());
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // Foo is hit.
+      "{\"scriptIndex\":0,\"startPos\":14,\"endPos\":26,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[14],\"misses\":[]}},"
+
+      // Unused is missed.
+      "{\"scriptIndex\":0,\"startPos\":62,\"endPos\":87,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[],\"misses\":[62]}},"
+
+      // Main is hit.
+      "{\"scriptIndex\":0,\"startPos\":91,\"endPos\":120,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[91,107,113],\"misses\":[]}}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
       buffer);
 }
 

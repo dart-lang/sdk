@@ -3,10 +3,10 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  final field core::String foo;
-  constructor •(core::String foo) → void
+  final field core::String* foo;
+  constructor •(core::String* foo) → self::A*
     ;
-  operator ==(core::Object other) → core::bool
+  operator ==(core::Object* other) → core::bool*
     ;
 }
 static method main() → dynamic

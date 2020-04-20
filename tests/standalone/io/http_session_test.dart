@@ -9,7 +9,7 @@ import 'dart:io';
 const SESSION_ID = "DARTSESSID";
 
 String getSessionId(List<Cookie> cookies) {
-  var id = cookies.fold(null, (last, cookie) {
+  var id = cookies.fold<String?>(null, (last, cookie) {
     if (last != null) return last;
     if (cookie.name.toUpperCase() == SESSION_ID) {
       Expect.isTrue(cookie.httpOnly);
@@ -18,11 +18,11 @@ String getSessionId(List<Cookie> cookies) {
     return null;
   });
   Expect.isNotNull(id);
-  return id;
+  return id!;
 }
 
 Future<String> connectGetSession(HttpClient client, int port,
-    [String session]) {
+    [String? session]) {
   return client.get("127.0.0.1", port, "/").then((request) {
     if (session != null) {
       request.cookies.add(new Cookie(SESSION_ID, session));
@@ -42,7 +42,7 @@ void testSessions(int sessionCount) {
       request.response.close();
     });
 
-    var futures = [];
+    var futures = <Future>[];
     for (int i = 0; i < sessionCount; i++) {
       futures.add(connectGetSession(client, server.port).then((session) {
         Expect.isNotNull(session);
@@ -67,7 +67,7 @@ void testTimeout(int sessionCount) {
   var client = new HttpClient();
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.sessionTimeout = 1;
-    var timeouts = [];
+    var timeouts = <Future>[];
     server.listen((request) {
       var c = new Completer();
       timeouts.add(c.future);
@@ -77,13 +77,13 @@ void testTimeout(int sessionCount) {
       request.response.close();
     });
 
-    var futures = [];
+    var futures = <Future>[];
     for (int i = 0; i < sessionCount; i++) {
       futures.add(connectGetSession(client, server.port));
     }
     Future.wait(futures).then((clientSessions) {
       Future.wait(timeouts).then((_) {
-        futures = [];
+        futures = <Future>[];
         for (var id in clientSessions) {
           futures
               .add(connectGetSession(client, server.port, id).then((session) {

@@ -2,9 +2,9 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static field dynamic x;
-static field dynamic y;
-static method f<T extends core::Object>() → self::f::T
+static field core::bool* x;
+static field core::bool* y;
+static method f<T extends core::Object* = dynamic>() → self::f::T*
   ;
 static method test() → void
   ;

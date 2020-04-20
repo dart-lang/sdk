@@ -49,24 +49,24 @@ testEncodeDecodeQueryComponent(String orig, String encodedUTF8,
   d = Uri.decodeQueryComponent(encodedUTF8);
   Expect.stringEquals(orig, d);
 
-  e = Uri.encodeQueryComponent(orig, encoding: UTF8);
+  e = Uri.encodeQueryComponent(orig, encoding: utf8);
   Expect.stringEquals(encodedUTF8, e);
-  d = Uri.decodeQueryComponent(encodedUTF8, encoding: UTF8);
+  d = Uri.decodeQueryComponent(encodedUTF8, encoding: utf8);
   Expect.stringEquals(orig, d);
 
-  e = Uri.encodeQueryComponent(orig, encoding: LATIN1);
+  e = Uri.encodeQueryComponent(orig, encoding: latin1);
   Expect.stringEquals(encodedLatin1, e);
-  d = Uri.decodeQueryComponent(encodedLatin1, encoding: LATIN1);
+  d = Uri.decodeQueryComponent(encodedLatin1, encoding: latin1);
   Expect.stringEquals(orig, d);
 
   if (encodedAscii != null) {
-    e = Uri.encodeQueryComponent(orig, encoding: ASCII);
+    e = Uri.encodeQueryComponent(orig, encoding: ascii);
     Expect.stringEquals(encodedAscii, e);
-    d = Uri.decodeQueryComponent(encodedAscii, encoding: ASCII);
+    d = Uri.decodeQueryComponent(encodedAscii, encoding: ascii);
     Expect.stringEquals(orig, d);
   } else {
     Expect.throwsArgumentError(
-        () => Uri.encodeQueryComponent(orig, encoding: ASCII));
+        () => Uri.encodeQueryComponent(orig, encoding: ascii));
   }
 }
 
@@ -280,19 +280,10 @@ void testInvalidUrls() {
   checkInvalid("s://x@x:x/");
   // At most one port.
   checkInvalid("s://x@x:9:9/");
-  // At most one #.
-  checkInvalid("s://x/x#foo#bar");
   // @ not allowed in scheme.
   checkInvalid("s@://x:9/x?x#x");
   // ] not allowed alone in host.
   checkInvalid("s://xx]/");
-  // ] not allowed anywhere except in host.
-  checkInvalid("s://xx/]");
-  checkInvalid("s://xx/?]");
-  checkInvalid("s://xx/#]");
-  checkInvalid("s:/]");
-  checkInvalid("s:/?]");
-  checkInvalid("s:/#]");
   // IPv6 must be enclosed in [ and ] for Uri.parse.
   // It is allowed un-enclosed as argument to `Uri(host:...)` because we don't
   // need to delimit.
@@ -387,6 +378,18 @@ void testNormalization() {
       "scheme:///#",
       new Uri(scheme: "scheme", host: "", path: "/", query: "", fragment: "")
           .toString());
+
+  // We allow, and escape, general delimiters in paths, queries and fragments.
+  // Allow `[` and `]` in path:
+  Expect.equals("s:/%5B%5D", Uri.parse("s:/[]").toString());
+  Expect.equals("s:%5B%5D", Uri.parse("s:[]").toString());
+  Expect.equals("%5B%5D", Uri.parse("[]").toString());
+  // Allow `[`, `]` and `?` in query (anything after *first* `?`).
+  // The `?` is not escaped.
+  Expect.equals("s://xx/?%5B%5D?", Uri.parse("s://xx/?[]?").toString());
+  // Allow `[`, `]`, `?` and `#` in fragment (anything after *first* `#`).
+  // The `?` is not escaped.
+  Expect.equals("s://xx/#%5B%5D%23?", Uri.parse("s://xx/#[]#?").toString());
 }
 
 void testReplace() {
@@ -566,7 +569,7 @@ main() {
 
   // URI encode tests
   // Create a string with code point 0x10000 encoded as a surrogate pair.
-  var s = UTF8.decode([0xf0, 0x90, 0x80, 0x80]);
+  var s = utf8.decode([0xf0, 0x90, 0x80, 0x80]);
 
   Expect.stringEquals("\u{10000}", s);
 

@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static method foo(dynamic obj) → core::String
+static method foo(dynamic obj) → core::String*
   ;
 static method main() → dynamic
   ;

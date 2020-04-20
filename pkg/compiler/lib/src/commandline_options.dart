@@ -8,43 +8,67 @@ library dart2js.cmdline.options;
 class Flags {
   static const String allowMockCompilation = '--allow-mock-compilation';
   static const String allowNativeExtensions = '--allow-native-extensions';
-  static const String analyzeAll = '--analyze-all';
-  static const String analyzeMain = '--analyze-main';
-  static const String analyzeOnly = '--analyze-only';
-  static const String analyzeSignaturesOnly = '--analyze-signatures-only';
   static const String disableInlining = '--disable-inlining';
+  static const String disableProgramSplit = '--disable-program-split';
   static const String disableDiagnosticColors = '--disable-diagnostic-colors';
   static const String disableNativeLiveTypeAnalysis =
       '--disable-native-live-type-analysis';
+  static const String useTrivialAbstractValueDomain =
+      '--use-trivial-abstract-value-domain';
   static const String disableTypeInference = '--disable-type-inference';
+  static const String disableRtiOptimization = '--disable-rti-optimization';
   static const String dumpInfo = '--dump-info';
+  static const String dumpSsa = '--dump-ssa';
   static const String enableAssertMessage = '--assert-message';
   static const String enableCheckedMode = '--enable-checked-mode';
   static const String enableAsserts = '--enable-asserts';
   static const String enableDiagnosticColors = '--enable-diagnostic-colors';
-  static const String enableExperimentalMirrors =
-      '--enable-experimental-mirrors';
   static const String experimentalTrackAllocations =
       '--experimental-track-allocations';
   static const String experimentalAllocationsPath =
       '--experimental-allocations-path';
+
+  // Temporary experiment for code generation of locals for frequently used
+  // 'this' and constants.
+  static const String experimentLocalNames = '--experiment-code-1';
+
+  // Experimentally try to force part-file functions to be seen as IIFEs.
+  static const String experimentStartupFunctions = '--experiment-code-2';
+
+  // Experimentally rely on JavaScript ToBoolean conversions.
+  static const String experimentToBoolean = '--experiment-code-3';
+
+  // Add instrumentation to log every method call.
+  static const String experimentCallInstrumentation =
+      '--experiment-call-instrumentation';
+
+  static const String experimentNewRti = '--experiment-new-rti';
+
+  static const String enableLanguageExperiments = '--enable-experiment';
+
   static const String fastStartup = '--fast-startup';
   static const String fatalWarnings = '--fatal-warnings';
   static const String generateCodeWithCompileTimeErrors =
       '--generate-code-with-compile-time-errors';
 
-  /// Enable the unified front end, loading from .dill files, and compilation
-  /// using the kernel representation.
-  /// See [CompilerOptions.useKernel] for details.
-  static const String useKernel = '--use-kernel';
+  static const String previewDart2 = '--preview-dart-2';
+
+  static const String omitImplicitChecks = '--omit-implicit-checks';
+  static const String omitAsCasts = '--omit-as-casts';
+  static const String laxRuntimeTypeToString = '--lax-runtime-type-to-string';
+  static const String legacyJavaScript = '--legacy-javascript';
+  static const String noLegacyJavaScript = '--no-legacy-javascript';
+
   static const String platformBinaries = '--platform-binaries=.+';
 
   static const String minify = '--minify';
   static const String noFrequencyBasedMinification =
       '--no-frequency-based-minification';
+  // Disables minification even if enabled by other options, e.g. '-O2'.
+  static const String noMinify = '--no-minify';
   static const String noSourceMaps = '--no-source-maps';
-  static const String preserveComments = '--preserve-comments';
   static const String preserveUris = '--preserve-uris';
+  static const String printLegacyStars = '--debug-print-legacy-stars';
   static const String showPackageWarnings = '--show-package-warnings';
   static const String suppressHints = '--suppress-hints';
   static const String suppressWarnings = '--suppress-warnings';
@@ -57,8 +81,35 @@ class Flags {
   static const String useContentSecurityPolicy = '--csp';
   static const String useMultiSourceInfo = '--use-multi-source-info';
   static const String useNewSourceInfo = '--use-new-source-info';
+  static const String useOldRti = '--use-old-rti';
   static const String verbose = '--verbose';
+  static const String progress = '--show-internal-progress';
   static const String version = '--version';
+
+  static const String dillDependencies = '--dill-dependencies';
+  static const String readData = '--read-data';
+  static const String writeData = '--write-data';
+  static const String readCodegen = '--read-codegen';
+  static const String writeCodegen = '--write-codegen';
+  static const String codegenShard = '--codegen-shard';
+  static const String codegenShards = '--codegen-shards';
+  static const String cfeOnly = '--cfe-only';
+  static const String debugGlobalInference = '--debug-global-inference';
+
+  static const String serverMode = '--server-mode';
+
+  static const String nullSafety = '--null-safety';
+  static const String noNullSafety = '--no-null-safety';
+
+  static const String newDeferredSplit = '--new-deferred-split';
+  static const String reportInvalidInferredDeferredTypes =
+      '--report-invalid-deferred-types';
+
+  /// Flag for a combination of flags for 'production' mode.
+  static const String benchmarkingProduction = '--benchmarking-production';
+
+  /// Flag for a combination of flags for benchmarking 'experiment' mode.
+  static const String benchmarkingExperiment = '--benchmarking-x';
 
   static const String conditionalDirectives = '--conditional-directives';
 
@@ -96,6 +147,10 @@ class Flags {
 class Option {
   static const String showPackageWarnings =
       '${Flags.showPackageWarnings}|${Flags.showPackageWarnings}=.*';
+
+  static const String enableLanguageExperiments =
+      '${Flags.enableLanguageExperiments}|'
+      '${Flags.enableLanguageExperiments}=.*';
 
   // Experimental options.
   static const String resolutionInput = '--resolution-input=.+';

@@ -6,7 +6,7 @@
 library test;
 
 test2() {
-  var /*@type=int*/ x = 3;
+  var /*@ type=int* */ x = 3;
   x = /*error:INVALID_ASSIGNMENT*/ "hi";
 }
 

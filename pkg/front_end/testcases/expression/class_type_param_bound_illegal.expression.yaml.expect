@@ -1,0 +1,9 @@
+Errors: {
+  org-dartlang-debug:synthetic_debug_expression:1:1: Error: Type argument 'T' doesn't conform to the bound 'Bound' of the type variable 'T' on 'hasBound'.
+   - 'Bound' is from 'pkg/front_end/testcases/expression/main.dart'.
+  Try changing type arguments so that they conform to the bounds.
+  hasBound<T>()
+  ^
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dynamic x) → dynamic
+  return main::hasBound<main::A::T*>();

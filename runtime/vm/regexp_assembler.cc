@@ -4,8 +4,13 @@
 
 #include "vm/regexp_assembler.h"
 
+#include "unicode/uchar.h"
+
+#include "platform/unicode.h"
+
 #include "vm/flags.h"
 #include "vm/regexp.h"
+#include "vm/runtime_entry.h"
 #include "vm/unibrow-inl.h"
 
 namespace dart {
@@ -13,14 +18,13 @@ namespace dart {
 void PrintUtf16(uint16_t c) {
   const char* format =
       (0x20 <= c && c <= 0x7F) ? "%c" : (c <= 0xff) ? "\\x%02x" : "\\u%04x";
-  OS::Print(format, c);
+  OS::PrintErr(format, c);
 }
 
-
-static RawBool* CaseInsensitiveCompareUC16(RawString* str_raw,
-                                           RawSmi* lhs_index_raw,
-                                           RawSmi* rhs_index_raw,
-                                           RawSmi* length_raw) {
+RawBool* CaseInsensitiveCompareUCS2(RawString* str_raw,
+                                    RawSmi* lhs_index_raw,
+                                    RawSmi* rhs_index_raw,
+                                    RawSmi* length_raw) {
   const String& str = String::Handle(str_raw);
   const Smi& lhs_index = Smi::Handle(lhs_index_raw);
   const Smi& rhs_index = Smi::Handle(rhs_index_raw);
@@ -48,20 +52,57 @@ static RawBool* CaseInsensitiveCompareUC16(RawString* str_raw,
   return Bool::True().raw();
 }
 
+RawBool* CaseInsensitiveCompareUTF16(RawString* str_raw,
+                                     RawSmi* lhs_index_raw,
+                                     RawSmi* rhs_index_raw,
+                                     RawSmi* length_raw) {
+  const String& str = String::Handle(str_raw);
+  const Smi& lhs_index = Smi::Handle(lhs_index_raw);
+  const Smi& rhs_index = Smi::Handle(rhs_index_raw);
+  const Smi& length = Smi::Handle(length_raw);
+
+  for (intptr_t i = 0; i < length.Value(); i++) {
+    int32_t c1 = str.CharAt(lhs_index.Value() + i);
+    int32_t c2 = str.CharAt(rhs_index.Value() + i);
+    if (Utf16::IsLeadSurrogate(c1)) {
+      // Non-BMP characters do not have case-equivalents in the BMP.
+      // Both have to be non-BMP for them to be able to match.
+      if (!Utf16::IsLeadSurrogate(c2)) return Bool::False().raw();
+      if (i + 1 < length.Value()) {
+        uint16_t c1t = str.CharAt(lhs_index.Value() + i + 1);
+        uint16_t c2t = str.CharAt(rhs_index.Value() + i + 1);
+        if (Utf16::IsTrailSurrogate(c1t) && Utf16::IsTrailSurrogate(c2t)) {
+          c1 = Utf16::Decode(c1, c1t);
+          c2 = Utf16::Decode(c2, c2t);
+          i++;
+        }
+      }
+    }
+    c1 = u_foldCase(c1, U_FOLD_CASE_DEFAULT);
+    c2 = u_foldCase(c2, U_FOLD_CASE_DEFAULT);
+    if (c1 != c2) return Bool::False().raw();
+  }
+  return Bool::True().raw();
+}
 
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    CaseInsensitiveCompareUC16,
+    CaseInsensitiveCompareUCS2,
     4,
     false /* is_float */,
-    reinterpret_cast<RuntimeFunction>(&CaseInsensitiveCompareUC16));
+    reinterpret_cast<RuntimeFunction>(&CaseInsensitiveCompareUCS2));
 
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(
+    CaseInsensitiveCompareUTF16,
+    4,
+    false /* is_float */,
+    reinterpret_cast<RuntimeFunction>(&CaseInsensitiveCompareUTF16));
 
-BlockLabel::BlockLabel()
-    : block_(NULL), is_bound_(false), is_linked_(false), pos_(-1) {
+BlockLabel::BlockLabel() {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (!FLAG_interpret_irregexp) {
     // Only needed by the compiled IR backend.
-    block_ = new JoinEntryInstr(-1, -1, Thread::Current()->GetNextDeoptId());
+    block_ =
+        new JoinEntryInstr(-1, -1, CompilerState::Current().GetNextDeoptId());
   }
 #endif
 }
@@ -70,5 +111,19 @@ RegExpMacroAssembler::RegExpMacroAssembler(Zone* zone)
     : slow_safe_compiler_(false), global_mode_(NOT_GLOBAL), zone_(zone) {}
 
 RegExpMacroAssembler::~RegExpMacroAssembler() {}
+
+void RegExpMacroAssembler::CheckNotInSurrogatePair(intptr_t cp_offset,
+                                                   BlockLabel* on_failure) {
+  BlockLabel ok;
+  // Check that current character is not a trail surrogate.
+  LoadCurrentCharacter(cp_offset, &ok);
+  CheckCharacterNotInRange(Utf16::kTrailSurrogateStart,
+                           Utf16::kTrailSurrogateEnd, &ok);
+  // Check that previous character is not a lead surrogate.
+  LoadCurrentCharacter(cp_offset - 1, &ok);
+  CheckCharacterInRange(Utf16::kLeadSurrogateStart, Utf16::kLeadSurrogateEnd,
+                        on_failure);
+  BindBlock(&ok);
+}
 
 }  // namespace dart

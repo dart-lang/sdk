@@ -1,0 +1,27 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object /*isEnum*/  {
+  final field core::int* index;
+  final field core::String* _name;
+  static const field core::List<self::Foo*>* values = #C7;
+  static const field self::Foo* ec1 = #C3;
+  static const field self::Foo* ec2 = #C6;
+  const constructor •(core::int* index, core::String* _name) → self::Foo*
+    : self::Foo::index = index, self::Foo::_name = _name, super core::Object::•()
+    ;
+  method toString() → core::String*
+    return this.{=self::Foo::_name};
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 0
+  #C2 = "Foo.ec1"
+  #C3 = self::Foo {index:#C1, _name:#C2}
+  #C4 = 1
+  #C5 = "Foo.ec2"
+  #C6 = self::Foo {index:#C4, _name:#C5}
+  #C7 = <self::Foo*>[#C3, #C6]
+}

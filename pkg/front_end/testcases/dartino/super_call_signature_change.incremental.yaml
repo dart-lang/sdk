@@ -1,0 +1,32 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Test that super calls are dispatched correctly
+  class C {
+  <<<< ["instance is null", "v1", "super.foo()"]
+    foo() {
+      print('v1');
+    }
+  ==== {"messages":[],"hasCompileTimeError":1}
+    foo(int i) {
+      print('v2');
+    }
+  >>>>>
+  }
+
+  class B extends C {
+    superFoo() => super.foo();
+  }
+
+  var instance;
+
+  main() {
+    if (instance == null) {
+      print('instance is null');
+      instance = new B();
+    }
+    instance.superFoo();
+    print("super.foo()");
+  }

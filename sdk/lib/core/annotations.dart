@@ -2,26 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.core;
 
 /**
- * The annotation `@Deprecated('expires when')` marks a feature as deprecated.
+ * The annotation `@Deprecated('migration')` marks a feature as deprecated.
  *
- * The annotation `@deprecated` is a shorthand for deprecating until
- * an unspecified "next release".
+ * The annotation [deprecated] is a shorthand for deprecating until
+ * an unspecified "next release" without migration instructions.
  *
  * The intent of the `@Deprecated` annotation is to inform users of a feature
  * that they should change their code, even if it is currently still working
  * correctly.
  *
  * A deprecated feature is scheduled to be removed at a later time, possibly
- * specified as the "expires" field of the annotation.
- * This means that a deprecated feature should not be used, or code using it
- * will break at some point in the future. If there is code using the feature,
- * that code should be rewritten to not use the deprecated feature.
+ * specified in [message]. A deprecated feature should not be used, code using
+ * it will break at some point in the future. If existing code is using the
+ * feature it should be rewritten to not use the deprecated feature.
  *
- * A deprecated feature should document how the same effect can be achieved,
- * so the programmer knows how to rewrite the code.
+ * A deprecated feature should document how the same effect can be achieved in
+ * [message], so the programmer knows how to rewrite the code.
  *
  * The `@Deprecated` annotation applies to libraries, top-level declarations
  * (variables, getters, setters, functions, classes and typedefs),
@@ -54,32 +55,38 @@ part of dart.core;
  */
 class Deprecated {
   /**
-   * A description of when the deprecated feature is expected to be retired.
+   * Message provided to the user when they use the deprecated feature.
+   *
+   * The message should explain how to migrate away from the feature if an
+   * alternative is available, and when the deprecated feature is expected to be
+   * removed.
    */
-  final String expires;
+  final String message;
 
   /**
-   * Create a deprecation annotation which specifies the expiration of the
-   * annotated feature.
+   * Create a deprecation annotation which specifies the migration path and
+   * expiration of the annotated feature.
    *
-   * The [expires] argument should be readable by programmers, and should state
-   * when an annotated feature is expected to be removed.
-   * This can be specified, for example, as a date, as a release number, or
-   * as relative to some other change (like "when bug 4418 is fixed").
+   * The [message] argument should be readable by programmers, and should state
+   * an alternative feature (if available) as well as when an annotated feature
+   * is expected to be removed.
    */
-  const Deprecated(String expires) : this.expires = expires;
+  const Deprecated(this.message);
 
-  String toString() => "Deprecated feature. Will be removed $expires";
-}
+  @Deprecated('Use `message` instead. Will be removed in Dart 3.0.0')
+  String get expires => message;
 
-class _Override {
-  const _Override();
+  String toString() => "Deprecated feature: $message";
 }
 
 /**
  * Marks a feature as [Deprecated] until the next release.
  */
-const Deprecated deprecated = const Deprecated("next release");
+const Deprecated deprecated = Deprecated("next release");
+
+class _Override {
+  const _Override();
+}
 
 /**
  * The annotation `@override` marks an instance member as overriding a
@@ -106,13 +113,42 @@ const Deprecated deprecated = const Deprecated("next release");
  * For example, the annotation is intentionally not used in the Dart platform
  * libraries, since they only depend on themselves.
  */
-const Object override = const _Override();
+const Object override = _Override();
+
+/**
+ * An annotation class that was used during development of Dart 2.
+ *
+ * Should not be used any more.
+ */
+@deprecated
+class Provisional {
+  String get message => null;
+  const Provisional({String message});
+}
+
+/**
+ * An annotation that was used during development of Dart 2.
+ *
+ * Should not be used any more.
+ */
+@deprecated
+const Null provisional = null;
 
 class _Proxy {
   const _Proxy();
 }
 
 /**
+ * This annotation is deprecated and will be removed in Dart 2.
+ *
+ * Dart 2 has a more restrictive type system than Dart 1, and it requires
+ * method access to be either through a known interface or by using
+ * dynamic invocations. The original intent of `@proxy` (to implement a class
+ * that isn't known statically, as documented at the end of this text),
+ * is not supported by Dart 2.
+ * To continue to perform dynamic invocations on an object,
+ * it should be accessed through a reference of type `dynamic`.
+ *
  * The annotation `@proxy` marks a class as implementing members dynamically
  * through `noSuchMethod`.
  *
@@ -120,8 +156,7 @@ class _Proxy {
  * superclass and interfaces.
  *
  * If a class is annotated with `@proxy`, or it implements any class that is
- * annotated, then the class is considered to implement any member with regard
- * to static type analysis.
+ * annotated, then all member accesses are allowed on an object of that type.
  * As such, it is not a static type warning to access any member of the object
  * which is not implemented by the class, or to call a method with a different
  * number of parameters than it is declared with.
@@ -151,4 +186,57 @@ class _Proxy {
  * types.
  */
 @deprecated
-const Object proxy = const _Proxy();
+const Object proxy = _Proxy();
+
+/**
+ * A hint to tools.
+ *
+ * Tools that work with Dart programs may accept hints to guide their behavior
+ * as `pragma` annotations on declarations.
+ * Each tool decides which hints it accepts, what they mean, and whether and
+ * how they apply to sub-parts of the annotated entity.
+ *
+ * Tools that recognize pragma hints should pick a pragma prefix to identify
+ * the tool. They should recognize any hint with a [name] starting with their
+ * prefix followed by `:` as if it was intended for that tool. A hint with a
+ * prefix for another tool should be ignored (unless compatibility with that
+ * other tool is a goal).
+ *
+ * A tool may recognize unprefixed names as well, if they would recognize that
+ * name with their own prefix in front.
+ *
+ * If the hint can be parameterized, an extra [options] object can be added as well.
+ *
+ * For example:
+ *
+ * ```dart
+ * @pragma('Tool:pragma-name', [param1, param2, ...])
+ * class Foo { }
+ *
+ * @pragma('OtherTool:other-pragma')
+ * void foo() { }
+ * ```
+ *
+ * Here class Foo is annotated with a Tool specific pragma 'pragma-name' and
+ * function foo is annotated with a pragma 'other-pragma' specific to OtherTool.
+ *
+ */
+@pragma('vm:entry-point')
+class pragma {
+  /**
+   * The name of the hint.
+   *
+   * A string that is recognized by one or more tools, or such a string prefixed
+   * by a tool identifier and a colon, which is only recognized by that
+   * particular tool.
+   */
+  final String name;
+
+  /** Optional extra data parameterizing the hint. */
+  final Object options;
+
+  /** Creates a hint named [name] with optional [options]. */
+  const factory pragma(String name, [Object options]) = pragma._;
+
+  const pragma._(this.name, [this.options]);
+}

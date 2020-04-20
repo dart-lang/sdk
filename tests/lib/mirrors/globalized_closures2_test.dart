@@ -30,7 +30,7 @@ main() {
   var classes = lib.declarations.values;
   for (var c in classes) {
     if (c is ClassMirror && c.superclass != null) {
-      collectedParents.add(MirrorSystem.getName(c.superclass.simpleName));
+      collectedParents.add(MirrorSystem.getName(c.superclass!.simpleName));
     }
   }
   Expect.isTrue(collectedParents.isEmpty); //  //# 00: ok

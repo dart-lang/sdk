@@ -1,10 +1,10 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override  --verbose_debug
+// VMOptions=--verbose_debug
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 import 'dart:developer';
@@ -28,7 +28,7 @@ testMain() {
   testParameters(0, 0);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedInFunction('testMain'),
   (Isolate isolate) async {
@@ -47,7 +47,11 @@ var tests = [
       final int declarationTokenPos = variable['declarationTokenPos'];
       final String name = variable['name'];
       final String token = script.getToken(declarationTokenPos);
-      expect(name, token);
+      // When running from an appjit snapshot, sources aren't available so the returned token will
+      // be null.
+      if (token != null) {
+        expect(name, token);
+      }
     }
   },
   resumeIsolate,
@@ -69,7 +73,11 @@ var tests = [
       final int declarationTokenPos = variable['declarationTokenPos'];
       final String name = variable['name'];
       final String token = script.getToken(declarationTokenPos);
-      expect(name, token);
+      // When running from an appjit snapshot, sources aren't available so the returned token will
+      // be null.
+      if (token != null) {
+        expect(name, token);
+      }
     }
   },
   resumeIsolate,
@@ -92,7 +100,11 @@ var tests = [
       final int declarationTokenPos = variable['declarationTokenPos'];
       final String name = variable['name'];
       final String token = script.getToken(declarationTokenPos);
-      expect(name, token);
+      // When running from an appjit snapshot, sources aren't available so the returned token will
+      // be null.
+      if (token != null) {
+        expect(name, token);
+      }
     }
   }
 ];

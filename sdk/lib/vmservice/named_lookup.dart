@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart._vmservice;
 
 /// Set like containes which automatically generated String ids for its items
@@ -11,8 +13,7 @@ class NamedLookup<E> extends Object with IterableMixin<E> {
   final Map<E, String> _ids = new Map<E, String>();
 
   NamedLookup({String prologue = ''})
-      : super(),
-        _generator = new IdGenerator(prologue: prologue);
+      : _generator = new IdGenerator(prologue: prologue);
 
   void add(E e) {
     final id = _generator.newId();

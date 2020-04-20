@@ -20,23 +20,31 @@
 #include <unistd.h>
 #endif
 
+#if defined(HOST_OS_IOS)
+#include <libkern/OSCacheControl.h>
+#endif
+
 namespace dart {
 
 void CPU::FlushICache(uword start, uword size) {
-#if HOST_OS_IOS
-  // Precompilation never patches code so there should be no I cache flushes.
+#if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
-#endif
-
-#if !defined(USING_SIMULATOR) && !HOST_OS_IOS
+#elif !defined(USING_SIMULATOR)
   // Nothing to do. Flushing no instructions.
   if (size == 0) {
     return;
   }
 
 // ARM recommends using the gcc intrinsic __clear_cache on Linux and Android.
-// blogs.arm.com/software-enablement/141-caches-and-self-modifying-code/
-#if defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
+//
+// https://community.arm.com/developer/ip-products/processors/b/processors-ip-blog/posts/caches-and-self-modifying-code
+//
+// On iOS we use sys_icache_invalidate from Darwin. See:
+//
+// https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man3/sys_icache_invalidate.3.html
+#if defined(HOST_OS_IOS)
+  sys_icache_invalidate(reinterpret_cast<void*>(start), size);
+#elif defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
   extern void __clear_cache(char*, char*);
   char* beg = reinterpret_cast<char*>(start);
   char* end = reinterpret_cast<char*>(start + size);
@@ -46,7 +54,7 @@ void CPU::FlushICache(uword start, uword size) {
                                       size, ZX_CACHE_FLUSH_INSN);
   ASSERT(result == ZX_OK);
 #else
-#error FlushICache only tested/supported on Android, Fuchsia, and Linux
+#error FlushICache only tested/supported on Android, Fuchsia, Linux and iOS
 #endif
 
 #endif
@@ -66,8 +74,8 @@ bool HostCPUFeatures::initialized_ = false;
 #endif
 
 #if !defined(USING_SIMULATOR)
-void HostCPUFeatures::InitOnce() {
-  CpuInfo::InitOnce();
+void HostCPUFeatures::Init() {
+  CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
 #if defined(DEBUG)
   initialized_ = true;
@@ -87,8 +95,8 @@ void HostCPUFeatures::Cleanup() {
 
 #else  // !defined(USING_SIMULATOR)
 
-void HostCPUFeatures::InitOnce() {
-  CpuInfo::InitOnce();
+void HostCPUFeatures::Init() {
+  CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
 #if defined(DEBUG)
   initialized_ = true;

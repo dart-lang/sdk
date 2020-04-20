@@ -1,0 +1,234 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:23:3: Error: Explicit extension application requires exactly 1 positional argument.
+//   Extension().method(null);
+//   ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:24:3: Error: Explicit extension application requires exactly 1 positional argument.
+//   Extension(c1, null).method(null);
+//   ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:25:3: Error: Explicit extension application requires exactly 1 positional argument.
+//   Extension(receiver: c1).method(null);
+//   ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:26:3: Error: Explicit extension application requires exactly 1 positional argument.
+//   Extension(c1, receiver: null).method(null);
+//   ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:27:3: Error: Explicit extension application of extension 'Extension' takes '0' type argument(s).
+//   Extension<int>(c1).method(null);
+//   ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:29:17: Error: Getter not found: 'foo'.
+//   Extension(c1).foo;
+//                 ^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:30:17: Error: Setter not found: 'foo'.
+//   Extension(c1).foo = null;
+//                 ^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:31:17: Error: Method not found: 'foo'.
+//   Extension(c1).foo();
+//                 ^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:32:17: Error: Too few positional arguments: 2 required, 1 given.
+//   Extension(c1).method();
+//                 ^
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:8:3: Context: Found this candidate, but the arguments don't match.
+//   method(a) {}
+//   ^^^^^^^^^^^^^...
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:36:17: Error: Too many positional arguments: 2 allowed, but 3 found.
+// Try removing the extra positional arguments.
+//   Extension(c1).method(1, 2);
+//                 ^
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:8:3: Context: Found this candidate, but the arguments don't match.
+//   method(a) {}
+//   ^^^^^^^^^^^^^...
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:37:17: Error: Too few positional arguments: 2 required, 1 given.
+//   Extension(c1).method(a: 1);
+//                 ^
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:8:3: Context: Found this candidate, but the arguments don't match.
+//   method(a) {}
+//   ^^^^^^^^^^^^^...
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:38:27: Error: No named parameter with the name 'a'.
+//   Extension(c1).method(1, a: 2);
+//                           ^
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:8:3: Context: Found this candidate, but the arguments don't match.
+//   method(a) {}
+//   ^^^^^^^^^^^^^...
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:39:17: Error: Expected 0 type arguments.
+//   Extension(c1).method<int>(null);
+//                 ^
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:8:3: Context: Found this candidate, but the arguments don't match.
+//   method(a) {}
+//   ^^^^^^^^^^^^^...
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:42:3: Error: Explicit extension application requires exactly 1 positional argument.
+//   GenericExtension().method();
+//   ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:43:3: Error: Explicit extension application requires exactly 1 positional argument.
+//   GenericExtension<int>().method();
+//   ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:44:3: Error: Explicit extension application requires exactly 1 positional argument.
+//   GenericExtension(c2, null).method();
+//   ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:45:3: Error: Explicit extension application requires exactly 1 positional argument.
+//   GenericExtension<int>(c2, null).method();
+//   ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:46:3: Error: Explicit extension application requires exactly 1 positional argument.
+//   GenericExtension(receiver: c2).method();
+//   ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:47:3: Error: Explicit extension application requires exactly 1 positional argument.
+//   GenericExtension<int>(receiver: c2).method();
+//   ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:48:3: Error: Explicit extension application requires exactly 1 positional argument.
+//   GenericExtension(c2, receiver: null).method();
+//   ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:49:3: Error: Explicit extension application requires exactly 1 positional argument.
+//   GenericExtension<int>(c2, receiver: null).method();
+//   ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:50:3: Error: Explicit extension application of extension 'GenericExtension' takes '1' type argument(s).
+//   GenericExtension<int, String>(c2).method();
+//   ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:28:13: Error: The argument type 'String' can't be assigned to the parameter type 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
+//   Extension(s).method(null);
+//             ^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:51:20: Error: The argument type 'String' can't be assigned to the parameter type 'GenericClass<dynamic>'.
+//  - 'GenericClass' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
+//   GenericExtension(s).method();
+//                    ^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:52:25: Error: The argument type 'String' can't be assigned to the parameter type 'GenericClass<int>'.
+//  - 'GenericClass' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
+//   GenericExtension<int>(s).method();
+//                         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+}
+class GenericClass<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::GenericClass<self::GenericClass::T*>*
+    : super core::Object::•()
+    ;
+}
+extension Extension on self::Class* {
+  method method = self::Extension|method;
+  tearoff method = self::Extension|get#method;
+}
+extension GenericExtension<T extends core::Object* = dynamic> on self::GenericClass<T*>* {
+  method method = self::GenericExtension|method;
+  tearoff method = self::GenericExtension|get#method;
+}
+static method Extension|method(final self::Class* #this, dynamic a) → dynamic {}
+static method Extension|get#method(final self::Class* #this) → (dynamic) →* dynamic
+  return (dynamic a) → dynamic => self::Extension|method(#this, a);
+static method GenericExtension|method<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|method::T*>* #this) → dynamic {}
+static method GenericExtension|get#method<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|get#method::T*>* #this) → () →* dynamic
+  return () → dynamic => self::GenericExtension|method<self::GenericExtension|get#method::T*>(#this);
+static method main() → dynamic {
+  core::String* s = "";
+  self::Class* c1 = new self::Class::•();
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:23:3: Error: Explicit extension application requires exactly 1 positional argument.
+  Extension().method(null);
+  ^^^^^^^^^".method(null);
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:24:3: Error: Explicit extension application requires exactly 1 positional argument.
+  Extension(c1, null).method(null);
+  ^^^^^^^^^".method(null);
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:25:3: Error: Explicit extension application requires exactly 1 positional argument.
+  Extension(receiver: c1).method(null);
+  ^^^^^^^^^".method(null);
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:26:3: Error: Explicit extension application requires exactly 1 positional argument.
+  Extension(c1, receiver: null).method(null);
+  ^^^^^^^^^".method(null);
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:27:3: Error: Explicit extension application of extension 'Extension' takes '0' type argument(s).
+  Extension<int>(c1).method(null);
+  ^^^^^^^^^".method(null);
+  self::Extension|method(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:28:13: Error: The argument type 'String' can't be assigned to the parameter type 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
+  Extension(s).method(null);
+            ^" in s as{TypeError} self::Class*, null);
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:29:17: Error: Getter not found: 'foo'.
+  Extension(c1).foo;
+                ^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:30:17: Error: Setter not found: 'foo'.
+  Extension(c1).foo = null;
+                ^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:31:17: Error: Method not found: 'foo'.
+  Extension(c1).foo();
+                ^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:32:17: Error: Too few positional arguments: 2 required, 1 given.
+  Extension(c1).method();
+                ^";
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:36:17: Error: Too many positional arguments: 2 allowed, but 3 found.
+Try removing the extra positional arguments.
+  Extension(c1).method(1, 2);
+                ^";
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:37:17: Error: Too few positional arguments: 2 required, 1 given.
+  Extension(c1).method(a: 1);
+                ^";
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:38:27: Error: No named parameter with the name 'a'.
+  Extension(c1).method(1, a: 2);
+                          ^";
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:39:17: Error: Expected 0 type arguments.
+  Extension(c1).method<int>(null);
+                ^";
+  self::GenericClass<core::int*>* c2 = new self::GenericClass::•<core::int*>();
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:42:3: Error: Explicit extension application requires exactly 1 positional argument.
+  GenericExtension().method();
+  ^^^^^^^^^^^^^^^^".method();
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:43:3: Error: Explicit extension application requires exactly 1 positional argument.
+  GenericExtension<int>().method();
+  ^^^^^^^^^^^^^^^^".method();
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:44:3: Error: Explicit extension application requires exactly 1 positional argument.
+  GenericExtension(c2, null).method();
+  ^^^^^^^^^^^^^^^^".method();
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:45:3: Error: Explicit extension application requires exactly 1 positional argument.
+  GenericExtension<int>(c2, null).method();
+  ^^^^^^^^^^^^^^^^".method();
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:46:3: Error: Explicit extension application requires exactly 1 positional argument.
+  GenericExtension(receiver: c2).method();
+  ^^^^^^^^^^^^^^^^".method();
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:47:3: Error: Explicit extension application requires exactly 1 positional argument.
+  GenericExtension<int>(receiver: c2).method();
+  ^^^^^^^^^^^^^^^^".method();
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:48:3: Error: Explicit extension application requires exactly 1 positional argument.
+  GenericExtension(c2, receiver: null).method();
+  ^^^^^^^^^^^^^^^^".method();
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:49:3: Error: Explicit extension application requires exactly 1 positional argument.
+  GenericExtension<int>(c2, receiver: null).method();
+  ^^^^^^^^^^^^^^^^".method();
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:50:3: Error: Explicit extension application of extension 'GenericExtension' takes '1' type argument(s).
+  GenericExtension<int, String>(c2).method();
+  ^^^^^^^^^^^^^^^^".method();
+  self::GenericExtension|method<dynamic>(let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:51:20: Error: The argument type 'String' can't be assigned to the parameter type 'GenericClass<dynamic>'.
+ - 'GenericClass' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
+  GenericExtension(s).method();
+                   ^" in s as{TypeError} self::GenericClass<dynamic>*);
+  self::GenericExtension|method<core::int*>(let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:52:25: Error: The argument type 'String' can't be assigned to the parameter type 'GenericClass<int>'.
+ - 'GenericClass' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
+  GenericExtension<int>(s).method();
+                        ^" in s as{TypeError} self::GenericClass<core::int*>*);
+}

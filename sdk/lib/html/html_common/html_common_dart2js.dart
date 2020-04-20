@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 library html_common;
 
 import 'dart:async';
@@ -13,7 +15,10 @@ import 'dart:typed_data';
 import 'dart:_native_typed_data';
 import 'dart:_js_helper' show Creates, Returns, convertDartClosureToJS;
 import 'dart:_foreign_helper' show JS;
-import 'dart:_interceptors' show Interceptor, JSExtendableArray;
+import 'dart:_interceptors' show Interceptor, JSExtendableArray, JSObject;
+
+import 'dart:js_util' show promiseToFuture;
+export 'dart:js_util' show promiseToFuture;
 
 import 'dart:_metadata';
 export 'dart:_metadata';

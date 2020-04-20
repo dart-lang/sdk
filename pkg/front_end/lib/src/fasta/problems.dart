@@ -4,17 +4,34 @@
 
 library fasta.problems;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show Severity, severityTexts;
+
+import 'package:kernel/ast.dart' show FileUriNode, TreeNode;
+
 import 'compiler_context.dart' show CompilerContext;
 
 import 'messages.dart'
     show
+        LocatedMessage,
         Message,
+        noLength,
+        templateInternalProblemDebugAbort,
         templateInternalProblemUnexpected,
         templateInternalProblemUnhandled,
         templateInternalProblemUnimplemented,
         templateInternalProblemUnsupported;
 
-import 'severity.dart' show Severity;
+class DebugAbort {
+  final LocatedMessage message;
+
+  DebugAbort(Uri uri, int charOffset, Severity severity, StackTrace trace)
+      : message = templateInternalProblemDebugAbort
+            .withArguments(severityTexts[severity], "$trace")
+            .withLocation(uri, charOffset, noLength);
+
+  toString() => "DebugAbort: ${message.message}";
+}
 
 /// Used to report an internal error.
 ///
@@ -26,8 +43,9 @@ import 'severity.dart' show Severity;
 ///
 /// Before printing the message, the string `"Internal error: "` is prepended.
 dynamic internalProblem(Message message, int charOffset, Uri uri) {
-  throw CompilerContext.current
-      .format(message.withLocation(uri, charOffset), Severity.internalProblem);
+  throw CompilerContext.current.format(
+      message.withLocation(uri, charOffset, noLength),
+      Severity.internalProblem);
 }
 
 dynamic unimplemented(String what, int charOffset, Uri uri) {
@@ -56,4 +74,12 @@ dynamic unsupported(String operation, int charOffset, Uri uri) {
       templateInternalProblemUnsupported.withArguments(operation),
       charOffset,
       uri);
+}
+
+Uri getFileUri(TreeNode node) {
+  do {
+    if (node is FileUriNode) return node.fileUri;
+    node = node.parent;
+  } while (node is TreeNode);
+  return null;
 }

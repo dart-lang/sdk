@@ -8,9 +8,9 @@ library test;
 main() {
   num n = null;
   if (n is int) {
-    var /*@type=num*/ i = n;
+    var /*@ type=num* */ i = n;
   }
-  /*@returnType=Null*/ () {
+  /*@ returnType=Null? */ () {
     n = null;
   };
 }

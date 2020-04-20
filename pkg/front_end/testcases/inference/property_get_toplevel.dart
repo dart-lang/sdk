@@ -12,8 +12,8 @@ class C {
 }
 
 C c = new C();
-var /*@topType=() -> int*/ function_ref = c. /*@target=C::function*/ function;
-var /*@topType=List<() -> int>*/ function_ref_list = /*@typeArgs=() -> int*/ [
+var function_ref = c. /*@target=C::function*/ function;
+var function_ref_list = /*@ typeArgs=() ->* int* */ [
   c. /*@target=C::function*/ function
 ];
 

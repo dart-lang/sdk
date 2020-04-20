@@ -1,14 +1,25 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/circular_method_inference.dart:12:16: Error: 'A' is a supertype of itself.
+// abstract class A extends B {
+//                ^
+//
+// pkg/front_end/testcases/inference/circular_method_inference.dart:16:16: Error: 'B' is a supertype of itself.
+// abstract class B extends A {
+//                ^
+//
 import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::A*
     ;
   abstract method f(dynamic x) → dynamic;
 }
 abstract class B extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::B*
     ;
   abstract method f(dynamic x) → dynamic;
 }

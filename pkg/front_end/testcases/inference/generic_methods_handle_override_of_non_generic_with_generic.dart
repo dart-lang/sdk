@@ -6,13 +6,13 @@
 library test;
 
 class C {
-  /*@topType=dynamic*/ m(/*@topType=dynamic*/ x) => x;
+  m(x) => x;
   dynamic g(int x) => x;
 }
 
 class D extends C {
-  /*error:INVALID_METHOD_OVERRIDE*/ T m<T>(T x) => x;
-  /*error:INVALID_METHOD_OVERRIDE*/ T g<T>(T x) => x;
+  T m<T>(T x) => x;
+  T g<T>(T x) => x;
 }
 
 main() {

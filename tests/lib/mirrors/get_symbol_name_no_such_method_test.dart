@@ -20,7 +20,7 @@ expect(expected, actual) {
 }
 
 main() {
-  var foo = new Foo();
+  dynamic foo = new Foo();
   expect('foo', foo.foo);
   expect('foo', foo.foo());
   expect('foo', foo.foo(null));

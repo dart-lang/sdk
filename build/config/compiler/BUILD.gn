@@ -36,7 +36,7 @@ config("default_include_dirs") {
 }
 
 if (!is_win) {
-  using_sanitizer = is_asan || is_lsan || is_tsan || is_msan
+  using_sanitizer = is_asan || is_lsan || is_msan || is_tsan || is_ubsan
 }
 
 # compiler ---------------------------------------------------------------------
@@ -91,6 +91,11 @@ config("compiler") {
       ldflags += [ "-Wl,--fatal-warnings" ]
     }
 
+    # Enable mitigations for Cortex-A53 Erratum #843419 bug.
+    if (current_cpu == "arm64" && is_clang) {
+      ldflags += [ "-Wl,--fix-cortex-a53-843419" ]
+    }
+
     # Common options for AddressSanitizer, LeakSanitizer, ThreadSanitizer and
     # MemorySanitizer
     if (using_sanitizer) {
@@ -104,13 +109,20 @@ config("compiler") {
       cflags += [ "-fsanitize=leak" ]
       ldflags += [ "-fsanitize=leak" ]
     }
+    if (is_msan) {
+      cflags += [ "-fsanitize=memory" ]
+      ldflags += [ "-fsanitize=memory" ]
+    }
     if (is_tsan) {
       cflags += [ "-fsanitize=thread" ]
       ldflags += [ "-fsanitize=thread" ]
     }
-    if (is_msan) {
-      cflags += [ "-fsanitize=memory" ]
-      ldflags += [ "-fsanitize=memory" ]
+    if (is_ubsan) {
+      cflags += [
+        "-fsanitize=undefined",
+        "-fno-sanitize=null,alignment",
+      ]
+      ldflags += [ "-fsanitize=undefined" ]
     }
   }
 
@@ -187,10 +199,6 @@ config("compiler") {
           # Else building libyuv gives clang's register allocator issues,
           # see llvm.org/PR15798 / crbug.com/233709
           "-mno-omit-leaf-frame-pointer",
-
-          # Align the stack on 16-byte boundaries, http://crbug.com/418554.
-          "-mstack-alignment=16",
-          "-mstackrealign",
         ]
       }
     } else if (current_cpu == "arm") {
@@ -200,12 +208,6 @@ config("compiler") {
       ]
       if (arm_tune != "") {
         cflags += [ "-mtune=$arm_tune" ]
-      }
-      if (arm_use_thumb) {
-        cflags += [ "-mthumb" ]
-        if (is_android && !is_clang) {  # Clang doesn't support this option.
-          cflags += [ "-mthumb-interwork" ]
-        }
       }
       if (!is_clang) {
         # Clang doesn't support these flags.
@@ -234,6 +236,7 @@ config("compiler") {
       "-Wl,-z,noexecstack",
       "-Wl,-z,now",
       "-Wl,-z,relro",
+      "-Wl,--build-id=none",
     ]
   }
 
@@ -242,8 +245,8 @@ config("compiler") {
   # 2. On Android.
   # 3. When using the sanitizers.
   # Otherwise there is a performance hit, in particular on ia32.
-  if (is_android || is_asan || is_lsan || is_msan || is_tsan ||
-      (is_linux && current_cpu == "arm")) {
+  if (is_android || is_asan || is_lsan || is_msan || is_tsan || is_ubsan ||
+      (is_linux && current_cpu != "x86")) {
     cflags += [ "-fPIC" ]
     ldflags += [ "-fPIC" ]
   }
@@ -251,8 +254,18 @@ config("compiler") {
   # Linux-specific compiler flags setup.
   # ------------------------------------
   if (is_linux) {
-    cflags += [ "-pthread" ]
-    ldflags += [ "-pthread" ]
+    if (is_clang) {
+      if (current_cpu == "arm") {
+        cflags += [ "--target=armv7-linux-gnueabihf" ]
+        ldflags += [ "--target=armv7-linux-gnueabihf" ]
+      } else if (current_cpu == "arm64") {
+        cflags += [ "--target=aarch64-linux-gnu" ]
+        ldflags += [ "--target=aarch64-linux-gnu" ]
+      } else if (current_cpu == "x86") {
+        cflags += [ "--target=i386-linux-gnu" ]
+        ldflags += [ "--target=i386-linux-gnu" ]
+      }
+    }
   }
 
   # Clang-specific compiler flags setup.
@@ -261,6 +274,17 @@ config("compiler") {
     cflags += [ "-fcolor-diagnostics" ]
   }
 
+  # C++11 compiler flags setup.
+  # ---------------------------
+  if (is_win) {
+    # Up-to-date toolchain MSVC doesn't support c++11 flag any longer.
+    cc_std = [ "/std:c++14" ]
+  } else {
+    cc_std = [ "-std=c++11" ]
+  }
+  cflags_cc += cc_std
+  cflags_objcc += cc_std
+
   # Android-specific flags setup.
   # -----------------------------
   if (is_android) {
@@ -268,6 +292,7 @@ config("compiler") {
       "-ffunction-sections",
       "-funwind-tables",
       "-fno-short-enums",
+      "-nostdinc++",
     ]
     if (!is_clang) {
       # Clang doesn't support these flags.
@@ -305,12 +330,6 @@ config("compiler") {
       "-Wl,--exclude-libs=libgcc.a",
       "-Wl,--exclude-libs=libc++_static.a",
     ]
-    if (current_cpu == "arm") {
-      ldflags += [
-        # Enable identical code folding to reduce size.
-        "-Wl,--icf=safe",
-      ]
-    }
 
     if (is_clang) {
       if (current_cpu == "arm") {
@@ -335,12 +354,14 @@ config("compiler") {
   # define into the compile line.
   if (is_clang && (is_linux || is_mac)) {
     if (is_linux) {
-      toolchain_stamp_file = "//buildtools/linux64/toolchain.stamp"
+      toolchain_stamp_file =
+          "//buildtools/linux-x64/clang/.versions/clang.cipd_version"
     } else {
-      toolchain_stamp_file = "//buildtools/mac/toolchain.stamp"
+      toolchain_stamp_file =
+          "//buildtools/mac-x64/clang/.versions/clang.cipd_version"
     }
-    toolchain_version = read_file(toolchain_stamp_file, "trim string")
-    defines = [ "TOOLCHAIN_VERSION=$toolchain_version" ]
+    cipd_version = read_file(toolchain_stamp_file, "json")
+    defines = [ "TOOLCHAIN_VERSION=${cipd_version.instance_id}" ]
   }
 
   # Assign any flags set for the C compiler to asmflags so that they are sent
@@ -352,9 +373,35 @@ config("compiler") {
   }
 }
 
+# This is separate from :compiler_codegen (and not even a sub-config there)
+# so that some targets can remove it from the list with:
+#   configs -= [ "//build/config/compiler:clang_stackrealign" ]
+# See https://crbug.com/556393 for details of where it must be avoided.
+config("clang_stackrealign") {
+  if (is_clang && current_cpu == "x86" && !is_nacl) {
+    cflags = [
+      # Align the stack on 16-byte boundaries, http://crbug.com/418554.
+      "-mstack-alignment=16",
+      "-mstackrealign",
+    ]
+  }
+}
+
 config("compiler_arm_fpu") {
   if (current_cpu == "arm") {
     cflags = [ "-mfpu=$arm_fpu" ]
+  }
+}
+
+config("compiler_arm_thumb") {
+  if (current_cpu == "arm") {
+    if (arm_use_thumb) {
+      cflags = [ "-mthumb" ]
+      if (is_android && !is_clang) {  # Clang doesn't support this option.
+        cflags += [ "-mthumb-interwork" ]
+      }
+      asmflags = cflags
+    }
   }
 }
 
@@ -391,8 +438,10 @@ config("runtime_library") {
     ]
   }
 
-  # Android standard library setup.
-  if (is_android) {
+  if (is_linux) {
+    libs += [ "dl" ]
+  } else if (is_android) {
+    # Android standard library setup.
     if (is_clang) {
       # Work around incompatibilities between bionic and clang headers.
       defines += [ "__compiler_offsetof=__builtin_offsetof" ]
@@ -412,14 +461,17 @@ config("runtime_library") {
     # strange errors. The include ordering here is important; change with
     # caution.
     cflags += [
-      "-isystem" +
-          rebase_path("$android_libcpp_root/libcxx/include", root_build_dir),
+      "-isystem" + rebase_path("$android_libcpp_root/include", root_build_dir),
       "-isystem" + rebase_path(
-              "$android_ndk_root/sources/cxx-stl/llvm-libc++abi/libcxxabi/include",
+              "$android_ndk_root/sources/cxx-stl/llvm-libc++abi/include",
               root_build_dir),
       "-isystem" +
           rebase_path("$android_ndk_root/sources/android/support/include",
                       root_build_dir),
+      "-isystem" + rebase_path(
+              "$android_ndk_root/sysroot/usr/include/$android_target_triple",
+              root_build_dir),
+      "-D__ANDROID_API__=$android_api_level",
     ]
 
     lib_dirs += [ "$android_libcpp_root/libs/$android_app_abi" ]
@@ -427,8 +479,11 @@ config("runtime_library") {
     libs += [
       "$android_libcpp_library",
       "c++abi",
-      "android_support",
     ]
+
+    if (android_api_level < 21) {
+      libs += [ "android_support" ]
+    }
 
     if (current_cpu == "arm") {
       libs += [ "unwind" ]
@@ -463,6 +518,7 @@ if (is_win) {
   default_warning_flags += [
     # Permanent.
     "/wd4091",  # typedef warning from dbghelp.h
+    "/wd4722",  # destructor never returns
 
     # Investigate.
     "/wd4312",  # int to pointer of greater size conversion.
@@ -482,6 +538,10 @@ if (is_win) {
     "-Wno-missing-field-initializers",  # "struct foo f = {0};"
     "-Wno-unused-parameter",  # Unused function parameters.
   ]
+
+  if (is_clang) {
+    default_warning_flags += [ "-Wno-tautological-constant-compare" ]
+  }
 
   if (is_mac) {
     # TODO(abarth): Re-enable once https://github.com/domokit/mojo/issues/728
@@ -541,7 +601,7 @@ config("chromium_code") {
     ]
 
     defines = []
-    if (!using_sanitizer && (!is_linux || !is_clang)) {
+    if (!using_sanitizer && !is_clang) {
       # _FORTIFY_SOURCE isn't really supported by Clang now, see
       # http://llvm.org/bugs/show_bug.cgi?id=16821.
       # It seems to work fine with Ubuntu 12 headers though, so use it in
@@ -619,7 +679,10 @@ if (is_win) {
       "/Gw",
     ]
   }
-  common_optimize_on_ldflags = [ "/OPT:REF" ]
+  common_optimize_on_ldflags = [
+    "/OPT:REF",
+    "/OPT:ICF",
+  ]
 } else {
   common_optimize_on_cflags = [
     # Don't emit the GCC version ident directives, they just end up in the
@@ -651,6 +714,12 @@ if (is_win) {
       "-Wl,-O1",
       "-Wl,--gc-sections",
     ]
+
+    if (is_clang && !using_sanitizer) {
+      # Identical code folding to reduce size.
+      # Warning: This changes C/C++ semantics of function pointer comparison.
+      common_optimize_on_ldflags += [ "-Wl,--icf=all" ]
+    }
 
     if (!using_sanitizer) {
       # Functions interposed by the sanitizers can make ld think
@@ -700,6 +769,13 @@ config("no_optimize") {
       "-ffunction-sections",
     ]
   }
+}
+
+# These are two named configs that zlib's BUILD.gn expects to exist.
+config("default_optimization") {
+}
+
+config("optimize_speed") {
 }
 
 # Symbols ----------------------------------------------------------------------

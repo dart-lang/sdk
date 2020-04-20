@@ -36,7 +36,7 @@ static int CompareBlocksLowerTimeBound(TimelineEventBlock* const* a,
 void TimelineAnalysisThread::Finalize() {
   blocks_.Sort(CompareBlocksLowerTimeBound);
   if (FLAG_trace_timeline_analysis) {
-    THR_Print("Thread %" Px " has %" Pd " blocks\n",
+    THR_Print("Thread %" Pd " has %" Pd " blocks\n",
               OSThread::ThreadIdToIntPtr(id_), blocks_.length());
   }
 }
@@ -181,7 +181,7 @@ void TimelineAnalysis::SetError(const char* format, ...) {
   error_msg_ = zone_->VPrint(format, args);
   ASSERT(error_msg_ != NULL);
   if (FLAG_trace_timeline_analysis) {
-    OS::Print("TimelineAnalysis error = %s\n", error_msg_);
+    OS::PrintErr("TimelineAnalysis error = %s\n", error_msg_);
   }
 }
 
@@ -255,7 +255,7 @@ void TimelinePauses::CalculatePauseTimesForThread(ThreadId tid) {
   }
   TimelineAnalysisThread* thread = GetThread(tid);
   if (thread == NULL) {
-    SetError("Thread %" Px " does not exist.", OSThread::ThreadIdToIntPtr(tid));
+    SetError("Thread %" Pd " does not exist.", OSThread::ThreadIdToIntPtr(tid));
     return;
   }
   ProcessThread(thread);
@@ -305,7 +305,7 @@ void TimelinePauses::ProcessThread(TimelineAnalysisThread* thread) {
 
   TimelineAnalysisThreadEventIterator it(thread);
   if (FLAG_trace_timeline_analysis) {
-    THR_Print(">>> TimelinePauses::ProcessThread %" Px "\n",
+    THR_Print(">>> TimelinePauses::ProcessThread %" Pd "\n",
               OSThread::ThreadIdToIntPtr(thread->id()));
   }
   intptr_t event_count = 0;
@@ -341,7 +341,7 @@ void TimelinePauses::ProcessThread(TimelineAnalysisThread* thread) {
   // Pop remaining duration stack.
   PopFinishedDurations(kMaxInt64);
   if (FLAG_trace_timeline_analysis) {
-    THR_Print("<<< TimelinePauses::ProcessThread %" Px " had %" Pd " events\n",
+    THR_Print("<<< TimelinePauses::ProcessThread %" Pd " had %" Pd " events\n",
               OSThread::ThreadIdToIntPtr(thread->id()), event_count);
   }
 }
@@ -514,7 +514,7 @@ void TimelinePauseTrace::Print() {
     TimelineAnalysisThread* tat = pauses.At(t_idx);
     ASSERT(tat != NULL);
     pauses.CalculatePauseTimesForThread(tat->id());
-    THR_Print("Thread %" Pd " (%" Px "):\n", t_idx,
+    THR_Print("Thread %" Pd " (%" Pd "):\n", t_idx,
               OSThread::ThreadIdToIntPtr(tat->id()));
     for (intptr_t j = 0; j < pauses.NumPauseInfos(); j++) {
       const TimelineLabelPauseInfo* pause_info = pauses.PauseInfoAt(j);

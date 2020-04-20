@@ -4,7 +4,6 @@
 
 library test.generic_function_typedef;
 
-@MirrorsUsed(targets: "test.generic_function_typedef")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -16,9 +15,9 @@ typedef bool GenericPredicate<T>(T t);
 typedef S GenericTransform<S>(S s);
 
 class C<R> {
-  GenericPredicate<num> predicateOfNum;
-  GenericTransform<String> transformOfString;
-  GenericTransform<R> transformOfR;
+  GenericPredicate<num> predicateOfNum = (num n) => false;
+  GenericTransform<String> transformOfString = (String s) => s;
+  GenericTransform<R> transformOfR = (R r) => r;
 }
 
 reflectTypeDeclaration(t) => reflectType(t).originalDeclaration;
@@ -27,15 +26,18 @@ main() {
   TypeMirror dynamicMirror = currentMirrorSystem().dynamicType;
 
   TypedefMirror predicateOfNum =
-      (reflectClass(C).declarations[#predicateOfNum] as VariableMirror).type;
+      (reflectClass(C).declarations[#predicateOfNum] as VariableMirror).type
+          as TypedefMirror;
   TypedefMirror transformOfString =
-      (reflectClass(C).declarations[#transformOfString] as VariableMirror).type;
+      (reflectClass(C).declarations[#transformOfString] as VariableMirror).type
+          as TypedefMirror;
   TypedefMirror transformOfR =
-      (reflectClass(C).declarations[#transformOfR] as VariableMirror).type;
+      (reflectClass(C).declarations[#transformOfR] as VariableMirror).type
+          as TypedefMirror;
   TypedefMirror transformOfDouble = (reflect(new C<double>())
           .type
           .declarations[#transformOfR] as VariableMirror)
-      .type;
+      .type as TypedefMirror;
 
   TypeVariableMirror tFromGenericPredicate =
       reflectTypeDeclaration(GenericPredicate).typeVariables[0];

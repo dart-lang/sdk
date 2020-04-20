@@ -1,0 +1,39 @@
+main = #lib::main;
+ [@vm.bytecode=
+BytecodeMetadata {
+Bytecode (version: stable)
+Main library: #lib
+Library '#lib'
+    name '#lib'
+    script '#lib'
+
+Class '', script = '#lib'
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  DirectCall           CP#1, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef 'Hello, Dart Bytecode!'
+  [1] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
+}
+
+
+}
+]library #lib from "#lib" as #lib {
+
+  static method main() → dynamic {
+    dart.core::print("Hello, Dart Bytecode!");
+  }
+}

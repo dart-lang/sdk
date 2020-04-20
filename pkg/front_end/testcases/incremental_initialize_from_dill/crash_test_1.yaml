@@ -1,0 +1,39 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# This have crashed at one point (assertion error).
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "lib.dart";
+        void main() {
+          var c = new C.e4();
+        }
+      lib.dart: |
+        class C {
+          C();
+          factory C.e4() async = C;
+        }
+    expectedLibraryCount: 2
+    errors: true
+  - entry: main.dart
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import "lib.dart";
+        void main() {
+          var c = new C.e4();
+          print(c);
+        }
+      lib.dart: |
+        class C {
+          C();
+          factory C.e4() async = C;
+        }
+    expectedLibraryCount: 2
+    errors: true

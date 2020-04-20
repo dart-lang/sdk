@@ -3,31 +3,31 @@ import self as self;
 import "dart:core" as core;
 
 class Test1 extends core::Object {
-  field core::int t;
-  default constructor •() → void
+  field core::int* t;
+  synthetic constructor •() → self::Test1*
     ;
   method test() → void
     ;
 }
 class Test2 extends core::Object {
-  field core::num t;
-  default constructor •() → void
+  field core::num* t;
+  synthetic constructor •() → self::Test2*
     ;
   method test() → void
     ;
 }
 class Test3 extends core::Object {
-  field core::double t;
-  default constructor •() → void
+  field core::double* t;
+  synthetic constructor •() → self::Test3*
     ;
   method test3() → void
     ;
 }
-static method getInt() → core::int
+static method getInt() → core::int*
   ;
-static method getNum() → core::num
+static method getNum() → core::num*
   ;
-static method getDouble() → core::double
+static method getDouble() → core::double*
   ;
 static method main() → dynamic
   ;

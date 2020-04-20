@@ -9,7 +9,7 @@ class IC {
   String toString() => "${count++}";
 }
 
-testJoin(String expect, Iterable iterable, [String separator]) {
+testJoin(String expect, Iterable iterable, [String? separator]) {
   if (separator != null) {
     Expect.equals(expect, iterable.join(separator));
   } else {
@@ -51,7 +51,7 @@ testCollections() {
   var setString = set.join();
   Expect.isTrue(perm.contains(setString), "set: $setString");
 
-  void testArray(array) {
+  void testArray(List<int> array) {
     testJoin("1,3,5,7,9", array.where((i) => i.isOdd), ",");
     testJoin("0,2,4,6,8,10,12,14,16,18", array.map((i) => i * 2), ",");
     testJoin("5,6,7,8,9", array.skip(5), ",");
@@ -61,7 +61,7 @@ testCollections() {
   }
 
   testArray([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-  var fixedArray = new List(10);
+  var fixedArray = new List<int>.filled(10, -1);
   for (int i = 0; i < 10; i++) {
     fixedArray[i] = i;
   }

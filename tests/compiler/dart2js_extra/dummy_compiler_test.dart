@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Smoke test of the dart2js compiler API.
+// @dart = 2.7
+
+// Tests that the dart2js compiler can be run in a js engine.  This ensures that
+// the internal compiler APIs have no dependency on dart:io.
 library dummy_compiler;
 
 import 'dart:async';
@@ -10,7 +13,7 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler.dart';
 
-import '../dart2js/mock_libraries.dart';
+import 'mock_libraries.dart';
 
 String libProvider(Uri uri) {
   if (uri.path.endsWith(".platform")) {
@@ -26,8 +29,6 @@ String libProvider(Uri uri) {
     return buildLibrarySource(DEFAULT_INTERCEPTORS_LIBRARY);
   } else if (uri.path.endsWith('js_helper.dart')) {
     return buildLibrarySource(DEFAULT_JS_HELPER_LIBRARY);
-  } else if (uri.path.endsWith('isolate_helper.dart')) {
-    return buildLibrarySource(DEFAULT_ISOLATE_HELPER_LIBRARY);
   } else if (uri.path.endsWith('/async.dart')) {
     return buildLibrarySource(DEFAULT_ASYNC_LIBRARY);
   } else {
@@ -57,12 +58,8 @@ void handler(Uri uri, int begin, int end, String message, Diagnostic kind) {
 
 main() {
   asyncStart();
-  Future<CompilationResult> result = compile(
-      new Uri(scheme: 'main'),
-      new Uri(scheme: 'lib', path: '/'),
-      new Uri(scheme: 'package', path: '/'),
-      provider,
-      handler);
+  Future<CompilationResult> result = compile(new Uri(scheme: 'main'),
+      new Uri(scheme: 'lib', path: '/'), provider, handler);
   result.then((CompilationResult result) {
     if (!result.isSuccess) {
       throw 'Compilation failed';

@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Note: the following comment is used by test.dart to additionally compile the
-// other isolate's code.
-// OtherScripts=issue_21398_child_isolate.dart
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
 
 import 'dart:isolate';
-import 'dart:async';
 import "package:expect/expect.dart";
 import 'package:async_helper/async_helper.dart';
 

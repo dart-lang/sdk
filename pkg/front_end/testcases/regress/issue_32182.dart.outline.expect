@@ -1,0 +1,27 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue_32182.dart" as self;
+
+class A<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T*>*
+    ;
+}
+class M extends core::Object {
+  synthetic constructor •() → self::M*
+    ;
+  method m() → dynamic
+    ;
+}
+abstract class _C&A&M = self::A<self::A<dynamic>*> with self::M /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_C&A&M*
+    : super self::A::•()
+    ;
+}
+class C extends self::_C&A&M {
+  synthetic constructor •() → self::C*
+    ;
+}
+static method main() → dynamic
+  ;

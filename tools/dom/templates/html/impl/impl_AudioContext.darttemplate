@@ -17,41 +17,52 @@ $!MEMBERS
     }
   }
 
-  ScriptProcessorNode createScriptProcessor(int bufferSize,
-      [int numberOfInputChannels, int numberOfOutputChannels]) {
-    var function = JS('=Object', '#.createScriptProcessor || '
-        '#.createJavaScriptNode', this, this);
+  ScriptProcessorNode createScriptProcessor([int$NULLABLE bufferSize,
+      int$NULLABLE numberOfInputChannels,
+      int$NULLABLE numberOfOutputChannels]) {
+    var function = JS(
+        '=Object',
+        '#.createScriptProcessor || '
+        '#.createJavaScriptNode',
+        this,
+        this);
     if (numberOfOutputChannels != null) {
       return JS('ScriptProcessorNode', '#.call(#, #, #, #)', function, this,
           bufferSize, numberOfInputChannels, numberOfOutputChannels);
     } else if (numberOfInputChannels != null) {
       return JS('ScriptProcessorNode', '#.call(#, #, #)', function, this,
           bufferSize, numberOfInputChannels);
+    } else if (bufferSize != null) {
+      return JS(
+          'ScriptProcessorNode', '#.call(#, #)', function, this, bufferSize);
     } else {
-      return JS('ScriptProcessorNode', '#.call(#, #)', function, this,
-          bufferSize);
+      return JS(
+          'ScriptProcessorNode', '#.call(#)', function, this);
     }
   }
 
   @JSName('decodeAudioData')
-  @DomName('AudioContext.decodeAudioData')
-  @DocsEditable()
-  Future _decodeAudioData(ByteBuffer audioData,
-      [AudioBufferCallback successCallback,
-      AudioBufferCallback errorCallback]) native;
+  Future$#NULLSAFECAST(<AudioBuffer>) _decodeAudioData(ByteBuffer audioData,
+      [DecodeSuccessCallback$NULLABLE successCallback,
+      DecodeErrorCallback$NULLABLE errorCallback]) native;
 
-  @DomName('AudioContext.decodeAudioData')
-  Future<AudioBuffer> decodeAudioData(ByteBuffer audioData) {
+  Future<AudioBuffer> decodeAudioData(ByteBuffer audioData,
+      [DecodeSuccessCallback$NULLABLE successCallback,
+      DecodeErrorCallback$NULLABLE errorCallback]) {
+    if (successCallback != null &&  errorCallback != null) {
+      return _decodeAudioData(audioData, successCallback, errorCallback);
+    }
+
     var completer = new Completer<AudioBuffer>();
-    _decodeAudioData(audioData,
-        (value) { completer.complete(value); },
-        (error) {
-          if (error == null) {
-            completer.completeError('');
-          } else {
-            completer.completeError(error);
-          }
-        });
+    _decodeAudioData(audioData, (value) {
+      completer.complete(value);
+    }, (error) {
+      if (error == null) {
+        completer.completeError('');
+      } else {
+        completer.completeError(error);
+      }
+    });
     return completer.future;
   }
 }

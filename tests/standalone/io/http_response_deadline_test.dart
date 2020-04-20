@@ -19,7 +19,7 @@ void testSimpleDeadline(int connections) {
       request.response.close();
     });
 
-    var futures = [];
+    var futures = <Future>[];
     var client = new HttpClient();
     for (int i = 0; i < connections; i++) {
       futures.add(client
@@ -39,7 +39,7 @@ void testExceedDeadline(int connections) {
       request.response.write("stuff");
     });
 
-    var futures = [];
+    var futures = <Future>[];
     var client = new HttpClient();
     for (int i = 0; i < connections; i++) {
       futures.add(client
@@ -71,7 +71,7 @@ void testDeadlineAndDetach(int connections) {
       });
     });
 
-    var futures = [];
+    var futures = <Future>[];
     var client = new HttpClient();
     for (int i = 0; i < connections; i++) {
       futures.add(client
@@ -79,7 +79,7 @@ void testDeadlineAndDetach(int connections) {
           .then((request) => request.close())
           .then((response) {
         return response
-            .fold(new BytesBuilder(), (b, d) => b..add(d))
+            .fold<BytesBuilder>(new BytesBuilder(), (b, d) => b..add(d))
             .then((builder) {
           Expect.equals('stuff', new String.fromCharCodes(builder.takeBytes()));
         });

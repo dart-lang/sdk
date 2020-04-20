@@ -4,9 +4,6 @@
 
 // Test that a coin toss with Random.nextBool() is fair.
 
-// Library tag to allow Dartium to run the test.
-library coin_test;
-
 import "package:expect/expect.dart";
 import 'dart:math';
 
@@ -25,7 +22,7 @@ main() {
   }
   print("Heads: $heads\n"
       "Tails: $tails\n"
-      "Ratio: ${heads/tails}\n");
+      "Ratio: ${heads / tails}\n");
   Expect.approxEquals(1.0, heads / tails, 0.1);
 
   heads = 0;
@@ -40,7 +37,7 @@ main() {
   }
   print("Heads: $heads\n"
       "Tails: $tails\n"
-      "Ratio: ${heads/tails}\n");
+      "Ratio: ${heads / tails}\n");
   Expect.approxEquals(1.0, heads / tails, 0.1);
 
   // A sequence of newly allocated Random number generators should have fair
@@ -57,6 +54,6 @@ main() {
   }
   print("Heads: $heads\n"
       "Tails: $tails\n"
-      "Ratio: ${heads/tails}\n");
+      "Ratio: ${heads / tails}\n");
   Expect.approxEquals(1.0, heads / tails, 0.1);
 }

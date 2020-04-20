@@ -10,10 +10,10 @@ import "package:async_helper/async_helper.dart";
 
 Stream<String> decode(List<int> bytes, int chunkSize) {
   var controller;
-  controller = new StreamController(onListen: () {
+  controller = new StreamController<List<int>>(onListen: () {
     int i = 0;
     while (i < bytes.length) {
-      List nextChunk = [];
+      List nextChunk = <int>[];
       for (int j = 0; j < chunkSize; j++) {
         if (i < bytes.length) {
           nextChunk.add(bytes[i]);
@@ -24,7 +24,7 @@ Stream<String> decode(List<int> bytes, int chunkSize) {
     }
     controller.close();
   });
-  return controller.stream.transform(UTF8.decoder);
+  return controller.stream.transform(utf8.decoder);
 }
 
 testUnpaused(String expected, Stream stream) {
@@ -43,7 +43,7 @@ testWithPauses(String expected, Stream stream) {
   var sub;
   sub = stream.listen((x) {
     buffer.write(x);
-    sub.pause(new Future.delayed(Duration.ZERO));
+    sub.pause(new Future.delayed(Duration.zero));
   }, onDone: () {
     Expect.stringEquals(expected, buffer.toString());
     asyncEnd();

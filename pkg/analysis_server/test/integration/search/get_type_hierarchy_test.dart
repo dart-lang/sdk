@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,7 +11,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetTypeHierarchyTest);
   });
@@ -19,13 +19,11 @@ main() {
 
 @reflectiveTest
 class GetTypeHierarchyTest extends AbstractAnalysisServerIntegrationTest {
-  /**
-   * Pathname of the main file to run tests in.
-   */
+  /// Pathname of the main file to run tests in.
   String pathname;
 
   Future getTypeHierarchy_badTarget() {
-    String text = r'''
+    var text = r'''
 main() {
   if /* target */ (true) {
     print('Hello');
@@ -38,7 +36,7 @@ main() {
   }
 
   Future getTypeHierarchy_classElement() {
-    String text = r'''
+    var text = r'''
 class Base {}
 class Pivot /* target */ extends Base {}
 class Derived extends Pivot {}
@@ -49,7 +47,7 @@ class Derived extends Pivot {}
       void checkElement(String name) {
         // We don't check the full element data structure; just enough to make
         // sure that we're pointing to the correct element.
-        Element element = results.items[results.nameToIndex[name]].classElement;
+        var element = results.items[results.nameToIndex[name]].classElement;
         expect(element.kind, equals(ElementKind.CLASS));
         expect(element.name, equals(name));
         if (name != 'Object') {
@@ -66,7 +64,7 @@ class Derived extends Pivot {}
   }
 
   Future getTypeHierarchy_displayName() {
-    String text = r'''
+    var text = r'''
 class Base<T> {}
 class Pivot /* target */ extends Base<int> {}
 ''';
@@ -79,7 +77,7 @@ class Pivot /* target */ extends Base<int> {}
   }
 
   Future getTypeHierarchy_functionTarget() {
-    String text = r'''
+    var text = r'''
 main /* target */ () {
 }
 ''';
@@ -89,7 +87,7 @@ main /* target */ () {
   }
 
   Future getTypeHierarchy_interfaces() {
-    String text = r'''
+    var text = r'''
 class Interface1 {}
 class Interface2 {}
 class Pivot /* target */ implements Interface1, Interface2 {}
@@ -108,7 +106,7 @@ class Pivot /* target */ implements Interface1, Interface2 {}
   }
 
   Future getTypeHierarchy_memberElement() {
-    String text = r'''
+    var text = r'''
 class Base1 {
   void foo /* base1 */ ();
 }
@@ -135,7 +133,7 @@ class Derived2 extends Derived1 {
   }
 
   Future getTypeHierarchy_mixins() {
-    String text = r'''
+    var text = r'''
 class Base {}
 class Mixin1 {}
 class Mixin2 {}
@@ -154,7 +152,7 @@ class Pivot /* target */ extends Base with Mixin1, Mixin2 {}
   }
 
   Future getTypeHierarchy_subclasses() {
-    String text = r'''
+    var text = r'''
 class Base {}
 class Pivot /* target */ extends Base {}
 class Sub1 extends Pivot {}
@@ -176,7 +174,7 @@ class Sub2a extends Sub2 {}
   }
 
   Future getTypeHierarchy_superclass() {
-    String text = r'''
+    var text = r'''
 class Base1 {}
 class Base2 extends Base1 {}
 class Pivot /* target */ extends Base2 {}
@@ -193,7 +191,7 @@ class Pivot /* target */ extends Base2 {}
     });
   }
 
-  test_getTypeHierarchy() {
+  Future<void> test_getTypeHierarchy() {
     pathname = sourcePath('test.dart');
     // Write a dummy file which will be overridden by tests using
     // [sendAnalysisUpdateContent].
@@ -202,7 +200,7 @@ class Pivot /* target */ extends Base2 {}
 
     // Run all the getTypeHierarchy tests at once so that the server can take
     // advantage of incremental analysis and the test doesn't time out.
-    List tests = [
+    var tests = [
       getTypeHierarchy_classElement,
       getTypeHierarchy_displayName,
       getTypeHierarchy_memberElement,
@@ -217,59 +215,46 @@ class Pivot /* target */ extends Base2 {}
   }
 
   Future<HierarchyResults> typeHierarchyTest(String text) async {
-    int offset = text.indexOf(' /* target */') - 1;
-    sendAnalysisUpdateContent({pathname: new AddContentOverlay(text)});
+    var offset = text.indexOf(' /* target */') - 1;
+    sendAnalysisUpdateContent({pathname: AddContentOverlay(text)});
     await analysisFinished;
     var result = await sendSearchGetTypeHierarchy(pathname, offset);
     if (result.hierarchyItems == null) {
       return null;
     } else {
-      return new HierarchyResults(result.hierarchyItems);
+      return HierarchyResults(result.hierarchyItems);
     }
   }
 }
 
-/**
- * Results of a getTypeHierarchy request, processed for easier testing.
- */
+/// Results of a getTypeHierarchy request, processed for easier testing.
 class HierarchyResults {
-  /**
-   * The list of hierarchy items from the result.
-   */
+  /// The list of hierarchy items from the result.
   List<TypeHierarchyItem> items;
 
-  /**
-   * The first hierarchy item from the result, which represents the pivot
-   * class.
-   */
+  /// The first hierarchy item from the result, which represents the pivot
+  /// class.
   TypeHierarchyItem pivot;
 
-  /**
-   * A map from element name to item index.
-   */
+  /// A map from element name to item index.
   Map<String, int> nameToIndex;
 
-  /**
-   * Create a [HierarchyResults] object based on the result from a
-   * getTypeHierarchy request.
-   */
+  /// Create a [HierarchyResults] object based on the result from a
+  /// getTypeHierarchy request.
   HierarchyResults(this.items) {
     pivot = items[0];
     nameToIndex = <String, int>{};
-    for (int i = 0; i < items.length; i++) {
+    for (var i = 0; i < items.length; i++) {
       nameToIndex[items[i].classElement.name] = i;
     }
   }
 
-  /**
-   * Get an item by class name.
-   */
+  /// Get an item by class name.
   TypeHierarchyItem getItem(String name) {
     if (nameToIndex.containsKey(name)) {
       return items[nameToIndex[name]];
     } else {
       fail('Class $name not found in hierarchy results');
-      return null;
     }
   }
 }

@@ -1,8 +1,8 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/codegen/tools.dart';
+import 'package:analysis_tool/tools.dart';
 import 'package:path/path.dart' as path;
 
 import 'api.dart';
@@ -11,25 +11,18 @@ import 'from_html.dart';
 import 'implied_types.dart';
 
 GeneratedFile target(bool responseRequiresRequestTime) =>
-    new GeneratedFile('lib/protocol/protocol_common.dart',
-        (String pkgPath) async {
-      CodegenCommonVisitor visitor = new CodegenCommonVisitor(
-          path.basename(pkgPath),
-          responseRequiresRequestTime,
-          readApi(pkgPath));
+    GeneratedFile('lib/protocol/protocol_common.dart', (String pkgPath) async {
+      var visitor = CodegenCommonVisitor(path.basename(pkgPath),
+          responseRequiresRequestTime, readApi(pkgPath));
       return visitor.collectCode(visitor.visitApi);
     });
 
-/**
- * A visitor that produces Dart code defining the common types associated with
- * the API.
- */
+/// A visitor that produces Dart code defining the common types associated with
+/// the API.
 class CodegenCommonVisitor extends CodegenProtocolVisitor {
-  /**
-   * Initialize a newly created visitor to generate code in the package with the
-   * given [packageName] corresponding to the types in the given [api] that are
-   * common to multiple protocols.
-   */
+  /// Initialize a newly created visitor to generate code in the package with
+  /// the given [packageName] corresponding to the types in the given [api] that
+  /// are common to multiple protocols.
   CodegenCommonVisitor(
       String packageName, bool responseRequiresRequestTime, Api api)
       : super(packageName, responseRequiresRequestTime, api);
@@ -46,8 +39,8 @@ class CodegenCommonVisitor extends CodegenProtocolVisitor {
 
   @override
   List<ImpliedType> getClassesToEmit() {
-    List<ImpliedType> types = impliedTypes.values.where((ImpliedType type) {
-      ApiNode node = type.apiNode;
+    var types = impliedTypes.values.where((ImpliedType type) {
+      var node = type.apiNode;
       return node is TypeDefinition && node.isExternal;
     }).toList();
     types.sort((first, second) =>

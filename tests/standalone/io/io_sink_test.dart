@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 import "dart:async";
 import "dart:io";
+import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 
-class TestConsumer implements StreamConsumer {
+class TestConsumer implements StreamConsumer<List<int>> {
   final List expected;
   final List received = [];
 
@@ -80,7 +80,7 @@ void testAddFlush() {
 void testAddStreamClose() {
   {
     var sink = new IOSink(new TestConsumer([0]));
-    var controller = new StreamController(sync: true);
+    var controller = new StreamController<List<int>>(sync: true);
     sink.addStream(controller.stream).then((_) {
       sink.close();
     });
@@ -89,7 +89,7 @@ void testAddStreamClose() {
   }
   {
     var sink = new IOSink(new TestConsumer([0, 1, 2]));
-    var controller = new StreamController(sync: true);
+    var controller = new StreamController<List<int>>(sync: true);
     sink.addStream(controller.stream).then((_) {
       sink.close();
     });
@@ -103,7 +103,7 @@ void testAddStreamClose() {
 void testAddStreamAddClose() {
   {
     var sink = new IOSink(new TestConsumer([0, 1]));
-    var controller = new StreamController(sync: true);
+    var controller = new StreamController<List<int>>(sync: true);
     sink.addStream(controller.stream).then((_) {
       sink.add([1]);
       sink.close();

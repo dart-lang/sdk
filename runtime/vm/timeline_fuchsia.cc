@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/globals.h"
-#if defined(HOST_OS_FUCHSIA) && !defined(PRODUCT)
-
-#include <trace-engine/context.h>
-#include <trace-engine/instrumentation.h>
+#include "vm/globals.h"
+#if defined(HOST_OS_FUCHSIA) && defined(SUPPORT_TIMELINE)
+#include <lib/trace-engine/context.h>
+#include <lib/trace-engine/instrumentation.h>
 #include <zircon/syscalls.h>
 
 #include "platform/utils.h"
@@ -15,46 +14,15 @@
 
 namespace dart {
 
-// A recorder that sends events to Fuchsia's tracing app. Events are also stored
-// in a buffer of fixed capacity. When the buffer is full, new events overwrite
-// old events.
-// See: https://fuchsia.googlesource.com/tracing/+/HEAD/docs/usage_guide.md
-
-TimelineEventPlatformRecorder::TimelineEventPlatformRecorder(intptr_t capacity)
-    : TimelineEventFixedBufferRecorder(capacity) {}
-
-TimelineEventPlatformRecorder::~TimelineEventPlatformRecorder() {}
-
-TimelineEventPlatformRecorder*
-TimelineEventPlatformRecorder::CreatePlatformRecorder(intptr_t capacity) {
-  return new TimelineEventPlatformRecorder(capacity);
-}
-
-const char* TimelineEventPlatformRecorder::name() const {
-  return "Fuchsia";
-}
-
-TimelineEventBlock* TimelineEventPlatformRecorder::GetNewBlockLocked() {
-  // TODO(johnmccutchan): This function should only hand out blocks
-  // which have been marked as finished.
-  if (block_cursor_ == num_blocks_) {
-    block_cursor_ = 0;
-  }
-  TimelineEventBlock* block = &blocks_[block_cursor_++];
-  block->Reset();
-  block->Open();
-  return block;
-}
-
-void TimelineEventPlatformRecorder::CompleteEvent(TimelineEvent* event) {
+void TimelineEventFuchsiaRecorder::OnEvent(TimelineEvent* event) {
   if (event == NULL) {
     return;
   }
+  TimelineStream* stream = event->stream_;
   trace_string_ref_t category;
-  trace_context_t* context =
-      trace_acquire_context_for_category("dart", &category);
+  trace_context_t* context = trace_acquire_context_for_category_cached(
+      stream->fuchsia_name(), stream->trace_site(), &category);
   if (context == NULL) {
-    ThreadBlockCompleteEvent(event);
     return;
   }
 
@@ -149,9 +117,8 @@ void TimelineEventPlatformRecorder::CompleteEvent(TimelineEvent* event) {
       break;
   }
   trace_release_context(context);
-  ThreadBlockCompleteEvent(event);
 }
 
 }  // namespace dart
 
-#endif  // defined(HOST_OS_FUCHSIA) && !defined(PRODUCT)
+#endif  // defined(HOST_OS_FUCHSIA) && defined(SUPPORT_TIMELINE)

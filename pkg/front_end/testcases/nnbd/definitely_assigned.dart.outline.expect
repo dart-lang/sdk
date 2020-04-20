@@ -1,0 +1,17 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+static field <T extends core::Object? = dynamic>(T%) → core::Null? fieldDirect;
+static field <T extends core::Object? = dynamic>(core::bool, T%) → core::Null? fieldConditional;
+static field () → core::Null? fieldCompound;
+static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect::T% value) → dynamic
+  ;
+static method methodConditional<T extends core::Object? = dynamic>(core::bool b, self::methodConditional::T% value) → dynamic
+  ;
+static method methodCompound() → dynamic
+  ;
+static method main() → dynamic
+  ;

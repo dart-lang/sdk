@@ -5,7 +5,13 @@
 library touch;
 
 import 'dart:async';
-import 'dart:collection' show Queue, DoubleLinkedQueue, DoubleLinkedQueueEntry;
+import 'dart:collection'
+    show
+        Queue,
+        DoubleLinkedQueue,
+        DoubleLinkedQueueEntry,
+        ListMixin,
+        ImmutableListMixin;
 import 'dart:html';
 import 'dart:math' as Math;
 

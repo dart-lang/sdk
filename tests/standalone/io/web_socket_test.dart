@@ -38,7 +38,7 @@ SecurityContext clientContext = new SecurityContext()
 class SecurityConfiguration {
   final bool secure;
 
-  SecurityConfiguration({bool this.secure});
+  SecurityConfiguration({required this.secure});
 
   Future<HttpServer> createServer({int backlog: 0}) => secure
       ? HttpServer.bindSecure(HOST_NAME, 0, serverContext, backlog: backlog)
@@ -50,14 +50,14 @@ class SecurityConfiguration {
 
   checkCloseStatus(webSocket, closeStatus, closeReason) {
     Expect.equals(
-        closeStatus == null ? WebSocketStatus.NO_STATUS_RECEIVED : closeStatus,
+        closeStatus == null ? WebSocketStatus.noStatusReceived : closeStatus,
         webSocket.closeCode);
     Expect.equals(
         closeReason == null ? "" : closeReason, webSocket.closeReason);
   }
 
-  void testRequestResponseClientCloses(int totalConnections, int closeStatus,
-      String closeReason, int numberOfMessages) {
+  void testRequestResponseClientCloses(int totalConnections, int? closeStatus,
+      String? closeReason, int numberOfMessages) {
     assert(numberOfMessages >= 1);
 
     asyncStart();
@@ -101,7 +101,7 @@ class SecurityConfiguration {
   }
 
   void testRequestResponseServerCloses(
-      int totalConnections, int closeStatus, String closeReason) {
+      int totalConnections, int? closeStatus, String? closeReason) {
     createServer().then((server) {
       int closeCount = 0;
       server.transform(new WebSocketTransformer()).listen((webSocket) {
@@ -283,13 +283,13 @@ class SecurityConfiguration {
 
   void testNoUpgrade() {
     createServer().then((server) {
-      // Create a server which always responds with NOT_FOUND.
+      // Create a server which always responds with notFound.
       server.listen((request) {
-        request.response.statusCode = HttpStatus.NOT_FOUND;
+        request.response.statusCode = HttpStatus.notFound;
         request.response.close();
       });
 
-      createClient(server.port).catchError((error) {
+      Future<WebSocket?>.value(createClient(server.port)).catchError((error) {
         server.close();
       });
     });
@@ -310,7 +310,7 @@ class SecurityConfiguration {
               "${secure ? 'https:' : 'http:'}//$HOST_NAME:${server.port}/"))
           .then((request) => request.close())
           .then((response) {
-        Expect.equals(HttpStatus.BAD_REQUEST, response.statusCode);
+        Expect.equals(HttpStatus.badRequest, response.statusCode);
         client.close();
         server.close();
       });
@@ -352,12 +352,12 @@ class SecurityConfiguration {
           Expect.equals(0, onmessageCalled);
           Expect.isFalse(oncloseCalled);
           onopenCalled = true;
-          Expect.equals(WebSocket.OPEN, webSocket.readyState);
+          Expect.equals(WebSocket.open, webSocket.readyState);
           webSocket.listen((message) {
             onmessageCalled++;
             Expect.isTrue(onopenCalled);
             Expect.isFalse(oncloseCalled);
-            Expect.equals(WebSocket.OPEN, webSocket.readyState);
+            Expect.equals(WebSocket.open, webSocket.readyState);
             webSocket.add(message);
           }, onDone: () {
             Expect.isTrue(onopenCalled);
@@ -366,7 +366,7 @@ class SecurityConfiguration {
             oncloseCalled = true;
             Expect.equals(3002, webSocket.closeCode);
             Expect.equals("Got tired", webSocket.closeReason);
-            Expect.equals(WebSocket.CLOSED, webSocket.readyState);
+            Expect.equals(WebSocket.closed, webSocket.readyState);
           });
         });
       }
@@ -390,12 +390,12 @@ class SecurityConfiguration {
           });
         } else {
           Expect.isFalse(WebSocketTransformer.isUpgradeRequest(request));
-          request.response.statusCode = HttpStatus.OK;
+          request.response.statusCode = HttpStatus.ok;
           request.response.close();
         }
       });
 
-      var futures = [];
+      var futures = <Future>[];
 
       var wsProtocol = '${secure ? "wss" : "ws"}';
       var baseWsUrl = '$wsProtocol://$HOST_NAME:${server.port}/';
@@ -417,7 +417,7 @@ class SecurityConfiguration {
             .then((request) => request.close())
             .then((response) {
           response.listen((_) {});
-          Expect.equals(HttpStatus.OK, response.statusCode);
+          Expect.equals(HttpStatus.ok, response.statusCode);
         }));
       }
 
@@ -433,16 +433,18 @@ class SecurityConfiguration {
     asyncStart();
     createServer().then((server) {
       server.listen((request) {
-        Expect.equals('Upgrade', request.headers.value(HttpHeaders.CONNECTION));
-        Expect.equals('websocket', request.headers.value(HttpHeaders.UPGRADE));
+        Expect.equals(
+            'Upgrade', request.headers.value(HttpHeaders.connectionHeader));
+        Expect.equals(
+            'websocket', request.headers.value(HttpHeaders.upgradeHeader));
 
         var key = request.headers.value('Sec-WebSocket-Key');
         var digest = sha1.convert("$key$WEB_SOCKET_GUID".codeUnits);
-        var accept = BASE64.encode(digest.bytes);
+        var accept = base64.encode(digest.bytes);
         request.response
-          ..statusCode = HttpStatus.SWITCHING_PROTOCOLS
-          ..headers.add(HttpHeaders.CONNECTION, "Upgrade")
-          ..headers.add(HttpHeaders.UPGRADE, "websocket")
+          ..statusCode = HttpStatus.switchingProtocols
+          ..headers.add(HttpHeaders.connectionHeader, "Upgrade")
+          ..headers.add(HttpHeaders.upgradeHeader, "websocket")
           ..headers.add("Sec-WebSocket-Accept", accept);
         request.response.contentLength = 0;
         request.response.detachSocket().then((socket) {
@@ -470,8 +472,8 @@ class SecurityConfiguration {
     createServer().then((server) {
       server.listen((request) {
         Expect.isTrue(WebSocketTransformer.isUpgradeRequest(request));
-        Expect.equals('my-value', request.headers['My-Header'][0]);
-        var header = request.headers['My-Header-Multiple'];
+        Expect.equals('my-value', request.headers['My-Header']![0]);
+        var header = request.headers['My-Header-Multiple']!;
         Expect.equals(1, header.length);
         Expect.equals('my-value-1, my-value-2', header[0]);
         WebSocketTransformer.upgrade(request).then((webSocket) {
@@ -507,9 +509,9 @@ class SecurityConfiguration {
     createServer().then((server) {
       server.listen((request) {
         Expect.isTrue(WebSocketTransformer.isUpgradeRequest(request));
-        String auth = BASE64.encode(UTF8.encode(userInfo));
-        Expect.equals('Basic $auth', request.headers['Authorization'][0]);
-        Expect.equals(1, request.headers['Authorization'].length);
+        String auth = base64.encode(utf8.encode(userInfo));
+        Expect.equals('Basic $auth', request.headers['Authorization']![0]);
+        Expect.equals(1, request.headers['Authorization']!.length);
         WebSocketTransformer.upgrade(request).then((webSocket) {
           webSocket.listen((_) {
             throw 'Unexpected';
@@ -525,12 +527,29 @@ class SecurityConfiguration {
       WebSocket.connect(url).then((websocket) {
         return websocket.listen((message) {
           Expect.equals("Hello", message);
-          return websocket.close();
+          websocket.close();
         }).asFuture();
       }).then((_) {
         return server.close();
       }).whenComplete(() {
         asyncEnd();
+      });
+    });
+  }
+
+  void testShouldSetUserAgent() {
+    asyncStart();
+    createServer().then((server) {
+      server.transform(new WebSocketTransformer()).listen((webSocket) {
+        Expect.equals('Custom User Agent', WebSocket.userAgent);
+        server.close();
+        webSocket.close();
+        asyncEnd();
+      });
+
+      WebSocket.userAgent = 'Custom User Agent';
+      createClient(server.port).then((webSocket) {
+        webSocket.close();
       });
     });
   }
@@ -562,6 +581,7 @@ class SecurityConfiguration {
     testFromUpgradedSocket();
     testAdditionalHeaders();
     testBasicAuthentication();
+    testShouldSetUserAgent();
   }
 }
 

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.io;
 
 /**
@@ -25,10 +27,10 @@ class SecureServerSocket extends Stream<SecureSocket> {
    * perform a [InternetAddress.lookup] and use the first value in the
    * list. To listen on the loopback adapter, which will allow only
    * incoming connections from the local host, use the value
-   * [InternetAddress.LOOPBACK_IP_V4] or
-   * [InternetAddress.LOOPBACK_IP_V6]. To allow for incoming
+   * [InternetAddress.loopbackIPv4] or
+   * [InternetAddress.loopbackIPv6]. To allow for incoming
    * connection from the network use either one of the values
-   * [InternetAddress.ANY_IP_V4] or [InternetAddress.ANY_IP_V6] to
+   * [InternetAddress.anyIPv4] or [InternetAddress.anyIPv6] to
    * bind to all interfaces or the IP address of a specific interface.
    *
    * If [port] has the value [:0:] an ephemeral port will be chosen by
@@ -155,10 +157,10 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
    * perform a [InternetAddress.lookup] and use the first value in the
    * list. To listen on the loopback adapter, which will allow only
    * incoming connections from the local host, use the value
-   * [InternetAddress.LOOPBACK_IP_V4] or
-   * [InternetAddress.LOOPBACK_IP_V6]. To allow for incoming
+   * [InternetAddress.loopbackIPv4] or
+   * [InternetAddress.loopbackIPv6]. To allow for incoming
    * connection from the network use either one of the values
-   * [InternetAddress.ANY_IP_V4] or [InternetAddress.ANY_IP_V6] to
+   * [InternetAddress.anyIPv4] or [InternetAddress.anyIPv6] to
    * bind to all interfaces or the IP address of a specific interface.
    *
    * If [port] has the value [:0:] an ephemeral port will be chosen by

@@ -6,11 +6,11 @@ library map_test;
 
 import "package:expect/expect.dart";
 import 'dart:collection';
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 
-Map<String, dynamic> newJsonMap() => JSON.decode('{}');
+Map<String, dynamic> newJsonMap() => json.decode('{}');
 Map<String, dynamic> newJsonMapCustomReviver() =>
-    JSON.decode('{}', reviver: (key, value) => value);
+    json.decode('{}', reviver: (key, value) => value);
 
 void main() {
   test(new HashMap());
@@ -27,6 +27,7 @@ void main() {
   testMapLiteral();
   testNullValue();
   testTypes();
+  testUnmodifiableMaps();
 
   testWeirdStringKeys(new Map());
   testWeirdStringKeys(new Map<String, String>());
@@ -491,8 +492,8 @@ void testWeirdStringKeys(Map map) {
 
 void testNumericKeys(Map map) {
   var numericKeys = const [
-    double.INFINITY,
-    double.NEGATIVE_INFINITY,
+    double.infinity,
+    double.negativeInfinity,
     0,
     0.0,
     -0.0
@@ -514,7 +515,7 @@ void testNumericKeys(Map map) {
 }
 
 void testNaNKeys(Map map) {
-  Object nan = double.NAN;
+  Object nan = double.nan;
   // Skip this test on platforms that use native-JS NaN semantics for speed.
   if (!identical(nan, nan)) return;
 
@@ -572,7 +573,7 @@ testIdentityMap<K, V>(Map<K, V> typedMap) {
   Map map = typedMap;
   Expect.isTrue(map.isEmpty);
 
-  var nan = double.NAN;
+  var nan = double.nan;
   // TODO(11551): Remove guard when dart2js makes identical(NaN, NaN) true.
   if (identical(nan, nan)) {
     map[nan] = 42;
@@ -703,8 +704,7 @@ class Equalizer {
   int id;
   Equalizer(this.id);
   int get hashCode => id;
-  bool operator ==(Object other) =>
-      other is Equalizer && id == (other as Equalizer).id;
+  bool operator ==(Object other) => other is Equalizer && id == other.id;
 }
 
 /**
@@ -721,7 +721,7 @@ class Vampire {
   // The double-fang operator falsely claims that a vampire is equal to
   // any of its sire's generation.
   bool operator ==(Object other) =>
-      other is Vampire && generation - 1 == (other as Vampire).generation;
+      other is Vampire && generation - 1 == other.generation;
 }
 
 void testCustomMap<K, V>(Map<K, V> typedMap) {
@@ -1025,4 +1025,23 @@ void testTypeAnnotations(Map<int, int> map) {
   testLength(2, map);
   Expect.equals(103, map.remove(0x20000000000000));
   testLength(1, map);
+}
+
+void testUnmodifiableMaps() {
+  void checkUnmodifiable(Map<int, int> map) {
+    Expect.throws(() => map[0] = 0);
+    Expect.throws(() => map.addAll({0: 0}));
+    Expect.throws(() => map.addEntries({0: 0}.entries));
+    Expect.throws(() => map.clear());
+    Expect.throws(() => map.putIfAbsent(0, () => 0));
+    Expect.throws(() => map.remove(0));
+    Expect.throws(() => map.removeWhere((k, v) => true));
+    Expect.throws(() => map.update(0, (v) => v, ifAbsent: () => 0));
+    Expect.throws(() => map.updateAll((k, v) => v));
+  }
+
+  checkUnmodifiable(const {1: 1});
+  checkUnmodifiable(Map.unmodifiable({1: 1}));
+  checkUnmodifiable(UnmodifiableMapView({1: 1}));
+  checkUnmodifiable(const MapView({1: 1}));
 }

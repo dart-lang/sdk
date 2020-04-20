@@ -119,14 +119,14 @@ void genericTypeTest() {
   Expect.isFalse(map is SplayTreeMap<dynamic, int>);
 }
 
-typedef String intToString(int v);
-typedef bool intToBool(int v);
+typedef String objectToString(Object v);
+typedef bool objectToBool(Object v);
 
 // Test in checked mode with explicitly given types.
 void typedTest() {
   // Assign functions to typed function variables.
-  intToString key = (int v) => "$v";
-  intToBool value = (int v) => v.isOdd;
+  objectToString key = (v) => "$v";
+  objectToBool value = (v) => (v as int).isOdd;
   Function id = (int i) => i;
 
   Expect.throws(() {

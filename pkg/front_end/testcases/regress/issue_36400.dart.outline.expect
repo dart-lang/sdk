@@ -1,0 +1,16 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_36400.dart:6:3: Error: Factory constructors cannot have a return type.
+// Try removing the type appearing before 'factory'.
+//   Test factory Test() {
+//   ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Test extends core::Object {
+  static factory •() → self::Test*
+    ;
+}

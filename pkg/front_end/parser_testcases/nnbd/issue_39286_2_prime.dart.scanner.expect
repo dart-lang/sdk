@@ -1,0 +1,9 @@
+void test(C x) {
+x..f().g()['Hi!']..h().y = 2;
+}
+
+
+void[KeywordToken] test[StringToken]([BeginToken]C[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+x[StringToken]..[SimpleToken]f[StringToken]([BeginToken])[SimpleToken].[SimpleToken]g[StringToken]([BeginToken])[SimpleToken][[BeginToken]'Hi!'[StringToken]][SimpleToken]..[SimpleToken]h[StringToken]([BeginToken])[SimpleToken].[SimpleToken]y[StringToken] =[SimpleToken] 2[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

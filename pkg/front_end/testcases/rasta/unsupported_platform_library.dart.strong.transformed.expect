@@ -1,0 +1,7 @@
+library;
+import self as self;
+
+import "dart:html";
+import "dart:io";
+
+static method main() → dynamic {}

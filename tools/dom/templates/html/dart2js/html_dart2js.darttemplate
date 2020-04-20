@@ -5,7 +5,6 @@
 // DO NOT EDIT - unless you are editing documentation as per:
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:html library.
-
 /**
  * HTML elements and other resources for web-based applications that need to
  * interact with the browser and the DOM (Document Object Model).
@@ -16,19 +15,9 @@
  * check out the [Element] class, the base class for many of the HTML
  * DOM types.
  *
- * ## Other resources
+ * For information on writing web apps with Dart, see https://webdev.dartlang.org.
  *
- * * If you've never written a web app before, try our
- * tutorials&mdash;[A Game of Darts](http://dartlang.org/docs/tutorials).
- *
- * * To see some web-based Dart apps in action and to play with the code,
- * download
- * [Dart Editor](http://www.dartlang.org/#get-started)
- * and run its built-in examples.
- *
- * * For even more examples, see
- * [Dart HTML5 Samples](https://github.com/dart-lang/dart-html5-samples)
- * on Github.
+ * {@category Web}
  */
 library dart.dom.html;
 
@@ -37,7 +26,6 @@ import 'dart:collection' hide LinkedList, LinkedListEntry;
 import 'dart:_internal' hide Symbol;
 import 'dart:html_common';
 import 'dart:indexed_db';
-import 'dart:isolate';
 import "dart:convert";
 import 'dart:math';
 import 'dart:_native_typed_data';
@@ -47,6 +35,7 @@ import 'dart:svg' as svg;
 import 'dart:svg' show Matrix;
 import 'dart:svg' show SvgSvgElement;
 import 'dart:web_audio' as web_audio;
+import 'dart:web_audio' show AudioBuffer, AudioTrack, AudioTrackList;
 import 'dart:web_gl' as gl;
 import 'dart:web_gl' show RenderingContext,RenderingContext2;
 import 'dart:web_sql';
@@ -54,16 +43,17 @@ import 'dart:_js_helper' show
     convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,
     JSName, Native, Returns, ForceInline,
     findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord,
-    makeLeafDispatchRecord, registerGlobalObject;
+    makeLeafDispatchRecord, registerGlobalObject, applyExtension;
 import 'dart:_interceptors' show
-    Interceptor, JSExtendableArray, JSUInt31,
+    Interceptor, JavaScriptFunction, JSExtendableArray, JSUInt31,
     findInterceptorConstructorForType,
     findConstructorForNativeSubclassType,
     getNativeInterceptor,
     setDispatchProperty;
-import 'dart:_isolate_helper' show IsolateNatives;
 import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
 
+export 'dart:_internal' show HttpStatus;
+export 'dart:html_common' show promiseToFuture;
 export 'dart:math' show Rectangle, Point;
 
 $!GENERATED_DART_FILES
@@ -88,6 +78,7 @@ part '$AUXILIARY_DIR/ReadyState.dart';
 part '$AUXILIARY_DIR/WrappedList.dart';
 part '$AUXILIARY_DIR/_HttpRequestUtils.dart';
 part '$AUXILIARY_DIR/_ListIterators.dart';
+part '$AUXILIARY_DIR/dart2js_Console.dart';
 part '$AUXILIARY_DIR/dart2js_Conversions.dart';
 part '$AUXILIARY_DIR/dart2js_CustomElementSupport.dart';
 part '$AUXILIARY_DIR/dart2js_DOMImplementation.dart';
@@ -119,10 +110,18 @@ Window get window => JS('Window', 'window');
 HtmlDocument get document =>
     JS('returns:HtmlDocument;depends:none;effects:none;gvn:true', 'document');
 
+/// Convert a JS Promise to a Future<Map<String, dynamic>>.
+///
+/// On a successful result the native JS result will be converted to a Dart Map.
+/// See [convertNativeToDart_Dictionary]. On a rejected promise the error is
+/// forwarded without change.
+Future<Map<String, dynamic>$NULLABLE> promiseToFutureAsMap(jsPromise) =>
+  promiseToFuture(jsPromise).then(convertNativeToDart_Dictionary);
+
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.
 @Native("HTMLElement")
-class HtmlElement extends Element {
+class HtmlElement extends Element implements NoncedElement {
   factory HtmlElement() { throw new UnsupportedError("Not supported"); }
 
   /**
@@ -131,27 +130,17 @@ class HtmlElement extends Element {
    * This can only be called by subclasses from their created constructor.
    */
   HtmlElement.created() : super.created();
-}
 
-/**
- * Spawn a DOM isolate using the given URI in the same window.
- * This isolate is not concurrent.  It runs on the browser thread
- * with full access to the DOM.
- * Note: this API is still evolving and may move to dart:isolate.
- */
-@Experimental()
-Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
-  // TODO(17738): Implement this.
-  throw new UnimplementedError();
+  // From NoncedElement
+  String get nonce native;
+  set nonce(String value) native;
 }
-
-createCustomUpgrader(Type customElementClass, $this) => $this;
 
 /**
  * Emitted for any setlike IDL entry needs a callback signature.
  * Today there is only one.
  */
-@DomName('FontFaceSetForEachCallback')
-@Experimental() // untriaged
 typedef void FontFaceSetForEachCallback(
     FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set);
+
+WorkerGlobalScope get _workerSelf => JS('WorkerGlobalScope', 'self');

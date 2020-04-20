@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart.io;
+// @dart = 2.6
+
+library dart._http;
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
@@ -16,6 +18,7 @@ import "dart:typed_data";
 import "dart:isolate";
 
 part "../../../sdk/lib/_http/crypto.dart";
+part "../../../sdk/lib/_http/embedder_config.dart";
 part "../../../sdk/lib/_http/http_impl.dart";
 part "../../../sdk/lib/_http/http_date.dart";
 part "../../../sdk/lib/_http/http_parser.dart";
@@ -47,7 +50,7 @@ class WebSocketMessageCollector {
 
   void onMessageData(buffer) {
     if (buffer is String) {
-      buffer = UTF8.encode(buffer);
+      buffer = utf8.encode(buffer);
     }
     Expect.listEquals(expectedMessage, buffer);
     messageCount++;
@@ -99,7 +102,7 @@ void testFullMessages() {
     int messageCount = 0;
     // Use the same web socket protocol transformer for all frames.
     var transformer = new _WebSocketProtocolTransformer();
-    var controller = new StreamController(sync: true);
+    var controller = new StreamController<List<int>>(sync: true);
     WebSocketMessageCollector mc = new WebSocketMessageCollector(
         controller.stream.transform(transformer), message);
 
@@ -161,7 +164,7 @@ void testFullMessages() {
 void testFragmentedMessages() {
   // Use the same web socket protocol transformer for all frames.
   var transformer = new _WebSocketProtocolTransformer();
-  var controller = new StreamController(sync: true);
+  var controller = new StreamController<List<int>>(sync: true);
   WebSocketMessageCollector mc =
       new WebSocketMessageCollector(controller.stream.transform(transformer));
 
@@ -222,7 +225,7 @@ void testFragmentedMessages() {
 
 void testUnmaskedMessage() {
   var transformer = new _WebSocketProtocolTransformer(true);
-  var controller = new StreamController(sync: true);
+  var controller = new StreamController<List<int>>(sync: true);
   asyncStart();
   controller.stream.transform(transformer).listen((_) {}, onError: (e) {
     asyncEnd();

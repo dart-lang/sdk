@@ -7,6 +7,7 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "platform/utils.h"
+#include "vm/object.h"
 #include "vm/os.h"
 #include "vm/zone.h"
 
@@ -25,7 +26,7 @@ intptr_t ZoneTextBuffer::Printf(const char* format, ...) {
   va_start(args, format);
   intptr_t remaining = capacity_ - length_;
   ASSERT(remaining >= 0);
-  intptr_t len = OS::VSNPrint(buffer_ + length_, remaining, format, args);
+  intptr_t len = Utils::VSNPrint(buffer_ + length_, remaining, format, args);
   va_end(args);
   if (len >= remaining) {
     EnsureCapacity(len);
@@ -33,7 +34,8 @@ intptr_t ZoneTextBuffer::Printf(const char* format, ...) {
     ASSERT(remaining > len);
     va_list args2;
     va_start(args2, format);
-    intptr_t len2 = OS::VSNPrint(buffer_ + length_, remaining, format, args2);
+    intptr_t len2 =
+        Utils::VSNPrint(buffer_ + length_, remaining, format, args2);
     va_end(args2);
     ASSERT(len == len2);
   }
@@ -42,19 +44,33 @@ intptr_t ZoneTextBuffer::Printf(const char* format, ...) {
   return len;
 }
 
+void ZoneTextBuffer::AddChar(char ch) {
+  EnsureCapacity(sizeof(ch));
+  buffer_[length_] = ch;
+  length_++;
+  buffer_[length_] = '\0';
+}
+
 void ZoneTextBuffer::AddString(const char* s) {
   Printf("%s", s);
+}
+
+void ZoneTextBuffer::AddString(const String& s) {
+  Printf("%s", s.ToCString());
+}
+
+void ZoneTextBuffer::Clear() {
+  const intptr_t initial_capacity = 64;
+  buffer_ = reinterpret_cast<char*>(zone_->Alloc<char>(initial_capacity));
+  capacity_ = initial_capacity;
+  length_ = 0;
+  buffer_[length_] = '\0';
 }
 
 void ZoneTextBuffer::EnsureCapacity(intptr_t len) {
   intptr_t remaining = capacity_ - length_;
   if (remaining <= len) {
-    const int kBufferSpareCapacity = 64;  // Somewhat arbitrary.
-    // TODO(turnidge): do we need to guard against overflow or other
-    // security issues here? Text buffers are used by the debugger
-    // to send user-controlled data (e.g. values of string variables) to
-    // the debugger front-end.
-    intptr_t new_capacity = capacity_ + len + kBufferSpareCapacity;
+    intptr_t new_capacity = capacity_ + Utils::Maximum(capacity_, len);
     buffer_ = zone_->Realloc<char>(buffer_, capacity_, new_capacity);
     capacity_ = new_capacity;
   }

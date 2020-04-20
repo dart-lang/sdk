@@ -5,7 +5,6 @@
 // Regression test for the combined use of metatargets and static fields with
 // annotations.
 
-@MirrorsUsed(metaTargets: const [Reflectable])
 import 'dart:mirrors';
 
 class A {

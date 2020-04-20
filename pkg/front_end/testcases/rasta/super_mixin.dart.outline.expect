@@ -1,37 +1,78 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "./mixin_library.dart" as mix;
+import "mixin_library.dart" as mix;
 
-class Super<S extends core::Object> extends core::Object {
-  default constructor •() → void
+import "org-dartlang-testcase:///mixin_library.dart";
+
+class Super<S extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::Super<self::Super::S*>*
     ;
   method foo() → dynamic
     ;
   method f() → dynamic
     ;
 }
-abstract class _Super&Mixin^#T0^#T0<#T0 extends core::Object> = self::Super<self::_Super&Mixin^#T0^#T0::#T0> with mix::Mixin<self::_Super&Mixin^#T0^#T0::#T0> {
-}
-class C<V extends core::Object> extends self::_Super&Mixin^#T0^#T0<self::C::V> {
-  default constructor •() → void
+abstract class _C&Super&Mixin<V extends core::Object* = dynamic> = self::Super<self::_C&Super&Mixin::V*> with mix::Mixin<self::_C&Super&Mixin::V*> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_C&Super&Mixin<self::_C&Super&Mixin::V*>*
+    : super self::Super::•()
     ;
 }
-abstract class _Super&Mixin = self::Super<dynamic> with mix::Mixin<dynamic> {
-}
-class D extends self::_Super&Mixin {
-  default constructor •() → void
+class C<V extends core::Object* = dynamic> extends self::_C&Super&Mixin<self::C::V*> {
+  synthetic constructor •() → self::C<self::C::V*>*
     ;
 }
-class C2<V extends core::Object> = self::Super<self::C2::V> with mix::Mixin<self::C2::V> {
-  constructor •() → void
+abstract class _D&Super&Mixin = self::Super<dynamic> with mix::Mixin<dynamic> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_D&Super&Mixin*
+    : super self::Super::•()
+    ;
+}
+class D extends self::_D&Super&Mixin {
+  synthetic constructor •() → self::D*
+    ;
+}
+class C2<V extends core::Object* = dynamic> = self::Super<self::C2::V*> with mix::Mixin<self::C2::V*> {
+  synthetic constructor •() → self::C2<self::C2::V*>*
     : super self::Super::•()
     ;
 }
 class D2 = self::Super<dynamic> with mix::Mixin<dynamic> {
-  constructor •() → void
+  synthetic constructor •() → self::D2*
     : super self::Super::•()
     ;
 }
 static method main() → dynamic
+  ;
+
+library test.mixin_library;
+import self as mix;
+import "dart:core" as core;
+
+class Mixin<T extends core::Object* = dynamic> extends core::Object {
+  field dynamic x;
+  field dynamic y;
+  field dynamic z;
+  generic-covariant-impl field mix::Mixin::T* t;
+  synthetic constructor •() → mix::Mixin<mix::Mixin::T*>*
+    ;
+  method foo() → dynamic
+    ;
+  method g(generic-covariant-impl mix::Mixin::T* a) → mix::Mixin::T*
+    ;
+  method h() → dynamic
+    ;
+  method l() → dynamic
+    ;
+  method _privateMethod() → dynamic
+    ;
+  method publicMethod() → dynamic
+    ;
+}
+static method f() → dynamic
+  ;
+static method V() → dynamic
+  ;
+static method _private() → dynamic
+  ;
+static method foo(dynamic m) → dynamic
   ;

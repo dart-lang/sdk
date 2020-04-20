@@ -13,32 +13,33 @@ import subprocess
 import bot
 import bot_utils
 
-TARGETS = [
-  'language_2',
-  'corelib_2',
-  'lib_2',
-  # TODO(rnystrom): Remove this when all tests have been migrated out.
-  'lib_strong'
-]
+TARGETS = ['language_2', 'corelib_2', 'lib_2']
 
-FLAGS = [
-  '--strong'
-]
+FLAGS = ['--strong']
 
 if __name__ == '__main__':
-  with bot.BuildStep('Build SDK and dartdevc test packages'):
-    bot.RunProcess([sys.executable, './tools/build.py', '--mode=release',
-         '--arch=x64', 'dartdevc_test'])
+    with bot.BuildStep('Build SDK and dartdevc test packages'):
+        bot.RunProcess([
+            sys.executable, './tools/build.py', '--mode=release', '--arch=x64',
+            'dartdevc_test'
+        ])
 
-  with bot.BuildStep('Run tests'):
-    (bot_name, _) = bot.GetBotName()
-    system = bot_utils.GetSystemFromName(bot_name)
-    if system == 'linux':
-      bot.RunProcess([
-        'xvfb-run', sys.executable, './tools/test.py', '--strong', '-mrelease',
-        '-cdartdevc', '-rchrome', '-ax64', '--report', '--time', '--checked',
-        '--progress=buildbot', '--write-result-log'] + TARGETS )
-    else:
-      info = bot.BuildInfo('dartdevc', 'chrome', 'release', system,
-          arch='x64', checked=True)
-      bot.RunTest('dartdevc', info, TARGETS, flags=FLAGS)
+    with bot.BuildStep('Run tests'):
+        (bot_name, _) = bot.GetBotName()
+        system = bot_utils.GetSystemFromName(bot_name)
+        if system == 'linux':
+            bot.RunProcess([
+                'xvfb-run', sys.executable, './tools/test.py', '--strong',
+                '-mrelease', '-cdartdevc', '-rchrome', '-ax64', '--report',
+                '--time', '--checked', '--progress=buildbot',
+                '--write-result-log'
+            ] + TARGETS)
+        else:
+            info = bot.BuildInfo(
+                'dartdevc',
+                'chrome',
+                'release',
+                system,
+                arch='x64',
+                checked=True)
+            bot.RunTest('dartdevc', info, TARGETS, flags=FLAGS)

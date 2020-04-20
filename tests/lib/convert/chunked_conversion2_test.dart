@@ -28,7 +28,7 @@ void testBase() {
   Expect.equals(2, byteSink.accumulator[1][0]);
 }
 
-class MyChunkedSink extends ChunkedConversionSink {
+class MyChunkedSink extends ChunkedConversionSink<List<int>> {
   var accumulator = [];
   add(List<int> bytes) {
     accumulator.add(bytes);

@@ -5,7 +5,8 @@
 #ifndef RUNTIME_VM_KERNEL_H_
 #define RUNTIME_VM_KERNEL_H_
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#include <memory>
+
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
@@ -14,7 +15,26 @@
 #include "vm/token_position.h"
 
 namespace dart {
+namespace kernel {
+class NameIndex {
+ public:
+  static const int kInvalidName = -1;
 
+  NameIndex() : value_(kInvalidName) {}
+  explicit NameIndex(int value) : value_(value) {}
+
+  operator int() const { return value_; }
+
+ private:
+  int value_;
+};
+}  // namespace kernel
+}  // namespace dart
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+namespace dart {
+
+class BitVector;
 class Field;
 class ParsedFunction;
 class Zone;
@@ -22,6 +42,8 @@ class Zone;
 namespace kernel {
 
 class Reader;
+struct ProcedureAttributesMetadata;
+class TableSelectorMetadata;
 
 class StringIndex {
  public:
@@ -34,93 +56,188 @@ class StringIndex {
   int value_;
 };
 
-class NameIndex {
- public:
-  NameIndex() : value_(-1) {}
-  explicit NameIndex(int value) : value_(value) {}
-
-  operator int() const { return value_; }
-
- private:
-  int value_;
-};
-
 const uint8_t kNativeYieldFlags = 0x2;
 
 enum LogicalOperator { kAnd, kOr };
 
+enum NonNullableByDefaultCompiledMode {
+  kNNBDDisabled,
+  kNNBDWeak,
+  kNNBDStrong,
+  kNNBDAgnostic
+};
+
 class Program {
  public:
-  ~Program() {
-    if (buffer_ownership_ && kernel_data_ != NULL) {
-      ASSERT(release_callback != NULL);
-      release_callback(const_cast<uint8_t*>(kernel_data_));
-    }
-    kernel_data_ = NULL;
-  }
+  // Read a kernel Program from the given Reader. Note the returned Program
+  // can potentially contain several "sub programs", though the library count
+  // etc will reference the last "sub program" only.
+  static std::unique_ptr<Program> ReadFrom(Reader* reader,
+                                           const char** error = nullptr);
 
-  /**
-   * Read a kernel Program from the given Reader. Note the returned Program
-   * can potentially contain several "sub programs", though the library count
-   * etc will reference the last "sub program" only.
-   * @param reader
-   * @param take_buffer_ownership if set to true, the release callback will be
-   * called upon Program destruction, i.e. the data from reader will likely be
-   * released. If set to false the data will not be released. This is for
-   * instance useful for creating Programs out of "sub programs" where each
-   * "sub program" should not try to release the buffer.
-   * @return
-   */
-  static Program* ReadFrom(Reader* reader, bool take_buffer_ownership = true);
+  static std::unique_ptr<Program> ReadFromFile(const char* script_uri,
+                                               const char** error = nullptr);
+  static std::unique_ptr<Program> ReadFromBuffer(const uint8_t* buffer,
+                                                 intptr_t buffer_length,
+                                                 const char** error = nullptr);
+  static std::unique_ptr<Program> ReadFromTypedData(
+      const ExternalTypedData& typed_data, const char** error = nullptr);
 
   bool is_single_program() { return single_program_; }
+  uint32_t binary_version() { return binary_version_; }
   NameIndex main_method() { return main_method_reference_; }
   intptr_t source_table_offset() const { return source_table_offset_; }
   intptr_t string_table_offset() const { return string_table_offset_; }
   intptr_t name_table_offset() const { return name_table_offset_; }
+  intptr_t metadata_payloads_offset() const {
+    return metadata_payloads_offset_;
+  }
+  intptr_t metadata_mappings_offset() const {
+    return metadata_mappings_offset_;
+  }
+  intptr_t constant_table_offset() { return constant_table_offset_; }
+  const ExternalTypedData* typed_data() { return typed_data_; }
   const uint8_t* kernel_data() { return kernel_data_; }
   intptr_t kernel_data_size() { return kernel_data_size_; }
   intptr_t library_count() { return library_count_; }
-  void set_release_buffer_callback(Dart_ReleaseBufferCallback callback) {
-    release_callback = callback;
-  }
 
  private:
-  Program()
-      : kernel_data_(NULL), kernel_data_size_(-1), release_callback(NULL) {}
+  Program() : typed_data_(NULL), kernel_data_(NULL), kernel_data_size_(-1) {}
 
   bool single_program_;
-  bool buffer_ownership_;
+  uint32_t binary_version_;
   NameIndex main_method_reference_;  // Procedure.
+  NonNullableByDefaultCompiledMode compilation_mode_;
   intptr_t library_count_;
 
   // The offset from the start of the binary to the start of the source table.
   intptr_t source_table_offset_;
 
+  // The offset from the start of the binary to the start of the constant table.
+  intptr_t constant_table_offset_;
+
   // The offset from the start of the binary to the canonical name table.
   intptr_t name_table_offset_;
+
+  // The offset from the start of the binary to the metadata payloads.
+  intptr_t metadata_payloads_offset_;
+
+  // The offset from the start of the binary to the metadata mappings.
+  intptr_t metadata_mappings_offset_;
 
   // The offset from the start of the binary to the start of the string table.
   intptr_t string_table_offset_;
 
+  const ExternalTypedData* typed_data_;
   const uint8_t* kernel_data_;
   intptr_t kernel_data_size_;
-  Dart_ReleaseBufferCallback release_callback;
 
   DISALLOW_COPY_AND_ASSIGN(Program);
 };
 
-ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field);
+class KernelLineStartsReader {
+ public:
+  KernelLineStartsReader(const dart::TypedData& line_starts_data,
+                         dart::Zone* zone);
 
-bool FieldHasFunctionLiteralInitializer(const Field& field,
-                                        TokenPosition* start,
-                                        TokenPosition* end);
+  ~KernelLineStartsReader() { delete helper_; }
+
+  int32_t DeltaAt(intptr_t index) const {
+    return helper_->At(line_starts_data_, index);
+  }
+
+  intptr_t LineNumberForPosition(intptr_t position) const;
+
+  void LocationForPosition(intptr_t position,
+                           intptr_t* line,
+                           intptr_t* col) const;
+
+  void TokenRangeAtLine(intptr_t source_length,
+                        intptr_t line_number,
+                        dart::TokenPosition* first_token_index,
+                        dart::TokenPosition* last_token_index) const;
+
+ private:
+  class KernelLineStartsHelper {
+   public:
+    KernelLineStartsHelper() {}
+    virtual ~KernelLineStartsHelper() {}
+    virtual int32_t At(const dart::TypedData& data, intptr_t index) const = 0;
+
+   private:
+    DISALLOW_COPY_AND_ASSIGN(KernelLineStartsHelper);
+  };
+
+  class KernelInt8LineStartsHelper : public KernelLineStartsHelper {
+   public:
+    KernelInt8LineStartsHelper() {}
+    virtual int32_t At(const dart::TypedData& data, intptr_t index) const;
+
+   private:
+    DISALLOW_COPY_AND_ASSIGN(KernelInt8LineStartsHelper);
+  };
+
+  class KernelInt16LineStartsHelper : public KernelLineStartsHelper {
+   public:
+    KernelInt16LineStartsHelper() {}
+    virtual int32_t At(const dart::TypedData& data, intptr_t index) const;
+
+   private:
+    DISALLOW_COPY_AND_ASSIGN(KernelInt16LineStartsHelper);
+  };
+
+  class KernelInt32LineStartsHelper : public KernelLineStartsHelper {
+   public:
+    KernelInt32LineStartsHelper() {}
+    virtual int32_t At(const dart::TypedData& data, intptr_t index) const;
+
+   private:
+    DISALLOW_COPY_AND_ASSIGN(KernelInt32LineStartsHelper);
+  };
+
+  const dart::TypedData& line_starts_data_;
+  KernelLineStartsHelper* helper_;
+
+  DISALLOW_COPY_AND_ASSIGN(KernelLineStartsReader);
+};
+
+void CollectTokenPositionsFor(const Script& script);
+
+RawObject* EvaluateMetadata(const Field& metadata_field,
+                            bool is_annotations_offset);
+RawObject* BuildParameterDescriptor(const Function& function);
+
+// Fills in [is_covariant] and [is_generic_covariant_impl] vectors
+// according to covariance attributes of [function] parameters.
+//
+// [is_covariant] and [is_generic_covariant_impl] should contain bitvectors
+// of function.NumParameters() length.
+void ReadParameterCovariance(const Function& function,
+                             BitVector* is_covariant,
+                             BitVector* is_generic_covariant_impl);
+
+// Returns true if the given function needs dynamic invocation forwarder:
+// that is if any of the arguments require checking on the dynamic
+// call-site: if function has no parameters or has only covariant parameters
+// as such function already checks all of its parameters.
+bool NeedsDynamicInvocationForwarder(const Function& function);
+
+// Returns a list of ParameterTypeChecks needed by a dynamic invocation
+// forwarder that targets [function]. Indices in these checks correspond to
+// bytecode frame indices.
+RawArray* CollectDynamicInvocationChecks(const Function& function);
+
+ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
+                                                  Zone* zone);
+
+ProcedureAttributesMetadata ProcedureAttributesOf(const Field& field,
+                                                  Zone* zone);
+
+TableSelectorMetadata* TableSelectorMetadataForProgram(
+    const KernelProgramInfo& info,
+    Zone* zone);
 
 }  // namespace kernel
-
-kernel::Program* ReadPrecompiledKernelFromBuffer(const uint8_t* buffer,
-                                                 intptr_t buffer_length);
-
 }  // namespace dart
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

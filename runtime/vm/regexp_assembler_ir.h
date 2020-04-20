@@ -61,10 +61,13 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   // A "greedy loop" is a loop that is both greedy and with a simple
   // body. It has a particularly simple implementation.
   virtual void CheckGreedyLoop(BlockLabel* on_tos_equals_current_position);
-  virtual void CheckNotAtStart(BlockLabel* on_not_at_start);
+  virtual void CheckNotAtStart(intptr_t cp_offset, BlockLabel* on_not_at_start);
   virtual void CheckNotBackReference(intptr_t start_reg,
+                                     bool read_backward,
                                      BlockLabel* on_no_match);
   virtual void CheckNotBackReferenceIgnoreCase(intptr_t start_reg,
+                                               bool read_backward,
+                                               bool unicode,
                                                BlockLabel* on_no_match);
   virtual void CheckNotCharacter(uint32_t c, BlockLabel* on_not_equal);
   virtual void CheckNotCharacterAfterAnd(uint32_t c,
@@ -133,7 +136,9 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   void FinalizeRegistersArray();
 
  private:
-  intptr_t GetNextDeoptId() const { return thread_->GetNextDeoptId(); }
+  intptr_t GetNextDeoptId() const {
+    return thread_->compiler_state().GetNextDeoptId();
+  }
 
   // Generate the contents of preset blocks. The entry block is the entry point
   // of the generated code.
@@ -223,37 +228,34 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   // Used by generated RegExp code.
   ConstantInstr* WordCharacterMapConstant() const;
 
-  ComparisonInstr* Comparison(ComparisonKind kind,
-                              PushArgumentInstr* lhs,
-                              PushArgumentInstr* rhs);
+  ComparisonInstr* Comparison(ComparisonKind kind, Value* lhs, Value* rhs);
   ComparisonInstr* Comparison(ComparisonKind kind,
                               Definition* lhs,
                               Definition* rhs);
 
   InstanceCallInstr* InstanceCall(const InstanceCallDescriptor& desc,
-                                  PushArgumentInstr* arg1) const;
+                                  Value* arg1) const;
   InstanceCallInstr* InstanceCall(const InstanceCallDescriptor& desc,
-                                  PushArgumentInstr* arg1,
-                                  PushArgumentInstr* arg2) const;
+                                  Value* arg1,
+                                  Value* arg2) const;
   InstanceCallInstr* InstanceCall(const InstanceCallDescriptor& desc,
-                                  PushArgumentInstr* arg1,
-                                  PushArgumentInstr* arg2,
-                                  PushArgumentInstr* arg3) const;
-  InstanceCallInstr* InstanceCall(
-      const InstanceCallDescriptor& desc,
-      ZoneGrowableArray<PushArgumentInstr*>* arguments) const;
+                                  Value* arg1,
+                                  Value* arg2,
+                                  Value* arg3) const;
+  InstanceCallInstr* InstanceCall(const InstanceCallDescriptor& desc,
+                                  InputsArray* arguments) const;
 
   StaticCallInstr* StaticCall(const Function& function,
                               ICData::RebindRule rebind_rule) const;
   StaticCallInstr* StaticCall(const Function& function,
-                              PushArgumentInstr* arg1,
+                              Value* arg1,
                               ICData::RebindRule rebind_rule) const;
   StaticCallInstr* StaticCall(const Function& function,
-                              PushArgumentInstr* arg1,
-                              PushArgumentInstr* arg2,
+                              Value* arg1,
+                              Value* arg2,
                               ICData::RebindRule rebind_rule) const;
   StaticCallInstr* StaticCall(const Function& function,
-                              ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                              InputsArray* arguments,
                               ICData::RebindRule rebind_rule) const;
 
   // Creates a new block consisting simply of a goto to dst.
@@ -261,21 +263,18 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   IndirectEntryInstr* IndirectWithJoinGoto(JoinEntryInstr* dst);
 
   // Adds, respectively subtracts lhs and rhs and returns the result.
-  Definition* Add(PushArgumentInstr* lhs, PushArgumentInstr* rhs);
-  Definition* Sub(PushArgumentInstr* lhs, PushArgumentInstr* rhs);
+  Definition* Add(Value* lhs, Value* rhs);
+  Definition* Sub(Value* lhs, Value* rhs);
 
   LoadLocalInstr* LoadLocal(LocalVariable* local) const;
   void StoreLocal(LocalVariable* local, Value* value);
 
-  PushArgumentInstr* PushArgument(Value* value);
-  PushArgumentInstr* PushLocal(LocalVariable* local);
+  Value* PushLocal(LocalVariable* local);
 
-  PushArgumentInstr* PushRegisterIndex(intptr_t reg);
+  Value* PushRegisterIndex(intptr_t reg);
   Value* LoadRegister(intptr_t reg);
   void StoreRegister(intptr_t reg, intptr_t value);
-  void StoreRegister(PushArgumentInstr* registers,
-                     PushArgumentInstr* index,
-                     PushArgumentInstr* value);
+  void StoreRegister(Value* registers, Value* index, Value* value);
 
   // Load a number of characters at the given offset from the
   // current position, into the current-character register.
@@ -342,7 +341,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   void GrowStack();
 
   // Prints the specified argument. Used for debugging.
-  void Print(PushArgumentInstr* argument);
+  void Print(Value* argument);
 
   // A utility class tracking ids of various objects such as blocks, temps, etc.
   class IdAllocator : public ValueObject {
@@ -437,7 +436,6 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
 
   IdAllocator block_id_;
   IdAllocator temp_id_;
-  IdAllocator arg_id_;
   IdAllocator local_id_;
   IdAllocator indirect_id_;
 };

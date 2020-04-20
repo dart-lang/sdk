@@ -7,7 +7,6 @@
 
 library test.type_variable_owner;
 
-@MirrorsUsed(targets: "test.type_variable_owner")
 import "dart:mirrors";
 
 import "package:expect/expect.dart";
@@ -20,9 +19,9 @@ testTypeVariableOfClass() {
   ClassMirror aDecl = reflectClass(A);
   ClassMirror bDecl = reflectClass(B);
   ClassMirror aOfInt = reflect(new A<int>()).type;
-  ClassMirror aOfR = bDecl.superclass;
+  ClassMirror aOfR = bDecl.superclass!;
   ClassMirror bOfString = reflect(new B<String>()).type;
-  ClassMirror aOfString = bOfString.superclass;
+  ClassMirror aOfString = bOfString.superclass!;
 
   Expect.equals(aDecl, aDecl.typeVariables[0].owner);
   Expect.equals(aDecl, aOfInt.typeVariables[0].owner);
@@ -34,16 +33,16 @@ testTypeVariableOfClass() {
 }
 
 typedef bool Predicate<T>(T t);
-Predicate<List> somePredicateOfList;
+late Predicate<List> somePredicateOfList;
 
 testTypeVariableOfTypedef() {
   LibraryMirror thisLibrary =
       currentMirrorSystem().findLibrary(#test.type_variable_owner);
 
-  TypedefMirror predicateOfDynamic = reflectType(Predicate);
+  TypedefMirror predicateOfDynamic = reflectType(Predicate) as TypedefMirror;
   TypedefMirror predicateOfList =
-      (thisLibrary.declarations[#somePredicateOfList] as VariableMirror).type;
-  TypedefMirror predicateDecl = predicateOfList.originalDeclaration;
+      (thisLibrary.declarations[#somePredicateOfList] as VariableMirror).type as TypedefMirror;
+  TypedefMirror predicateDecl = predicateOfList.originalDeclaration as TypedefMirror;
 
   Expect.equals(predicateDecl, predicateOfDynamic.typeVariables[0].owner);
   Expect.equals(predicateDecl, predicateOfList.typeVariables[0].owner);

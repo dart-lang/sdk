@@ -1,0 +1,19 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/issue_000045.dart:5:18: Error: String starting with """ must end with """.
+// main() => """${1}
+//                  ^...
+//
+// pkg/front_end/testcases/rasta/issue_000045.dart:5:18: Error: Expected ';' after this.
+// main() => """${1}
+//                  ^...
+//
+// pkg/front_end/testcases/rasta/issue_000045.dart:6:1: Error: Unexpected token ''.
+//
+import self as self;
+
+static method main() → dynamic
+  return "${1}
+\"\"\"";

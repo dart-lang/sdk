@@ -14,8 +14,13 @@ void testRunShell() {
   test(args) {
     asyncStart();
     var script = Platform.script.resolve("process_echo_util.dart").toFilePath();
-    Process
-        .run(Platform.executable, [script]..addAll(args), runInShell: true)
+    Process.run(
+            Platform.executable,
+            []
+              ..addAll(Platform.executableArguments)
+              ..add(script)
+              ..addAll(args),
+            runInShell: true)
         .then((process_result) {
       var result;
       if (Platform.operatingSystem == "windows") {
@@ -49,7 +54,7 @@ void testRunShell() {
 }
 
 void testBadRunShell() {
-  test(exe, [args = const []]) {
+  test(exe, [List<String> args = const []]) {
     asyncStart();
     Process.run(exe, args, runInShell: true).then((result) {
       if (result.exitCode == 0) {

@@ -5,7 +5,7 @@
 #ifndef RUNTIME_VM_HANDLES_IMPL_H_
 #define RUNTIME_VM_HANDLES_IMPL_H_
 
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/thread.h"
 #include "vm/visitor.h"
 
@@ -82,7 +82,7 @@ uword Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
   ASSERT(thread->top_handle_scope() != NULL);
-  ASSERT(thread->no_handle_scope_depth() == 0);
+  ASSERT(thread->MayAllocateHandles());
 #endif  // DEBUG
   Handles* handles = zone->handles();
   ASSERT(handles != NULL);
@@ -96,8 +96,8 @@ uword Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     AllocateZoneHandle(Zone* zone) {
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
-  ASSERT(thread->zone() == zone);
-  ASSERT(thread->no_handle_scope_depth() == 0);
+  ASSERT(zone->ContainsNestedZone(thread->zone()));
+  ASSERT(thread->MayAllocateHandles());
 #endif  // DEBUG
   Handles* handles = zone->handles();
   ASSERT(handles != NULL);
@@ -156,7 +156,11 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
                  CountScopedHandles());
   }
   if (scoped_blocks_->next_block() == NULL) {
-    scoped_blocks_->set_next_block(new HandlesBlock(NULL));
+    HandlesBlock* block = new HandlesBlock(NULL);
+    if (block == NULL) {
+      OUT_OF_MEMORY();
+    }
+    scoped_blocks_->set_next_block(block);
   }
   scoped_blocks_ = scoped_blocks_->next_block();
   scoped_blocks_->set_next_handle_slot(0);
@@ -203,7 +207,9 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
                  CountScopedHandles());
   }
   zone_blocks_ = new HandlesBlock(zone_blocks_);
-  ASSERT(zone_blocks_ != NULL);
+  if (zone_blocks_ == NULL) {
+    OUT_OF_MEMORY();
+  }
 }
 
 #if defined(DEBUG)

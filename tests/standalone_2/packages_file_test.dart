@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
+
 import "dart:async";
 import "dart:io";
-import "dart:convert" show JSON;
+import "dart:convert" show json;
 import "package:path/path.dart" as p;
 import "package:async_helper/async_helper.dart";
 
@@ -620,7 +623,7 @@ Future testConfiguration(Configuration conf) async {
   try {
     var output = await execDart(conf.mainFile,
         root: conf.root, config: conf.config, scriptArgs: conf.args);
-    match(JSON.decode(output), conf.expect, description, output);
+    match(json.decode(output), conf.expect, description, output);
   } catch (e, s) {
     // Unexpected error calling execDart or parsing the result.
     // Report it and continue.
@@ -655,7 +658,7 @@ const String improt = "import"; // Avoid multitest import rewriting.
 /// a few package URIs. This script will be invoked in different settings,
 /// and the result will be parsed and compared to the expectations.
 const String testMain = """
-$improt "dart:convert" show JSON;
+$improt "dart:convert" show json;
 $improt "dart:io" show Platform, Directory;
 $improt "dart:isolate" show Isolate;
 $improt "package:foo/foo.dart" deferred as foo;
@@ -678,7 +681,7 @@ main(_) async {
     .loadLibrary()
     .timeout(const Duration(seconds: 1))
     .then((_) => foo.x, onError: (_) => null);
-  print(JSON.encode({
+  print(json.encode({
     "cwd": cwd.path,
     "base": base?.toString(),
     "script": script?.toString(),
@@ -833,7 +836,7 @@ void createFiles(Directory tempDir, String subDir, Map content) {
 /// The file contents are run through [fixPaths] to allow them to be self-
 /// referential.
 Future<HttpServer> startServer(Map files) async {
-  return (await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 0))
+  return (await HttpServer.bind(InternetAddress.loopbackIPv4, 0))
     ..forEach((request) {
       var result = files;
       onFailure:
@@ -856,7 +859,7 @@ Future<HttpServer> startServer(Map files) async {
         }
       }
       request.response
-        ..statusCode = HttpStatus.NOT_FOUND
+        ..statusCode = HttpStatus.notFound
         ..close();
     });
 }
@@ -984,7 +987,7 @@ class Configuration {
         "  main  : $mainFile\n"
         "  args  : ${args.map((x) => '"$x"').join(" ")}\n"
         ") : expect {\n${expect.keys.map((k) =>
-           '  "$k"'.padRight(6) + ":${JSON.encode(expect[k])}\n").join()}"
+           '  "$k"'.padRight(6) + ":${json.encode(expect[k])}\n").join()}"
         "}";
   }
 }

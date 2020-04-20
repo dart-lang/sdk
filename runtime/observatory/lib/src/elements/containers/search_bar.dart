@@ -16,7 +16,7 @@ class SearchResultSelected {
 
 typedef Iterable<dynamic> SearchBarSearchCallback(Pattern pattern);
 
-class SearchBarElement extends HtmlElement implements Renderable {
+class SearchBarElement extends CustomElement implements Renderable {
   static const tag = const Tag<SearchBarElement>('search-bar');
 
   RenderingScheduler<SearchBarElement> _r;
@@ -58,15 +58,15 @@ class SearchBarElement extends HtmlElement implements Renderable {
       {bool isOpen: false, Element workspace, RenderingQueue queue}) {
     assert(search != null);
     assert(isOpen != null);
-    SearchBarElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    SearchBarElement e = new SearchBarElement.created();
+    e._r = new RenderingScheduler<SearchBarElement>(e, queue: queue);
     e._search = search;
     e._isOpen = isOpen;
     e._workspace = workspace;
     return e;
   }
 
-  SearchBarElement.created() : super.created();
+  SearchBarElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -128,7 +128,7 @@ class SearchBarElement extends HtmlElement implements Renderable {
           }
         });
       _resultsArea = new SpanElement();
-      children = [
+      children = <Element>[
         _input,
         _resultsArea,
         new ButtonElement()
@@ -138,7 +138,7 @@ class SearchBarElement extends HtmlElement implements Renderable {
           })
       ];
     }
-    _resultsArea.children = [
+    _resultsArea.nodes = [
       new ButtonElement()
         ..text = '▲'
         ..disabled = _results.isEmpty

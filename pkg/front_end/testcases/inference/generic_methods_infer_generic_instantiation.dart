@@ -12,7 +12,7 @@ class C {
   T m<T extends num>(T x, T y) => null;
 }
 
-main() {
+test() {
   takeIII(math.max);
   takeDDD(math.max);
   takeNNN(math.max);
@@ -103,3 +103,5 @@ void takeOOO(num fn(Object a, Object b)) {}
 void takeOOI(int fn(Object a, Object b)) {}
 void takeIIO(Object fn(int a, int b)) {}
 void takeDDO(Object fn(double a, double b)) {}
+
+main() {}

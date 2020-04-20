@@ -5,52 +5,50 @@
 /// Analysis to determine how to generate code for typed JavaScript interop.
 library compiler.src.js_backend.js_interop_analysis;
 
-import '../elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionDynamicType, ResolutionFunctionType;
+import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../universe/selector.dart' show Selector;
+import '../universe/codegen_world_builder.dart';
 import '../universe/world_builder.dart' show SelectorConstraints;
-import 'js_backend.dart' show JavaScriptBackend;
+import 'namer.dart';
+import 'native_data.dart';
 
-class JsInteropAnalysis {
-  final JavaScriptBackend backend;
+jsAst.Statement buildJsInteropBootstrap(
+    CodegenWorld codegenWorld, NativeBasicData nativeBasicData, Namer namer) {
+  if (!nativeBasicData.isJsInteropUsed) return null;
+  List<jsAst.Statement> statements = <jsAst.Statement>[];
+  codegenWorld.forEachInvokedName(
+      (String name, Map<Selector, SelectorConstraints> selectors) {
+    selectors.forEach((Selector selector, SelectorConstraints constraints) {
+      if (selector.isClosureCall) {
+        // TODO(jacobr): support named arguments.
+        if (selector.namedArgumentCount > 0) return;
+        int argumentCount = selector.argumentCount;
+        String candidateParameterNames =
+            'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        List<String> parameters = new List<String>.generate(
+            argumentCount, (i) => candidateParameterNames[i]);
 
-  JsInteropAnalysis(this.backend);
-
-  jsAst.Statement buildJsInteropBootstrap() {
-    if (!backend.compiler.frontendStrategy.nativeBasicData.isJsInteropUsed)
-      return null;
-    List<jsAst.Statement> statements = <jsAst.Statement>[];
-    backend.compiler.codegenWorldBuilder.forEachInvokedName(
-        (String name, Map<Selector, SelectorConstraints> selectors) {
-      selectors.forEach((Selector selector, SelectorConstraints constraints) {
-        if (selector.isClosureCall) {
-          // TODO(jacobr): support named arguments.
-          if (selector.namedArgumentCount > 0) return;
-          int argumentCount = selector.argumentCount;
-          var candidateParameterNames =
-              'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-          var parameters = new List<String>.generate(
-              argumentCount, (i) => candidateParameterNames[i]);
-
-          var name = backend.namer.invocationName(selector);
-          statements.add(js.statement(
-              'Function.prototype.# = function(#) { return this(#) }',
-              [name, parameters, parameters]));
-        }
-      });
+        jsAst.Name name = namer.invocationName(selector);
+        statements.add(js.statement(
+            'Function.prototype.# = function(#) { return this(#) }',
+            [name, parameters, parameters]));
+      }
     });
-    return new jsAst.Block(statements);
-  }
+  });
+  return new jsAst.Block(statements);
+}
 
-  ResolutionFunctionType buildJsFunctionType() {
-    // TODO(jacobr): consider using codegenWorldBuilder.isChecks to determine the
-    // range of positional arguments that need to be supported by JavaScript
-    // function types.
-    return new ResolutionFunctionType.synthesized(
-        const ResolutionDynamicType(),
-        [],
-        new List<ResolutionDartType>.filled(16, const ResolutionDynamicType()));
-  }
+FunctionType buildJsFunctionType(DartTypes dartTypes) {
+  // TODO(jacobr): consider using codegenWorldBuilder.isChecks to determine the
+  // range of positional arguments that need to be supported by JavaScript
+  // function types.
+  return dartTypes.functionType(
+      dartTypes.dynamicType(),
+      const <DartType>[],
+      new List<DartType>.filled(16, dartTypes.dynamicType()),
+      const <String>[],
+      const <DartType>[],
+      const <FunctionTypeVariable>[]);
 }

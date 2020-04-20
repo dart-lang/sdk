@@ -28,12 +28,25 @@ class AppSnapshot {
 
 class Snapshot {
  public:
-  static void GenerateScript(const char* snapshot_filename);
+  static void GenerateKernel(const char* snapshot_filename,
+                             const char* script_name,
+                             const char* package_config);
   static void GenerateAppJIT(const char* snapshot_filename);
-  static void GenerateAppAOTAsBlobs(const char* snapshot_filename);
   static void GenerateAppAOTAsAssembly(const char* snapshot_filename);
 
-  static AppSnapshot* TryReadAppSnapshot(const char* script_name);
+  static AppSnapshot* TryReadAppendedAppSnapshotElf(const char* container_path);
+  static AppSnapshot* TryReadAppSnapshot(
+      const char* script_name,
+      bool force_load_elf_from_memory = false);
+  static void WriteAppSnapshot(const char* filename,
+                               uint8_t* vm_data_buffer,
+                               intptr_t vm_data_size,
+                               uint8_t* vm_instructions_buffer,
+                               intptr_t vm_instructions_size,
+                               uint8_t* isolate_data_buffer,
+                               intptr_t isolate_data_size,
+                               uint8_t* isolate_instructions_buffer,
+                               intptr_t isolate_instructions_size);
 
  private:
   DISALLOW_ALLOCATION();

@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -38,29 +39,28 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return findOffset(search) + search.length;
   }
 
-  /**
-   * Returns the [SimpleIdentifier] at the given search pattern.
-   */
+  /// Returns the [SimpleIdentifier] at the given search pattern.
   SimpleIdentifier findIdentifier(String search) {
-    return findNodeAtString(search, (node) => node is SimpleIdentifier);
+    return findNodeAtString(search, (node) => node is SimpleIdentifier)
+        as SimpleIdentifier;
   }
 
   AstNode findNodeAtOffset(int offset, [Predicate<AstNode> predicate]) {
-    AstNode result = new NodeLocator(offset).searchWithin(testUnit);
+    var result = NodeLocator(offset).searchWithin(testUnit);
     if (result != null && predicate != null) {
-      result = result.getAncestor(predicate);
+      result = result.thisOrAncestorMatching(predicate);
     }
     return result;
   }
 
   AstNode findNodeAtString(String search, [Predicate<AstNode> predicate]) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     return findNodeAtOffset(offset, predicate);
   }
 
   Element findNodeElementAtString(String search,
       [Predicate<AstNode> predicate]) {
-    AstNode node = findNodeAtString(search, predicate);
+    var node = findNodeAtString(search, predicate);
     if (node == null) {
       return null;
     }
@@ -68,15 +68,15 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   int findOffset(String search) {
-    int offset = testCode.indexOf(search);
+    var offset = testCode.indexOf(search);
     expect(offset, isNonNegative, reason: "Not found '$search' in\n$testCode");
     return offset;
   }
 
   int getLeadingIdentifierLength(String search) {
-    int length = 0;
+    var length = 0;
     while (length < search.length) {
-      int c = search.codeUnitAt(length);
+      var c = search.codeUnitAt(length);
       if (c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0)) {
         length++;
         continue;
@@ -94,7 +94,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return length;
   }
 
-  Future<Null> resolveTestUnit(String code) async {
+  Future<void> resolveTestUnit(String code) async {
     addTestSource(code);
     var result = await driver.getResult(testFile);
     testUnit = (result).unit;
@@ -109,13 +109,13 @@ class AbstractSingleUnitTest extends AbstractContextTest {
             error.errorCode != HintCode.UNUSED_LOCAL_VARIABLE;
       }), isEmpty);
     }
-    testUnitElement = testUnit.element;
+    testUnitElement = testUnit.declaredElement;
     testLibraryElement = testUnitElement.library;
   }
 
   @override
   void setUp() {
     super.setUp();
-    testFile = provider.convertPath('/test.dart');
+    testFile = convertPath('/test.dart');
   }
 }

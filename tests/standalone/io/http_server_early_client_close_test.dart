@@ -7,10 +7,10 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
+import "package:expect/expect.dart";
 
 Future sendData(List<int> data, int port) {
   return Socket.connect("127.0.0.1", port).then((socket) {
@@ -25,8 +25,7 @@ Future sendData(List<int> data, int port) {
 }
 
 class EarlyCloseTest {
-  EarlyCloseTest(this.data,
-      [String this.exception, bool this.expectRequest = false]);
+  EarlyCloseTest(this.data, [this.exception, this.expectRequest = false]);
 
   Future execute() {
     return HttpServer.bind("127.0.0.1", 0).then((server) {
@@ -57,11 +56,11 @@ class EarlyCloseTest {
         c.complete(null);
       });
 
-      List<int> d;
+      List<int>? d;
       if (data is List<int>) d = data;
       if (data is String) d = data.codeUnits;
       if (d == null) Expect.fail("Invalid data");
-      sendData(d, server.port).then((_) {
+      sendData(d!, server.port).then((_) {
         if (!expectRequest) requestCompleter.complete();
         requestCompleter.future.then((_) => server.close());
       });
@@ -71,13 +70,13 @@ class EarlyCloseTest {
   }
 
   final data;
-  final String exception;
+  final String? exception;
   final bool expectRequest;
 }
 
 void testEarlyClose1() {
-  List<EarlyCloseTest> tests = new List<EarlyCloseTest>();
-  void add(Object data, [String exception, bool expectRequest = false]) {
+  List<EarlyCloseTest> tests = <EarlyCloseTest>[];
+  void add(Object data, [String? exception, bool expectRequest = false]) {
     tests.add(new EarlyCloseTest(data, exception, expectRequest));
   }
   // The empty packet is valid.
@@ -111,6 +110,7 @@ testEarlyClose2() {
       String name = Platform.script.toFilePath();
       new File(name)
           .openRead()
+          .cast<List<int>>()
           .pipe(request.response)
           .catchError((e) {/* ignore */});
     });

@@ -11,9 +11,9 @@ import 'dart:io';
 const typeMapping = const {
   'null': null,
   'int': 0,
-  'bigint': 18446744073709551617,
+  'int64': -9000000000000000000,
   'String': 'a',
-  'FileMode': FileMode.READ,
+  'FileMode': FileMode.read,
   'num': 0.50,
   'List<int>': const [1, 2, 3],
   'Map<String, int>': const {"a": 23}
@@ -52,7 +52,7 @@ doItSync(Function f) {
 // completion.
 Future doItAsync(FutureOr f()) {
   // Ignore value and errors.
-  return new Future.delayed(Duration.ZERO, f)
+  return new Future.delayed(Duration.zero, f)
       .catchError((_) {})
       .then((_) => true);
 }

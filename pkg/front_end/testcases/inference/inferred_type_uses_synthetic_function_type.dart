@@ -7,7 +7,7 @@ library test;
 
 int f() => null;
 String g() => null;
-var /*@topType=List<() -> Object>*/ v = /*@typeArgs=() -> Object*/ [f, g];
+var v = /*@ typeArgs=() ->* Object* */ [f, g];
 
 main() {
   v;

@@ -12,7 +12,7 @@ main() {
   var f = new Future(() {
     throw "foo";
   });
-  f.then((_) => 499).then((_) {
+  f.then((_) => 499).then<Null>((_) {
     throw "Unreachable";
   }, onError: (e, st) {
     Expect.equals("foo", e);

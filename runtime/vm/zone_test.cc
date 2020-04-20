@@ -14,11 +14,11 @@ VM_UNIT_TEST_CASE(AllocateZone) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
-                     bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
+  TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
   EXPECT(thread->zone() == NULL);
   {
+    TransitionNativeToVM transition(thread);
     StackZone stack_zone(thread);
     EXPECT(thread->zone() != NULL);
     Zone* zone = stack_zone.GetZone();
@@ -75,11 +75,11 @@ VM_UNIT_TEST_CASE(AllocGeneric_Success) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
-                     bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
+  TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
   EXPECT(thread->zone() == NULL);
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     EXPECT(thread->zone() != NULL);
     uintptr_t allocated_size = 0;
@@ -94,12 +94,11 @@ VM_UNIT_TEST_CASE(AllocGeneric_Success) {
 }
 
 // This test is expected to crash.
-VM_UNIT_TEST_CASE(AllocGeneric_Overflow) {
+VM_UNIT_TEST_CASE_WITH_EXPECTATION(AllocGeneric_Overflow, "Crash") {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
-                     bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
+  TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
   EXPECT(thread->zone() == NULL);
   {
@@ -116,8 +115,7 @@ VM_UNIT_TEST_CASE(ZoneAllocated) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
-                     bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
+  TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
   EXPECT(thread->zone() == NULL);
   static int marker;
@@ -135,6 +133,7 @@ VM_UNIT_TEST_CASE(ZoneAllocated) {
 
   // Create a few zone allocated objects.
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     EXPECT_EQ(0UL, zone.SizeInBytes());
     SimpleZoneObject* first = new SimpleZoneObject();
@@ -160,6 +159,7 @@ VM_UNIT_TEST_CASE(ZoneAllocated) {
 }
 
 TEST_CASE(PrintToString) {
+  TransitionNativeToVM transition(Thread::Current());
   StackZone zone(Thread::Current());
   const char* result = zone.GetZone()->PrintToString("Hello %s!", "World");
   EXPECT_STREQ("Hello World!", result);
@@ -178,6 +178,68 @@ VM_UNIT_TEST_CASE(NativeScopeZoneAllocation) {
               ApiNativeScope::current_memory_usage());
   }
   EXPECT_EQ(0UL, ApiNativeScope::current_memory_usage());
+}
+
+#if !defined(PRODUCT)
+// Allow for pooling in the malloc implementation.
+static const int64_t kRssSlack = 20 * MB;
+#endif  // !defined(PRODUCT)
+
+// clang-format off
+static const size_t kSizes[] = {
+  64 * KB,
+  64 * KB + 2 * kWordSize,
+  64 * KB - 2 * kWordSize,
+  128 * KB,
+  128 * KB + 2 * kWordSize,
+  128 * KB - 2 * kWordSize,
+  256 * KB,
+  256 * KB + 2 * kWordSize,
+  256 * KB - 2 * kWordSize,
+  512 * KB,
+  512 * KB + 2 * kWordSize,
+  512 * KB - 2 * kWordSize,
+};
+// clang-format on
+
+TEST_CASE(StressMallocDirectly) {
+#if !defined(PRODUCT)
+  int64_t start_rss = Service::CurrentRSS();
+#endif  // !defined(PRODUCT)
+
+  void* allocations[ARRAY_SIZE(kSizes)];
+  for (size_t i = 0; i < ((3u * GB) / (512u * KB)); i++) {
+    for (size_t j = 0; j < ARRAY_SIZE(kSizes); j++) {
+      allocations[j] = malloc(kSizes[j]);
+    }
+    for (size_t j = 0; j < ARRAY_SIZE(kSizes); j++) {
+      free(allocations[j]);
+    }
+  }
+
+#if !defined(PRODUCT)
+  int64_t stop_rss = Service::CurrentRSS();
+  EXPECT_LT(stop_rss, start_rss + kRssSlack);
+#endif  // !defined(PRODUCT)
+}
+
+ISOLATE_UNIT_TEST_CASE(StressMallocThroughZones) {
+#if !defined(PRODUCT)
+  int64_t start_rss = Service::CurrentRSS();
+#endif  // !defined(PRODUCT)
+
+  for (size_t i = 0; i < ((3u * GB) / (512u * KB)); i++) {
+    StackZone stack_zone(Thread::Current());
+    Zone* zone = stack_zone.GetZone();
+    for (size_t j = 0; j < ARRAY_SIZE(kSizes); j++) {
+      zone->Alloc<uint8_t>(kSizes[j]);
+    }
+  }
+
+#if !defined(PRODUCT)
+  int64_t stop_rss = Service::CurrentRSS();
+  EXPECT_LT(stop_rss, start_rss + kRssSlack);
+#endif  // !defined(PRODUCT)
 }
 
 }  // namespace dart

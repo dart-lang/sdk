@@ -2,41 +2,97 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
+import 'dart:io';
+import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/resolution/send_structure.dart';
-import 'package:compiler/src/tree/nodes.dart' as ast;
-import 'package:compiler/src/types/types.dart';
+import 'package:compiler/src/inferrer/typemasks/masks.dart';
+import 'package:compiler/src/inferrer/types.dart';
+import 'package:compiler/src/js_model/element_map.dart';
+import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/js_model/locals.dart';
-import 'package:compiler/src/kernel/element_map.dart';
-import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
+import '../equivalence/id_equivalence_helper.dart';
 
-/// Compute type inference data for [_member] as a [MemberElement].
-///
-/// Fills [actualMap] with the data.
-void computeMemberAstTypeMasks(
-    Compiler compiler, MemberEntity _member, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  MemberElement member = _member;
-  ResolvedAst resolvedAst = member.resolvedAst;
-  compiler.reporter.withCurrentElement(member.implementation, () {
-    new TypeMaskAstComputer(compiler.reporter, actualMap, resolvedAst,
-            compiler.globalInference.results)
-        .run();
+const List<String> skip = const <String>[
+  // TODO(johnniwinther): Remove this when issue 31767 is fixed.
+  'mixin_constructor_default_parameter_values',
+];
+
+main(List<String> args) {
+  runTests(args);
+}
+
+runTests(List<String> args, [int shardIndex]) {
+  asyncTest(() async {
+    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+    await checkTests(dataDir, const TypeMaskDataComputer(),
+        forUserLibrariesOnly: true,
+        args: args,
+        options: [stopAfterTypeInference],
+        testedConfigs: allInternalConfigs,
+        skip: skip,
+        shardIndex: shardIndex ?? 0,
+        shards: shardIndex != null ? 4 : 1);
   });
 }
 
-abstract class ComputeValueMixin<T> {
-  GlobalTypeInferenceResults<T> get results;
+class TypeMaskDataComputer extends DataComputer<String> {
+  const TypeMaskDataComputer();
+
+  /// Compute type inference data for [member] from kernel based inference.
+  ///
+  /// Fills [actualMap] with the data.
+  @override
+  void computeMemberData(Compiler compiler, MemberEntity member,
+      Map<Id, ActualData<String>> actualMap,
+      {bool verbose: false}) {
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
+    GlobalLocalsMap localsMap = closedWorld.globalLocalsMap;
+    MemberDefinition definition = elementMap.getMemberDefinition(member);
+    new TypeMaskIrComputer(
+            compiler.reporter,
+            actualMap,
+            elementMap,
+            member,
+            localsMap.getLocalsMap(member),
+            compiler.globalInference.resultsForTesting,
+            closedWorld.closureDataLookup)
+        .run(definition.node);
+  }
+
+  @override
+  DataInterpreter<String> get dataValidator => const StringDataInterpreter();
+}
+
+/// IR visitor for computing inference data for a member.
+class TypeMaskIrComputer extends IrDataExtractor<String> {
+  final GlobalTypeInferenceResults results;
+  GlobalTypeInferenceMemberResult result;
+  final JsToElementMap _elementMap;
+  final KernelToLocalsMap _localsMap;
+  final ClosureData _closureDataLookup;
+
+  TypeMaskIrComputer(
+      DiagnosticReporter reporter,
+      Map<Id, ActualData<String>> actualMap,
+      this._elementMap,
+      MemberEntity member,
+      this._localsMap,
+      this.results,
+      this._closureDataLookup)
+      : result = results.resultOfMember(member),
+        super(reporter, actualMap);
 
   String getMemberValue(MemberEntity member) {
-    GlobalTypeInferenceMemberResult<T> memberResult =
+    GlobalTypeInferenceMemberResult memberResult =
         results.resultOfMember(member);
     if (member.isFunction || member.isConstructor || member.isGetter) {
       return getTypeMaskValue(memberResult.returnType);
@@ -52,117 +108,16 @@ abstract class ComputeValueMixin<T> {
   }
 
   String getParameterValue(Local parameter) {
-    GlobalTypeInferenceParameterResult<T> elementResult =
-        results.resultOfParameter(parameter);
-    return getTypeMaskValue(elementResult.type);
+    return getTypeMaskValue(results.resultOfParameter(parameter));
   }
 
   String getTypeMaskValue(TypeMask typeMask) {
     return typeMask != null ? '$typeMask' : null;
   }
-}
-
-/// AST visitor for computing inference data for a member.
-class TypeMaskAstComputer extends AstDataExtractor
-    with ComputeValueMixin<ast.Node> {
-  final GlobalTypeInferenceResults<ast.Node> results;
-  final GlobalTypeInferenceElementResult<ast.Node> result;
-
-  TypeMaskAstComputer(DiagnosticReporter reporter,
-      Map<Id, ActualData> actualMap, ResolvedAst resolvedAst, this.results)
-      : result = results.resultOfMember(resolvedAst.element as MemberElement),
-        super(reporter, actualMap, resolvedAst);
-
-  @override
-  String computeElementValue(Id id, AstElement element) {
-    if (element.isParameter) {
-      ParameterElement parameter = element.implementation;
-      return getParameterValue(parameter);
-    } else if (element.isLocal && element.isFunction) {
-      LocalFunctionElement localFunction = element;
-      return getMemberValue(localFunction.callMethod);
-    } else {
-      MemberElement member = element.declaration;
-      return getMemberValue(member);
-    }
-  }
-
-  @override
-  String computeNodeValue(Id id, ast.Node node, [AstElement element]) {
-    if (element != null && element.isLocal && element.isFunction) {
-      return computeElementValue(id, element);
-    } else if (element != null && element.isParameter) {
-      return computeElementValue(id, element);
-    } else if (node is ast.SendSet) {
-      SendStructure sendStructure = elements.getSendStructure(node);
-      if (sendStructure?.kind == SendStructureKind.INDEX_SET) {
-        return getTypeMaskValue(result.typeOfSend(node));
-      } else if (id.kind == IdKind.invoke) {
-        return getTypeMaskValue(result.typeOfOperator(node));
-      } else if (id.kind == IdKind.update) {
-        return getTypeMaskValue(result.typeOfSend(node));
-      } else if (id.kind == IdKind.node) {
-        return getTypeMaskValue(result.typeOfGetter(node));
-      }
-    } else if (node is ast.Send) {
-      return getTypeMaskValue(result.typeOfSend(node));
-    } else if (node is ast.ForIn) {
-      if (id.kind == IdKind.iterator) {
-        return getTypeMaskValue(result.typeOfIterator(node));
-      } else if (id.kind == IdKind.current) {
-        return getTypeMaskValue(result.typeOfIteratorCurrent(node));
-      } else if (id.kind == IdKind.moveNext) {
-        return getTypeMaskValue(result.typeOfIteratorMoveNext(node));
-      }
-    }
-    return null;
-  }
-}
-
-/// Compute type inference data for [member] from kernel based inference.
-///
-/// Fills [actualMap] with the data.
-void computeMemberIrTypeMasks(
-    Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-  KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
-  GlobalLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting;
-  MemberDefinition definition = elementMap.getMemberDefinition(member);
-  new TypeMaskIrComputer(
-          compiler.reporter,
-          actualMap,
-          elementMap,
-          member,
-          localsMap.getLocalsMap(member),
-          compiler.globalInference.results,
-          backendStrategy.closureDataLookup as ClosureDataLookup<ir.Node>)
-      .run(definition.node);
-}
-
-/// AST visitor for computing inference data for a member.
-class TypeMaskIrComputer extends IrDataExtractor
-    with ComputeValueMixin<ir.Node> {
-  final GlobalTypeInferenceResults<ir.Node> results;
-  GlobalTypeInferenceElementResult<ir.Node> result;
-  final KernelToElementMapForBuilding _elementMap;
-  final KernelToLocalsMap _localsMap;
-  final ClosureDataLookup<ir.Node> _closureDataLookup;
-
-  TypeMaskIrComputer(
-      DiagnosticReporter reporter,
-      Map<Id, ActualData> actualMap,
-      this._elementMap,
-      MemberEntity member,
-      this._localsMap,
-      this.results,
-      this._closureDataLookup)
-      : result = results.resultOfMember(member),
-        super(reporter, actualMap);
 
   @override
   visitFunctionExpression(ir.FunctionExpression node) {
-    GlobalTypeInferenceElementResult<ir.Node> oldResult = result;
+    GlobalTypeInferenceMemberResult oldResult = result;
     ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
     result = results.resultOfMember(info.callMethod);
     super.visitFunctionExpression(node);
@@ -171,7 +126,7 @@ class TypeMaskIrComputer extends IrDataExtractor
 
   @override
   visitFunctionDeclaration(ir.FunctionDeclaration node) {
-    GlobalTypeInferenceElementResult<ir.Node> oldResult = result;
+    GlobalTypeInferenceMemberResult oldResult = result;
     ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
     result = results.resultOfMember(info.callMethod);
     super.visitFunctionDeclaration(node);
@@ -193,11 +148,11 @@ class TypeMaskIrComputer extends IrDataExtractor
       ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
       return getMemberValue(info.callMethod);
     } else if (node is ir.MethodInvocation) {
-      return getTypeMaskValue(result.typeOfSend(node));
+      return getTypeMaskValue(result.typeOfReceiver(node));
     } else if (node is ir.PropertyGet) {
-      return getTypeMaskValue(result.typeOfGetter(node));
+      return getTypeMaskValue(result.typeOfReceiver(node));
     } else if (node is ir.PropertySet) {
-      return getTypeMaskValue(result.typeOfSend(node));
+      return getTypeMaskValue(result.typeOfReceiver(node));
     } else if (node is ir.ForInStatement) {
       if (id.kind == IdKind.iterator) {
         return getTypeMaskValue(result.typeOfIterator(node));

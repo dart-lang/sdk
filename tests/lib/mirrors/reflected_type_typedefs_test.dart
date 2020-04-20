@@ -4,7 +4,6 @@
 
 library test.reflected_type_typedefs;
 
-@MirrorsUsed(targets: "test.reflected_type_typedefs")
 import 'dart:mirrors';
 
 import 'reflected_type_helper.dart';
@@ -14,12 +13,12 @@ typedef bool GenericPredicate<T>(T t);
 typedef S GenericTransform<S>(S s);
 
 main() {
-  TypedefMirror nonGenericPredicate = reflectType(NonGenericPredicate);
-  TypedefMirror predicateOfDynamic = reflectType(GenericPredicate);
-  TypedefMirror transformOfDynamic = reflectType(GenericTransform);
+  final nonGenericPredicate = reflectType(NonGenericPredicate) as TypedefMirror;
+  final predicateOfDynamic = reflectType(GenericPredicate) as TypedefMirror;
+  final transformOfDynamic = reflectType(GenericTransform) as TypedefMirror;
 
-  TypedefMirror predicateDecl = predicateOfDynamic.originalDeclaration;
-  TypedefMirror transformDecl = transformOfDynamic.originalDeclaration;
+  final predicateDecl = predicateOfDynamic.originalDeclaration as TypedefMirror;
+  final transformDecl = transformOfDynamic.originalDeclaration as TypedefMirror;
 
   expectReflectedType(nonGenericPredicate, NonGenericPredicate);
   expectReflectedType(predicateOfDynamic, GenericPredicate);

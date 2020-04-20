@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 /**
  * Concurrent programming using _isolates_:
  * independent workers that are similar to threads
@@ -11,10 +13,14 @@
  * To use this library in your code:
  *
  *     import 'dart:isolate';
+ *
+ * {@category VM}
  */
 library dart.isolate;
 
 import "dart:async";
+import "dart:_internal" show Since;
+import "dart:typed_data" show ByteBuffer, TypedData, Uint8List;
 
 part "capability.dart";
 
@@ -24,6 +30,7 @@ part "capability.dart";
 class IsolateSpawnException implements Exception {
   /** Error message reported by the spawn operation. */
   final String message;
+  @pragma("vm:entry-point")
   IsolateSpawnException(this.message);
   String toString() => "IsolateSpawnException: $message";
 }
@@ -37,7 +44,7 @@ class IsolateSpawnException implements Exception {
  *
  * An `Isolate` object is a reference to an isolate, usually different from
  * the current isolate.
- * It represents, and can be used control, the other isolate.
+ * It represents, and can be used to control, the other isolate.
  *
  * When spawning a new isolate, the spawning isolate receives an `Isolate`
  * object representing the new isolate when the spawn operation succeeds.
@@ -67,9 +74,9 @@ class IsolateSpawnException implements Exception {
  */
 class Isolate {
   /** Argument to `ping` and `kill`: Ask for immediate action. */
-  static const int IMMEDIATE = 0;
+  static const int immediate = 0;
   /** Argument to `ping` and `kill`: Ask for action before the next event. */
-  static const int BEFORE_NEXT_EVENT = 1;
+  static const int beforeNextEvent = 1;
 
   /**
    * Control port used to send control messages to the isolate.
@@ -107,6 +114,21 @@ class Isolate {
    * then calls to those methods will have no effect.
    */
   final Capability terminateCapability;
+
+  /**
+   * The name of the [Isolate] displayed for debug purposes.
+   *
+   * This can be set using the `debugName` parameter in [spawn] and [spawnUri].
+   *
+   * This name does not uniquely identify an isolate. Multiple isolates in the
+   * same process may have the same `debugName`.
+   *
+   * For a given isolate, this value will be the same as the values returned by
+   * `Dart_DebugName` in the C embedding API and the `debugName` property in
+   * [IsolateMirror].
+   */
+  @Since("2.3")
+  external String get debugName;
 
   /**
    * Create a new [Isolate] object with a restricted set of capabilities.
@@ -152,17 +174,16 @@ class Isolate {
   external static Isolate get current;
 
   /**
-   * Returns the package root of the current isolate, if any.
+   * The location of the package configuration of the current isolate, if any.
    *
-   * If the isolate is using a [packageConfig] or the isolate has not been
-   * setup for package resolution, this getter returns `null`, otherwise it
-   * returns the package root - a directory that package URIs are resolved
-   * against.
+   * This getter returns `null`, as the `packages/` directory is not supported
+   * in Dart 2.
    */
+  @Deprecated('packages/ directory resolution is not supported in Dart 2.')
   external static Future<Uri> get packageRoot;
 
   /**
-   * Returns the package root of the current isolate, if any.
+   * The package root of the current isolate, if any.
    *
    * If the isolate is using a [packageRoot] or the isolate has not been
    * setup for package resolution, this getter returns `null`, otherwise it
@@ -213,6 +234,9 @@ class Isolate {
    * corresponding parameter and was processed before the isolate starts
    * running.
    *
+   * If [debugName] is provided, the spawned [Isolate] will be identifiable by
+   * this name in debuggers and logging.
+   *
    * If [errorsAreFatal] is omitted, the platform may choose a default behavior
    * or inherit the current isolate's behavior.
    *
@@ -224,11 +248,13 @@ class Isolate {
    * Returns a future which will complete with an [Isolate] instance if the
    * spawning succeeded. It will complete with an error otherwise.
    */
-  external static Future<Isolate> spawn(void entryPoint(message), var message,
+  external static Future<Isolate> spawn<T>(
+      void entryPoint(T message), T message,
       {bool paused: false,
       bool errorsAreFatal,
       SendPort onExit,
-      SendPort onError});
+      SendPort onError,
+      @Since("2.3") String debugName});
 
   /**
    * Creates and spawns an isolate that runs the code from the library with
@@ -264,10 +290,13 @@ class Isolate {
    * before those methods can complete.
    *
    * If the [checked] parameter is set to `true` or `false`,
-   * the new isolate will run code in checked mode,
-   * respectively in production mode, if possible.
-   * If the parameter is omitted, the new isolate will inherit the
-   * value from the current isolate.
+   * the new isolate will run code in checked mode (enabling asserts and type
+   * checks), respectively in production mode (disabling asserts and type
+   * checks), if possible. If the parameter is omitted, the new isolate will
+   * inherit the value from the current isolate.
+   *
+   * In Dart2 strong mode, the `checked` parameter only controls asserts, but
+   * not type checks.
    *
    * It may not always be possible to honor the `checked` parameter.
    * If the isolate code was pre-compiled, it may not be possible to change
@@ -275,16 +304,6 @@ class Isolate {
    * In that case, the `checked` parameter is ignored.
    *
    * WARNING: The [checked] parameter is not implemented on all platforms yet.
-   *
-   * If the [packageRoot] parameter is provided, it is used to find the location
-   * of package sources in the spawned isolate.
-   *
-   * The `packageRoot` URI must be a "file" or "http"/"https" URI that specifies
-   * a directory. If it doesn't end in a slash, one will be added before
-   * using the URI, and any query or fragment parts are ignored.
-   * Package imports (like `"package:foo/bar.dart"`) in the new isolate are
-   * resolved against this location, as by
-   * `packageRoot.resolve("foo/bar.dart")`.
    *
    * If the [packageConfig] parameter is provided, then it is used to find the
    * location of a package resolution configuration file for the spawned
@@ -303,20 +322,28 @@ class Isolate {
    * WARNING: The [environment] parameter is not implemented on all
    * platforms yet.
    *
+   * If [debugName] is provided, the spawned [Isolate] will be identifiable by
+   * this name in debuggers and logging.
+   *
    * Returns a future that will complete with an [Isolate] instance if the
    * spawning succeeded. It will complete with an error otherwise.
    */
   external static Future<Isolate> spawnUri(
-      Uri uri, List<String> args, var message,
+      Uri uri,
+      List<String> args,
+      var message,
       {bool paused: false,
       SendPort onExit,
       SendPort onError,
       bool errorsAreFatal,
       bool checked,
       Map<String, String> environment,
-      Uri packageRoot,
+      @Deprecated('The packages/ dir is not supported in Dart 2')
+          Uri packageRoot,
       Uri packageConfig,
-      bool automaticPackageResolution: false});
+      bool automaticPackageResolution: false,
+      @Since("2.3")
+          String debugName});
 
   /**
    * Requests the isolate to pause.
@@ -376,7 +403,7 @@ class Isolate {
   external void resume(Capability resumeCapability);
 
   /**
-   * Requests an exist message on [responsePort] when the isolate terminates.
+   * Requests an exit message on [responsePort] when the isolate terminates.
    *
    * The isolate will send [response] as a message on [responsePort] as the last
    * thing before it terminates. It will run no further code after the message
@@ -451,18 +478,18 @@ class Isolate {
    * The isolate is requested to terminate itself.
    * The [priority] argument specifies when this must happen.
    *
-   * The [priority], when provided, must be one of [IMMEDIATE] or
-   * [BEFORE_NEXT_EVENT] (the default).
+   * The [priority], when provided, must be one of [immediate] or
+   * [beforeNextEvent] (the default).
    * The shutdown is performed at different times depending on the priority:
    *
-   * * `IMMEDIATE`: The isolate shuts down as soon as possible.
+   * * `immediate`: The isolate shuts down as soon as possible.
    *     Control messages are handled in order, so all previously sent control
    *     events from this isolate will all have been processed.
    *     The shutdown should happen no later than if sent with
-   *     `BEFORE_NEXT_EVENT`.
+   *     `beforeNextEvent`.
    *     It may happen earlier if the system has a way to shut down cleanly
    *     at an earlier time, even during the execution of another event.
-   * * `BEFORE_NEXT_EVENT`: The shutdown is scheduled for the next time
+   * * `beforeNextEvent`: The shutdown is scheduled for the next time
    *     control returns to the event loop of the receiving isolate,
    *     after the current event, and any already scheduled control events,
    *     are completed.
@@ -471,7 +498,7 @@ class Isolate {
    * of the isolate identified by [controlPort],
    * the kill request is ignored by the receiving isolate.
    */
-  external void kill({int priority: BEFORE_NEXT_EVENT});
+  external void kill({int priority: beforeNextEvent});
 
   /**
    * Requests that the isolate send [response] on the [responsePort].
@@ -484,20 +511,20 @@ class Isolate {
    * If the isolate is alive, it will eventually send `response`
    * (defaulting to `null`) on the response port.
    *
-   * The [priority] must be one of [IMMEDIATE] or [BEFORE_NEXT_EVENT].
+   * The [priority] must be one of [immediate] or [beforeNextEvent].
    * The response is sent at different times depending on the ping type:
    *
-   * * `IMMEDIATE`: The isolate responds as soon as it receives the
+   * * `immediate`: The isolate responds as soon as it receives the
    *     control message. This is after any previous control message
    *     from the same isolate has been received and processed,
    *     but may be during execution of another event.
-   * * `BEFORE_NEXT_EVENT`: The response is scheduled for the next time
+   * * `beforeNextEvent`: The response is scheduled for the next time
    *     control returns to the event loop of the receiving isolate,
    *     after the current event, and any already scheduled control events,
    *     are completed.
    */
   external void ping(SendPort responsePort,
-      {Object response, int priority: IMMEDIATE});
+      {Object response, int priority: immediate});
 
   /**
    * Requests that uncaught errors of the isolate are sent back to [port].
@@ -555,8 +582,9 @@ class Isolate {
     StreamController controller;
     RawReceivePort port;
     void handleError(message) {
-      String errorDescription = message[0];
-      String stackDescription = message[1];
+      List listMessage = message;
+      String errorDescription = listMessage[0];
+      String stackDescription = listMessage[1];
       var error = new RemoteError(errorDescription, stackDescription);
       controller.addError(error, error.stackTrace);
     }
@@ -598,8 +626,7 @@ abstract class SendPort implements Capability {
    * In the special circumstances when two isolates share the same code and are
    * running in the same process (e.g. isolates created via [Isolate.spawn]), it
    * is also possible to send object instances (which would be copied in the
-   * process). This is currently only supported by the dartvm.  For now, the
-   * dart2js compiler only supports the restricted messages described above.
+   * process). This is currently only supported by the dart vm.
    *
    * The send happens immediately and doesn't block.  The corresponding receive
    * port can receive the message as soon as its isolate's event loop is ready
@@ -692,12 +719,12 @@ abstract class RawReceivePort {
    * can not be paused. The data-handler must be set before the first
    * event is received.
    */
-  external factory RawReceivePort([void handler(event)]);
+  external factory RawReceivePort([Function handler]);
 
   /**
    * Sets the handler that is invoked for every incoming message.
    *
-   * The handler is invoked in the root-zone ([Zone.ROOT]).
+   * The handler is invoked in the root-zone ([Zone.root]).
    */
   void set handler(Function newHandler);
 
@@ -727,4 +754,37 @@ class RemoteError implements Error {
       : _description = description,
         stackTrace = new StackTrace.fromString(stackDescription);
   String toString() => _description;
+}
+
+/**
+ * An efficiently transferable sequence of byte values.
+ *
+ * A [TransferableTypedData] is created from a number of bytes.
+ * This will take time proportional to the number of bytes.
+ *
+ * The [TransferableTypedData] can be moved between isolates, so
+ * sending it through a send port will only take constant time.
+ *
+ * When sent this way, the local transferable can no longer be materialized,
+ * and the received object is now the only way to materialize the data.
+ */
+@Since("2.3.2")
+abstract class TransferableTypedData {
+  /**
+   * Creates a new [TransferableTypedData] containing the bytes of [list].
+   *
+   * It must be possible to create a single [Uint8List] containing the
+   * bytes, so if there are more bytes than what the platform allows in
+   * a single [Uint8List], then creation fails.
+   */
+  external factory TransferableTypedData.fromList(List<TypedData> list);
+
+  /**
+   * Creates a new [ByteBuffer] containing the bytes stored in this [TransferableTypedData].
+   *
+   * The [TransferableTypedData] is a cross-isolate single-use resource.
+   * This method must not be called more than once on the same underlying
+   * transferable bytes, even if the calls occur in different isolates.
+   */
+  ByteBuffer materialize();
 }

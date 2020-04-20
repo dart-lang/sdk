@@ -1,15 +1,18 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.scanner_test;
-
+import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:front_end/src/scanner/scanner.dart' as fe;
+import 'package:analyzer/src/string_source.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,13 +21,14 @@ import 'test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LineInfoTest);
+    defineReflectiveTests(ScannerTest);
   });
 }
 
-class CharacterRangeReaderTest extends EngineTestCase {
+class CharacterRangeReaderTest {
   void test_advance() {
-    CharSequenceReader baseReader = new CharSequenceReader("xyzzy");
-    CharacterRangeReader reader = new CharacterRangeReader(baseReader, 1, 4);
+    CharSequenceReader baseReader = CharSequenceReader("xyzzy");
+    CharacterRangeReader reader = CharacterRangeReader(baseReader, 1, 4);
     expect(reader.advance(), 0x79);
     expect(reader.advance(), 0x80);
     expect(reader.advance(), 0x80);
@@ -33,14 +37,14 @@ class CharacterRangeReaderTest extends EngineTestCase {
   }
 
   void test_creation() {
-    CharSequenceReader baseReader = new CharSequenceReader("xyzzy");
-    CharacterRangeReader reader = new CharacterRangeReader(baseReader, 1, 4);
+    CharSequenceReader baseReader = CharSequenceReader("xyzzy");
+    CharacterRangeReader reader = CharacterRangeReader(baseReader, 1, 4);
     expect(reader, isNotNull);
   }
 
   void test_getOffset() {
-    CharSequenceReader baseReader = new CharSequenceReader("xyzzy");
-    CharacterRangeReader reader = new CharacterRangeReader(baseReader, 1, 2);
+    CharSequenceReader baseReader = CharSequenceReader("xyzzy");
+    CharacterRangeReader reader = CharacterRangeReader(baseReader, 1, 2);
     expect(reader.offset, 1);
     reader.advance();
     expect(reader.offset, 2);
@@ -49,16 +53,16 @@ class CharacterRangeReaderTest extends EngineTestCase {
   }
 
   void test_getString() {
-    CharSequenceReader baseReader = new CharSequenceReader("__xyzzy__");
-    CharacterRangeReader reader = new CharacterRangeReader(baseReader, 2, 7);
+    CharSequenceReader baseReader = CharSequenceReader("__xyzzy__");
+    CharacterRangeReader reader = CharacterRangeReader(baseReader, 2, 7);
     reader.offset = 5;
     expect(reader.getString(3, 0), "yzz");
     expect(reader.getString(4, 1), "zzy");
   }
 
   void test_peek() {
-    CharSequenceReader baseReader = new CharSequenceReader("xyzzy");
-    CharacterRangeReader reader = new CharacterRangeReader(baseReader, 1, 3);
+    CharSequenceReader baseReader = CharSequenceReader("xyzzy");
+    CharacterRangeReader reader = CharacterRangeReader(baseReader, 1, 3);
     expect(reader.peek(), 0x79);
     expect(reader.peek(), 0x79);
     reader.advance();
@@ -70,52 +74,41 @@ class CharacterRangeReaderTest extends EngineTestCase {
   }
 
   void test_setOffset() {
-    CharSequenceReader baseReader = new CharSequenceReader("xyzzy");
-    CharacterRangeReader reader = new CharacterRangeReader(baseReader, 1, 4);
+    CharSequenceReader baseReader = CharSequenceReader("xyzzy");
+    CharacterRangeReader reader = CharacterRangeReader(baseReader, 1, 4);
     reader.offset = 2;
     expect(reader.offset, 2);
   }
 }
 
 @reflectiveTest
-class LineInfoTest extends EngineTestCase {
-  void test_translate_missing_closing_gt_error() {
-    // Ensure that the UnmatchedToken error for missing '>' is translated
-    // to the correct analyzer error code.
-    // See https://github.com/dart-lang/sdk/issues/30320
-    String source = '<!-- @Component(';
-    GatheringErrorListener listener = new GatheringErrorListener();
-    _scanWithListener(source, listener);
-    listener.assertErrorsWithCodes(const [
-      ScannerErrorCode.EXPECTED_TOKEN,
-      ScannerErrorCode.EXPECTED_TOKEN,
-    ]);
-  }
+class LineInfoTest {
+  final featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
 
   void test_lineInfo_multilineComment() {
     String source = "/*\r\n *\r\n */";
     _assertLineInfo(source, [
-      new ScannerTest_ExpectedLocation(0, 1, 1),
-      new ScannerTest_ExpectedLocation(5, 2, 2),
-      new ScannerTest_ExpectedLocation(source.length - 1, 3, 3)
+      ScannerTest_ExpectedLocation(0, 1, 1),
+      ScannerTest_ExpectedLocation(5, 2, 2),
+      ScannerTest_ExpectedLocation(source.length - 1, 3, 3)
     ]);
   }
 
   void test_lineInfo_multilineString() {
     String source = "'''a\r\nbc\r\nd'''";
     _assertLineInfo(source, [
-      new ScannerTest_ExpectedLocation(0, 1, 1),
-      new ScannerTest_ExpectedLocation(7, 2, 2),
-      new ScannerTest_ExpectedLocation(source.length - 1, 3, 4)
+      ScannerTest_ExpectedLocation(0, 1, 1),
+      ScannerTest_ExpectedLocation(7, 2, 2),
+      ScannerTest_ExpectedLocation(source.length - 1, 3, 4)
     ]);
   }
 
   void test_lineInfo_multilineString_raw() {
     String source = "var a = r'''\nblah\n''';\n\nfoo";
     _assertLineInfo(source, [
-      new ScannerTest_ExpectedLocation(0, 1, 1),
-      new ScannerTest_ExpectedLocation(14, 2, 2),
-      new ScannerTest_ExpectedLocation(source.length - 2, 5, 2)
+      ScannerTest_ExpectedLocation(0, 1, 1),
+      ScannerTest_ExpectedLocation(14, 2, 2),
+      ScannerTest_ExpectedLocation(source.length - 2, 5, 2)
     ]);
   }
 
@@ -123,43 +116,58 @@ class LineInfoTest extends EngineTestCase {
     String source =
         "class Test {\r\n    String s = '...';\r\n    int get x => s.MISSING_GETTER;\r\n}";
     _assertLineInfo(source, [
-      new ScannerTest_ExpectedLocation(0, 1, 1),
-      new ScannerTest_ExpectedLocation(source.indexOf("MISSING_GETTER"), 3, 20),
-      new ScannerTest_ExpectedLocation(source.length - 1, 4, 1)
+      ScannerTest_ExpectedLocation(0, 1, 1),
+      ScannerTest_ExpectedLocation(source.indexOf("MISSING_GETTER"), 3, 20),
+      ScannerTest_ExpectedLocation(source.length - 1, 4, 1)
     ]);
   }
 
   void test_lineInfo_slashN() {
     String source = "class Test {\n}";
     _assertLineInfo(source, [
-      new ScannerTest_ExpectedLocation(0, 1, 1),
-      new ScannerTest_ExpectedLocation(source.indexOf("}"), 2, 1)
+      ScannerTest_ExpectedLocation(0, 1, 1),
+      ScannerTest_ExpectedLocation(source.indexOf("}"), 2, 1)
     ]);
   }
 
   void test_linestarts() {
     String source = "var\r\ni\n=\n1;\n";
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Scanner scanner =
-        new Scanner(null, new CharSequenceReader(source), listener);
+    GatheringErrorListener listener = GatheringErrorListener();
+    Scanner scanner = Scanner(null, CharSequenceReader(source), listener)
+      ..configureFeatures(featureSet);
     var token = scanner.tokenize();
     expect(token.lexeme, 'var');
     var lineStarts = scanner.lineStarts;
-    expect(
-        lineStarts, orderedEquals([0, 5, 7, 9, fe.Scanner.useFasta ? 12 : 11]));
+    expect(lineStarts, orderedEquals([0, 5, 7, 9, 12]));
+  }
+
+  void test_translate_missing_closing_gt_error() {
+    // Ensure that the UnmatchedToken error for missing '>' is translated
+    // to the correct analyzer error code.
+    // See https://github.com/dart-lang/sdk/issues/30320
+    String source = '<!-- @Component(';
+    GatheringErrorListener listener = GatheringErrorListener();
+    Scanner scanner = Scanner(null, CharSequenceReader(source), listener)
+      ..configureFeatures(featureSet);
+    Token token = scanner.tokenize(reportScannerErrors: false);
+    expect(token, TypeMatcher<UnmatchedToken>());
+    token = token.next;
+    expect(token, TypeMatcher<UnmatchedToken>());
+    token = token.next;
+    expect(token, isNot(TypeMatcher<ErrorToken>()));
   }
 
   void _assertLineInfo(
       String source, List<ScannerTest_ExpectedLocation> expectedLocations) {
-    GatheringErrorListener listener = new GatheringErrorListener();
+    GatheringErrorListener listener = GatheringErrorListener();
     _scanWithListener(source, listener);
     listener.assertNoErrors();
-    LineInfo info = listener.getLineInfo(new TestSource());
+    LineInfo info = listener.getLineInfo(TestSource());
     expect(info, isNotNull);
     int count = expectedLocations.length;
     for (int i = 0; i < count; i++) {
       ScannerTest_ExpectedLocation expectedLocation = expectedLocations[i];
-      LineInfo_Location location = info.getLocation(expectedLocation._offset);
+      CharacterLocation location = info.getLocation(expectedLocation._offset);
       expect(location.lineNumber, expectedLocation._lineNumber,
           reason: 'Line number in location $i');
       expect(location.columnNumber, expectedLocation._columnNumber,
@@ -167,16 +175,58 @@ class LineInfoTest extends EngineTestCase {
     }
   }
 
-  Token _scanWithListener(String source, GatheringErrorListener listener,
-      {bool genericMethodComments: false,
-      bool lazyAssignmentOperators: false}) {
-    Scanner scanner =
-        new Scanner(null, new CharSequenceReader(source), listener);
-    scanner.scanGenericMethodComments = genericMethodComments;
-    scanner.scanLazyAssignmentOperators = lazyAssignmentOperators;
+  Token _scanWithListener(
+    String source,
+    GatheringErrorListener listener,
+  ) {
+    Scanner scanner = Scanner(null, CharSequenceReader(source), listener)
+      ..configureFeatures(featureSet);
     Token result = scanner.tokenize();
-    listener.setLineInfo(new TestSource(), scanner.lineStarts);
+    listener.setLineInfo(TestSource(), scanner.lineStarts);
     return result;
+  }
+}
+
+@reflectiveTest
+class ScannerTest with ResourceProviderMixin {
+  test_featureSet() {
+    var scanner = _createScanner(r'''
+// @dart = 2.0
+''');
+    var defaultFeatureSet = FeatureSet.fromEnableFlags([]);
+    expect(defaultFeatureSet.isEnabled(Feature.extension_methods), isTrue);
+
+    scanner.configureFeatures(FeatureSet.forTesting());
+    scanner.tokenize();
+
+    var featureSet = scanner.featureSet;
+    expect(featureSet.isEnabled(Feature.extension_methods), isFalse);
+  }
+
+  test_featureSet_majorOverflow() {
+    var scanner = _createScanner(r'''
+// @dart = 99999999999999999999999999999999.0
+''');
+    scanner.configureFeatures(FeatureSet.forTesting());
+    scanner.tokenize();
+    // Don't check features, but should not crash.
+  }
+
+  test_featureSet_minorOverflow() {
+    var scanner = _createScanner(r'''
+// @dart = 2.99999999999999999999999999999999
+''');
+    scanner.configureFeatures(FeatureSet.forTesting());
+    scanner.tokenize();
+    // Don't check features, but should not crash.
+  }
+
+  Scanner _createScanner(String content) {
+    var path = convertPath('/test/lib/a.dart');
+    var source = StringSource(content, path);
+    var reader = CharSequenceReader(content);
+    var errorCollector = RecordingErrorListener();
+    return Scanner(source, reader, errorCollector);
   }
 }
 
@@ -205,7 +255,7 @@ class TokenStreamValidator {
    * correct.
    */
   void validate(Token token) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     _validateStream(buffer, token);
     if (buffer.length > 0) {
       fail(buffer.toString());
@@ -216,7 +266,7 @@ class TokenStreamValidator {
     if (token == null) {
       return;
     }
-    Token previousToken = null;
+    Token previousToken;
     int previousEnd = -1;
     Token currentToken = token;
     while (currentToken != null && currentToken.type != TokenType.EOF) {

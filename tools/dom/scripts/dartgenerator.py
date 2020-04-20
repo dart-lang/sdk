@@ -2,7 +2,6 @@
 # Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-
 """This module generates Dart APIs from the IDL database."""
 
 import emitter
@@ -12,115 +11,113 @@ import os
 import re
 import shutil
 from generator import *
-from idlnode import IDLType, resolveTypedef
+from idlnode import IDLType, IDLInterface, resolveTypedef
 
 _logger = logging.getLogger('dartgenerator')
 
-def MergeNodes(node, other):
-  node.operations.extend(other.operations)
-  for attribute in other.attributes:
-    if not node.has_attribute(attribute):
-      node.attributes.append(attribute)
 
-  node.constants.extend(other.constants)
+def MergeNodes(node, other):
+    node.operations.extend(other.operations)
+    for attribute in other.attributes:
+        if not node.has_attribute(attribute):
+            node.attributes.append(attribute)
+
+    node.constants.extend(other.constants)
+
 
 class DartGenerator(object):
-  """Utilities to generate Dart APIs and corresponding JavaScript."""
+    """Utilities to generate Dart APIs and corresponding JavaScript."""
 
-  def __init__(self, logging_level=logging.WARNING):
-    self._auxiliary_files = {}
-    self._dart_templates_re = re.compile(r'[\w.:]+<([\w \.<>:]+)>')
-    _logger.setLevel(logging_level)
+    def __init__(self, logging_level=logging.WARNING):
+        self._auxiliary_files = {}
+        self._dart_templates_re = re.compile(r'[\w.:]+<([\w \.<>:]+)>')
+        _logger.setLevel(logging_level)
 
-  def _StripModules(self, type_name):
-    return type_name.split('::')[-1]
+    def _StripModules(self, type_name):
+        return type_name.split('::')[-1]
 
-  def _IsCompoundType(self, database, type_name):
-    if IsRegisteredType(type_name):
-      return True
+    def _IsCompoundType(self, database, type_name):
+        if IsRegisteredType(type_name):
+            return True
 
-    # References a typedef - normally a union type.
-    if database.HasTypeDef(type_name):
-      return True
+        # References a typedef - normally a union type.
+        if database.HasTypeDef(type_name):
+            return True
 
-    if type_name.endswith('?'):
-      return self._IsCompoundType(database, type_name[:-len('?')])
+        if type_name.endswith('?'):
+            return self._IsCompoundType(database, type_name[:-len('?')])
 
-    if type_name.endswith('[]'):
-      return self._IsCompoundType(database, type_name[:-len('[]')])
+        if type_name.endswith('[]'):
+            return self._IsCompoundType(database, type_name[:-len('[]')])
 
-    stripped_type_name = self._StripModules(type_name)
-    if (database.HasInterface(stripped_type_name) or
-        database.HasDictionary(stripped_type_name)):
-      return True
+        stripped_type_name = self._StripModules(type_name)
+        if (database.HasInterface(stripped_type_name) or
+                database.HasDictionary(stripped_type_name)):
+            return True
 
-    if database.HasEnum(stripped_type_name):
-      return True
+        if database.HasEnum(stripped_type_name):
+            return True
 
-    dart_template_match = self._dart_templates_re.match(type_name)
-    if dart_template_match:
-      # Dart templates
-      parent_type_name = type_name[0 : dart_template_match.start(1) - 1]
-      sub_type_name = dart_template_match.group(1)
-      return (self._IsCompoundType(database, parent_type_name) and
-              self._IsCompoundType(database, sub_type_name))
-    return False
+        dart_template_match = self._dart_templates_re.match(type_name)
+        if dart_template_match:
+            # Dart templates
+            parent_type_name = type_name[0:dart_template_match.start(1) - 1]
+            sub_type_name = dart_template_match.group(1)
+            return (self._IsCompoundType(database, parent_type_name) and
+                    self._IsCompoundType(database, sub_type_name))
+        return False
 
-  def _IsDartType(self, type_name):
-    return '.' in type_name
+    def _IsDartType(self, type_name):
+        return '.' in type_name
 
-  def LoadAuxiliary(self, auxiliary_dir):
-    def Visitor(_, dirname, names):
-      for name in names:
-        if name.endswith('.dart'):
-          name = name[0:-5]  # strip off ".dart"
-        self._auxiliary_files[name] = os.path.join(dirname, name)
-    os.path.walk(auxiliary_dir, Visitor, None)
+    def LoadAuxiliary(self, auxiliary_dir):
 
-  def FilterMembersWithUnidentifiedTypes(self, database):
-    """Removes unidentified types.
+        def Visitor(_, dirname, names):
+            for name in names:
+                if name.endswith('.dart'):
+                    name = name[0:-5]  # strip off ".dart"
+                self._auxiliary_files[name] = os.path.join(dirname, name)
+
+        os.path.walk(auxiliary_dir, Visitor, None)
+
+    def FilterMembersWithUnidentifiedTypes(self, database):
+        """Removes unidentified types.
 
     Removes constants, attributes, operations and parents with unidentified
     types.
     """
 
-    for interface in database.GetInterfaces():
-      def IsIdentified(idl_node):
-        node_name = idl_node.id if idl_node.id else 'parent'
-        for idl_type in idl_node.all(idlnode.IDLType):
-          type_name = idl_type.id
-          if (type_name is not None and
-              self._IsCompoundType(database, type_name)):
-            continue
-          # Ignore constructor warnings.
-          if not (interface.id in ['Window', 'WorkerContext',
-              'WorkerGlobalScope'] and
-              type_name.endswith('Constructor')):
-            _logger.warn('removing %s in %s which has unidentified type %s' %
-                       (node_name, interface.id, type_name))
+        for interface in database.GetInterfaces():
 
-          # One last check is the type a typedef in an IDL file (the typedefs
-          # are treated as global).
-          resolvedType = resolveTypedef(idl_type)
-          if (resolvedType != idl_type):
-            idl_type.id = resolvedType.id
-            idl_type.nullable = resolvedType.nullable
-            continue
+            def IsIdentified(idl_node):
+                node_name = idl_node.id if idl_node.id else 'parent'
+                for idl_type in idl_node.all(idlnode.IDLType):
+                    type_name = idl_type.id
+                    if (type_name is not None and
+                            self._IsCompoundType(database, type_name)):
+                        continue
+                    # Ignore constructor warnings.
+                    if not (interface.id in [
+                            'Window', 'WorkerContext', 'WorkerGlobalScope'
+                    ] and type_name.endswith('Constructor')):
+                        _logger.warn(
+                            'removing %s in %s which has unidentified type %s' %
+                            (node_name, interface.id, type_name))
+                    return False
+                return True
 
-          return False
-        return True
+            interface.constants = filter(IsIdentified, interface.constants)
+            interface.attributes = filter(IsIdentified, interface.attributes)
+            interface.operations = filter(IsIdentified, interface.operations)
+            interface.parents = filter(IsIdentified, interface.parents)
 
-      interface.constants = filter(IsIdentified, interface.constants)
-      interface.attributes = filter(IsIdentified, interface.attributes)
-      interface.operations = filter(IsIdentified, interface.operations)
-      interface.parents = filter(IsIdentified, interface.parents)
-
-  def FilterInterfaces(self, database,
-                       and_annotations=[],
-                       or_annotations=[],
-                       exclude_displaced=[],
-                       exclude_suppressed=[]):
-    """Filters a database to remove interfaces and members that are missing
+    def FilterInterfaces(self,
+                         database,
+                         and_annotations=[],
+                         or_annotations=[],
+                         exclude_displaced=[],
+                         exclude_suppressed=[]):
+        """Filters a database to remove interfaces and members that are missing
     annotations.
 
     The FremontCut IDLs use annotations to specify implementation
@@ -140,132 +137,149 @@ class DartGenerator(object):
         is marked as suppressed it will always be filtered.
     """
 
-    # Filter interfaces and members whose annotations don't match.
-    for interface in database.GetInterfaces():
-      def HasAnnotations(idl_node):
-        """Utility for determining if an IDLNode has all
+        # Filter interfaces and members whose annotations don't match.
+        for interface in database.GetInterfaces():
+
+            def HasAnnotations(idl_node):
+                """Utility for determining if an IDLNode has all
         the required annotations"""
-        for a in exclude_displaced:
-          if (a in idl_node.annotations
-              and 'via' in idl_node.annotations[a]):
-            return False
-        for a in exclude_suppressed:
-          if (a in idl_node.annotations
-              and 'suppressed' in idl_node.annotations[a]):
-            return False
-        for a in or_annotations:
-          if a in idl_node.annotations:
+                for a in exclude_displaced:
+                    if (a in idl_node.annotations and
+                            'via' in idl_node.annotations[a]):
+                        return False
+                for a in exclude_suppressed:
+                    if (a in idl_node.annotations and
+                            'suppressed' in idl_node.annotations[a]):
+                        return False
+                for a in or_annotations:
+                    if a in idl_node.annotations:
+                        return True
+                if and_annotations == []:
+                    return False
+                for a in and_annotations:
+                    if a not in idl_node.annotations:
+                        return False
+                return True
+
+            if HasAnnotations(interface):
+                interface.constants = filter(HasAnnotations,
+                                             interface.constants)
+                interface.attributes = filter(HasAnnotations,
+                                              interface.attributes)
+                interface.operations = filter(HasAnnotations,
+                                              interface.operations)
+                interface.parents = filter(HasAnnotations, interface.parents)
+            else:
+                database.DeleteInterface(interface.id)
+
+        self.FilterMembersWithUnidentifiedTypes(database)
+
+    def Generate(self, database, super_database, generate_interface):
+        self._database = database
+
+        # Collect interfaces
+        interfaces = []
+        for interface in database.GetInterfaces():
+            if not MatchSourceFilter(interface):
+                # Skip this interface since it's not present in the required source
+                _logger.info('Omitting interface - %s' % interface.id)
+                continue
+            interfaces.append(interface)
+
+        # All web_gl constants from WebGLRenderingContextBase, WebGL2RenderingContextBase, WebGLDrawBuffers are generated
+        # in a synthesized class WebGL.  Those IDLConstants are in web_gl_constants.
+        web_gl_constants = []
+
+        # Render all interfaces into Dart and save them in files.
+        for interface in self._PreOrderInterfaces(interfaces):
+            interface_name = interface.id
+            auxiliary_file = self._auxiliary_files.get(interface_name)
+            if auxiliary_file is not None:
+                _logger.info('Skipping %s because %s exists' % (interface_name,
+                                                                auxiliary_file))
+                continue
+
+            _logger.info('Generating %s' % interface.id)
+            generate_interface(interface, gl_constants=web_gl_constants)
+
+        # Generate the WEB_GL constants
+        web_gl_constants_interface = IDLInterface(None, "WebGL")
+        web_gl_constants_interface.constants = web_gl_constants
+        self._database._all_interfaces['WebGL'] = web_gl_constants_interface
+        generate_interface(web_gl_constants_interface)
+
+    def _PreOrderInterfaces(self, interfaces):
+        """Returns the interfaces in pre-order, i.e. parents first."""
+        seen = set()
+        ordered = []
+
+        def visit(interface):
+            if interface.id in seen:
+                return
+            seen.add(interface.id)
+            for parent in interface.parents:
+                if IsDartCollectionType(parent.type.id):
+                    continue
+                if self._database.HasInterface(parent.type.id):
+                    parent_interface = self._database.GetInterface(
+                        parent.type.id)
+                    visit(parent_interface)
+            ordered.append(interface)
+
+        for interface in interfaces:
+            visit(interface)
+        return ordered
+
+    def IsEventTarget(self, database, interface):
+        if interface.id == 'EventTarget':
             return True
-        if and_annotations == []:
-          return False
-        for a in and_annotations:
-          if a not in idl_node.annotations:
-            return False
-        return True
+        for parent in interface.parents:
+            parent_name = parent.type.id
+            if database.HasInterface(parent_name):
+                parent_interface = database.GetInterface(parent.type.id)
+                if self.IsEventTarget(database, parent_interface):
+                    return True
+        return False
 
-      if HasAnnotations(interface):
-        interface.constants = filter(HasAnnotations, interface.constants)
-        interface.attributes = filter(HasAnnotations, interface.attributes)
-        interface.operations = filter(HasAnnotations, interface.operations)
-        interface.parents = filter(HasAnnotations, interface.parents)
-      else:
-        database.DeleteInterface(interface.id)
+    def FixEventTargets(self, database):
+        for interface in database.GetInterfaces():
+            if self.IsEventTarget(database, interface):
+                # Add as an attribute for easy querying in generation code.
+                interface.ext_attrs['EventTarget'] = None
+            elif 'EventTarget' in interface.ext_attrs:
+                # Create fake EventTarget parent interface for interfaces that have
+                # 'EventTarget' extended attribute.
+                ast = [('Annotation', [('Id', 'WebKit')]),
+                       ('InterfaceType', ('ScopedName', 'EventTarget'))]
+                interface.parents.append(idlnode.IDLParentInterface(ast))
 
-    self.FilterMembersWithUnidentifiedTypes(database)
+    def AddMissingArguments(self, database):
+        ARG = idlnode.IDLArgument([('Type', ('ScopedName', 'object')),
+                                   ('Id', 'arg')])
+        for interface in database.GetInterfaces():
+            for operation in interface.operations:
+                call_with = operation.ext_attrs.get('CallWith', [])
+                if not (isinstance(call_with, list)):
+                    call_with = [call_with]
+                constructor_with = operation.ext_attrs.get(
+                    'ConstructorCallWith', [])
+                if not (isinstance(constructor_with, list)):
+                    constructor_with = [constructor_with]
+                call_with = call_with + constructor_with
 
-  def Generate(self, database, super_database, generate_interface):
-    self._database = database
+                if 'ScriptArguments' in call_with:
+                    operation.arguments.append(ARG)
 
-    # Collect interfaces
-    interfaces = []
-    for interface in database.GetInterfaces():
-      if not MatchSourceFilter(interface):
-        # Skip this interface since it's not present in the required source
-        _logger.info('Omitting interface - %s' % interface.id)
-        continue
-      interfaces.append(interface)
+    def CleanupOperationArguments(self, database):
+        for interface in database.GetInterfaces():
+            for operation in interface.operations:
+                # TODO(terry): Hack to remove 3rd arguments in setInterval/setTimeout.
+                if ((operation.id == 'setInterval' or operation.id == 'setTimeout') and \
+                    operation.arguments[0].type.id == 'any'):
+                    operation.arguments.pop(2)
 
-    # Render all interfaces into Dart and save them in files.
-    for interface in self._PreOrderInterfaces(interfaces):
-      interface_name = interface.id
-      auxiliary_file = self._auxiliary_files.get(interface_name)
-      if auxiliary_file is not None:
-        _logger.info('Skipping %s because %s exists' % (
-            interface_name, auxiliary_file))
-        continue
-
-      _logger.info('Generating %s' % interface.id)
-      generate_interface(interface)
-
-  def _PreOrderInterfaces(self, interfaces):
-    """Returns the interfaces in pre-order, i.e. parents first."""
-    seen = set()
-    ordered = []
-    def visit(interface):
-      if interface.id in seen:
-        return
-      seen.add(interface.id)
-      for parent in interface.parents:
-        if IsDartCollectionType(parent.type.id):
-          continue
-        if self._database.HasInterface(parent.type.id):
-          parent_interface = self._database.GetInterface(parent.type.id)
-          visit(parent_interface)
-      ordered.append(interface)
-
-    for interface in interfaces:
-      visit(interface)
-    return ordered
-
-  def IsEventTarget(self, database, interface):
-    if interface.id == 'EventTarget':
-      return True
-    for parent in interface.parents:
-      parent_name = parent.type.id
-      if database.HasInterface(parent_name):
-        parent_interface = database.GetInterface(parent.type.id)
-        if self.IsEventTarget(database, parent_interface):
-          return True
-    return False
-
-  def FixEventTargets(self, database):
-    for interface in database.GetInterfaces():
-      if self.IsEventTarget(database, interface):
-        # Add as an attribute for easy querying in generation code.
-        interface.ext_attrs['EventTarget'] = None
-      elif 'EventTarget' in interface.ext_attrs:
-        # Create fake EventTarget parent interface for interfaces that have
-        # 'EventTarget' extended attribute.
-        ast = [('Annotation', [('Id', 'WebKit')]),
-               ('InterfaceType', ('ScopedName', 'EventTarget'))]
-        interface.parents.append(idlnode.IDLParentInterface(ast))
-
-  def AddMissingArguments(self, database):
-    ARG = idlnode.IDLArgument([('Type', ('ScopedName', 'object')), ('Id', 'arg')])
-    for interface in database.GetInterfaces():
-      for operation in interface.operations:
-        call_with = operation.ext_attrs.get('CallWith', [])
-        if not(isinstance(call_with, list)):
-          call_with = [call_with]
-        constructor_with = operation.ext_attrs.get('ConstructorCallWith', [])
-        if not(isinstance(constructor_with, list)):
-          constructor_with = [constructor_with]
-        call_with = call_with + constructor_with
-
-        if 'ScriptArguments' in call_with:
-          operation.arguments.append(ARG)
-
-  def CleanupOperationArguments(self, database):
-    for interface in database.GetInterfaces():
-      for operation in interface.operations:
-        # TODO(terry): Hack to remove 3rd arguments in setInterval/setTimeout.
-        if ((operation.id == 'setInterval' or operation.id == 'setTimeout') and \
-            operation.arguments[0].type.id == 'any'):
-          operation.arguments.pop(2)
-
-        # Massage any operation argument type that is IDLEnum to String.
-        for index, argument in enumerate(operation.arguments):
-          type_name = argument.type.id
-          if database.HasEnum(type_name):
-            operation.arguments[index].type = IDLType('DOMString')
-
+                # Massage any operation argument type that is IDLEnum to String.
+                for index, argument in enumerate(operation.arguments):
+                    type_name = argument.type.id
+                    if database.HasEnum(type_name):
+                        operation.arguments[index].type = IDLType('DOMString')

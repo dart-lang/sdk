@@ -10,8 +10,8 @@ class C {
 }
 
 main() {
-  var /*@type=List<int>*/ v = new C(). /*@typeArgs=int*/ /*@target=C::f*/ f(
-      /*@returnType=int*/ () {
+  var /*@ type=List<int*>* */ v = new C(). /*@ typeArgs=int* */ /*@target=C::f*/ f(
+      /*@ returnType=int* */ () {
     return 1;
   });
 }

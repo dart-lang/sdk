@@ -6,11 +6,11 @@
 library test;
 
 class A {
-  final /*@topType=dynamic*/ x = null;
+  final x = null;
 }
 
 class B implements A {
-  final /*@topType=dynamic*/ x = 2;
+  final x = 2;
 }
 
 foo() {

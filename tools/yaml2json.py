@@ -9,18 +9,19 @@ import sys
 
 import utils
 
+
 def Main():
-  args = sys.argv[1:]
-  yaml2json_dart = os.path.relpath(
-    os.path.join(os.path.dirname(__file__), "yaml2json.dart"))
-  command = [utils.CheckedInSdkExecutable(), yaml2json_dart] + args
+    args = sys.argv[1:]
+    yaml2json_dart = os.path.relpath(
+        os.path.join(os.path.dirname(__file__), "yaml2json.dart"))
+    command = [utils.CheckedInSdkExecutable(), yaml2json_dart] + args
 
-  with utils.CoreDumpArchiver(args):
-    exit_code = subprocess.call(command)
+    with utils.CoreDumpArchiver(args):
+        exit_code = subprocess.call(command)
 
-  utils.DiagnoseExitCode(exit_code, command)
-  return exit_code
+    utils.DiagnoseExitCode(exit_code, command)
+    return exit_code
 
 
 if __name__ == '__main__':
-  sys.exit(Main())
+    sys.exit(Main())

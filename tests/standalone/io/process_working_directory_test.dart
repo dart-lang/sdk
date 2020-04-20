@@ -6,8 +6,8 @@
 
 library ProcessWorkingDirectoryTest;
 
-import "package:expect/expect.dart";
 import "dart:io";
+import "package:expect/expect.dart";
 import "process_test_util.dart";
 
 class ProcessWorkingDirectoryTest {
@@ -23,8 +23,7 @@ class ProcessWorkingDirectoryTest {
         Directory.systemTemp.createTempSync('dart_process_working_directory');
     Expect.isTrue(directory.existsSync());
 
-    Process
-        .start(fullTestFilePath, const ["0", "0", "99", "0"],
+    Process.start(fullTestFilePath, const ["0", "0", "99", "0"],
             workingDirectory: directory.path)
         .then((process) {
       process.exitCode.then((int exitCode) {
@@ -44,8 +43,7 @@ class ProcessWorkingDirectoryTest {
         Directory.systemTemp.createTempSync('dart_process_working_directory');
     Expect.isTrue(directory.existsSync());
 
-    Process
-        .start(fullTestFilePath, const ["0", "0", "99", "0"],
+    Process.start(fullTestFilePath, const ["0", "0", "99", "0"],
             workingDirectory: directory.path + "/subPath")
         .then((process) {
       Expect.fail("bad process completed");

@@ -14,10 +14,10 @@ class EventDeleteEvent {
   EventDeleteEvent(this.event);
 }
 
-class NavNotifyEventElement extends HtmlElement implements Renderable {
+class NavNotifyEventElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavNotifyEventElement>('nav-event');
 
-  RenderingScheduler _r;
+  RenderingScheduler<NavNotifyEventElement> _r;
 
   Stream<RenderedEvent<NavNotifyEventElement>> get onRendered => _r.onRendered;
 
@@ -31,13 +31,13 @@ class NavNotifyEventElement extends HtmlElement implements Renderable {
 
   factory NavNotifyEventElement(M.Event event, {RenderingQueue queue}) {
     assert(event != null);
-    NavNotifyEventElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    NavNotifyEventElement e = new NavNotifyEventElement.created();
+    e._r = new RenderingScheduler<NavNotifyEventElement>(e, queue: queue);
     e._event = event;
     return e;
   }
 
-  NavNotifyEventElement.created() : super.created();
+  NavNotifyEventElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -48,12 +48,12 @@ class NavNotifyEventElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    children = [];
+    children = <Element>[];
     List<Element> content;
     if (event is M.PauseStartEvent) {
       content = _managePauseStartEvent(event as M.PauseStartEvent);
@@ -76,9 +76,9 @@ class NavNotifyEventElement extends HtmlElement implements Renderable {
     } else {
       return;
     }
-    children = [
+    children = <Element>[
       new DivElement()
-        ..children = []
+        ..children = <Element>[]
         ..children.addAll(content)
         ..children.add(new ButtonElement()
           ..innerHtml = '&times;'

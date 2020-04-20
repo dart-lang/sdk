@@ -2,75 +2,79 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.convert;
 
-/**
- * Open-ended Encoding enum.
- */
+/// Open-ended Encoding enum.
 abstract class Encoding extends Codec<String, List<int>> {
   const Encoding();
 
+  /// Returns the encoder from `String` to `List<int>`.
+  ///
+  /// It may be stateful and should not be reused.
   Converter<String, List<int>> get encoder;
+
+  /// Returns the decoder of `this`, converting from `List<int>` to `String`.
+  ///
+  /// It may be stateful and should not be reused.
   Converter<List<int>, String> get decoder;
 
   Future<String> decodeStream(Stream<List<int>> byteStream) {
-    return byteStream
-        .transform(decoder)
-        .fold(new StringBuffer(), (buffer, string) => buffer..write(string))
-        .then((buffer) => buffer.toString());
+    return decoder
+        .bind(byteStream)
+        .fold(StringBuffer(),
+            (StringBuffer buffer, String string) => buffer..write(string))
+        .then((StringBuffer buffer) => buffer.toString());
   }
 
-  /**
-   * Name of the encoding.
-   *
-   * If the encoding is standardized, this is the lower-case version of one of
-   * the IANA official names for the character set (see
-   * http://www.iana.org/assignments/character-sets/character-sets.xml)
-   */
+  /// Name of the encoding.
+  ///
+  /// If the encoding is standardized, this is the lower-case version of one of
+  /// the IANA official names for the character set (see
+  /// http://www.iana.org/assignments/character-sets/character-sets.xml)
   String get name;
 
   // All aliases (in lowercase) of supported encoding from
   // http://www.iana.org/assignments/character-sets/character-sets.xml.
-  static Map<String, Encoding> _nameToEncoding = <String, Encoding>{
+  static final Map<String, Encoding> _nameToEncoding = <String, Encoding>{
     // ISO_8859-1:1987.
-    "iso_8859-1:1987": LATIN1,
-    "iso-ir-100": LATIN1,
-    "iso_8859-1": LATIN1,
-    "iso-8859-1": LATIN1,
-    "latin1": LATIN1,
-    "l1": LATIN1,
-    "ibm819": LATIN1,
-    "cp819": LATIN1,
-    "csisolatin1": LATIN1,
+    "iso_8859-1:1987": latin1,
+    "iso-ir-100": latin1,
+    "iso_8859-1": latin1,
+    "iso-8859-1": latin1,
+    "latin1": latin1,
+    "l1": latin1,
+    "ibm819": latin1,
+    "cp819": latin1,
+    "csisolatin1": latin1,
 
     // US-ASCII.
-    "iso-ir-6": ASCII,
-    "ansi_x3.4-1968": ASCII,
-    "ansi_x3.4-1986": ASCII,
-    "iso_646.irv:1991": ASCII,
-    "iso646-us": ASCII,
-    "us-ascii": ASCII,
-    "us": ASCII,
-    "ibm367": ASCII,
-    "cp367": ASCII,
-    "csascii": ASCII,
-    "ascii": ASCII, // This is not in the IANA official names.
+    "iso-ir-6": ascii,
+    "ansi_x3.4-1968": ascii,
+    "ansi_x3.4-1986": ascii,
+    "iso_646.irv:1991": ascii,
+    "iso646-us": ascii,
+    "us-ascii": ascii,
+    "us": ascii,
+    "ibm367": ascii,
+    "cp367": ascii,
+    "csascii": ascii,
+    "ascii": ascii, // This is not in the IANA official names.
 
     // UTF-8.
-    "csutf8": UTF8,
-    "utf-8": UTF8
+    "csutf8": utf8,
+    "utf-8": utf8
   };
 
-  /**
-  * Gets an [Encoding] object from the name of the character set
-  * name. The names used are the IANA official names for the
-  * character set (see
-  * http://www.iana.org/assignments/character-sets/character-sets.xml).
-  *
-  * The [name] passed is case insensitive.
-  *
-  * If character set is not supported [:null:] is returned.
-  */
+  /// Gets an [Encoding] object from the name of the character set
+  /// name. The names used are the IANA official names for the
+  /// character set (see
+  /// http://www.iana.org/assignments/character-sets/character-sets.xml).
+  ///
+  /// The [name] passed is case insensitive.
+  ///
+  /// If character set is not supported [:null:] is returned.
   static Encoding getByName(String name) {
     if (name == null) return null;
     name = name.toLowerCase();

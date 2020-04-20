@@ -36,15 +36,14 @@ void expect(condition) {
 }
 
 void runClient(int port) {
-  SecureSocket
-      .connect(HOST_NAME, port, context: clientContext)
+  SecureSocket.connect(HOST_NAME, port, context: clientContext)
       .then((SecureSocket socket) {
-    X509Certificate certificate = socket.peerCertificate;
+    X509Certificate? certificate = socket.peerCertificate;
     expect(certificate != null);
-    expectEquals('CN=localhost', certificate.subject);
+    expectEquals('CN=localhost', certificate!.subject);
     expectEquals('CN=myauthority', certificate.issuer);
     StreamIterator<String> input = new StreamIterator(
-        socket.transform(UTF8.decoder).transform(new LineSplitter()));
+        socket.transform(utf8.decoder).transform(new LineSplitter()));
     socket.writeln('first');
     input.moveNext().then((success) {
       expect(success);
@@ -55,9 +54,9 @@ void runClient(int port) {
     }).then((success) {
       expect(success);
       expectEquals('server renegotiated', input.current);
-      X509Certificate certificate = socket.peerCertificate;
+      X509Certificate? certificate = socket.peerCertificate;
       expect(certificate != null);
-      expectEquals("CN=localhost", certificate.subject);
+      expectEquals("CN=localhost", certificate!.subject);
       expectEquals("CN=myauthority", certificate.issuer);
       socket.writeln('second');
       return input.moveNext();

@@ -1,0 +1,6 @@
+Errors: {
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return () → dart.core::int* {
+    return this.{main::B::x}.{dart.core::num::+}(this.{main::B::y});
+  };

@@ -19,9 +19,11 @@ main() {
   Float32x4List l = new Float32x4List(4);
   Float32x4 a = new Float32x4(1.0, 2.0, 3.0, 4.0);
   Float32x4 b;
-  for (int i = 0; i < 20; i++) {
+  int i = 0;
+  do {
+    // do-while ensures `b` is definitely assigned.
     b = testLoadStoreForwardingFloat32x4(l, a);
-  }
+  } while (++i < 20);
   Expect.equals(a.x, b.x);
   Expect.equals(a.y, b.y);
   Expect.equals(a.z, b.z);

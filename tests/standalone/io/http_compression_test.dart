@@ -11,108 +11,95 @@ import 'package:expect/expect.dart';
 import 'dart:io';
 import 'dart:typed_data';
 
-void testServerCompress({bool clientAutoUncompress: true}) {
-  void test(List<int> data) {
-    HttpServer.bind("127.0.0.1", 0).then((server) {
-      server.autoCompress = true;
-      server.listen((request) {
-        request.response.add(data);
-        request.response.close();
-      });
-      var client = new HttpClient();
-      client.autoUncompress = clientAutoUncompress;
-      client.get("127.0.0.1", server.port, "/").then((request) {
-        request.headers.set(HttpHeaders.ACCEPT_ENCODING, "gzip,deflate");
-        return request.close();
-      }).then((response) {
-        Expect.equals(
-            "gzip", response.headers.value(HttpHeaders.CONTENT_ENCODING));
-        response.fold([], (list, b) {
-          list.addAll(b);
-          return list;
-        }).then((list) {
-          if (clientAutoUncompress) {
-            Expect.listEquals(data, list);
-          } else {
-            Expect.listEquals(data, GZIP.decode(list));
-          }
-          server.close();
-          client.close();
-        });
-      });
+void testServerCompress({bool clientAutoUncompress: true}) async {
+  void test(List<int> data) async {
+    final server = await HttpServer.bind("127.0.0.1", 0);
+    server.autoCompress = true;
+    server.listen((request) {
+      request.response.add(data);
+      request.response.close();
     });
+    var client = new HttpClient();
+    client.autoUncompress = clientAutoUncompress;
+    final request = await client.get("127.0.0.1", server.port, "/");
+    request.headers.set(HttpHeaders.acceptEncodingHeader, "gzip,deflate");
+    final response = await request.close();
+    Expect.equals(
+        "gzip", response.headers.value(HttpHeaders.contentEncodingHeader));
+    final list =
+        await response.fold<List<int>>(<int>[], (list, b) => list..addAll(b));
+    if (clientAutoUncompress) {
+      Expect.listEquals(data, list);
+    } else {
+      Expect.listEquals(data, gzip.decode(list));
+    }
+    server.close();
+    client.close();
   }
 
-  test("My raw server provided data".codeUnits);
+  await test("My raw server provided data".codeUnits);
   var longBuffer = new Uint8List(1024 * 1024);
   for (int i = 0; i < longBuffer.length; i++) {
     longBuffer[i] = i & 0xFF;
   }
-  test(longBuffer);
+  await test(longBuffer);
 }
 
-void testAcceptEncodingHeader() {
-  void test(String encoding, bool valid) {
-    HttpServer.bind("127.0.0.1", 0).then((server) {
-      server.autoCompress = true;
-      server.listen((request) {
-        request.response.write("data");
-        request.response.close();
-      });
-      var client = new HttpClient();
-      client.get("127.0.0.1", server.port, "/").then((request) {
-        request.headers.set(HttpHeaders.ACCEPT_ENCODING, encoding);
-        return request.close();
-      }).then((response) {
-        Expect.equals(valid,
-            ("gzip" == response.headers.value(HttpHeaders.CONTENT_ENCODING)));
-        response.listen((_) {}, onDone: () {
-          server.close();
-          client.close();
-        });
-      });
-    });
-  }
-
-  test('gzip', true);
-  test('deflate', false);
-  test('gzip, deflate', true);
-  test('gzip ,deflate', true);
-  test('gzip  ,  deflate', true);
-  test('deflate,gzip', true);
-  test('deflate, gzip', true);
-  test('deflate ,gzip', true);
-  test('deflate  ,  gzip', true);
-  test('abc,deflate  ,  gzip,def,,,ghi  ,jkl', true);
-  test('xgzip', false);
-  test('gzipx;', false);
-}
-
-void testDisableCompressTest() {
-  HttpServer.bind("127.0.0.1", 0).then((server) {
-    Expect.equals(false, server.autoCompress);
+void testAcceptEncodingHeader() async {
+  void test(String encoding, bool valid) async {
+    final server = await HttpServer.bind("127.0.0.1", 0);
+    server.autoCompress = true;
     server.listen((request) {
-      Expect.equals('gzip', request.headers.value(HttpHeaders.ACCEPT_ENCODING));
       request.response.write("data");
       request.response.close();
     });
     var client = new HttpClient();
-    client
-        .get("127.0.0.1", server.port, "/")
-        .then((request) => request.close())
-        .then((response) {
-      Expect.equals(null, response.headers.value(HttpHeaders.CONTENT_ENCODING));
-      response.listen((_) {}, onDone: () {
-        server.close();
-        client.close();
-      });
-    });
-  });
+    final request = await client.get("127.0.0.1", server.port, "/");
+    request.headers.set(HttpHeaders.acceptEncodingHeader, encoding);
+    final response = await request.close();
+    Expect.equals(valid,
+        ("gzip" == response.headers.value(HttpHeaders.contentEncodingHeader)));
+    await response.listen((_) {}).asFuture();
+    server.close();
+    client.close();
+  }
+
+  await test('gzip', true);
+  await test('deflate', false);
+  await test('gzip, deflate', true);
+  await test('gzip ,deflate', true);
+  await test('gzip  ,  deflate', true);
+  await test('deflate,gzip', true);
+  await test('deflate, gzip', true);
+  await test('deflate ,gzip', true);
+  await test('deflate  ,  gzip', true);
+  await test('abc,deflate  ,  gzip,def,,,ghi  ,jkl', true);
+  await test('xgzip', false);
+  await test('gzipx;', false);
 }
 
-void main() {
-  testServerCompress();
-  testServerCompress(clientAutoUncompress: false);
-  testAcceptEncodingHeader();
-  testDisableCompressTest();
+void testDisableCompressTest() async {
+  final server = await HttpServer.bind("127.0.0.1", 0);
+  Expect.equals(false, server.autoCompress);
+  server.listen((request) {
+    Expect.equals(
+        'gzip', request.headers.value(HttpHeaders.acceptEncodingHeader));
+    request.response.write("data");
+    request.response.close();
+  });
+  final client = new HttpClient();
+  final request = await client.get("127.0.0.1", server.port, "/");
+  final response = await request.close();
+  Expect.equals(
+      null, response.headers.value(HttpHeaders.contentEncodingHeader));
+  await response.listen((_) {}).asFuture();
+  server.close();
+  client.close();
+}
+
+void main() async {
+  await testServerCompress();
+  await testServerCompress(clientAutoUncompress: false);
+  await testAcceptEncodingHeader();
+  await testDisableCompressTest();
 }

@@ -14,6 +14,7 @@ class A {
 class B {
   bool operator ==(Object other) {
     Expect.fail("Bad equality order.");
+    return false;
   }
 }
 
@@ -22,10 +23,9 @@ main() {
     Expect.isFalse(iterable.contains(new B()));
   }
 
-  var iterables = [
+  var iterables = <dynamic>[
     <A>[new A()],
-    new List<A>(1)..[0] = new A(),
-    new List<A>()..add(new A()),
+    new List<A>.filled(1, new A()),
     const <A>[const A()],
     new Set()..add(new A()),
     (new Map()..[new A()] = 0).keys,

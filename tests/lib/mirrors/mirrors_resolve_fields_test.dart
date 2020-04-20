@@ -9,7 +9,6 @@ library lib;
 
 import "package:expect/expect.dart";
 
-@MirrorsUsed(targets: "lib")
 import 'dart:mirrors';
 
 class A {
@@ -21,6 +20,6 @@ class A {
 main() {
   var mirrors = currentMirrorSystem();
   var classMirror = reflectClass(A);
-  var instanceMirror = classMirror.newInstance(const Symbol(''), []);
+  var instanceMirror = classMirror.newInstance(Symbol.empty, []);
   Expect.equals(A._STATE_INITIAL, instanceMirror.reflectee._state);
 }

@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "include/bin/dart_io_api.h"
 #include "include/dart_api.h"
 #include "include/dart_tools_api.h"
 
@@ -13,7 +14,6 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
-#include "bin/embedded_dart_io.h"
 #include "bin/file.h"
 #include "bin/io_natives.h"
 #include "bin/platform.h"
@@ -47,7 +47,9 @@ Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
                                           bool* auto_setup_scope) {
   const char* function_name = NULL;
   Dart_Handle err = Dart_StringToCString(name, &function_name);
-  DART_CHECK_VALID(err);
+  if (Dart_IsError(err)) {
+    Dart_PropagateError(err);
+  }
   ASSERT(function_name != NULL);
   ASSERT(auto_setup_scope != NULL);
   *auto_setup_scope = true;

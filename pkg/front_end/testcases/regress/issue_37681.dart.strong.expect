@@ -1,0 +1,38 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_37681.dart:6:7: Error: Functions marked 'async' must have a return type assignable to 'Future'.
+//   int f_async() async { return 42; }
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_37681.dart:9:7: Error: Functions marked 'async*' must have a return type assignable to 'Stream'.
+//   int f_async_star() async* { yield 42; }
+//       ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_37681.dart:14:7: Error: Functions marked 'sync*' must have a return type assignable to 'Iterable'.
+//   int f_sync_star() sync* { yield 42; }
+//       ^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static method main() → dynamic async {
+  function f_async() → core::int* async {
+    return 42;
+  }
+  core::print(await f_async.call());
+  function f_async_star() → core::int* async* {
+    yield 42;
+  }
+  await for (dynamic x in (f_async_star.call() as dynamic) as{TypeError,ForDynamic} asy::Stream<dynamic>*) {
+    core::print(x);
+  }
+  function f_sync_star() → core::int* sync* {
+    yield 42;
+  }
+  for (dynamic x in (f_sync_star.call() as dynamic) as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+    core::print(x);
+  }
+}

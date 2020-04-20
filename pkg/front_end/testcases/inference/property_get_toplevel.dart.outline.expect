@@ -3,16 +3,16 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  field core::int field;
-  default constructor •() → void
+  field core::int* field;
+  synthetic constructor •() → self::C*
     ;
-  get getter() → core::int
+  get getter() → core::int*
     ;
-  method function() → core::int
+  method function() → core::int*
     ;
 }
-static field self::C c;
-static field dynamic function_ref;
-static field dynamic function_ref_list;
+static field self::C* c;
+static field () →* core::int* function_ref;
+static field core::List<() →* core::int*>* function_ref_list;
 static method main() → dynamic
   ;

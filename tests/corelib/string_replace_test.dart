@@ -67,22 +67,12 @@ main() {
   Expect.equals("aaa{3}aaX", "aaa{3}aaa{3}".replaceFirst("a{3}", "X", 3));
 
   // Test negative startIndex
-  Expect.throws(
-      () => "hello".replaceFirst("h", "X", -1), (e) => e is RangeError);
+  Expect.throwsRangeError(() => "hello".replaceFirst("h", "X", -1));
 
   // Test startIndex too large
-  Expect.throws(
-      () => "hello".replaceFirst("h", "X", 6), (e) => e is RangeError);
-
-  // Test null startIndex
-  Expect.throws(
-      () => "hello".replaceFirst("h", "X", null), (e) => e is ArgumentError);
-
-  // Test object startIndex
-  Expect.throws(() => "hello".replaceFirst("h", "X", new Object()));
+  Expect.throwsRangeError(() => "hello".replaceFirst("h", "X", 6));
 
   // Test replaceFirstMapped.
-
   Expect.equals(
       "AtoBtoCDtoE", "AfromBtoCDtoE".replaceFirstMapped("from", (_) => "to"));
 
@@ -149,24 +139,15 @@ main() {
       "aaa{3}aaX", "aaa{3}aaa{3}".replaceFirstMapped("a{3}", (_) => "X", 3));
 
   // Test negative startIndex
-  Expect.throws(() => "hello".replaceFirstMapped("h", (_) => "X", -1),
-      (e) => e is RangeError);
+  Expect.throwsRangeError(
+      () => "hello".replaceFirstMapped("h", (_) => "X", -1));
 
   // Test startIndex too large
-  Expect.throws(() => "hello".replaceFirstMapped("h", (_) => "X", 6),
-      (e) => e is RangeError);
-
-  // Test null startIndex
-  Expect.throws(() => "hello".replaceFirstMapped("h", (_) => "X", null),
-      (e) => e is ArgumentError);
-
-  // Test object startIndex
-  Expect
-      .throws(() => "hello".replaceFirstMapped("h", (_) => "X", new Object()));
+  Expect.throwsRangeError(() => "hello".replaceFirstMapped("h", (_) => "X", 6));
 
   // Test replacement depending on argument.
   Expect.equals("foo-BAR-foo-bar",
-      "foo-bar-foo-bar".replaceFirstMapped("bar", (v) => v[0].toUpperCase()));
+      "foo-bar-foo-bar".replaceFirstMapped("bar", (v) => v[0]!.toUpperCase()));
 
   Expect.equals("foo-[bar]-foo-bar",
       "foo-bar-foo-bar".replaceFirstMapped("bar", (v) => "[${v[0]}]"));
@@ -183,19 +164,10 @@ main() {
   Expect.equals(
       "foo-$o",
       "foo-bar".replaceFirstMapped("bar", (v) {
-        return o;
-      }));
-
-  Expect.equals(
-      "foo-42",
-      "foo-bar".replaceFirstMapped("bar", (v) {
-        return 42;
-      }));
-
-  // Test replacement returning object throwing on string-conversion.
-  var n = new Naughty();
-  Expect.throws(() => "foo-bar".replaceFirstMapped("bar", (v) {
-        return n;
+        // TODO(jmesserly): in strong mode, this function must return a string.
+        // If we want to allow any Object, we'll have to fix the API signature.
+        // See https://github.com/dart-lang/sdk/issues/30248.
+        return '$o';
       }));
 
   for (var string in ["", "x", "foo", "x\u2000z"]) {
@@ -213,15 +185,7 @@ main() {
             '"$string"[$start:]="$replacement"');
       }
     }
-    Expect.throws(() => string.replaceRange(0, 0, null));
-    Expect.throws(() => string.replaceRange(0, 0, 42));
-    Expect.throws(() => string.replaceRange(0, 0, ["x"]));
     Expect.throws(() => string.replaceRange(-1, 0, "x"));
     Expect.throws(() => string.replaceRange(0, string.length + 1, "x"));
   }
-}
-
-// Fails to return a String on toString, throws if converted by "$naughty".
-class Naughty {
-  toString() => this;
 }

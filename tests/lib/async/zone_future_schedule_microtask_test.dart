@@ -13,10 +13,10 @@ main() {
 
   // Make sure that the zones use the scheduleMicrotask of their zones.
   int scheduleMicrotaskCount = 0;
-  Completer completer;
-  Completer completer2;
-  Future future;
-  Future future2;
+  late Completer completer;
+  late Completer completer2;
+  late Future future;
+  late Future future2;
   runZonedScheduleMicrotask(() {
     completer = new Completer();
     completer.complete(499);

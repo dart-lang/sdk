@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,7 +8,7 @@ import 'package:analyzer/src/lint/util.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 
-final dartMatcher = new Glob('**.dart');
+final dartMatcher = Glob('**.dart');
 
 /// Shared IO sink for standard error reporting.
 /// Visible for testing
@@ -23,11 +23,11 @@ IOSink outSink = stdout;
 Iterable<File> collectFiles(String path) {
   List<File> files = [];
 
-  var file = new File(path);
+  var file = File(path);
   if (file.existsSync()) {
     files.add(file);
   } else {
-    var directory = new Directory(path);
+    var directory = Directory(path);
     if (directory.existsSync()) {
       for (var entry
           in directory.listSync(recursive: true, followLinks: false)) {
@@ -59,4 +59,4 @@ bool isPubspecFile(FileSystemEntity entry) =>
     isPubspecFileName(p.basename(entry.path));
 
 /// Synchronously read the contents of the file at the given [path] as a string.
-String readFile(String path) => new File(path).readAsStringSync();
+String readFile(String path) => File(path).readAsStringSync();

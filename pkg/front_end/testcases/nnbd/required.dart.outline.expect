@@ -1,0 +1,45 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/required.dart:29:8: Error: Optional parameter 'x' should have a default value because its type 'int' doesn't allow null.
+//   foo({x}) {}
+//        ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef Typedef1 = ({a: core::int, required b: core::int}) → dynamic;
+typedef Typedef2 = ({a: core::int, required b: core::int}) → dynamic;
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    ;
+  method method({core::int a = 42, required core::int b, required final core::int c, required covariant final core::int d}) → dynamic
+    ;
+}
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  abstract method foo({core::int x}) → dynamic;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    ;
+  method foo({core::int x}) → dynamic
+    ;
+}
+class C extends self::A {
+  synthetic constructor •() → self::C
+    ;
+  method foo({core::int x = 42}) → dynamic
+    ;
+}
+static field ({a: core::int, required b: core::int}) → dynamic field;
+static method method({core::int a, required core::int b, required final core::int c}) → dynamic
+  ;
+static method ok() → dynamic
+  ;
+static method error() → dynamic
+  ;
+static method main() → dynamic
+  ;

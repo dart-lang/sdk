@@ -1,0 +1,43 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/issue39421.dart:11:7: Error: 'A' is already declared in this scope.
+// class A {}
+//       ^
+// pkg/front_end/testcases/general_nnbd_opt_out/issue39421.dart:9:7: Context: Previous declaration of 'A'.
+// class A {}
+//       ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/issue39421.dart:18:12: Error: 'A' isn't a type.
+//   foo(List<A> a) {}
+//            ^
+// pkg/front_end/testcases/general_nnbd_opt_out/issue39421.dart:18:12: Context: This isn't a type.
+//   foo(List<A> a) {}
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A#1 extends core::Object {
+  synthetic constructor •() → self::A#1*
+    ;
+}
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    ;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B*
+    ;
+  method foo(core::List<core::Null?>* a) → dynamic
+    ;
+}
+class C extends self::B {
+  synthetic constructor •() → self::C*
+    ;
+  method foo(core::List<invalid-type>* a) → dynamic
+    ;
+}
+static method main() → dynamic
+  ;

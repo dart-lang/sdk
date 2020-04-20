@@ -15,6 +15,8 @@ namespace dart {
 ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
     : isolate_(isolate),
       kind_(event_kind),
+      flag_name_(NULL),
+      flag_new_value_(NULL),
       embedder_kind_(NULL),
       embedder_stream_id_(NULL),
       breakpoint_(NULL),
@@ -33,8 +35,8 @@ ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
       timestamp_(OS::GetCurrentTimeMillis()) {
   // We should never generate events for the vm or service isolates.
   ASSERT(isolate_ != Dart::vm_isolate());
-  ASSERT(isolate == NULL ||
-         !ServiceIsolate::IsServiceIsolateDescendant(isolate_));
+  ASSERT(isolate == NULL || FLAG_show_invisible_isolates ||
+         !Isolate::IsVMInternalIsolate(isolate));
 
   if ((event_kind == ServiceEvent::kPauseStart) ||
       (event_kind == ServiceEvent::kPauseExit)) {
@@ -53,6 +55,8 @@ const char* ServiceEvent::KindAsCString() const {
   switch (kind()) {
     case kVMUpdate:
       return "VMUpdate";
+    case kVMFlagUpdate:
+      return "VMFlagUpdate";
     case kIsolateStart:
       return "IsolateStart";
     case kIsolateRunnable:
@@ -96,7 +100,7 @@ const char* ServiceEvent::KindAsCString() const {
     case kEmbedder:
       return embedder_kind();
     case kLogging:
-      return "_Logging";
+      return "Logging";
     case kDebuggerSettingsUpdate:
       return "_DebuggerSettingsUpdate";
     case kIllegal:
@@ -114,6 +118,7 @@ const char* ServiceEvent::KindAsCString() const {
 const StreamInfo* ServiceEvent::stream_info() const {
   switch (kind()) {
     case kVMUpdate:
+    case kVMFlagUpdate:
       return &Service::vm_stream;
 
     case kIsolateStart:
@@ -174,6 +179,14 @@ const char* ServiceEvent::stream_id() const {
 void ServiceEvent::PrintJSON(JSONStream* js) const {
   JSONObject jsobj(js);
   PrintJSONHeader(&jsobj);
+  if (kind() == kVMFlagUpdate) {
+    jsobj.AddProperty("flag", flag_name());
+    // For backwards compatibility, "new_value" is also provided.
+    // TODO(bkonyi): remove when service protocol major version is incremented.
+    ASSERT(SERVICE_PROTOCOL_MAJOR_VERSION == 3);
+    jsobj.AddProperty("new_value", flag_new_value());
+    jsobj.AddProperty("newValue", flag_new_value());
+  }
   if (kind() == kIsolateReload) {
     if (reload_error_ == NULL) {
       jsobj.AddProperty("status", "success");
@@ -215,12 +228,14 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     JSONObject jssettings(&jsobj, "_debuggerSettings");
     isolate()->debugger()->PrintSettingsToJSONObject(&jssettings);
   }
-  if ((top_frame() != NULL) && Isolate::Current()->compilation_allowed()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (top_frame() != nullptr) {
     JSONObject jsFrame(&jsobj, "topFrame");
     top_frame()->PrintToJSONObject(&jsFrame);
     intptr_t index = 0;  // Avoid ambiguity in call to AddProperty.
     jsFrame.AddProperty("index", index);
   }
+#endif
   if (exception() != NULL) {
     jsobj.AddProperty("exception", *(exception()));
   }
@@ -240,6 +255,7 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   }
   if (kind() == kLogging) {
     JSONObject logRecord(&jsobj, "logRecord");
+    logRecord.AddProperty("type", "LogRecord");
     logRecord.AddProperty64("sequenceNumber", log_record_.sequence_number);
     logRecord.AddPropertyTimeMillis("time", log_record_.timestamp);
     logRecord.AddProperty64("level", log_record_.level);

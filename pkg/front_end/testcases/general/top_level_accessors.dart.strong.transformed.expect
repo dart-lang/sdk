@@ -1,0 +1,14 @@
+library top_level_accessors;
+import self as self;
+import "dart:core" as core;
+
+part top_level_accessors_part.dart;
+static set /* from org-dartlang-testcase:///top_level_accessors_part.dart */ exitCode(core::int* code) → void {
+  core::print(code);
+}
+static get /* from org-dartlang-testcase:///top_level_accessors_part.dart */ exitCode() → core::int*
+  return 0;
+static method /* from org-dartlang-testcase:///top_level_accessors_part.dart */ main() → dynamic {
+  self::exitCode = 42;
+  core::print(self::exitCode);
+}

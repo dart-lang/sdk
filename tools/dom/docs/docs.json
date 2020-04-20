@@ -1245,8 +1245,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [scrollByLines](http://docs.webplatform.org/wiki/dom/methods/scrollByLines)",
-          "   *   from WebPlatform.org.",
+          "   * * [Window.scrollByLines](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollByLines)",
+          "   *   from MDN.",
           "   */"
         ],
         "scrollByPages": [
@@ -1255,7 +1255,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [scrollByPages](http://docs.webplatform.org/wiki/dom/methods/scrollByPages) from WebPlatform.org.",
+          "   * * [Window.scrollByPages](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollByPages)",
+          "   *   from MDN.",
           "   */"
         ],
         "scrollEvent": [
@@ -1425,9 +1426,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Using the fullscreen",
-          "   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)",
-          "   *   tutorial from WebPlatform.org.",
+          "   * * [Fullscreen",
+          "   *   API](https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API)",
+          "   *   from MDN.",
           "   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.",
           "   */"
         ],
@@ -3404,8 +3405,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [innerHeight](http://docs.webplatform.org/wiki/css/cssom/properties/innerHeight)",
-          "   *   from WebPlatform.org.",
+          "   * * [Window.innerHeight](https://developer.mozilla.org/en-US/docs/Web/API/Window/innerHeight)",
+          "   *   from MDN.",
           "   */"
         ],
         "innerWidth": [
@@ -3414,8 +3415,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [innerWidth](http://docs.webplatform.org/wiki/css/cssom/properties/innerWidth)",
-          "   *   from WebPlatform.org.",
+          "   * * [Window.innerWidth](https://developer.mozilla.org/en-US/docs/Web/API/Window/innerWidth)",
+          "   *   from MDN.",
           "   */"
         ],
         "localStorage": [
@@ -3494,8 +3495,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Window name](http://docs.webplatform.org/wiki/html/attributes/name_(window))",
-          "   *   from WebPlatform.org.",
+          "   * * [Window.name](https://developer.mozilla.org/en-US/docs/Web/API/Window/name)",
+          "   *   from MDN.",
           "   */"
         ],
         "navigator": [
@@ -3523,7 +3524,7 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [offscreenBuffering](http://docs.webplatform.org/wiki/dom/properties/offscreenBuffering)",
+          "   * * [offscreenBuffering](https://webplatform.github.io/docs/dom/HTMLElement/offscreenBuffering/)",
           "   *   from WebPlatform.org.",
           "   */"
         ],
@@ -3709,8 +3710,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [outerHeight](http://docs.webplatform.org/wiki/css/cssom/properties/outerHeight)",
-          "   *   from WebPlatform.org.",
+          "   * * [Window.outerHeight](https://developer.mozilla.org/en-US/docs/Web/API/Window/outerHeight)",
+          "   *   from MDN.",
           "   */"
         ],
         "outerWidth": [
@@ -3719,8 +3720,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [outerWidth](http://docs.webplatform.org/wiki/css/cssom/properties/outerWidth)",
-          "   *   from WebPlatform.org.",
+          "   * * [Window.outerWidth](https://developer.mozilla.org/en-US/docs/Web/API/Window/outerWidth)",
+          "   *   from MDN.",
           "   */"
         ],
         "pagehideEvent": [
@@ -3820,8 +3821,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Window resizeBy](http://docs.webplatform.org/wiki/dom/methods/resizeBy)",
-          "   *   from WebPlatform.org.",
+          "   * * [Window.resizeBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/resizeBy)",
+          "   *   from MDN.",
           "   */"
         ],
         "resizeEvent": [
@@ -3838,8 +3839,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Window resizeTo](http://docs.webplatform.org/wiki/dom/methods/resizeTo)",
-          "   *   from WebPlatform.org.",
+          "   * * [Window.resizeTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/resizeTo)",
+          "   *   from MDN.",
           "   */"
         ],
         "screen": [
@@ -3901,8 +3902,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Window scroll](http://docs.webplatform.org/wiki/dom/methods/scroll)",
-          "   *   from WebPlatform.org.",
+          "   * * [Window.scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)",
+          "   *   from MDN.",
           "   */"
         ],
         "scrollbars": [
@@ -3922,8 +3923,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Window scrollBy](http://docs.webplatform.org/wiki/dom/methods/scrollBy)",
-          "   *   from WebPlatform.org.",
+          "   * * [Window.scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)",
+          "   *   from MDN.",
           "   */"
         ],
         "scrollTo": [
@@ -3934,8 +3935,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Window scrollTo](http://docs.webplatform.org/wiki/dom/methods/scrollTo)",
-          "   *   from WebPlatform.org.",
+          "   * * [Window.scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)",
+          "   *   from MDN.",
           "   */"
         ],
         "self": [
@@ -4211,7 +4212,7 @@
           "   * response.",
           "   *",
           "   * This value must be set before the request has been sent. See also the list",
-          "   * of [IANA Official MIME types](https://www.iana.org/assignments/media-types/media-types.xhtml)",
+          "   * of [IANA Official MIME types](https://www.iana.org/assignments/media-types/media-types.xhtml).",
           "   */"
         ],
         "readyState": [
@@ -4334,7 +4335,7 @@
         ],
         "statusText": [
           "/**",
-          "   * The request response string (such as \\\"200 OK\\\").",
+          "   * The request response string (such as \\\"OK\\\").",
           "   * See also: [HTTP Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)",
           "   */"
         ],

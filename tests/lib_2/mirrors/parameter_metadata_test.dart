@@ -34,30 +34,30 @@ main() {
   ClassMirror cm = reflectClass(B);
   MethodMirror mm;
 
-  mm = cm.declarations[#B.foo];
+  mm = cm.declarations[#B.foo] as MethodMirror;
   checkMetadata(mm.parameters[0], []);
 
-  mm = cm.declarations[#B.bar];
+  mm = cm.declarations[#B.bar] as MethodMirror;
   checkMetadata(mm.parameters[0], [m3, m2]);
   checkMetadata(mm.parameters[1], []);
 
-  mm = cm.declarations[#baz];
+  mm = cm.declarations[#baz] as MethodMirror;
   checkMetadata(mm.parameters[0], [m1]);
   checkMetadata(mm.parameters[1], [m2]);
   checkMetadata(mm.parameters[2], [m3]);
 
-  mm = cm.declarations[#qux];
+  mm = cm.declarations[#qux] as MethodMirror;
   checkMetadata(mm.parameters[0], []);
   checkMetadata(mm.parameters[1], [m3, m2, m1]);
 
-  mm = cm.declarations[#quux];
+  mm = cm.declarations[#quux] as MethodMirror;
   checkMetadata(mm.parameters[0], []);
   checkMetadata(mm.parameters[1], []);
 
-  mm = cm.declarations[#corge];
+  mm = cm.declarations[#corge] as MethodMirror;
   checkMetadata(mm.parameters[0], [m1]);
   checkMetadata(mm.parameters[1], [m2]);
 
-  mm = cm.declarations[const Symbol('x=')];
+  mm = cm.declarations[const Symbol('x=')] as MethodMirror;
   checkMetadata(mm.parameters[0], [m2]);
 }

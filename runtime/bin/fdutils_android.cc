@@ -132,7 +132,7 @@ ssize_t FDUtils::WriteToBlocking(int fd, const void* buffer, size_t count) {
 
 void FDUtils::SaveErrorAndClose(intptr_t fd) {
   int err = errno;
-  VOID_TEMP_FAILURE_RETRY(close(fd));
+  close(fd);
   errno = err;
 }
 

@@ -5,6 +5,12 @@
 #ifndef RUNTIME_VM_STACK_FRAME_X64_H_
 #define RUNTIME_VM_STACK_FRAME_X64_H_
 
+#if !defined(RUNTIME_VM_STACK_FRAME_H_)
+#error Do not include stack_frame_x64.h directly; use stack_frame.h instead.
+#endif
+
+#include "vm/constants.h"
+
 namespace dart {
 
 /* X64 Dart Frame Layout
@@ -43,7 +49,7 @@ static const int kSavedCallerPcSlotFromFp = 1;
 
 static const int kParamEndSlotFromFp = 1;  // One slot past last parameter.
 static const int kCallerSpSlotFromFp = 2;
-static const int kSavedAboveReturnAddress = 3;  // Saved above return address.
+static const int kLastParamSlotFromEntrySp = 1;  // Skip return address.
 
 // Entry and exit frame layout.
 #if defined(_WIN64)
@@ -51,6 +57,16 @@ static const int kExitLinkSlotFromEntryFp = -32;
 #else
 static const int kExitLinkSlotFromEntryFp = -10;
 #endif  // defined(_WIN64)
+
+// For FFI native -> Dart callbacks, the number of stack slots between arguments
+// passed on stack and arguments saved in callback prologue. 2 = return adddress
+// (1) + saved frame pointer (1). Also add slots for the shadow space, if
+// present.
+//
+// If NativeCallbackTrampolines::Enabled(), then
+// kNativeCallbackTrampolineStackDelta must be added as well.
+constexpr intptr_t kCallbackSlotsBeforeSavedArguments =
+    2 + CallingConventions::kShadowSpaceBytes / kWordSize;
 
 }  // namespace dart
 

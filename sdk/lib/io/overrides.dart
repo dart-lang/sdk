@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.io;
 
 final _ioOverridesToken = new Object();
@@ -32,8 +34,19 @@ const _asyncRunZoned = runZoned;
 /// }
 /// ```
 abstract class IOOverrides {
+  static IOOverrides _global;
+
   static IOOverrides get current {
-    return Zone.current[_ioOverridesToken];
+    return Zone.current[_ioOverridesToken] ?? _global;
+  }
+
+  /// The [IOOverrides] to use in the root [Zone].
+  ///
+  /// These are the [IOOverrides] that will be used in the root Zone, and in
+  /// Zone's that do not set [IOOverrides] and whose ancestors up to the root
+  /// Zone do not set [IOOverrides].
+  static set global(IOOverrides overrides) {
+    _global = overrides;
   }
 
   /// Runs [body] in a fresh [Zone] using the provided overrides.
@@ -68,9 +81,18 @@ abstract class IOOverrides {
       // Link
       Link Function(String) createLink,
 
-      // Optional Zone parameters
-      ZoneSpecification zoneSpecification,
-      Function onError}) {
+      // Socket
+      Future<Socket> Function(dynamic, int,
+              {dynamic sourceAddress, Duration timeout})
+          socketConnect,
+      Future<ConnectionTask<Socket>> Function(dynamic, int,
+              {dynamic sourceAddress})
+          socketStartConnect,
+
+      // ServerSocket
+      Future<ServerSocket> Function(dynamic, int,
+              {int backlog, bool v6Only, bool shared})
+          serverSocketBind}) {
     IOOverrides overrides = new _IOOverridesScope(
       // Directory
       createDirectory,
@@ -97,23 +119,23 @@ abstract class IOOverrides {
 
       // Link
       createLink,
+
+      // Socket
+      socketConnect,
+      socketStartConnect,
+
+      // ServerSocket
+      serverSocketBind,
     );
-    return _asyncRunZoned<R>(body,
-        zoneValues: {_ioOverridesToken: overrides},
-        zoneSpecification: zoneSpecification,
-        onError: onError);
+    return _asyncRunZoned<R>(body, zoneValues: {_ioOverridesToken: overrides});
   }
 
   /// Runs [body] in a fresh [Zone] using the overrides found in [overrides].
   ///
   /// Note that [overrides] should be an instance of a class that extends
   /// [IOOverrides].
-  static R runWithIOOverrides<R>(R body(), IOOverrides overrides,
-      {ZoneSpecification zoneSpecification, Function onError}) {
-    return _asyncRunZoned<R>(body,
-        zoneValues: {_ioOverridesToken: overrides},
-        zoneSpecification: zoneSpecification,
-        onError: onError);
+  static R runWithIOOverrides<R>(R body(), IOOverrides overrides) {
+    return _asyncRunZoned<R>(body, zoneValues: {_ioOverridesToken: overrides});
   }
 
   // Directory
@@ -195,7 +217,7 @@ abstract class IOOverrides {
   /// When this override is installed, this function overrides the behavior of
   /// `FileSystemEntity.type`.
   Future<FileSystemEntityType> fseGetType(String path, bool followLinks) {
-    return FileSystemEntity._getTypeRequest(path, followLinks);
+    return FileSystemEntity._getTypeRequest(utf8.encode(path), followLinks);
   }
 
   /// Returns the [FileSystemEntityType] for [path].
@@ -203,7 +225,7 @@ abstract class IOOverrides {
   /// When this override is installed, this function overrides the behavior of
   /// `FileSystemEntity.typeSync`.
   FileSystemEntityType fseGetTypeSync(String path, bool followLinks) {
-    return FileSystemEntity._getTypeSyncHelper(path, followLinks);
+    return FileSystemEntity._getTypeSyncHelper(utf8.encode(path), followLinks);
   }
 
   // _FileSystemWatcher
@@ -225,9 +247,45 @@ abstract class IOOverrides {
   // Link
 
   /// Returns a new [Link] object for the given [path].
+  ///
   /// When this override is installed, this function overrides the behavior of
   /// `new Link()` and `new Link.fromUri()`.
   Link createLink(String path) => new _Link(path);
+
+  // Socket
+
+  /// Asynchronously returns a [Socket] connected to the given host and port.
+  ///
+  /// When this override is installed, this functions overrides the behavior of
+  /// `Socket.connect(...)`.
+  Future<Socket> socketConnect(host, int port,
+      {sourceAddress, Duration timeout}) {
+    return Socket._connect(host, port,
+        sourceAddress: sourceAddress, timeout: timeout);
+  }
+
+  /// Asynchronously returns a [ConnectionTask] that connects to the given host
+  /// and port when successful.
+  ///
+  /// When this override is installed, this functions overrides the behavior of
+  /// `Socket.startConnect(...)`.
+  Future<ConnectionTask<Socket>> socketStartConnect(host, int port,
+      {sourceAddress}) {
+    return Socket._startConnect(host, port, sourceAddress: sourceAddress);
+  }
+
+  // ServerSocket
+
+  /// Asynchronously returns a [ServerSocket] that connects to the given address
+  /// and port when successful.
+  ///
+  /// When this override is installed, this functions overrides the behavior of
+  /// `ServerSocket.bind(...)`.
+  Future<ServerSocket> serverSocketBind(address, int port,
+      {int backlog: 0, bool v6Only: false, bool shared: false}) {
+    return ServerSocket._bind(address, port,
+        backlog: backlog, v6Only: v6Only, shared: shared);
+  }
 }
 
 class _IOOverridesScope extends IOOverrides {
@@ -259,6 +317,16 @@ class _IOOverridesScope extends IOOverrides {
   // Link
   Link Function(String) _createLink;
 
+  // Socket
+  Future<Socket> Function(dynamic, int,
+      {dynamic sourceAddress, Duration timeout}) _socketConnect;
+  Future<ConnectionTask<Socket>> Function(dynamic, int, {dynamic sourceAddress})
+      _socketStartConnect;
+
+  // ServerSocket
+  Future<ServerSocket> Function(dynamic, int,
+      {int backlog, bool v6Only, bool shared}) _serverSocketBind;
+
   _IOOverridesScope(
     // Directory
     this._createDirectory,
@@ -285,6 +353,13 @@ class _IOOverridesScope extends IOOverrides {
 
     // Link
     this._createLink,
+
+    // Socket
+    this._socketConnect,
+    this._socketStartConnect,
+
+    // ServerSocket
+    this._serverSocketBind,
   );
 
   // Directory
@@ -379,6 +454,7 @@ class _IOOverridesScope extends IOOverrides {
     return super.fsWatch(path, events, recursive);
   }
 
+  @override
   bool fsWatchIsSupported() {
     if (_fsWatchIsSupported != null) return _fsWatchIsSupported();
     if (_previous != null) return _previous.fsWatchIsSupported();
@@ -391,5 +467,50 @@ class _IOOverridesScope extends IOOverrides {
     if (_createLink != null) return _createLink(path);
     if (_previous != null) return _previous.createLink(path);
     return super.createLink(path);
+  }
+
+  // Socket
+  @override
+  Future<Socket> socketConnect(host, int port,
+      {sourceAddress, Duration timeout}) {
+    if (_socketConnect != null) {
+      return _socketConnect(host, port,
+          sourceAddress: sourceAddress, timeout: timeout);
+    }
+    if (_previous != null) {
+      return _previous.socketConnect(host, port,
+          sourceAddress: sourceAddress, timeout: timeout);
+    }
+    return super.socketConnect(host, port,
+        sourceAddress: sourceAddress, timeout: timeout);
+  }
+
+  @override
+  Future<ConnectionTask<Socket>> socketStartConnect(host, int port,
+      {sourceAddress}) {
+    if (_socketStartConnect != null) {
+      return _socketStartConnect(host, port, sourceAddress: sourceAddress);
+    }
+    if (_previous != null) {
+      return _previous.socketStartConnect(host, port,
+          sourceAddress: sourceAddress);
+    }
+    return super.socketStartConnect(host, port, sourceAddress: sourceAddress);
+  }
+
+  // ServerSocket
+  @override
+  Future<ServerSocket> serverSocketBind(address, int port,
+      {int backlog: 0, bool v6Only: false, bool shared: false}) {
+    if (_serverSocketBind != null) {
+      return _serverSocketBind(address, port,
+          backlog: backlog, v6Only: v6Only, shared: shared);
+    }
+    if (_previous != null) {
+      return _previous.serverSocketBind(address, port,
+          backlog: backlog, v6Only: v6Only, shared: shared);
+    }
+    return super.serverSocketBind(address, port,
+        backlog: backlog, v6Only: v6Only, shared: shared);
   }
 }

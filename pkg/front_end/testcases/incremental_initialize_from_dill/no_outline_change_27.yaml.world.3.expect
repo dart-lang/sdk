@@ -1,0 +1,16 @@
+main = <No Member>;
+library from "package:foo/lib.dart" as lib {
+
+  static method libMethod() → dynamic {
+    dart.core::print("Hello from lib!!");
+  }
+}
+library from "package:foo/main.dart" as main {
+
+  import "package:foo/lib.dart";
+
+  static method main() → dynamic {
+    lib::libMethod();
+    dart.core::print("Done!");
+  }
+}

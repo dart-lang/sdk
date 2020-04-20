@@ -5,10 +5,10 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=bool*/ t = true;
-var /*@topType=dynamic*/ a = (throw 0);
-var /*@topType=int*/ b = (throw 0) ? 1 : 2;
-var /*@topType=int*/ c = t ? (throw 1) : 2;
-var /*@topType=int*/ d = t ? 1 : (throw 2);
+var t = true;
+var a = (throw 0);
+var b = (throw 0) ? 1 : 2;
+var c = t ? (throw 1) : 2;
+var d = t ? 1 : (throw 2);
 
 main() {}

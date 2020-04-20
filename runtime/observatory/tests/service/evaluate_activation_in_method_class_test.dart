@@ -1,13 +1,13 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 // Tests that expressions evaluated in a frame see the same scope as the
 // frame's method.
 
+import 'dart:async';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 import 'service_test_common.dart';
 
@@ -28,7 +28,7 @@ testeeDo() {
   obj.test();
 }
 
-testerDo(Isolate isolate) async {
+Future testerDo(Isolate isolate) async {
   await hasStoppedAtBreakpoint(isolate);
 
   // Make sure we are in the right place.
@@ -39,7 +39,7 @@ testerDo(Isolate isolate) async {
   expect(stack['frames'][topFrame].function.dartOwner.name,
       equals('Superclass&Klass'));
 
-  var result;
+  Instance result;
 
   result = await isolate.evalFrame(topFrame, '_local');
   print(result);

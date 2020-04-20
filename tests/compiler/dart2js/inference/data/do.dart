@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+// @dart = 2.7
+
+/*member: main:[null]*/
 main() {
   simpleDo();
   doNull();
@@ -16,7 +18,7 @@ main() {
 /// Simple int based do-while loop.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: simpleDo:[null]*/
+/*member: simpleDo:[null]*/
 simpleDo() {
   var i = 0;
   do {
@@ -29,7 +31,7 @@ simpleDo() {
 /// Do-while loop with null test.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: doNull:[exact=JSString]*/
+/*member: doNull:[exact=JSString]*/
 doNull() {
   var o;
   do {
@@ -42,12 +44,12 @@ doNull() {
 /// Do-while loop with not-null test.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: doNotNull:[exact=JSString]*/
+/*member: doNotNull:[exact=JSString]*/
 doNotNull() {
   var o = '';
   do {
     o = o. /*invoke: [exact=JSString]*/ toString();
-  } while (o != null);
+  } while (o /*invoke: [null|exact=JSString]*/ != null);
   return o;
 }
 
@@ -55,12 +57,12 @@ doNotNull() {
 /// Do-while loop with null test known to be false.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: doNullFalse:[exact=JSString]*/
+/*member: doNullFalse:[exact=JSString]*/
 doNullFalse() {
   var o = '';
   do {
     o = o. /*invoke: [exact=JSString]*/ toString();
-  } while (o == null);
+  } while (o /*invoke: [null|exact=JSString]*/ == null);
   return o;
 }
 
@@ -68,7 +70,7 @@ doNullFalse() {
 /// Do-while loop with not-null test known to be true.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: doNotNullTrue:[exact=JSString]*/
+/*member: doNotNullTrue:[exact=JSString]*/
 doNotNullTrue() {
   var o = null;
   do {
@@ -81,27 +83,27 @@ doNotNullTrue() {
 /// Do-while loop with not-null test that mixes field accesses.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class1.:[exact=Class1]*/
+/*member: Class1.:[exact=Class1]*/
 class Class1 {
-  /*element: Class1.field:[null|exact=Class2]*/
+  /*member: Class1.field:[null|exact=Class2]*/
   var field;
 }
 
-/*element: Class2.:[exact=Class2]*/
+/*member: Class2.:[exact=Class2]*/
 class Class2 {
-  /*element: Class2.field:[null|exact=Class1]*/
+  /*member: Class2.field:[null|exact=Class1]*/
   var field;
 }
 
-/*element: _doUnion:Union of [[null|exact=Class1], [null|exact=Class2]]*/
+/*member: _doUnion:Union(null, [exact=Class1], [exact=Class2])*/
 _doUnion(/*[exact=Class1]*/ o) {
   do {
-    o = o. /*Union of [[exact=Class1], [null|exact=Class2]]*/ field;
+    o = o. /*Union(null, [exact=Class1], [exact=Class2])*/ field;
   } while (o != null);
   return o;
 }
 
-/*element: doUnion:[null]*/
+/*member: doUnion:[null]*/
 doUnion() {
   var c1 = new Class1();
   var c2 = new Class2();

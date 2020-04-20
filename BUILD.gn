@@ -2,26 +2,30 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("build/dart_host_toolchain.gni")
+import("build/config/gclient_args.gni")
+import("sdk_args.gni")
+
+targetting_fuchsia = target_os == "fuchsia"
 
 # This target will be built if no target is specified when invoking ninja.
 group("default") {
-  if (is_fuchsia || is_fuchsia_host) {
+  if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
-  deps = [
-    ":runtime",
-  ]
+  deps = [ ":runtime" ]
+  if (defined(checkout_llvm) && checkout_llvm) {
+    deps += [ ":llvm_codegen" ]
+  }
 }
 
 group("most") {
-  if (is_fuchsia || is_fuchsia_host) {
+  import("runtime/runtime_args.gni")
+  if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
   deps = [
-    ":analysis_server",
     ":create_sdk",
     ":dart2js",
     ":dartanalyzer",
@@ -29,135 +33,115 @@ group("most") {
     ":runtime",
     ":samples",
   ]
+  if (dart_target_arch != "arm") {
+    deps += [ ":analysis_server" ]
+  }
 }
 
 group("runtime") {
-  if (is_fuchsia || is_fuchsia_host) {
+  import("runtime/runtime_args.gni")
+
+  if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
   deps = [
     "runtime/bin:dart",
-    "runtime/bin:dart_bootstrap($dart_host_toolchain)",
+    "runtime/bin:entrypoints_verification_test_extension",
+    "runtime/bin:ffi_test_dynamic_library",
+    "runtime/bin:ffi_test_functions",
     "runtime/bin:process_test",
     "runtime/bin:run_vm_tests",
     "runtime/bin:sample_extension",
     "runtime/bin:test_extension",
-  ]
-}
-
-group("runtime_kernel") {
-  if (is_fuchsia || is_fuchsia_host) {
-    # Fuchsia has run_vm_tests marked testonly.
-    testonly = true
-  }
-  deps = [
-    ":runtime",
-    "runtime/vm:kernel_platform_files($dart_host_toolchain)",
-
-    # TODO(rmacnak): Link this into 'dart'.
+    "runtime/vm:kernel_platform_files($host_toolchain)",
     "utils/kernel-service:kernel-service",
   ]
 }
 
+group("runtime_kernel") {
+  if (targetting_fuchsia) {
+    # Fuchsia has run_vm_tests marked testonly.
+    testonly = true
+  }
+  deps = [ ":runtime" ]
+}
+
 group("runtime_precompiled") {
   deps = [
-    "runtime/bin:dart_bootstrap($dart_host_toolchain)",
     "runtime/bin:dart_precompiled_runtime",
     "runtime/bin:process_test",
   ]
 }
 
-group("create_sdk") {
-  deps = [
-    "sdk:create_sdk",
-  ]
+if (use_nnbd) {
+  group("create_sdk") {
+    public_deps = [ "sdk_nnbd:create_sdk" ]
+  }
+} else {
+  group("create_sdk") {
+    public_deps = [ "sdk:create_sdk" ]
+  }
 }
 
 group("dart2js") {
-  deps = [
-    "utils/compiler:dart2js",
-  ]
+  deps = [ "utils/compiler:dart2js" ]
 }
 
 group("dartanalyzer") {
-  deps = [
-    "utils/dartanalyzer",
-  ]
+  deps = [ "utils/dartanalyzer" ]
 }
 
 group("dartdevc") {
-  deps = [
-    "utils/dartdevc",
-  ]
+  deps = [ "utils/dartdevc" ]
 }
 
 group("dartfmt") {
-  deps = [
-    "utils/dartfmt",
-  ]
+  deps = [ "utils/dartfmt" ]
+}
+
+group("dartfix") {
+  deps = [ "utils/dartfix" ]
 }
 
 group("analysis_server") {
-  deps = [
-    "utils/analysis_server",
-  ]
+  deps = [ "utils/analysis_server" ]
+}
+
+group("check_llvm") {
+  if (defined(checkout_llvm) && checkout_llvm) {
+    deps = [ "runtime/llvm_codegen/test" ]
+  }
+}
+
+group("llvm_codegen") {
+  if (defined(checkout_llvm) && checkout_llvm) {
+    deps = [
+      "runtime/llvm_codegen/bit",
+      "runtime/llvm_codegen/codegen",
+    ]
+  }
 }
 
 # This is the target that is built on the dart2js build bots.
 # It must depend on anything that is required by the dart2js
 # test suites.
 group("dart2js_bot") {
-  deps = [
-    ":create_sdk",
-  ]
+  deps = [ ":create_sdk" ]
 }
 
 group("samples") {
-  deps = [
-    "runtime/bin:sample_extension",
-  ]
+  deps = [ "runtime/bin:sample_extension" ]
 }
 
-# The rules below build a Fuchsia OS image that includes the Dart tree
-# under /system/test/dart.  To get this into the `user.bootfs` generated
-# by the Fuchsia build, add the GN build argument:
-#   extra_bootdata = [ "//third_party/dart:dart_test_bootfs" ]
-if (is_fuchsia) {
-  import("//build/config/fuchsia/bootdata.gni")
+# This rule and the compressed_observatory_archive rule are for the Fuchsia
+# bots that pre-build the Observatory. They copy the observatory tar files to
+# the root build output directory for convenient access by the Fuchsia buildbot
+# scripts.
+group("observatory_archive") {
+  deps = [ "runtime/observatory:copy_observatory_archive" ]
+}
 
-  action("generate_dart_test_manifest") {
-    testonly = true
-
-    output_prefix = "$target_gen_dir/dart_test_tree"
-    outputs = [
-      "$output_prefix.manifest",
-    ]
-
-    mode = "release"
-    if (is_debug) {
-      mode = "debug"
-    }
-
-    script = "tools/gen_fuchsia_test_manifest.py"
-    args = [
-      "-m",
-      mode,
-      "-o",
-      rebase_path(output_prefix),
-    ]
-  }
-
-  bootdata("dart_test_bootfs") {
-    testonly = true
-    deps = [
-      ":generate_dart_test_manifest",
-      "runtime/bin:dart",
-      "runtime/bin:process_test",
-      "runtime/bin:run_vm_tests",
-    ]
-    inputs = [
-      "$target_gen_dir/dart_test_tree.manifest",
-    ]
-  }
+group("compressed_observatory_archive") {
+  deps = [ "runtime/observatory:copy_compressed_observatory_archive" ]
 }

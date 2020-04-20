@@ -10,11 +10,9 @@ class B {
 }
 
 abstract class I {
-  void f(covariant int /*@covariance=explicit*/ x, Object y);
+  void f(covariant int x, Object y);
 }
 
-class
-/*@forwardingStub=void f(covariance=(explicit) int x, covariance=() Object y)*/
-    C extends B implements I {}
+abstract class C extends B implements I {}
 
 void main() {}

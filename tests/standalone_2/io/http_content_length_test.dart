@@ -37,7 +37,9 @@ void testNoBody(int totalConnections, bool explicitContentLength) {
       // After an explicit close, write becomes a state error
       // because we have said we will not add more.
       response.close();
-      response.write("x");
+      Expect.throws(() {
+        response.write("x");
+      }, (e) => e is StateError);
     }, onError: (e, trace) {
       String msg = "Unexpected server error $e";
       if (trace != null) msg += "\nStackTrace: $trace";
@@ -89,7 +91,9 @@ void testBody(int totalConnections, bool useHeader) {
           }
         });
         response.close();
-        response.write("x");
+        Expect.throws(() {
+          response.write("x");
+        }, (e) => e is StateError);
       });
     }, onError: (e, trace) {
       String msg = "Unexpected error $e";
@@ -104,8 +108,8 @@ void testBody(int totalConnections, bool useHeader) {
         if (useHeader) {
           request.contentLength = 2;
         } else {
-          request.headers.add(HttpHeaders.CONTENT_LENGTH, "7");
-          request.headers.add(HttpHeaders.CONTENT_LENGTH, "2");
+          request.headers.add(HttpHeaders.contentLengthHeader, "7");
+          request.headers.add(HttpHeaders.contentLengthHeader, "2");
         }
         request.write("x");
         Expect.throws(
@@ -149,7 +153,9 @@ void testBodyChunked(int totalConnections, bool useHeader) {
         response.write("x");
         response.write("x");
         response.close();
-        response.write("x");
+        Expect.throws(() {
+          response.write("x");
+        }, (e) => e is StateError);
       });
     }, onError: (e, trace) {
       String msg = "Unexpected error $e";
@@ -165,8 +171,8 @@ void testBodyChunked(int totalConnections, bool useHeader) {
           request.contentLength = 2;
           request.headers.chunkedTransferEncoding = true;
         } else {
-          request.headers.add(HttpHeaders.CONTENT_LENGTH, "2");
-          request.headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
+          request.headers.add(HttpHeaders.contentLengthHeader, "2");
+          request.headers.set(HttpHeaders.transferEncodingHeader, "chunked");
         }
         request.write("x");
         Expect.throws(() => request.headers.chunkedTransferEncoding = false,

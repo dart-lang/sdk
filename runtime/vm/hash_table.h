@@ -62,7 +62,7 @@ namespace dart {
 // Each entry contains a key, followed by zero or more payload components,
 // and has 3 possible states: unused, occupied, or deleted.
 // The header tracks the number of entries in each state.
-// Any object except Object::sentinel() and Object::transition_sentinel()
+// Any object except the backing storage array and Object::transition_sentinel()
 // may be stored as a key. Any object may be stored in a payload.
 //
 // Parameters
@@ -113,9 +113,12 @@ class HashTable : public ValueObject {
   // Returns a backing storage size such that 'num_occupied' distinct keys can
   // be inserted into the table.
   static intptr_t ArrayLengthForNumOccupied(intptr_t num_occupied) {
-    // The current invariant requires at least one unoccupied entry.
-    // TODO(koda): Adjust if moving to quadratic probing.
-    intptr_t num_entries = num_occupied + 1;
+    // Because we use quadratic (actually triangle number) probing it is
+    // important that the size is a power of two (otherwise we could fail to
+    // find an empty slot).  This is described in Knuth's The Art of Computer
+    // Programming Volume 2, Chapter 6.4, exercise 20 (solution in the
+    // appendix, 2nd edition).
+    intptr_t num_entries = Utils::RoundUpToPowerOfTwo(num_occupied + 1);
     return kFirstKeyIndex + (kEntrySize * num_entries);
   }
 
@@ -131,10 +134,11 @@ class HashTable : public ValueObject {
     data_->SetAt(kNumLT5LookupsIndex, *smi_handle_);
     data_->SetAt(kNumLT25LookupsIndex, *smi_handle_);
     data_->SetAt(kNumGT25LookupsIndex, *smi_handle_);
+    data_->SetAt(kNumProbesIndex, *smi_handle_);
 #endif  // !defined(PRODUCT)
 
     for (intptr_t i = kHeaderSize; i < data_->Length(); ++i) {
-      data_->SetAt(i, Object::sentinel());
+      data_->SetAt(i, UnusedMarker());
     }
   }
 
@@ -152,8 +156,9 @@ class HashTable : public ValueObject {
     // TODO(koda): Add salt.
     NOT_IN_PRODUCT(intptr_t collisions = 0;)
     uword hash = KeyTraits::Hash(key);
-    intptr_t probe = hash % num_entries;
-    // TODO(koda): Consider quadratic probing.
+    ASSERT(Utils::IsPowerOfTwo(num_entries));
+    intptr_t probe = hash & (num_entries - 1);
+    int probe_distance = 1;
     while (true) {
       if (IsUnused(probe)) {
         NOT_IN_PRODUCT(UpdateCollisions(collisions);)
@@ -166,9 +171,10 @@ class HashTable : public ValueObject {
         }
         NOT_IN_PRODUCT(collisions += 1;)
       }
-      // Advance probe.
-      probe++;
-      probe = (probe == num_entries) ? 0 : probe;
+      // Advance probe.  See ArrayLengthForNumOccupied comment for
+      // explanation of how we know this hits all slots.
+      probe = (probe + probe_distance) & (num_entries - 1);
+      probe_distance++;
     }
     UNREACHABLE();
     return -1;
@@ -185,9 +191,10 @@ class HashTable : public ValueObject {
     ASSERT(NumOccupied() < num_entries);
     NOT_IN_PRODUCT(intptr_t collisions = 0;)
     uword hash = KeyTraits::Hash(key);
-    intptr_t probe = hash % num_entries;
+    ASSERT(Utils::IsPowerOfTwo(num_entries));
+    intptr_t probe = hash & (num_entries - 1);
+    int probe_distance = 1;
     intptr_t deleted = -1;
-    // TODO(koda): Consider quadratic probing.
     while (true) {
       if (IsUnused(probe)) {
         *entry = (deleted != -1) ? deleted : probe;
@@ -206,9 +213,10 @@ class HashTable : public ValueObject {
         }
         NOT_IN_PRODUCT(collisions += 1;)
       }
-      // Advance probe.
-      probe++;
-      probe = (probe == num_entries) ? 0 : probe;
+      // Advance probe.  See ArrayLengthForNumOccupied comment for
+      // explanation of how we know this hits all slots.
+      probe = (probe + probe_distance) & (num_entries - 1);
+      probe_distance++;
     }
     UNREACHABLE();
     return false;
@@ -217,6 +225,8 @@ class HashTable : public ValueObject {
   // Sets the key of a previously unoccupied entry. This must not be the last
   // unoccupied entry.
   void InsertKey(intptr_t entry, const Object& key) const {
+    ASSERT(key.raw() != UnusedMarker().raw());
+    ASSERT(key.raw() != DeletedMarker().raw());
     ASSERT(!IsOccupied(entry));
     AdjustSmiValueAt(kOccupiedEntriesIndex, 1);
     if (IsDeleted(entry)) {
@@ -229,14 +239,17 @@ class HashTable : public ValueObject {
     ASSERT(NumOccupied() < NumEntries());
   }
 
+  const Object& UnusedMarker() const { return Object::transition_sentinel(); }
+  const Object& DeletedMarker() const { return *data_; }
+
   bool IsUnused(intptr_t entry) const {
-    return InternalGetKey(entry) == Object::sentinel().raw();
+    return InternalGetKey(entry) == UnusedMarker().raw();
   }
   bool IsOccupied(intptr_t entry) const {
     return !IsUnused(entry) && !IsDeleted(entry);
   }
   bool IsDeleted(intptr_t entry) const {
-    return InternalGetKey(entry) == Object::transition_sentinel().raw();
+    return InternalGetKey(entry) == DeletedMarker().raw();
   }
 
   RawObject* GetKey(intptr_t entry) const {
@@ -258,9 +271,9 @@ class HashTable : public ValueObject {
   void DeleteEntry(intptr_t entry) const {
     ASSERT(IsOccupied(entry));
     for (intptr_t i = 0; i < kPayloadSize; ++i) {
-      UpdatePayload(entry, i, Object::transition_sentinel());
+      UpdatePayload(entry, i, DeletedMarker());
     }
-    InternalSetKey(entry, Object::transition_sentinel());
+    InternalSetKey(entry, DeletedMarker());
     AdjustSmiValueAt(kOccupiedEntriesIndex, -1);
     AdjustSmiValueAt(kDeletedEntriesIndex, 1);
   }
@@ -286,6 +299,7 @@ class HashTable : public ValueObject {
   intptr_t NumGT25Collisions() const {
     return GetSmiValueAt(kNumGT25LookupsIndex);
   }
+  intptr_t NumProbes() const { return GetSmiValueAt(kNumProbesIndex); }
   void UpdateGrowth() const {
     if (KeyTraits::ReportStats()) {
       AdjustSmiValueAt(kNumGrowsIndex, 1);
@@ -293,9 +307,10 @@ class HashTable : public ValueObject {
   }
   void UpdateCollisions(intptr_t collisions) const {
     if (KeyTraits::ReportStats()) {
-      if (data_->raw()->IsVMHeapObject()) {
+      if (data_->raw()->InVMIsolateHeap()) {
         return;
       }
+      AdjustSmiValueAt(kNumProbesIndex, collisions + 1);
       if (collisions < 5) {
         AdjustSmiValueAt(kNumLT5LookupsIndex, 1);
       } else if (collisions < 25) {
@@ -309,17 +324,21 @@ class HashTable : public ValueObject {
     if (!KeyTraits::ReportStats()) {
       return;
     }
+    const intptr_t num5 = NumLT5Collisions();
+    const intptr_t num25 = NumLT25Collisions();
+    const intptr_t num_more = NumGT25Collisions();
     // clang-format off
-    OS::Print("Stats for %s table :\n"
+    OS::PrintErr("Stats for %s table :\n"
               " Size of table = %" Pd ",Number of Occupied entries = %" Pd "\n"
               " Number of Grows = %" Pd "\n"
-              " Number of look ups with < 5 collisions = %" Pd "\n"
-              " Number of look ups with < 25 collisions = %" Pd "\n"
-              " Number of look ups with > 25 collisions = %" Pd "\n",
+              " Number of lookups with < 5 collisions = %" Pd "\n"
+              " Number of lookups with < 25 collisions = %" Pd "\n"
+              " Number of lookups with > 25 collisions = %" Pd "\n"
+              " Average number of probes = %g\n",
               KeyTraits::Name(),
-              NumEntries(), NumOccupied(),
-              NumGrows(),
-              NumLT5Collisions(), NumLT25Collisions(), NumGT25Collisions());
+              NumEntries(), NumOccupied(), NumGrows(),
+              num5, num25, num_more,
+              static_cast<double>(NumProbes()) / (num5 + num25 + num_more));
     // clang-format on
   }
 #endif  // !PRODUCT
@@ -334,7 +353,8 @@ class HashTable : public ValueObject {
   static const intptr_t kNumLT5LookupsIndex = 3;
   static const intptr_t kNumLT25LookupsIndex = 4;
   static const intptr_t kNumGT25LookupsIndex = 5;
-  static const intptr_t kHeaderSize = kNumGT25LookupsIndex + 1;
+  static const intptr_t kNumProbesIndex = 6;
+  static const intptr_t kHeaderSize = kNumProbesIndex + 1;
 #endif
   static const intptr_t kMetaDataIndex = kHeaderSize;
   static const intptr_t kFirstKeyIndex = kHeaderSize + kMetaDataSize;
@@ -462,15 +482,28 @@ class HashTables : public AllStatic {
   }
 
   template <typename Table>
-  static void EnsureLoadFactor(double low, double high, const Table& table) {
-    double current = (1 + table.NumOccupied() + table.NumDeleted()) /
-                     static_cast<double>(table.NumEntries());
-    if (low <= current && current < high) {
+  static void EnsureLoadFactor(double high, const Table& table) {
+    // We count deleted elements because they take up space just
+    // like occupied slots in order to cause a rehashing.
+    const double current = (1 + table.NumOccupied() + table.NumDeleted()) /
+                           static_cast<double>(table.NumEntries());
+    const bool too_many_deleted = table.NumOccupied() <= table.NumDeleted();
+    if (current < high && !too_many_deleted) {
       return;
     }
-    double target = (low + high) / 2.0;
-    intptr_t new_capacity = (1 + table.NumOccupied()) / target;
-    Table new_table(New<Table>(new_capacity,
+    // Normally we double the size here, but if less than half are occupied
+    // then it won't grow (this would imply that there were quite a lot of
+    // deleted slots).  We don't want to constantly rehash if we are adding
+    // and deleting entries at just under the load factor limit, so we may
+    // double the size even though the number of occupied slots would not
+    // necessarily justify it.  For example if the max load factor is 71% and
+    // the table is 70% full we will double the size to avoid a rehash every
+    // time 1% has been added and deleted.
+    const intptr_t new_capacity = table.NumOccupied() * 2 + 1;
+    ASSERT(table.NumOccupied() == 0 ||
+           ((1.0 + table.NumOccupied()) /
+            Utils::RoundUpToPowerOfTwo(new_capacity)) <= high);
+    Table new_table(New<Table>(new_capacity,  // Is rounded up to power of 2.
                                table.data_->IsOld() ? Heap::kOld : Heap::kNew));
     Copy(table, new_table);
     *table.data_ = new_table.Release().raw();
@@ -515,6 +548,12 @@ class HashMap : public BaseIterTable {
       *present = (entry != -1);
     }
     return (entry == -1) ? Object::null() : BaseIterTable::GetPayload(entry, 0);
+  }
+  template <typename Key>
+  RawObject* GetOrDie(const Key& key) const {
+    intptr_t entry = BaseIterTable::FindKey(key);
+    if (entry == -1) UNREACHABLE();
+    return BaseIterTable::GetPayload(entry, 0);
   }
   bool UpdateOrInsert(const Object& key, const Object& value) const {
     EnsureCapacity();
@@ -579,9 +618,8 @@ class HashMap : public BaseIterTable {
 
  protected:
   void EnsureCapacity() const {
-    static const double kMaxLoadFactor = 0.75;
-    // We currently never shrink.
-    HashTables::EnsureLoadFactor(0.0, kMaxLoadFactor, *this);
+    static const double kMaxLoadFactor = 0.71;
+    HashTables::EnsureLoadFactor(kMaxLoadFactor, *this);
   }
 };
 
@@ -666,9 +704,8 @@ class HashSet : public BaseIterTable {
 
  protected:
   void EnsureCapacity() const {
-    static const double kMaxLoadFactor = 0.75;
-    // We currently never shrink.
-    HashTables::EnsureLoadFactor(0.0, kMaxLoadFactor, *this);
+    static const double kMaxLoadFactor = 0.71;
+    HashTables::EnsureLoadFactor(kMaxLoadFactor, *this);
   }
 };
 
@@ -683,6 +720,21 @@ class UnorderedHashSet : public HashSet<UnorderedHashTable<KeyTraits, 0> > {
   UnorderedHashSet(Zone* zone, RawArray* data) : BaseSet(zone, data) {}
   UnorderedHashSet(Object* key, Smi* value, Array* data)
       : BaseSet(key, value, data) {}
+
+  void Dump() const {
+    Object& entry = Object::Handle();
+    for (intptr_t i = 0; i < this->data_->Length(); i++) {
+      entry = this->data_->At(i);
+      if (entry.raw() == BaseSet::UnusedMarker().raw() ||
+          entry.raw() == BaseSet::DeletedMarker().raw() || entry.IsSmi()) {
+        // empty, deleted, num_used/num_deleted
+        OS::PrintErr("%" Pd ": %s\n", i, entry.ToCString());
+      } else {
+        intptr_t hash = KeyTraits::Hash(entry);
+        OS::PrintErr("%" Pd ": %" Pd ", %s\n", i, hash, entry.ToCString());
+      }
+    }
+  }
 };
 
 }  // namespace dart

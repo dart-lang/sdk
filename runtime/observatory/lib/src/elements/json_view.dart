@@ -14,7 +14,7 @@ import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class JSONViewElement extends HtmlElement implements Renderable {
+class JSONViewElement extends CustomElement implements Renderable {
   static const tag = const Tag<JSONViewElement>('json-view',
       dependencies: const [
         NavTopMenuElement.tag,
@@ -36,14 +36,14 @@ class JSONViewElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(notifications != null);
     assert(map != null);
-    JSONViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    JSONViewElement e = new JSONViewElement.created();
+    e._r = new RenderingScheduler<JSONViewElement>(e, queue: queue);
     e._notifications = notifications;
     e._map = map;
     return e;
   }
 
-  JSONViewElement.created() : super.created();
+  JSONViewElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -55,23 +55,23 @@ class JSONViewElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
-      navBar([
-        new NavTopMenuElement(queue: _r.queue),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+    children = <Element>[
+      navBar(<Element>[
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = 'Object',
           new HRElement(),
           new PreElement()..text = JSONPretty.stringify(_map),
           new HRElement(),
-          new ViewFooterElement(queue: _r.queue)
+          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }

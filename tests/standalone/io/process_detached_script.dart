@@ -12,7 +12,7 @@ void main(List<String> args) {
 
   // If an argument 'echo' is passed echo stdin to stdout and stderr.
   if (args.length == 1 && args[0] == 'echo') {
-    stdin.fold([], (p, e) => p..addAll(e)).then((message) {
+    stdin.fold<List<int>>(<int>[], (p, e) => p..addAll(e)).then((message) {
       stdout.add(message);
       stderr.add(message);
       stdout.close();

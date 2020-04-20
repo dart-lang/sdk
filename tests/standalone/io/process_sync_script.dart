@@ -5,8 +5,8 @@
 // Utility script to generate some output on stdout and stderr.
 
 import "dart:async";
-import "dart:math";
 import "dart:io";
+import "dart:math";
 
 main(List<String> arguments) {
   var blockCount = int.parse(arguments[0]);

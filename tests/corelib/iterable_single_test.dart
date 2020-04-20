@@ -18,14 +18,14 @@ main() {
   Set set3 = new Set();
 
   Expect.equals(1, list1a.single);
-  Expect.throws(() => list1b.single, (e) => e is StateError);
-  Expect.throws(() => list1c.single, (e) => e is StateError);
+  Expect.throwsStateError(() => list1b.single);
+  Expect.throwsStateError(() => list1c.single);
 
   Expect.equals(5, list2a.single);
-  Expect.throws(() => list2b.single, (e) => e is StateError);
-  Expect.throws(() => list2c.single, (e) => e is StateError);
+  Expect.throwsStateError(() => list2b.single);
+  Expect.throwsStateError(() => list2c.single);
 
   Expect.equals(22, set1.single);
-  Expect.throws(() => set2.single, (e) => e is StateError);
-  Expect.throws(() => set3.single, (e) => e is StateError);
+  Expect.throwsStateError(() => set2.single);
+  Expect.throwsStateError(() => set3.single);
 }

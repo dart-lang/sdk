@@ -39,13 +39,11 @@ testChangeDirectory() {
 }
 
 testChangeDirectoryIllegalArguments() {
-  Expect.throws(() => Directory.current = 1, (e) => e is ArgumentError);
-  Expect.throws(() => Directory.current = 111111111111111111111111111111111111,
-      (e) => e is ArgumentError);
-  Expect.throws(() => Directory.current = true, (e) => e is ArgumentError);
-  Expect.throws(() => Directory.current = [], (e) => e is ArgumentError);
-  Expect.throws(
-      () => Directory.current = new File("xxx"), (e) => e is ArgumentError);
+  Expect.throwsArgumentError(() => Directory.current = 1);
+  Expect.throwsArgumentError(() => Directory.current = 9223372036854775807);
+  Expect.throwsArgumentError(() => Directory.current = true);
+  Expect.throwsArgumentError(() => Directory.current = []);
+  Expect.throwsArgumentError(() => Directory.current = new File("xxx"));
 }
 
 main() {

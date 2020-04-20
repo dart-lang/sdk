@@ -4,18 +4,29 @@
 
 library fasta.mixin_application_builder;
 
-import 'builder.dart' show TypeBuilder, TypeVariableBuilder;
+import 'package:kernel/ast.dart' show InterfaceType, Supertype, TypedefType;
 
-abstract class MixinApplicationBuilder<T extends TypeBuilder>
-    extends TypeBuilder {
-  final T supertype;
-  final List<T> mixins;
+import '../problems.dart' show unsupported;
+
+import 'library_builder.dart';
+import 'nullability_builder.dart';
+import 'type_builder.dart';
+import 'type_variable_builder.dart';
+
+class MixinApplicationBuilder extends TypeBuilder {
+  final TypeBuilder supertype;
+  final List<TypeBuilder> mixins;
+  Supertype builtType;
+
+  List<TypeVariableBuilder> typeVariables;
 
   MixinApplicationBuilder(this.supertype, this.mixins);
 
-  void set typeVariables(List<TypeVariableBuilder> variables);
-
   String get name => null;
+
+  NullabilityBuilder get nullabilityBuilder {
+    return unsupported("nullabilityBuilder", -1, null);
+  }
 
   String get debugName => "MixinApplicationBuilder";
 
@@ -23,11 +34,43 @@ abstract class MixinApplicationBuilder<T extends TypeBuilder>
     buffer.write(supertype);
     buffer.write(" with ");
     bool first = true;
-    for (T t in mixins) {
+    for (TypeBuilder t in mixins) {
       if (!first) buffer.write(", ");
       first = false;
       t.printOn(buffer);
     }
     return buffer;
+  }
+
+  @override
+  InterfaceType build(LibraryBuilder library,
+      [TypedefType origin, bool notInstanceContext]) {
+    int charOffset = -1; // TODO(ahe): Provide these.
+    Uri fileUri = null; // TODO(ahe): Provide these.
+    return unsupported("build", charOffset, fileUri);
+  }
+
+  @override
+  Supertype buildSupertype(
+      LibraryBuilder library, int charOffset, Uri fileUri) {
+    return unsupported("buildSupertype", charOffset, fileUri);
+  }
+
+  @override
+  Supertype buildMixedInType(
+      LibraryBuilder library, int charOffset, Uri fileUri) {
+    return unsupported("buildMixedInType", charOffset, fileUri);
+  }
+
+  @override
+  MixinApplicationBuilder withNullabilityBuilder(
+      NullabilityBuilder nullabilityBuilder) {
+    return unsupported("withNullabilityBuilder", -1, null);
+  }
+
+  MixinApplicationBuilder clone(List<TypeBuilder> newTypes) {
+    int charOffset = -1; // TODO(dmitryas): Provide these.
+    Uri fileUri = null; // TODO(dmitryas): Provide these.
+    return unsupported("clone", charOffset, fileUri);
   }
 }

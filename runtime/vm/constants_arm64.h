@@ -5,7 +5,14 @@
 #ifndef RUNTIME_VM_CONSTANTS_ARM64_H_
 #define RUNTIME_VM_CONSTANTS_ARM64_H_
 
+#ifndef RUNTIME_VM_CONSTANTS_H_
+#error Do not include constants_arm64.h directly; use constants.h instead.
+#endif
+
 #include "platform/assert.h"
+#include "platform/globals.h"
+
+#include "vm/constants_base.h"
 
 namespace dart {
 
@@ -28,17 +35,17 @@ enum Register {
   R15 = 15,  // SP in Dart code.
   R16 = 16,  // IP0 aka TMP
   R17 = 17,  // IP1 aka TMP2
-  R18 = 18,  // "platform register" on iOS.
+  R18 = 18,  // reserved on iOS, shadow call stack on Fuchsia.
   R19 = 19,
   R20 = 20,
   R21 = 21,
-  R22 = 22,
+  R22 = 22,  // NULL_REG
   R23 = 23,
   R24 = 24,
   R25 = 25,
   R26 = 26,  // THR
   R27 = 27,  // PP
-  R28 = 28,  // CTX
+  R28 = 28,  // BARRIER_MASK
   R29 = 29,  // FP
   R30 = 30,  // LR
   R31 = 31,  // ZR, CSP
@@ -104,28 +111,107 @@ const FpuRegister FpuTMP = VTMP;
 const int kNumberOfFpuRegisters = kNumberOfVRegisters;
 const FpuRegister kNoFpuRegister = kNoVRegister;
 
+extern const char* cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* fpu_reg_names[kNumberOfFpuRegisters];
+
 // Register aliases.
 const Register TMP = R16;  // Used as scratch register by assembler.
 const Register TMP2 = R17;
-const Register CTX = R28;  // Location of current context at method entry.
-const Register PP = R27;   // Caches object pool pointer in generated code.
+const Register PP = R27;  // Caches object pool pointer in generated code.
+const Register DISPATCH_TABLE_REG = R21;  // Dispatch table register.
 const Register CODE_REG = R24;
 const Register FPREG = FP;          // Frame pointer register.
 const Register SPREG = R15;         // Stack pointer register.
 const Register LRREG = LR;          // Link register.
-const Register ICREG = R5;          // IC data register.
 const Register ARGS_DESC_REG = R4;  // Arguments descriptor register.
 const Register THR = R26;           // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = R19;
 const Register CALLEE_SAVED_TEMP2 = R20;
+const Register BARRIER_MASK = R28;
+const Register NULL_REG = R22;  // Caches NullObject() value.
 
-// Exception object is passed in this register to the catch handlers when an
-// exception is thrown.
+// ABI for catch-clause entry point.
 const Register kExceptionObjectReg = R0;
-
-// Stack trace object is passed in this register to the catch handlers when
-// an exception is thrown.
 const Register kStackTraceObjectReg = R1;
+
+// ABI for write barrier stub.
+const Register kWriteBarrierObjectReg = R1;
+const Register kWriteBarrierValueReg = R0;
+const Register kWriteBarrierSlotReg = R25;
+
+// ABI for allocation stubs.
+const Register kAllocationStubTypeArgumentsReg = R1;
+
+// ABI for instantiation stubs.
+struct InstantiationABI {
+  static const Register kUninstantiatedTypeArgumentsReg = R3;
+  static const Register kInstantiatorTypeArgumentsReg = R2;
+  static const Register kFunctionTypeArgumentsReg = R1;
+  static const Register kResultTypeArgumentsReg = R0;
+  static const Register kResultTypeReg = R0;
+};
+
+// Calling convention when calling TypeTestingStub and SubtypeTestCacheStub.
+struct TypeTestABI {
+  static const Register kInstanceReg = R0;
+  static const Register kDstTypeReg = R8;
+  static const Register kInstantiatorTypeArgumentsReg = R2;
+  static const Register kFunctionTypeArgumentsReg = R1;
+  static const Register kSubtypeTestCacheReg = R3;
+
+  static const intptr_t kAbiRegisters =
+      (1 << kInstanceReg) | (1 << kDstTypeReg) |
+      (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
+      (1 << kSubtypeTestCacheReg);
+
+  // For call to InstanceOfStub.
+  static const Register kResultReg = R0;
+};
+
+// Registers used inside the implementation of type testing stubs.
+struct TTSInternalRegs {
+  static const Register kInstanceTypeArgumentsReg = R7;
+  static const Register kScratchReg = R9;
+
+  static const intptr_t kInternalRegisters =
+      (1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg);
+};
+
+// ABI for InitStaticFieldStub.
+struct InitStaticFieldABI {
+  static const Register kFieldReg = R0;
+};
+
+// ABI for InitInstanceFieldStub.
+struct InitInstanceFieldABI {
+  static const Register kInstanceReg = R0;
+  static const Register kFieldReg = R1;
+};
+
+// ABI for ThrowStub.
+struct ThrowABI {
+  static const Register kExceptionReg = R0;
+};
+
+// ABI for ReThrowStub.
+struct ReThrowABI {
+  static const Register kExceptionReg = R0;
+  static const Register kStackTraceReg = R1;
+};
+
+// ABI for AssertBooleanStub.
+struct AssertBooleanABI {
+  static const Register kObjectReg = R0;
+};
+
+// ABI for RangeErrorStub.
+struct RangeErrorABI {
+  static const Register kLengthReg = R0;
+  static const Register kIndexReg = R1;
+};
+
+// TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
+// of reusing the constants of the instantiation stubs ABI.
 
 // Masks, sizes, etc.
 const int kXRegSizeInBits = 64;
@@ -135,18 +221,30 @@ const int64_t kWRegMask = 0x00000000ffffffffL;
 
 // List of registers used in load/store multiple.
 typedef uint32_t RegList;
-const RegList kAllCpuRegistersList = 0xFFFF;
+const RegList kAllCpuRegistersList = 0xFFFFFFFF;
+
+// See "Procedure Call Standard for the ARM 64-bit Architecture", document
+// number "ARM IHI 0055B", May 22 2013.
 
 // C++ ABI call registers.
 const RegList kAbiArgumentCpuRegs = (1 << R0) | (1 << R1) | (1 << R2) |
                                     (1 << R3) | (1 << R4) | (1 << R5) |
                                     (1 << R6) | (1 << R7);
+#if defined(TARGET_OS_FUCHSIA)
+const RegList kAbiPreservedCpuRegs =
+    (1 << R18) | (1 << R19) | (1 << R20) | (1 << R21) | (1 << R22) |
+    (1 << R23) | (1 << R24) | (1 << R25) | (1 << R26) | (1 << R27) | (1 << R28);
+const Register kAbiFirstPreservedCpuReg = R18;
+const Register kAbiLastPreservedCpuReg = R28;
+const int kAbiPreservedCpuRegCount = 11;
+#else
 const RegList kAbiPreservedCpuRegs =
     (1 << R19) | (1 << R20) | (1 << R21) | (1 << R22) | (1 << R23) |
     (1 << R24) | (1 << R25) | (1 << R26) | (1 << R27) | (1 << R28);
 const Register kAbiFirstPreservedCpuReg = R19;
 const Register kAbiLastPreservedCpuReg = R28;
 const int kAbiPreservedCpuRegCount = 10;
+#endif
 const VRegister kAbiFirstPreservedFpuReg = V8;
 const VRegister kAbiLastPreservedFpuReg = V15;
 const int kAbiPreservedFpuRegCount = 8;
@@ -154,12 +252,14 @@ const int kAbiPreservedFpuRegCount = 8;
 const intptr_t kReservedCpuRegisters =
     (1 << SPREG) |  // Dart SP
     (1 << FPREG) | (1 << TMP) | (1 << TMP2) | (1 << PP) | (1 << THR) |
-    (1 << LR) | (1 << R31) |  // C++ SP
-    (1 << CTX) | (1 << R18);  // iOS platform register.
-                              // TODO(rmacnak): Only reserve on Mac & iOS.
+    (1 << LR) | (1 << BARRIER_MASK) | (1 << NULL_REG) | (1 << R31) |  // C++ SP
+    (1 << R18) | (1 << DISPATCH_TABLE_REG);
+constexpr intptr_t kNumberOfReservedCpuRegisters = 12;
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
+constexpr int kNumberOfDartAvailableCpuRegs =
+    kNumberOfCpuRegisters - kNumberOfReservedCpuRegisters;
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
@@ -167,6 +267,64 @@ const Register kDartFirstVolatileCpuReg = R0;
 const Register kDartLastVolatileCpuReg = R14;
 const int kDartVolatileCpuRegCount = 15;
 const int kDartVolatileFpuRegCount = 24;
+
+constexpr int kStoreBufferWrapperSize = 32;
+
+#define R(REG) (1 << REG)
+
+class CallingConventions {
+ public:
+  static const intptr_t kArgumentRegisters = kAbiArgumentCpuRegs;
+  static const Register ArgumentRegisters[];
+  static const intptr_t kNumArgRegs = 8;
+
+  static const FpuRegister FpuArgumentRegisters[];
+  static const intptr_t kFpuArgumentRegisters =
+      R(V0) | R(V1) | R(V2) | R(V3) | R(V4) | R(V5) | R(V6) | R(V7);
+  static const intptr_t kNumFpuArgRegs = 8;
+
+  static const bool kArgumentIntRegXorFpuReg = false;
+
+  static constexpr intptr_t kCalleeSaveCpuRegisters = kAbiPreservedCpuRegs;
+
+  // Whether larger than wordsize arguments are aligned to even registers.
+  static constexpr AlignmentStrategy kArgumentRegisterAlignment =
+      kAlignedToWordSize;
+
+  // How stack arguments are aligned.
+#if defined(TARGET_OS_MACOS_IOS)
+  static constexpr AlignmentStrategy kArgumentStackAlignment =
+      kAlignedToValueSize;
+#else
+  static constexpr AlignmentStrategy kArgumentStackAlignment =
+      kAlignedToWordSize;
+#endif
+
+  // How fields in composites are aligned.
+  static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
+
+  // Whether 1 or 2 byte-sized arguments or return values are passed extended
+  // to 4 bytes.
+#if defined(TARGET_OS_MACOS_IOS)
+  static constexpr ExtensionStrategy kReturnRegisterExtension = kExtendedTo4;
+  static constexpr ExtensionStrategy kArgumentRegisterExtension = kExtendedTo4;
+#else
+  static constexpr ExtensionStrategy kReturnRegisterExtension = kNotExtended;
+  static constexpr ExtensionStrategy kArgumentRegisterExtension = kNotExtended;
+#endif
+  static constexpr ExtensionStrategy kArgumentStackExtension = kNotExtended;
+
+  static constexpr Register kReturnReg = R0;
+  static constexpr Register kSecondReturnReg = kNoRegister;
+  static constexpr FpuRegister kReturnFpuReg = V0;
+
+  static constexpr Register kFirstCalleeSavedCpuReg = kAbiFirstPreservedCpuReg;
+  static constexpr Register kFirstNonArgumentRegister = R8;
+  static constexpr Register kSecondNonArgumentRegister = R9;
+  static constexpr Register kStackPointerRegister = SPREG;
+};
+
+#undef R
 
 static inline Register ConcreteRegister(Register r) {
   return ((r == ZR) || (r == CSP)) ? R31 : r;
@@ -195,7 +353,9 @@ enum Condition {
 
   // Platform-independent variants declared for all platforms
   EQUAL = EQ,
+  ZERO = EQUAL,
   NOT_EQUAL = NE,
+  NOT_ZERO = NOT_EQUAL,
   LESS = LT,
   LESS_EQUAL = LE,
   GREATER_EQUAL = GE,
@@ -209,8 +369,19 @@ enum Condition {
 };
 
 static inline Condition InvertCondition(Condition c) {
-  const int32_t i = static_cast<int32_t>(c) ^ 0x1;
-  return static_cast<Condition>(i);
+  COMPILE_ASSERT((EQ ^ NE) == 1);
+  COMPILE_ASSERT((CS ^ CC) == 1);
+  COMPILE_ASSERT((MI ^ PL) == 1);
+  COMPILE_ASSERT((VS ^ VC) == 1);
+  COMPILE_ASSERT((HI ^ LS) == 1);
+  COMPILE_ASSERT((GE ^ LT) == 1);
+  COMPILE_ASSERT((GT ^ LE) == 1);
+  COMPILE_ASSERT((AL ^ NV) == 1);
+  // Although the NV condition is not valid for branches, it is used internally
+  // in the assembler in the implementation of far branches, so we have to
+  // allow AL and NV here. See EmitConditionalBranch.
+  ASSERT(c != kInvalidCondition);
+  return static_cast<Condition>(c ^ 1);
 }
 
 enum Bits {
@@ -361,10 +532,7 @@ enum SystemOp {
   SystemFixed = CompareBranchFixed | B31 | B30 | B24,
   HINT = SystemFixed | B17 | B16 | B13 | B4 | B3 | B2 | B1 | B0,
   CLREX = SystemFixed | B17 | B16 | B13 | B12 | B11 | B10 | B9 | B8 | B6 | B4 |
-          B3 |
-          B2 |
-          B1 |
-          B0,
+          B3 | B2 | B1 | B0,
 };
 
 // C3.2.5
@@ -436,6 +604,16 @@ enum AddSubImmOp {
   SUBI = AddSubImmFixed | B30,
 };
 
+// C3.4.2
+enum BitfieldOp {
+  BitfieldMask = 0x1f800000,
+  BitfieldFixed = 0x13000000,
+  SBFM = BitfieldFixed,
+  BFM = BitfieldFixed | B29,
+  UBFM = BitfieldFixed | B30,
+  Bitfield64 = B31 | B22,
+};
+
 // C3.4.4
 enum LogicalImmOp {
   LogicalImmMask = 0x1f800000,
@@ -486,6 +664,7 @@ enum ConditionalSelectOp {
   CSEL = ConditionalSelectFixed,
   CSINC = ConditionalSelectFixed | B10,
   CSINV = ConditionalSelectFixed | B30,
+  CSNEG = ConditionalSelectFixed | B10 | B30,
 };
 
 // C3.5.7
@@ -493,6 +672,7 @@ enum MiscDP1SourceOp {
   MiscDP1SourceMask = 0x5fe00000,
   MiscDP1SourceFixed = DPRegisterFixed | B30 | B28 | B23 | B22,
   CLZ = MiscDP1SourceFixed | B12,
+  RBIT = MiscDP1SourceFixed,  // opc = '00'
 };
 
 // C3.5.8
@@ -510,11 +690,16 @@ enum MiscDP2SourceOp {
 enum MiscDP3SourceOp {
   MiscDP3SourceMask = 0x1f000000,
   MiscDP3SourceFixed = DPRegisterFixed | B28 | B24,
-  MADD = MiscDP3SourceFixed,
-  MSUB = MiscDP3SourceFixed | B15,
+  MADDW = MiscDP3SourceFixed,
+  MADD = MiscDP3SourceFixed | B31,
+  MSUBW = MiscDP3SourceFixed | B15,
+  MSUB = MiscDP3SourceFixed | B31 | B15,
   SMULH = MiscDP3SourceFixed | B31 | B22,
   UMULH = MiscDP3SourceFixed | B31 | B23 | B22,
+  SMADDL = MiscDP3SourceFixed | B31 | B21,
   UMADDL = MiscDP3SourceFixed | B31 | B23 | B21,
+  SMSUBL = MiscDP3SourceFixed | B31 | B21 | B15,
+  UMSUBL = MiscDP3SourceFixed | B31 | B23 | B21 | B15,
 };
 
 // C3.5.10
@@ -662,6 +847,7 @@ enum FPIntCvtOp {
   _V(LoadRegLiteral)                                                           \
   _V(LoadStoreExclusive)                                                       \
   _V(AddSubImm)                                                                \
+  _V(Bitfield)                                                                 \
   _V(LogicalImm)                                                               \
   _V(MoveWide)                                                                 \
   _V(PCRel)                                                                    \
@@ -772,6 +958,7 @@ enum InstructionFields {
   kImm12ShiftBits = 2,
   kImm14Shift = 5,
   kImm14Bits = 14,
+  kImm14Mask = 0x3fff << kImm14Shift,
   kImm16Shift = 5,
   kImm16Bits = 16,
   kImm16Mask = 0xffff << kImm16Shift,
@@ -857,7 +1044,6 @@ class Instr {
 
   // Reserved brk and hlt instruction codes.
   static const int32_t kBreakPointCode = 0xdeb0;      // For breakpoint.
-  static const int32_t kStopMessageCode = 0xdeb1;     // For Stop(message).
   static const int32_t kSimulatorBreakCode = 0xdeb2;  // For breakpoint in sim.
   static const int32_t kSimulatorRedirectCode = 0xca11;  // For redirection.
 
@@ -1139,6 +1325,8 @@ class Instr {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Instr);
 };
+
+const uword kBreakInstructionFiller = 0xD4200000D4200000L;  // brk #0; brk #0
 
 }  // namespace dart
 

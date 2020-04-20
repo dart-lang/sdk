@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import "native_testing.dart";
 
 // Test that native methods with unnamed* optional arguments are called with the
@@ -66,17 +68,17 @@ testStaticContext() {
   A a = makeA();
   B b = makeB();
 
-  Expect.throws(() => a.foo());
+  Expect.throws(() => (a as dynamic).foo());
   Expect.equals(1, a.foo(10));
-  Expect.throws(() => a.foo(10, 20));
-  Expect.throws(() => a.foo(10, 20, 30));
+  Expect.throws(() => (a as dynamic).foo(10, 20));
+  Expect.throws(() => (a as dynamic).foo(10, 20, 30));
 
   Expect.equals(0, b.foo());
   Expect.equals(1, b.foo(10));
   Expect.equals(2, b.foo(10, 20));
   Expect.equals(3, b.foo(10, 20, 30));
 
-  Expect.throws(() => b.foo(10, 20, 30, 40));
+  Expect.throws(() => (b as dynamic).foo(10, 20, 30, 40));
 }
 
 main() {

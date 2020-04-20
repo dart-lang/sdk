@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
+
 import "dart:isolate";
 import "dart:async";
 import "package:expect/expect.dart";
@@ -21,12 +24,13 @@ void main() {
   var completer = new Completer(); // Completed by first reply from isolate.
   RawReceivePort reply = new RawReceivePort(completer.complete);
   Isolate.spawn(isomain1, reply.sendPort).then((Isolate isolate) {
-    completer.future.then((SendPort echoPort) {
+    completer.future.then((_echoPort) {
+      SendPort echoPort = _echoPort;
       List result = [];
       reply.handler = (v) {
         result.add(v);
         if (v == 2) {
-          isolate.kill(priority: Isolate.IMMEDIATE);
+          isolate.kill(priority: Isolate.immediate);
         }
         echoPort.send(v - 1);
       };

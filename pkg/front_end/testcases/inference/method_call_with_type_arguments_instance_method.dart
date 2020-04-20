@@ -11,6 +11,6 @@ class C {
 
 class D<T> {}
 
-var /*@topType=D<int>*/ f = new C(). /*@target=C::f*/ f<int>();
+var f = new C(). /*@target=C::f*/ f<int>();
 
 main() {}

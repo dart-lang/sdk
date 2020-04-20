@@ -36,7 +36,7 @@ bool VMTag::IsNativeEntryTag(uword tag) {
 }
 
 bool VMTag::IsDartTag(uword id) {
-  return id == kDartTagId;
+  return (id == kDartCompiledTagId) || (id == kDartInterpretedTagId);
 }
 
 bool VMTag::IsExitFrameTag(uword id) {
@@ -44,34 +44,26 @@ bool VMTag::IsExitFrameTag(uword id) {
          (id != kVMTagId) && (id != kEmbedderTagId);
 }
 
-static RuntimeEntry* runtime_entry_list = NULL;
-
 bool VMTag::IsRuntimeEntryTag(uword id) {
-  const RuntimeEntry* current = runtime_entry_list;
-  while (current != NULL) {
-    if (reinterpret_cast<uword>(current->function()) == id) {
-      return true;
-    }
-    current = current->next();
-  }
-  return false;
+  return RuntimeEntryTagName(id) != nullptr;
 }
 
 const char* VMTag::RuntimeEntryTagName(uword id) {
-  const RuntimeEntry* current = runtime_entry_list;
-  while (current != NULL) {
-    if (reinterpret_cast<uword>(current->function()) == id) {
-      return current->name();
-    }
-    current = current->next();
-  }
-  return NULL;
-}
+  void* address = reinterpret_cast<void*>(id);
 
-void VMTag::RegisterRuntimeEntry(RuntimeEntry* runtime_entry) {
-  ASSERT(runtime_entry != NULL);
-  runtime_entry->set_next(runtime_entry_list);
-  runtime_entry_list = runtime_entry;
+#define CHECK_RUNTIME_ADDRESS(n)                                               \
+  if (address == k##n##RuntimeEntry.function())                                \
+    return k##n##RuntimeEntry.name();
+  RUNTIME_ENTRY_LIST(CHECK_RUNTIME_ADDRESS)
+#undef CHECK_RUNTIME_ADDRESS
+
+#define CHECK_LEAF_RUNTIME_ADDRESS(type, n, ...)                               \
+  if (address == k##n##RuntimeEntry.function())                                \
+    return k##n##RuntimeEntry.name();
+  LEAF_RUNTIME_ENTRY_LIST(CHECK_LEAF_RUNTIME_ADDRESS)
+#undef CHECK_LEAF_RUNTIME_ADDRESS
+
+  return nullptr;
 }
 
 VMTag::TagEntry VMTag::entries_[] = {
@@ -85,8 +77,8 @@ VMTag::TagEntry VMTag::entries_[] = {
 };
 
 VMTagScope::VMTagScope(Thread* thread, uword tag, bool conditional_set)
-    : StackResource(thread) {
-  ASSERT(isolate() != NULL);
+    : ThreadStackResource(thread) {
+  ASSERT(isolate_group() != NULL);
   previous_tag_ = thread->vm_tag();
   if (conditional_set) {
     thread->set_vm_tag(tag);
@@ -94,7 +86,7 @@ VMTagScope::VMTagScope(Thread* thread, uword tag, bool conditional_set)
 }
 
 VMTagScope::~VMTagScope() {
-  ASSERT(isolate() != NULL);
+  ASSERT(isolate_group() != NULL);
   thread()->set_vm_tag(previous_tag_);
 }
 
@@ -126,9 +118,6 @@ int64_t VMTagCounters::count(uword tag) {
 
 #ifndef PRODUCT
 void VMTagCounters::PrintToJSONObject(JSONObject* obj) {
-  if (!FLAG_support_service) {
-    return;
-  }
   {
     JSONArray arr(obj, "names");
     for (intptr_t i = 1; i < VMTag::kNumVMTags; i++) {

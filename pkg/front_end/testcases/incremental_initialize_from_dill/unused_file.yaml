@@ -1,0 +1,37 @@
+# Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application where we use an import, then recompile without changing
+# the import but where we no longer use it.
+# The imported file is still included in the dill file we initialize from,
+# but shouldn't cause trouble, nor be included in the output.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "b.dart";
+        main() {
+          print("hello");
+          b();
+        }
+      b.dart: |
+        b() {
+          print("b");
+        }
+    expectedLibraryCount: 2
+  - entry: main.dart
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        main() {
+          print("hello");
+        }
+      b.dart: |
+        b() {
+          print("b");
+        }
+    expectedLibraryCount: 1

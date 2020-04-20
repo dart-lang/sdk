@@ -1,0 +1,14 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  core::Object* o = 1;
+  try {
+    for (core::int* i = 0; o as{TypeError} core::bool*; i = i.{core::num::+}(1)) {
+    }
+    throw "no exception";
+  }
+  on core::TypeError* catch(no-exception-var) {
+  }
+}

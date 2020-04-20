@@ -18,7 +18,7 @@ void testOperations() {
   List l = const [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   List r = const [10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
   // Function that reverses l and r lists when used to map.
-  int rev(x) => 11 - x;
+  int rev(dynamic x) => 11 - (x as int);
   // A base list that starts out like l, but isn't const.
   List base = l.map((x) => x).toList();
 
@@ -51,11 +51,11 @@ void testOperations() {
 
   void testList(List list) {
     var throws = const ThrowMarker();
-    List mappedList = new List(list.length);
+    var mappedList = new List<int>.filled(list.length, -1);
     for (int i = 0; i < list.length; i++) {
       mappedList[i] = rev(list[i]);
     }
-    Iterable reversed = list.map(rev);
+    Iterable<int> reversed = list.map(rev);
 
     void testEquals(v1, v2, path) {
       if (v1 is Iterable) {
@@ -77,7 +77,7 @@ void testOperations() {
       }
     }
 
-    void testOp(operation(Iterable mappedList), name) {
+    void testOp(operation(Iterable<int> mappedList), name) {
       var expect;
       try {
         expect = operation(mappedList);
@@ -115,7 +115,7 @@ void testOperations() {
     testOp((i) => i.every((n) => n < 5), "every<5");
     testOp((i) => i.every((n) => n < 10), "every<10");
     testOp((i) => i.reduce((a, b) => a + b), "reduce-sum");
-    testOp((i) => i.fold(0, (a, b) => a + b), "fold-sum");
+    testOp((i) => i.fold/*<int>*/(0, (a, b) => a + b), "fold-sum");
     testOp((i) => i.join("-"), "join-");
     testOp((i) => i.join(""), "join");
     testOp((i) => i.join(), "join-null");

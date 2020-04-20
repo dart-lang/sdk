@@ -1,13 +1,12 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 library typed_data_test;
 
 import 'dart:typed_data';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 var int8List;
@@ -76,10 +75,10 @@ void script() {
   float64x2List = new Float64x2List(2);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     script();
-    var lib = await isolate.rootLibrary.load();
+    Library lib = await isolate.rootLibrary.load();
 
     // Pre-load all the fields so we don't use await below and get better
     // stacktraces.
@@ -90,7 +89,7 @@ var tests = [
 
     expectTypedData(name, expectedValue) {
       var variable = lib.variables.singleWhere((v) => v.name == name);
-      var actualValue = variable.staticValue.typedElements;
+      var actualValue = (variable.staticValue as Instance).typedElements;
       if (expectedValue is Int32x4List) {
         expect(actualValue.length, equals(expectedValue.length));
         for (var i = 0; i < actualValue.length; i++) {

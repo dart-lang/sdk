@@ -4,13 +4,13 @@
 
 library dart2js.source_map_builder;
 
+import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' show Location;
 import '../../compiler_new.dart' show CompilerOutput, OutputSink, OutputType;
-import '../util/uri_extras.dart' show relativize;
 import '../util/util.dart';
 import 'location_provider.dart';
 import 'code_output.dart' show SourceLocationsProvider, SourceLocations;
-import 'source_information.dart' show SourceLocation;
+import 'source_information.dart' show SourceLocation, FrameEntry;
 
 class SourceMapBuilder {
   final String version;
@@ -24,8 +24,21 @@ class SourceMapBuilder {
   final LocationProvider locationProvider;
   final List<SourceMapEntry> entries = new List<SourceMapEntry>();
 
-  SourceMapBuilder(this.version, this.sourceMapUri, this.targetFileUri,
-      this.locationProvider);
+  /// Extension used to deobfuscate minified names in error messages.
+  final Map<String, String> minifiedGlobalNames;
+  final Map<String, String> minifiedInstanceNames;
+
+  /// Extension used to deobfuscate inlined stack frames.
+  final Map<int, List<FrameEntry>> frames;
+
+  SourceMapBuilder(
+      this.version,
+      this.sourceMapUri,
+      this.targetFileUri,
+      this.locationProvider,
+      this.minifiedGlobalNames,
+      this.minifiedInstanceNames,
+      this.frames);
 
   void addMapping(int targetOffset, SourceLocation sourceLocation) {
     entries.add(new SourceMapEntry(sourceLocation, targetOffset));
@@ -75,8 +88,7 @@ class SourceMapBuilder {
     IndexMap<Uri> uriMap = new IndexMap<Uri>();
     IndexMap<String> nameMap = new IndexMap<String>();
 
-    lineColumnMap.forEachElement((SourceMapEntry entry) {
-      SourceLocation sourceLocation = entry.sourceLocation;
+    void registerLocation(SourceLocation sourceLocation) {
       if (sourceLocation != null) {
         if (sourceLocation.sourceUri != null) {
           uriMap.register(sourceLocation.sourceUri);
@@ -85,7 +97,22 @@ class SourceMapBuilder {
           }
         }
       }
+    }
+
+    lineColumnMap.forEachElement((SourceMapEntry entry) {
+      registerLocation(entry.sourceLocation);
     });
+
+    minifiedGlobalNames.values.forEach(nameMap.register);
+    minifiedInstanceNames.values.forEach(nameMap.register);
+    for (List<FrameEntry> entries in frames.values) {
+      for (var frame in entries) {
+        registerLocation(frame.pushLocation);
+        if (frame.inlinedMethodName != null) {
+          nameMap.register(frame.inlinedMethodName);
+        }
+      }
+    }
 
     StringBuffer mappingsBuffer = new StringBuffer();
     writeEntries(lineColumnMap, uriMap, nameMap, mappingsBuffer);
@@ -95,15 +122,15 @@ class SourceMapBuilder {
     buffer.write('  "version": 3,\n');
     buffer.write('  "engine": "$version",\n');
     if (sourceMapUri != null && targetFileUri != null) {
-      buffer.write(
-          '  "file": "${relativize(sourceMapUri, targetFileUri, false)}",\n');
+      buffer.write('  "file": '
+          '"${fe.relativizeUri(sourceMapUri, targetFileUri, false)}",\n');
     }
     buffer.write('  "sourceRoot": "",\n');
     buffer.write('  "sources": ');
     Iterable<String> relativeSourceUriList = const <String>[];
     if (sourceMapUri != null) {
       relativeSourceUriList =
-          uriMap.elements.map((u) => relativize(sourceMapUri, u, false));
+          uriMap.elements.map((u) => fe.relativizeUri(sourceMapUri, u, false));
     }
     printStringListOn(relativeSourceUriList, buffer);
     buffer.write(',\n');
@@ -112,7 +139,18 @@ class SourceMapBuilder {
     buffer.write(',\n');
     buffer.write('  "mappings": "');
     buffer.write(mappingsBuffer);
-    buffer.write('"\n}\n');
+    buffer.write('",\n');
+    buffer.write('  "x_org_dartlang_dart2js": {\n');
+    buffer.write('    "minified_names": {\n');
+    buffer.write('      "global": ');
+    writeMinifiedNames(minifiedGlobalNames, nameMap, buffer);
+    buffer.write(',\n');
+    buffer.write('      "instance": ');
+    writeMinifiedNames(minifiedInstanceNames, nameMap, buffer);
+    buffer.write('\n    },\n');
+    buffer.write('    "frames": ');
+    writeFrames(uriMap, nameMap, buffer);
+    buffer.write('\n  }\n}\n');
     return buffer.toString();
   }
 
@@ -170,11 +208,54 @@ class SourceMapBuilder {
     });
   }
 
+  void writeMinifiedNames(Map<String, String> minifiedNames,
+      IndexMap<String> nameMap, StringBuffer buffer) {
+    bool first = true;
+    buffer.write('"');
+    minifiedNames.forEach((String minifiedName, String name) {
+      if (!first) buffer.write(',');
+      // minifiedNames are valid JS identifiers so they don't need to be escaped
+      buffer.write(minifiedName);
+      buffer.write(',');
+      buffer.write(nameMap[name]);
+      first = false;
+    });
+    buffer.write('"');
+  }
+
+  void writeFrames(
+      IndexMap<Uri> uriMap, IndexMap<String> nameMap, StringBuffer buffer) {
+    var offsetEncoder = DeltaEncoder();
+    var uriEncoder = DeltaEncoder();
+    var lineEncoder = DeltaEncoder();
+    var columnEncoder = DeltaEncoder();
+    var nameEncoder = DeltaEncoder();
+    buffer.write('"');
+    frames.forEach((int offset, List<FrameEntry> entries) {
+      for (var entry in entries) {
+        offsetEncoder.encode(buffer, offset);
+        if (entry.isPush) {
+          SourceLocation location = entry.pushLocation;
+          uriEncoder.encode(buffer, uriMap[location.sourceUri]);
+          lineEncoder.encode(buffer, location.line - 1);
+          columnEncoder.encode(buffer, location.column - 1);
+          nameEncoder.encode(buffer, nameMap[entry.inlinedMethodName]);
+        } else {
+          // ; and , are not used by VLQ so we can distinguish them in the
+          // encoding, this is the same reason they are used in the mappings
+          // field.
+          buffer.write(entry.isEmptyPop ? ";" : ",");
+        }
+      }
+    });
+    buffer.write('"');
+  }
+
   /// Returns the source map tag to put at the end a .js file in [fileUri] to
   /// make it point to the source map file in [sourceMapUri].
   static String generateSourceMapTag(Uri sourceMapUri, Uri fileUri) {
     if (sourceMapUri != null && fileUri != null) {
-      String sourceMapFileName = relativize(fileUri, sourceMapUri, false);
+      String sourceMapFileName = fe.relativizeUri(fileUri, sourceMapUri, false);
       return '''
 
 //# sourceMappingURL=$sourceMapFileName
@@ -191,6 +272,8 @@ class SourceMapBuilder {
   static void outputSourceMap(
       SourceLocationsProvider sourceLocationsProvider,
       LocationProvider locationProvider,
+      Map<String, String> minifiedGlobalNames,
+      Map<String, String> minifiedInstanceNames,
       String name,
       Uri sourceMapUri,
       Uri fileUri,
@@ -201,7 +284,13 @@ class SourceMapBuilder {
     sourceLocationsProvider.sourceLocations
         .forEach((SourceLocations sourceLocations) {
       SourceMapBuilder sourceMapBuilder = new SourceMapBuilder(
-          sourceLocations.name, sourceMapUri, fileUri, locationProvider);
+          sourceLocations.name,
+          sourceMapUri,
+          fileUri,
+          locationProvider,
+          minifiedGlobalNames,
+          minifiedInstanceNames,
+          sourceLocations.frameMarkers);
       sourceLocations.forEachSourceLocation(sourceMapBuilder.addMapping);
       String sourceMap = sourceMapBuilder.build();
       String extension = 'js.map';
@@ -276,13 +365,11 @@ class SourceMapEntry {
 /// Map from line/column pairs to lists of [T] elements.
 class LineColumnMap<T> {
   Map<int, Map<int, List<T>>> _map = <int, Map<int, List<T>>>{};
-  var _makeLineMap = () => <int, List<T>>{};
-  var _makeList = () => <T>[];
 
   /// Returns the list of elements associated with ([line],[column]).
   List<T> _getList(int line, int column) {
-    Map<int, List<T>> lineMap = _map.putIfAbsent(line, _makeLineMap);
-    return lineMap.putIfAbsent(column, _makeList);
+    Map<int, List<T>> lineMap = _map[line] ??= <int, List<T>>{};
+    return lineMap[column] ??= <T>[];
   }
 
   /// Adds [element] to the end of the list of elements associated with

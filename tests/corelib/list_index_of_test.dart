@@ -5,13 +5,13 @@
 import "package:expect/expect.dart";
 
 main() {
-  test(new List<int>(5));
-  var l = new List<int>();
+  test(new List<int?>.filled(5, null));
+  var l = <int?>[];
   l.length = 5;
   test(l);
 }
 
-void test(List<int> list) {
+void test(List<int?> list) {
   list[0] = 1;
   list[1] = 2;
   list[2] = 3;

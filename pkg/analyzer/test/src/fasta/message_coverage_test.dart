@@ -6,13 +6,13 @@ import 'dart:io' as io;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
 
 import '../../generated/parser_fasta_test.dart';
+import '../../utils/package_root.dart' as package_root;
 
 main() {
   defineReflectiveSuite(() {
@@ -29,23 +29,23 @@ class AbstractRecoveryTest extends FastaParserTestCase {
    * file.
    */
   Set<String> getGeneratedNames(String parserPath) {
-    String content = new io.File(parserPath).readAsStringSync();
+    String content = io.File(parserPath).readAsStringSync();
     CompilationUnit unit = parseCompilationUnit(content);
     expect(unit, isNotNull);
-    GeneratedCodesVisitor visitor = new GeneratedCodesVisitor();
+    GeneratedCodesVisitor visitor = GeneratedCodesVisitor();
     unit.accept(visitor);
     return visitor.generatedNames;
   }
 
   /**
-   * Given the path to the file 'message.yaml', return a list of the top-level
+   * Given the path to the file 'messages.yaml', return a list of the top-level
    * keys defined in that file that define an 'analyzerCode'.
    */
   List<String> getMappedCodes(String messagesPath) {
-    String content = new io.File(messagesPath).readAsStringSync();
+    String content = io.File(messagesPath).readAsStringSync();
     YamlDocument document = loadYamlDocument(content);
     expect(document, isNotNull);
-    Set<String> codes = new Set<String>();
+    Set<String> codes = <String>{};
     YamlNode contents = document.contents;
     if (contents is YamlMap) {
       for (String name in contents.keys) {
@@ -61,14 +61,14 @@ class AbstractRecoveryTest extends FastaParserTestCase {
   }
 
   /**
-   * Given the path to the file 'message.yaml', return a list of the analyzer
+   * Given the path to the file 'messages.yaml', return a list of the analyzer
    * codes defined in that file.
    */
   List<String> getReferencedCodes(String messagesPath) {
-    String content = new io.File(messagesPath).readAsStringSync();
+    String content = io.File(messagesPath).readAsStringSync();
     YamlDocument document = loadYamlDocument(content);
     expect(document, isNotNull);
-    Set<String> codes = new Set<String>();
+    Set<String> codes = <String>{};
     YamlNode contents = document.contents;
     if (contents is YamlMap) {
       for (String name in contents.keys) {
@@ -89,12 +89,12 @@ class AbstractRecoveryTest extends FastaParserTestCase {
    * return a list of the analyzer codes that are translated by the builder.
    */
   List<String> getTranslatedCodes(String astBuilderPath) {
-    String content = new io.File(astBuilderPath).readAsStringSync();
+    String content = io.File(astBuilderPath).readAsStringSync();
     CompilationUnit unit = parseCompilationUnit(content);
     ClassDeclaration astBuilder = unit.declarations[0];
     expect(astBuilder, isNotNull);
     MethodDeclaration method = astBuilder.members.firstWhere(
-        (x) => x is MethodDeclaration && x.name.name == 'addCompileTimeError',
+        (x) => x is MethodDeclaration && x.name.name == 'reportMessage',
         orElse: () => null);
     expect(method, isNotNull);
     SwitchStatement statement = (method.body as BlockFunctionBody)
@@ -118,9 +118,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
         path.join(frontEndPath, 'lib', 'src', 'fasta', 'parser', 'parser.dart');
     Set<String> generatedNames = getGeneratedNames(parserPath);
 
-    String analyzerPath = path.join(package_root.packageRoot, 'analyzer');
-    String messagesPath =
-        path.join(path.dirname(analyzerPath), 'front_end', 'messages.yaml');
+    String messagesPath = path.join(frontEndPath, 'messages.yaml');
     List<String> mappedCodes = getMappedCodes(messagesPath);
 
     generatedNames.removeAll(mappedCodes);
@@ -128,7 +126,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
       return;
     }
     List<String> sortedNames = generatedNames.toList()..sort();
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.writeln('Generated parser errors without analyzer codes:');
     for (String name in sortedNames) {
       buffer.write('  ');
@@ -137,10 +135,11 @@ class AbstractRecoveryTest extends FastaParserTestCase {
     fail(buffer.toString());
   }
 
+  @failingTest
   test_translatedMessageCoverage() {
     String analyzerPath = path.join(package_root.packageRoot, 'analyzer');
     String astBuilderPath =
-        path.join(analyzerPath, 'lib', 'src', 'fasta', 'ast_builder.dart');
+        path.join(analyzerPath, 'lib', 'src', 'fasta', 'error_converter.dart');
     List<String> translatedCodes = getTranslatedCodes(astBuilderPath);
 
     String messagesPath =
@@ -153,7 +152,17 @@ class AbstractRecoveryTest extends FastaParserTestCase {
         untranslated.add(referencedCode);
       }
     }
-    expect(untranslated, isEmpty, reason: 'Referenced but not translated');
+    StringBuffer buffer = StringBuffer();
+    if (untranslated.isNotEmpty) {
+      buffer
+          .writeln('Analyzer codes used in messages.yaml but not translated:');
+      for (String code in untranslated) {
+        buffer.write('  ');
+        buffer.writeln(code);
+      }
+      buffer.write(
+          'Add a case for these codes to FastaErrorReporter.reportError.');
+    }
 
     List<String> unreferenced = <String>[];
     for (String translatedCode in translatedCodes) {
@@ -161,7 +170,23 @@ class AbstractRecoveryTest extends FastaParserTestCase {
         unreferenced.add(translatedCode);
       }
     }
-    expect(unreferenced, isEmpty, reason: 'Translated but not referenced');
+    if (untranslated.isNotEmpty) {
+      if (buffer.isNotEmpty) {
+        buffer.writeln();
+        buffer.writeln();
+      }
+      buffer.writeln(
+          'Analyzer codes that are translated but not used in messages.yaml:');
+      for (String code in unreferenced) {
+        buffer.write('  ');
+        buffer.writeln(code);
+      }
+      buffer.write('Remove the cases for these codes from '
+          'FastaErrorReporter.reportMessage.');
+    }
+    if (buffer.isNotEmpty) {
+      fail(buffer.toString());
+    }
   }
 }
 
@@ -174,7 +199,7 @@ class GeneratedCodesVisitor extends RecursiveAstVisitor {
   /**
    * The names of the message codes that are generated in the visited AST.
    */
-  Set<String> generatedNames = new Set<String>();
+  Set<String> generatedNames = <String>{};
 
   @override
   visitPrefixedIdentifier(PrefixedIdentifier node) {

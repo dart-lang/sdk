@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:unittest/unittest.dart';
+// VMOptions=--causal-async-stacks --no-lazy-async-stacks
+// VMOptions=--no-causal-async-stacks --lazy-async-stacks
+
+import 'package:async_helper/async_minitest.dart';
 
 import 'causal_async_exception_stack_helper.dart' as h;
 
@@ -29,11 +32,8 @@ test1() async {
     expect(
         h.stringContainsInOrder(st.toString(), [
           'foo3',
-          '<asynchronous suspension>',
           'foo2',
-          '<asynchronous suspension>',
           'foo',
-          '<asynchronous suspension>',
           'test1',
         ]),
         isTrue);
@@ -47,11 +47,8 @@ test1() async {
     expect(
         h.stringContainsInOrder(st.toString(), [
           'bar3',
-          '<asynchronous suspension>',
           'bar2',
-          '<asynchronous suspension>',
           'bar',
-          '<asynchronous suspension>',
           'test1',
         ]),
         isTrue);
@@ -72,11 +69,8 @@ test2() async {
     expect(
         h.stringContainsInOrder(st.toString(), [
           'foo3',
-          '<asynchronous suspension>',
           'foo2',
-          '<asynchronous suspension>',
           'foo',
-          '<asynchronous suspension>',
           'test2',
         ]),
         isTrue);
@@ -90,11 +84,8 @@ test2() async {
     expect(
         h.stringContainsInOrder(st.toString(), [
           'bar3',
-          '<asynchronous suspension>',
           'bar2',
-          '<asynchronous suspension>',
           'bar',
-          '<asynchronous suspension>',
           'test2',
         ]),
         isTrue);

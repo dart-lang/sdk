@@ -69,7 +69,5 @@ abstract class Class extends Object implements ClassRef {
 
 abstract class InstanceSet {
   int get count;
-  Iterable<ObjectRef> get samples;
+  Iterable<ObjectRef> get instances;
 }
-
-abstract class TopRetainedInstances {}

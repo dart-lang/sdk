@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.io;
 
 /**
@@ -24,7 +26,7 @@ abstract class IOSink implements StreamSink<List<int>>, StringSink {
    * Text written to [StreamSink] methods is encoded to bytes using [encoding]
    * before being output on [target].
    */
-  factory IOSink(StreamConsumer<List<int>> target, {Encoding encoding: UTF8}) =>
+  factory IOSink(StreamConsumer<List<int>> target, {Encoding encoding: utf8}) =>
       new _IOSinkImpl(target, encoding);
 
   /**
@@ -104,6 +106,9 @@ abstract class IOSink implements StreamSink<List<int>>, StringSink {
    *
    * Returns a [Future] that completes when
    * all elements of the given [stream] are added to `this`.
+   *
+   * This function must not be called when a stream is currently being added
+   * using this function.
    */
   Future addStream(Stream<List<int>> stream);
 
@@ -146,32 +151,16 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
 
   _StreamSinkImpl(this._target);
 
-  void _reportClosedSink() {
-    // TODO(29554): this is very brittle and depends on the layout of the
-    // stderr class.
-    if (this == stderr._sink) {
-      // We can't report on stderr anymore (as we would otherwise
-      // have an infinite recursion.
-      throw new StateError("Stderr is closed.");
-    }
-    // TODO(29554): throw a StateError, and don't just report the problem.
-    stderr.writeln("StreamSink is closed and adding to it is an error.");
-    stderr.writeln("  See http://dartbug.com/29554.");
-    stderr.writeln(StackTrace.current);
-  }
-
   void add(T data) {
     if (_isClosed) {
-      _reportClosedSink();
-      return;
+      throw StateError("StreamSink is closed");
     }
     _controller.add(data);
   }
 
   void addError(error, [StackTrace stackTrace]) {
     if (_isClosed) {
-      _reportClosedSink();
-      return;
+      throw StateError("StreamSink is closed");
     }
     _controller.addError(error, stackTrace);
   }
@@ -180,19 +169,19 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
     if (_isBound) {
       throw new StateError("StreamSink is already bound to a stream");
     }
-    _isBound = true;
     if (_hasError) return done;
-    // Wait for any sync operations to complete.
-    Future targetAddStream() {
-      return _target.addStream(stream).whenComplete(() {
-        _isBound = false;
-      });
-    }
 
-    if (_controllerInstance == null) return targetAddStream();
-    var future = _controllerCompleter.future;
-    _controllerInstance.close();
-    return future.then((_) => targetAddStream());
+    _isBound = true;
+    var future = _controllerCompleter == null
+        ? _target.addStream(stream)
+        : _controllerCompleter.future.then((_) => _target.addStream(stream));
+    _controllerInstance?.close();
+
+    // Wait for any pending events in [_controller] to be dispatched before
+    // adding [stream].
+    return future.whenComplete(() {
+      _isBound = false;
+    });
   }
 
   Future flush() {

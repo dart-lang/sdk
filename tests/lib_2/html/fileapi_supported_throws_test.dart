@@ -1,17 +1,16 @@
 library fileapi;
 
+import 'dart:async';
 import 'dart:html';
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
+import 'package:async_helper/async_helper.dart';
+import 'package:async_helper/async_minitest.dart';
 
 main() {
-  useHtmlIndividualConfiguration();
-
-  test('requestFileSystem', () {
+  test('requestFileSystem', () async {
     var expectation = FileSystem.supported ? returnsNormally : throws;
-    expect(() {
-      window.requestFileSystem(100);
+    expect(() async {
+      await window.requestFileSystem(100);
     }, expectation);
   });
 }

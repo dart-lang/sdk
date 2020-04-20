@@ -54,8 +54,7 @@ class SwarmState extends UIState {
   BiIterator<Section> _sectionIterator;
 
   SwarmState(this._dataModel)
-      : super(),
-        currentArticle = new ObservableValue<Article>(null),
+      : currentArticle = new ObservableValue<Article>(null),
         selectedArticle = new ObservableValue<Article>(null),
         storyMaximized = new ObservableValue<bool>(false),
         storyTextMode = new ObservableValue<bool>(true) {

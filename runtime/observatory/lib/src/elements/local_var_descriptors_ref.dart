@@ -10,7 +10,8 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class LocalVarDescriptorsRefElement extends HtmlElement implements Renderable {
+class LocalVarDescriptorsRefElement extends CustomElement
+    implements Renderable {
   static const tag = const Tag<LocalVarDescriptorsRefElement>('var-ref');
 
   RenderingScheduler<LocalVarDescriptorsRefElement> _r;
@@ -29,14 +30,16 @@ class LocalVarDescriptorsRefElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(localVar != null);
-    LocalVarDescriptorsRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    LocalVarDescriptorsRefElement e =
+        new LocalVarDescriptorsRefElement.created();
+    e._r =
+        new RenderingScheduler<LocalVarDescriptorsRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._localVar = localVar;
     return e;
   }
 
-  LocalVarDescriptorsRefElement.created() : super.created();
+  LocalVarDescriptorsRefElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -48,14 +51,14 @@ class LocalVarDescriptorsRefElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
     final text = (_localVar.name == null || _localVar.name == '')
         ? 'LocalVarDescriptors'
         : _localVar.name;
-    children = [
+    children = <Element>[
       new AnchorElement(href: Uris.inspect(_isolate, object: _localVar))
         ..text = text
     ];

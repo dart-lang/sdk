@@ -4,9 +4,7 @@
 
 library dart2js.diagnostics.spannable;
 
-/**
- * Tagging interface for classes from which source spans can be generated.
- */
+/// Tagging interface for classes from which source spans can be generated.
 // TODO(johnniwinther): Find a better name.
 // TODO(ahe): How about "Bolt"?
 abstract class Spannable {}
@@ -16,6 +14,7 @@ class _SpannableSentinel implements Spannable {
 
   const _SpannableSentinel(this.name);
 
+  @override
   String toString() => name;
 }
 
@@ -35,6 +34,7 @@ class SpannableAssertionFailure {
   final String message;
   SpannableAssertionFailure(this.node, this.message);
 
+  @override
   String toString() => 'Assertion failure'
       '${message != null ? ': $message' : ''}';
 }

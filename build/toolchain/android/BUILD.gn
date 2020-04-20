@@ -4,9 +4,8 @@
 
 import("//build/config/sysroot.gni")  # Imports android/config.gni.
 import("//build/toolchain/ccache.gni")
-import("//build/toolchain/clang.gni")
-import("//build/toolchain/goma.gni")
 import("//build/toolchain/gcc_toolchain.gni")
+import("//build/toolchain/goma.gni")
 
 # The Android GCC toolchains share most of the same parameters, so we have this
 # wrapper around gcc_toolchain to avoid duplication of logic.
@@ -47,17 +46,8 @@ template("android_gcc_toolchain") {
 
     is_clang = invoker.is_clang
     if (is_clang) {
-      host_suffix = ""
-      if (host_os == "linux") {
-        host_suffix = "x86_64-linux"
-      } else if (host_os == "mac") {
-        host_suffix = "x86_64-darwin"
-      } else {
-        assert(false, "Unknown host")
-      }
-
-      prefix = rebase_path("//buildtools/toolchain/clang+llvm-$host_suffix/bin",
-                           root_build_dir)
+      prefix =
+          rebase_path("//buildtools/${host_os}-x64/clang/bin", root_build_dir)
 
       cc = compiler_prefix + prefix + "/clang"
       cxx = compiler_prefix + prefix + "/clang++"

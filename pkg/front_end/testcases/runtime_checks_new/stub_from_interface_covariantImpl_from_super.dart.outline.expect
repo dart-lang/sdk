@@ -2,20 +2,21 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-class B<T extends core::Object> extends core::Object {
-  default constructor •() → void
+class B<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::T*>*
     ;
-  method f(self::B::T x, core::int y) → void
+  method f(generic-covariant-impl self::B::T* x, core::int* y) → void
     ;
 }
 abstract class I extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::I*
     ;
-  abstract method f(core::int x, core::Object y) → void;
+  abstract method f(core::int* x, core::Object* y) → void;
 }
-class C extends self::B<core::int> implements self::I {
-  default constructor •() → void
+abstract class C extends self::B<core::int*> implements self::I {
+  synthetic constructor •() → self::C*
     ;
+  abstract forwarding-stub method f(generic-covariant-impl core::int* x, core::Object* y) → void;
 }
 static method main() → void
   ;

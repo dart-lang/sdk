@@ -1,0 +1,29 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$!MEMBERS
+
+  Future<List<Entry>> readEntries() {
+    var completer = new Completer<List<Entry>>();
+    _readEntries((values) {
+      values.forEach((value) {
+        applyExtension('Entry', value);
+        Entry entry = value as Entry;  
+        if (entry.isFile)
+          applyExtension('FileEntry', entry);
+        else if (entry.isDirectory)
+          applyExtension('DirectoryEntry', entry);
+      });
+      completer.complete(new List<Entry>.from(values));
+    }, (error) {
+      completer.completeError(error);
+    });
+
+    return completer.future;
+  }
+
+}

@@ -1,0 +1,5 @@
+NOTICE: Stream was rewritten by parser!
+
+{<[]()>[];}
+
+[UnmatchedToken][UnmatchedToken][UnmatchedToken]{[BeginToken]<[BeginToken][SyntheticStringToken][][SimpleToken]([BeginToken])[SyntheticToken]>[SyntheticToken][[SyntheticBeginToken]][SyntheticToken];[SyntheticToken]}[SyntheticToken][SimpleToken]

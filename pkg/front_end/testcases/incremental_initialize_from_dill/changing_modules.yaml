@@ -1,0 +1,153 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with a number of modules.
+# Compile again with changing modules.
+
+type: newworld
+modules:
+  example_0.1.0:
+    example_0.1.0/a.dart: |
+      a() {
+        la1();
+      }
+      la1() {
+        print("Hello from v0.1.0");
+      }
+    example_0.1.0/b.dart: |
+      import "a.dart";
+      b() {
+        a();
+      }
+    example_0.1.0/.packages: |
+      example:.
+  example_0.1.1:
+    example_0.1.1/b.dart: |
+      b() {
+        print("Hello from v0.1.1");
+      }
+      bool example011 = true;
+    example_0.1.1/.packages: |
+      example:.
+  foo_1:
+    foo_1/foo.dart: |
+      import "package:example/b.dart";
+      foo() {
+        print("Hello from foo");
+        b();
+      }
+      bool foo1 = true;
+    foo_1/.packages: |
+      foo:.
+      example:../example_0.1.0
+  foo_2:
+    foo_2/foo.dart: |
+      import "package:example/b.dart";
+      import "bar.dart";
+      import "baz.dart";
+      foo() {
+        print("Hello from foo 2");
+        bar();
+        baz();
+        b();
+      }
+      bool foo2 = true;
+    foo_2/bar.dart: |
+      bar() {
+        print("hello from bar");
+      }
+    foo_2/baz.dart: |
+      baz() {
+        print("hello from baz");
+      }
+    foo_2/.packages: |
+      foo:.
+      example:../example_0.1.1
+worlds:
+  - entry: main.dart
+    fromComponent: true
+    sources:
+      main.dart: |
+        import "package:example/b.dart";
+        main() {
+          print("hello");
+          b();
+        }
+      .packages: example:example_0.1.0
+    modules:
+      - example_0.1.0
+    expectedLibraryCount: 3
+    neededDillLibraries:
+      # Needs 'b.dart' only!
+      - package:example/b.dart
+    expectedContent:
+      org-dartlang-test:///main.dart:
+        - Procedure main
+      package:example/b.dart:
+        - Procedure b
+      package:example/a.dart:
+        - Procedure a
+        - Procedure la1
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    sources:
+      main.dart: |
+        import "package:foo/foo.dart";
+        main() {
+          print("hello");
+          foo();
+        }
+      .packages: |
+        example:example_0.1.0
+        foo:foo_1
+    modules:
+      - example_0.1.0
+      - foo_1
+    expectedLibraryCount: 4
+    neededDillLibraries:
+      - package:foo/foo.dart
+    expectedContent:
+      org-dartlang-test:///main.dart:
+        - Procedure main
+      package:example/b.dart:
+        - Procedure b
+      package:example/a.dart:
+        - Procedure a
+        - Procedure la1
+      package:foo/foo.dart:
+        - Procedure foo
+        - Field foo1
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    sources:
+      main.dart: |
+        import "package:foo/foo.dart";
+        main() {
+          print("hello");
+          foo();
+        }
+      .packages: |
+        example:example_0.1.1
+        foo:foo_2
+    modules:
+      - example_0.1.1
+      - foo_2
+    expectedLibraryCount: 5
+    neededDillLibraries:
+      - package:foo/foo.dart
+    expectedContent:
+      org-dartlang-test:///main.dart:
+        - Procedure main
+      package:example/b.dart:
+        - Procedure b
+        - Field example011
+      package:foo/foo.dart:
+        - Procedure foo
+        - Field foo2
+      package:foo/bar.dart:
+        - Procedure bar
+      package:foo/baz.dart:
+        - Procedure baz

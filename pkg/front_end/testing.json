@@ -1,12 +1,18 @@
 {
-"":"Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file",
-"":"for details. All rights reserved. Use of this source code is governed by a",
-"":"BSD-style license that can be found in the LICENSE.md file.",
-
+  "": "Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file",
+  "": "for details. All rights reserved. Use of this source code is governed by a",
+  "": "BSD-style license that can be found in the LICENSE.md file.",
   "packages": "../../.packages",
-
   "suites": [
-
+    {
+      "name": "messages",
+      "kind": "Chain",
+      "source": "test/fasta/messages_suite.dart",
+      "path": "./",
+      "status": "messages.status",
+      "pattern": [],
+      "exclude": []
+    },
     {
       "name": "scanner",
       "kind": "Chain",
@@ -16,10 +22,8 @@
       "pattern": [
         "\\.dart$"
       ],
-      "exclude": [
-      ]
+      "exclude": []
     },
-
     {
       "name": "parser",
       "kind": "Chain",
@@ -38,86 +42,304 @@
         "/sdk/generated/"
       ]
     },
-
     {
       "name": "outline",
       "kind": "Chain",
-      "source": "test/fasta/outline_test.dart",
+      "source": "test/fasta/outline_suite.dart",
       "path": "testcases/",
       "status": "testcases/outline.status",
       "pattern": [
-        "\\.dart$"
+        "\\.dart$",
+        "\\.crash_dart$"
       ],
       "exclude": [
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
-        "/testcases/shaker/"
+        "/testcases/dartino/",
+        "/testcases/shaker/",
+        "/testcases/expression/"
       ]
     },
-
-    {
-      "name": "compile",
-      "kind": "Chain",
-      "source": "test/fasta/compile_test.dart",
-      "path": "testcases/",
-      "status": "testcases/compile.status",
-      "pattern": [
-        "\\.dart$"
-      ],
-      "exclude": [
-        "/testcases/.*_part[0-9]*\\.dart$",
-        "/testcases/.*_lib[0-9]*\\.dart$",
-        "/testcases/shaker/"
-      ]
-    },
-
     {
       "name": "strong",
       "kind": "Chain",
-      "source": "test/fasta/strong_test.dart",
+      "source": "test/fasta/strong_tester.dart",
       "path": "testcases/",
       "status": "testcases/strong.status",
       "pattern": [
-        "\\.dart$"
+        "\\.dart$",
+        "\\.crash_dart$"
       ],
       "exclude": [
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
-        "/testcases/shaker/"
+        "/testcases/dartino/",
+        "/testcases/shaker/",
+        "/testcases/expression/"
       ]
     },
-
     {
-      "name": "ast_builder",
+      "name": "fast_strong",
       "kind": "Chain",
-      "source": "test/fasta/ast_builder_test.dart",
+      "source": "test/fasta/fast_strong_suite.dart",
       "path": "testcases/",
-      "status": "testcases/ast_builder.status",
+      "status": "testcases/strong.status",
+      "pattern": [
+        "\\.dart$",
+        "\\.crash_dart$"
+      ],
+      "exclude": [
+        "/testcases/.*_part[0-9]*\\.dart$",
+        "/testcases/.*_lib[0-9]*\\.dart$",
+        "/testcases/dartino/",
+        "/testcases/shaker/",
+        "/testcases/expression/"
+      ]
+    },
+    {
+      "name": "text_serialization",
+      "kind": "Chain",
+      "source": "test/fasta/text_serialization_tester.dart",
+      "path": "testcases/",
+      "status": "testcases/text_serialization.status",
+      "pattern": [
+        "\\.dart$",
+        "\\.crash_dart$"
+      ],
+      "exclude": [
+        "/testcases/.*_part[0-9]*\\.dart$",
+        "/testcases/.*_lib[0-9]*\\.dart$",
+        "/testcases/dartino/",
+        "/testcases/shaker/",
+        "/testcases/expression/"
+      ]
+    },
+    {
+      "name": "weak",
+      "kind": "Chain",
+      "source": "test/fasta/weak_suite.dart",
+      "path": "testcases/",
+      "status": "testcases/weak.status",
       "pattern": [
         "\\.dart$"
       ],
       "exclude": [
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
-        "/testcases/shaker/"
+        "/testcases/dartino/",
+        "/testcases/expression/",
+        "/testcases/extensions/",
+        "/testcases/general/",
+        "/testcases/implicit_getter_calls",
+        "/testcases/inference",
+        "/testcases/inference_new",
+        "/testcases/instantiate_to_bound/",
+        "/testcases/new_const_insertion",
+        "/testcases/no_such_method_forwarders",
+        "/testcases/rasta/",
+        "/testcases/regress/",
+        "/testcases/runtime_checks",
+        "/testcases/runtime_checks_new",
+        "/testcases/set_literals",
+        "/testcases/unified_collections",
+        "/testcases/variance"
       ]
     },
-
     {
-      "name": "shaker",
+      "name": "incremental",
       "kind": "Chain",
-      "source": "test/fasta/shaker_test.dart",
-      "path": "testcases/shaker/",
-      "status": "testcases/shaker.status",
+      "source": "test/fasta/incremental_suite.dart",
+      "path": "testcases/",
+      "status": "testcases/incremental.status",
       "pattern": [
-        "\\.dart$"
+        "\\.incremental\\.yaml$"
+      ],
+      "exclude": []
+    },
+    {
+      "name": "expression",
+      "kind": "Chain",
+      "source": "test/fasta/expression_suite.dart",
+      "path": "testcases/expression/",
+      "status": "testcases/expression.status",
+      "pattern": [
+        "\\.expression\\.yaml$"
+      ],
+      "exclude": []
+    },
+    {
+      "name": "incremental_load_from_dill",
+      "kind": "Chain",
+      "source": "test/incremental_load_from_dill_suite.dart",
+      "path": "testcases/incremental_initialize_from_dill/",
+      "status": "testcases/incremental_initialize_from_dill/status.status",
+      "pattern": [
+        "\\.yaml$"
+      ],
+      "exclude": []
+    },
+    {
+      "name": "incremental_bulk_compiler_smoke",
+      "kind": "Chain",
+      "source": "test/incremental_bulk_compiler_smoke_suite.dart",
+      "path": "../../tests/",
+      "status": "testcases/incremental_bulk_compiler_smoke.status",
+      "pattern": [
+        "/language_2/accessor_conflict_export2_test\\.dart$",
+        "/language_2/accessor_conflict_export_test\\.dart$",
+        "/language_2/regress_14348_test\\.dart$",
+        "/language_2/regress_18535_test\\.dart$",
+        "/language_2/deferred_super_dependency_test\\.dart$",
+        "/language_2/export_ambiguous_main_test\\.dart$",
+        "/language_2/export_double_same_main_test\\.dart$",
+        "/language_2/export_main_test\\.dart$",
+        "/language_2/import_nonexisting_dart_uri_test\\.dart$",
+        "/language_2/internal_library_test\\.dart$",
+        "/language_2/issue1578_negative_test\\.dart$",
+        "/language_2/missing_part_of_tag_test\\.dart$",
+        "/language_2/no_main_test\\.dart$",
+        "/language_2/part_refers_to_core_library_test\\.dart$",
+        "/language_2/regress_27957_test\\.dart$",
+        "/language_2/script1_negative_test\\.dart$",
+        "/language_2/script2_negative_test\\.dart$",
+        "/language_2/unbalanced_brace_test\\.dart$"
+      ],
+      "exclude": []
+    },
+    {
+      "name": "incremental_bulk_compiler_full",
+      "kind": "Chain",
+      "source": "test/incremental_bulk_compiler_full.dart",
+      "path": "../../tests/",
+      "status": "testcases/incremental_bulk_compiler_full.status",
+      "pattern": [
+        "language_2/.*_test\\.dart$"
+      ],
+      "exclude": []
+    },
+    {
+      "name": "old_dill",
+      "kind": "Chain",
+      "source": "test/old_dill_suite.dart",
+      "path": "testcases/old_dills/dills/",
+      "status": "testcases/old_dills/old_dills.status",
+      "pattern": [
+        ".*\\.dill$"
+      ],
+      "exclude": []
+    },
+    {
+      "name": "parser",
+      "kind": "Chain",
+      "source": "test/parser_suite.dart",
+      "path": "parser_testcases/",
+      "status": "parser_testcases/parser.status",
+      "pattern": [
+        "\\.dart$",
+        "\\.crash_dart$"
+      ],
+      "exclude": []
+    },
+    {
+      "name": "lint",
+      "kind": "Chain",
+      "source": "test/lint_suite.dart",
+      "path": "lib/",
+      "status": "test/lint_test.status",
+      "pattern": [
+        ".*\\.dart$"
       ],
       "exclude": [
-        "/shaker/lib/.*\\.dart$",
-        "/shaker/.*_lib[0-9]*\\.dart$"
+        "src/fasta/fasta_codes_generated\\.dart$"
       ]
     },
-
+    {
+      "name": "spelling_test_src",
+      "kind": "Chain",
+      "source": "test/spelling_test_src_suite.dart",
+      "path": "../",
+      "status": "test/spelling_test.status",
+      "pattern": [
+        "_fe_analyzer_shared/lib/.*\\.dart$",
+        "front_end/lib/.*\\.dart$",
+        "kernel/lib/.*\\.dart$"
+      ],
+      "exclude": [
+        "kernel/lib/vm/.*\\.dart$",
+        "kernel/lib/transformations/.*\\.dart$",
+        "_fe_analyzer_shared/lib/src/messages/codes_generated\\.dart$",
+        "front_end/lib/src/fasta/fasta_codes_cfe_generated\\.dart$"
+      ]
+    },
+    {
+      "name": "spelling_test_not_src",
+      "kind": "Chain",
+      "source": "test/spelling_test_not_src_suite.dart",
+      "path": ".",
+      "status": "test/spelling_test.status",
+      "pattern": [
+        ".*\\.dart$"
+      ],
+      "exclude": [
+        "lib/",
+        "test/fasta/super_mixins_test\\.dart$",
+        "test/fasta/types/subtypes_benchmark\\.dart$",
+        "test/fasta/unlinked_scope_test\\.dart$",
+        "test/memory_file_system_test\\.dart$",
+        "test/scanner_fasta_test\\.dart$",
+        "test/scanner_test\\.dart$",
+        "test/spell_checking_utils_test.dart",
+        "test/standard_file_system_test\\.dart$",
+        "test/tool/reload\\.dart$",
+        "test/type_labeler_test\\.dart$",
+        "test/unit_test_suites\\.dart$",
+        "testcases/expression/main\\.dart$",
+        "testcases/general/DeltaBlue\\.dart$",
+        "testcases/general/annotation_variable_declaration\\.dart$",
+        "testcases/general/arithmetic\\.dart$",
+        "testcases/general/bad_type_variable_uses_in_supertypes\\.dart$",
+        "testcases/general/clone_function_type\\.dart$",
+        "testcases/general/co19_language_metadata_syntax_t04\\.dart$",
+        "testcases/general/complex_class_hierarchy\\.dart$",
+        "testcases/general/issue34899\\.dart$",
+        "testcases/general/micro\\.dart$",
+        "testcases/general/redirecting_factory\\.dart$",
+        "testcases/general/spread_collection_inference\\.dart$",
+        "testcases/general_nnbd_opt_out/DeltaBlue\\.dart$",
+        "testcases/general_nnbd_opt_out/annotation_variable_declaration\\.dart$",
+        "testcases/general_nnbd_opt_out/arithmetic\\.dart$",
+        "testcases/general_nnbd_opt_out/bad_type_variable_uses_in_supertypes\\.dart$",
+        "testcases/general_nnbd_opt_out/clone_function_type\\.dart$",
+        "testcases/general_nnbd_opt_out/co19_language_metadata_syntax_t04\\.dart$",
+        "testcases/general_nnbd_opt_out/complex_class_hierarchy\\.dart$",
+        "testcases/general_nnbd_opt_out/issue34899\\.dart$",
+        "testcases/general_nnbd_opt_out/micro\\.dart$",
+        "testcases/general_nnbd_opt_out/redirecting_factory\\.dart$",
+        "testcases/general_nnbd_opt_out/spread_collection_inference\\.dart$",
+        "testcases/inference/downwards_inference_initializing_formal_default_formal\\.dart$",
+        "testcases/inference/downwards_inference_on_generic_function_expressions\\.dart$",
+        "testcases/inference/for_in_loop_promotion\\.dart$",
+        "testcases/inference/future_union_upwards_generic_methods\\.dart$",
+        "testcases/inference/generic_methods_infer_generic_instantiation\\.dart$",
+        "testcases/inference/overloaded_int_operators\\.dart$",
+        "testcases/instantiate_to_bound/non_simple_many\\.dart$",
+        "testcases/instantiate_to_bound/non_simple_suppress_consequence\\.dart$",
+        "testcases/rasta/switch_execution_case_t02\\.dart$",
+        "testcases/set_literals/disambiguation_rule\\.dart$",
+        "tool/_fasta/abcompile\\.dart$"
+      ]
+    },
+    {
+      "name": "spelling_test_external_targets",
+      "kind": "Chain",
+      "source": "test/spelling_test_external_targets.dart",
+      "path": "../../",
+      "status": "test/spelling_test.status",
+      "pattern": [
+        ".*\\.dart$"
+      ],
+      "exclude": []
+    },
     {
       "name": "sdk",
       "kind": "Chain",
@@ -126,7 +348,7 @@
       "status": "testcases/sdk.status",
       "process-multitests": true,
       "pattern": [
-        "/sdk/tests/language(|_2|_strong)/.*_test\\.dart$"
+        "/sdk/tests/language_2/.*_test\\.dart$"
       ],
       "": "deep_nesting{1,2}_negative_test are ignored because they cause a",
       "": "crash that we're ignoring for now (it was fixed in Rasta).",
@@ -134,42 +356,17 @@
       "": "subtest name in multi test.",
       "": "Tracked by: https://github.com/dart-lang/sdk/issues/28436",
       "exclude": [
-        "/sdk/tests/language/arg_param_trailing_comma_test\\.dart$",
-        "/sdk/tests/language/assert_initializer_test\\.dart$",
-        "/sdk/tests/language/async_switch_test\\.dart$",
-        "/sdk/tests/language/case_expression_with_assignment_test\\.dart$",
-        "/sdk/tests/language/deep_nesting1_negative_test\\.dart$",
-        "/sdk/tests/language/deep_nesting2_negative_test\\.dart$",
-        "/sdk/tests/language/deferred_type_dependency_test\\.dart$",
-        "/sdk/tests/language/mixin_of_mixin_test\\.dart$",
         "/sdk/tests/language/regress_23996_test\\.dart$",
-        "/sdk/tests/language/regress_28217_test\\.dart$",
         "/sdk/tests/language/round_test\\.dart$",
-        "/sdk/tests/language_2/arg_param_trailing_comma_test\\.dart$",
-        "/sdk/tests/language_2/async_switch_test\\.dart$",
-        "/sdk/tests/language_2/case_expression_with_assignment_test\\.dart$",
-        "/sdk/tests/language_2/constructor_redirect1_negative_test\\.dart$",
-        "/sdk/tests/language_2/deferred_type_dependency_test\\.dart$",
-        "/sdk/tests/language_2/factory_redirection_test\\.dart$",
-        "/sdk/tests/language_2/factory2_test\\.dart$",
-        "/sdk/tests/language_2/factory3_test\\.dart$",
-        "/sdk/tests/language_2/field_initialization_order_test\\.dart$",
-        "/sdk/tests/language_2/field_override_test\\.dart$",
-        "/sdk/tests/language_2/field3_test\\.dart$",
-        "/sdk/tests/language_2/map_literal11_test\\.dart$",
+        "/sdk/tests/language_2/abstract_getter2_test\\.dart$",
         "/sdk/tests/language_2/round_test\\.dart$",
         "/sdk/tests/language_2/regress_23996_test\\.dart$",
-        "/sdk/tests/language_2/regress_28217_test\\.dart$",
         "/sdk/tests/language_2/regress_30669_test\\.dart$",
         "/sdk/tests/language_2/regress_30927_test\\.dart$",
         "/sdk/tests/language_2/runtime_type_function_test\\.dart$",
-        "/sdk/tests/language_2/setter_override_test\\.dart$",
-        "/sdk/tests/language_strong/function_type_alias10_test\\.dart$",
-        "/sdk/tests/language_strong/regress_30669_test\\.dart$",
-        "/sdk/tests/language_strong/regress_30927_test\\.dart$"
+        "/sdk/tests/language_2/setter_override_test\\.dart$"
       ]
     },
-
     {
       "note": "Tests dart2js fully, excluding browser-only tests.",
       "name": "dart2js",
@@ -183,7 +380,6 @@
         "-cdart2js -rd8 dart2js_extra dart2js_native"
       ]
     },
-
     {
       "note": "Minimal testing of Fasta.",
       "name": "fasta_min",
@@ -197,7 +393,6 @@
         "-cdartk -rvm"
       ]
     },
-
     {
       "note": "Tests Fasta fully, including the above dart2js tests.",
       "name": "fasta_max",
@@ -212,7 +407,6 @@
         "-cdart2js -rd8 dart2js_extra dart2js_native"
       ]
     },
-
     {
       "note": "Runs dart2js in a mode where it invokes Fasta.",
       "name": "dart2js_with_kernel",
@@ -221,33 +415,37 @@
       "mode": "release",
       "common": "--dart2js-batch --time -pcolor --report -ax64 -mrelease --write-result-log",
       "command-lines": [
-        "-cdart2js -rd8 --use-sdk --minified --dart2js-with-kernel language language_2 dart2js_extra dart2js_native corelib corelib_2"
+        "-cdart2js -rd8 --use-sdk --minified language language_2 dart2js_extra dart2js_native corelib corelib_2"
       ]
     }
   ],
-
   "analyze": {
-
-    "options": "analysis_options.yaml",
-
+    "options": "analysis_options_no_lints.yaml",
     "uris": [
       "lib/",
       "tool/",
       "test/",
-      "../kernel/lib/"
+      "../kernel/lib/",
+      "../testing/"
     ],
-
     "git grep": {
-      "pathspecs": [ "*.dart" ],
+      "pathspecs": [
+        "*.dart"
+      ],
       "patterns": [
         "package:front_end/",
-        "package:kernel/"
+        "package:kernel/",
+        "package:testing/"
       ]
     },
-
     "exclude": [
       "^pkg/analysis_server/lib/src/analysis_server\\.dart",
-      "^pkg/dev_compiler/"
+      "test/analyser_ignored/",
+      "test/extensions/data/",
+      "test/id_testing/data/",
+      "test/language_versioning/data/",
+      "test/patching/data",
+      "test/static_types/data/"
     ]
   }
 }

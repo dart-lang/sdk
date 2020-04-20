@@ -1,0 +1,40 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with a modules that isn't used, but,
+# which - if loaded - pulls in more of itself.
+
+type: newworld
+modules:
+  module:
+    module/a.dart: |
+      import 'package:module/b.dart';
+      class A { }
+    module/b.dart: |
+      export 'package:module/a.dart';
+      class B { }
+    module/c.dart: |
+      export 'package:module/d.dart';
+      class C { }
+    module/d.dart: |
+      import 'package:module/c.dart';
+      class D { }
+    module/.packages: |
+      module:.
+worlds:
+  - entry: main.dart
+    fromComponent: true
+    sources:
+      main.dart: |
+        class Foo {}
+      .packages: |
+        module:module
+    modules:
+      - module
+    expectedLibraryCount: 1
+    # We don't import the module, and thus don't use it.
+    neededDillLibraries: []
+    expectedContent:
+      org-dartlang-test:///main.dart:
+        - Class Foo

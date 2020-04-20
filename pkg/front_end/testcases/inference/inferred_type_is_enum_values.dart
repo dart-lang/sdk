@@ -6,7 +6,7 @@
 library test;
 
 enum E { v1 }
-final /*@topType=List<E>*/ x = E.values;
+final x = E.values;
 
 main() {
   x;

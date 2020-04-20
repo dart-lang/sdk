@@ -1,0 +1,22 @@
+main = <No Member>;
+library from "org-dartlang-test:///b.dart" as b {
+//
+// Problems in library:
+//
+// org-dartlang-test:///b.dart:1:1: Error: Expected ';' after this.
+// asdf
+// ^^^^
+//
+// org-dartlang-test:///b.dart:1:1: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// asdf
+// ^^^^
+//
+
+  static field dynamic asdf;
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///b.dart";
+
+}

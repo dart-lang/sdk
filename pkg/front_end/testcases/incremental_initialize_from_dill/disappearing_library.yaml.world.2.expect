@@ -1,0 +1,7 @@
+main = <No Member>;
+library bLibrary from "org-dartlang-test:///b.dart" as bLi {
+
+  static method main() → dynamic {
+    dart.core::print("hello from b!");
+  }
+}

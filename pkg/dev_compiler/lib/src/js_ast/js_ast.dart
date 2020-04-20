@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: directives_ordering
+
 library js_ast;
 
 import 'precedence.dart';
+// ignore: library_prefixes
 import 'characters.dart' as charCodes;
-import '../closure/closure_annotation.dart';
 
 part 'nodes.dart';
 part 'builder.dart';
-part 'js_types.dart';
 part 'printer.dart';
 part 'template.dart';
-part 'type_printer.dart';

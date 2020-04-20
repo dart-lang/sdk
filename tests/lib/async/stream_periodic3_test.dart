@@ -5,8 +5,9 @@
 // Test merging streams.
 library dart.test.stream_from_iterable;
 
-import "dart:async";
-import 'package:unittest/unittest.dart';
+import 'dart:async';
+
+import 'package:async_helper/async_minitest.dart';
 
 // The stopwatch is more precise than the Timer.
 // Some browsers (Firefox and IE so far) can trigger too early. So we add more

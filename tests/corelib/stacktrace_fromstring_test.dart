@@ -27,7 +27,7 @@ void main() {
   asyncStart();
   var c = new Completer();
   c.completeError(0, stringTrace);
-  c.future.then((v) {
+  c.future.then<Null>((v) {
     throw "Unexpected value: $v";
   }, onError: (e, s) {
     Expect.equals(string, s.toString());

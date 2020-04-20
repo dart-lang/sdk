@@ -4,10 +4,10 @@ import "dart:core" as core;
 
 class A extends core::Object {
   field dynamic a;
-  constructor •(dynamic x) → void
+  constructor •(dynamic x) → self::A*
     ;
 }
 class B extends self::A {
-  default constructor •() → void
+  synthetic constructor •() → self::B*
     ;
 }

@@ -7,7 +7,7 @@ library test;
 
 void expectTypeError(void callback()) {
   try {
-    callback /*@callKind=closure*/ ();
+    callback();
     throw 'Expected TypeError, did not occur';
   } on TypeError {}
 }
@@ -38,9 +38,9 @@ class B {
 
 abstract class I<T> {
   T get x;
-  void set x(T /*@covariance=genericInterface, genericImpl*/ value);
+  void set x(T value);
   Object get y;
-  void set y(covariant Object /*@covariance=explicit*/ value);
+  void set y(covariant Object value);
 }
 
 class M {
@@ -55,10 +55,7 @@ class M {
   }
 }
 
-class
-/*@forwardingStub=void set y(covariance=(explicit) Object value)*/
-/*@forwardingStub=void set x(covariance=(genericImpl) int value)*/
-    C = B with M implements I<int>;
+class C = B with M implements I<int>;
 
 void test(I<Object> i) {
   expectTypeError(() {

@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart.http;
+// @dart = 2.6
+
+library dart._http;
 
 import "dart:async";
 import "dart:collection";
@@ -15,6 +17,7 @@ import "dart:typed_data";
 import "package:expect/expect.dart";
 
 part "../../../sdk/lib/_http/crypto.dart";
+part "../../../sdk/lib/_http/embedder_config.dart";
 part "../../../sdk/lib/_http/http_impl.dart";
 part "../../../sdk/lib/_http/http_date.dart";
 part "../../../sdk/lib/_http/http_parser.dart";
@@ -33,13 +36,13 @@ class HttpParserTest {
       String request, String expectedMethod, String expectedUri,
       {int expectedTransferLength: 0,
       int expectedBytesReceived: 0,
-      Map expectedHeaders: null,
+      Map<String, String> expectedHeaders: null,
       bool chunked: false,
       bool upgrade: false,
       int unparsedLength: 0,
       bool connectionClose: false,
       String expectedVersion: "1.1"}) {
-    StreamController controller;
+    StreamController<Uint8List> controller;
     void reset() {
       _HttpParser httpParser = new _HttpParser.requestParser();
       controller = new StreamController(sync: true);
@@ -132,7 +135,7 @@ class HttpParserTest {
       String request, String expectedMethod, String expectedUri,
       {int expectedTransferLength: 0,
       int expectedBytesReceived: 0,
-      Map expectedHeaders: null,
+      Map<String, String> expectedHeaders: null,
       bool chunked: false,
       bool upgrade: false,
       int unparsedLength: 0,
@@ -162,7 +165,7 @@ class HttpParserTest {
   static void _testParseInvalidRequest(String request) {
     _HttpParser httpParser;
     bool errorCalled;
-    StreamController controller;
+    StreamController<Uint8List> controller;
 
     void reset() {
       httpParser = new _HttpParser.requestParser();
@@ -206,7 +209,7 @@ class HttpParserTest {
       String response, int expectedStatusCode, String expectedReasonPhrase,
       {int expectedTransferLength: 0,
       int expectedBytesReceived: 0,
-      Map expectedHeaders: null,
+      Map<String, String> expectedHeaders: null,
       bool chunked: false,
       bool close: false,
       String responseToMethod: null,
@@ -214,7 +217,7 @@ class HttpParserTest {
       bool upgrade: false,
       int unparsedLength: 0,
       String expectedVersion: "1.1"}) {
-    StreamController controller;
+    StreamController<Uint8List> controller;
     bool upgraded;
 
     void reset() {
@@ -248,8 +251,6 @@ class HttpParserTest {
           Expect.equals(dataEndClose, connectionClose);
         }
       }
-
-      ;
 
       var subscription = httpParser.listen((incoming) {
         port.close();
@@ -309,9 +310,8 @@ class HttpParserTest {
   static void _testParseInvalidResponse(String response, [bool close = false]) {
     void testWrite(List<int> requestData, [int chunkSize = -1]) {
       _HttpParser httpParser = new _HttpParser.responseParser();
-      StreamController controller = new StreamController(sync: true);
+      StreamController<Uint8List> controller = new StreamController(sync: true);
       bool errorCalled = false;
-      ;
 
       if (chunkSize == -1) chunkSize = requestData.length;
 
@@ -352,7 +352,7 @@ class HttpParserTest {
 
   static void testParseRequest() {
     String request;
-    Map headers;
+    Map<String, String> headers;
     var methods = [
       // RFC 2616 methods.
       "OPTIONS", "GET", "HEAD", "POST", "PUT", "DELETE", "TRACE", "CONNECT",
@@ -587,7 +587,7 @@ Sec-WebSocket-Version: 13\r
 
   static void testParseResponse() {
     String response;
-    Map headers;
+    Map<String, String> headers;
     response = "HTTP/1.1 100 Continue\r\nContent-Length: 0\r\n\r\n";
     _testParseResponse(response, 100, "Continue");
 
@@ -781,6 +781,9 @@ Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r
     _testParseInvalidResponse(response);
 
     response = "HTTP/1.1 OK\r\nContent-Length: 0\r\n\r\n";
+    _testParseInvalidResponse(response);
+
+    response = "HTTP/1.1 20A OK\r\nContent-Length: 0\r\n\r\n";
     _testParseInvalidResponse(response);
 
     response = "200 OK\r\nContent-Length: 0\r\n\r\n";

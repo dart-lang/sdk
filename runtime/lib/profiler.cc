@@ -13,41 +13,40 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, trace_intrinsified_natives);
-
 // Native implementations of the profiler parts of the dart:developer library.
 
-DEFINE_NATIVE_ENTRY(UserTag_new, 2) {
-  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
+DEFINE_NATIVE_ENTRY(UserTag_new, 0, 2) {
+  ASSERT(
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(String, tag_label, arguments->NativeArgAt(1));
   return UserTag::New(tag_label);
 }
 
-DEFINE_NATIVE_ENTRY(UserTag_label, 1) {
-  const UserTag& self = UserTag::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(UserTag_label, 0, 1) {
+  const UserTag& self = UserTag::CheckedHandle(zone, arguments->NativeArgAt(0));
   return self.label();
 }
 
-DEFINE_NATIVE_ENTRY(UserTag_makeCurrent, 1) {
-  const UserTag& self = UserTag::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(UserTag_makeCurrent, 0, 1) {
+  const UserTag& self = UserTag::CheckedHandle(zone, arguments->NativeArgAt(0));
   if (FLAG_trace_intrinsified_natives) {
-    OS::Print("UserTag_makeCurrent: %s\n", self.ToCString());
+    OS::PrintErr("UserTag_makeCurrent: %s\n", self.ToCString());
   }
-  const UserTag& old = UserTag::Handle(isolate->current_tag());
+  const UserTag& old = UserTag::Handle(zone, isolate->current_tag());
   self.MakeActive();
   return old.raw();
 }
 
-DEFINE_NATIVE_ENTRY(UserTag_defaultTag, 0) {
+DEFINE_NATIVE_ENTRY(UserTag_defaultTag, 0, 0) {
   if (FLAG_trace_intrinsified_natives) {
-    OS::Print("UserTag_defaultTag\n");
+    OS::PrintErr("UserTag_defaultTag\n");
   }
   return isolate->default_tag();
 }
 
-DEFINE_NATIVE_ENTRY(Profiler_getCurrentTag, 0) {
+DEFINE_NATIVE_ENTRY(Profiler_getCurrentTag, 0, 0) {
   if (FLAG_trace_intrinsified_natives) {
-    OS::Print("Profiler_getCurrentTag\n");
+    OS::PrintErr("Profiler_getCurrentTag\n");
   }
   return isolate->current_tag();
 }

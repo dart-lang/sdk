@@ -1,8 +1,6 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.string_source;
 
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source.dart';
@@ -25,14 +23,14 @@ class StringSource extends Source {
   @override
   final int modificationStamp;
 
-  StringSource(this._contents, String fullName)
+  StringSource(this._contents, String fullName, {Uri uri})
       : this.fullName = fullName,
-        uri = fullName == null ? null : new Uri.file(fullName),
-        modificationStamp = new DateTime.now().millisecondsSinceEpoch;
+        uri = uri ?? (fullName == null ? null : Uri.file(fullName)),
+        modificationStamp = DateTime.now().millisecondsSinceEpoch;
 
   @override
   TimestampedData<String> get contents =>
-      new TimestampedData(modificationStamp, _contents);
+      TimestampedData(modificationStamp, _contents);
 
   @override
   String get encoding => uri.toString();

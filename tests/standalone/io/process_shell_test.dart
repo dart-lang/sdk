@@ -4,23 +4,29 @@
 
 // OtherResources=process_echo_util.dart
 
+import "dart:async";
+import "dart:io";
+import "dart:isolate";
 import "package:path/path.dart";
 import "package:async_helper/async_helper.dart";
-import "dart:io";
-import "dart:async";
-import "dart:isolate";
 
 void testRunShell() {
   test(args) {
     asyncStart();
     var script = Platform.script.resolve("process_echo_util.dart").toFilePath();
-    Process
-        .run(Platform.executable, [script]..addAll(args), runInShell: true)
-        .then((result) {
+    Process.run(
+            Platform.executable,
+            []
+              ..addAll(Platform.executableArguments)
+              ..add(script)
+              ..addAll(args),
+            runInShell: true)
+        .then((process_result) {
+      var result;
       if (Platform.operatingSystem == "windows") {
-        result = result.stdout.split("\r\n");
+        result = process_result.stdout.split("\r\n");
       } else {
-        result = result.stdout.split("\n");
+        result = process_result.stdout.split("\n");
       }
       if (result.length - 1 != args.length) {
         throw "wrong number of args: $args vs $result";
@@ -48,7 +54,7 @@ void testRunShell() {
 }
 
 void testBadRunShell() {
-  test(exe, [args = const []]) {
+  test(exe, [List<String> args = const []]) {
     asyncStart();
     Process.run(exe, args, runInShell: true).then((result) {
       if (result.exitCode == 0) {

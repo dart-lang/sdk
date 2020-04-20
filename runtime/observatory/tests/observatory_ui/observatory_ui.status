@@ -2,13 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ ! $browser || $runtime == drt || $fast_startup]
+[ !$browser ]
 *: SkipByDesign
 
-[ $runtime == ff || $runtime == safari ]
-allocation_profile: Skip
-cpu_profile_table: Skip
-persistent_handles_page: Skip
-
-[ $runtime == ff || $runtime == chrome || $runtime == safari ]
-heap_snapshot/element_test: RuntimeError # Issue 27925
+# custom elements are not supported on old browsers, we don't
+# intend for observatory to work on old browser versions, so
+# skipping.
+[ $runtime == ff || $runtime == ie10 || $runtime == ie11 || $runtime == safari ]
+*: SkipByDesign

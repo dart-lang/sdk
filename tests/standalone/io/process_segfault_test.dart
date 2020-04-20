@@ -6,8 +6,8 @@
 
 library ProcessSegfaultTest;
 
-import "package:expect/expect.dart";
 import "dart:io";
+import "package:expect/expect.dart";
 import "process_test_util.dart";
 
 testExit() {
@@ -23,8 +23,8 @@ testExit() {
 }
 
 testExitRun() {
-  Process
-      .run(getProcessTestFileName(), const ["0", "0", "1", "1"]).then((result) {
+  Process.run(getProcessTestFileName(), const ["0", "0", "1", "1"])
+      .then((result) {
     Expect.isTrue(result.exitCode != 0);
     Expect.equals(result.stdout, '');
     Expect.equals(result.stderr, '');

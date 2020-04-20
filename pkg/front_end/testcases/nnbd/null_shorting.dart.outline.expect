@@ -1,0 +1,76 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  synthetic constructor •() → self::Class1
+    ;
+  get property() → self::Class1?
+    ;
+  set property(self::Class1? value) → void
+    ;
+  get property1() → self::Class1
+    ;
+  get property2() → self::Class2
+    ;
+  get nullable1() → self::Class1?
+    ;
+  set nullable1(self::Class1? value) → void
+    ;
+  method nonNullable1Method() → self::Class1
+    ;
+  operator [](self::Class1? key) → self::Class1?
+    ;
+  operator []=(self::Class1? key, self::Class1? value) → void
+    ;
+  operator +(core::int value) → self::Class1?
+    ;
+  operator unary-() → self::Class1?
+    ;
+  get nonNullable1() → self::Class1
+    ;
+  get nonNullable2() → self::Class2
+    ;
+}
+class Class2 extends core::Object {
+  synthetic constructor •() → self::Class2
+    ;
+  get property() → self::Class2
+    ;
+  set property(self::Class2 value) → void
+    ;
+  method nonNullable2Method() → self::Class2
+    ;
+  operator [](self::Class2? key) → self::Class2
+    ;
+  operator []=(self::Class2? key, self::Class2? value) → void
+    ;
+  operator +(core::int value) → self::Class2
+    ;
+  operator unary-() → self::Class2
+    ;
+  get nonNullable2() → self::Class2
+    ;
+  set nonNullable2(self::Class2 value) → void
+    ;
+}
+class Class3 extends core::Object {
+  synthetic constructor •() → self::Class3
+    ;
+  get property() → self::Class2?
+    ;
+  operator [](self::Class3? key) → self::Class2?
+    ;
+}
+static method main() → dynamic
+  ;
+static method propertyAccess(self::Class1? n1) → void
+  ;
+static method indexAccess(self::Class1? n1, self::Class2? n2, self::Class3? n3) → void
+  ;
+static method operatorAccess(self::Class1? n1, self::Class2? n2) → void
+  ;
+static method ifNull(self::Class1? n1) → void
+  ;
+static method throws(() → void f) → void
+  ;

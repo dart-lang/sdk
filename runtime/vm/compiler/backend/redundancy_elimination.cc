@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/backend/redundancy_elimination.h"
 
 #include "vm/bit_vector.h"
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/backend/loops.h"
 #include "vm/hash_map.h"
 #include "vm/stack_frame.h"
 
@@ -57,8 +56,10 @@ class CSEInstructionMap : public ValueObject {
 // We distinguish the following aliases:
 //
 //   - for fields
-//     - *.f, *.@offs - field inside some object;
-//     - X.f, X.@offs - field inside an allocated object X;
+//     - *.f - field inside some object;
+//     - X.f - field inside an allocated object X;
+//     -   f - static fields
+//
 //   - for indexed accesses
 //     - *[*] - non-constant index inside some object;
 //     - *[C] - constant index inside some object;
@@ -102,14 +103,13 @@ class Place : public ValueObject {
   enum Kind {
     kNone,
 
-    // Field location. For instance fields is represented as a pair of a Field
-    // object and an instance (SSA definition) that is being accessed.
-    // For static fields instance is NULL.
-    kField,
+    // Static field location. Is represented as a Field object with a
+    // nullptr instance.
+    kStaticField,
 
-    // VMField location. Represented as a pair of an instance (SSA definition)
-    // being accessed and offset to the field.
-    kVMField,
+    // Instance field location. It is reprensented by a pair of instance
+    // and a Slot.
+    kInstanceField,
 
     // Indexed location with a non-constant index.
     kIndexed,
@@ -157,19 +157,14 @@ class Place : public ValueObject {
   // Construct a place from instruction if instruction accesses any place.
   // Otherwise constructs kNone place.
   Place(Instruction* instr, bool* is_load, bool* is_store)
-      : flags_(0), instance_(NULL), raw_selector_(0), id_(0) {
+      : flags_(0), instance_(nullptr), raw_selector_(0), id_(0) {
     switch (instr->tag()) {
       case Instruction::kLoadField: {
         LoadFieldInstr* load_field = instr->AsLoadField();
         set_representation(load_field->representation());
         instance_ = load_field->instance()->definition()->OriginalDefinition();
-        if (load_field->field() != NULL) {
-          set_kind(kField);
-          field_ = load_field->field();
-        } else {
-          set_kind(kVMField);
-          offset_in_bytes_ = load_field->offset_in_bytes();
-        }
+        set_kind(kInstanceField);
+        instance_field_ = &load_field->slot();
         *is_load = true;
         break;
       }
@@ -179,30 +174,25 @@ class Place : public ValueObject {
         set_representation(store->RequiredInputRepresentation(
             StoreInstanceFieldInstr::kValuePos));
         instance_ = store->instance()->definition()->OriginalDefinition();
-        if (!store->field().IsNull()) {
-          set_kind(kField);
-          field_ = &store->field();
-        } else {
-          set_kind(kVMField);
-          offset_in_bytes_ = store->offset_in_bytes();
-        }
+        set_kind(kInstanceField);
+        instance_field_ = &store->slot();
         *is_store = true;
         break;
       }
 
       case Instruction::kLoadStaticField:
-        set_kind(kField);
+        set_kind(kStaticField);
         set_representation(instr->AsLoadStaticField()->representation());
-        field_ = &instr->AsLoadStaticField()->StaticField();
+        static_field_ = &instr->AsLoadStaticField()->StaticField();
         *is_load = true;
         break;
 
       case Instruction::kStoreStaticField:
-        set_kind(kField);
+        set_kind(kStaticField);
         set_representation(
             instr->AsStoreStaticField()->RequiredInputRepresentation(
                 StoreStaticFieldInstr::kValuePos));
-        field_ = &instr->AsStoreStaticField()->field();
+        static_field_ = &instr->AsStoreStaticField()->field();
         *is_store = true;
         break;
 
@@ -210,7 +200,7 @@ class Place : public ValueObject {
         LoadIndexedInstr* load_indexed = instr->AsLoadIndexed();
         set_representation(load_indexed->representation());
         instance_ = load_indexed->array()->definition()->OriginalDefinition();
-        SetIndex(load_indexed->index()->definition(),
+        SetIndex(load_indexed->index()->definition()->OriginalDefinition(),
                  load_indexed->index_scale(), load_indexed->class_id());
         *is_load = true;
         break;
@@ -221,7 +211,7 @@ class Place : public ValueObject {
         set_representation(store_indexed->RequiredInputRepresentation(
             StoreIndexedInstr::kValuePos));
         instance_ = store_indexed->array()->definition()->OriginalDefinition();
-        SetIndex(store_indexed->index()->definition(),
+        SetIndex(store_indexed->index()->definition()->OriginalDefinition(),
                  store_indexed->index_scale(), store_indexed->class_id());
         *is_store = true;
         break;
@@ -229,6 +219,18 @@ class Place : public ValueObject {
 
       default:
         break;
+    }
+  }
+
+  bool IsConstant(Object* value) const {
+    switch (kind()) {
+      case kInstanceField:
+        return (instance() != nullptr) && instance()->IsConstant() &&
+               LoadFieldInstr::TryEvaluateLoad(
+                   instance()->AsConstant()->constant_value(), instance_field(),
+                   value);
+      default:
+        return false;
     }
   }
 
@@ -263,12 +265,12 @@ class Place : public ValueObject {
 
   bool DependsOnInstance() const {
     switch (kind()) {
-      case kField:
-      case kVMField:
+      case kInstanceField:
       case kIndexed:
       case kConstantIndexed:
         return true;
 
+      case kStaticField:
       case kNone:
         return false;
     }
@@ -306,6 +308,23 @@ class Place : public ValueObject {
                  RoundByteOffset(to, index_constant_));
   }
 
+  // Given alias X[ByteOffs|S], smaller element size S' and index from 0 to
+  // S/S' - 1 return alias X[ByteOffs + S'*index|S'] - this is the byte offset
+  // of a smaller typed array element which is contained within this typed
+  // array element.
+  // For example X[8|kInt32] contains inside X[8|kInt16] (index is 0) and
+  // X[10|kInt16] (index is 1).
+  Place ToSmallerElement(ElementSize to, intptr_t index) const {
+    ASSERT(kind() == kConstantIndexed);
+    ASSERT(element_size() != kNoSize);
+    ASSERT(element_size() > to);
+    ASSERT(index >= 0);
+    ASSERT(index <
+           ElementSizeMultiplier(element_size()) / ElementSizeMultiplier(to));
+    return Place(ElementSizeBits::update(to, flags_), instance_,
+                 ByteOffsetToSmallerElement(to, index, index_constant_));
+  }
+
   intptr_t id() const { return id_; }
 
   Kind kind() const { return KindBits::decode(flags_); }
@@ -324,14 +343,15 @@ class Place : public ValueObject {
     instance_ = def->OriginalDefinition();
   }
 
-  const Field& field() const {
-    ASSERT(kind() == kField);
-    return *field_;
+  const Field& static_field() const {
+    ASSERT(kind() == kStaticField);
+    ASSERT(static_field_->is_static());
+    return *static_field_;
   }
 
-  intptr_t offset_in_bytes() const {
-    ASSERT(kind() == kVMField);
-    return offset_in_bytes_;
+  const Slot& instance_field() const {
+    ASSERT(kind() == kInstanceField);
+    return *instance_field_;
   }
 
   Definition* index() const {
@@ -360,19 +380,16 @@ class Place : public ValueObject {
       case kNone:
         return "<none>";
 
-      case kField: {
-        const char* field_name = String::Handle(field().name()).ToCString();
-        if (field().is_static()) {
-          return Thread::Current()->zone()->PrintToString("<%s>", field_name);
-        } else {
-          return Thread::Current()->zone()->PrintToString(
-              "<%s.%s>", DefinitionName(instance()), field_name);
-        }
+      case kStaticField: {
+        const char* field_name =
+            String::Handle(static_field().name()).ToCString();
+        return Thread::Current()->zone()->PrintToString("<%s>", field_name);
       }
 
-      case kVMField:
+      case kInstanceField:
         return Thread::Current()->zone()->PrintToString(
-            "<%s.@%" Pd ">", DefinitionName(instance()), offset_in_bytes());
+            "<%s.%s[%p]>", DefinitionName(instance()), instance_field().Name(),
+            &instance_field());
 
       case kIndexed:
         return Thread::Current()->zone()->PrintToString(
@@ -396,8 +413,14 @@ class Place : public ValueObject {
   // Handle static finals as non-final with precompilation because
   // they may be reset to uninitialized after compilation.
   bool IsImmutableField() const {
-    return (kind() == kField) && field().is_final() &&
-           (!field().is_static() || !FLAG_fields_may_be_reset);
+    switch (kind()) {
+      case kInstanceField:
+        return instance_field().is_immutable();
+      case kStaticField:
+        return static_field().is_final() && !FLAG_fields_may_be_reset;
+      default:
+        return false;
+    }
   }
 
   intptr_t Hashcode() const {
@@ -426,14 +449,16 @@ class Place : public ValueObject {
       : flags_(flags), instance_(instance), raw_selector_(selector), id_(0) {}
 
   bool SameField(const Place* other) const {
-    return (kind() == kField)
-               ? (field().Original() == other->field().Original())
-               : (offset_in_bytes_ == other->offset_in_bytes_);
+    return (kind() == kStaticField)
+               ? (static_field().Original() == other->static_field().Original())
+               : (raw_selector_ == other->raw_selector_);
   }
 
   intptr_t FieldHashcode() const {
-    return (kind() == kField) ? reinterpret_cast<intptr_t>(field().Original())
-                              : offset_in_bytes_;
+    return (kind() == kStaticField)
+               ? String::Handle(Field::Handle(static_field().Original()).name())
+                     .Hash()
+               : raw_selector_;
   }
 
   void set_representation(Representation rep) {
@@ -451,11 +476,22 @@ class Place : public ValueObject {
     if ((index_constant != NULL) && index_constant->value().IsSmi()) {
       const intptr_t index_value = Smi::Cast(index_constant->value()).Value();
       const ElementSize size = ElementSizeFor(class_id);
-      const bool is_typed_data = (size != kNoSize);
+      const bool is_typed_access = (size != kNoSize);
+      // Indexing into [RawTypedDataView]/[RawExternalTypedData happens via a
+      // untagged load of the `_data` field (which points to C memory).
+      //
+      // Indexing into dart:ffi's [RawPointer] happens via loading of the
+      // `c_memory_address_`, converting it to an integer, doing some arithmetic
+      // and finally using IntConverterInstr to convert to a untagged
+      // representation.
+      //
+      // In both cases the array used for load/store has untagged
+      // representation.
+      const bool can_be_view = instance_->representation() == kUntagged;
 
       // If we are writing into the typed data scale the index to
       // get byte offset. Otherwise ignore the scale.
-      if (!is_typed_data) {
+      if (!is_typed_access) {
         scale = 1;
       }
 
@@ -463,9 +499,11 @@ class Place : public ValueObject {
       if ((0 <= index_value) && (index_value < (kMaxInt32 / scale))) {
         const intptr_t scaled_index = index_value * scale;
 
-        // Guard against unaligned byte offsets.
-        if (!is_typed_data ||
-            Utils::IsAligned(scaled_index, ElementSizeMultiplier(size))) {
+        // Guard against unaligned byte offsets and access through raw
+        // memory pointer (which can be pointing into another typed data).
+        if (!is_typed_access ||
+            (!can_be_view &&
+             Utils::IsAligned(scaled_index, ElementSizeMultiplier(size)))) {
           set_kind(kConstantIndexed);
           set_element_size(size);
           index_constant_ = scaled_index;
@@ -538,6 +576,12 @@ class Place : public ValueObject {
     return offset & ~(ElementSizeMultiplier(size) - 1);
   }
 
+  static intptr_t ByteOffsetToSmallerElement(ElementSize size,
+                                             intptr_t index,
+                                             intptr_t base_offset) {
+    return base_offset + index * ElementSizeMultiplier(size);
+  }
+
   class KindBits : public BitField<uword, Kind, 0, 3> {};
   class RepresentationBits
       : public BitField<uword, Representation, KindBits::kNextBit, 11> {};
@@ -548,8 +592,8 @@ class Place : public ValueObject {
   Definition* instance_;
   union {
     intptr_t raw_selector_;
-    const Field* field_;
-    intptr_t offset_in_bytes_;
+    const Field* static_field_;
+    const Slot* instance_field_;
     intptr_t index_constant_;
     Definition* index_;
   };
@@ -880,13 +924,42 @@ class AliasedSet : public ZoneAllocated {
 
             // X[C|S] aliases with X[RoundDown(C, S')|S'] and likewise
             // *[C|S] aliases with *[RoundDown(C, S')|S'].
-            const Place larger_alias =
-                alias->ToLargerElement(static_cast<Place::ElementSize>(i));
-            CrossAlias(alias, larger_alias);
-            if (has_aliased_instance) {
-              // If X is an aliased instance then X[C|S] aliases
-              // with *[RoundDown(C, S')|S'].
-              CrossAlias(alias, larger_alias.CopyWithoutInstance());
+            CrossAlias(alias, alias->ToLargerElement(
+                                  static_cast<Place::ElementSize>(i)));
+          }
+
+          if (has_aliased_instance) {
+            // If X is an aliased instance then X[C|S] aliases *[C'|S'] for all
+            // related combinations of C' and S'.
+            // Caveat: this propagation is not symmetric (we would not know
+            // to propagate aliasing from *[C'|S'] to X[C|S] when visiting
+            // *[C'|S']) and thus we need to handle both element sizes smaller
+            // and larger than S.
+            const Place no_instance_alias = alias->CopyWithoutInstance();
+            for (intptr_t i = Place::kInt8; i <= Place::kLargestElementSize;
+                 i++) {
+              // Skip element sizes that a guaranteed to have no
+              // representatives.
+              if (!typed_data_access_sizes_.Contains(alias->element_size())) {
+                continue;
+              }
+
+              const auto other_size = static_cast<Place::ElementSize>(i);
+              if (other_size > alias->element_size()) {
+                // X[C|S] aliases all larger elements which cover it:
+                // *[RoundDown(C, S')|S'] for S' > S.
+                CrossAlias(alias,
+                           no_instance_alias.ToLargerElement(other_size));
+              } else if (other_size < alias->element_size()) {
+                // X[C|S] aliases all sub-elements of smaller size:
+                // *[C+j*S'|S'] for S' < S and j from 0 to S/S' - 1.
+                const auto num_smaller_elements =
+                    1 << (alias->element_size() - other_size);
+                for (intptr_t j = 0; j < num_smaller_elements; j++) {
+                  CrossAlias(alias,
+                             no_instance_alias.ToSmallerElement(other_size, j));
+                }
+              }
             }
           }
         }
@@ -906,10 +979,13 @@ class AliasedSet : public ZoneAllocated {
         }
         break;
 
-      case Place::kField:
-      case Place::kVMField:
+      case Place::kStaticField:
+        // Nothing to do.
+        break;
+
+      case Place::kInstanceField:
         if (CanBeAliased(alias->instance())) {
-          // X.f or X.@offs alias with *.f and *.@offs respectively.
+          // X.f alias with *.f.
           CrossAlias(alias, alias->CopyWithoutInstance());
         }
         break;
@@ -924,36 +1000,22 @@ class AliasedSet : public ZoneAllocated {
   // occur in other functions.
   bool IsIndependentFromEffects(Place* place) {
     if (place->IsImmutableField()) {
-      // Note that we can't use LoadField's is_immutable attribute here because
-      // some VM-fields (those that have no corresponding Field object and
-      // accessed through offset alone) can share offset but have different
-      // immutability properties.
-      // One example is the length property of growable and fixed size list. If
-      // loads of these two properties occur in the same function for the same
-      // receiver then they will get the same expression number. However
-      // immutability of the length of fixed size list does not mean that
-      // growable list also has immutable property. Thus we will make a
-      // conservative assumption for the VM-properties.
-      // TODO(vegorov): disambiguate immutable and non-immutable VM-fields with
-      // the same offset e.g. through recognized kind.
       return true;
     }
 
-    return ((place->kind() == Place::kField) ||
-            (place->kind() == Place::kVMField)) &&
+    return (place->kind() == Place::kInstanceField) &&
            !CanBeAliased(place->instance());
   }
 
   // Returns true if there are direct loads from the given place.
   bool HasLoadsFromPlace(Definition* defn, const Place* place) {
-    ASSERT((place->kind() == Place::kField) ||
-           (place->kind() == Place::kVMField));
+    ASSERT(place->kind() == Place::kInstanceField);
 
     for (Value* use = defn->input_use_list(); use != NULL;
          use = use->next_use()) {
       Instruction* instr = use->instruction();
-      if ((instr->IsRedefinition() || instr->IsAssertAssignable()) &&
-          HasLoadsFromPlace(instr->AsDefinition(), place)) {
+      if (UseIsARedefinition(use) &&
+          HasLoadsFromPlace(instr->Cast<Definition>(), place)) {
         return true;
       }
       bool is_load = false, is_store;
@@ -967,20 +1029,27 @@ class AliasedSet : public ZoneAllocated {
     return false;
   }
 
+  // Returns true if the given [use] is a redefinition (e.g. RedefinitionInstr,
+  // CheckNull, CheckArrayBound, etc).
+  static bool UseIsARedefinition(Value* use) {
+    Instruction* instr = use->instruction();
+    return instr->IsDefinition() &&
+           (instr->Cast<Definition>()->RedefinedValue() == use);
+  }
+
   // Check if any use of the definition can create an alias.
   // Can add more objects into aliasing_worklist_.
   bool AnyUseCreatesAlias(Definition* defn) {
     for (Value* use = defn->input_use_list(); use != NULL;
          use = use->next_use()) {
       Instruction* instr = use->instruction();
-      if (instr->IsPushArgument() || instr->IsCheckedSmiOp() ||
-          instr->IsCheckedSmiComparison() ||
+      if (instr->HasUnknownSideEffects() || instr->IsLoadUntagged() ||
           (instr->IsStoreIndexed() &&
            (use->use_index() == StoreIndexedInstr::kValuePos)) ||
           instr->IsStoreStaticField() || instr->IsPhi()) {
         return true;
-      } else if ((instr->IsAssertAssignable() || instr->IsRedefinition()) &&
-                 AnyUseCreatesAlias(instr->AsDefinition())) {
+      } else if (UseIsARedefinition(use) &&
+                 AnyUseCreatesAlias(instr->Cast<Definition>())) {
         return true;
       } else if ((instr->IsStoreInstanceField() &&
                   (use->use_index() !=
@@ -1018,15 +1087,14 @@ class AliasedSet : public ZoneAllocated {
     // Find all stores into this object.
     for (Value* use = defn->input_use_list(); use != NULL;
          use = use->next_use()) {
-      if (use->instruction()->IsRedefinition() ||
-          use->instruction()->IsAssertAssignable()) {
-        MarkStoredValuesEscaping(use->instruction()->AsDefinition());
+      auto instr = use->instruction();
+      if (UseIsARedefinition(use)) {
+        MarkStoredValuesEscaping(instr->AsDefinition());
         continue;
       }
       if ((use->use_index() == StoreInstanceFieldInstr::kInstancePos) &&
-          use->instruction()->IsStoreInstanceField()) {
-        StoreInstanceFieldInstr* store =
-            use->instruction()->AsStoreInstanceField();
+          instr->IsStoreInstanceField()) {
+        StoreInstanceFieldInstr* store = instr->AsStoreInstanceField();
         Definition* value = store->value()->definition()->OriginalDefinition();
         if (value->Identity().IsNotAliased()) {
           value->SetIdentity(AliasIdentity::Aliased());
@@ -1126,8 +1194,7 @@ static Definition* GetStoredValue(Instruction* instr) {
 }
 
 static bool IsPhiDependentPlace(Place* place) {
-  return ((place->kind() == Place::kField) ||
-          (place->kind() == Place::kVMField)) &&
+  return (place->kind() == Place::kInstanceField) &&
          (place->instance() != NULL) && place->instance()->IsPhi();
 }
 
@@ -1176,6 +1243,18 @@ static PhiPlaceMoves* ComputePhiMoves(
   return phi_moves;
 }
 
+DART_FORCE_INLINE static void SetPlaceId(Instruction* instr, intptr_t id) {
+  instr->SetPassSpecificId(CompilerPass::kCSE, id);
+}
+
+DART_FORCE_INLINE static intptr_t GetPlaceId(const Instruction* instr) {
+  return instr->GetPassSpecificId(CompilerPass::kCSE);
+}
+
+DART_FORCE_INLINE static bool HasPlaceId(const Instruction* instr) {
+  return instr->HasPassSpecificId(CompilerPass::kCSE);
+}
+
 enum CSEMode { kOptimizeLoads, kOptimizeStores };
 
 static AliasedSet* NumberPlaces(
@@ -1213,7 +1292,7 @@ static AliasedSet* NumberPlaces(
         }
       }
 
-      instr->set_place_id(result->id());
+      SetPlaceId(instr, result->id());
     }
   }
 
@@ -1240,8 +1319,8 @@ static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
                                 intptr_t loop_header_index,
                                 Instruction* instr) {
   return IsLoadEliminationCandidate(instr) && (sets != NULL) &&
-         instr->HasPlaceId() && ((*sets)[loop_header_index] != NULL) &&
-         (*sets)[loop_header_index]->Contains(instr->place_id());
+         HasPlaceId(instr) &&
+         (*sets)[loop_header_index]->Contains(GetPlaceId(instr));
 }
 
 LICM::LICM(FlowGraph* flow_graph) : flow_graph_(flow_graph) {
@@ -1258,7 +1337,11 @@ void LICM::Hoist(ForwardInstructionIterator* it,
   } else if (current->IsCheckEitherNonSmi()) {
     current->AsCheckEitherNonSmi()->set_licm_hoisted(true);
   } else if (current->IsCheckArrayBound()) {
+    ASSERT(!CompilerState::Current().is_aot());  // speculative in JIT only
     current->AsCheckArrayBound()->set_licm_hoisted(true);
+  } else if (current->IsGenericCheckBound()) {
+    ASSERT(CompilerState::Current().is_aot());  // non-speculative in AOT only
+    // Does not deopt, so no need for licm_hoisted flag.
   } else if (current->IsTestCids()) {
     current->AsTestCids()->set_licm_hoisted(true);
   }
@@ -1331,8 +1414,8 @@ void LICM::TrySpecializeSmiPhi(PhiInstr* phi,
 }
 
 void LICM::OptimisticallySpecializeSmiPhis() {
-  if (!flow_graph()->function().allows_hoisting_check_class() ||
-      FLAG_precompiled_mode) {
+  if (flow_graph()->function().ProhibitsHoistingCheckClass() ||
+      CompilerState::Current().is_aot()) {
     // Do not hoist any: Either deoptimized on a hoisted check,
     // or compiling precompiled code where we can't do optimistic
     // hoisting of checks.
@@ -1340,7 +1423,7 @@ void LICM::OptimisticallySpecializeSmiPhis() {
   }
 
   const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
-      flow_graph()->LoopHeaders();
+      flow_graph()->GetLoopHierarchy().headers();
 
   for (intptr_t i = 0; i < loop_headers.length(); ++i) {
     JoinEntryInstr* header = loop_headers[i]->AsJoinEntry();
@@ -1354,43 +1437,99 @@ void LICM::OptimisticallySpecializeSmiPhis() {
   }
 }
 
+// Returns true if instruction may have a "visible" effect,
+static bool MayHaveVisibleEffect(Instruction* instr) {
+  switch (instr->tag()) {
+    case Instruction::kStoreInstanceField:
+    case Instruction::kStoreStaticField:
+    case Instruction::kStoreIndexed:
+    case Instruction::kStoreIndexedUnsafe:
+    case Instruction::kStoreUntagged:
+      return true;
+    default:
+      return instr->HasUnknownSideEffects() || instr->MayThrow();
+  }
+}
+
 void LICM::Optimize() {
-  if (!flow_graph()->function().allows_hoisting_check_class()) {
+  if (flow_graph()->function().ProhibitsHoistingCheckClass()) {
     // Do not hoist any.
     return;
   }
 
+  // Compute loops and induction in flow graph.
+  const LoopHierarchy& loop_hierarchy = flow_graph()->GetLoopHierarchy();
   const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
-      flow_graph()->LoopHeaders();
+      loop_hierarchy.headers();
+  loop_hierarchy.ComputeInduction();
 
   ZoneGrowableArray<BitVector*>* loop_invariant_loads =
       flow_graph()->loop_invariant_loads();
 
+  // Iterate over all loops.
   for (intptr_t i = 0; i < loop_headers.length(); ++i) {
     BlockEntryInstr* header = loop_headers[i];
-    // Skip loop that don't have a pre-header block.
-    BlockEntryInstr* pre_header = header->ImmediateDominator();
-    if (pre_header == NULL) continue;
 
-    for (BitVector::Iterator loop_it(header->loop_info()); !loop_it.Done();
+    // Skip loops that don't have a pre-header block.
+    BlockEntryInstr* pre_header = header->ImmediateDominator();
+    if (pre_header == nullptr) {
+      continue;
+    }
+
+    // Flag that remains true as long as the loop has not seen any instruction
+    // that may have a "visible" effect (write, throw, or other side-effect).
+    bool seen_visible_effect = false;
+
+    // Iterate over all blocks in the loop.
+    LoopInfo* loop = header->loop_info();
+    for (BitVector::Iterator loop_it(loop->blocks()); !loop_it.Done();
          loop_it.Advance()) {
       BlockEntryInstr* block = flow_graph()->preorder()[loop_it.Current()];
+
+      // Preserve the "visible" effect flag as long as the preorder traversal
+      // sees always-taken blocks. This way, we can only hoist invariant
+      // may-throw instructions that are always seen during the first iteration.
+      if (!seen_visible_effect && !loop->IsAlwaysTaken(block)) {
+        seen_visible_effect = true;
+      }
+      // Iterate over all instructions in the block.
       for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
         Instruction* current = it.Current();
+
+        // Treat loads of static final fields specially: we can CSE them but
+        // we should not move them around unless the field is initialized.
+        // Otherwise we might move load past the initialization.
+        if (LoadStaticFieldInstr* load = current->AsLoadStaticField()) {
+          if (load->AllowsCSE() && !load->IsFieldInitialized()) {
+            seen_visible_effect = true;
+            continue;
+          }
+        }
+
+        // Determine if we can hoist loop invariant code. Even may-throw
+        // instructions can be hoisted as long as its exception is still
+        // the very first "visible" effect of the loop.
+        bool is_loop_invariant = false;
         if ((current->AllowsCSE() ||
              IsLoopInvariantLoad(loop_invariant_loads, i, current)) &&
-            !current->MayThrow()) {
-          bool inputs_loop_invariant = true;
-          for (int i = 0; i < current->InputCount(); ++i) {
+            (!seen_visible_effect || !current->MayThrow())) {
+          is_loop_invariant = true;
+          for (intptr_t i = 0; i < current->InputCount(); ++i) {
             Definition* input_def = current->InputAt(i)->definition();
             if (!input_def->GetBlock()->Dominates(pre_header)) {
-              inputs_loop_invariant = false;
+              is_loop_invariant = false;
               break;
             }
           }
-          if (inputs_loop_invariant) {
-            Hoist(&it, pre_header, current);
-          }
+        }
+
+        // Hoist if all inputs are loop invariant. If not hoisted, any
+        // instruction that writes, may throw, or has an unknown side
+        // effect invalidates the first "visible" effect flag.
+        if (is_loop_invariant) {
+          Hoist(&it, pre_header, current);
+        } else if (!seen_visible_effect && MayHaveVisibleEffect(current)) {
+          seen_visible_effect = true;
         }
       }
     }
@@ -1432,9 +1571,6 @@ class LoadOptimizer : public ValueObject {
 
   static bool OptimizeGraph(FlowGraph* graph) {
     ASSERT(FLAG_load_cse);
-    if (FLAG_trace_load_optimization) {
-      FlowGraphPrinter::PrintGraph("Before LoadOptimizer", graph);
-    }
 
     // For now, bail out for large functions to avoid OOM situations.
     // TODO(fschneider): Fix the memory consumption issue.
@@ -1469,12 +1605,18 @@ class LoadOptimizer : public ValueObject {
     }
     ForwardLoads();
     EmitPhis();
-
-    if (FLAG_trace_load_optimization) {
-      FlowGraphPrinter::PrintGraph("After LoadOptimizer", graph_);
-    }
-
     return forwarded_;
+  }
+
+  // Only forward stores to normal arrays, float64, and simd arrays
+  // to loads because other array stores (intXX/uintXX/float32)
+  // may implicitly convert the value stored.
+  bool CanForwardStore(StoreIndexedInstr* array_store) {
+    return ((array_store == nullptr) ||
+            (array_store->class_id() == kArrayCid) ||
+            (array_store->class_id() == kTypedDataFloat64ArrayCid) ||
+            (array_store->class_id() == kTypedDataFloat32ArrayCid) ||
+            (array_store->class_id() == kTypedDataFloat32x4ArrayCid));
   }
 
   // Compute sets of loads generated and killed by each block.
@@ -1527,34 +1669,48 @@ class LoadOptimizer : public ValueObject {
             // instruction that still points to the old place with a more
             // generic alias.
             const intptr_t old_alias_id = aliased_set_->LookupAliasId(
-                aliased_set_->places()[instr->place_id()]->ToAlias());
+                aliased_set_->places()[GetPlaceId(instr)]->ToAlias());
             killed = aliased_set_->GetKilledSet(old_alias_id);
           }
 
-          if (killed != NULL) {
+          // Find canonical place of store.
+          Place* canonical_place = nullptr;
+          if (CanForwardStore(instr->AsStoreIndexed())) {
+            canonical_place = aliased_set_->LookupCanonical(&place);
+            if (canonical_place != nullptr) {
+              // Is this a redundant store (stored value already resides
+              // in this field)?
+              const intptr_t place_id = canonical_place->id();
+              if (gen->Contains(place_id)) {
+                ASSERT((out_values != nullptr) &&
+                       ((*out_values)[place_id] != nullptr));
+                if ((*out_values)[place_id] == GetStoredValue(instr)) {
+                  if (FLAG_trace_optimization) {
+                    THR_Print("Removing redundant store to place %" Pd
+                              " in block B%" Pd "\n",
+                              GetPlaceId(instr), block->block_id());
+                  }
+                  instr_it.RemoveCurrentFromGraph();
+                  continue;
+                }
+              }
+            }
+          }
+
+          // Update kill/gen/out_values (after inspection of incoming values).
+          if (killed != nullptr) {
             kill->AddAll(killed);
             // There is no need to clear out_values when clearing GEN set
             // because only those values that are in the GEN set
             // will ever be used.
             gen->RemoveAll(killed);
           }
-
-          // Only forward stores to normal arrays, float64, and simd arrays
-          // to loads because other array stores (intXX/uintXX/float32)
-          // may implicitly convert the value stored.
-          StoreIndexedInstr* array_store = instr->AsStoreIndexed();
-          if ((array_store == NULL) || (array_store->class_id() == kArrayCid) ||
-              (array_store->class_id() == kTypedDataFloat64ArrayCid) ||
-              (array_store->class_id() == kTypedDataFloat32ArrayCid) ||
-              (array_store->class_id() == kTypedDataFloat32x4ArrayCid)) {
-            Place* canonical_place = aliased_set_->LookupCanonical(&place);
-            if (canonical_place != NULL) {
-              // Store has a corresponding numbered place that might have a
-              // load. Try forwarding stored value to it.
-              gen->Add(canonical_place->id());
-              if (out_values == NULL) out_values = CreateBlockOutValues();
-              (*out_values)[canonical_place->id()] = GetStoredValue(instr);
-            }
+          if (canonical_place != nullptr) {
+            // Store has a corresponding numbered place that might have a
+            // load. Try forwarding stored value to it.
+            gen->Add(canonical_place->id());
+            if (out_values == nullptr) out_values = CreateBlockOutValues();
+            (*out_values)[canonical_place->id()] = GetStoredValue(instr);
           }
 
           ASSERT(!instr->IsDefinition() ||
@@ -1565,8 +1721,8 @@ class LoadOptimizer : public ValueObject {
           // load forwarding.
           const Place* canonical = aliased_set_->LookupCanonical(&place);
           if ((canonical != NULL) &&
-              (canonical->id() != instr->AsDefinition()->place_id())) {
-            instr->AsDefinition()->set_place_id(canonical->id());
+              (canonical->id() != GetPlaceId(instr->AsDefinition()))) {
+            SetPlaceId(instr->AsDefinition(), canonical->id());
           }
         }
 
@@ -1586,46 +1742,54 @@ class LoadOptimizer : public ValueObject {
         }
 
         // For object allocation forward initial values of the fields to
-        // subsequent loads. For skip final fields.  Final fields are
-        // initialized in constructor that potentially can be not inlined into
-        // the function that we are currently optimizing. However at the same
-        // time we assume that values of the final fields can be forwarded
-        // across side-effects. If we add 'null' as known values for these
-        // fields here we will incorrectly propagate this null across
-        // constructor invocation.
-        AllocateObjectInstr* alloc = instr->AsAllocateObject();
-        if ((alloc != NULL)) {
+        // subsequent loads (and potential dead stores) except for final
+        // fields of escaping objects. Final fields are initialized in
+        // constructor which potentially was not inlined into the function
+        // that we are currently optimizing. However at the same time we
+        // assume that values of the final fields can be forwarded across
+        // side-effects. If we add 'null' as known values for these fields
+        // here we will incorrectly propagate this null across constructor
+        // invocation.
+        if (auto alloc = instr->AsAllocateObject()) {
           for (Value* use = alloc->input_use_list(); use != NULL;
                use = use->next_use()) {
-            // Look for all immediate loads from this object.
+            // Look for all immediate loads/stores from this object.
             if (use->use_index() != 0) {
               continue;
             }
+            const Slot* slot = nullptr;
+            intptr_t place_id = 0;
+            if (auto load = use->instruction()->AsLoadField()) {
+              slot = &load->slot();
+              place_id = GetPlaceId(load);
+            } else if (auto store =
+                           use->instruction()->AsStoreInstanceField()) {
+              slot = &store->slot();
+              place_id = GetPlaceId(store);
+            }
 
-            LoadFieldInstr* load = use->instruction()->AsLoadField();
-            if (load != NULL) {
-              // Found a load. Initialize current value of the field to null for
-              // normal fields, or with type arguments.
+            if (slot != nullptr) {
+              // Found a load/store. Initialize current value of the field
+              // to null for normal fields, or with type arguments.
 
-              // Forward for all fields for non-escaping objects and only
-              // non-final fields and type arguments for escaping ones.
-              if (aliased_set_->CanBeAliased(alloc) &&
-                  (load->field() != NULL) && load->field()->is_final()) {
+              // If the object escapes then don't forward final fields - see
+              // the comment above for explanation.
+              if (aliased_set_->CanBeAliased(alloc) && slot->IsDartField() &&
+                  slot->is_immutable()) {
                 continue;
               }
 
               Definition* forward_def = graph_->constant_null();
-              if (alloc->ArgumentCount() > 0) {
-                ASSERT(alloc->ArgumentCount() == 1);
-                intptr_t type_args_offset =
-                    alloc->cls().type_arguments_field_offset();
-                if (load->offset_in_bytes() == type_args_offset) {
-                  forward_def = alloc->PushArgumentAt(0)->value()->definition();
+              if (alloc->type_arguments() != nullptr) {
+                const Slot& type_args_slot = Slot::GetTypeArgumentsSlotFor(
+                    graph_->thread(), alloc->cls());
+                if (slot->IsIdentical(type_args_slot)) {
+                  forward_def = alloc->type_arguments()->definition();
                 }
               }
-              gen->Add(load->place_id());
-              if (out_values == NULL) out_values = CreateBlockOutValues();
-              (*out_values)[load->place_id()] = forward_def;
+              gen->Add(place_id);
+              if (out_values == nullptr) out_values = CreateBlockOutValues();
+              (*out_values)[place_id] = forward_def;
             }
           }
           continue;
@@ -1635,7 +1799,7 @@ class LoadOptimizer : public ValueObject {
           continue;
         }
 
-        const intptr_t place_id = defn->place_id();
+        const intptr_t place_id = GetPlaceId(defn);
         if (gen->Contains(place_id)) {
           // This is a locally redundant load.
           ASSERT((out_values != NULL) && ((*out_values)[place_id] != NULL));
@@ -1811,7 +1975,7 @@ class LoadOptimizer : public ValueObject {
               (in_[preorder_number]->Contains(place_id))) {
             PhiInstr* phi = new (Z)
                 PhiInstr(block->AsJoinEntry(), block->PredecessorCount());
-            phi->set_place_id(place_id);
+            SetPlaceId(phi, place_id);
             pending_phis.Add(phi);
             in_value = phi;
           }
@@ -1880,7 +2044,7 @@ class LoadOptimizer : public ValueObject {
 
   void MarkLoopInvariantLoads() {
     const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
-        graph_->LoopHeaders();
+        graph_->GetLoopHierarchy().headers();
 
     ZoneGrowableArray<BitVector*>* invariant_loads =
         new (Z) ZoneGrowableArray<BitVector*>(loop_headers.length());
@@ -1894,14 +2058,14 @@ class LoadOptimizer : public ValueObject {
       }
 
       BitVector* loop_gen = new (Z) BitVector(Z, aliased_set_->max_place_id());
-      for (BitVector::Iterator loop_it(header->loop_info()); !loop_it.Done();
-           loop_it.Advance()) {
+      for (BitVector::Iterator loop_it(header->loop_info()->blocks());
+           !loop_it.Done(); loop_it.Advance()) {
         const intptr_t preorder_number = loop_it.Current();
         loop_gen->AddAll(gen_[preorder_number]);
       }
 
-      for (BitVector::Iterator loop_it(header->loop_info()); !loop_it.Done();
-           loop_it.Advance()) {
+      for (BitVector::Iterator loop_it(header->loop_info()->blocks());
+           !loop_it.Done(); loop_it.Advance()) {
         const intptr_t preorder_number = loop_it.Current();
         loop_gen->RemoveAll(kill_[preorder_number]);
       }
@@ -1949,14 +2113,14 @@ class LoadOptimizer : public ValueObject {
     // Incoming values are different. Phi is required to merge.
     PhiInstr* phi =
         new (Z) PhiInstr(block->AsJoinEntry(), block->PredecessorCount());
-    phi->set_place_id(place_id);
+    SetPlaceId(phi, place_id);
     FillPhiInputs(phi);
     return phi;
   }
 
   void FillPhiInputs(PhiInstr* phi) {
     BlockEntryInstr* block = phi->GetBlock();
-    const intptr_t place_id = phi->place_id();
+    const intptr_t place_id = GetPlaceId(phi);
 
     for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
       BlockEntryInstr* pred = block->PredecessorAt(i);
@@ -2000,9 +2164,9 @@ class LoadOptimizer : public ValueObject {
 
       for (intptr_t i = 0; i < loads->length(); i++) {
         Definition* load = (*loads)[i];
-        if (!in->Contains(load->place_id())) continue;  // No incoming value.
+        if (!in->Contains(GetPlaceId(load))) continue;  // No incoming value.
 
-        Definition* replacement = MergeIncomingValues(block, load->place_id());
+        Definition* replacement = MergeIncomingValues(block, GetPlaceId(load));
         ASSERT(replacement != NULL);
 
         // Sets of outgoing values are not linked into use lists so
@@ -2379,9 +2543,6 @@ class StoreOptimizer : public LivenessAnalysis {
 
   static void OptimizeGraph(FlowGraph* graph) {
     ASSERT(FLAG_load_cse);
-    if (FLAG_trace_load_optimization) {
-      FlowGraphPrinter::PrintGraph("Before StoreOptimizer", graph);
-    }
 
     // For now, bail out for large functions to avoid OOM situations.
     // TODO(fschneider): Fix the memory consumption issue.
@@ -2406,9 +2567,6 @@ class StoreOptimizer : public LivenessAnalysis {
       Dump();
     }
     EliminateDeadStores();
-    if (FLAG_trace_load_optimization) {
-      FlowGraphPrinter::PrintGraph("After StoreOptimizer", graph_);
-    }
   }
 
   bool CanEliminateStore(Instruction* instr) {
@@ -2458,17 +2616,17 @@ class StoreOptimizer : public LivenessAnalysis {
 
         // Handle stores.
         if (is_store) {
-          if (kill->Contains(instr->place_id())) {
-            if (!live_in->Contains(instr->place_id()) &&
+          if (kill->Contains(GetPlaceId(instr))) {
+            if (!live_in->Contains(GetPlaceId(instr)) &&
                 CanEliminateStore(instr)) {
               if (FLAG_trace_optimization) {
                 THR_Print("Removing dead store to place %" Pd " in block B%" Pd
                           "\n",
-                          instr->place_id(), block->block_id());
+                          GetPlaceId(instr), block->block_id());
               }
               instr_it.RemoveCurrentFromGraph();
             }
-          } else if (!live_in->Contains(instr->place_id())) {
+          } else if (!live_in->Contains(GetPlaceId(instr))) {
             // Mark this store as down-ward exposed: They are the only
             // candidates for the global store elimination.
             if (exposed_stores == NULL) {
@@ -2480,14 +2638,14 @@ class StoreOptimizer : public LivenessAnalysis {
             exposed_stores->Add(instr);
           }
           // Interfering stores kill only loads from the same place.
-          kill->Add(instr->place_id());
-          live_in->Remove(instr->place_id());
+          kill->Add(GetPlaceId(instr));
+          live_in->Remove(GetPlaceId(instr));
           continue;
         }
 
         // Handle side effects, deoptimization and function return.
         if (instr->HasUnknownSideEffects() || instr->CanDeoptimize() ||
-            instr->IsThrow() || instr->IsReThrow() || instr->IsReturn()) {
+            instr->MayThrow() || instr->IsReturn()) {
           // Instructions that return from the function, instructions with side
           // effects and instructions that can deoptimize are considered as
           // loads from all places.
@@ -2542,11 +2700,11 @@ class StoreOptimizer : public LivenessAnalysis {
         }
         // Eliminate a downward exposed store if the corresponding place is not
         // in live-out.
-        if (!live_out->Contains(instr->place_id()) &&
+        if (!live_out->Contains(GetPlaceId(instr)) &&
             CanEliminateStore(instr)) {
           if (FLAG_trace_optimization) {
             THR_Print("Removing dead store to place %" Pd " block B%" Pd "\n",
-                      instr->place_id(), block->block_id());
+                      GetPlaceId(instr), block->block_id());
           }
           instr->RemoveFromGraph(/* ignored */ false);
         }
@@ -2571,6 +2729,16 @@ void DeadStoreElimination::Optimize(FlowGraph* graph) {
   if (FLAG_dead_store_elimination) {
     StoreOptimizer::OptimizeGraph(graph);
   }
+}
+
+//
+// Allocation Sinking
+//
+
+// Returns true if the given instruction is an allocation that
+// can be sunk by the Allocation Sinking pass.
+static bool IsSupportedAllocation(Instruction* instr) {
+  return instr->IsAllocateObject() || instr->IsAllocateUninitializedContext();
 }
 
 enum SafeUseCheck { kOptimisticCheck, kStrictCheck };
@@ -2604,7 +2772,7 @@ static bool IsSafeUse(Value* use, SafeUseCheck check_type) {
   if (store != NULL) {
     if (use == store->value()) {
       Definition* instance = store->instance()->definition();
-      return instance->IsAllocateObject() &&
+      return IsSupportedAllocation(instance) &&
              ((check_type == kOptimisticCheck) ||
               instance->Identity().IsAllocationSinkingCandidate());
     }
@@ -2617,7 +2785,6 @@ static bool IsSafeUse(Value* use, SafeUseCheck check_type) {
 // Right now we are attempting to sink allocation only into
 // deoptimization exit. So candidate should only be used in StoreInstanceField
 // instructions that write into fields of the allocated object.
-// We do not support materialization of the object that has type arguments.
 static bool IsAllocationSinkingCandidate(Definition* alloc,
                                          SafeUseCheck check_type) {
   for (Value* use = alloc->input_use_list(); use != NULL;
@@ -2673,9 +2840,7 @@ void AllocationSinking::EliminateAllocation(Definition* alloc) {
   alloc->RemoveFromGraph();
   if (alloc->ArgumentCount() > 0) {
     ASSERT(alloc->ArgumentCount() == 1);
-    for (intptr_t i = 0; i < alloc->ArgumentCount(); ++i) {
-      alloc->PushArgumentAt(i)->RemoveFromGraph();
-    }
+    ASSERT(!alloc->HasPushArguments());
   }
 }
 
@@ -2688,22 +2853,15 @@ void AllocationSinking::CollectCandidates() {
        !block_it.Done(); block_it.Advance()) {
     BlockEntryInstr* block = block_it.Current();
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-      {
-        AllocateObjectInstr* alloc = it.Current()->AsAllocateObject();
-        if ((alloc != NULL) &&
-            IsAllocationSinkingCandidate(alloc, kOptimisticCheck)) {
-          alloc->SetIdentity(AliasIdentity::AllocationSinkingCandidate());
-          candidates_.Add(alloc);
-        }
+      Instruction* current = it.Current();
+      if (!IsSupportedAllocation(current)) {
+        continue;
       }
-      {
-        AllocateUninitializedContextInstr* alloc =
-            it.Current()->AsAllocateUninitializedContext();
-        if ((alloc != NULL) &&
-            IsAllocationSinkingCandidate(alloc, kOptimisticCheck)) {
-          alloc->SetIdentity(AliasIdentity::AllocationSinkingCandidate());
-          candidates_.Add(alloc);
-        }
+
+      Definition* alloc = current->Cast<Definition>();
+      if (IsAllocationSinkingCandidate(alloc, kOptimisticCheck)) {
+        alloc->SetIdentity(AliasIdentity::AllocationSinkingCandidate());
+        candidates_.Add(alloc);
       }
     }
   }
@@ -2938,12 +3096,9 @@ void AllocationSinking::DetachMaterializations() {
 }
 
 // Add a field/offset to the list of fields if it is not yet present there.
-static bool AddSlot(ZoneGrowableArray<const Object*>* slots,
-                    const Object& slot) {
-  ASSERT(slot.IsSmi() || slot.IsField());
-  ASSERT(!slot.IsField() || Field::Cast(slot).IsOriginal());
-  for (intptr_t i = 0; i < slots->length(); i++) {
-    if ((*slots)[i]->raw() == slot.raw()) {
+static bool AddSlot(ZoneGrowableArray<const Slot*>* slots, const Slot& slot) {
+  for (auto s : *slots) {
+    if (s == &slot) {
       return false;
     }
   }
@@ -2994,7 +3149,7 @@ MaterializeObjectInstr* AllocationSinking::MaterializationFor(
 void AllocationSinking::CreateMaterializationAt(
     Instruction* exit,
     Definition* alloc,
-    const ZoneGrowableArray<const Object*>& slots) {
+    const ZoneGrowableArray<const Slot*>& slots) {
   ZoneGrowableArray<Value*>* values =
       new (Z) ZoneGrowableArray<Value*>(slots.length());
 
@@ -3004,20 +3159,14 @@ void AllocationSinking::CreateMaterializationAt(
   Instruction* load_point = FirstMaterializationAt(exit);
 
   // Insert load instruction for every field.
-  for (intptr_t i = 0; i < slots.length(); i++) {
+  for (auto slot : slots) {
     LoadFieldInstr* load =
-        slots[i]->IsField()
-            ? new (Z) LoadFieldInstr(
-                  new (Z) Value(alloc), &Field::Cast(*slots[i]),
-                  AbstractType::ZoneHandle(Z), alloc->token_pos(), NULL)
-            : new (Z) LoadFieldInstr(
-                  new (Z) Value(alloc), Smi::Cast(*slots[i]).Value(),
-                  AbstractType::ZoneHandle(Z), alloc->token_pos());
-    flow_graph_->InsertBefore(load_point, load, NULL, FlowGraph::kValue);
+        new (Z) LoadFieldInstr(new (Z) Value(alloc), *slot, alloc->token_pos());
+    flow_graph_->InsertBefore(load_point, load, nullptr, FlowGraph::kValue);
     values->Add(new (Z) Value(load));
   }
 
-  MaterializeObjectInstr* mat = NULL;
+  MaterializeObjectInstr* mat = nullptr;
   if (alloc->IsAllocateObject()) {
     mat = new (Z)
         MaterializeObjectInstr(alloc->AsAllocateObject(), slots, values);
@@ -3027,21 +3176,13 @@ void AllocationSinking::CreateMaterializationAt(
         alloc->AsAllocateUninitializedContext(), slots, values);
   }
 
-  flow_graph_->InsertBefore(exit, mat, NULL, FlowGraph::kValue);
+  flow_graph_->InsertBefore(exit, mat, nullptr, FlowGraph::kValue);
 
   // Replace all mentions of this allocation with a newly inserted
   // MaterializeObject instruction.
   // We must preserve the identity: all mentions are replaced by the same
   // materialization.
-  for (Environment::DeepIterator env_it(exit->env()); !env_it.Done();
-       env_it.Advance()) {
-    Value* use = env_it.CurrentValue();
-    if (use->definition() == alloc) {
-      use->RemoveFromUseList();
-      use->set_definition(mat);
-      mat->AddEnvUse(use);
-    }
-  }
+  exit->ReplaceInEnvironment(alloc, mat);
 
   // Mark MaterializeObject as an environment use of this allocation.
   // This will allow us to discover it when we are looking for deoptimization
@@ -3058,7 +3199,7 @@ void AllocationSinking::CreateMaterializationAt(
 // present there.
 template <typename T>
 void AddInstruction(GrowableArray<T*>* list, T* value) {
-  ASSERT(!value->IsGraphEntry());
+  ASSERT(!value->IsGraphEntry() && !value->IsFunctionEntry());
   for (intptr_t i = 0; i < list->length(); i++) {
     if ((*list)[i] == value) {
       return;
@@ -3113,27 +3254,21 @@ void AllocationSinking::ExitsCollector::CollectTransitively(Definition* alloc) {
 
 void AllocationSinking::InsertMaterializations(Definition* alloc) {
   // Collect all fields that are written for this instance.
-  ZoneGrowableArray<const Object*>* slots =
-      new (Z) ZoneGrowableArray<const Object*>(5);
+  auto slots = new (Z) ZoneGrowableArray<const Slot*>(5);
 
   for (Value* use = alloc->input_use_list(); use != NULL;
        use = use->next_use()) {
     StoreInstanceFieldInstr* store = use->instruction()->AsStoreInstanceField();
     if ((store != NULL) && (store->instance()->definition() == alloc)) {
-      if (!store->field().IsNull()) {
-        AddSlot(slots, Field::ZoneHandle(Z, store->field().Original()));
-      } else {
-        AddSlot(slots, Smi::ZoneHandle(Z, Smi::New(store->offset_in_bytes())));
-      }
+      AddSlot(slots, store->slot());
     }
   }
 
-  if (alloc->ArgumentCount() > 0) {
-    AllocateObjectInstr* alloc_object = alloc->AsAllocateObject();
-    ASSERT(alloc_object->ArgumentCount() == 1);
-    intptr_t type_args_offset =
-        alloc_object->cls().type_arguments_field_offset();
-    AddSlot(slots, Smi::ZoneHandle(Z, Smi::New(type_args_offset)));
+  if (auto alloc_object = alloc->AsAllocateObject()) {
+    if (alloc_object->type_arguments() != nullptr) {
+      AddSlot(slots, Slot::GetTypeArgumentsSlotFor(flow_graph_->thread(),
+                                                   alloc_object->cls()));
+    }
   }
 
   // Collect all instructions that mention this object in the environment.
@@ -3145,18 +3280,285 @@ void AllocationSinking::InsertMaterializations(Definition* alloc) {
   }
 }
 
-void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
+// TryCatchAnalyzer tries to reduce the state that needs to be synchronized
+// on entry to the catch by discovering Parameter-s which are never used
+// or which are always constant.
+//
+// This analysis is similar to dead/redundant phi elimination because
+// Parameter instructions serve as "implicit" phis.
+//
+// Caveat: when analyzing which Parameter-s are redundant we limit ourselves to
+// constant values because CatchBlockEntry-s are hanging out directly from
+// GraphEntry and thus they are only dominated by constants from GraphEntry -
+// thus we can't replace Parameter with arbitrary Definition which is not a
+// Constant even if we know that this Parameter is redundant and would always
+// evaluate to that Definition.
+class TryCatchAnalyzer : public ValueObject {
+ public:
+  explicit TryCatchAnalyzer(FlowGraph* flow_graph, bool is_aot)
+      : flow_graph_(flow_graph),
+        is_aot_(is_aot),
+        // Initial capacity is selected based on trivial examples.
+        worklist_(flow_graph, /*initial_capacity=*/10) {}
+
+  // Run analysis and eliminate dead/redundant Parameter-s.
+  void Optimize();
+
+ private:
+  // In precompiled mode we can eliminate all parameters that have no real uses
+  // and subsequently clear out corresponding slots in the environments assigned
+  // to instructions that can throw an exception which would be caught by
+  // the corresponding CatchEntryBlock.
+  //
+  // Computing "dead" parameters is essentially a fixed point algorithm because
+  // Parameter value can flow into another Parameter via an environment attached
+  // to an instruction that can throw.
+  //
+  // Note: this optimization pass assumes that environment values are only
+  // used during catching, that is why it should only be used in AOT mode.
+  void OptimizeDeadParameters() {
+    ASSERT(is_aot_);
+
+    NumberCatchEntryParameters();
+    ComputeIncomingValues();
+    CollectAliveParametersOrPhis();
+    PropagateLivenessToInputs();
+    EliminateDeadParameters();
+  }
+
+  static intptr_t GetParameterId(const Instruction* instr) {
+    return instr->GetPassSpecificId(CompilerPass::kTryCatchOptimization);
+  }
+
+  static void SetParameterId(Instruction* instr, intptr_t id) {
+    instr->SetPassSpecificId(CompilerPass::kTryCatchOptimization, id);
+  }
+
+  static bool HasParameterId(Instruction* instr) {
+    return instr->HasPassSpecificId(CompilerPass::kTryCatchOptimization);
+  }
+
+  // Assign sequential ids to each ParameterInstr in each CatchEntryBlock.
+  // Collect reverse mapping from try indexes to corresponding catches.
+  void NumberCatchEntryParameters() {
+    for (auto catch_entry : flow_graph_->graph_entry()->catch_entries()) {
+      const GrowableArray<Definition*>& idefs =
+          *catch_entry->initial_definitions();
+      for (auto idef : idefs) {
+        if (idef->IsParameter()) {
+          SetParameterId(idef, parameter_info_.length());
+          parameter_info_.Add(new ParameterInfo(idef->AsParameter()));
+        }
+      }
+
+      catch_by_index_.EnsureLength(catch_entry->catch_try_index() + 1, nullptr);
+      catch_by_index_[catch_entry->catch_try_index()] = catch_entry;
+    }
+  }
+
+  // Compute potential incoming values for each Parameter in each catch block
+  // by looking into environments assigned to MayThrow instructions within
+  // blocks covered by the corresponding catch.
+  void ComputeIncomingValues() {
+    for (auto block : flow_graph_->reverse_postorder()) {
+      if (block->try_index() == kInvalidTryIndex) {
+        continue;
+      }
+
+      ASSERT(block->try_index() < catch_by_index_.length());
+      auto catch_entry = catch_by_index_[block->try_index()];
+      const auto& idefs = *catch_entry->initial_definitions();
+
+      for (ForwardInstructionIterator instr_it(block); !instr_it.Done();
+           instr_it.Advance()) {
+        Instruction* current = instr_it.Current();
+        if (!current->MayThrow()) continue;
+
+        Environment* env = current->env()->Outermost();
+        ASSERT(env != nullptr);
+
+        for (intptr_t env_idx = 0; env_idx < idefs.length(); ++env_idx) {
+          if (ParameterInstr* param = idefs[env_idx]->AsParameter()) {
+            Definition* defn = env->ValueAt(env_idx)->definition();
+
+            // Add defn as an incoming value to the parameter if it is not
+            // already present in the list.
+            bool found = false;
+            for (auto other_defn :
+                 parameter_info_[GetParameterId(param)]->incoming) {
+              if (other_defn == defn) {
+                found = true;
+                break;
+              }
+            }
+            if (!found) {
+              parameter_info_[GetParameterId(param)]->incoming.Add(defn);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Find all parameters (and phis) that are definitely alive - because they
+  // have non-phi uses and place them into worklist.
+  //
+  // Note: phis that only have phi (and environment) uses would be marked as
+  // dead.
+  void CollectAliveParametersOrPhis() {
+    for (auto block : flow_graph_->reverse_postorder()) {
+      if (JoinEntryInstr* join = block->AsJoinEntry()) {
+        if (join->phis() == nullptr) continue;
+
+        for (auto phi : *join->phis()) {
+          phi->mark_dead();
+          if (HasNonPhiUse(phi)) {
+            MarkLive(phi);
+          }
+        }
+      }
+    }
+
+    for (auto info : parameter_info_) {
+      if (HasNonPhiUse(info->instr)) {
+        MarkLive(info->instr);
+      }
+    }
+  }
+
+  // Propagate liveness from live parameters and phis to other parameters and
+  // phis transitively.
+  void PropagateLivenessToInputs() {
+    while (!worklist_.IsEmpty()) {
+      Definition* defn = worklist_.RemoveLast();
+      if (ParameterInstr* param = defn->AsParameter()) {
+        auto s = parameter_info_[GetParameterId(param)];
+        for (auto input : s->incoming) {
+          MarkLive(input);
+        }
+      } else if (PhiInstr* phi = defn->AsPhi()) {
+        for (intptr_t i = 0; i < phi->InputCount(); i++) {
+          MarkLive(phi->InputAt(i)->definition());
+        }
+      }
+    }
+  }
+
+  // Mark definition as live if it is a dead Phi or a dead Parameter and place
+  // them into worklist.
+  void MarkLive(Definition* defn) {
+    if (PhiInstr* phi = defn->AsPhi()) {
+      if (!phi->is_alive()) {
+        phi->mark_alive();
+        worklist_.Add(phi);
+      }
+    } else if (ParameterInstr* param = defn->AsParameter()) {
+      if (HasParameterId(param)) {
+        auto input_s = parameter_info_[GetParameterId(param)];
+        if (!input_s->alive) {
+          input_s->alive = true;
+          worklist_.Add(param);
+        }
+      }
+    }
+  }
+
+  // Replace all dead parameters with null value and clear corresponding
+  // slots in environments.
+  void EliminateDeadParameters() {
+    for (auto info : parameter_info_) {
+      if (!info->alive) {
+        info->instr->ReplaceUsesWith(flow_graph_->constant_null());
+      }
+    }
+
+    for (auto block : flow_graph_->reverse_postorder()) {
+      if (block->try_index() == -1) continue;
+
+      auto catch_entry = catch_by_index_[block->try_index()];
+      const auto& idefs = *catch_entry->initial_definitions();
+
+      for (ForwardInstructionIterator instr_it(block); !instr_it.Done();
+           instr_it.Advance()) {
+        Instruction* current = instr_it.Current();
+        if (!current->MayThrow()) continue;
+
+        Environment* env = current->env()->Outermost();
+        RELEASE_ASSERT(env != nullptr);
+
+        for (intptr_t env_idx = 0; env_idx < idefs.length(); ++env_idx) {
+          if (ParameterInstr* param = idefs[env_idx]->AsParameter()) {
+            if (!parameter_info_[GetParameterId(param)]->alive) {
+              env->ValueAt(env_idx)->BindToEnvironment(
+                  flow_graph_->constant_null());
+            }
+          }
+        }
+      }
+    }
+
+    DeadCodeElimination::RemoveDeadAndRedundantPhisFromTheGraph(flow_graph_);
+  }
+
+  // Returns true if definition has a use in an instruction which is not a phi.
+  static bool HasNonPhiUse(Definition* defn) {
+    for (Value* use = defn->input_use_list(); use != nullptr;
+         use = use->next_use()) {
+      if (!use->instruction()->IsPhi()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  struct ParameterInfo : public ZoneAllocated {
+    explicit ParameterInfo(ParameterInstr* instr) : instr(instr) {}
+
+    ParameterInstr* instr;
+    bool alive = false;
+    GrowableArray<Definition*> incoming;
+  };
+
+  FlowGraph* const flow_graph_;
+  const bool is_aot_;
+
+  // Additional information for each Parameter from each CatchBlockEntry.
+  // Parameter-s are numbered and their number is stored in
+  // Instruction::place_id() field which is otherwise not used for anything
+  // at this stage.
+  GrowableArray<ParameterInfo*> parameter_info_;
+
+  // Mapping from catch_try_index to corresponding CatchBlockEntry-s.
+  GrowableArray<CatchBlockEntryInstr*> catch_by_index_;
+
+  // Worklist for live Phi and Parameter instructions which need to be
+  // processed by PropagateLivenessToInputs.
+  DefinitionWorklist worklist_;
+};
+
+void OptimizeCatchEntryStates(FlowGraph* flow_graph, bool is_aot) {
+  if (flow_graph->graph_entry()->catch_entries().is_empty()) {
+    return;
+  }
+
+  TryCatchAnalyzer analyzer(flow_graph, is_aot);
+  analyzer.Optimize();
+}
+
+void TryCatchAnalyzer::Optimize() {
+  // Analyze catch entries and remove "dead" Parameter instructions.
+  if (is_aot_) {
+    OptimizeDeadParameters();
+  }
+
   // For every catch-block: Iterate over all call instructions inside the
   // corresponding try-block and figure out for each environment value if it
   // is the same constant at all calls. If yes, replace the initial definition
   // at the catch-entry with this constant.
   const GrowableArray<CatchBlockEntryInstr*>& catch_entries =
-      flow_graph->graph_entry()->catch_entries();
-  intptr_t base = kFirstLocalSlotFromFp + flow_graph->num_non_copied_params();
-  for (intptr_t catch_idx = 0; catch_idx < catch_entries.length();
-       ++catch_idx) {
-    CatchBlockEntryInstr* catch_entry = catch_entries[catch_idx];
+      flow_graph_->graph_entry()->catch_entries();
 
+  for (auto catch_entry : catch_entries) {
     // Initialize cdefs with the original initial definitions (ParameterInstr).
     // The following representation is used:
     // ParameterInstr => unknown
@@ -3169,14 +3571,11 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
     // exception_var and stacktrace_var are never constant.  In asynchronous or
     // generator functions they may be context-allocated in which case they are
     // not tracked in the environment anyway.
-    if (!catch_entry->exception_var().is_captured()) {
-      cdefs[base - catch_entry->exception_var().index()] = NULL;
-    }
-    if (!catch_entry->stacktrace_var().is_captured()) {
-      cdefs[base - catch_entry->stacktrace_var().index()] = NULL;
-    }
 
-    for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
+    cdefs[flow_graph_->EnvIndex(catch_entry->raw_exception_var())] = nullptr;
+    cdefs[flow_graph_->EnvIndex(catch_entry->raw_stacktrace_var())] = nullptr;
+
+    for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
          !block_it.Done(); block_it.Advance()) {
       BlockEntryInstr* block = block_it.Current();
       if (block->try_index() == catch_entry->catch_try_index()) {
@@ -3185,17 +3584,17 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
           Instruction* current = instr_it.Current();
           if (current->MayThrow()) {
             Environment* env = current->env()->Outermost();
-            ASSERT(env != NULL);
+            ASSERT(env != nullptr);
             for (intptr_t env_idx = 0; env_idx < cdefs.length(); ++env_idx) {
-              if (cdefs[env_idx] != NULL && !cdefs[env_idx]->IsConstant() &&
+              if (cdefs[env_idx] != nullptr && !cdefs[env_idx]->IsConstant() &&
                   env->ValueAt(env_idx)->BindsToConstant()) {
                 // If the recorded definition is not a constant, record this
                 // definition as the current constant definition.
                 cdefs[env_idx] = env->ValueAt(env_idx)->definition();
               }
               if (cdefs[env_idx] != env->ValueAt(env_idx)->definition()) {
-                // Non-constant definitions are reset to NULL.
-                cdefs[env_idx] = NULL;
+                // Non-constant definitions are reset to nullptr.
+                cdefs[env_idx] = nullptr;
               }
             }
           }
@@ -3203,14 +3602,17 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
       }
     }
     for (intptr_t j = 0; j < idefs->length(); ++j) {
-      if (cdefs[j] != NULL && cdefs[j]->IsConstant()) {
-        // TODO(fschneider): Use constants from the constant pool.
+      if (cdefs[j] != nullptr && cdefs[j]->IsConstant()) {
         Definition* old = (*idefs)[j];
         ConstantInstr* orig = cdefs[j]->AsConstant();
         ConstantInstr* copy =
-            new (flow_graph->zone()) ConstantInstr(orig->value());
-        copy->set_ssa_temp_index(flow_graph->alloc_ssa_temp_index());
+            new (flow_graph_->zone()) ConstantInstr(orig->value());
+        copy->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
+        if (FlowGraph::NeedsPairLocation(copy->representation())) {
+          flow_graph_->alloc_ssa_temp_index();
+        }
         old->ReplaceUsesWith(copy);
+        copy->set_previous(old->previous());  // partial link
         (*idefs)[j] = copy;
       }
     }
@@ -3238,7 +3640,7 @@ void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
         PhiInstr* phi = it.Current();
         // Phis that have uses and phis inside try blocks are
         // marked as live.
-        if (HasRealUse(phi) || join->InsideTryBlock()) {
+        if (HasRealUse(phi)) {
           live_phis.Add(phi);
           phi->mark_alive();
         } else {
@@ -3260,28 +3662,31 @@ void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
     }
   }
 
-  for (BlockIterator it(flow_graph->postorder_iterator()); !it.Done();
-       it.Advance()) {
-    JoinEntryInstr* join = it.Current()->AsJoinEntry();
-    if (join != NULL) {
-      if (join->phis_ == NULL) continue;
+  RemoveDeadAndRedundantPhisFromTheGraph(flow_graph);
+}
+
+void DeadCodeElimination::RemoveDeadAndRedundantPhisFromTheGraph(
+    FlowGraph* flow_graph) {
+  for (auto block : flow_graph->postorder()) {
+    if (JoinEntryInstr* join = block->AsJoinEntry()) {
+      if (join->phis_ == nullptr) continue;
 
       // Eliminate dead phis and compact the phis_ array of the block.
       intptr_t to_index = 0;
       for (intptr_t i = 0; i < join->phis_->length(); ++i) {
         PhiInstr* phi = (*join->phis_)[i];
-        if (phi != NULL) {
+        if (phi != nullptr) {
           if (!phi->is_alive()) {
             phi->ReplaceUsesWith(flow_graph->constant_null());
             phi->UnuseAllInputs();
-            (*join->phis_)[i] = NULL;
+            (*join->phis_)[i] = nullptr;
             if (FLAG_trace_optimization) {
               THR_Print("Removing dead phi v%" Pd "\n", phi->ssa_temp_index());
             }
-          } else if (phi->IsRedundant()) {
-            phi->ReplaceUsesWith(phi->InputAt(0)->definition());
+          } else if (auto* replacement = phi->GetReplacementForRedundantPhi()) {
+            phi->ReplaceUsesWith(replacement);
             phi->UnuseAllInputs();
-            (*join->phis_)[i] = NULL;
+            (*join->phis_)[i] = nullptr;
             if (FLAG_trace_optimization) {
               THR_Print("Removing redundant phi v%" Pd "\n",
                         phi->ssa_temp_index());
@@ -3292,7 +3697,7 @@ void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
         }
       }
       if (to_index == 0) {
-        join->phis_ = NULL;
+        join->phis_ = nullptr;
       } else {
         join->phis_->TruncateTo(to_index);
       }
@@ -3300,6 +3705,136 @@ void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
   }
 }
 
-}  // namespace dart
+// Returns true if [current] instruction can be possibly eliminated
+// (if its result is not used).
+static bool CanEliminateInstruction(Instruction* current,
+                                    BlockEntryInstr* block) {
+  ASSERT(current->GetBlock() == block);
+  if (MayHaveVisibleEffect(current) || current->CanDeoptimize() ||
+      current == block->last_instruction() || current->IsMaterializeObject() ||
+      current->IsCheckStackOverflow() || current->IsReachabilityFence()) {
+    return false;
+  }
+  return true;
+}
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
+  GrowableArray<Instruction*> worklist;
+  BitVector live(flow_graph->zone(), flow_graph->current_ssa_temp_index());
+
+  // Mark all instructions with side-effects as live.
+  for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+      ASSERT(!current->IsPushArgument());
+      // TODO(alexmarkov): take control dependencies into account and
+      // eliminate dead branches/conditions.
+      if (!CanEliminateInstruction(current, block)) {
+        worklist.Add(current);
+        if (Definition* def = current->AsDefinition()) {
+          if (def->HasSSATemp()) {
+            live.Add(def->ssa_temp_index());
+          }
+        }
+      }
+    }
+  }
+
+  // Iteratively follow inputs of instructions in the work list.
+  while (!worklist.is_empty()) {
+    Instruction* current = worklist.RemoveLast();
+    for (intptr_t i = 0, n = current->InputCount(); i < n; ++i) {
+      Definition* input = current->InputAt(i)->definition();
+      ASSERT(input->HasSSATemp());
+      if (!live.Contains(input->ssa_temp_index())) {
+        worklist.Add(input);
+        live.Add(input->ssa_temp_index());
+      }
+    }
+    for (intptr_t i = 0, n = current->ArgumentCount(); i < n; ++i) {
+      Definition* input = current->ArgumentAt(i);
+      ASSERT(input->HasSSATemp());
+      if (!live.Contains(input->ssa_temp_index())) {
+        worklist.Add(input);
+        live.Add(input->ssa_temp_index());
+      }
+    }
+    if (current->env() != nullptr) {
+      for (Environment::DeepIterator it(current->env()); !it.Done();
+           it.Advance()) {
+        Definition* input = it.CurrentValue()->definition();
+        ASSERT(!input->IsPushArgument());
+        if (input->HasSSATemp() && !live.Contains(input->ssa_temp_index())) {
+          worklist.Add(input);
+          live.Add(input->ssa_temp_index());
+        }
+      }
+    }
+  }
+
+  // Remove all instructions which are not marked as live.
+  for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+    if (JoinEntryInstr* join = block->AsJoinEntry()) {
+      for (PhiIterator it(join); !it.Done(); it.Advance()) {
+        PhiInstr* current = it.Current();
+        if (!live.Contains(current->ssa_temp_index())) {
+          current->UnuseAllInputs();
+          it.RemoveCurrentFromGraph();
+        }
+      }
+    }
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+      if (!CanEliminateInstruction(current, block)) {
+        continue;
+      }
+      ASSERT(!current->IsPushArgument());
+      ASSERT((current->ArgumentCount() == 0) || !current->HasPushArguments());
+      if (Definition* def = current->AsDefinition()) {
+        if (def->HasSSATemp() && live.Contains(def->ssa_temp_index())) {
+          continue;
+        }
+      }
+      current->UnuseAllInputs();
+      it.RemoveCurrentFromGraph();
+    }
+  }
+}
+
+void CheckStackOverflowElimination::EliminateStackOverflow(FlowGraph* graph) {
+  CheckStackOverflowInstr* first_stack_overflow_instr = NULL;
+  for (BlockIterator block_it = graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    BlockEntryInstr* entry = block_it.Current();
+
+    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+
+      if (CheckStackOverflowInstr* instr = current->AsCheckStackOverflow()) {
+        if (first_stack_overflow_instr == NULL) {
+          first_stack_overflow_instr = instr;
+          ASSERT(!first_stack_overflow_instr->in_loop());
+        }
+        continue;
+      }
+
+      if (current->IsBranch()) {
+        current = current->AsBranch()->comparison();
+      }
+
+      if (current->HasUnknownSideEffects()) {
+        return;
+      }
+    }
+  }
+
+  if (first_stack_overflow_instr != NULL) {
+    first_stack_overflow_instr->RemoveFromGraph();
+  }
+}
+
+}  // namespace dart

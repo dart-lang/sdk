@@ -1,0 +1,58 @@
+# Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with a package, then initializing from that dill,
+# compile a version that doesn't use the package, finally update it so it does
+# use the package (and use the class in the package as a type).
+# If the initially unused package is reused it should not cause
+# any problems at any point, including being handled properly by the class
+# hierarchy.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "package:mypackage/foo.dart";
+        main() {
+          Foo foo = new Foo();
+          foo.foo();
+        }
+      mypackage/foo.dart: |
+        class Foo {
+          foo() {
+            print("Foo!");
+          }
+        }
+      .packages: mypackage:mypackage
+    expectedLibraryCount: 2
+  - entry: main.dart
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        main() {
+          print("hello from main");
+        }
+      mypackage/foo.dart: |
+        class Foo {
+          foo() {
+            print("Foo!");
+          }
+        }
+      .packages: mypackage:mypackage
+    expectedLibraryCount: 1
+    expectInitializeFromDill: true
+  - entry: main.dart
+    worldType: updated
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import "package:mypackage/foo.dart";
+        main() {
+          Foo foo = new Foo();
+          foo.foo();
+        }
+    expectedLibraryCount: 2

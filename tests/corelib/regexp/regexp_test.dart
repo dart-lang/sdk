@@ -28,8 +28,8 @@
 
 import "package:expect/expect.dart";
 
-void testEscape(str, regex) {
-  assertEquals("foo:bar:baz", str.split(regex).join(":"));
+void testEscape(str, regexp) {
+  assertEquals("foo:bar:baz", str.split(regexp).join(":"));
 }
 
 void assertEquals(actual, expected, [message]) =>
@@ -46,24 +46,24 @@ void main() {
 
   // Test containing null char in regexp.
   var s = '[' + new String.fromCharCode(0) + ']';
-  var re = new RegExp(s);
-  assertEquals(re.allMatches(s).length, 1);
-  assertEquals(re.stringMatch(s), new String.fromCharCode(0));
+  var regexp = new RegExp(s);
+  assertEquals(regexp.allMatches(s).length, 1);
+  assertEquals(regexp.stringMatch(s), new String.fromCharCode(0));
 
   final _vmFrame = new RegExp(r'^#\d+\s+(\S.*) \((.+?):(\d+)(?::(\d+))?\)$');
   final _traceLine =
       "#0      Trace.Trace.parse (package:stack_trace/src/trace.dart:130:7)";
-  Expect.equals(_vmFrame.firstMatch(_traceLine).group(0), _traceLine);
+  Expect.equals(_vmFrame.firstMatch(_traceLine)!.group(0), _traceLine);
 
   // Test the UTF16 case insensitive comparison.
-  re = new RegExp(r"x(a)\1x", caseSensitive: false);
-  Expect.equals(re.firstMatch("xaAx\u1234").group(0), "xaAx");
+  regexp = new RegExp(r"x(a)\1x", caseSensitive: false);
+  Expect.equals(regexp.firstMatch("xaAx\u1234")!.group(0), "xaAx");
 
   // Test strings containing all line separators
   s = 'aA\nbB\rcC\r\ndD\u2028eE\u2029fF';
   // any non-newline character at the beginning of a line
-  re = new RegExp(r"^.", multiLine: true);
-  var result = re.allMatches(s).toList();
+  regexp = new RegExp(r"^.", multiLine: true);
+  var result = regexp.allMatches(s).toList();
   assertEquals(result.length, 6);
   assertEquals(result[0][0], 'a');
   assertEquals(result[1][0], 'b');
@@ -73,8 +73,8 @@ void main() {
   assertEquals(result[5][0], 'f');
 
   // any non-newline character at the end of a line
-  re = new RegExp(r".$", multiLine: true);
-  result = re.allMatches(s).toList();
+  regexp = new RegExp(r".$", multiLine: true);
+  result = regexp.allMatches(s).toList();
   assertEquals(result.length, 6);
   assertEquals(result[0][0], 'A');
   assertEquals(result[1][0], 'B');
@@ -84,8 +84,8 @@ void main() {
   assertEquals(result[5][0], 'F');
 
   // *any* character at the beginning of a line
-  re = new RegExp(r"^[^]", multiLine: true);
-  result = re.allMatches(s).toList();
+  regexp = new RegExp(r"^[^]", multiLine: true);
+  result = regexp.allMatches(s).toList();
   assertEquals(result.length, 7);
   assertEquals(result[0][0], 'a');
   assertEquals(result[1][0], 'b');
@@ -96,8 +96,8 @@ void main() {
   assertEquals(result[6][0], 'f');
 
   // *any* character at the end of a line
-  re = new RegExp(r"[^]$", multiLine: true);
-  result = re.allMatches(s).toList();
+  regexp = new RegExp(r"[^]$", multiLine: true);
+  result = regexp.allMatches(s).toList();
   assertEquals(result.length, 7);
   assertEquals(result[0][0], 'A');
   assertEquals(result[1][0], 'B');
@@ -117,7 +117,7 @@ void main() {
   assertTrue("\\c/".contains(new RegExp(r"\c[a/]")));
 
   // Test \c in character class
-  re = r"^[\cM]$";
+  var re = r"^[\cM]$";
   assertTrue("\r".contains(new RegExp(re)));
   assertFalse("M".contains(new RegExp(re)));
   assertFalse("c".contains(new RegExp(re)));
@@ -270,27 +270,29 @@ void main() {
   // multiline flag.
   re = r"^\d+";
   assertFalse("asdf\n123".contains(new RegExp(re)));
-  re = new RegExp(r"^\d+", multiLine: true);
-  assertTrue("asdf\n123".contains(re));
+  regexp = new RegExp(r"^\d+", multiLine: true);
+  assertTrue("asdf\n123".contains(regexp));
 
   re = r"\d+$";
   assertFalse("123\nasdf".contains(new RegExp(re)));
-  re = new RegExp(r"\d+$", multiLine: true);
-  assertTrue("123\nasdf".contains(re));
+  regexp = new RegExp(r"\d+$", multiLine: true);
+  assertTrue("123\nasdf".contains(regexp));
 
   // Test that empty matches are handled correctly for multiline global
   // regexps.
-  re = new RegExp(r"^(.*)", multiLine: true);
-  assertEquals(3, re.allMatches("a\n\rb").length);
-  assertEquals("*a\n*b\r*c\n*\r*d\r*\n*e",
-      "a\nb\rc\n\rd\r\ne".replaceAllMapped(re, (Match m) => "*${m.group(1)}"));
+  regexp = new RegExp(r"^(.*)", multiLine: true);
+  assertEquals(3, regexp.allMatches("a\n\rb").length);
+  assertEquals(
+      "*a\n*b\r*c\n*\r*d\r*\n*e",
+      "a\nb\rc\n\rd\r\ne"
+          .replaceAllMapped(regexp, (Match m) => "*${m.group(1)}"));
 
   // Test that empty matches advance one character
-  re = new RegExp("");
-  assertEquals("xAx", "A".replaceAll(re, "x"));
-  assertEquals(3, new String.fromCharCode(161).replaceAll(re, "x").length);
+  regexp = new RegExp("");
+  assertEquals("xAx", "A".replaceAll(regexp, "x"));
+  assertEquals(3, new String.fromCharCode(161).replaceAll(regexp, "x").length);
 
-  // Check for lazy RegExp literal creation
+  // Check for lazy RegExp literal cregexpation
   lazyLiteral(doit) {
     if (doit)
       return "".replaceAll(new RegExp(r"foo(", caseSensitive: false), "");
@@ -301,12 +303,13 @@ void main() {
   assertThrows(() => lazyLiteral(true));
 
   // Check $01 and $10
-  re = new RegExp("(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)");
+  regexp = new RegExp("(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)");
   assertEquals(
-      "t", "123456789t".replaceAllMapped(re, (Match m) => m.group(10)));
+      "t", "123456789t".replaceAllMapped(regexp, (Match m) => m.group(10)!));
+  assertEquals("15",
+      "123456789t".replaceAllMapped(regexp, (Match m) => "${m.group(1)}5"));
   assertEquals(
-      "15", "123456789t".replaceAllMapped(re, (Match m) => "${m.group(1)}5"));
-  assertEquals("1", "123456789t".replaceAllMapped(re, (Match m) => m.group(1)));
+      "1", "123456789t".replaceAllMapped(regexp, (Match m) => m.group(1)!));
 
   assertFalse("football".contains(new RegExp(r"()foo$\1")), "football1");
   assertFalse("football".contains(new RegExp(r"foo$(?=ball)")), "football2");
@@ -330,7 +333,7 @@ void main() {
   // ASCII
   assertEquals(
       "a",
-      new RegExp(r"x(a)\1x", caseSensitive: false).firstMatch("xaAx").group(1),
+      new RegExp(r"x(a)\1x", caseSensitive: false).firstMatch("xaAx")!.group(1),
       "backref-ASCII");
   assertFalse("xaaaaa".contains(new RegExp(r"x(...)\1", caseSensitive: false)),
       "backref-ASCII-short");
@@ -346,7 +349,7 @@ void main() {
   assertEquals(
       "aBc",
       new RegExp(r"x(...)\1\1x", caseSensitive: false)
-          .firstMatch("xaBcAbCABCx")
+          .firstMatch("xaBcAbCABCx")!
           .group(1),
       "backref-ASCII-twice");
 
@@ -368,7 +371,7 @@ void main() {
   // (Note: \214 is interpreted as octal).
   assertEquals(
       "\x8c7483648",
-      new RegExp(r"\2147483648").firstMatch("\x8c7483648").group(0),
+      new RegExp(r"\2147483648").firstMatch("\x8c7483648")!.group(0),
       "Overflow decimal escape");
 
   // Check numbers in quantifiers doesn't overflow and doesn't throw on
@@ -403,7 +406,7 @@ void main() {
   assertFalse(
       'a'.contains(new RegExp(r"a{2147483647,2147483647}")), "overlarge14");
 
-  // Check that we don't read past the end of the string.
+  // Check that we don't repad past the end of the string.
   assertFalse('b'.contains(new RegExp(r"f")));
   assertFalse('x'.contains(new RegExp(r"[abc]f")));
   assertFalse('xa'.contains(new RegExp(r"[abc]f")));
@@ -567,20 +570,20 @@ void main() {
   re = r"(?:a|bc$)";
   assertTrue("a".contains(new RegExp(re)));
   assertTrue("bc".contains(new RegExp(re)));
-  assertEquals("a", new RegExp(re).firstMatch("abc").group(0));
-  assertEquals(4, new RegExp(re).firstMatch("zimzamzumba").start);
-  assertEquals("bc", new RegExp(re).firstMatch("zimzomzumbc").group(0));
+  assertEquals("a", new RegExp(re).firstMatch("abc")!.group(0));
+  assertEquals(4, new RegExp(re).firstMatch("zimzamzumba")!.start);
+  assertEquals("bc", new RegExp(re).firstMatch("zimzomzumbc")!.group(0));
   assertFalse("c".contains(new RegExp(re)));
   assertFalse("".contains(new RegExp(re)));
 
   // Valid syntax in ES5.
-  re = new RegExp("(?:x)*");
-  re = new RegExp("(x)*");
+  regexp = new RegExp("(?:x)*");
+  regexp = new RegExp("(x)*");
 
   // Syntax extension relative to ES5, for matching JSC (and ES3).
   // Shouldn't throw.
-  re = new RegExp("(?=x)*");
-  re = new RegExp("(?!x)*");
+  regexp = new RegExp("(?=x)*");
+  regexp = new RegExp("(?!x)*");
 
   // Should throw. Shouldn't hit asserts in debug mode.
   assertThrows(() => new RegExp('(*)'));
@@ -595,28 +598,27 @@ void main() {
   // Tests skipped from V8:
   // Test that RegExp.prototype.toString() throws TypeError for
   // incompatible receivers (ES5 section 15.10.6 and 15.10.6.4).
-
   testSticky();
 }
 
 testSticky() {
-  var re = new RegExp(r"foo.bar");
-  Expect.isNotNull(re.matchAsPrefix("foo_bar", 0));
-  Expect.isNull(re.matchAsPrefix("..foo_bar", 0));
-  Expect.isNotNull(re.matchAsPrefix("..foo_bar", 2));
+  var regexp = new RegExp(r"foo.bar");
+  Expect.isNotNull(regexp.matchAsPrefix("foo_bar", 0));
+  Expect.isNull(regexp.matchAsPrefix("..foo_bar", 0));
+  Expect.isNotNull(regexp.matchAsPrefix("..foo_bar", 2));
 
-  re = new RegExp(r"^foo");
-  Expect.isNotNull(re.matchAsPrefix("foobar", 0));
-  Expect.isNull(re.matchAsPrefix("..foo", 0));
-  Expect.isNull(re.matchAsPrefix("..foo", 2));
+  regexp = new RegExp(r"^foo");
+  Expect.isNotNull(regexp.matchAsPrefix("foobar", 0));
+  Expect.isNull(regexp.matchAsPrefix("..foo", 0));
+  Expect.isNull(regexp.matchAsPrefix("..foo", 2));
 
-  re = new RegExp(r"^foo", multiLine: true);
-  Expect.isNotNull(re.matchAsPrefix("foobar", 0));
-  Expect.isNull(re.matchAsPrefix("..\nfoo", 0));
-  Expect.isNotNull(re.matchAsPrefix("..\nfoo", 3));
-  Expect.isNull(re.matchAsPrefix("..\nfoofoo", 6));
+  regexp = new RegExp(r"^foo", multiLine: true);
+  Expect.isNotNull(regexp.matchAsPrefix("foobar", 0));
+  Expect.isNull(regexp.matchAsPrefix("..\nfoo", 0));
+  Expect.isNotNull(regexp.matchAsPrefix("..\nfoo", 3));
+  Expect.isNull(regexp.matchAsPrefix("..\nfoofoo", 6));
 
-  re = new RegExp(r"bar$");
-  Expect.isNull(re.matchAsPrefix("foobar", 0));
-  Expect.isNotNull(re.matchAsPrefix("foobar", 3));
+  regexp = new RegExp(r"bar$");
+  Expect.isNull(regexp.matchAsPrefix("foobar", 0));
+  Expect.isNotNull(regexp.matchAsPrefix("foobar", 3));
 }

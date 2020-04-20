@@ -1,0 +1,41 @@
+# Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../../vm/compiler/compiler_sources.gni")
+
+config("config") {
+  include_dirs = [ "../../" ]
+
+  cflags = [ "-Wno-unused-private-field" ]
+}
+
+_lib_llvm_so = "../../../third_party/llvm/lib/libLLVM-9svn.so"
+
+config("llvm") {
+  include_dirs = [ "../../../third_party/llvm/include" ]
+  libs = [ _lib_llvm_so ]
+}
+
+copy("lib_llvm") {
+  sources = [ _lib_llvm_so ]
+  outputs = [ "$root_out_dir/libLLVM-9svn.so" ]
+  public_configs = [ ":llvm" ]
+}
+
+executable("codegen") {
+  sources = [
+    "custom_zone.cc",
+    "custom_zone.h",
+    "dart.cc",
+    "dart.h",
+    "main.cc",
+  ]
+
+  deps = [
+    ":lib_llvm",
+    "../../third_party/double-conversion/src:libdouble_conversion",
+  ]
+
+  configs += [ ":config" ]
+}

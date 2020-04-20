@@ -12,6 +12,55 @@
 #include "vm/virtual_memory.h"
 
 namespace dart {
+namespace compiler {
+
+TEST_CASE(ReciprocalOps) {
+  EXPECT_EQ(true, isinf(ReciprocalEstimate(-0.0f)));
+  EXPECT_EQ(true, signbit(ReciprocalEstimate(-0.0f)));
+  EXPECT_EQ(true, isinf(ReciprocalEstimate(0.0f)));
+  EXPECT_EQ(true, !signbit(ReciprocalEstimate(0.0f)));
+  EXPECT_EQ(true, isnan(ReciprocalEstimate(NAN)));
+
+#define AS_UINT32(v) (bit_cast<uint32_t, float>(v))
+#define EXPECT_BITWISE_EQ(a, b) EXPECT_EQ(AS_UINT32(a), AS_UINT32(b))
+
+  EXPECT_BITWISE_EQ(0.0f, ReciprocalEstimate(kPosInfinity));
+  EXPECT_BITWISE_EQ(-0.0f, ReciprocalEstimate(kNegInfinity));
+  EXPECT_BITWISE_EQ(2.0f, ReciprocalStep(0.0f, kPosInfinity));
+  EXPECT_BITWISE_EQ(2.0f, ReciprocalStep(0.0f, kNegInfinity));
+  EXPECT_BITWISE_EQ(2.0f, ReciprocalStep(-0.0f, kPosInfinity));
+  EXPECT_BITWISE_EQ(2.0f, ReciprocalStep(-0.0f, kNegInfinity));
+  EXPECT_BITWISE_EQ(2.0f, ReciprocalStep(kPosInfinity, 0.0f));
+  EXPECT_BITWISE_EQ(2.0f, ReciprocalStep(kNegInfinity, 0.0f));
+  EXPECT_BITWISE_EQ(2.0f, ReciprocalStep(kPosInfinity, -0.0f));
+  EXPECT_BITWISE_EQ(2.0f, ReciprocalStep(kNegInfinity, -0.0f));
+  EXPECT_EQ(true, isnan(ReciprocalStep(NAN, 1.0f)));
+  EXPECT_EQ(true, isnan(ReciprocalStep(1.0f, NAN)));
+
+  EXPECT_EQ(true, isnan(ReciprocalSqrtEstimate(-1.0f)));
+  EXPECT_EQ(true, isnan(ReciprocalSqrtEstimate(kNegInfinity)));
+  EXPECT_EQ(true, isnan(ReciprocalSqrtEstimate(-1.0f)));
+  EXPECT_EQ(true, isinf(ReciprocalSqrtEstimate(-0.0f)));
+  EXPECT_EQ(true, signbit(ReciprocalSqrtEstimate(-0.0f)));
+  EXPECT_EQ(true, isinf(ReciprocalSqrtEstimate(0.0f)));
+  EXPECT_EQ(true, !signbit(ReciprocalSqrtEstimate(0.0f)));
+  EXPECT_EQ(true, isnan(ReciprocalSqrtEstimate(NAN)));
+  EXPECT_BITWISE_EQ(0.0f, ReciprocalSqrtEstimate(kPosInfinity));
+
+  EXPECT_BITWISE_EQ(1.5f, ReciprocalSqrtStep(0.0f, kPosInfinity));
+  EXPECT_BITWISE_EQ(1.5f, ReciprocalSqrtStep(0.0f, kNegInfinity));
+  EXPECT_BITWISE_EQ(1.5f, ReciprocalSqrtStep(-0.0f, kPosInfinity));
+  EXPECT_BITWISE_EQ(1.5f, ReciprocalSqrtStep(-0.0f, kNegInfinity));
+  EXPECT_BITWISE_EQ(1.5f, ReciprocalSqrtStep(kPosInfinity, 0.0f));
+  EXPECT_BITWISE_EQ(1.5f, ReciprocalSqrtStep(kNegInfinity, 0.0f));
+  EXPECT_BITWISE_EQ(1.5f, ReciprocalSqrtStep(kPosInfinity, -0.0f));
+  EXPECT_BITWISE_EQ(1.5f, ReciprocalSqrtStep(kNegInfinity, -0.0f));
+  EXPECT_EQ(true, isnan(ReciprocalSqrtStep(NAN, 1.0f)));
+  EXPECT_EQ(true, isnan(ReciprocalSqrtStep(1.0f, NAN)));
+
+#undef AS_UINT32
+#undef EXPECT_BITWISE_EQ
+}
 
 #define __ assembler->
 
@@ -262,11 +311,11 @@ ASSEMBLER_TEST_GENERATE(SingleVLoadStore, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
     __ LoadImmediate(R0, bit_cast<int32_t, float>(12.3f));
     __ mov(R2, Operand(SP));
-    __ str(R0, Address(SP, (-kWordSize * 30), Address::PreIndex));
-    __ vldrs(S0, Address(R2, (-kWordSize * 30)));
+    __ str(R0, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
+    __ vldrs(S0, Address(R2, (-target::kWordSize * 30)));
     __ vadds(S0, S0, S0);
-    __ vstrs(S0, Address(R2, (-kWordSize * 30)));
-    __ ldr(R0, Address(SP, (kWordSize * 30), Address::PostIndex));
+    __ vstrs(S0, Address(R2, (-target::kWordSize * 30)));
+    __ ldr(R0, Address(SP, (target::kWordSize * 30), Address::PostIndex));
   }
   __ bx(LR);
 }
@@ -286,11 +335,11 @@ ASSEMBLER_TEST_GENERATE(SingleVShiftLoadStore, assembler) {
     __ mov(R2, Operand(SP));
     // Expressing __str(R0, Address(SP, (-kWordSize * 32), Address::PreIndex));
     // as:
-    __ mov(R1, Operand(kWordSize));
+    __ mov(R1, Operand(target::kWordSize));
     __ str(R0, Address(SP, R1, LSL, 5, Address::NegPreIndex));
-    __ vldrs(S0, Address(R2, (-kWordSize * 32)));
+    __ vldrs(S0, Address(R2, (-target::kWordSize * 32)));
     __ vadds(S0, S0, S0);
-    __ vstrs(S0, Address(R2, (-kWordSize * 32)));
+    __ vstrs(S0, Address(R2, (-target::kWordSize * 32)));
     // Expressing __ldr(R0, Address(SP, (kWordSize * 32), Address::PostIndex));
     // as:
     __ ldr(R0, Address(SP, R1, LSL, 5, Address::PostIndex));
@@ -313,13 +362,13 @@ ASSEMBLER_TEST_GENERATE(DoubleVLoadStore, assembler) {
     __ LoadImmediate(R0, Utils::Low32Bits(value));
     __ LoadImmediate(R1, Utils::High32Bits(value));
     __ mov(R2, Operand(SP));
-    __ str(R0, Address(SP, (-kWordSize * 30), Address::PreIndex));
-    __ str(R1, Address(R2, (-kWordSize * 29)));
-    __ vldrd(D0, Address(R2, (-kWordSize * 30)));
+    __ str(R0, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
+    __ str(R1, Address(R2, (-target::kWordSize * 29)));
+    __ vldrd(D0, Address(R2, (-target::kWordSize * 30)));
     __ vaddd(D0, D0, D0);
-    __ vstrd(D0, Address(R2, (-kWordSize * 30)));
-    __ ldr(R1, Address(R2, (-kWordSize * 29)));
-    __ ldr(R0, Address(SP, (kWordSize * 30), Address::PostIndex));
+    __ vstrd(D0, Address(R2, (-target::kWordSize * 30)));
+    __ ldr(R1, Address(R2, (-target::kWordSize * 29)));
+    __ ldr(R0, Address(SP, (target::kWordSize * 30), Address::PostIndex));
   }
   __ bx(LR);
 }
@@ -479,10 +528,10 @@ ASSEMBLER_TEST_RUN(FloatToIntConversion, test) {
     typedef int (*FloatToIntConversion)(float arg) DART_UNUSED;
     EXPECT_EQ(12, EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion, test->entry(),
                                             12.8f));
-    EXPECT_EQ(INT_MIN, EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion,
-                                                 test->entry(), -FLT_MAX));
-    EXPECT_EQ(INT_MAX, EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion,
-                                                 test->entry(), FLT_MAX));
+    EXPECT_EQ(INT32_MIN, EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion,
+                                                   test->entry(), -FLT_MAX));
+    EXPECT_EQ(INT32_MAX, EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion,
+                                                   test->entry(), FLT_MAX));
   }
 }
 
@@ -500,10 +549,10 @@ ASSEMBLER_TEST_RUN(DoubleToIntConversion, test) {
     EXPECT(test != NULL);
     EXPECT_EQ(12, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion,
                                             test->entry(), 12.8));
-    EXPECT_EQ(INT_MIN, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion,
-                                                 test->entry(), -DBL_MAX));
-    EXPECT_EQ(INT_MAX, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion,
-                                                 test->entry(), DBL_MAX));
+    EXPECT_EQ(INT32_MIN, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion,
+                                                   test->entry(), -DBL_MAX));
+    EXPECT_EQ(INT32_MAX, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion,
+                                                   test->entry(), DBL_MAX));
   }
 }
 
@@ -699,50 +748,104 @@ ASSEMBLER_TEST_RUN(LoadStore, test) {
   EXPECT_EQ(123, EXECUTE_TEST_CODE_INT32(LoadStore, test->entry()));
 }
 
+ASSEMBLER_TEST_GENERATE(PushRegisterPair, assembler) {
+  __ mov(R2, Operand(12));
+  __ mov(R3, Operand(21));
+  __ PushRegisterPair(R2, R3);
+  __ Pop(R0);
+  __ Pop(R1);
+  __ bx(LR);
+}
+
+ASSEMBLER_TEST_RUN(PushRegisterPair, test) {
+  EXPECT(test != NULL);
+  typedef int (*PushRegisterPair)() DART_UNUSED;
+  EXPECT_EQ(12, EXECUTE_TEST_CODE_INT32(PushRegisterPair, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(PushRegisterPairReversed, assembler) {
+  __ mov(R3, Operand(12));
+  __ mov(R2, Operand(21));
+  __ PushRegisterPair(R3, R2);
+  __ Pop(R0);
+  __ Pop(R1);
+  __ bx(LR);
+}
+
+ASSEMBLER_TEST_RUN(PushRegisterPairReversed, test) {
+  EXPECT(test != NULL);
+  typedef int (*PushRegisterPairReversed)() DART_UNUSED;
+  EXPECT_EQ(12,
+            EXECUTE_TEST_CODE_INT32(PushRegisterPairReversed, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(PopRegisterPair, assembler) {
+  __ mov(R2, Operand(12));
+  __ mov(R3, Operand(21));
+  __ Push(R3);
+  __ Push(R2);
+  __ PopRegisterPair(R0, R1);
+  __ bx(LR);
+}
+
+ASSEMBLER_TEST_RUN(PopRegisterPair, test) {
+  EXPECT(test != NULL);
+  typedef int (*PopRegisterPair)() DART_UNUSED;
+  EXPECT_EQ(12, EXECUTE_TEST_CODE_INT32(PopRegisterPair, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(PopRegisterPairReversed, assembler) {
+  __ mov(R3, Operand(12));
+  __ mov(R2, Operand(21));
+  __ Push(R3);
+  __ Push(R2);
+  __ PopRegisterPair(R1, R0);
+  __ bx(LR);
+}
+
+ASSEMBLER_TEST_RUN(PopRegisterPairReversed, test) {
+  EXPECT(test != NULL);
+  typedef int (*PopRegisterPairReversed)() DART_UNUSED;
+  EXPECT_EQ(12,
+            EXECUTE_TEST_CODE_INT32(PopRegisterPairReversed, test->entry()));
+}
+
 ASSEMBLER_TEST_GENERATE(Semaphore, assembler) {
-  if (TargetCPUFeatures::arm_version() != ARMv5TE) {
-    __ mov(R0, Operand(40));
-    __ mov(R1, Operand(42));
-    __ Push(R0);
-    Label retry;
-    __ Bind(&retry);
-    __ ldrex(R0, SP);
-    __ strex(IP, R1, SP);  // IP == 0, success
-    __ tst(IP, Operand(0));
-    __ b(&retry, NE);  // NE if context switch occurred between ldrex and strex.
-    __ Pop(R0);        // 42
-  }
+  __ mov(R0, Operand(40));
+  __ mov(R1, Operand(42));
+  __ Push(R0);
+  Label retry;
+  __ Bind(&retry);
+  __ ldrex(R0, SP);
+  __ strex(IP, R1, SP);  // IP == 0, success
+  __ tst(IP, Operand(0));
+  __ b(&retry, NE);  // NE if context switch occurred between ldrex and strex.
+  __ Pop(R0);        // 42
   __ bx(LR);
 }
 
 ASSEMBLER_TEST_RUN(Semaphore, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::arm_version() != ARMv5TE) {
-    typedef int (*Semaphore)() DART_UNUSED;
-    EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Semaphore, test->entry()));
-  }
+  typedef int (*Semaphore)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Semaphore, test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(FailedSemaphore, assembler) {
-  if (TargetCPUFeatures::arm_version() != ARMv5TE) {
-    __ mov(R0, Operand(40));
-    __ mov(R1, Operand(42));
-    __ Push(R0);
-    __ ldrex(R0, SP);
-    __ clrex();            // Simulate a context switch.
-    __ strex(IP, R1, SP);  // IP == 1, failure
-    __ Pop(R0);            // 40
-    __ add(R0, R0, Operand(IP));
-  }
+  __ mov(R0, Operand(40));
+  __ mov(R1, Operand(42));
+  __ Push(R0);
+  __ ldrex(R0, SP);
+  __ clrex();            // Simulate a context switch.
+  __ strex(IP, R1, SP);  // IP == 1, failure
+  __ Pop(R0);            // 40
+  __ add(R0, R0, Operand(IP));
   __ bx(LR);
 }
 
 ASSEMBLER_TEST_RUN(FailedSemaphore, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::arm_version() != ARMv5TE) {
-    typedef int (*FailedSemaphore)() DART_UNUSED;
-    EXPECT_EQ(41, EXECUTE_TEST_CODE_INT32(FailedSemaphore, test->entry()));
-  }
+  typedef int (*FailedSemaphore)() DART_UNUSED;
+  EXPECT_EQ(41, EXECUTE_TEST_CODE_INT32(FailedSemaphore, test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(AddSub, assembler) {
@@ -985,6 +1088,19 @@ ASSEMBLER_TEST_RUN(Clz, test) {
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(Clz, test->entry()));
 }
 
+ASSEMBLER_TEST_GENERATE(Rbit, assembler) {
+  __ mov(R0, Operand(0x15));
+  __ rbit(R0, R0);
+  __ bx(LR);
+}
+
+ASSEMBLER_TEST_RUN(Rbit, test) {
+  EXPECT(test != NULL);
+  typedef int (*Rbit)() DART_UNUSED;
+  const int32_t expected = 0xa8000000;
+  EXPECT_EQ(expected, EXECUTE_TEST_CODE_INT32(Rbit, test->entry()));
+}
+
 ASSEMBLER_TEST_GENERATE(Tst, assembler) {
   Label skip;
 
@@ -1082,8 +1198,8 @@ ASSEMBLER_TEST_GENERATE(Ldrh, assembler) {
 
   __ mov(R1, Operand(0x11));
   __ mov(R2, Operand(SP));
-  __ str(R1, Address(SP, (-kWordSize * 30), Address::PreIndex));
-  __ ldrh(R0, Address(R2, (-kWordSize * 30)));
+  __ str(R1, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
+  __ ldrh(R0, Address(R2, (-target::kWordSize * 30)));
   __ cmp(R0, Operand(0x11));
   __ b(&Test1, EQ);
   __ mov(R0, Operand(1));
@@ -1091,8 +1207,8 @@ ASSEMBLER_TEST_GENERATE(Ldrh, assembler) {
   __ Bind(&Test1);
 
   __ mov(R0, Operand(0x22));
-  __ strh(R0, Address(R2, (-kWordSize * 30)));
-  __ ldrh(R1, Address(R2, (-kWordSize * 30)));
+  __ strh(R0, Address(R2, (-target::kWordSize * 30)));
+  __ ldrh(R1, Address(R2, (-target::kWordSize * 30)));
   __ cmp(R1, Operand(0x22));
   __ b(&Test2, EQ);
   __ mov(R0, Operand(1));
@@ -1100,7 +1216,7 @@ ASSEMBLER_TEST_GENERATE(Ldrh, assembler) {
   __ Bind(&Test2);
 
   __ mov(R0, Operand(0));
-  __ AddImmediate(R2, (-kWordSize * 30));
+  __ AddImmediate(R2, (-target::kWordSize * 30));
   __ strh(R0, Address(R2));
   __ ldrh(R1, Address(R2));
   __ cmp(R1, Operand(0));
@@ -1111,7 +1227,7 @@ ASSEMBLER_TEST_GENERATE(Ldrh, assembler) {
 
   __ mov(R0, Operand(0));
   __ Bind(&Done);
-  __ ldr(R1, Address(SP, (kWordSize * 30), Address::PostIndex));
+  __ ldr(R1, Address(SP, (target::kWordSize * 30), Address::PostIndex));
   __ bx(LR);
 }
 
@@ -1124,9 +1240,9 @@ ASSEMBLER_TEST_RUN(Ldrh, test) {
 ASSEMBLER_TEST_GENERATE(Ldrsb, assembler) {
   __ mov(R1, Operand(0xFF));
   __ mov(R2, Operand(SP));
-  __ str(R1, Address(SP, (-kWordSize * 30), Address::PreIndex));
-  __ ldrsb(R0, Address(R2, (-kWordSize * 30)));
-  __ ldr(R1, Address(SP, (kWordSize * 30), Address::PostIndex));
+  __ str(R1, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
+  __ ldrsb(R0, Address(R2, (-target::kWordSize * 30)));
+  __ ldr(R1, Address(SP, (target::kWordSize * 30), Address::PostIndex));
   __ bx(LR);
 }
 
@@ -1139,9 +1255,9 @@ ASSEMBLER_TEST_RUN(Ldrsb, test) {
 ASSEMBLER_TEST_GENERATE(Ldrb, assembler) {
   __ mov(R1, Operand(0xFF));
   __ mov(R2, Operand(SP));
-  __ str(R1, Address(SP, (-kWordSize * 30), Address::PreIndex));
-  __ ldrb(R0, Address(R2, (-kWordSize * 30)));
-  __ ldr(R1, Address(SP, (kWordSize * 30), Address::PostIndex));
+  __ str(R1, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
+  __ ldrb(R0, Address(R2, (-target::kWordSize * 30)));
+  __ ldr(R1, Address(SP, (target::kWordSize * 30), Address::PostIndex));
   __ bx(LR);
 }
 
@@ -1154,9 +1270,9 @@ ASSEMBLER_TEST_RUN(Ldrb, test) {
 ASSEMBLER_TEST_GENERATE(Ldrsh, assembler) {
   __ mov(R1, Operand(0xFF));
   __ mov(R2, Operand(SP));
-  __ str(R1, Address(SP, (-kWordSize * 30), Address::PreIndex));
-  __ ldrsh(R0, Address(R2, (-kWordSize * 30)));
-  __ ldr(R1, Address(SP, (kWordSize * 30), Address::PostIndex));
+  __ str(R1, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
+  __ ldrsh(R0, Address(R2, (-target::kWordSize * 30)));
+  __ ldr(R1, Address(SP, (target::kWordSize * 30), Address::PostIndex));
   __ bx(LR);
 }
 
@@ -1169,9 +1285,9 @@ ASSEMBLER_TEST_RUN(Ldrsh, test) {
 ASSEMBLER_TEST_GENERATE(Ldrh1, assembler) {
   __ mov(R1, Operand(0xFF));
   __ mov(R2, Operand(SP));
-  __ str(R1, Address(SP, (-kWordSize * 30), Address::PreIndex));
-  __ ldrh(R0, Address(R2, (-kWordSize * 30)));
-  __ ldr(R1, Address(SP, (kWordSize * 30), Address::PostIndex));
+  __ str(R1, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
+  __ ldrh(R0, Address(R2, (-target::kWordSize * 30)));
+  __ ldr(R1, Address(SP, (target::kWordSize * 30), Address::PostIndex));
   __ bx(LR);
 }
 
@@ -1183,12 +1299,12 @@ ASSEMBLER_TEST_RUN(Ldrh1, test) {
 
 ASSEMBLER_TEST_GENERATE(Ldrd, assembler) {
   __ mov(IP, Operand(SP));
-  __ sub(SP, SP, Operand(kWordSize * 30));
+  __ sub(SP, SP, Operand(target::kWordSize * 30));
   __ strd(R2, R3, SP, 0);
-  __ strd(R0, R1, IP, (-kWordSize * 28));
-  __ ldrd(R2, R3, IP, (-kWordSize * 28));
+  __ strd(R0, R1, IP, (-target::kWordSize * 28));
+  __ ldrd(R2, R3, IP, (-target::kWordSize * 28));
   __ ldrd(R0, R1, SP, 0);
-  __ add(SP, SP, Operand(kWordSize * 30));
+  __ add(SP, SP, Operand(target::kWordSize * 30));
   __ sub(R0, R0, Operand(R2));
   __ add(R1, R1, Operand(R3));
   __ bx(LR);
@@ -1215,12 +1331,12 @@ ASSEMBLER_TEST_GENERATE(Ldm_stm_da, assembler) {
   __ Push(R0);  // Make room, so we can decrement after.
   __ stm(DA_W, SP, (1 << R0 | 1 << R1 | 1 << R2 | 1 << R3));
   __ str(R2, Address(SP));                 // Should be a free slot.
-  __ ldr(R9, Address(SP, 1 * kWordSize));  // R0.  R9 = +1.
-  __ ldr(IP, Address(SP, 2 * kWordSize));  // R1.
+  __ ldr(R9, Address(SP, 1 * target::kWordSize));  // R0.  R9 = +1.
+  __ ldr(IP, Address(SP, 2 * target::kWordSize));  // R1.
   __ sub(R9, R9, Operand(IP));             // -R1. R9 = -6.
-  __ ldr(IP, Address(SP, 3 * kWordSize));  // R2.
+  __ ldr(IP, Address(SP, 3 * target::kWordSize));  // R2.
   __ add(R9, R9, Operand(IP));             // +R2. R9 = +5.
-  __ ldr(IP, Address(SP, 4 * kWordSize));  // R3.
+  __ ldr(IP, Address(SP, 4 * target::kWordSize));  // R3.
   __ sub(R9, R9, Operand(IP));             // -R3. R9 = -26.
   __ ldm(IB_W, SP, (1 << R0 | 1 << R1 | 1 << R2 | 1 << R3));
   // Same operations again. But this time from the restore registers.
@@ -1245,9 +1361,9 @@ ASSEMBLER_TEST_RUN(Ldm_stm_da, test) {
 
 ASSEMBLER_TEST_GENERATE(AddressShiftStrLSL1NegOffset, assembler) {
   __ mov(R2, Operand(42));
-  __ mov(R1, Operand(kWordSize));
+  __ mov(R1, Operand(target::kWordSize));
   __ str(R2, Address(SP, R1, LSL, 1, Address::NegOffset));
-  __ ldr(R0, Address(SP, (-kWordSize * 2), Address::Offset));
+  __ ldr(R0, Address(SP, (-target::kWordSize * 2), Address::Offset));
   __ bx(LR);
 }
 
@@ -1259,8 +1375,8 @@ ASSEMBLER_TEST_RUN(AddressShiftStrLSL1NegOffset, test) {
 
 ASSEMBLER_TEST_GENERATE(AddressShiftLdrLSL5NegOffset, assembler) {
   __ mov(R2, Operand(42));
-  __ mov(R1, Operand(kWordSize));
-  __ str(R2, Address(SP, (-kWordSize * 32), Address::Offset));
+  __ mov(R1, Operand(target::kWordSize));
+  __ str(R2, Address(SP, (-target::kWordSize * 32), Address::Offset));
   __ ldr(R0, Address(SP, R1, LSL, 5, Address::NegOffset));
   __ bx(LR);
 }
@@ -1273,9 +1389,9 @@ ASSEMBLER_TEST_RUN(AddressShiftLdrLSL5NegOffset, test) {
 
 ASSEMBLER_TEST_GENERATE(AddressShiftStrLRS1NegOffset, assembler) {
   __ mov(R2, Operand(42));
-  __ mov(R1, Operand(kWordSize * 2));
+  __ mov(R1, Operand(target::kWordSize * 2));
   __ str(R2, Address(SP, R1, LSR, 1, Address::NegOffset));
-  __ ldr(R0, Address(SP, -kWordSize, Address::Offset));
+  __ ldr(R0, Address(SP, -target::kWordSize, Address::Offset));
   __ bx(LR);
 }
 
@@ -1287,8 +1403,8 @@ ASSEMBLER_TEST_RUN(AddressShiftStrLRS1NegOffset, test) {
 
 ASSEMBLER_TEST_GENERATE(AddressShiftLdrLRS1NegOffset, assembler) {
   __ mov(R2, Operand(42));
-  __ mov(R1, Operand(kWordSize * 2));
-  __ str(R2, Address(SP, -kWordSize, Address::Offset));
+  __ mov(R1, Operand(target::kWordSize * 2));
+  __ str(R2, Address(SP, -target::kWordSize, Address::Offset));
   __ ldr(R0, Address(SP, R1, LSR, 1, Address::NegOffset));
   __ bx(LR);
 }
@@ -1301,10 +1417,10 @@ ASSEMBLER_TEST_RUN(AddressShiftLdrLRS1NegOffset, test) {
 
 ASSEMBLER_TEST_GENERATE(AddressShiftStrLSLNegPreIndex, assembler) {
   __ mov(R2, Operand(42));
-  __ mov(R1, Operand(kWordSize));
+  __ mov(R1, Operand(target::kWordSize));
   __ mov(R3, Operand(SP));
   __ str(R2, Address(SP, R1, LSL, 5, Address::NegPreIndex));
-  __ ldr(R0, Address(R3, (-kWordSize * 32), Address::Offset));
+  __ ldr(R0, Address(R3, (-target::kWordSize * 32), Address::Offset));
   __ mov(SP, Operand(R3));
   __ bx(LR);
 }
@@ -1317,8 +1433,8 @@ ASSEMBLER_TEST_RUN(AddressShiftStrLSLNegPreIndex, test) {
 
 ASSEMBLER_TEST_GENERATE(AddressShiftLdrLSLNegPreIndex, assembler) {
   __ mov(R2, Operand(42));
-  __ mov(R1, Operand(kWordSize));
-  __ str(R2, Address(SP, (-kWordSize * 32), Address::PreIndex));
+  __ mov(R1, Operand(target::kWordSize));
+  __ str(R2, Address(SP, (-target::kWordSize * 32), Address::PreIndex));
   __ ldr(R0, Address(SP, R1, LSL, 5, Address::PostIndex));
   __ bx(LR);
 }
@@ -3416,43 +3532,6 @@ ASSEMBLER_TEST_RUN(Vmaxqs, test) {
   }
 }
 
-// This is the same function as in the Simulator.
-static float arm_recip_estimate(float a) {
-  // From the ARM Architecture Reference Manual A2-85.
-  if (isinf(a) || (fabs(a) >= exp2f(126)))
-    return 0.0;
-  else if (a == 0.0)
-    return kPosInfinity;
-  else if (isnan(a))
-    return a;
-
-  uint32_t a_bits = bit_cast<uint32_t, float>(a);
-  // scaled = '0011 1111 1110' : a<22:0> : Zeros(29)
-  uint64_t scaled = (static_cast<uint64_t>(0x3fe) << 52) |
-                    ((static_cast<uint64_t>(a_bits) & 0x7fffff) << 29);
-  // result_exp = 253 - UInt(a<30:23>)
-  int32_t result_exp = 253 - ((a_bits >> 23) & 0xff);
-  ASSERT((result_exp >= 1) && (result_exp <= 252));
-
-  double scaled_d = bit_cast<double, uint64_t>(scaled);
-  ASSERT((scaled_d >= 0.5) && (scaled_d < 1.0));
-
-  // a in units of 1/512 rounded down.
-  int32_t q = static_cast<int32_t>(scaled_d * 512.0);
-  // reciprocal r.
-  double r = 1.0 / ((static_cast<double>(q) + 0.5) / 512.0);
-  // r in units of 1/256 rounded to nearest.
-  int32_t s = static_cast<int32_t>(256.0 * r + 0.5);
-  double estimate = static_cast<double>(s) / 256.0;
-  ASSERT((estimate >= 1.0) && (estimate <= (511.0 / 256.0)));
-
-  // result = sign : result_exp<7:0> : estimate<51:29>
-  int32_t result_bits =
-      (a_bits & 0x80000000) | ((result_exp & 0xff) << 23) |
-      ((bit_cast<uint64_t, double>(estimate) >> 29) & 0x7fffff);
-  return bit_cast<float, int32_t>(result_bits);
-}
-
 ASSEMBLER_TEST_GENERATE(Vrecpeqs, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S4, 147.0);
@@ -3469,7 +3548,7 @@ ASSEMBLER_TEST_RUN(Vrecpeqs, test) {
   if (TargetCPUFeatures::neon_supported()) {
     typedef float (*Vrecpeqs)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(Vrecpeqs, test->entry());
-    EXPECT_FLOAT_EQ(arm_recip_estimate(147.0), res, 0.0001f);
+    EXPECT_FLOAT_EQ(ReciprocalEstimate(147.0), res, 0.0001f);
   }
 }
 
@@ -3526,60 +3605,6 @@ ASSEMBLER_TEST_RUN(Reciprocal, test) {
   }
 }
 
-static float arm_reciprocal_sqrt_estimate(float a) {
-  // From the ARM Architecture Reference Manual A2-87.
-  if (isinf(a) || (fabs(a) >= exp2f(126)))
-    return 0.0;
-  else if (a == 0.0)
-    return kPosInfinity;
-  else if (isnan(a))
-    return a;
-
-  uint32_t a_bits = bit_cast<uint32_t, float>(a);
-  uint64_t scaled;
-  if (((a_bits >> 23) & 1) != 0) {
-    // scaled = '0 01111111101' : operand<22:0> : Zeros(29)
-    scaled = (static_cast<uint64_t>(0x3fd) << 52) |
-             ((static_cast<uint64_t>(a_bits) & 0x7fffff) << 29);
-  } else {
-    // scaled = '0 01111111110' : operand<22:0> : Zeros(29)
-    scaled = (static_cast<uint64_t>(0x3fe) << 52) |
-             ((static_cast<uint64_t>(a_bits) & 0x7fffff) << 29);
-  }
-  // result_exp = (380 - UInt(operand<30:23>) DIV 2;
-  int32_t result_exp = (380 - ((a_bits >> 23) & 0xff)) / 2;
-
-  double scaled_d = bit_cast<double, uint64_t>(scaled);
-  ASSERT((scaled_d >= 0.25) && (scaled_d < 1.0));
-
-  double r;
-  if (scaled_d < 0.5) {
-    // range 0.25 <= a < 0.5
-
-    // a in units of 1/512 rounded down.
-    int32_t q0 = static_cast<int32_t>(scaled_d * 512.0);
-    // reciprocal root r.
-    r = 1.0 / sqrt((static_cast<double>(q0) + 0.5) / 512.0);
-  } else {
-    // range 0.5 <= a < 1.0
-
-    // a in units of 1/256 rounded down.
-    int32_t q1 = static_cast<int32_t>(scaled_d * 256.0);
-    // reciprocal root r.
-    r = 1.0 / sqrt((static_cast<double>(q1) + 0.5) / 256.0);
-  }
-  // r in units of 1/256 rounded to nearest.
-  int32_t s = static_cast<int>(256.0 * r + 0.5);
-  double estimate = static_cast<double>(s) / 256.0;
-  ASSERT((estimate >= 1.0) && (estimate <= (511.0 / 256.0)));
-
-  // result = 0 : result_exp<7:0> : estimate<51:29>
-  int32_t result_bits =
-      ((result_exp & 0xff) << 23) |
-      ((bit_cast<uint64_t, double>(estimate) >> 29) & 0x7fffff);
-  return bit_cast<float, int32_t>(result_bits);
-}
-
 ASSEMBLER_TEST_GENERATE(Vrsqrteqs, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S4, 147.0);
@@ -3597,7 +3622,7 @@ ASSEMBLER_TEST_RUN(Vrsqrteqs, test) {
   if (TargetCPUFeatures::neon_supported()) {
     typedef float (*Vrsqrteqs)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(Vrsqrteqs, test->entry());
-    EXPECT_FLOAT_EQ(arm_reciprocal_sqrt_estimate(147.0), res, 0.0001f);
+    EXPECT_FLOAT_EQ(ReciprocalSqrtEstimate(147.0), res, 0.0001f);
   }
 }
 
@@ -3845,6 +3870,7 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ Ret();
 }
 
+}  // namespace compiler
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM

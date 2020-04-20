@@ -2,17 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library lib;
-
-@MirrorsUsed(targets: "lib")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 class A<T> {}
 
 class B<T extends A> extends A implements C {
-  A m(A a) {}
-  A field;
+  A m(A a) => a;
+  late A field;
 }
 
 class C<S, T> {}
@@ -29,10 +26,10 @@ main() {
   TypeMirror cInstance = reflect(new C<dynamic, dynamic>()).type;
   TypeMirror cNestedInstance = reflect(new C<C, dynamic>()).type;
   TypeMirror cTypeArgument = cNestedInstance.typeArguments.first;
-  TypeMirror superA = bDecl.superclass;
+  TypeMirror superA = bDecl.superclass!;
   TypeMirror superC = bDecl.superinterfaces.single;
-  MethodMirror m = bDecl.declarations[#m];
-  VariableMirror field = bDecl.declarations[#field];
+  MethodMirror m = bDecl.declarations[#m] as MethodMirror;
+  VariableMirror field = bDecl.declarations[#field] as VariableMirror;
   TypeMirror returnTypeA = m.returnType;
   TypeMirror parameterTypeA = m.parameters.first.type;
   TypeMirror fieldTypeA = field.type;

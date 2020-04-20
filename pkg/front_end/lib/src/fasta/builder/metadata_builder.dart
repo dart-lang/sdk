@@ -4,61 +4,46 @@
 
 library fasta.metadata_builder;
 
-import 'builder.dart' show Builder, TypeBuilder;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
-import 'constructor_reference_builder.dart' show ConstructorReferenceBuilder;
+import 'package:kernel/ast.dart' show Annotatable, Class, Library;
 
-abstract class MetadataBuilder<T extends TypeBuilder> extends Builder {
-  MetadataBuilder(Builder parent, int charOffset)
-      : super(parent, -1, parent.fileUri);
+import '../kernel/body_builder.dart' show BodyBuilder;
 
-  factory MetadataBuilder.fromConstructor(
-      ConstructorReferenceBuilder constructorReference,
-      List arguments,
-      Builder parent,
-      int charOffset) {
-    return new ConstructorMetadataBuilder(
-        constructorReference, arguments, parent, charOffset);
-  }
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
-  factory MetadataBuilder.fromExpression(
-      Object expression, String postfix, Builder parent, int charOffset) {
-    return new ExpressionMetadataBuilder(
-        expression, postfix, parent, charOffset);
-  }
-}
+import '../scope.dart' show Scope;
 
-class ConstructorMetadataBuilder<T extends TypeBuilder>
-    extends MetadataBuilder<T> {
-  final ConstructorReferenceBuilder constructorReference;
+import 'class_builder.dart';
+import 'member_builder.dart';
 
-  final List arguments;
+class MetadataBuilder {
+  final Token beginToken;
 
-  ConstructorMetadataBuilder(
-      this.constructorReference, this.arguments, Builder parent, int charOffset)
-      : super(parent, charOffset);
+  int get charOffset => beginToken.charOffset;
 
-  @override
-  String get fullNameForErrors => constructorReference.fullNameForErrors;
-}
+  MetadataBuilder(this.beginToken);
 
-/// Expression metadata (without arguments).
-///
-/// Matches this grammar rule:
-///
-///    '@' qualified (‘.’ identifier)?
-class ExpressionMetadataBuilder<T extends TypeBuilder>
-    extends MetadataBuilder<T> {
-  final Object qualified;
-
-  final String identifier;
-
-  ExpressionMetadataBuilder(
-      this.qualified, this.identifier, Builder parent, int charOffset)
-      : super(parent, charOffset);
-
-  @override
-  String get fullNameForErrors {
-    return identifier == null ? qualified : "$qualified.$identifier";
+  static void buildAnnotations(
+      Annotatable parent,
+      List<MetadataBuilder> metadata,
+      SourceLibraryBuilder library,
+      ClassBuilder classBuilder,
+      MemberBuilder member) {
+    if (metadata == null) return;
+    Uri fileUri = member?.fileUri ?? classBuilder?.fileUri ?? library.fileUri;
+    Scope scope = parent is Library || parent is Class || classBuilder == null
+        ? library.scope
+        : classBuilder.scope;
+    BodyBuilder bodyBuilder = library.loader
+        .createBodyBuilderForOutlineExpression(
+            library, classBuilder, member, scope, fileUri);
+    for (int i = 0; i < metadata.length; ++i) {
+      MetadataBuilder annotationBuilder = metadata[i];
+      parent.addAnnotation(
+          bodyBuilder.parseAnnotation(annotationBuilder.beginToken));
+    }
+    bodyBuilder.inferAnnotations(parent, parent.annotations);
+    bodyBuilder.resolveRedirectingFactoryTargets();
   }
 }

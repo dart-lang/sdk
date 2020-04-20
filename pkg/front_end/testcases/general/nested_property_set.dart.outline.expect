@@ -1,0 +1,21 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class NumField extends core::Object {
+  field core::num* field;
+  synthetic constructor •() → self::NumField*
+    ;
+}
+class IntField extends core::Object {
+  field core::int* field;
+  synthetic constructor •() → self::IntField*
+    ;
+}
+class DoubleField extends core::Object {
+  field core::double* field;
+  synthetic constructor •() → self::DoubleField*
+    ;
+}
+static method main() → dynamic
+  ;

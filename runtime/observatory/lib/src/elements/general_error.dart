@@ -13,11 +13,11 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 
-class GeneralErrorElement extends HtmlElement implements Renderable {
+class GeneralErrorElement extends CustomElement implements Renderable {
   static const tag = const Tag<GeneralErrorElement>('general-error',
       dependencies: const [NavTopMenuElement.tag, NavNotifyElement.tag]);
 
-  RenderingScheduler _r;
+  RenderingScheduler<GeneralErrorElement> _r;
 
   Stream<RenderedEvent<GeneralErrorElement>> get onRendered => _r.onRendered;
 
@@ -32,14 +32,14 @@ class GeneralErrorElement extends HtmlElement implements Renderable {
       {String message: '', RenderingQueue queue}) {
     assert(notifications != null);
     assert(message != null);
-    GeneralErrorElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    GeneralErrorElement e = new GeneralErrorElement.created();
+    e._r = new RenderingScheduler<GeneralErrorElement>(e, queue: queue);
     e._message = message;
     e._notifications = notifications;
     return e;
   }
 
-  GeneralErrorElement.created() : super.created();
+  GeneralErrorElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -50,19 +50,19 @@ class GeneralErrorElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    children = [
-      navBar([
-        new NavTopMenuElement(queue: _r.queue),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+    children = <Element>[
+      navBar(<Element>[
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h1()..text = 'Error',
           new BRElement(),
           new DivElement()

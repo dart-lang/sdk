@@ -25,20 +25,25 @@ RawCode* CodeBreakpoint::OrigStubAddress() const {
 
 void CodeBreakpoint::PatchCode() {
   ASSERT(!is_enabled_);
-  const Code& code = Code::Handle(code_);
-  const Instructions& instrs = Instructions::Handle(code.instructions());
-  Code& stub_target = Code::Handle();
-  {
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+  const Code& code = Code::Handle(zone, code_);
+  const Instructions& instrs = Instructions::Handle(zone, code.instructions());
+  Code& stub_target = Code::Handle(zone);
+  thread->isolate_group()->RunWithStoppedMutators([&]() {
     WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
     switch (breakpoint_kind_) {
-      case RawPcDescriptors::kIcCall:
+      case RawPcDescriptors::kIcCall: {
+        stub_target = StubCode::ICCallBreakpoint().raw();
+        break;
+      }
       case RawPcDescriptors::kUnoptStaticCall: {
-        stub_target = StubCode::ICCallBreakpoint_entry()->code();
+        stub_target = StubCode::UnoptStaticCallBreakpoint().raw();
         break;
       }
       case RawPcDescriptors::kRuntimeCall: {
         saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
-        stub_target = StubCode::RuntimeCallBreakpoint_entry()->code();
+        stub_target = StubCode::RuntimeCallBreakpoint().raw();
         break;
       }
       default:
@@ -46,15 +51,17 @@ void CodeBreakpoint::PatchCode() {
     }
     saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
     CodePatcher::PatchStaticCallAt(pc_, code, stub_target);
-  }
+  });
   is_enabled_ = true;
 }
 
 void CodeBreakpoint::RestoreCode() {
   ASSERT(is_enabled_);
-  const Code& code = Code::Handle(code_);
-  const Instructions& instrs = Instructions::Handle(code.instructions());
-  {
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+  const Code& code = Code::Handle(zone, code_);
+  const Instructions& instrs = Instructions::Handle(zone, code.instructions());
+  thread->isolate_group()->RunWithStoppedMutators([&]() {
     WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
     switch (breakpoint_kind_) {
       case RawPcDescriptors::kIcCall:
@@ -66,7 +73,7 @@ void CodeBreakpoint::RestoreCode() {
       default:
         UNREACHABLE();
     }
-  }
+  });
   is_enabled_ = false;
 }
 

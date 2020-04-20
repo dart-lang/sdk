@@ -4,12 +4,12 @@
 
 library dart2js.world.class_set;
 
-import 'dart:collection' show IterableBase;
+import 'dart:collection' show IterableBase, MapBase;
 
-import '../elements/elements.dart' show ClassElement;
 import '../elements/entities.dart' show ClassEntity;
+import '../elements/indexed.dart' show IndexedClass;
+import '../serialization/serialization.dart';
 import '../util/enumset.dart' show EnumSet;
-import '../util/util.dart' show Link;
 
 /// Enum for the different kinds of instantiation of a class.
 enum Instantiation {
@@ -45,6 +45,10 @@ enum Instantiation {
 ///       E
 ///
 class ClassHierarchyNode {
+  /// Tag used for identifying serialized [ClassHierarchyNode] objects in a
+  /// debugging data stream.
+  static const String tag = 'class-hierarchy-node';
+
   /// Enum set for selecting instantiated classes in
   /// [ClassHierarchyNode.subclassesByMask],
   /// [ClassHierarchyNode.subclassesByMask] and [ClassSet.subtypesByMask].
@@ -95,9 +99,9 @@ class ClassHierarchyNode {
   }
 
   final ClassHierarchyNode parentNode;
-  final ClassEntity cls;
   final EnumSet<Instantiation> _mask = new EnumSet<Instantiation>.fromValues(
       const <Instantiation>[Instantiation.UNINSTANTIATED]);
+  final IndexedClass cls;
 
   final int hierarchyDepth;
 
@@ -200,7 +204,7 @@ class ClassHierarchyNode {
   }
 
   /// The nodes for the direct subclasses of [cls].
-  Link<ClassHierarchyNode> _directSubclasses = const Link<ClassHierarchyNode>();
+  List<ClassHierarchyNode> _directSubclasses = <ClassHierarchyNode>[];
 
   ClassHierarchyNode(this.parentNode, this.cls, this.hierarchyDepth) {
     if (parentNode != null) {
@@ -208,10 +212,42 @@ class ClassHierarchyNode {
     }
   }
 
+  /// Deserializes a [ClassHierarchyNode] object from [source].
+  factory ClassHierarchyNode.readFromDataSource(
+      DataSource source, Map<ClassEntity, ClassHierarchyNode> nodeMap) {
+    source.begin(tag);
+    IndexedClass cls = source.readClass();
+    ClassHierarchyNode parentNode;
+    IndexedClass superclass = source.readClassOrNull();
+    if (superclass != null) {
+      parentNode = nodeMap[superclass];
+      assert(parentNode != null,
+          "No ClassHierarchyNode for superclass $superclass.");
+    }
+    int maskValue = source.readInt();
+    int hierarchyDepth = source.readInt();
+    int instantiatedSubclassCount = source.readInt();
+    source.end(tag);
+    return new ClassHierarchyNode(parentNode, cls, hierarchyDepth)
+      .._instantiatedSubclassCount = instantiatedSubclassCount
+      .._mask.value = maskValue;
+  }
+
+  /// Serializes this [ClassHierarchyNode] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeClass(cls);
+    sink.writeClassOrNull(parentNode?.cls);
+    sink.writeInt(_mask.value);
+    sink.writeInt(hierarchyDepth);
+    sink.writeInt(_instantiatedSubclassCount);
+    sink.end(tag);
+  }
+
   /// Adds [subclass] as a direct subclass of [cls].
   void addDirectSubclass(ClassHierarchyNode subclass) {
     assert(!_directSubclasses.contains(subclass));
-    _directSubclasses = _directSubclasses.prepend(subclass);
+    _directSubclasses.add(subclass);
   }
 
   Iterable<ClassHierarchyNode> get directSubclasses => _directSubclasses;
@@ -322,12 +358,10 @@ class ClassHierarchyNode {
       return null;
     }
     ClassHierarchyNode subclass;
-    for (Link<ClassHierarchyNode> link = _directSubclasses;
-        !link.isEmpty;
-        link = link.tail) {
-      if (link.head.isInstantiated) {
+    for (ClassHierarchyNode node in _directSubclasses) {
+      if (node.isInstantiated) {
         if (subclass == null) {
-          subclass = link.head;
+          subclass = node;
         } else {
           return cls;
         }
@@ -342,11 +376,12 @@ class ClassHierarchyNode {
   void printOn(StringBuffer sb, String indentation,
       {bool instantiatedOnly: false,
       bool sorted: true,
-      ClassElement withRespectTo}) {
+      ClassEntity withRespectTo}) {
     bool isRelatedTo(ClassEntity _subclass) {
-      ClassElement subclass = _subclass;
-      return subclass == withRespectTo ||
-          subclass.implementsInterface(withRespectTo);
+      return true;
+      // TODO(johnniwinther): Support this for kernel based elements:
+      // return subclass == withRespectTo ||
+      //    subclass.implementsInterface(withRespectTo);
     }
 
     sb.write(indentation);
@@ -406,13 +441,14 @@ class ClassHierarchyNode {
   String dump(
       {String indentation: '',
       bool instantiatedOnly: false,
-      ClassElement withRespectTo}) {
+      ClassEntity withRespectTo}) {
     StringBuffer sb = new StringBuffer();
     printOn(sb, indentation,
         instantiatedOnly: instantiatedOnly, withRespectTo: withRespectTo);
     return sb.toString();
   }
 
+  @override
   String toString() => cls.toString();
 }
 
@@ -453,7 +489,7 @@ class ClassHierarchyNode {
 ///      A  ->  [C, D, F]
 ///
 /// The subtypes `B` and `E` are not directly modeled because they are implied
-/// by their subclass relation to `A` and `D`, repectively. This can be seen
+/// by their subclass relation to `A` and `D`, respectively. This can be seen
 /// if we expand the subclass subtrees:
 ///
 ///      A  ->  [C, D, F]
@@ -461,6 +497,10 @@ class ClassHierarchyNode {
 ///      B          E
 ///
 class ClassSet {
+  /// Tag used for identifying serialized [ClassSet] objects in a debugging
+  /// data stream.
+  static const String tag = 'class-set';
+
   final ClassHierarchyNode node;
   ClassEntity _leastUpperInstantiatedSubtype;
 
@@ -482,7 +522,53 @@ class ClassSet {
   ///
   List<ClassHierarchyNode> _subtypes;
 
+  /// A list of the class hierarchy nodes for the class that directly mix in
+  /// [cls].
+  ///
+  /// For instance
+  ///
+  ///     class A {}
+  ///     class B extends Object with A {}
+  ///     class C = Object with A;
+  ///     class D extends B {}
+  ///     class E extends C {}
+  ///
+  /// The class hierarchy nodes for the unnamed mixin application `Object+A` and
+  /// the named mixin application `C` are in [_mixinApplications].
+  ///
+  List<ClassHierarchyNode> _mixinApplications;
+
   ClassSet(this.node);
+
+  /// Deserializes a [ClassSet] object from [source].
+  factory ClassSet.readFromDataSource(
+      DataSource source, Map<ClassEntity, ClassHierarchyNode> nodeMap) {
+    source.begin(tag);
+    ClassHierarchyNode node = nodeMap[source.readClass()];
+    List<ClassHierarchyNode> subtypes = source.readList(() {
+      return nodeMap[source.readClass()];
+    }, emptyAsNull: true);
+    List<ClassHierarchyNode> mixinApplications = source.readList(() {
+      return nodeMap[source.readClass()];
+    }, emptyAsNull: true);
+    source.end(tag);
+    return new ClassSet(node)
+      .._subtypes = subtypes
+      .._mixinApplications = mixinApplications;
+  }
+
+  /// Serializes this [ClassSet] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeClass(node.cls);
+    sink.writeList(_subtypes, (ClassHierarchyNode node) {
+      sink.writeClass(node.cls);
+    }, allowNull: true);
+    sink.writeList(_mixinApplications, (ClassHierarchyNode node) {
+      sink.writeClass(node.cls);
+    }, allowNull: true);
+    sink.end(tag);
+  }
 
   ClassEntity get cls => node.cls;
 
@@ -527,8 +613,18 @@ class ClassSet {
     return true;
   }
 
+  /// Returns an [Iterable] of the classes that implement [cls] directly or
+  /// through supertypes.
+  ///
+  /// A class that implements [cls] through its superclasses is not included in
+  /// the iterable.
   Iterable<ClassHierarchyNode> get subtypeNodes {
     return _subtypes ?? const <ClassHierarchyNode>[];
+  }
+
+  /// Returns an [Iterable] of the classes that mix in [cls] directly.
+  Iterable<ClassHierarchyNode> get mixinApplicationNodes {
+    return _mixinApplications ?? const <ClassHierarchyNode>[];
   }
 
   /// Returns an [Iterable] of the subclasses of [cls] possibly including [cls].
@@ -701,6 +797,15 @@ class ClassSet {
     }
   }
 
+  /// Adds [mixinApplication] as a class that mixes in [cls].
+  void addMixinApplication(ClassHierarchyNode mixinApplication) {
+    if (_mixinApplications == null) {
+      _mixinApplications = <ClassHierarchyNode>[mixinApplication];
+    } else {
+      _mixinApplications.add(mixinApplication);
+    }
+  }
+
   /// Returns the most specific subtype of [cls] (including [cls]) that is
   /// directly instantiated or a superclass of all directly instantiated
   /// subtypes. If no subtypes of [cls] are instantiated, `null` is returned.
@@ -737,13 +842,22 @@ class ClassSet {
     return null;
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('[\n');
     node.printOn(sb, '  ');
     sb.write('\n');
     if (_subtypes != null) {
+      sb.write('  subtypes:\n');
       for (ClassHierarchyNode node in _subtypes) {
+        node.printOn(sb, '  ');
+        sb.write('\n');
+      }
+    }
+    if (_mixinApplications != null) {
+      sb.write('  mixin-applications:\n');
+      for (ClassHierarchyNode node in _mixinApplications) {
         node.printOn(sb, '  ');
         sb.write('\n');
       }
@@ -784,7 +898,7 @@ class ClassHierarchyNodeIterator implements Iterator<ClassEntity> {
   /// Stack of pending class nodes.
   ///
   /// This is `null` before the first call to [moveNext].
-  Link<ClassHierarchyNode> stack;
+  List<ClassHierarchyNode> stack;
 
   ClassHierarchyNodeIterator(this.iterable);
 
@@ -807,7 +921,7 @@ class ClassHierarchyNodeIterator implements Iterator<ClassEntity> {
   bool moveNext() {
     if (stack == null) {
       // First call to moveNext
-      stack = const Link<ClassHierarchyNode>().prepend(root);
+      stack = [root];
       return _findNext();
     } else {
       // Initialized state.
@@ -825,17 +939,16 @@ class ClassHierarchyNodeIterator implements Iterator<ClassEntity> {
         currentNode = null;
         return false;
       }
-      currentNode = stack.head;
-      stack = stack.tail;
+      currentNode = stack.removeLast();
       if (!includeUninstantiated && !currentNode.isInstantiated) {
         // We're only iterating instantiated classes so there is no use in
         // visiting the current node and its subtree.
         continue;
       }
-      for (Link<ClassHierarchyNode> link = currentNode._directSubclasses;
-          !link.isEmpty;
-          link = link.tail) {
-        stack = stack.prepend(link.head);
+      // Add direct subclasses in reverse order so will visit them in the list
+      // order.
+      for (int i = currentNode._directSubclasses.length - 1; i >= 0; i--) {
+        stack.add(currentNode._directSubclasses[i]);
       }
       if (_isValid(currentNode)) {
         return true;
@@ -926,3 +1039,50 @@ enum IterationStep {
 /// and [ClassSet]. The return value controls the continued iteration. If `null`
 /// is returned, iteration continues to the end.
 typedef IterationStep ForEachFunction(ClassEntity cls);
+
+/// Singleton map implemented as a field on the key.
+class ClassHierarchyNodesMap extends MapBase<ClassEntity, ClassHierarchyNode> {
+  @override
+  ClassHierarchyNode operator [](Object cls) {
+    // TODO(sra): Change the key type to `covariant ClassHierarchyNodesMapKey`.
+    if (cls is ClassHierarchyNodesMapKey) {
+      return cls._classHierarchyNode;
+    }
+    throw new UnimplementedError('ClassHierarchyNodesMap for $cls');
+  }
+
+  @override
+  operator []=(Object cls, ClassHierarchyNode node) {
+    // TODO(sra): Change the key type to `covariant ClassHierarchyNodesMapKey`.
+    if (cls is ClassHierarchyNodesMapKey) {
+      cls._classHierarchyNode = node;
+      return;
+    }
+    throw new UnimplementedError('ClassHierarchyNodesMap for $cls');
+  }
+
+  @override
+  ClassHierarchyNode putIfAbsent(
+      ClassEntity cls, ClassHierarchyNode ifAbsent()) {
+    return this[cls] ??= ifAbsent();
+  }
+
+  @override
+  Iterable<ClassEntity> get keys {
+    throw new UnimplementedError('ClassHierarchyNodesMap.keys');
+  }
+
+  @override
+  ClassHierarchyNode remove(Object key) {
+    throw new UnimplementedError('ClassHierarchyNodesMap.remove');
+  }
+
+  @override
+  void clear() {
+    throw new UnimplementedError('ClassHierarchyNodesMap.clear');
+  }
+}
+
+abstract class ClassHierarchyNodesMapKey implements ClassEntity {
+  ClassHierarchyNode _classHierarchyNode;
+}

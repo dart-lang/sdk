@@ -1,0 +1,265 @@
+main = #lib::main;
+ [@vm.bytecode=
+BytecodeMetadata {
+Bytecode (version: stable)
+Main library: #lib
+Library '#lib'
+    name '#lib'
+    script '#lib'
+
+Class '', script = '#lib'
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+}
+
+Class 'A', script = '#lib'
+    extends dart:core::Object
+
+Field 'foo1', type = dart:core::int, getter = 'get:foo1', setter = 'set:foo1', reflectable
+    value = null
+
+Field 'foo2', type = dart:core::int, getter = 'get:foo2', setter = 'set:foo2', reflectable, has-initializer
+    value = null
+
+Field 'foo3', type = dart:core::int, getter = 'get:foo3', setter = 'set:foo3', reflectable, has-initializer
+    value = const 42
+
+Field 'foo4', type = dart:core::int, getter = 'get:foo4', setter = 'set:foo4', reflectable
+    value = null
+
+Field 'foo5', type = dart:core::int, getter = 'get:foo5', setter = 'set:foo5', reflectable, has-initializer
+    value = const 43
+
+Function '', constructor, reflectable, debuggable
+    parameters [dart:core::int 'foo4'] (required: 1)
+    return-type #lib::A
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-6]
+  PushInt              42
+  StoreFieldTOS        CP#0
+  PushInt              43
+  Drop1
+  Push                 FP[-6]
+  Push                 FP[-5]
+  StoreFieldTOS        CP#2
+  Push                 FP[-6]
+  PushInt              44
+  StoreFieldTOS        CP#4
+  Push                 FP[-6]
+  DirectCall           CP#6, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+Nullable fields: [#lib::A::foo1 (field), #lib::A::foo2 (field)]
+ConstantPool {
+  [0] = InstanceField #lib::A::foo3 (field)
+  [1] = Reserved
+  [2] = InstanceField #lib::A::foo4 (field)
+  [3] = Reserved
+  [4] = InstanceField #lib::A::foo5 (field)
+  [5] = Reserved
+  [6] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [7] = Reserved
+}
+
+
+Function 'constr2', constructor, reflectable, debuggable
+    parameters [dart:core::int 'x', dart:core::int 'y'] (required: 2)
+    return-type #lib::A
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-7]
+  PushInt              42
+  StoreFieldTOS        CP#0
+  PushInt              43
+  Drop1
+  Push                 FP[-7]
+  Push                 FP[-6]
+  StoreFieldTOS        CP#2
+  Push                 FP[-7]
+  Push                 FP[-5]
+  PushInt              1
+  AddInt
+  StoreFieldTOS        CP#4
+  Push                 FP[-7]
+  DirectCall           CP#6, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+Nullable fields: [#lib::A::foo2 (field), #lib::A::foo4 (field)]
+ConstantPool {
+  [0] = InstanceField #lib::A::foo3 (field)
+  [1] = Reserved
+  [2] = InstanceField #lib::A::foo1 (field)
+  [3] = Reserved
+  [4] = InstanceField #lib::A::foo5 (field)
+  [5] = Reserved
+  [6] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [7] = Reserved
+}
+
+
+Function 'redirecting1', constructor, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type #lib::A
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  PushInt              45
+  DirectCall           CP#0, 2
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall '#lib::A:: (constructor)', ArgDesc num-args 2, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'redirecting2', constructor, reflectable, debuggable
+    parameters [dart:core::int 'a', dart:core::int 'b', dart:core::int 'c'] (required: 3)
+    return-type #lib::A
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-8]
+  Push                 FP[-7]
+  Push                 FP[-6]
+  Push                 FP[-5]
+  MulInt
+  DirectCall           CP#0, 3
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall '#lib::A::constr2 (constructor)', ArgDesc num-args 3, num-type-args 0, names []
+  [1] = Reserved
+}
+
+Class 'B', script = '#lib'
+    extends #lib::A
+
+Field 'foo6', type = dart:core::int, getter = 'get:foo6', setter = 'set:foo6', reflectable, has-initializer
+    value = const 46
+
+Field 'foo7', type = dart:core::int, reflectable, static, has-initializer
+    value = const 47
+
+Field 'foo8', type = dart:core::int, reflectable, static, const, final, has-initializer
+    value = const 48
+
+Function '', constructor, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type #lib::B
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  PushInt              46
+  StoreFieldTOS        CP#0
+  Push                 FP[-5]
+  PushInt              49
+  DirectCall           CP#2, 2
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InstanceField #lib::B::foo6 (field)
+  [1] = Reserved
+  [2] = DirectCall '#lib::A:: (constructor)', ArgDesc num-args 2, num-type-args 0, names []
+  [3] = Reserved
+}
+
+
+Function 'c2', constructor, reflectable, debuggable
+    parameters [dart:core::int 'i', dart:core::int 'j'] (required: 2)
+    return-type #lib::B
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushInt              46
+  Drop1
+  Push                 FP[-7]
+  PushInt              50
+  StoreFieldTOS        CP#0
+  Push                 FP[-7]
+  Push                 FP[-6]
+  Push                 FP[-5]
+  PushInt              51
+  DirectCall           CP#2, 4
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InstanceField #lib::B::foo6 (field)
+  [1] = Reserved
+  [2] = DirectCall '#lib::A::redirecting2 (constructor)', ArgDesc num-args 4, num-type-args 0, names []
+  [3] = Reserved
+}
+
+
+}
+]library #lib from "#lib" as #lib {
+
+  class A extends dart.core::Object {
+    field dart.core::int* foo1;
+    field dart.core::int* foo2 = null;
+    field dart.core::int* foo3 = 42;
+    field dart.core::int* foo4;
+    field dart.core::int* foo5 = 43;
+    constructor •(dart.core::int* foo4) → #lib::A*
+      : #lib::A::foo1 = null, #lib::A::foo4 = foo4, #lib::A::foo5 = 44, super dart.core::Object::•()
+      ;
+    constructor constr2(dart.core::int* x, dart.core::int* y) → #lib::A*
+      : #lib::A::foo4 = null, #lib::A::foo1 = x, #lib::A::foo5 = y.{dart.core::num::+}(1), super dart.core::Object::•()
+      ;
+    constructor redirecting1() → #lib::A*
+      : this #lib::A::•(45)
+      ;
+    constructor redirecting2(dart.core::int* a, dart.core::int* b, dart.core::int* c) → #lib::A*
+      : this #lib::A::constr2(a, b.{dart.core::num::*}(c))
+      ;
+  }
+  class B extends #lib::A {
+    field dart.core::int* foo6 = 46;
+    static field dart.core::int* foo7 = 47;
+    static const field dart.core::int* foo8 = #C1;
+    constructor •() → #lib::B*
+      : super #lib::A::•(49)
+      ;
+    constructor c2(dart.core::int* i, dart.core::int* j) → #lib::B*
+      : #lib::B::foo6 = 50, super #lib::A::redirecting2(i, j, 51)
+      ;
+  }
+  static method main() → dynamic {}
+}
+constants  {
+  #C1 = 48
+}

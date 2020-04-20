@@ -31,8 +31,8 @@ main() {
     Expect.equals("/a/b", Uri.parse("file:///a/b").toFilePath());
     Expect.equals("/C:", Uri.parse("file:///C:").toFilePath());
     Expect.equals("/C:/", Uri.parse("file:///C:/").toFilePath());
-    Expect.throws(() => Uri.parse("file://host/a/b").toFilePath(),
-        (e) => e is UnsupportedError);
+    Expect.throwsUnsupportedError(
+        () => Uri.parse("file://host/a/b").toFilePath());
 
     Expect.equals("a/b", new Uri.file("a/b").toFilePath());
     Expect.equals("a\\b", new Uri.file("a\\b").toFilePath());

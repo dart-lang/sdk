@@ -1,0 +1,29 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/co19_language_metadata_syntax_t04.dart:21:1: Error: Expected '{' before this.
+// class B {}
+// ^^^^^
+//
+// pkg/front_end/testcases/general/co19_language_metadata_syntax_t04.dart:20:1: Error: 'A' is already declared in this scope.
+// A()
+// ^
+// pkg/front_end/testcases/general/co19_language_metadata_syntax_t04.dart:16:7: Context: Previous declaration of 'A'.
+// class A {
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A*
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B*
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

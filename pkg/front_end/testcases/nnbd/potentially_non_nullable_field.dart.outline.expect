@@ -1,0 +1,37 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/potentially_non_nullable_field.dart:8:5: Error: Field 'x' should be initialized because its type 'int' doesn't allow null.
+// int x; // Error.
+//     ^
+//
+// pkg/front_end/testcases/nnbd/potentially_non_nullable_field.dart:13:14: Error: Field 'x' should be initialized because its type 'int' doesn't allow null.
+//   static int x; // Error.
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object? = core::Object?> extends core::Object {
+  static field core::int x;
+  static field core::int? y;
+  late static field core::int z;
+  field core::int lx;
+  field core::int? ly;
+  late field core::int? lz;
+  field core::int lv;
+  field core::int lu;
+  generic-covariant-impl field self::A::T% lt;
+  generic-covariant-impl field self::A::T? ls;
+  late generic-covariant-impl field self::A::T% lr;
+  generic-covariant-impl field self::A::T% lp;
+  generic-covariant-impl field self::A::T% lq;
+  constructor •(core::int lv, self::A::T% lp, self::A::T% t) → self::A<self::A::T%>
+    ;
+}
+static field core::int x;
+static field core::int? y;
+late static field core::int z;
+static method main() → dynamic
+  ;

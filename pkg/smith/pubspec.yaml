@@ -1,0 +1,13 @@
+name: smith
+author: Dart Team <misc@dartlang.org>
+description: Shared code for working with the Dart SDK's tests and test runner.
+homepage: http://www.dartlang.org
+# This package is not intended to be published.
+publish_to: none
+environment:
+  sdk: "^2.3.0"
+dependencies:
+  args: any
+dev_dependencies:
+  expect:
+    path: ../expect

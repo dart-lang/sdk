@@ -5,7 +5,7 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=(Object) -> void*/ v = print;
+var v = print;
 
 main() {
   v;

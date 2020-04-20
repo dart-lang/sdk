@@ -1,0 +1,14 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+}
+static method foo() → core::Object*
+  return new self::A::•();
+static method main(core::List<core::String*>* args) → dynamic {
+  core::print([@vm.inferred-type.metadata=#lib::A] self::foo());
+}

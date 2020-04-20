@@ -1,0 +1,96 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///private_members_lib.dart";
+
+static method main() → dynamic
+  ;
+static method errors() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+extension _PrivateExtension on core::String* {
+  method publicMethod1 = self2::_PrivateExtension|publicMethod1;
+  tearoff publicMethod1 = self2::_PrivateExtension|get#publicMethod1;
+  method _privateMethod1 = self2::_PrivateExtension|_privateMethod1;
+  tearoff _privateMethod1 = self2::_PrivateExtension|get#_privateMethod1;
+  static method publicStaticMethod1 = self2::_PrivateExtension|publicStaticMethod1;
+  static method _privateStaticMethod1 = self2::_PrivateExtension|_privateStaticMethod1;
+  method test1 = self2::_PrivateExtension|test1;
+  tearoff test1 = self2::_PrivateExtension|get#test1;
+}
+extension PublicExtension on core::String* {
+  method publicMethod2 = self2::PublicExtension|publicMethod2;
+  tearoff publicMethod2 = self2::PublicExtension|get#publicMethod2;
+  method _privateMethod2 = self2::PublicExtension|_privateMethod2;
+  tearoff _privateMethod2 = self2::PublicExtension|get#_privateMethod2;
+  static method publicStaticMethod2 = self2::PublicExtension|publicStaticMethod2;
+  static method _privateStaticMethod2 = self2::PublicExtension|_privateStaticMethod2;
+  method test2 = self2::PublicExtension|test2;
+  tearoff test2 = self2::PublicExtension|get#test2;
+}
+extension _extension#0 on core::String* {
+  method publicMethod3 = self2::_extension#0|publicMethod3;
+  tearoff publicMethod3 = self2::_extension#0|get#publicMethod3;
+  method _privateMethod3 = self2::_extension#0|_privateMethod3;
+  tearoff _privateMethod3 = self2::_extension#0|get#_privateMethod3;
+  static method publicStaticMethod3 = self2::_extension#0|publicStaticMethod3;
+  static method _privateStaticMethod3 = self2::_extension#0|_privateStaticMethod3;
+  method test3 = self2::_extension#0|test3;
+  tearoff test3 = self2::_extension#0|get#test3;
+}
+static method _PrivateExtension|publicMethod1(final core::String* #this) → core::int*
+  ;
+static method _PrivateExtension|get#publicMethod1(final core::String* #this) → () →* core::int*
+  return () → core::int* => self2::_PrivateExtension|publicMethod1(#this);
+static method _PrivateExtension|_privateMethod1(final core::String* #this) → core::int*
+  ;
+static method _PrivateExtension|get#_privateMethod1(final core::String* #this) → () →* core::int*
+  return () → core::int* => self2::_PrivateExtension|_privateMethod1(#this);
+static method _PrivateExtension|publicStaticMethod1() → core::int*
+  ;
+static method _PrivateExtension|_privateStaticMethod1() → core::int*
+  ;
+static method _PrivateExtension|test1(final core::String* #this) → dynamic
+  ;
+static method _PrivateExtension|get#test1(final core::String* #this) → () →* dynamic
+  return () → dynamic => self2::_PrivateExtension|test1(#this);
+static method PublicExtension|publicMethod2(final core::String* #this) → core::int*
+  ;
+static method PublicExtension|get#publicMethod2(final core::String* #this) → () →* core::int*
+  return () → core::int* => self2::PublicExtension|publicMethod2(#this);
+static method PublicExtension|_privateMethod2(final core::String* #this) → core::int*
+  ;
+static method PublicExtension|get#_privateMethod2(final core::String* #this) → () →* core::int*
+  return () → core::int* => self2::PublicExtension|_privateMethod2(#this);
+static method PublicExtension|publicStaticMethod2() → core::int*
+  ;
+static method PublicExtension|_privateStaticMethod2() → core::int*
+  ;
+static method PublicExtension|test2(final core::String* #this) → dynamic
+  ;
+static method PublicExtension|get#test2(final core::String* #this) → () →* dynamic
+  return () → dynamic => self2::PublicExtension|test2(#this);
+static method _extension#0|publicMethod3(final core::String* #this) → core::int*
+  ;
+static method _extension#0|get#publicMethod3(final core::String* #this) → () →* core::int*
+  return () → core::int* => self2::_extension#0|publicMethod3(#this);
+static method _extension#0|_privateMethod3(final core::String* #this) → core::int*
+  ;
+static method _extension#0|get#_privateMethod3(final core::String* #this) → () →* core::int*
+  return () → core::int* => self2::_extension#0|_privateMethod3(#this);
+static method _extension#0|publicStaticMethod3() → core::int*
+  ;
+static method _extension#0|_privateStaticMethod3() → core::int*
+  ;
+static method _extension#0|test3(final core::String* #this) → dynamic
+  ;
+static method _extension#0|get#test3(final core::String* #this) → () →* dynamic
+  return () → dynamic => self2::_extension#0|test3(#this);
+static method test() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

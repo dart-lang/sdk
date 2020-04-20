@@ -1,9 +1,8 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -13,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/abstract_single_unit.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SourceRangesTest);
   });
@@ -21,96 +20,95 @@ main() {
 
 @reflectiveTest
 class SourceRangesTest extends AbstractSingleUnitTest {
-  test_elementName() async {
+  Future<void> test_elementName() async {
     await resolveTestUnit('class ABC {}');
-    Element element = findElement('ABC');
-    expect(range.elementName(element), new SourceRange(6, 3));
+    var element = findElement('ABC');
+    expect(range.elementName(element), SourceRange(6, 3));
   }
 
-  test_endEnd() async {
+  Future<void> test_endEnd() async {
     await resolveTestUnit('main() {}');
-    FunctionDeclaration mainFunction = testUnit.declarations[0];
-    SimpleIdentifier mainName = mainFunction.name;
-    FunctionBody mainBody = mainFunction.functionExpression.body;
-    expect(range.endEnd(mainName, mainBody), new SourceRange(4, 5));
+    var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
+    var mainName = mainFunction.name;
+    var mainBody = mainFunction.functionExpression.body;
+    expect(range.endEnd(mainName, mainBody), SourceRange(4, 5));
   }
 
-  test_endLength() async {
+  Future<void> test_endLength() async {
     await resolveTestUnit('main() {}');
-    FunctionDeclaration mainFunction = testUnit.declarations[0];
-    SimpleIdentifier mainName = mainFunction.name;
-    expect(range.endLength(mainName, 3), new SourceRange(4, 3));
+    var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
+    var mainName = mainFunction.name;
+    expect(range.endLength(mainName, 3), SourceRange(4, 3));
   }
 
-  test_endStart() async {
+  Future<void> test_endStart() async {
     await resolveTestUnit('main() {}');
-    FunctionDeclaration mainFunction = testUnit.declarations[0];
-    SimpleIdentifier mainName = mainFunction.name;
-    FunctionBody mainBody = mainFunction.functionExpression.body;
-    expect(range.endStart(mainName, mainBody), new SourceRange(4, 3));
+    var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
+    var mainName = mainFunction.name;
+    var mainBody = mainFunction.functionExpression.body;
+    expect(range.endStart(mainName, mainBody), SourceRange(4, 3));
   }
 
-  test_error() {
-    AnalysisError error =
-        new AnalysisError(null, 10, 5, ParserErrorCode.CONST_CLASS, []);
-    expect(range.error(error), new SourceRange(10, 5));
+  void test_error() {
+    var error = AnalysisError(null, 10, 5, ParserErrorCode.CONST_CLASS, []);
+    expect(range.error(error), SourceRange(10, 5));
   }
 
-  test_node() async {
+  Future<void> test_node() async {
     await resolveTestUnit('main() {}');
-    FunctionDeclaration mainFunction = testUnit.declarations[0];
-    SimpleIdentifier mainName = mainFunction.name;
-    expect(range.node(mainName), new SourceRange(0, 4));
+    var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
+    var mainName = mainFunction.name;
+    expect(range.node(mainName), SourceRange(0, 4));
   }
 
-  test_nodes() async {
+  Future<void> test_nodes() async {
     await resolveTestUnit(' main() {}');
-    FunctionDeclaration mainFunction = testUnit.declarations[0];
-    SimpleIdentifier mainName = mainFunction.name;
-    FunctionBody mainBody = mainFunction.functionExpression.body;
-    expect(range.nodes([mainName, mainBody]), new SourceRange(1, 9));
+    var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
+    var mainName = mainFunction.name;
+    var mainBody = mainFunction.functionExpression.body;
+    expect(range.nodes([mainName, mainBody]), SourceRange(1, 9));
   }
 
-  test_nodes_empty() async {
+  Future<void> test_nodes_empty() async {
     await resolveTestUnit('main() {}');
-    expect(range.nodes([]), new SourceRange(0, 0));
+    expect(range.nodes([]), SourceRange(0, 0));
   }
 
-  test_offsetBy() {
-    expect(range.offsetBy(new SourceRange(7, 3), 2), new SourceRange(9, 3));
+  void test_offsetBy() {
+    expect(range.offsetBy(SourceRange(7, 3), 2), SourceRange(9, 3));
   }
 
-  test_startEnd_nodeNode() async {
+  Future<void> test_startEnd_nodeNode() async {
     await resolveTestUnit(' main() {}');
-    FunctionDeclaration mainFunction = testUnit.declarations[0];
-    SimpleIdentifier mainName = mainFunction.name;
-    FunctionBody mainBody = mainFunction.functionExpression.body;
-    expect(range.startEnd(mainName, mainBody), new SourceRange(1, 9));
+    var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
+    var mainName = mainFunction.name;
+    var mainBody = mainFunction.functionExpression.body;
+    expect(range.startEnd(mainName, mainBody), SourceRange(1, 9));
   }
 
-  test_startLength_node() async {
+  Future<void> test_startLength_node() async {
     await resolveTestUnit(' main() {}');
-    FunctionDeclaration mainFunction = testUnit.declarations[0];
-    SimpleIdentifier mainName = mainFunction.name;
-    expect(range.startLength(mainName, 10), new SourceRange(1, 10));
+    var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
+    var mainName = mainFunction.name;
+    expect(range.startLength(mainName, 10), SourceRange(1, 10));
   }
 
-  test_startOffsetEndOffset() {
-    expect(range.startOffsetEndOffset(6, 11), new SourceRange(6, 5));
+  void test_startOffsetEndOffset() {
+    expect(range.startOffsetEndOffset(6, 11), SourceRange(6, 5));
   }
 
-  test_startStart_nodeNode() async {
+  Future<void> test_startStart_nodeNode() async {
     await resolveTestUnit('main() {}');
-    FunctionDeclaration mainFunction = testUnit.declarations[0];
-    SimpleIdentifier mainName = mainFunction.name;
-    FunctionBody mainBody = mainFunction.functionExpression.body;
-    expect(range.startStart(mainName, mainBody), new SourceRange(0, 7));
+    var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
+    var mainName = mainFunction.name;
+    var mainBody = mainFunction.functionExpression.body;
+    expect(range.startStart(mainName, mainBody), SourceRange(0, 7));
   }
 
-  test_token() async {
+  Future<void> test_token() async {
     await resolveTestUnit(' main() {}');
-    FunctionDeclaration mainFunction = testUnit.declarations[0];
-    SimpleIdentifier mainName = mainFunction.name;
-    expect(range.token(mainName.beginToken), new SourceRange(1, 4));
+    var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
+    var mainName = mainFunction.name;
+    expect(range.token(mainName.beginToken), SourceRange(1, 4));
   }
 }

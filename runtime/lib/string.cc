@@ -5,6 +5,7 @@
 #include "vm/bootstrap_natives.h"
 
 #include "include/dart_api.h"
+#include "platform/unicode.h"
 #include "vm/dart_api_impl.h"
 #include "vm/exceptions.h"
 #include "vm/isolate.h"
@@ -12,11 +13,10 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/symbols.h"
-#include "vm/unicode.h"
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(String_fromEnvironment, 3) {
+DEFINE_NATIVE_ENTRY(String_fromEnvironment, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(1));
   GET_NATIVE_ARGUMENT(String, default_value, arguments->NativeArgAt(2));
   // Call the embedder to supply us with the environment.
@@ -28,7 +28,7 @@ DEFINE_NATIVE_ENTRY(String_fromEnvironment, 3) {
   return default_value.raw();
 }
 
-DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 3) {
+DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, list, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
@@ -37,10 +37,10 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 3) {
   intptr_t length;
   if (list.IsGrowableObjectArray()) {
     const GrowableObjectArray& growableArray = GrowableObjectArray::Cast(list);
-    a ^= growableArray.data();
+    a = growableArray.data();
     length = growableArray.Length();
   } else if (list.IsArray()) {
-    a ^= Array::Cast(list).raw();
+    a = Array::Cast(list).raw();
     length = a.Length();
   } else {
     Exceptions::ThrowArgumentError(list);
@@ -89,7 +89,7 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 3) {
   return TwoByteString::New(utf16_len, utf32_array, array_len, Heap::kNew);
 }
 
-DEFINE_NATIVE_ENTRY(StringBase_substringUnchecked, 3) {
+DEFINE_NATIVE_ENTRY(StringBase_substringUnchecked, 0, 3) {
   const String& receiver =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
@@ -160,7 +160,7 @@ static bool CheckSlicesOneByte(const String& base,
   return true;
 }
 
-DEFINE_NATIVE_ENTRY(StringBase_joinReplaceAllResult, 4) {
+DEFINE_NATIVE_ENTRY(StringBase_joinReplaceAllResult, 0, 4) {
   const String& base = String::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(GrowableObjectArray, matches_growable,
                                arguments->NativeArgAt(1));
@@ -188,9 +188,9 @@ DEFINE_NATIVE_ENTRY(StringBase_joinReplaceAllResult, 4) {
   const intptr_t base_length = base.Length();
   String& result = String::Handle(zone);
   if (is_onebyte) {
-    result ^= OneByteString::New(length, Heap::kNew);
+    result = OneByteString::New(length, Heap::kNew);
   } else {
-    result ^= TwoByteString::New(length, Heap::kNew);
+    result = TwoByteString::New(length, Heap::kNew);
   }
   Instance& object = Instance::Handle(zone);
   intptr_t write_index = 0;
@@ -245,7 +245,7 @@ DEFINE_NATIVE_ENTRY(StringBase_joinReplaceAllResult, 4) {
   return result.raw();
 }
 
-DEFINE_NATIVE_ENTRY(OneByteString_substringUnchecked, 3) {
+DEFINE_NATIVE_ENTRY(OneByteString_substringUnchecked, 0, 3) {
   const String& receiver =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(receiver.IsOneByteString());
@@ -258,7 +258,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_substringUnchecked, 3) {
 }
 
 // This is high-performance code.
-DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 2) {
+DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 0, 2) {
   const String& receiver =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(receiver.IsOneByteString());
@@ -286,12 +286,21 @@ DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 2) {
   return result.raw();
 }
 
-DEFINE_NATIVE_ENTRY(OneByteString_allocate, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length_obj, arguments->NativeArgAt(0));
-  return OneByteString::New(length_obj.Value(), Heap::kNew);
+DEFINE_NATIVE_ENTRY(OneByteString_allocate, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, length_obj, arguments->NativeArgAt(0));
+  const int64_t length = length_obj.AsInt64Value();
+  if ((length < 0) || (length > OneByteString::kMaxElements)) {
+    // Assume that negative lengths are the result of wrapping in code in
+    // string_patch.dart.
+    const Instance& exception =
+        Instance::Handle(thread->isolate()->object_store()->out_of_memory());
+    Exceptions::Throw(thread, exception);
+    UNREACHABLE();
+  }
+  return OneByteString::New(static_cast<intptr_t>(length), Heap::kNew);
 }
 
-DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 3) {
+DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 0, 3) {
   Instance& list = Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
@@ -328,15 +337,15 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 3) {
       Exceptions::ThrowByType(Exceptions::kArgument, args);
     }
     return OneByteString::New(array, start, length, space);
-  } else if (RawObject::IsTypedDataViewClassId(list.GetClassId())) {
-    const Instance& view = Instance::Cast(list);
-    if (end > Smi::Value(TypedDataView::Length(view))) {
+  } else if (list.IsTypedDataView()) {
+    const auto& view = TypedDataView::Cast(list);
+    if (end > Smi::Value(view.length())) {
       const Array& args = Array::Handle(Array::New(1));
       args.SetAt(0, end_obj);
       Exceptions::ThrowByType(Exceptions::kArgument, args);
     }
-    const Instance& data_obj = Instance::Handle(TypedDataView::Data(view));
-    intptr_t data_offset = Smi::Value(TypedDataView::OffsetInBytes(view));
+    const Instance& data_obj = Instance::Handle(view.typed_data());
+    intptr_t data_offset = Smi::Value(view.offset_in_bytes());
     if (data_obj.IsTypedData()) {
       const TypedData& array = TypedData::Cast(data_obj);
       return OneByteString::New(array, data_offset + start, length, space);
@@ -377,7 +386,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 3) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(OneByteString_setAt, 3) {
+DEFINE_NATIVE_ENTRY(OneByteString_setAt, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, receiver, arguments->NativeArgAt(0));
   ASSERT(receiver.IsOneByteString());
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index_obj, arguments->NativeArgAt(1));
@@ -387,7 +396,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_setAt, 3) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 3) {
+DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 0, 3) {
   Instance& list = Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
@@ -422,16 +431,16 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 3) {
     }
     return TwoByteString::New(array, start * sizeof(uint16_t), length, space);
   } else if (RawObject::IsTypedDataViewClassId(list.GetClassId())) {
+    const auto& view = TypedDataView::Cast(list);
     const intptr_t cid = list.GetClassId();
     if (cid != kTypedDataUint16ArrayViewCid) {
       Exceptions::ThrowArgumentError(list);
     }
-    if (end > Smi::Value(TypedDataView::Length(list))) {
+    if (end > Smi::Value(view.length())) {
       Exceptions::ThrowArgumentError(end_obj);
     }
-    const Instance& data_obj =
-        Instance::Handle(zone, TypedDataView::Data(list));
-    intptr_t data_offset = Smi::Value(TypedDataView::OffsetInBytes(list));
+    const auto& data_obj = Instance::Handle(zone, view.typed_data());
+    const intptr_t data_offset = Smi::Value(view.offset_in_bytes());
     if (data_obj.IsTypedData()) {
       const TypedData& array = TypedData::Cast(data_obj);
       return TwoByteString::New(array, data_offset + start * sizeof(uint16_t),
@@ -472,7 +481,7 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 3) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(String_getHashCode, 1) {
+DEFINE_NATIVE_ENTRY(String_getHashCode, 0, 1) {
   const String& receiver =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));
   intptr_t hash_val = receiver.Hash();
@@ -481,7 +490,7 @@ DEFINE_NATIVE_ENTRY(String_getHashCode, 1) {
   return Smi::New(hash_val);
 }
 
-DEFINE_NATIVE_ENTRY(String_getLength, 1) {
+DEFINE_NATIVE_ENTRY(String_getLength, 0, 1) {
   const String& receiver =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Smi::New(receiver.Length());
@@ -500,7 +509,7 @@ static uint16_t StringValueAt(const String& str, const Integer& index) {
   return 0;
 }
 
-DEFINE_NATIVE_ENTRY(String_charAt, 2) {
+DEFINE_NATIVE_ENTRY(String_charAt, 0, 2) {
   const String& receiver =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
@@ -509,7 +518,7 @@ DEFINE_NATIVE_ENTRY(String_charAt, 2) {
 }
 
 // Returns the 16-bit UTF-16 code unit at the given index.
-DEFINE_NATIVE_ENTRY(String_codeUnitAt, 2) {
+DEFINE_NATIVE_ENTRY(String_codeUnitAt, 0, 2) {
   const String& receiver =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
@@ -517,28 +526,28 @@ DEFINE_NATIVE_ENTRY(String_codeUnitAt, 2) {
   return Smi::New(static_cast<intptr_t>(value));
 }
 
-DEFINE_NATIVE_ENTRY(String_concat, 2) {
+DEFINE_NATIVE_ENTRY(String_concat, 0, 2) {
   const String& receiver =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, b, arguments->NativeArgAt(1));
   return String::Concat(receiver, b);
 }
 
-DEFINE_NATIVE_ENTRY(String_toLowerCase, 1) {
+DEFINE_NATIVE_ENTRY(String_toLowerCase, 0, 1) {
   const String& receiver =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!receiver.IsNull());
   return String::ToLowerCase(receiver);
 }
 
-DEFINE_NATIVE_ENTRY(String_toUpperCase, 1) {
+DEFINE_NATIVE_ENTRY(String_toUpperCase, 0, 1) {
   const String& receiver =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!receiver.IsNull());
   return String::ToUpperCase(receiver);
 }
 
-DEFINE_NATIVE_ENTRY(String_concatRange, 3) {
+DEFINE_NATIVE_ENTRY(String_concatRange, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, argument, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, end, arguments->NativeArgAt(2));
@@ -573,7 +582,7 @@ DEFINE_NATIVE_ENTRY(String_concatRange, 3) {
   return String::ConcatAllRange(strings, start_ix, end_ix, Heap::kNew);
 }
 
-DEFINE_NATIVE_ENTRY(StringBuffer_createStringFromUint16Array, 3) {
+DEFINE_NATIVE_ENTRY(StringBuffer_createStringFromUint16Array, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(TypedData, codeUnits, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, isLatin1, arguments->NativeArgAt(2));

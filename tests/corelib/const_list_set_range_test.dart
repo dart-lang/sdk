@@ -10,42 +10,16 @@ main() {
   testImmutable(const [1, 2]);
 }
 
-void expectUOE(Function f) {
-  Expect.throws(f, (e) => e is UnsupportedError);
-}
-
-testImmutable(var list) {
-  expectUOE(() {
-    list.setRange(0, 0, const []);
-  });
-  expectUOE(() {
-    list.setRange(0, 1, const [], 1);
-  });
-  expectUOE(() {
-    list.setRange(0, 1, const []);
-  });
-  expectUOE(() {
-    list.setRange(0, 0, []);
-  });
-  expectUOE(() {
-    list.setRange(0, 1, [], 1);
-  });
-  expectUOE(() {
-    list.setRange(0, 1, []);
-  });
-  expectUOE(() {
-    list.setRange(0, 0, const [1]);
-  });
-  expectUOE(() {
-    list.setRange(0, 1, const [1]);
-  });
-  expectUOE(() {
-    list.setRange(0, 0, [1]);
-  });
-  expectUOE(() {
-    list.setRange(0, 1, [1]);
-  });
-  expectUOE(() {
-    list.setRange(0, 1, [1], 1);
-  });
+testImmutable(List list) {
+  Expect.throwsUnsupportedError(() => list.setRange(0, 0, const []));
+  Expect.throwsUnsupportedError(() => list.setRange(0, 1, const [], 1));
+  Expect.throwsUnsupportedError(() => list.setRange(0, 1, const []));
+  Expect.throwsUnsupportedError(() => list.setRange(0, 0, []));
+  Expect.throwsUnsupportedError(() => list.setRange(0, 1, [], 1));
+  Expect.throwsUnsupportedError(() => list.setRange(0, 1, []));
+  Expect.throwsUnsupportedError(() => list.setRange(0, 0, const [1]));
+  Expect.throwsUnsupportedError(() => list.setRange(0, 1, const [1]));
+  Expect.throwsUnsupportedError(() => list.setRange(0, 0, [1]));
+  Expect.throwsUnsupportedError(() => list.setRange(0, 1, [1]));
+  Expect.throwsUnsupportedError(() => list.setRange(0, 1, [1], 1));
 }

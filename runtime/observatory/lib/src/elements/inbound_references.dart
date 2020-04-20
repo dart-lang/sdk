@@ -11,7 +11,7 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 
-class InboundReferencesElement extends HtmlElement implements Renderable {
+class InboundReferencesElement extends CustomElement implements Renderable {
   static const tag = const Tag<InboundReferencesElement>('inbound-references',
       dependencies: const [CurlyBlockElement.tag, InstanceRefElement.tag]);
 
@@ -37,8 +37,8 @@ class InboundReferencesElement extends HtmlElement implements Renderable {
     assert(object != null);
     assert(references != null);
     assert(objects != null);
-    InboundReferencesElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    InboundReferencesElement e = new InboundReferencesElement.created();
+    e._r = new RenderingScheduler<InboundReferencesElement>(e, queue: queue);
     e._isolate = isolate;
     e._object = object;
     e._references = references;
@@ -46,7 +46,7 @@ class InboundReferencesElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  InboundReferencesElement.created() : super.created();
+  InboundReferencesElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -57,7 +57,7 @@ class InboundReferencesElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
@@ -73,7 +73,7 @@ class InboundReferencesElement extends HtmlElement implements Renderable {
               e.control.disabled = false;
             }
           });
-    children = [curlyBlock];
+    children = <Element>[curlyBlock.element];
     _r.waitFor([curlyBlock.onRendered.first]);
   }
 
@@ -86,7 +86,7 @@ class InboundReferencesElement extends HtmlElement implements Renderable {
     if (_inbounds == null) {
       return const [];
     }
-    return _inbounds.elements.map(_createItem).toList();
+    return _inbounds.elements.map<Element>(_createItem).toList();
   }
 
   Element _createItem(M.InboundReference reference) {
@@ -109,8 +109,9 @@ class InboundReferencesElement extends HtmlElement implements Renderable {
     content.addAll([
       anyRef(_isolate, reference.source, _objects, queue: _r.queue),
       new InboundReferencesElement(
-          _isolate, reference.source, _references, _objects,
-          queue: _r.queue)
+              _isolate, reference.source, _references, _objects,
+              queue: _r.queue)
+          .element
     ]);
 
     return new DivElement()

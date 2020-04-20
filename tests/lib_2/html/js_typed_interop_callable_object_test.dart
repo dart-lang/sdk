@@ -13,8 +13,8 @@ import 'package:expect/minitest.dart';
 
 // This is a regression test for https://github.com/dart-lang/sdk/issues/25658
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 confuse(x) => x;
 
 _injectJs() {

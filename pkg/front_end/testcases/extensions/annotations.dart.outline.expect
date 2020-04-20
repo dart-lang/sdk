@@ -1,0 +1,32 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    ;
+  @core::pragma::_("dart2js:noInline")
+  method instanceMethod() → dynamic
+    ;
+  @core::pragma::_("dart2js:noInline")
+  static method staticMethod() → dynamic
+    ;
+}
+extension Extension on self::Class* {
+  method extensionInstanceMethod = self::Extension|extensionInstanceMethod;
+  tearoff extensionInstanceMethod = self::Extension|get#extensionInstanceMethod;
+  static method extensionStaticMethod = self::Extension|extensionStaticMethod;
+}
+@core::pragma::_("dart2js:noInline")
+static method Extension|extensionInstanceMethod(final self::Class* #this) → dynamic
+  ;
+static method Extension|get#extensionInstanceMethod(final self::Class* #this) → () →* dynamic
+  return () → dynamic => self::Extension|extensionInstanceMethod(#this);
+@core::pragma::_("dart2js:noInline")
+static method Extension|extensionStaticMethod() → dynamic
+  ;
+@core::pragma::_("dart2js:noInline")
+static method topLevelMethod() → dynamic
+  ;
+static method main() → dynamic
+  ;

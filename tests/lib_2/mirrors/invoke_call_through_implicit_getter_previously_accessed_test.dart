@@ -108,7 +108,7 @@ testLibraryBase() {
 }
 
 testLibraryReflective() {
-  LibraryMirror lm = reflectClass(D).owner;
+  LibraryMirror lm = reflectClass(D).owner as LibraryMirror;
 
   Expect.equals('1 5 6', lm.invoke(#fakeFunctionCall, [5, 6]).reflectee);
   Expect.equals('7, 8', lm.invoke(#fakeFunctionNSM, [7, 8]).reflectee);

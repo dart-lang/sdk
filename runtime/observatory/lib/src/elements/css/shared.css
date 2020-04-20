@@ -145,6 +145,20 @@ hr {
   flex-wrap: wrap;
 }
 
+.flex-row-wrap-right {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.flex-row-spaced {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
 .inline-flex-row {
   display: inline-flex;
   flex-direction: row;
@@ -283,6 +297,12 @@ hr {
   flex-basis: 90%;
 }
 
+.flex-item-even {
+  flex-grow: 1;
+  flex-shrink: 0;
+  padding: 5px;
+}
+
 .indent {
   margin-left: 1.5em;
   font: 400 14px 'Montserrat', sans-serif;
@@ -397,22 +417,22 @@ button.big {
 
 /* allocation-profile */
 
-allocation-profile .heap-space {
+.allocation-profile .heap-space {
   display: inline-block;
-  width: 50%;
+  width: 33%;
 }
 
-allocation-profile .heap-space.right,
-allocation-profile .heap-space.right .memberList,
-allocation-profile .heap-space.right .legend * {
+.allocation-profile .heap-space.right,
+.allocation-profile .heap-space.right .memberList,
+.allocation-profile .heap-space.right .legend * {
   direction: rtl;
 }
 
-allocation-profile .compactable {
+.allocation-profile .compactable {
   position: relative;
 }
 
-allocation-profile .compact {
+.allocation-profile .compact {
   position: absolute;
   bottom: 20px;
   left: 50%;
@@ -420,118 +440,122 @@ allocation-profile .compact {
   margin-left: -4em;
 }
 
-allocation-profile .heap-space.right * {
+.allocation-profile .heap-space.right * {
   direction: ltr;
   text-align: right;
 }
 
-allocation-profile div.chart {
+.allocation-profile div.chart {
   display: block;
   position: relative;
   height: 150px;
 }
-allocation-profile div.chart > div.host {
+.allocation-profile div.chart > div.host {
   display: inline-block;
   position: absolute;
   bottom: 0px;
   top: 0;
 }
-allocation-profile div.chart > div.legend {
+.allocation-profile div.chart > div.legend {
   position: absolute;
   width: 150px;
   top: 25px;
   bottom: 0;
   overflow-y: auto;
 }
-allocation-profile .heap-space.left div.host {
+.allocation-profile .heap-space.left div.host {
   left: 200px;
   width: 180px;
 }
-allocation-profile .heap-space.right div.host {
+.allocation-profile .heap-space.right div.host {
   right: 150px;
   width: 180px;
 }
-allocation-profile .heap-space.left div.legend {
+.allocation-profile .heap-space.left div.legend {
   left: 0;
 }
-allocation-profile .heap-space.right div.legend {
+.allocation-profile .heap-space.right div.legend {
   right: 0;
 }
 
-allocation-profile .collection {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  top: 560px;
+.allocation-profile .collection {
+  height: 100%;
 }
 
-allocation-profile .collection.expanded {
+.allocation-profile .collection.expanded {
   top: 160px;
 }
 
-allocation-profile .container {
+.allocation-profile .container {
   padding-left: 5%;
   padding-right: 5%;
 }
 
-allocation-profile .collection-item {
+.allocation-profile .collection-item {
   background-color: #FFFFFF;
   box-sizing: border-box;
   line-height: 20px;
 }
 
-allocation-profile .collection-item:hover {
+.allocation-profile .collection-item:hover {
   background-color: #d2e7fe;
 }
 
-allocation-profile .header .collection-item:hover {
+.allocation-profile .header .collection-item:hover {
   background-color: #FFFFFF;
 }
 
-allocation-profile .header .collection-item:last-child {
+.allocation-profile .header .collection-item:last-child {
   margin-bottom: -3px;
   border-bottom: solid 1px #AAAAAA;
 }
 
-allocation-profile .header .collection-item span {
+.allocation-profile .header .collection-item span {
   font-weight: bolder;
 }
 
-allocation-profile .collection-item :nth-child(2n+2).group,
-allocation-profile .collection-item :nth-child(4n+3),
-allocation-profile .collection-item :nth-child(4n+4) {
+.allocation-profile .collection-item :nth-child(2n+2).group,
+.allocation-profile .collection-item :nth-child(8n+1),
+.allocation-profile .collection-item :nth-child(8n+2),
+.allocation-profile .collection-item :nth-child(8n+3),
+.allocation-profile .collection-item :nth-child(8n+4) {
   background-color: #EEEEEE;
 }
 
-allocation-profile .collection-item:hover :nth-child(2n+2).group,
-allocation-profile .collection-item:hover :nth-child(4n+3),
-allocation-profile .collection-item:hover :nth-child(4n+4) {
+.allocation-profile .collection-item:hover :nth-child(2n+1).group,
+.allocation-profile .collection-item:hover :nth-child(8n+1),
+.allocation-profile .collection-item:hover :nth-child(8n+2),
+.allocation-profile .collection-item:hover :nth-child(8n+3),
+.allocation-profile .collection-item:hover :nth-child(8n+4) {
   background-color: #afd5fd;
 }
 
-allocation-profile .header .collection-item :nth-child(2n+1).group,
-allocation-profile .header .collection-item :nth-child(4n+1),
-allocation-profile .header .collection-item :nth-child(4n+2) {
+.allocation-profile .header .collection-item :nth-child(2n+2).group,
+.allocation-profile .header .collection-item :nth-child(8n+5),
+.allocation-profile .header .collection-item :nth-child(8n+6),
+.allocation-profile .header .collection-item :nth-child(8n+7),
+.allocation-profile .header .collection-item :nth-child(8n+8) {
   background-color: #FFFFFF;
 }
 
-allocation-profile .header .collection-item :nth-child(2n+2).group,
-allocation-profile .header .collection-item :nth-child(4n+3),
-allocation-profile .header .collection-item :nth-child(4n+4) {
+.allocation-profile .header .collection-item :nth-child(2n+1).group,
+.allocation-profile .header .collection-item :nth-child(8n+1),
+.allocation-profile .header .collection-item :nth-child(8n+2),
+.allocation-profile .header .collection-item :nth-child(8n+3),
+.allocation-profile .header .collection-item :nth-child(8n+4) {
   background-color: #DDDDDD;
 }
 
-allocation-profile .collection-item .group {
+.allocation-profile .collection-item .group {
   display: inline-block;
-  width: 12em;
-  text-align: right;
+  width: 24em;
+  text-align: center;
   padding-right: 0.5em;
   line-height: 20px;
   border-right: solid 1px #AAAAAA;
 }
 
-allocation-profile .collection-item .bytes {
+.allocation-profile .collection-item .bytes {
   display: inline-block;
   width: 6em;
   text-align: right;
@@ -539,7 +563,7 @@ allocation-profile .collection-item .bytes {
   padding-right: 0.5em;
 }
 
-allocation-profile .collection-item .instances {
+.allocation-profile .collection-item .instances {
   display: inline-block;
   width: 6em;
   text-align: right;
@@ -548,56 +572,56 @@ allocation-profile .collection-item .instances {
   border-right: solid 1px #AAAAAA;
 }
 
-allocation-profile .collection-item .name {
+.allocation-profile .collection-item .name {
   padding-left: 0.5em;
   padding-right: 0.5em;
   display: inline-block;
 }
 
-allocation-profile .collection-item > button,
-allocation-profile .collection-item > button:active {
+.allocation-profile .collection-item > button,
+.allocation-profile .collection-item > button:active {
   background-color: transparent;
   color: #0489c3;
   border-style: none;
 }
 
-allocation-profile .collection-item > button:hover {
+.allocation-profile .collection-item > button:hover {
   text-decoration: underline;
 }
 
 /* class-ref */
 
-class-ref > a[href]:hover {
+.class-ref > a[href]:hover {
     text-decoration: underline;
 }
-class-ref > a[href] {
+.class-ref > a[href] {
     color: #0489c3;
     text-decoration: none;
 }
 
 /* code-ref */
 
-code-ref > a[href]:hover {
+.code-ref > a[href]:hover {
   text-decoration: underline;
 }
-code-ref > a[href] {
+.code-ref > a[href] {
   color: #0489c3;
   text-decoration: none;
 }
-code-ref .emphasize {
+.code-ref .emphasize {
   font-style: italic;
 }
 
 
 /* class-tree */
 
-class-tree {
+.class-tree {
   position: relative;
   display: block;
   height: 100%;
 }
 
-class-tree virtual-tree {
+.class-tree .virtual-tree {
   position: absolute;
   height: auto;
   top: 60px;
@@ -606,47 +630,47 @@ class-tree virtual-tree {
   right: 0;
 }
 
-class-tree virtual-tree .container {
+.class-tree .virtual-tree .container {
   padding-left: 10%;
   padding-right: 10%;
 }
 
-class-tree virtual-tree .class-tree-item {
+.class-tree .virtual-tree .class-tree-item {
   line-height: 25px;
   height: 25px;
 }
 
-class-tree virtual-tree .class-tree-item .name {
+.class-tree .virtual-tree .class-tree-item .name {
   margin-left: 0.5em;
   margin-right: 0.5em;
 }
 
 /* code-view */
 
-code-view .table {
+.code-view .table {
   table-layout: fixed;
 }
 
-code-view th:nth-of-type(1),
-code-view td:nth-of-type(1) {
+.code-view th:nth-of-type(1),
+.code-view td:nth-of-type(1) {
   min-width: 10em;
   text-align: left;
 }
 
-code-view th:nth-of-type(2),
-code-view td:nth-of-type(2) {
+.code-view th:nth-of-type(2),
+.code-view td:nth-of-type(2) {
   min-width: 8em;
   text-align: left;
 }
 
-code-view th:nth-of-type(3),
-code-view td:nth-of-type(3) {
+.code-view th:nth-of-type(3),
+.code-view td:nth-of-type(3) {
   min-width: 8em;
   text-align: left;
 }
 
-code-view th:nth-of-type(4),
-code-view td:nth-of-type(4) {
+.code-view th:nth-of-type(4),
+.code-view td:nth-of-type(4) {
   text-align: left;
   overflow: visible;
   white-space: pre;
@@ -654,47 +678,47 @@ code-view td:nth-of-type(4) {
   width: 1px;
 }
 
-code-view th:nth-of-type(5),
-code-view td:nth-of-type(5) {
+.code-view th:nth-of-type(5),
+.code-view td:nth-of-type(5) {
   text-align: left;
   overflow: visible;
 }
 
-code-view tr:hover > td {
+.code-view tr:hover > td {
   background-color: #F4C7C3;
 }
 
-code-view .code-comment {
+.code-view .code-comment {
   color: grey;
   font-style: italic;
 }
 
 /* context-ref */
 
-context-ref > a[href]:hover {
+.context-ref > a[href]:hover {
   text-decoration: underline;
 }
-context-ref > a[href] {
+.context-ref > a[href] {
   color: #0489c3;
   text-decoration: none;
 }
-context-ref > a[href] * {
+.context-ref > a[href] * {
   color: inherit;
 }
-context-ref .emphasize {
+.context-ref .emphasize {
   font-style: italic;
 }
 
 
 /* cpu-profile */
 
-cpu-profile {
+.cpu-profile {
   position: relative;
   display: block;
   height: 100%;
 }
 
-cpu-profile > cpu-profile-virtual-tree {
+.cpu-profile > .cpu-profile-virtual-tree {
   position: absolute;
   height: auto;
   top: 320px;
@@ -705,18 +729,18 @@ cpu-profile > cpu-profile-virtual-tree {
 
 /* cpu-profile-table */
 
-cpu-profile-table {
+.cpu-profile-table {
   position: relative;
   display: block;
   height: 100%;
 }
-cpu-profile-table cpu-profile-virtual-tree {
+.cpu-profile-table .cpu-profile-virtual-tree {
   height: 100%;
   min-height: 600px;
   padding-top: 250px;
   margin-top: -250px;
 }
-cpu-profile-table .profile-trees {
+.cpu-profile-table .profile-trees {
   vertical-align: text-top;
   min-width: 100%;
   height: 100%;
@@ -728,26 +752,26 @@ cpu-profile-table .profile-trees {
   padding-right: 5%;
   min-height: 600px;
 }
-cpu-profile-table .profile-trees virtual-collection {
+.cpu-profile-table .profile-trees .virtual-collection {
   height: 100%;
   width: 100%;
   border: solid 1px #888888;
   box-shadow: 2px 2px 5px #888888;
 }
-cpu-profile-table .profile-trees > .profile-trees-all {
+.cpu-profile-table .profile-trees > .profile-trees-all {
   vertical-align: text-top;
   display: inline-block;
   width: 50%;
   height: 100%;
   padding: 5px;
 }
-cpu-profile-table .profile-trees > .profile-trees-current {
+.cpu-profile-table .profile-trees > .profile-trees-current {
   vertical-align: text-top;
   display: inline-block;
   width: 50%;
   height: 100%;
 }
-cpu-profile-table .profile-trees .profile-trees-caller {
+.cpu-profile-table .profile-trees .profile-trees-caller {
   vertical-align: text-top;
   display: inline-block;
   width: 100%;
@@ -756,7 +780,7 @@ cpu-profile-table .profile-trees .profile-trees-caller {
   margin-top: -17px;
   padding-top: 22px;
 }
-cpu-profile-table .profile-trees .profile-trees-selected {
+.cpu-profile-table .profile-trees .profile-trees-selected {
   vertical-align: text-top;
   display: block;
   height: 24px;
@@ -767,14 +791,14 @@ cpu-profile-table .profile-trees .profile-trees-selected {
   padding-left: 5px;
   padding-right: 5px;
 }
-cpu-profile-table .profile-trees .profile-trees-selected > * {
+.cpu-profile-table .profile-trees .profile-trees-selected > * {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
   display: inline-block;
   width: 100%;
 }
-cpu-profile-table .profile-trees .profile-trees-callee {
+.cpu-profile-table .profile-trees .profile-trees-callee {
   vertical-align: text-top;
   display: inline-block;
   width: 100%;
@@ -783,68 +807,68 @@ cpu-profile-table .profile-trees .profile-trees-callee {
   margin-bottom: -17px;
   padding-bottom: 22px;
 }
-cpu-profile-table .function-item {
+.cpu-profile-table .function-item {
   box-sizing: border-box;
   line-height: 20px;
 }
-cpu-profile-table .header {
+.cpu-profile-table .header {
   box-sizing: border-box;
   line-height: 20px;
 }
-cpu-profile-table .header .function-item:last-child {
+.cpu-profile-table .header .function-item:last-child {
   margin-bottom: -3px;
   border-bottom: solid 1px #AAAAAA;
 }
-cpu-profile-table .function-item .inclusive,
-cpu-profile-table .function-item .exclusive {
+.cpu-profile-table .function-item .inclusive,
+.cpu-profile-table .function-item .exclusive {
   display: inline-block;
   width: 7em;
   text-align: right;
   padding-right: 0.5em;
   line-height: 20px;
 }
-cpu-profile-table .buffer .function-item .inclusive {
+.cpu-profile-table .buffer .function-item .inclusive {
   background-color: #EEEEEE;
 }
-cpu-profile-table .buffer .function-item.selected .inclusive {
+.cpu-profile-table .buffer .function-item.selected .inclusive {
   background-color: #51a3fb;
 }
-cpu-profile-table .buffer .function-item:hover .inclusive {
+.cpu-profile-table .buffer .function-item:hover .inclusive {
   background-color: #afd5fd;
 }
-cpu-profile-table .header .function-item .inclusive {
+.cpu-profile-table .header .function-item .inclusive {
   background-color: #DDDDDD;
 }
-cpu-profile-table .buffer .function-item.selected {
+.cpu-profile-table .buffer .function-item.selected {
   background-color: #60abfb;
 }
-cpu-profile-table .buffer .function-item:hover {
+.cpu-profile-table .buffer .function-item:hover {
   background-color: #d2e7fe;
 }
-cpu-profile-table .function-item .exclusive {
+.cpu-profile-table .function-item .exclusive {
 }
-cpu-profile-table .function-item .name {
+.cpu-profile-table .function-item .name {
   padding-left: 0.5em;
   padding-left: 0.5em;
 }
-cpu-profile-table .function-item > button,
-cpu-profile-table .function-item > button:active {
+.cpu-profile-table .function-item > button,
+.cpu-profile-table .function-item > button:active {
   background-color: transparent;
   color: #0489c3;
   border-style: none;
 }
-cpu-profile-table .function-item > button:hover {
+.cpu-profile-table .function-item > button:hover {
   text-decoration: underline;
 }
 
 /* cpu-profile-virtual-tree */
 
-cpu-profile-virtual-tree {
+.cpu-profile-virtual-tree {
   display: block;
   height: 600px;
 }
 
-cpu-profile-virtual-tree .tree-item {
+.cpu-profile-virtual-tree .tree-item {
   box-sizing: border-box;
   line-height: 30px;
   height: 30px;
@@ -852,9 +876,9 @@ cpu-profile-virtual-tree .tree-item {
   padding-right: 5%;
 }
 
-cpu-profile-virtual-tree .tree-item > .inclusive,
-cpu-profile-virtual-tree .tree-item > .exclusive,
-cpu-profile-virtual-tree .tree-item > .percentage {
+.cpu-profile-virtual-tree .tree-item > .inclusive,
+.cpu-profile-virtual-tree .tree-item > .exclusive,
+.cpu-profile-virtual-tree .tree-item > .percentage {
   display: inline-block;
   text-align: right;
   width: 4em;
@@ -862,11 +886,11 @@ cpu-profile-virtual-tree .tree-item > .percentage {
   margin-right: 0.25em;
 }
 
-cpu-profile-virtual-tree .tree-item > .exclusive {
+.cpu-profile-virtual-tree .tree-item > .exclusive {
   margin-right: 1.5em;
 }
 
-cpu-profile-virtual-tree .tree-item > .name {
+.cpu-profile-virtual-tree .tree-item > .name {
   display: inline;
   margin-left: 0.5em;
   margin-right: 0.5em;
@@ -874,116 +898,116 @@ cpu-profile-virtual-tree .tree-item > .name {
 
 /* curly-block */
 
-curly-block span.curly-block {
+.curly-block span.curly-block {
   color: #0489c3;
   cursor: pointer;
 }
-curly-block span.curly-block.disabled {
+.curly-block span.curly-block.disabled {
   color: white;
   cursor: wait;
 }
 
 /* debugger-console */
 
-debugger-console {
+.debugger-console {
   display: block;
   margin: 0px 20px 10px 20px;
 }
-debugger-console .normal {
+.debugger-console .normal {
   font: normal 14px consolas, courier, monospace;
   white-space: pre;
   line-height: 125%;
 }
-debugger-console .bold {
+.debugger-console .bold {
   font: bold 14px consolas, courier, monospace;
   white-space: pre;
   line-height: 125%;
 }
-debugger-console .red {
+.debugger-console .red {
   font: normal 14px consolas, courier, monospace;
   white-space: pre;
   line-height: 125%;
   color: red;
 }
-debugger-console .green {
+.debugger-console .green {
   font: normal 14px consolas, courier, monospace;
   white-space: pre;
   line-height: 125%;
   color: green;
 }
-debugger-console .spacer {
+.debugger-console .spacer {
   height: 20px;
 }
 
 /* debugger-frame */
 
-debugger-frame {
+.debugger-frame {
   display: block;
   position: relative;
   padding: 5px;
   border: 1px solid white;
 }
-debugger-frame:hover {
+.debugger-frame:hover {
   border: 1px solid #e0e0e0;
 }
-debugger-frame.shadow {
+.debugger-frame.shadow {
   box-shadow:  0 2px 10px 0 rgba(0, 0, 0, 0.16),
                0 2px 5px 0 rgba(0, 0, 0, 0.26);
 }
-debugger-frame.causalFrame {
+.debugger-frame.causalFrame {
   background-color: #D7CCC8;
 }
-debugger-frame.current {
+.debugger-frame.current {
   box-shadow:  0 2px 10px 0 rgba(0, 0, 0, 0.26),
                0 2px 5px 0 rgba(0, 0, 0, 0.46);
   border: 1px solid #444;
 }
-debugger-frame > button {
+.debugger-frame > button {
   display: block;
   width: 100%;
   text-align: left;
   background-color: transparent;
   border: none;
 }
-debugger-frame .frameSummaryText {
+.debugger-frame .frameSummaryText {
   display: inline-block;
   padding: 5px;
 }
-debugger-frame .frameId {
+.debugger-frame .frameId {
   display: inline-block;
   width: 60px;
 }
-debugger-frame .frameExpander {
+.debugger-frame .frameExpander {
   position: absolute;
   right: 5px;
   top: 5px;
   display: none;
 }
-debugger-frame:hover .frameExpander{
+.debugger-frame:hover .frameExpander{
   display: inline-block;
 }
-debugger-frame .frameContractor {
+.debugger-frame .frameContractor {
   position: absolute;
   right: 5px;
   bottom: 5px;
   display: inline-block;
 }
-debugger-frame .frameContractor > button {
+.debugger-frame .frameContractor > button {
   background-color: transparent;
   border: none;
 }
-debugger-frame .flex-item-script {
+.debugger-frame .flex-item-script {
   flex-grow: 1;
   flex-shrink: 1;
   flex-basis: 765px;
 }
-debugger-frame .flex-item-vars {
+.debugger-frame .flex-item-vars {
   flex-grow: 5;
   flex-shrink: 0;
   flex-basis: 250px;
   overflow-x: hidden;
 }
-debugger-frame .frameVars {
+.debugger-frame .frameVars {
   position: relative;
   top: 5px;
   padding-left:2em;
@@ -992,20 +1016,20 @@ debugger-frame .frameVars {
 
 /* debugger-input */
 
-debugger-input .container {
+.debugger-input .container {
   height: 100%;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
 }
-debugger-input .textBox {
+.debugger-input .textBox {
   flex: 1 1 auto;
   margin: 20px;
   padding: 5px;
   font: 400 16px consolas, courier, monospace;
   width: 95%;
 }
-debugger-input .modalPrompt {
+.debugger-input .modalPrompt {
   flex: 0 0 auto;
   margin-top: 20px;
   margin-left: 20px;
@@ -1013,70 +1037,70 @@ debugger-input .modalPrompt {
   font: 400 16px consolas, courier, monospace;
   color: red;
 }
-debugger-input .modalPrompt.hidden {
+.debugger-input .modalPrompt.hidden {
   display: none;
 }
 
 /* debugger-message */
 
-debugger-message {
+.debugger-message {
   display: block;
   position: relative;
   padding: 5px;
   border: 1px solid white;
 }
-debugger-message:hover {
+.debugger-message:hover {
   border: 1px solid #e0e0e0;
 }
-debugger-message.shadow {
+.debugger-message.shadow {
   box-shadow:  0 2px 10px 0 rgba(0, 0, 0, 0.16),
   0 2px 5px 0 rgba(0, 0, 0, 0.26);
 }
-debugger-message.current {
+.debugger-message.current {
   box-shadow:  0 2px 10px 0 rgba(0, 0, 0, 0.26),
   0 2px 5px 0 rgba(0, 0, 0, 0.46);
   border: 1px solid #444;
 }
-debugger-message > button {
+.debugger-message > button {
   display: block;
   width: 100%;
   text-align: left;
   background-color: transparent;
   border: none;
 }
-debugger-message .messageSummaryText {
+.debugger-message .messageSummaryText {
   display: inline-block;
   padding: 5px;
 }
-debugger-message .messageId {
+.debugger-message .messageId {
   display: inline-block;
   font-weight: bold;
   width: 100px;
 }
-debugger-message .messageExpander {
+.debugger-message .messageExpander {
   position: absolute;
   right: 5px;
   top: 5px;
   display: none;
 }
-debugger-message:hover .messageExpander {
+.debugger-message:hover .messageExpander {
   display: inline-block;
 }
-debugger-message.shadow:hover .messageExpander {
+.debugger-message.shadow:hover .messageExpander {
   display: none;
 }
-debugger-message .messageContractor {
+.debugger-message .messageContractor {
   position: absolute;
   right: 5px;
   bottom: 5px;
   display: inline-block;
 }
-debugger-message .flex-item-script {
+.debugger-message .flex-item-script {
   flex-grow: 1;
   flex-shrink: 1;
   flex-basis: 765px;
 }
-debugger-message .flex-item-vars {
+.debugger-message .flex-item-vars {
   flex-grow: 5;
   flex-shrink: 0;
   flex-basis: 225px;
@@ -1084,77 +1108,77 @@ debugger-message .flex-item-vars {
 
 /* debugger-page */
 
-debugger-page {
+.debugger-page {
   height: 100%;
 }
-debugger-page .variable {
+.debugger-page .variable {
   height: 100%;
   margin-bottom: -75px;
   padding-bottom: 75px;
 }
-debugger-page .stack {
+.debugger-page .stack {
   flex: 0 0 auto;
   overflow-y: auto;
   height: 62%;
 }
-debugger-page .splitter {
+.debugger-page .splitter {
   height: 0px;
   margin: 0px;
   font-size: 1px;
   border-bottom: 1px solid #888;
 }
-debugger-page .console {
+.debugger-page .console {
   flex: 1 1 auto;
   overflow-x: auto;
   overflow-y: auto;
   height: 38%;
 }
-debugger-page .commandline {
+.debugger-page .commandline {
   flex: 0 0 auto;
 }
 
 /* debugger-stack */
 
-debugger-stack {
+.debugger-stack {
   position: relative;
 }
-debugger-stack .sampledMessage {
+.debugger-stack .sampledMessage {
   margin: 0px 20px 10px 20px;
   font: 400 14px 'Montserrat', sans-serif;
   line-height: 125%;
 }
-debugger-stack .sampledMessage > button {
+.debugger-stack .sampledMessage > button {
   background-color: transparent;
   border: none;
   color: #0489c3;
   text-decoration: none;
   margin-right: 1em;
 }
-debugger-stack .sampledMessage > button:hover {
+.debugger-stack .sampledMessage > button:hover {
     text-decoration: underline;
 }
-debugger-stack .splitter {
+.debugger-stack .splitter {
   height: 0px;
   margin: 0px;
   font-size: 1px;
   border-bottom: 1px dashed #888;
 }
-debugger-stack .noMessages,
-debugger-stack .noStack {
+.debugger-stack .noMessages,
+.debugger-stack .noStack {
   margin: 10px 0px 10px 25px;
   font: bold 14px 'Montserrat', sans-serif;
   line-height: 125%;
 }
 
-debugger-stack .sampledMessage.hidden,
-debugger-stack .noMessages.hidden,
-debugger-stack .noStack.hidden {
+.debugger-stack .sampledMessage.hidden,
+.debugger-stack .noMessages.hidden,
+.debugger-stack .noStack.hidden {
   display: none;
 }
 
 /* error-ref */
 
-error-ref > pre {
+.error-ref > pre {
   background-color: #f5f5f5;
   border: 1px solid #ccc;
   padding-left: 10px;
@@ -1167,19 +1191,19 @@ error-ref > pre {
 
 /* eval-box */
 
-eval-box a[href]:hover {
+.eval-box a[href]:hover {
     text-decoration: underline;
 }
-eval-box a[href] {
+.eval-box a[href] {
     color: #0489c3;
     text-decoration: none;
 }
-eval-box .quicks > button:hover {
+.eval-box .quicks > button:hover {
   background-color: transparent;
   border: none;
   text-decoration: underline;
 }
-eval-box .quicks > button {
+.eval-box .quicks > button {
   background-color: transparent;
   border: none;
   color: #0489c3;
@@ -1187,15 +1211,15 @@ eval-box .quicks > button {
   margin-right: 1em;
   text-decoration: none;
 }
-eval-box .emphasize {
+.eval-box .emphasize {
   font-style: italic;
 }
-eval-box .indent {
+.eval-box .indent {
   margin-left: 1.5em;
   font: 400 14px 'Montserrat', sans-serif;
   line-height: 150%;
 }
-eval-box .stackTraceBox {
+.eval-box .stackTraceBox {
   margin-left: 1.5em;
   background-color: #f5f5f5;
   border: 1px solid #ccc;
@@ -1205,7 +1229,7 @@ eval-box .stackTraceBox {
   white-space: pre;
   overflow-x: auto;
 }
-eval-box .heading {
+.eval-box .heading {
   line-height: 30px;
   position: relative;
   box-sizing: border-box;
@@ -1213,24 +1237,24 @@ eval-box .heading {
   min-width: 450px;
   padding-right: 150px;
 }
-eval-box .heading .textbox {
+.eval-box .heading .textbox {
   width: 100%;
   min-width: 300px;
 }
-eval-box .heading .buttons {
+.eval-box .heading .buttons {
   position: absolute;
   top: 0;
   right: 0px;
 }
-eval-box .heading .buttons button{
+.eval-box .heading .buttons button{
   margin-right: 1em;
 }
-eval-box.historyExpr,
-eval-box .historyValue {
+.eval-box.historyExpr,
+.eval-box .historyValue {
   vertical-align: text-top;
   font: 400 14px 'Montserrat', sans-serif;
 }
-eval-box .historyExpr button {
+.eval-box .historyExpr button {
   display: block;
   color: black;
   border: none;
@@ -1240,14 +1264,14 @@ eval-box .historyExpr button {
   cursor: pointer;
   white-space: pre-line;
 }
-eval-box .historyExpr button:hover {
+.eval-box .historyExpr button:hover {
   background-color: #fff3e3;
 }
-eval-box .historyValue {
+.eval-box .historyValue {
   display: block;
   padding: 6px 6px;
 }
-eval-box .historyDelete button {
+.eval-box .historyDelete button {
   border: none;
   background: none;
 }
@@ -1257,48 +1281,48 @@ eval-box .historyDelete button:hover {
 
 /* flag-list */
 
-flag-list .comment {
+.flag-list .comment {
   color: #aaa;
 }
 
-flag-list .flag {
+.flag-list .flag {
   padding: 3px 0;
 }
 
-flag-list .name {
+.flag-list .name {
   font-weight: bold;
   margin-right: 0.7em;
 }
 
-flag-list .value {
+.flag-list .value {
   margin-left: 0.7em;
 }
 
 /* function-ref */
 
-function-ref > a[href]:hover {
+.function-ref > a[href]:hover {
   text-decoration: underline;
 }
-function-ref > a[href] {
+.function-ref > a[href] {
   color: #0489c3;
   text-decoration: none;
 }
-function-ref .emphasize {
+.function-ref .emphasize {
   font-style: italic;
 }
 
 
 /* heap-snapshot */
 
-heap-snapshot .statusMessage {
+.heap-snapshot .statusMessage {
   font-size: 150%;
   font-weight: bold;
 }
-heap-snapshot .statusBox {
+.heap-snapshot .statusBox {
   height: 100%;
   padding: 1em;
 }
-heap-snapshot .explanation {
+.heap-snapshot .explanation {
   display: block;
   display: -webkit-box;
   -webkit-line-clamp: 4;
@@ -1307,7 +1331,7 @@ heap-snapshot .explanation {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-heap-snapshot virtual-tree {
+.heap-snapshot .virtual-tree {
   position: absolute;
   height: auto;
   top: 250px;
@@ -1315,62 +1339,80 @@ heap-snapshot virtual-tree {
   left: 0;
   right: 0;
 }
-heap-snapshot .tree-item {
+.heap-snapshot .tree-item {
   box-sizing: border-box;
   line-height: 30px;
   height: 30px;
   padding-left: 5%;
   padding-right: 5%;
+
+  display: flex;
+  flex-direction: row;
 }
-heap-snapshot .tree-item > .size,
-heap-snapshot .tree-item > .percentage {
-  display: inline-block;
+.heap-snapshot .tree-item > .size,
+.heap-snapshot .tree-item > .percentage {
   text-align: right;
-  width: 4em;
   margin-left: 0.25em;
   margin-right: 0.25em;
+  flex-basis: 5em;
+  flex-grow: 0;
+  flex-shrink: 0;
 }
-
-heap-snapshot .tree-item > .name {
-  display: inline;
+.heap-snapshot .tree-item > .edge {
+  margin-left: 0.25em;
+  margin-right: 0.25em;
+  flex-basis: 0;
+  flex-grow: 1;
+  flex-shrink: 1;
+}
+.heap-snapshot .tree-item > .name {
   margin-left: 0.5em;
   margin-right: 0.5em;
+  flex-basis: 0;
+  flex-grow: 4;
+  flex-shrink: 4;
+}
+.heap-snapshot .tree-item > .link {
+  margin-left: 0.25em;
+  margin-right: 0.25em;
+  flex-grow: 0;
+  flex-shrink: 0;
 }
 
 
 /* icdata-ref */
 
-icdata-ref > a[href]:hover {
+.icdata-ref > a[href]:hover {
   text-decoration: underline;
 }
-icdata-ref > a[href] {
+.icdata-ref > a[href] {
   color: #0489c3;
   text-decoration: none;
 }
-icdata-ref > a[href] * {
+.icdata-ref > a[href] * {
   color: inherit;
 }
-icdata-ref .emphasize {
+.icdata-ref .emphasize {
   font-style: italic;
 }
 
 
 /* inbound-reference */
 
-inbound-reference > a[href]:hover {
+.inbound-reference > a[href]:hover {
   text-decoration: underline;
 }
-inbound-reference > a[href] {
+.inbound-reference > a[href] {
   color: #0489c3;
   text-decoration: none;
 }
 
-inbound-reference .indent {
+.inbound-reference .indent {
   margin-left: 1.5em;
   font: 400 14px 'Montserrat', sans-serif;
   line-height: 150%;
 }
-inbound-reference .stackTraceBox {
+.inbound-reference .stackTraceBox {
   margin-left: 1.5em;
   background-color: #f5f5f5;
   border: 1px solid #ccc;
@@ -1383,25 +1425,25 @@ inbound-reference .stackTraceBox {
 
 /* instance-ref */
 
-instance-ref > a[href]:hover {
+.instance-ref > a[href]:hover {
   text-decoration: underline;
 }
-instance-ref > a[href] {
+.instance-ref > a[href] {
   color: #0489c3;
   text-decoration: none;
 }
-instance-ref > a[href] * {
+.instance-ref > a[href] * {
   color: inherit;
 }
-instance-ref .emphasize {
+.instance-ref .emphasize {
   font-style: italic;
 }
-instance-ref .indent {
+.instance-ref .indent {
   margin-left: 1.5em;
   font: 400 14px 'Montserrat', sans-serif;
   line-height: 150%;
 }
-instance-ref .stackTraceBox {
+.instance-ref .stackTraceBox {
   margin-left: 1.5em;
   background-color: #f5f5f5;
   border: 1px solid #ccc;
@@ -1414,20 +1456,20 @@ instance-ref .stackTraceBox {
 
 /* isolate-counter-chart */
 
-isolate-counter-chart {
+.isolate-counter-chart {
   display: block;
   position: relative;
   height: 300px;
   min-width: 350px;
 }
-isolate-counter-chart > div.host {
+.isolate-counter-chart > div.host {
   position: absolute;
   left: 0;
   bottom: 20px;
   top: 5px;
   right: 250px;
 }
-isolate-counter-chart > div.legend {
+.isolate-counter-chart > div.legend {
   position: absolute;
   width: 250px;
   top: 0;
@@ -1438,72 +1480,73 @@ isolate-counter-chart > div.legend {
 
 /* isolate-location */
 
-isolate-location > span {
+.isolate-location > span {
   font-weight: bold;
 }
-isolate-location > a[href] {
+.isolate-location > a[href] {
   color: #0489c3;
   text-decoration: none;
 }
-isolate-location > a[href]:hover {
+.isolate-location > a[href]:hover {
   text-decoration: underline;
 }
 
 /* isolate-reconnect */
 
-isolate-reconnect div.doubleSpaced {
+.isolate-reconnect div.doubleSpaced {
   line-height: 2em;
 }
 
 /* isolate-ref */
 
-isolate-ref > a[href]:hover {
+.isolate-ref > a[href]:hover {
   text-decoration: underline;
 }
-isolate-ref > a[href] {
+.isolate-ref > a[href] {
   color: #0489c3;
   text-decoration: none;
 }
 
 /* isolate-run-state */
 
-isolate-run-state > span {
+.isolate-run-state > span {
   font-weight: bold;
 }
 
 /* isolate-shared-summary */
 
-isolate-shared-summary {
+.isolate-shared-summary {
   display: block;
 }
 
 .isolate-ref-container {
   overflow: hidden;
   text-overflow: ellipsis;
+  padding: 5px;
+  font-weight: bolder;
 }
 
 .isolate-state-container {
   display: inline-block;
-  min-width: 18ex;
 }
 
-isolate-shared-summary > .summary {
-  height: 300px;
+.isolate-shared-summary > .summary {
+  height: 350px;
   position: relative;
 }
-isolate-shared-summary .menu {
+.isolate-shared-summary .menu {
   float: right;
   top: 0;
   right: 0;
 }
-isolate-shared-summary isolate-counter-chart {
+.isolate-shared-summary .isolate-counter-chart {
   position: absolute;
   left: 0;
   top: 0;
   right: 230px;
   clear: both;
 }
-isolate-shared-summary .errorBox {
+.isolate-shared-summary .errorBox {
   background-color: #f5f5f5;
   border: 1px solid #ccc;
   padding: 2em;
@@ -1515,14 +1558,14 @@ isolate-shared-summary .errorBox {
 
 /* library-ref */
 
-library-ref > a[href]:hover {
+.library-ref > a[href]:hover {
   text-decoration: underline;
 }
-library-ref > a[href] {
+.library-ref > a[href] {
   color: #0489c3;
   text-decoration: none;
 }
-library-ref .emphasize {
+.library-ref .emphasize {
   font-style: italic;
 }
 
@@ -1539,103 +1582,103 @@ library-ref .emphasize {
 
 /* logging-list */
 
-logging-list .outlined {
+.logging-list .outlined {
   -webkit-box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.75);
   -moz-box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.75);
   box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.75);
   margin: 4px;
 }
-logging-list .logItem {
+.logging-list .logItem {
   display: inline-block;
   font: normal 14px consolas, courier, monospace;
   white-space: pre;
   line-height: 125%;
   width: 100%;
 }
-logging-list .level {
+.logging-list .level {
   display: inline-block;
   width: 5em;
 }
-logging-list .time {
+.logging-list .time {
   display: inline-block;
   width: 12em;
 }
-logging-list .FINEST {
+.logging-list .FINEST {
   background-color: #FAFAFA;
 }
-logging-list .FINER {
+.logging-list .FINER {
   background-color: #ECEFF1;
 }
-logging-list .FINE {
+.logging-list .FINE {
   background-color: #EFEBE9;
 }
-logging-list .CONFIG {
+.logging-list .CONFIG {
   background-color: #FFF3E0;
 }
-logging-list .INFO {
+.logging-list .INFO {
   background-color: #F1F8E9;
 }
-logging-list .WARNING {
+.logging-list .WARNING {
   background-color: #FFE0B2;
 }
-logging-list .SEVERE {
+.logging-list .SEVERE {
   background-color: #FFCCBC;
 }
-logging-list .SHOUT {
+.logging-list .SHOUT {
   background-color: #FFCDD2;
 }
 
 /* memory-graph */
 
-memory-graph .chart-legend-row,
-memory-graph .chart-legend-row div {
+.memory-graph .chart-legend-row,
+.memory-graph .chart-legend-row div {
   display: inline;
 }
 
-memory-graph .chart-legend-row div.chart-legend-color {
+.memory-graph .chart-legend-row div.chart-legend-color {
   display: inline-block;
   margin: auto 8px;
 }
 
-memory-graph .chart-legend-row:nth-child(2n) div.chart-legend-color {
+.memory-graph .chart-legend-row:nth-child(2n) div.chart-legend-color {
   display: none;
 }
 
 /* megamorphic-cache-ref */
 
-megamorphic-cache-ref > a[href]:hover {
+.megamorphic-cache-ref > a[href]:hover {
     text-decoration: underline;
 }
-megamorphic-cache-ref > a[href] {
+.megamorphic-cache-ref > a[href] {
     color: #0489c3;
     text-decoration: none;
 }
-megamorphic-cache-ref > a[href] * {
+.megamorphic-cache-ref > a[href] * {
     color: inherit;
 }
-megamorphic-ref .emphasize {
+.megamorphic-ref .emphasize {
   font-style: italic;
 }
 
 /* dashboards common */
 
-memory-dashboard,
-timeline-dashboard {
+.memory-dashboard,
+.timeline-dashboard {
   display: block;
   height: 100%;
   margin-top: -30px;
 }
 
-memory-profile > div > h1,
-timeline-dashboard > div > h1 {
+.memory-profile > div > h1,
+.timeline-dashboard > div > h1 {
   overflow: hidden;
   border-bottom: 1px solid #d5d5d5;
 }
 
-memory-dashboard button:disabled,
-timeline-dashboard button:disabled,
-memory-dashboard button:disabled:hover,
-timeline-dashboard button:disabled:hover {
+.memory-dashboard button:disabled,
+.timeline-dashboard button:disabled,
+.memory-dashboard button:disabled:hover,
+.timeline-dashboard button:disabled:hover {
   text-decoration: none;
   background-color: #eee;
   background-image: linear-gradient(#eee, #eee);
@@ -1644,11 +1687,14 @@ timeline-dashboard button:disabled:hover {
   cursor: default;
 }
 
+.timeline-dashboard p {
+  margin-top: 0.4em;
+}
 
-memory-dashboard button,
-timeline-dashboard button,
-memory-dashboard button:active,
-timeline-dashboard button:active {
+.memory-dashboard button,
+.timeline-dashboard button,
+.memory-dashboard button:active,
+.timeline-dashboard button:active {
   text-decoration: none;
   background-color: #ddd;
   background-image: linear-gradient(#eee, #ddd);
@@ -1657,45 +1703,56 @@ timeline-dashboard button:active {
   cursor: pointer;
 }
 
-memory-dashboard button:hover,
-timeline-dashboard button:hover {
+.memory-dashboard button:hover,
+.timeline-dashboard button:hover {
   text-decoration: none;
   background-color: #ccc;
   background-image: linear-gradient(#ddd, #ccc);
   border-color: #c7c7c7;
 }
 
-memory-profile .header_button,
-timeline-dashboard .header_button {
+.memory-profile .header_button,
+.timeline-dashboard .header_button {
   padding: 3px 5px;
   margin: 0px 1px;
+  min-width: 130px;
 }
 
-memory-profile .header_button:first-child,
-timeline-dashboard .header_button:first-child {
-  margin-left: 5px;
+.memory-profile .header_button,
+.timeline-dashboard .header_button {
+  margin-left: 6px;
 }
 
-memory-profile .tab_buttons,
-timeline-dashboard .tab_buttons {
+.header_button.left-pad {
+  margin-left: 75px;
+}
+
+.memory-profile .header_button:first-child,
+.timeline-dashboard .header_button:first-child {
+  margin-left: 30px;
+}
+
+.memory-profile .tab_buttons,
+.timeline-dashboard .tab_buttons {
   position: relative;
   top: 1px;
   float: right;
 }
 
-memory-profile .tab_buttons button,
-timeline-dashboard .tab_buttons button {
-  padding: 10px 5px;
+.memory-profile .tab_buttons button,
+.timeline-dashboard .tab_buttons button {
+  padding: 5px 5px;
+  min-width: 100px
 }
 
-memory-profile .tab_buttons button:not(:first-child),
-timeline-dashboard .tab_buttons button:not(:first-child) {
+.memory-profile .tab_buttons button:not(:first-child),
+.timeline-dashboard .tab_buttons button:not(:first-child) {
   border-top-left-radius: 0px;
   border-bottom-left-radius: 0px;
 }
 
-memory-profile .tab_buttons button:not(:last-child),
-timeline-dashboard  .tab_buttons button:not(:last-child) {
+.memory-profile .tab_buttons button:not(:last-child),
+.timeline-dashboard  .tab_buttons button:not(:last-child) {
   border-top-right-radius: 0px;
   border-bottom-right-radius: 0px;
 }
@@ -1703,19 +1760,19 @@ timeline-dashboard  .tab_buttons button:not(:last-child) {
 
 /* memory-dashboard */
 
-memory-dashboard memory-graph {
+.memory-dashboard .memory-graph {
   height: 350px;
 }
 
-memory-dashboard memory-profile {
+.memory-dashboard .memory-profile {
   position: absolute;
-  bottom: 0;
+  bottom: 20px;
   left: 0;
   right: 0;
   top: 300px;
 }
 
-memory-dashboard memory-profile memory-allocations {
+.memory-dashboard .memory-profile .memory-allocations {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -1723,7 +1780,7 @@ memory-dashboard memory-profile memory-allocations {
   top: 39px;
 }
 
-memory-dashboard memory-profile memory-snapshot {
+.memory-dashboard .memory-profile .memory-snapshot {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -1733,76 +1790,76 @@ memory-dashboard memory-profile memory-snapshot {
 
 /* metric-graph */
 
-metric-graph {
+.metric-graph {
   display: block;
 }
 
-metric-graph .graph {
+.metric-graph .graph {
   height: 100%;
   margin-top: -30px;
   padding: 20px;
   padding-top: 60px;
 }
 
-metric-graph .graph > div {
+.metric-graph .graph > div {
   height: 100%;
 }
 
 /* memory-allocations */
 
-memory-allocations .container {
+.memory-allocations .container {
   padding-left: 5%;
   padding-right: 5%;
 }
 
-memory-allocations .collection-item {
+.memory-allocations .collection-item {
   background-color: #FFFFFF;
   box-sizing: border-box;
   line-height: 20px;
 }
 
-memory-allocations .collection-item:hover {
+.memory-allocations .collection-item:hover {
   background-color: #d2e7fe;
 }
 
-memory-allocations .header .collection-item:hover {
+.memory-allocations .header .collection-item:hover {
   background-color: #FFFFFF;
 }
 
-memory-allocations .header .collection-item:last-child {
+.memory-allocations .header .collection-item:last-child {
   margin-bottom: -3px;
   border-bottom: solid 1px #AAAAAA;
 }
 
-memory-allocations .header .collection-item span {
+.memory-allocations .header .collection-item span {
   font-weight: bolder;
 }
 
-memory-allocations .collection-item :nth-child(2n+2).group,
-memory-allocations .collection-item :nth-child(4n+3),
-memory-allocations .collection-item :nth-child(4n+4) {
+.memory-allocations .collection-item :nth-child(2n+2).group,
+.memory-allocations .collection-item :nth-child(4n+3),
+.memory-allocations .collection-item :nth-child(4n+4) {
   background-color: #EEEEEE;
 }
 
-memory-allocations .collection-item:hover :nth-child(2n+2).group,
-memory-allocations .collection-item:hover :nth-child(4n+3),
-memory-allocations .collection-item:hover :nth-child(4n+4) {
+.memory-allocations .collection-item:hover :nth-child(2n+2).group,
+.memory-allocations .collection-item:hover :nth-child(4n+3),
+.memory-allocations .collection-item:hover :nth-child(4n+4) {
   background-color: #afd5fd;
 }
 
-memory-allocations .header .collection-item :nth-child(2n+1).group,
-memory-allocations .header .collection-item :nth-child(4n+1),
-memory-allocations .header .collection-item :nth-child(4n+2) {
+.memory-allocations .header .collection-item :nth-child(2n+1).group,
+.memory-allocations .header .collection-item :nth-child(4n+1),
+.memory-allocations .header .collection-item :nth-child(4n+2) {
   background-color: #FFFFFF;
 }
 
-memory-allocations .header .collection-item :nth-child(2n+2).group,
-memory-allocations .header .collection-item :nth-child(4n+3),
-memory-allocations .header .collection-item :nth-child(4n+4) {
+.memory-allocations .header .collection-item :nth-child(2n+2).group,
+.memory-allocations .header .collection-item :nth-child(4n+3),
+.memory-allocations .header .collection-item :nth-child(4n+4) {
   background-color: #DDDDDD;
 }
 
-memory-allocations .collection-item .group {
+.memory-allocations .collection-item .group {
   display: inline-block;
   width: 12em;
   text-align: right;
@@ -1811,7 +1868,7 @@ memory-allocations .collection-item .group {
   border-right: solid 1px #AAAAAA;
 }
 
-memory-allocations .collection-item .bytes {
+.memory-allocations .collection-item .bytes {
   display: inline-block;
   width: 6em;
   text-align: right;
@@ -1819,7 +1876,7 @@ memory-allocations .collection-item .bytes {
   padding-right: 0.5em;
 }
 
-memory-allocations .collection-item .instances {
+.memory-allocations .collection-item .instances {
   display: inline-block;
   width: 6em;
   text-align: right;
@@ -1828,16 +1885,16 @@ memory-allocations .collection-item .instances {
   border-right: solid 1px #AAAAAA;
 }
 
-memory-allocations .collection-item .name {
+.memory-allocations .collection-item .name {
   padding-left: 0.5em;
   padding-right: 0.5em;
   display: inline-block;
 }
 
-memory-allocations .collection-item > button,
-memory-allocations .collection-item > button:active,
-memory-allocations .collection-item .group button,
-memory-allocations .collection-item .group button:active {
+.memory-allocations .collection-item > button,
+.memory-allocations .collection-item > button:active,
+.memory-allocations .collection-item .group button,
+.memory-allocations .collection-item .group button:active {
   background: transparent;
   color: #0489c3;
   border: 0px none;
@@ -1845,8 +1902,8 @@ memory-allocations .collection-item .group button:active {
   padding: 0;
 }
 
-memory-allocations .collection-item > button:hover,
-memory-allocations .collection-item .group button:hover {
+.memory-allocations .collection-item > button:hover,
+.memory-allocations .collection-item .group button:hover {
   text-decoration: underline;
   border-radius: 0px;
 }
@@ -1854,15 +1911,15 @@ memory-allocations .collection-item .group button:hover {
 
 /* memory-snapshot */
 
-memory-snapshot .statusMessage {
+.memory-snapshot .statusMessage {
   font-size: 150%;
   font-weight: bold;
 }
-memory-snapshot .statusBox {
+.memory-snapshot .statusBox {
   height: 100%;
   padding: 1em;
 }
-memory-snapshot .explanation {
+.memory-snapshot .explanation {
   display: block;
   display: -webkit-box;
   -webkit-line-clamp: 4;
@@ -1871,7 +1928,7 @@ memory-snapshot .explanation {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-memory-snapshot virtual-tree {
+.memory-snapshot .virtual-tree {
   position: absolute;
   height: auto;
   top: 50px;
@@ -1879,15 +1936,15 @@ memory-snapshot virtual-tree {
   left: 0;
   right: 0;
 }
-memory-snapshot .tree-item {
+.memory-snapshot .tree-item {
   box-sizing: border-box;
   line-height: 30px;
   height: 30px;
   padding-left: 5%;
   padding-right: 5%;
 }
-memory-snapshot .tree-item > .size,
-memory-snapshot .tree-item > .percentage {
+.memory-snapshot .tree-item > .size,
+.memory-snapshot .tree-item > .percentage {
   display: inline-block;
   text-align: right;
   width: 4em;
@@ -1895,19 +1952,19 @@ memory-snapshot .tree-item > .percentage {
   margin-right: 0.25em;
 }
 
-memory-snapshot .tree-item > .name {
+.memory-snapshot .tree-item > .name {
   display: inline;
   margin-left: 0.5em;
 }
 
 /* metric-graph */
 
-metrics-page > div {
+.metrics-page > div {
   display: block;
   height: 100%;
 }
 
-metrics-page > div > .graph {
+.metrics-page > div > .graph {
   display: block;
   height: 100%;
   margin-top: -300px;
@@ -1944,7 +2001,7 @@ li.nav-menu:before {
   margin-right: 0.5em;
 }
 nav.nav-bar > ul *:first-child li.nav-menu:before,
-nav.nav-bar > ul nav-reload > li:before {
+nav.nav-bar > ul .nav-reload > li:before {
   content: '';
   margin-left: 0;
   margin-right: 0;
@@ -1983,21 +2040,21 @@ li.nav-menu, .nav-menu_label {
 
 /* nav-menu-item */
 
-nav-menu-item li.nav-menu-item {
+.nav-menu-item li.nav-menu-item {
   float: none;
   border-top: 1px solid #677;
   border-bottom: 1px solid #556; position: relative;
 }
-nav-menu-item li.nav-menu-item:hover {
+.nav-menu-item li.nav-menu-item:hover {
   background: #455;
 }
-nav-menu-item li.nav-menu-item > a {
+.nav-menu-item li.nav-menu-item > a {
   display: block;
   padding: 12px 12px;
   color: white;
   text-decoration: none;
 }
-nav-menu-item li.nav-menu-item > ul {
+.nav-menu-item li.nav-menu-item > ul {
   display: none;
   position: absolute;
   top:0;
@@ -2011,19 +2068,19 @@ nav-menu-item li.nav-menu-item > ul {
   color: white;
   background: #567;
 }
-nav-menu-item li.nav-menu-item > ul:after {
+.nav-menu-item li.nav-menu-item > ul:after {
   content: ""; clear: both; display: block;
 }
-nav-menu-item li.nav-menu-item:hover > ul {
+.nav-menu-item li.nav-menu-item:hover > ul {
   display: block;
 }
 
 /* nav-notify */
 
-nav-notify > div {
+.nav-notify > div {
   float: right;
 }
-nav-notify > div > div {
+.nav-notify > div > div {
   display: block;
   position: absolute;
   top: 98%;
@@ -2037,7 +2094,7 @@ nav-notify > div > div {
 
 /* nav-exception & nav-event */
 
-nav-exception > div, nav-event > div {
+.nav-exception > div, .nav-event > div {
   position: relative;
   padding: 16px;
   margin-top: 10px;
@@ -2052,28 +2109,28 @@ nav-exception > div, nav-event > div {
   animation: fadein 1s;
 }
 
-nav-exception *, nav-event * {
+.nav-exception *, .nav-event * {
   color: #ddd;
   font-size: 12px;
 }
 
-nav-exception > div > a[href],
-nav-event > div > a[href] {
+.nav-exception > div > a[href],
+.nav-event > div > a[href] {
   color: white;
   text-decoration: none;
 }
 
-nav-exception > div > a[href]:hover,
-nav-event > div > a[href]:hover {
+.nav-exception > div > a[href]:hover,
+.nav-event > div > a[href]:hover {
   text-decoration: underline;
 }
 
-nav-exception > div > div {
+.nav-exception > div > div {
   margin-left:20px;
   white-space: pre
 }
 
-nav-exception > div > button, nav-event > div > button {
+.nav-exception > div > button, .nav-event > div > button {
   background: transparent;
   border: none;
   position: absolute;
@@ -2090,13 +2147,13 @@ nav-exception > div > button, nav-event > div > button {
   text-align: center;
 }
 
-nav-exception > div > button:hover, nav-event > div > button:hover {
+.nav-exception > div > button:hover, .nav-event > div > button:hover {
   background: rgba(255,255,255,0.5);
 }
 
 /* nav-refresh */
 
-nav-refresh > li > button {
+.nav-refresh > li > button {
   color: #000;
   margin: 3px;
   padding: 8px;
@@ -2105,18 +2162,18 @@ nav-refresh > li > button {
   font-size: 13px;
   font: 400 'Montserrat', sans-serif;
 }
-nav-refresh > li > button[disabled] {
+.nav-refresh > li > button[disabled] {
   color: #aaa;
   cursor: wait;
 }
-nav-refresh > li {
+.nav-refresh > li {
   float: right;
   margin: 0;
 }
 
 /* nav-refresh */
 
-nav-reload > li > button {
+.nav-reload > li > button {
   color: #000;
   margin: 3px;
   padding: 8px;
@@ -2125,36 +2182,36 @@ nav-reload > li > button {
   font-size: 13px;
   font: 400 'Montserrat', sans-serif;
 }
-nav-reload ul > li {
+.nav-reload ul > li {
   display: block;
   width: 100%;
   padding: 2px;
 }
-nav-reload ul > li > button {
+.nav-reload ul > li > button {
   display: inline-block;
   padding: 8px;
   width: 100%;
 }
-nav-reload > li > button[disabled],
-nav-reload ul > li > button[disabled] {
+.nav-reload > li > button[disabled],
+.nav-reload ul > li > button[disabled] {
   color: #aaa;
   cursor: wait;
 }
-nav-reload > li {
+.nav-reload > li {
   float: right;
   margin: 0;
 }
 
 /* object-common && class-instances */
 
-class-instances button:hover,
-object-common button:hover {
+.class-instances button:hover,
+.object-common button:hover {
   background-color: transparent;
   border: none;
   text-decoration: underline;
 }
-class-instances button,
-object-common button {
+.class-instances button,
+.object-common button {
   background-color: transparent;
   border: none;
   color: #0489c3;
@@ -2166,126 +2223,126 @@ object-common button {
 
 /* object-pool-ref */
 
-object-pool-ref > a[href]:hover {
+.object-pool-ref > a[href]:hover {
   text-decoration: underline;
 }
 
-object-pool-ref > a[href] {
+.object-pool-ref > a[href] {
   color: #0489c3;
   text-decoration: none;
 }
-object-pool-ref > a[href] * {
+.object-pool-ref > a[href] * {
   color: inherit;
 }
-object-pool-ref .emphasize {
+.object-pool-ref .emphasize {
   font-style: italic;
 }
 
 /* object-pool-view */
 
-object-pool-view .hexadecimal {
+.object-pool-view .hexadecimal {
   font-family: monospace;
 }
 
 /* observatory-application */
 
-observatory-application {
+.observatory-application {
   display: block;
   height: 100%;
 }
 
-observatory-application > div {
+.observatory-application > div {
   display: block;
   height: 100%;
 }
 
 /* persistent-handles-page */
 
-persistent-handles-page {
+.persistent-handles-page {
   display: block;
   height: 100%;
 }
-persistent-handles-page .persistent-handles,
-persistent-handles-page .weak-persistent-handles {
+.persistent-handles-page .persistent-handles,
+.persistent-handles-page .weak-persistent-handles {
   margin-top: -70px;
   padding-top: 70px;
   height: 50%;
 }
-persistent-handles-page .weak-item,
-persistent-handles-page .collection-item {
+.persistent-handles-page .weak-item,
+.persistent-handles-page .collection-item {
   box-sizing: border-box;
   line-height: 20px;
   padding-left: 5%;
   padding-right: 5%;
 }
-persistent-handles-page .header {
+.persistent-handles-page .header {
   box-sizing: border-box;
   line-height: 20px;
 }
-persistent-handles-page .header .weak-item:last-child {
+.persistent-handles-page .header .weak-item:last-child {
   margin-bottom: -3px;
   border-bottom: solid 1px #AAAAAA;
 }
-persistent-handles-page .weak-item .external-size,
-persistent-handles-page .weak-item .peer,
-persistent-handles-page .weak-item .object {
+.persistent-handles-page .weak-item .external-size,
+.persistent-handles-page .weak-item .peer,
+.persistent-handles-page .weak-item .object {
   display: inline-block;
   width: 7em;
   text-align: right;
   padding-right: 0.5em;
   line-height: 20px;
 }
-persistent-handles-page .weak-item .peer {
+.persistent-handles-page .weak-item .peer {
   width: 11em;
   font-family: monospace;
 }
-persistent-handles-page .weak-item .object {
+.persistent-handles-page .weak-item .object {
   text-align: left;
   width: 25em;
 }
-persistent-handles-page .buffer .weak-item:hover {
+.persistent-handles-page .buffer .weak-item:hover {
   background-color: #d2e7fe;
 }
-persistent-handles-page .weak-item .finalizer {
+.persistent-handles-page .weak-item .finalizer {
   padding-left: 0.5em;
 }
-persistent-handles-page .weak-item > button,
-persistent-handles-page .weak-item > button:active {
+.persistent-handles-page .weak-item > button,
+.persistent-handles-page .weak-item > button:active {
   background-color: transparent;
   color: #0489c3;
   border-style: none;
 }
-persistent-handles-page .weak-item > button:hover {
+.persistent-handles-page .weak-item > button:hover {
   text-decoration: underline;
 }
 
 /* ports-page */
 
-ports-page .port-number {
+.ports-page .port-number {
   font-weight: bold;
 }
 
 /* script-ref */
 
-script-ref > a[href]:hover {
+.script-ref > a[href]:hover {
   text-decoration: underline;
 }
-script-ref > a[href] {
+.script-ref > a[href] {
   color: #0489c3;
   text-decoration: none;
 }
-script-ref .emphasize {
+.script-ref .emphasize {
   font-style: italic;
 }
 
 
 /* source-link */
 
-source-link > a[href]:hover {
+.source-link > a[href]:hover {
     text-decoration: underline;
 }
 
-source-link > a[href] {
+.source-link > a[href] {
     color: #0489c3;
     text-decoration: none;
 }
@@ -2293,57 +2350,57 @@ source-link > a[href] {
 
 /* observatory-application */
 
-observatory-application {
+.observatory-application {
   display: block;
   height: 100%;
 }
 
-observatory-application > div {
+.observatory-application > div {
   display: block;
   height: 100%;
 }
 
 /* sample-buffer-control */
 
-sample-buffer-control {
+.sample-buffer-control {
   white-space: nowrap;
 }
 
-sample-buffer-control .statusMessage {
+.sample-buffer-control .statusMessage {
   font-size: 150%;
   font-weight: bold;
 }
 
-sample-buffer-control .statusBox {
+.sample-buffer-control .statusBox {
   height: 100%;
   padding: 1em;
 }
 
-sample-buffer-control .center {
+.sample-buffer-control .center {
   align-items: center;
   justify-content: center;
 }
 
-sample-buffer-control .notice {
+.sample-buffer-control .notice {
   background-color: #fcf8e3;
 }
 
-sample-buffer-control .red {
+.sample-buffer-control .red {
   background-color: #f2dede;
 }
 
-sample-buffer-control .shadow {
+.sample-buffer-control .shadow {
   box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.16),
               0 2px 5px 0 rgba(0, 0, 0, 0.26);
 }
 
 /* script-inset */
 
-script-inset {
+.script-inset {
   position: relative;
 }
-script-inset button.refresh,
-script-inset button.toggle-profile {
+.script-inset button.refresh,
+.script-inset button.toggle-profile {
   background-color: transparent;
   padding: 0;
   margin: 0;
@@ -2352,29 +2409,29 @@ script-inset button.toggle-profile {
   display: inline-block;
   top: 5px;
 }
-script-inset button.refresh > svg,
-script-inset button.toggle-profile > svg {
+.script-inset button.refresh > svg,
+.script-inset button.toggle-profile > svg {
   fill: #888888;
 }
-script-inset button.refresh {
+.script-inset button.refresh {
   right: 5px;
 }
-script-inset button.toggle-profile {
+.script-inset button.toggle-profile {
   right: 30px;
 }
-script-inset button.toggle-profile.enabled > svg {
+.script-inset button.toggle-profile.enabled > svg {
   fill: #BB3322;
 }
-script-inset a {
+.script-inset a {
   color: #0489c3;
   text-decoration: none;
 }
-script-inset a:hover {
+.script-inset a:hover {
   text-decoration: underline;
 }
-script-inset .sourceInset {
+.script-inset .sourceInset {
 }
-script-inset .sourceTable {
+.script-inset .sourceTable {
   position: relative;
   background-color: #f5f5f5;
   border: 1px solid #ccc;
@@ -2383,31 +2440,31 @@ script-inset .sourceTable {
   box-sizing: border-box;
   overflow-x: scroll;
 }
-script-inset .sourceRow {
+.script-inset .sourceRow {
   display: flex;
   flex-direction: row;
   width: 100%;
 }
-script-inset .sourceItem,
-script-inset .sourceItemCurrent {
+.script-inset .sourceItem,
+.script-inset .sourceItemCurrent {
   vertical-align: top;
   font: 400 14px consolas, courier, monospace;
   line-height: 125%;
   white-space: pre;
   max-width: 0;
 }
-script-inset .currentLine {
+.script-inset .currentLine {
   background-color: #fff;
 }
-script-inset .currentCol {
+.script-inset .currentCol {
   background-color: #6cf;
 }
-script-inset .hitsCurrent,
-script-inset .hitsNone,
-script-inset .hitsNotExecuted,
-script-inset .hitsExecuted,
-script-inset .hitsCompiled,
-script-inset .hitsNotCompiled {
+.script-inset .hitsCurrent,
+.script-inset .hitsNone,
+.script-inset .hitsNotExecuted,
+.script-inset .hitsExecuted,
+.script-inset .hitsCompiled,
+.script-inset .hitsNotCompiled {
   display: table-cell;
   vertical-align: top;
   font: 400 14px consolas, courier, monospace;
@@ -2416,28 +2473,28 @@ script-inset .hitsNotCompiled {
   text-align: right;
   color: #a8a8a8;
 }
-script-inset .hitsCurrent {
+.script-inset .hitsCurrent {
   background-color: #6cf;
   color: black;
 }
-script-inset .hitsNotExecuted {
+.script-inset .hitsNotExecuted {
   background-color: #faa;
 }
-script-inset .hitsExecuted {
+.script-inset .hitsExecuted {
   background-color: #aea;
 }
-script-inset .hitsCompiled {
+.script-inset .hitsCompiled {
   background-color: #e0e0e0;
 }
-script-inset .hitsNotCompiled {
+.script-inset .hitsNotCompiled {
   background-color: #f0c5c5;
 }
-script-inset .noCopy {}
-script-inset .emptyBreakpoint,
-script-inset .possibleBreakpoint,
-script-inset .busyBreakpoint,
-script-inset .unresolvedBreakpoint,
-script-inset .resolvedBreakpoint  {
+.script-inset .noCopy {}
+.script-inset .emptyBreakpoint,
+.script-inset .possibleBreakpoint,
+.script-inset .busyBreakpoint,
+.script-inset .unresolvedBreakpoint,
+.script-inset .resolvedBreakpoint  {
   display: table-cell;
   vertical-align: top;
   font: 400 14px consolas, courier, monospace;
@@ -2445,39 +2502,39 @@ script-inset .resolvedBreakpoint  {
   text-align: center;
   cursor: pointer;
 }
-script-inset .possibleBreakpoint {
+.script-inset .possibleBreakpoint {
   color: #e0e0e0;
 }
-script-inset .possibleBreakpoint:hover {
+.script-inset .possibleBreakpoint:hover {
   color: white;
   background-color: #777;
 }
-script-inset .busyBreakpoint {
+.script-inset .busyBreakpoint {
   color: white;
   background-color: black;
   cursor: wait;
 }
-script-inset .unresolvedBreakpoint {
+.script-inset .unresolvedBreakpoint {
   color: white;
   background-color: #cac;
 }
-script-inset .resolvedBreakpoint {
+.script-inset .resolvedBreakpoint {
   color: white;
   background-color: #e66;
 }
-script-inset .unresolvedBreakAnnotation {
+.script-inset .unresolvedBreakAnnotation {
   color: white;
   background-color: #cac;
 }
-script-inset .resolvedBreakAnnotation {
+.script-inset .resolvedBreakAnnotation {
   color: white;
   background-color: #e66;
 }
-script-inset .notSourceProfile,
-script-inset .noProfile,
-script-inset .coldProfile,
-script-inset .mediumProfile,
-script-inset .hotProfile {
+.script-inset .notSourceProfile,
+.script-inset .noProfile,
+.script-inset .coldProfile,
+.script-inset .mediumProfile,
+.script-inset .hotProfile {
   display: table-cell;
   vertical-align: top;
   font: 400 14px consolas, courier, monospace;
@@ -2487,28 +2544,28 @@ script-inset .hotProfile {
   margin-left: 5px;
   margin-right: 5px;
 }
-script-inset .notSourceProfile {
+.script-inset .notSourceProfile {
 }
-script-inset .noProfile {
+.script-inset .noProfile {
   background-color: #e0e0e0;
 }
-script-inset .coldProfile {
+.script-inset .coldProfile {
   background-color: #aea;
 }
-script-inset .mediumProfile {
+.script-inset .mediumProfile {
   background-color: #fe9;
 }
-script-inset .hotProfile {
+.script-inset .hotProfile {
   background-color: #faa;
 }
 
 /* search-bar */
 
-search-bar {
+.search-bar {
   background: white;
   padding: 5px;
 }
-search-bar > input {
+.search-bar > input {
   width: 300px;
   line-height: 20px;
   border-color: #DDDDDD;
@@ -2516,11 +2573,11 @@ search-bar > input {
   padding-right: 2px;
 }
 
-search-bar button:enabled,
-search-bar button:enabled:hover,
-search-bar button:disabled,
-search-bar button:disabled:hover,
-search-bar button:active {
+.search-bar button:enabled,
+.search-bar button:enabled:hover,
+.search-bar button:disabled,
+.search-bar button:disabled:hover,
+.search-bar button:active {
   border: none;
   background: none;
   background-color: transparent;
@@ -2530,40 +2587,40 @@ search-bar button:active {
   outline: none;
 }
 
-search-bar button:disabled,
-search-bar button:disabled:hover {
+.search-bar button:disabled,
+.search-bar button:disabled:hover {
   color: #DDDDDD;
 }
 
-search-bar button:enabled,
-search-bar button:enabled:active {
+.search-bar button:enabled,
+.search-bar button:enabled:active {
   color: #BBBBBB;
 }
 
-search-bar button:enabled:hover {
+.search-bar button:enabled:hover {
   color: #AAAAAA;
   text-shadow: 1px 1px 2px #dddddd;
 }
 
 /* stack-trace-tree-config */
 
-stack-trace-tree-config {
+.stack-trace-tree-config {
   white-space: nowrap;
 }
 
 /* timeline-dashboard */
 
-timeline-dashboard .iframe {
+.timeline-dashboard .iframe {
   position: absolute;
   top: 90px;
   bottom: 0;
   left: 0;
   right: 0;
 }
-timeline-dashboard h1 {
+.timeline-dashboard h1 {
   margin-bottom: 5px;
 }
-timeline-dashboard .iframe iframe {
+.timeline-dashboard .iframe iframe {
   width: 100%;
   height: 100%;
   border: none;
@@ -2571,13 +2628,13 @@ timeline-dashboard .iframe iframe {
 
 /* timeline-page */
 
-timeline-page .iframe {
+.timeline-page .iframe {
   height: 100%;
   width: 100%;
   margin-top: -120px;
   padding-top: 120px;
 }
-timeline-page .iframe iframe {
+.timeline-page .iframe iframe {
   width: 100%;
   height: 100%;
   border: none;
@@ -2585,59 +2642,59 @@ timeline-page .iframe iframe {
 
 /* type-arguments-ref */
 
-type-arguments-ref a[href]:hover {
+.type-arguments-ref a[href]:hover {
   text-decoration: underline;
 }
-type-arguments-ref a[href] {
+.type-arguments-ref a[href] {
   color: #0489c3;
   text-decoration: none;
 }
-type-arguments-ref .emphasize {
+.type-arguments-ref .emphasize {
   font-style: italic;
 }
 
 
 /* token-stream-ref */
 
-token-stream-ref a[href]:hover {
+.token-stream-ref a[href]:hover {
   text-decoration: underline;
 }
-token-stream-ref a[href] {
+.token-stream-ref a[href] {
   color: #0489c3;
   text-decoration: none;
 }
-token-stream-ref .emphasize {
+.token-stream-ref .emphasize {
   font-style: italic;
 }
 
 
 /* unknown-ref */
 
-unknown-ref > a[href]:hover {
+.unknown-ref > a[href]:hover {
   text-decoration: underline;
 }
-unknown-ref > a[href] {
+.unknown-ref > a[href] {
   color: #0489c3;
   text-decoration: none;
 }
-unknown-ref > a[href] * {
+.unknown-ref > a[href] * {
   color: inherit;
 }
-unknown-ref .emphasize {
+.unknown-ref .emphasize {
   font-style: italic;
 }
 
 
 /* view-footer */
 
-view-footer {
+.view-footer {
   padding: 1em;
   padding-top: 10.3em;
   float: right;
   align-content: right;
 }
 
-view-footer > a {
+.view-footer > a {
   margin-bottom: 0.17em;
   font-size: 90%;
   float: right;
@@ -2647,7 +2704,7 @@ view-footer > a {
 
 /* virtual-collection */
 
-virtual-collection {
+.virtual-collection {
   position: relative;
   display: block;
   overflow-x: hidden;
@@ -2655,7 +2712,7 @@ virtual-collection {
   height: 100%;
 }
 
-virtual-collection .viewport {
+.virtual-collection .viewport {
   position: absolute;
   display: block;
   overflow-y: auto;
@@ -2666,14 +2723,14 @@ virtual-collection .viewport {
   left: 0;
 }
 
-virtual-collection .header {
+.virtual-collection .header {
   background: white;
   position: relative;
   display: block;
   z-index: +1;
 }
 
-virtual-collection search-bar {
+.virtual-collection .search-bar {
   position: relative;
   display: block;
   z-index: +1;
@@ -2685,45 +2742,45 @@ virtual-collection search-bar {
   box-shadow: 0px 1px 2px #AAAAAA;
 }
 
-virtual-collection .spacer {
+.virtual-collection .spacer {
   overflow: hidden;
   background: transparent;
   display: inline-block;
   min-width: 100%;
 }
 
-virtual-collection .buffer {
+.virtual-collection .buffer {
   background: transparent;
   position: relative;
   display: inline-block;
   min-width: 100%;
 }
 
-virtual-collection .header > div,
-virtual-collection .buffer > div {
+.virtual-collection .header > div,
+.virtual-collection .buffer > div {
   white-space: nowrap;
 }
 
-virtual-collection .header.attached > div,
-virtual-collection .buffer > div {
-  display: inline-block;
+.virtual-collection .header.attached > div,
+.virtual-collection .buffer > div {
+/*  display: inline-block;*/
 }
 
-virtual-collection .buffer > div {
+.virtual-collection .buffer > div {
   min-width: 100%;
   white-space: nowrap;
 }
 
-virtual-collection .marked,
-virtual-collection .marked * {
+.virtual-collection .marked,
+.virtual-collection .marked * {
   background: yellow !important;
 }
 
 /* virtual-tree */
 
-virtual-tree .expander,
-virtual-tree .expander:hover,
-virtual-tree .expander:active {
+.virtual-tree .expander,
+.virtual-tree .expander:hover,
+.virtual-tree .expander:active {
   display: inline-block;
   text-align: center;
   font-weight: bold;
@@ -2734,74 +2791,85 @@ virtual-tree .expander:active {
   padding: 0;
 }
 
-virtual-tree .expander:focus {
+.virtual-tree .expander:focus {
   outline: none;
 }
 
-virtual-tree .lines,
-virtual-tree .lines > span {
+.virtual-tree .lines,
+.virtual-tree .lines > span {
   display: inline-block;
   vertical-align: top;
   height: 100%;
   line-height: 100%;
 }
 
-virtual-tree .lines:before,
-virtual-tree .lines > span:before {
+.virtual-tree .lines:before,
+.virtual-tree .lines > span:before {
   display: inline-block;
   content: '';
 }
 
-virtual-tree .lines > span {
+.virtual-tree .lines > span {
   width: 3px;
   margin-left: 8px;
   margin-right: 8px;
 }
 
-virtual-tree .lines > span:nth-child(5n) {
+.virtual-tree .lines > span:nth-child(5n) {
   background-color: #673AB7;
 }
 
-virtual-tree .lines > span:nth-child(5n+1) {
+.virtual-tree .lines > span:nth-child(5n+1) {
   background-color: #F44336;
 }
 
-virtual-tree .lines > span:nth-child(5n+2) {
+.virtual-tree .lines > span:nth-child(5n+2) {
   background-color: #4CAF50;
 }
 
-virtual-tree .lines > span:nth-child(5n+3) {
+.virtual-tree .lines > span:nth-child(5n+3) {
   background-color: #3F51B5;
 }
 
-virtual-tree .lines > span:nth-child(5n+4) {
+.virtual-tree .lines > span:nth-child(5n+4) {
   background-color: #FF9800;
 }
 
 /* vm-connect-target */
 
-vm-connect-target > a {
+.vm-connect-target > a {
   color: #0489c3;
   text-decoration: none;
 }
 
-vm-connect-target > a:hover {
+.vm-connect-target > a:hover {
   text-decoration: underline;
 }
 
-vm-connect-target > button.delete-button {
+.vm-connect-target > button.delete-button {
   margin-left: 0.28em;
   padding: 4px;
   background: transparent;
   border: none !important;
 }
 
-vm-connect-target > button.delete-button:hover {
+.vm-connect-target > button.delete-button:hover {
   background: #ff0000;
 }
 
 /* vm-connect */
 
-vm-connect ul {
+.vm-connect ul {
   list-style-type: none;
+}
+
+.treemapTile {
+  position: absolute;
+  box-sizing: border-box;
+  border: solid 1px;
+  font-size: 10px;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: default;
 }

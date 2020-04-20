@@ -5,11 +5,11 @@
 #ifndef RUNTIME_VM_REGEXP_H_
 #define RUNTIME_VM_REGEXP_H_
 
-#include "vm/compiler/assembler/assembler.h"
-#include "vm/compiler/backend/flow_graph_compiler.h"
-#include "vm/compiler/backend/il.h"
+#include "platform/unicode.h"
+
 #include "vm/object.h"
 #include "vm/regexp_assembler.h"
+#include "vm/splay-tree.h"
 
 namespace dart {
 
@@ -25,32 +25,42 @@ class BoyerMooreLookahead;
 class CharacterRange {
  public:
   CharacterRange() : from_(0), to_(0) {}
-  CharacterRange(uint16_t from, uint16_t to) : from_(from), to_(to) {}
+  CharacterRange(int32_t from, int32_t to) : from_(from), to_(to) {}
 
   static void AddClassEscape(uint16_t type,
                              ZoneGrowableArray<CharacterRange>* ranges);
+  // Add class escapes with case equivalent closure for \w and \W if necessary.
+  static void AddClassEscape(uint16_t type,
+                             ZoneGrowableArray<CharacterRange>* ranges,
+                             bool add_unicode_case_equivalents);
   static GrowableArray<const intptr_t> GetWordBounds();
-  static inline CharacterRange Singleton(uint16_t value) {
+  static inline CharacterRange Singleton(int32_t value) {
     return CharacterRange(value, value);
   }
-  static inline CharacterRange Range(uint16_t from, uint16_t to) {
+  static inline CharacterRange Range(int32_t from, int32_t to) {
     ASSERT(from <= to);
     return CharacterRange(from, to);
   }
   static inline CharacterRange Everything() {
-    return CharacterRange(0, 0xFFFF);
+    return CharacterRange(0, Utf::kMaxCodePoint);
   }
-  bool Contains(uint16_t i) const { return from_ <= i && i <= to_; }
-  uint16_t from() const { return from_; }
-  void set_from(uint16_t value) { from_ = value; }
-  uint16_t to() const { return to_; }
-  void set_to(uint16_t value) { to_ = value; }
+  static inline ZoneGrowableArray<CharacterRange>* List(Zone* zone,
+                                                        CharacterRange range) {
+    auto list = new (zone) ZoneGrowableArray<CharacterRange>(1);
+    list->Add(range);
+    return list;
+  }
+  bool Contains(int32_t i) const { return from_ <= i && i <= to_; }
+  int32_t from() const { return from_; }
+  void set_from(int32_t value) { from_ = value; }
+  int32_t to() const { return to_; }
+  void set_to(int32_t value) { to_ = value; }
   bool is_valid() const { return from_ <= to_; }
-  bool IsEverything(uint16_t max) const { return from_ == 0 && to_ >= max; }
+  bool IsEverything(int32_t max) const { return from_ == 0 && to_ >= max; }
   bool IsSingleton() const { return (from_ == to_); }
-  void AddCaseEquivalents(ZoneGrowableArray<CharacterRange>* ranges,
-                          bool is_one_byte,
-                          Zone* zone);
+  static void AddCaseEquivalents(ZoneGrowableArray<CharacterRange>* ranges,
+                                 bool is_one_byte,
+                                 Zone* zone);
   static void Split(ZoneGrowableArray<CharacterRange>* base,
                     GrowableArray<const intptr_t> overlay,
                     ZoneGrowableArray<CharacterRange>** included,
@@ -71,8 +81,8 @@ class CharacterRange {
   static const intptr_t kPayloadMask = (1 << 24) - 1;
 
  private:
-  uint16_t from_;
-  uint16_t to_;
+  int32_t from_;
+  int32_t to_;
 
   DISALLOW_ALLOCATION();
 };
@@ -105,6 +115,98 @@ class OutSet : public ZoneAllocated {
   friend class Trace;
 };
 
+// A mapping from integers, specified as ranges, to a set of integers.
+// Used for mapping character ranges to choices.
+class ChoiceTable : public ValueObject {
+ public:
+  explicit ChoiceTable(Zone* zone) : tree_(zone) {}
+
+  class Entry {
+   public:
+    Entry() : from_(0), to_(0), out_set_(nullptr) {}
+    Entry(int32_t from, int32_t to, OutSet* out_set)
+        : from_(from), to_(to), out_set_(out_set) {
+      ASSERT(from <= to);
+    }
+    int32_t from() { return from_; }
+    int32_t to() { return to_; }
+    void set_to(int32_t value) { to_ = value; }
+    void AddValue(int value, Zone* zone) {
+      out_set_ = out_set_->Extend(value, zone);
+    }
+    OutSet* out_set() { return out_set_; }
+
+   private:
+    int32_t from_;
+    int32_t to_;
+    OutSet* out_set_;
+  };
+
+  class Config {
+   public:
+    typedef int32_t Key;
+    typedef Entry Value;
+    static const int32_t kNoKey;
+    static const Entry NoValue() { return Value(); }
+    static inline int Compare(int32_t a, int32_t b) {
+      if (a == b)
+        return 0;
+      else if (a < b)
+        return -1;
+      else
+        return 1;
+    }
+  };
+
+  void AddRange(CharacterRange range, int32_t value, Zone* zone);
+  OutSet* Get(int32_t value);
+  void Dump();
+
+  template <typename Callback>
+  void ForEach(Callback* callback) {
+    return tree()->ForEach(callback);
+  }
+
+ private:
+  // There can't be a static empty set since it allocates its
+  // successors in a zone and caches them.
+  OutSet* empty() { return &empty_; }
+  OutSet empty_;
+  ZoneSplayTree<Config>* tree() { return &tree_; }
+  ZoneSplayTree<Config> tree_;
+};
+
+// Categorizes character ranges into BMP, non-BMP, lead, and trail surrogates.
+class UnicodeRangeSplitter : public ValueObject {
+ public:
+  UnicodeRangeSplitter(Zone* zone, ZoneGrowableArray<CharacterRange>* base);
+  void Call(uint32_t from, ChoiceTable::Entry entry);
+
+  ZoneGrowableArray<CharacterRange>* bmp() { return bmp_; }
+  ZoneGrowableArray<CharacterRange>* lead_surrogates() {
+    return lead_surrogates_;
+  }
+  ZoneGrowableArray<CharacterRange>* trail_surrogates() {
+    return trail_surrogates_;
+  }
+  ZoneGrowableArray<CharacterRange>* non_bmp() const { return non_bmp_; }
+
+ private:
+  static const int kBase = 0;
+  // Separate ranges into
+  static const int kBmpCodePoints = 1;
+  static const int kLeadSurrogates = 2;
+  static const int kTrailSurrogates = 3;
+  static const int kNonBmpCodePoints = 4;
+
+  Zone* zone_;
+  ChoiceTable table_;
+  ZoneGrowableArray<CharacterRange>* bmp_;
+  ZoneGrowableArray<CharacterRange>* lead_surrogates_;
+  ZoneGrowableArray<CharacterRange>* trail_surrogates_;
+  ZoneGrowableArray<CharacterRange>* non_bmp_;
+};
+
 #define FOR_EACH_NODE_TYPE(VISIT)                                              \
   VISIT(End)                                                                   \
   VISIT(Action)                                                                \
@@ -121,7 +223,7 @@ class OutSet : public ZoneAllocated {
   VISIT(Atom)                                                                  \
   VISIT(Quantifier)                                                            \
   VISIT(Capture)                                                               \
-  VISIT(Lookahead)                                                             \
+  VISIT(Lookaround)                                                            \
   VISIT(BackReference)                                                         \
   VISIT(Empty)                                                                 \
   VISIT(Text)
@@ -344,9 +446,7 @@ class RegExpNode : public ZoneAllocated {
   // If we know that the input is one-byte then there are some nodes that can
   // never match.  This method returns a node that can be substituted for
   // itself, or NULL if the node can never match.
-  virtual RegExpNode* FilterOneByte(intptr_t depth, bool ignore_case) {
-    return this;
-  }
+  virtual RegExpNode* FilterOneByte(intptr_t depth) { return this; }
   // Helper for FilterOneByte.
   RegExpNode* replacement() {
     ASSERT(info()->replacement_calculated);
@@ -443,7 +543,7 @@ class SeqRegExpNode : public RegExpNode {
       : RegExpNode(on_success->zone()), on_success_(on_success) {}
   RegExpNode* on_success() { return on_success_; }
   void set_on_success(RegExpNode* node) { on_success_ = node; }
-  virtual RegExpNode* FilterOneByte(intptr_t depth, bool ignore_case);
+  virtual RegExpNode* FilterOneByte(intptr_t depth);
   virtual void FillInBMInfo(intptr_t offset,
                             intptr_t budget,
                             BoyerMooreLookahead* bm,
@@ -453,7 +553,7 @@ class SeqRegExpNode : public RegExpNode {
   }
 
  protected:
-  RegExpNode* FilterSuccessor(intptr_t depth, bool ignore_case);
+  RegExpNode* FilterSuccessor(intptr_t depth);
 
  private:
   RegExpNode* on_success_;
@@ -549,13 +649,31 @@ class ActionNode : public SeqRegExpNode {
 
 class TextNode : public SeqRegExpNode {
  public:
-  TextNode(ZoneGrowableArray<TextElement>* elms, RegExpNode* on_success)
-      : SeqRegExpNode(on_success), elms_(elms) {}
-  TextNode(RegExpCharacterClass* that, RegExpNode* on_success)
+  TextNode(ZoneGrowableArray<TextElement>* elms,
+           bool read_backward,
+           RegExpNode* on_success)
+      : SeqRegExpNode(on_success), elms_(elms), read_backward_(read_backward) {}
+  TextNode(RegExpCharacterClass* that,
+           bool read_backward,
+           RegExpNode* on_success)
       : SeqRegExpNode(on_success),
-        elms_(new (zone()) ZoneGrowableArray<TextElement>(1)) {
+        elms_(new (zone()) ZoneGrowableArray<TextElement>(1)),
+        read_backward_(read_backward) {
     elms_->Add(TextElement::CharClass(that));
   }
+  // Create TextNode for a single character class for the given ranges.
+  static TextNode* CreateForCharacterRanges(
+      ZoneGrowableArray<CharacterRange>* ranges,
+      bool read_backward,
+      RegExpNode* on_success,
+      RegExpFlags flags);
+  // Create TextNode for a surrogate pair with a range given for the
+  // lead and the trail surrogate each.
+  static TextNode* CreateForSurrogatePair(CharacterRange lead,
+                                          CharacterRange trail,
+                                          bool read_backward,
+                                          RegExpNode* on_success,
+                                          RegExpFlags flags);
   virtual void Accept(NodeVisitor* visitor);
   virtual void Emit(RegExpCompiler* compiler, Trace* trace);
   virtual intptr_t EatsAtLeast(intptr_t still_to_find,
@@ -566,6 +684,7 @@ class TextNode : public SeqRegExpNode {
                                     intptr_t characters_filled_in,
                                     bool not_at_start);
   ZoneGrowableArray<TextElement>* elements() { return elms_; }
+  bool read_backward() { return read_backward_; }
   void MakeCaseIndependent(bool is_one_byte);
   virtual intptr_t GreedyLoopTextLength();
   virtual RegExpNode* GetSuccessorOfOmnivorousTextNode(
@@ -575,7 +694,7 @@ class TextNode : public SeqRegExpNode {
                             BoyerMooreLookahead* bm,
                             bool not_at_start);
   void CalculateOffsets();
-  virtual RegExpNode* FilterOneByte(intptr_t depth, bool ignore_case);
+  virtual RegExpNode* FilterOneByte(intptr_t depth);
 
  private:
   enum TextEmitPassType {
@@ -596,6 +715,7 @@ class TextNode : public SeqRegExpNode {
                     intptr_t* checked_up_to);
   intptr_t Length();
   ZoneGrowableArray<TextElement>* elms_;
+  bool read_backward_;
 };
 
 class AssertionNode : public SeqRegExpNode {
@@ -652,11 +772,18 @@ class BackReferenceNode : public SeqRegExpNode {
  public:
   BackReferenceNode(intptr_t start_reg,
                     intptr_t end_reg,
+                    RegExpFlags flags,
+                    bool read_backward,
                     RegExpNode* on_success)
-      : SeqRegExpNode(on_success), start_reg_(start_reg), end_reg_(end_reg) {}
+      : SeqRegExpNode(on_success),
+        start_reg_(start_reg),
+        end_reg_(end_reg),
+        flags_(flags),
+        read_backward_(read_backward) {}
   virtual void Accept(NodeVisitor* visitor);
   intptr_t start_register() { return start_reg_; }
   intptr_t end_register() { return end_reg_; }
+  bool read_backward() { return read_backward_; }
   virtual void Emit(RegExpCompiler* compiler, Trace* trace);
   virtual intptr_t EatsAtLeast(intptr_t still_to_find,
                                intptr_t recursion_depth,
@@ -675,6 +802,8 @@ class BackReferenceNode : public SeqRegExpNode {
  private:
   intptr_t start_reg_;
   intptr_t end_reg_;
+  RegExpFlags flags_;
+  bool read_backward_;
 };
 
 class EndNode : public RegExpNode {
@@ -748,9 +877,9 @@ class GuardedAlternative {
  public:
   explicit GuardedAlternative(RegExpNode* node) : node_(node), guards_(NULL) {}
   void AddGuard(Guard* guard, Zone* zone);
-  RegExpNode* node() { return node_; }
+  RegExpNode* node() const { return node_; }
   void set_node(RegExpNode* node) { node_ = node; }
-  ZoneGrowableArray<Guard*>* guards() { return guards_; }
+  ZoneGrowableArray<Guard*>* guards() const { return guards_; }
 
  private:
   RegExpNode* node_;
@@ -798,10 +927,12 @@ class ChoiceNode : public RegExpNode {
   virtual bool try_to_emit_quick_check_for_alternative(bool is_first) {
     return true;
   }
-  virtual RegExpNode* FilterOneByte(intptr_t depth, bool ignore_case);
+  virtual RegExpNode* FilterOneByte(intptr_t depth);
+  virtual bool read_backward() { return false; }
 
  protected:
-  intptr_t GreedyLoopTextLengthForAlternative(GuardedAlternative* alternative);
+  intptr_t GreedyLoopTextLengthForAlternative(
+      const GuardedAlternative* alternative);
   ZoneGrowableArray<GuardedAlternative>* alternatives_;
 
  private:
@@ -840,11 +971,11 @@ class ChoiceNode : public RegExpNode {
   bool being_calculated_;
 };
 
-class NegativeLookaheadChoiceNode : public ChoiceNode {
+class NegativeLookaroundChoiceNode : public ChoiceNode {
  public:
-  explicit NegativeLookaheadChoiceNode(GuardedAlternative this_must_fail,
-                                       GuardedAlternative then_do_this,
-                                       Zone* zone)
+  explicit NegativeLookaroundChoiceNode(GuardedAlternative this_must_fail,
+                                        GuardedAlternative then_do_this,
+                                        Zone* zone)
       : ChoiceNode(2, zone) {
     AddAlternative(this_must_fail);
     AddAlternative(then_do_this);
@@ -872,16 +1003,19 @@ class NegativeLookaheadChoiceNode : public ChoiceNode {
   virtual bool try_to_emit_quick_check_for_alternative(bool is_first) {
     return !is_first;
   }
-  virtual RegExpNode* FilterOneByte(intptr_t depth, bool ignore_case);
+  virtual RegExpNode* FilterOneByte(intptr_t depth);
 };
 
 class LoopChoiceNode : public ChoiceNode {
  public:
-  explicit LoopChoiceNode(bool body_can_be_zero_length, Zone* zone)
+  explicit LoopChoiceNode(bool body_can_be_zero_length,
+                          bool read_backward,
+                          Zone* zone)
       : ChoiceNode(2, zone),
         loop_node_(NULL),
         continue_node_(NULL),
-        body_can_be_zero_length_(body_can_be_zero_length) {}
+        body_can_be_zero_length_(body_can_be_zero_length),
+        read_backward_(read_backward) {}
   void AddLoopAlternative(GuardedAlternative alt);
   void AddContinueAlternative(GuardedAlternative alt);
   virtual void Emit(RegExpCompiler* compiler, Trace* trace);
@@ -899,8 +1033,9 @@ class LoopChoiceNode : public ChoiceNode {
   RegExpNode* loop_node() { return loop_node_; }
   RegExpNode* continue_node() { return continue_node_; }
   bool body_can_be_zero_length() { return body_can_be_zero_length_; }
+  virtual bool read_backward() { return read_backward_; }
   virtual void Accept(NodeVisitor* visitor);
-  virtual RegExpNode* FilterOneByte(intptr_t depth, bool ignore_case);
+  virtual RegExpNode* FilterOneByte(intptr_t depth);
 
  private:
   // AddAlternative is made private for loop nodes because alternatives
@@ -913,6 +1048,7 @@ class LoopChoiceNode : public ChoiceNode {
   RegExpNode* loop_node_;
   RegExpNode* continue_node_;
   bool body_can_be_zero_length_;
+  bool read_backward_;
 };
 
 // Improve the speed that we scan for an initial point where a non-anchored
@@ -1161,9 +1297,7 @@ class Trace {
            quick_check_performed_.characters() == 0 && at_start_ == UNKNOWN;
   }
   TriBool at_start() { return at_start_; }
-  void set_at_start(bool at_start) {
-    at_start_ = at_start ? TRUE_VALUE : FALSE_VALUE;
-  }
+  void set_at_start(TriBool at_start) { at_start_ = at_start; }
   BlockLabel* backtrack() { return backtrack_; }
   BlockLabel* loop_label() { return loop_label_; }
   RegExpNode* stop_node() { return stop_node_; }
@@ -1269,10 +1403,8 @@ class NodeVisitor : public ValueObject {
 //   +-------+        +------------+
 class Analysis : public NodeVisitor {
  public:
-  Analysis(bool ignore_case, bool is_one_byte)
-      : ignore_case_(ignore_case),
-        is_one_byte_(is_one_byte),
-        error_message_(NULL) {}
+  explicit Analysis(bool is_one_byte)
+      : is_one_byte_(is_one_byte), error_message_(NULL) {}
   void EnsureAnalyzed(RegExpNode* node);
 
 #define DECLARE_VISIT(Type) virtual void Visit##Type(Type##Node* that);
@@ -1288,7 +1420,6 @@ class Analysis : public NodeVisitor {
   void fail(const char* error_message) { error_message_ = error_message; }
 
  private:
-  bool ignore_case_;
   bool is_one_byte_;
   const char* error_message_;
 
@@ -1301,12 +1432,14 @@ struct RegExpCompileData : public ZoneAllocated {
         node(NULL),
         simple(true),
         contains_anchor(false),
+        capture_name_map(Array::Handle(Array::null())),
         error(String::Handle(String::null())),
         capture_count(0) {}
   RegExpTree* tree;
   RegExpNode* node;
   bool simple;
   bool contains_anchor;
+  Array& capture_name_map;
   String& error;
   intptr_t capture_count;
 };
@@ -1379,8 +1512,7 @@ class RegExpEngine : public AllStatic {
 
   static RawRegExp* CreateRegExp(Thread* thread,
                                  const String& pattern,
-                                 bool multi_line,
-                                 bool ignore_case);
+                                 RegExpFlags flags);
 
   static void DotPrint(const char* label, RegExpNode* node, bool ignore_case);
 };

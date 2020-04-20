@@ -1,0 +1,288 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:34:10: Error: Expected an identifier, but got 'super'.
+//     for (super.superInstanceField in []) {}
+//          ^^^^^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:35:10: Error: Expected an identifier, but got 'super'.
+//     for (super.untypedSuperInstanceField in []) {}
+//          ^^^^^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:37:11: Error: Unexpected token '.'.
+//     for (c.instanceField in []) {}
+//           ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:38:11: Error: Unexpected token '.'.
+//     for (c.untypedSuperInstanceField in []) {}
+//           ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:40:20: Error: Unexpected token '.'.
+//     for (unresolved.foo in []) {}
+//                    ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:41:11: Error: Unexpected token '.'.
+//     for (c.unresolved in []) {}
+//           ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:42:14: Error: Unexpected token '('.
+//     for (main() in []) {}
+//              ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:42:10: Error: Can't assign to this, so it can't be used in a for-in loop.
+//     for (main() in []) {}
+//          ^^^^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:43:15: Error: Unexpected token ','.
+//     for (var x, y in <int>[]) {
+//               ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:43:10: Error: A for-in loop can't have more than one loop variable.
+//     for (var x, y in <int>[]) {
+//          ^^^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:48:10: Error: Can't assign to the const variable 'constant'.
+//     for (constant in []) {}
+//          ^^^^^^^^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:39:10: Error: The setter 'unresolved' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
+//     for (unresolved in []) {}
+//          ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:40:10: Error: The getter 'unresolved' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
+//     for (unresolved.foo in []) {}
+//          ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:41:12: Error: The setter 'unresolved' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
+//     for (c.unresolved in []) {}
+//            ^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  field core::int* superInstanceField = null;
+  field dynamic untypedSuperInstanceField = null;
+  synthetic constructor •() → self::Super*
+    : super core::Object::•()
+    ;
+}
+class C extends self::Super {
+  field core::int* instanceField = null;
+  field dynamic untypedInstanceField = null;
+  static field core::double* staticField = null;
+  static field dynamic untypedStaticField = null;
+  synthetic constructor •() → self::C*
+    : super self::Super::•()
+    ;
+  method m() → dynamic {
+    core::String* local;
+    dynamic untypedLocal;
+    {
+      core::Iterator<core::String*>* :sync-for-iterator = <core::String*>[].{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final core::String* #t1 = :sync-for-iterator.{core::Iterator::current};
+        {
+          local = #t1;
+        }
+      }
+    }
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t2 = :sync-for-iterator.{core::Iterator::current};
+        {
+          untypedLocal = #t2;
+        }
+      }
+    }
+    {
+      core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[].{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final core::int* #t3 = :sync-for-iterator.{core::Iterator::current};
+        {
+          this.{self::C::instanceField} = #t3;
+        }
+      }
+    }
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t4 = :sync-for-iterator.{core::Iterator::current};
+        {
+          this.{self::C::untypedInstanceField} = #t4;
+        }
+      }
+    }
+    {
+      core::Iterator<core::double*>* :sync-for-iterator = <core::double*>[].{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final core::double* #t5 = :sync-for-iterator.{core::Iterator::current};
+        {
+          self::C::staticField = #t5;
+        }
+      }
+    }
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t6 = :sync-for-iterator.{core::Iterator::current};
+        {
+          self::C::untypedStaticField = #t6;
+        }
+      }
+    }
+    {
+      core::Iterator<core::bool*>* :sync-for-iterator = <core::bool*>[].{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final core::bool* #t7 = :sync-for-iterator.{core::Iterator::current};
+        {
+          self::topLevelField = #t7;
+        }
+      }
+    }
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t8 = :sync-for-iterator.{core::Iterator::current};
+        {
+          self::untypedTopLevelField = #t8;
+        }
+      }
+    }
+    {
+      core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[].{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final core::int* #t9 = :sync-for-iterator.{core::Iterator::current};
+        {
+          super.{self::Super::superInstanceField} = #t9;
+        }
+      }
+    }
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t10 = :sync-for-iterator.{core::Iterator::current};
+        {
+          super.{self::Super::untypedSuperInstanceField} = #t10;
+        }
+      }
+    }
+    self::C* c = new self::C::•();
+    {
+      core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[].{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final core::int* #t11 = :sync-for-iterator.{core::Iterator::current};
+        {
+          c.{self::C::instanceField} = #t11;
+        }
+      }
+    }
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t12 = :sync-for-iterator.{core::Iterator::current};
+        {
+          c.{self::Super::untypedSuperInstanceField} = #t12;
+        }
+      }
+    }
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t13 = :sync-for-iterator.{core::Iterator::current};
+        {
+          invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:39:10: Error: The setter 'unresolved' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
+    for (unresolved in []) {}
+         ^^^^^^^^^^";
+        }
+      }
+    }
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t14 = :sync-for-iterator.{core::Iterator::current};
+        {
+          invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:40:10: Error: The getter 'unresolved' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
+    for (unresolved.foo in []) {}
+         ^^^^^^^^^^".foo = #t14;
+        }
+      }
+    }
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t15 = :sync-for-iterator.{core::Iterator::current};
+        {
+          invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:41:12: Error: The setter 'unresolved' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
+    for (c.unresolved in []) {}
+           ^^^^^^^^^^";
+        }
+      }
+    }
+    {
+      invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:42:10: Error: Can't assign to this, so it can't be used in a for-in loop.
+    for (main() in []) {}
+         ^^^^";
+      {
+        core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+          final dynamic #t16 = :sync-for-iterator.{core::Iterator::current};
+          {
+            invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:42:10: Error: Can't assign to this, so it can't be used in a for-in loop.
+    for (main() in []) {}
+         ^^^^";
+            self::main();
+          }
+        }
+      }
+    }
+    {
+      invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:43:10: Error: A for-in loop can't have more than one loop variable.
+    for (var x, y in <int>[]) {
+         ^^^";
+      {
+        core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[].{core::Iterable::iterator};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+          final core::int* #t17 = :sync-for-iterator.{core::Iterator::current};
+          {
+            invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:43:10: Error: A for-in loop can't have more than one loop variable.
+    for (var x, y in <int>[]) {
+         ^^^";
+            dynamic x;
+            dynamic y;
+            core::print(x);
+            core::print(y);
+          }
+        }
+      }
+    }
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t18 = :sync-for-iterator.{core::Iterator::current};
+        {
+          invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:48:10: Error: Can't assign to the const variable 'constant'.
+    for (constant in []) {}
+         ^^^^^^^^";
+        }
+      }
+    }
+  }
+}
+static field core::bool* topLevelField;
+static field dynamic untypedTopLevelField;
+static method main() → dynamic {}

@@ -5,7 +5,6 @@
 // Test that static const fields are accessible by reflection.
 // Regression test for http://dartbug.com/23811.
 
-@MirrorsUsed(targets: const [A])
 import "dart:mirrors";
 import "package:expect/expect.dart";
 

@@ -5,6 +5,15 @@
 #ifndef RUNTIME_VM_CONSTANTS_X64_H_
 #define RUNTIME_VM_CONSTANTS_X64_H_
 
+#ifndef RUNTIME_VM_CONSTANTS_H_
+#error Do not include constants_x64.h directly; use constants.h instead.
+#endif
+
+#include "platform/assert.h"
+#include "platform/globals.h"
+
+#include "vm/constants_base.h"
+
 namespace dart {
 
 enum Register {
@@ -83,9 +92,12 @@ enum XmmRegister {
 
 // Architecture independent aliases.
 typedef XmmRegister FpuRegister;
-const FpuRegister FpuTMP = XMM0;
+const FpuRegister FpuTMP = XMM15;
 const int kNumberOfFpuRegisters = kNumberOfXmmRegisters;
 const FpuRegister kNoFpuRegister = kNoXmmRegister;
+
+extern const char* cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* fpu_reg_names[kNumberOfXmmRegisters];
 
 enum RexBits {
   REX_NONE = 0,
@@ -99,92 +111,149 @@ enum RexBits {
 // Register aliases.
 const Register TMP = R11;  // Used as scratch register by the assembler.
 const Register TMP2 = kNoRegister;  // No second assembler scratch register.
-const Register CTX = R12;  // Location of current context at method entry.
 // Caches object pool pointer in generated code.
 const Register PP = R15;
 const Register SPREG = RSP;          // Stack pointer register.
 const Register FPREG = RBP;          // Frame pointer register.
-const Register ICREG = RBX;          // IC data register.
 const Register ARGS_DESC_REG = R10;  // Arguments descriptor register.
 const Register CODE_REG = R12;
 const Register THR = R14;  // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = RBX;
 
-// Exception object is passed in this register to the catch handlers when an
-// exception is thrown.
+// ABI for catch-clause entry point.
 const Register kExceptionObjectReg = RAX;
-
-// Stack trace object is passed in this register to the catch handlers when
-// an exception is thrown.
 const Register kStackTraceObjectReg = RDX;
+
+// ABI for write barrier stub.
+const Register kWriteBarrierObjectReg = RDX;
+const Register kWriteBarrierValueReg = RAX;
+const Register kWriteBarrierSlotReg = R13;
+
+// ABI for allocation stubs.
+const Register kAllocationStubTypeArgumentsReg = RDX;
+
+// ABI for instantiation stubs.
+struct InstantiationABI {
+  static const Register kUninstantiatedTypeArgumentsReg = RBX;
+  static const Register kInstantiatorTypeArgumentsReg = RDX;
+  static const Register kFunctionTypeArgumentsReg = RCX;
+  static const Register kResultTypeArgumentsReg = RAX;
+  static const Register kResultTypeReg = RAX;
+};
+
+// Calling convention when calling TypeTestingStub and SubtypeTestCacheStub.
+struct TypeTestABI {
+  static const Register kInstanceReg = RAX;
+  static const Register kDstTypeReg = RBX;
+  static const Register kInstantiatorTypeArgumentsReg = RDX;
+  static const Register kFunctionTypeArgumentsReg = RCX;
+  static const Register kSubtypeTestCacheReg = R9;
+
+  static const intptr_t kAbiRegisters =
+      (1 << kInstanceReg) | (1 << kDstTypeReg) |
+      (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
+      (1 << kSubtypeTestCacheReg);
+
+  // For call to InstanceOfStub.
+  static const Register kResultReg = RAX;
+};
+
+// ABI for InitStaticFieldStub.
+struct InitStaticFieldABI {
+  static const Register kFieldReg = RAX;
+};
+
+// ABI for InitInstanceFieldStub.
+struct InitInstanceFieldABI {
+  static const Register kInstanceReg = RAX;
+  static const Register kFieldReg = RBX;
+};
+
+// ABI for ThrowStub.
+struct ThrowABI {
+  static const Register kExceptionReg = RAX;
+};
+
+// ABI for ReThrowStub.
+struct ReThrowABI {
+  static const Register kExceptionReg = RAX;
+  static const Register kStackTraceReg = RBX;
+};
+
+// ABI for AssertBooleanStub.
+struct AssertBooleanABI {
+  static const Register kObjectReg = RAX;
+};
+
+// ABI for RangeErrorStub.
+struct RangeErrorABI {
+  static const Register kLengthReg = RAX;
+  static const Register kIndexReg = RBX;
+};
+
+// Registers used inside the implementation of type testing stubs.
+struct TTSInternalRegs {
+  static const Register kInstanceTypeArgumentsReg = RSI;
+  static const Register kScratchReg = R8;
+
+  static const intptr_t kInternalRegisters =
+      (1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg);
+};
+
+// TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
+// of reusing the constants of the instantiation stubs ABI.
 
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFF;
+const RegList kAllFpuRegistersList = 0xFFFF;
 
 const RegList kReservedCpuRegisters =
     (1 << SPREG) | (1 << FPREG) | (1 << TMP) | (1 << PP) | (1 << THR);
+constexpr intptr_t kNumberOfReservedCpuRegisters = 5;
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
+constexpr int kNumberOfDartAvailableCpuRegs =
+    kNumberOfCpuRegisters - kNumberOfReservedCpuRegisters;
+constexpr int kStoreBufferWrapperSize = 13;
 
 enum ScaleFactor {
   TIMES_1 = 0,
   TIMES_2 = 1,
   TIMES_4 = 2,
   TIMES_8 = 3,
+  // Note that Intel addressing does not support this addressing.
+  // > Scale factor — A value of 2, 4, or 8 that is multiplied by the index
+  // > value.
+  // https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4
+  // 3.7.5 Specifying an Offset
   TIMES_16 = 4,
   TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
 };
 
-enum Condition {
-  OVERFLOW = 0,
-  NO_OVERFLOW = 1,
-  BELOW = 2,
-  ABOVE_EQUAL = 3,
-  EQUAL = 4,
-  NOT_EQUAL = 5,
-  BELOW_EQUAL = 6,
-  ABOVE = 7,
-  SIGN = 8,
-  NOT_SIGN = 9,
-  PARITY_EVEN = 10,
-  PARITY_ODD = 11,
-  LESS = 12,
-  GREATER_EQUAL = 13,
-  LESS_EQUAL = 14,
-  GREATER = 15,
-
-  ZERO = EQUAL,
-  NOT_ZERO = NOT_EQUAL,
-  NEGATIVE = SIGN,
-  POSITIVE = NOT_SIGN,
-  CARRY = BELOW,
-  NOT_CARRY = ABOVE_EQUAL,
-
-  // Platform-independent variants declared for all platforms
-  // EQUAL,
-  // NOT_EQUAL,
-  // LESS,
-  // LESS_EQUAL,
-  // GREATER_EQUAL,
-  // GREATER,
-  UNSIGNED_LESS = BELOW,
-  UNSIGNED_LESS_EQUAL = BELOW_EQUAL,
-  UNSIGNED_GREATER = ABOVE,
-  UNSIGNED_GREATER_EQUAL = ABOVE_EQUAL,
-
-  INVALID_CONDITION = 16
-};
-
 #define R(reg) (1 << (reg))
 
-#if defined(_WIN64)
 class CallingConventions {
  public:
+#if defined(_WIN64)
   static const Register kArg1Reg = RCX;
   static const Register kArg2Reg = RDX;
   static const Register kArg3Reg = R8;
   static const Register kArg4Reg = R9;
+  static const Register ArgumentRegisters[];
+  static const intptr_t kArgumentRegisters =
+      R(kArg1Reg) | R(kArg2Reg) | R(kArg3Reg) | R(kArg4Reg);
+  static const intptr_t kNumArgRegs = 4;
+
+  static const XmmRegister FpuArgumentRegisters[];
+  static const intptr_t kFpuArgumentRegisters =
+      R(XMM0) | R(XMM1) | R(XMM2) | R(XMM3);
+  static const intptr_t kNumFpuArgRegs = 4;
+
+  // can ArgumentRegisters[i] and XmmArgumentRegisters[i] both be used at the
+  // same time? (Windows no, rest yes)
+  static const bool kArgumentIntRegXorFpuReg = true;
+
   static const intptr_t kShadowSpaceBytes = 4 * kWordSize;
 
   static const intptr_t kVolatileCpuRegisters =
@@ -200,19 +269,56 @@ class CallingConventions {
       R(XMM6) | R(XMM7) | R(XMM8) | R(XMM9) | R(XMM10) | R(XMM11) | R(XMM12) |
       R(XMM13) | R(XMM14) | R(XMM15);
 
+  static const XmmRegister xmmFirstNonParameterReg = XMM4;
+
   // Windows x64 ABI specifies that small objects are passed in registers.
   // Otherwise they are passed by reference.
   static const size_t kRegisterTransferLimit = 16;
-};
+
+  static constexpr Register kReturnReg = RAX;
+  static constexpr Register kSecondReturnReg = kNoRegister;
+  static constexpr FpuRegister kReturnFpuReg = XMM0;
+
+  // Whether larger than wordsize arguments are aligned to even registers.
+  static constexpr AlignmentStrategy kArgumentRegisterAlignment =
+      kAlignedToWordSize;
+
+  // How stack arguments are aligned.
+  static constexpr AlignmentStrategy kArgumentStackAlignment =
+      kAlignedToWordSize;
+
+  // How fields in composites are aligned.
+  static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
+
+  // Whether 1 or 2 byte-sized arguments or return values are passed extended
+  // to 4 bytes.
+  static constexpr ExtensionStrategy kReturnRegisterExtension = kNotExtended;
+  static constexpr ExtensionStrategy kArgumentRegisterExtension = kNotExtended;
+  static constexpr ExtensionStrategy kArgumentStackExtension = kNotExtended;
+
 #else
-class CallingConventions {
- public:
   static const Register kArg1Reg = RDI;
   static const Register kArg2Reg = RSI;
   static const Register kArg3Reg = RDX;
   static const Register kArg4Reg = RCX;
   static const Register kArg5Reg = R8;
   static const Register kArg6Reg = R9;
+  static const Register ArgumentRegisters[];
+  static const intptr_t kArgumentRegisters = R(kArg1Reg) | R(kArg2Reg) |
+                                             R(kArg3Reg) | R(kArg4Reg) |
+                                             R(kArg5Reg) | R(kArg6Reg);
+  static const intptr_t kNumArgRegs = 6;
+
+  static const XmmRegister FpuArgumentRegisters[];
+  static const intptr_t kFpuArgumentRegisters = R(XMM0) | R(XMM1) | R(XMM2) |
+                                                R(XMM3) | R(XMM4) | R(XMM5) |
+                                                R(XMM6) | R(XMM7);
+  static const intptr_t kNumFpuArgRegs = 8;
+
+  // can ArgumentRegisters[i] and XmmArgumentRegisters[i] both be used at the
+  // same time? (Windows no, rest yes)
+  static const bool kArgumentIntRegXorFpuReg = false;
+
   static const intptr_t kShadowSpaceBytes = 0;
 
   static const intptr_t kVolatileCpuRegisters = R(RAX) | R(RCX) | R(RDX) |
@@ -228,8 +334,48 @@ class CallingConventions {
       R(RBX) | R(R12) | R(R13) | R(R14) | R(R15);
 
   static const intptr_t kCalleeSaveXmmRegisters = 0;
-};
+
+  static const XmmRegister xmmFirstNonParameterReg = XMM8;
+
+  static constexpr Register kReturnReg = RAX;
+  static constexpr Register kSecondReturnReg = kNoRegister;
+  static constexpr FpuRegister kReturnFpuReg = XMM0;
+
+  // Whether larger than wordsize arguments are aligned to even registers.
+  static constexpr AlignmentStrategy kArgumentRegisterAlignment =
+      kAlignedToWordSize;
+
+  // How stack arguments are aligned.
+  static constexpr AlignmentStrategy kArgumentStackAlignment =
+      kAlignedToWordSize;
+
+  // How fields in composites are aligned.
+  static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
+
+  // Whether 1 or 2 byte-sized arguments or return values are passed extended
+  // to 4 bytes.
+  // Note that `kReturnRegisterExtension != kArgumentRegisterExtension`, which
+  // effectively means that the caller is responsable for truncating and
+  // extending both arguments and return value.
+  static constexpr ExtensionStrategy kReturnRegisterExtension = kNotExtended;
+  static constexpr ExtensionStrategy kArgumentRegisterExtension = kExtendedTo4;
+  static constexpr ExtensionStrategy kArgumentStackExtension = kExtendedTo4;
+
 #endif
+
+  COMPILE_ASSERT((kArgumentRegisters & kReservedCpuRegisters) == 0);
+
+  static constexpr Register kFirstCalleeSavedCpuReg = RBX;
+  static constexpr Register kFirstNonArgumentRegister = RAX;
+  static constexpr Register kSecondNonArgumentRegister = RBX;
+  static constexpr Register kStackPointerRegister = SPREG;
+
+  COMPILE_ASSERT(((R(kFirstCalleeSavedCpuReg)) & kCalleeSaveCpuRegisters) != 0);
+
+  COMPILE_ASSERT(((R(kFirstNonArgumentRegister) |
+                   R(kSecondNonArgumentRegister)) &
+                  kArgumentRegisters) == 0);
+};
 
 #undef R
 
@@ -239,6 +385,7 @@ class Instr {
   // We prefer not to use the int3 instruction since it conflicts with gdb.
   static const uint8_t kBreakPointInstruction = kHltInstruction;
   static const int kBreakPointInstructionSize = 1;
+  static const uint8_t kGdbBreakpointInstruction = 0xcc;
 
   bool IsBreakPoint() {
     ASSERT(kBreakPointInstructionSize == 1);
@@ -260,6 +407,8 @@ class Instr {
 // The largest multibyte nop we will emit.  This could go up to 15 if it
 // becomes important to us.
 const int MAX_NOP_SIZE = 8;
+
+const uword kBreakInstructionFiller = 0xCCCCCCCCCCCCCCCCL;
 
 }  // namespace dart
 

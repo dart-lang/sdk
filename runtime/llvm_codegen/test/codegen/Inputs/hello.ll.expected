@@ -1,0 +1,35 @@
+; ModuleID = '../../runtime/llvm_codegen/test/codegen/Inputs/hello.sexp'
+source_filename = "../../runtime/llvm_codegen/test/codegen/Inputs/hello.sexp"
+
+@0 = constant [14 x i8] c"Hello, World!\00"
+
+define void @"hello.dart::main"() {
+B1:
+  %0 = call i8* @llvm.stacksave()
+  %1 = ptrtoint i8* %0 to i64
+  %2 = load i64, i64 addrspace(256)* inttoptr (i64 72 to i64 addrspace(256)*)
+  %3 = icmp ult i64 %1, %2
+  br i1 %3, label %4, label %5
+
+4:                                                ; preds = %B1
+  call void @llvm.trap()
+  br label %5
+
+5:                                                ; preds = %4, %B1
+  call void @"dart:core::print"(i8* getelementptr inbounds ([14 x i8], [14 x i8]* @0, i32 0, i32 0))
+  ret void
+}
+
+; Function Attrs: nounwind
+declare i8* @llvm.stacksave() #0
+
+; Function Attrs: cold noreturn nounwind
+declare void @llvm.trap() #1
+
+declare void @"dart:core::print"(i8*)
+
+; Function Attrs: nounwind
+declare void @llvm.stackprotector(i8*, i8**) #0
+
+attributes #0 = { nounwind }
+attributes #1 = { cold noreturn nounwind }

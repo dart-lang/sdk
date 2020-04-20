@@ -4,13 +4,10 @@
 
 // A simple test that ensure that reflection works on uninstantiated classes.
 
-library lib;
-
-@MirrorsUsed(targets: "lib")
 import "dart:mirrors";
 
 class Foo {
-  int a;
+  int a = 0;
 }
 
 main() {

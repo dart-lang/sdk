@@ -1,0 +1,66 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with errors in it, then - without fixing the errors -
+# recompile. Make sure we still get errors. As long as we don't fix the error,
+# we keep getting errors. Once we fix it, we no longer get errors.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      .packages: mypackage:mypackage
+      main.dart: |
+        import "package:mypackage/a.dart" as a;
+
+        main() {
+          a.main();
+        }
+      mypackage/a.dart: |
+        import "package:mypackage/b.dart";
+
+        main() {
+          foo();
+        }
+      mypackage/b.dart: |
+        foo() {
+          bar();
+        }
+    expectedLibraryCount: 3
+    errors: true
+  - entry: main.dart
+    errors: true
+    worldType: updated
+    expectInitializeFromDill: false
+    expectedLibraryCount: 3
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - package:mypackage/a.dart
+    sources:
+      mypackage/a.dart: |
+        import "package:mypackage/b.dart";
+
+        main() {
+          foo();
+          foo();
+        }
+    expectedLibraryCount: 3
+    errors: true
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - package:mypackage/a.dart
+    sources:
+      mypackage/a.dart: |
+        main() {
+          foo();
+          foo();
+        }
+
+        foo() {}
+    expectedLibraryCount: 2
+    errors: false

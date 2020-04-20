@@ -13,5 +13,5 @@ main(List<String> args) {
   Expect.equals("arguments_test", args[1]);
   Expect.equals(20, int.parse(args[2]));
   // Cannot add an additional argument.
-  Expect.throws(() => args.add("Fourth"), (e) => e is UnsupportedError);
+  Expect.throwsUnsupportedError(() => args.add("Fourth"));
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import "native_testing.dart";
 import 'dart:_js_helper' show setNativeSubclassDispatchRecord;
 import 'dart:_interceptors'
@@ -45,8 +47,8 @@ class B extends A {
 
   B.two()
       : b1 = log(201),
-        super.two(),
-        b3 = log(203) {
+        b3 = log(203),
+        super.two() {
     log('body(B.two)');
   }
 

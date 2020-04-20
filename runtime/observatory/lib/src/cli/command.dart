@@ -9,7 +9,7 @@ part of cli;
 // line from the pieces.
 List<String> _splitLine(String line) {
   line = line.trimLeft();
-  var args = [];
+  var args = <String>[];
   int pos = 0;
   while (pos < line.length) {
     int startPos = pos;
@@ -44,7 +44,7 @@ abstract class _CommandBase {
   }
 
   // A command may optionally have sub-commands.
-  List<Command> _children = [];
+  List<Command> _children = <Command>[];
 
   _CommandBase _parent;
   int get _depth => (_parent == null ? 0 : _parent._depth + 1);
@@ -53,14 +53,15 @@ abstract class _CommandBase {
   //
   // Given a list of arguments to this command, provide a list of
   // possible completions for those arguments.
-  Future<List<String>> complete(List<String> args) => new Future.value([]);
+  Future<List<String>> complete(List<String> args) =>
+      new Future.value(<String>[]);
 
   // Override in subclasses to provide command-specific execution.
   Future run(List<String> args);
 
   // Returns a list of local subcommands which match the args.
   List<Command> _matchLocal(String argWithSpace, bool preferExact) {
-    var matches = new List<Command>();
+    var matches = <Command>[];
     var arg = argWithSpace.trimRight();
     for (var child in _children) {
       if (child.name.startsWith(arg)) {
@@ -77,12 +78,12 @@ abstract class _CommandBase {
   // arguments.
   List<Command> _match(List<String> args, bool preferExact) {
     if (args.isEmpty) {
-      return [];
+      return <Command>[];
     }
     bool lastArg = (args.length == 1);
     var matches = _matchLocal(args[0], !lastArg || preferExact);
     if (matches.isEmpty) {
-      return [];
+      return <Command>[];
     } else if (matches.length == 1) {
       var childMatches = matches[0]._match(args.sublist(1), preferExact);
       if (childMatches.isEmpty) {
@@ -104,7 +105,7 @@ abstract class _CommandBase {
           args[args.length - 1] == '') {
         // Special case allowance for an empty particle at the end of
         // the command.
-        completions = [''];
+        completions = <String>[''];
       }
       var prefix = _concatArgs(args, _depth);
       return completions.map((str) => '${prefix}${str}').toList();
@@ -134,7 +135,7 @@ class RootCommand extends _CommandBase {
     var commands = _match(args, false);
     if (commands.isEmpty) {
       // No matching commands.
-      return new Future.value([]);
+      return new Future.value(<String>[]);
     }
     int matchLen = commands[0]._depth;
     if (matchLen < args.length) {
@@ -147,7 +148,7 @@ class RootCommand extends _CommandBase {
       } else {
         // An ambiguous prefix match leaves us nowhere.  The user is
         // typing a bunch of stuff that we don't know how to complete.
-        return new Future.value([]);
+        return new Future.value(<String>[]);
       }
     }
 

@@ -2,60 +2,130 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-import 'dart:io';
+import 'dart:async' show Future;
 
-import 'package:front_end/src/scanner/token.dart' show Token;
-import 'package:kernel/ast.dart';
-import 'package:kernel/binary/ast_to_binary.dart';
-import 'package:kernel/binary/limited_ast_to_binary.dart';
-import 'package:kernel/text/ast_to_text.dart';
+import 'dart:io' show BytesBuilder, File, IOSink;
 
-/// A null-aware alternative to `token.offset`.  If [token] is `null`, returns
-/// `TreeNode.noOffset`.
-int offsetForToken(Token token) =>
-    token == null ? TreeNode.noOffset : token.offset;
+import 'dart:typed_data' show Uint8List;
 
-/// Print the given [program].  Do nothing if it is `null`.  If the
+import 'package:kernel/clone.dart' show CloneVisitorWithMembers;
+
+import 'package:kernel/ast.dart'
+    show
+        Class,
+        Component,
+        DartType,
+        Library,
+        Procedure,
+        Supertype,
+        TreeNode,
+        TypeParameter,
+        TypeParameterType;
+
+import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
+
+import 'package:kernel/text/ast_to_text.dart' show Printer;
+
+/// Print the given [component].  Do nothing if it is `null`.  If the
 /// [libraryFilter] is provided, then only libraries that satisfy it are
 /// printed.
-void printProgramText(Program program, {bool libraryFilter(Library library)}) {
-  if (program == null) return;
+void printComponentText(Component component,
+    {bool libraryFilter(Library library)}) {
+  if (component == null) return;
   StringBuffer sb = new StringBuffer();
-  for (Library library in program.libraries) {
+  Printer printer = new Printer(sb);
+  printer.writeComponentProblems(component);
+  for (Library library in component.libraries) {
     if (libraryFilter != null && !libraryFilter(library)) continue;
-    Printer printer = new Printer(sb);
     printer.writeLibraryFile(library);
   }
+  printer.writeConstantTable(component);
   print(sb);
 }
 
-/// Write [program] to file only including libraries that match [filter].
-Future<Null> writeProgramToFile(Program program, Uri uri,
+/// Write [component] to file only including libraries that match [filter].
+Future<Null> writeComponentToFile(Component component, Uri uri,
     {bool filter(Library library)}) async {
   File output = new File.fromUri(uri);
   IOSink sink = output.openWrite();
   try {
-    BinaryPrinter printer = filter == null
-        ? new BinaryPrinter(sink)
-        : new LimitedBinaryPrinter(sink, filter ?? (_) => true, false);
-    printer.writeProgramFile(program);
-    program.unbindCanonicalNames();
+    BinaryPrinter printer = new BinaryPrinter(sink, libraryFilter: filter);
+    printer.writeComponentFile(component);
   } finally {
     await sink.close();
   }
 }
 
-/// Serialize the libraries in [program] that match [filter].
-List<int> serializeProgram(Program program,
-    {bool filter(Library library), bool excludeUriToSource: false}) {
+/// Serialize the libraries in [component] that match [filter].
+Uint8List serializeComponent(Component component,
+    {bool filter(Library library),
+    bool includeSources: true,
+    bool includeOffsets: true}) {
   ByteSink byteSink = new ByteSink();
-  BinaryPrinter printer = filter == null && !excludeUriToSource
-      ? new BinaryPrinter(byteSink)
-      : new LimitedBinaryPrinter(
-          byteSink, filter ?? (_) => true, excludeUriToSource);
-  printer.writeProgramFile(program);
+  BinaryPrinter printer = new BinaryPrinter(byteSink,
+      libraryFilter: filter,
+      includeSources: includeSources,
+      includeOffsets: includeOffsets);
+  printer.writeComponentFile(component);
   return byteSink.builder.takeBytes();
+}
+
+const String kDebugClassName = "#DebugClass";
+
+Component createExpressionEvaluationComponent(Procedure procedure) {
+  Library realLibrary = procedure.enclosingLibrary;
+
+  Library fakeLibrary = new Library(new Uri(scheme: 'evaluate', path: 'source'))
+    ..setLanguageVersion(
+        realLibrary.languageVersionMajor, realLibrary.languageVersionMinor)
+    ..isNonNullableByDefault = realLibrary.isNonNullableByDefault
+    ..nonNullableByDefaultCompiledMode =
+        realLibrary.nonNullableByDefaultCompiledMode;
+
+  if (procedure.parent is Class) {
+    Class realClass = procedure.parent;
+
+    Class fakeClass = new Class(name: kDebugClassName)..parent = fakeLibrary;
+    Map<TypeParameter, TypeParameter> typeParams =
+        <TypeParameter, TypeParameter>{};
+    Map<TypeParameter, DartType> typeSubstitution = <TypeParameter, DartType>{};
+    for (TypeParameter typeParam in realClass.typeParameters) {
+      TypeParameter newNode = new TypeParameter(typeParam.name)
+        ..parent = fakeClass;
+      typeParams[typeParam] = newNode;
+      typeSubstitution[typeParam] =
+          new TypeParameterType.forAlphaRenaming(typeParam, newNode);
+    }
+    CloneVisitorWithMembers cloner = new CloneVisitorWithMembers(
+        typeSubstitution: typeSubstitution, typeParams: typeParams);
+
+    for (TypeParameter typeParam in realClass.typeParameters) {
+      fakeClass.typeParameters.add(typeParam.accept<TreeNode>(cloner));
+    }
+
+    if (realClass.supertype != null) {
+      // supertype is null for Object.
+      fakeClass.supertype = new Supertype.byReference(
+          realClass.supertype.className,
+          realClass.supertype.typeArguments.map(cloner.visitType).toList());
+    }
+
+    // Rebind the type parameters in the procedure.
+    procedure = cloner.cloneProcedure(procedure, null);
+    procedure.parent = fakeClass;
+    fakeClass.procedures.add(procedure);
+    fakeLibrary.classes.add(fakeClass);
+  } else {
+    fakeLibrary.procedures.add(procedure);
+    procedure.parent = fakeLibrary;
+  }
+
+  // TODO(vegorov) find a way to preserve metadata.
+  return new Component(libraries: [fakeLibrary]);
+}
+
+List<int> serializeProcedure(Procedure procedure) {
+  return serializeComponent(createExpressionEvaluationComponent(procedure));
 }
 
 /// A [Sink] that directly writes data into a byte builder.

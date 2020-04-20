@@ -1,0 +1,30 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_infer.dart:13:49: Error: The return type of the method 'B.x' is 'dynamic', which does not match the return type, 'int', of the overridden method, 'A.x'.
+// Change to a subtype of 'int'.
+//   /*error:INVALID_METHOD_OVERRIDE*/ dynamic get x => 3;
+//                                                 ^
+// pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_infer.dart:9:11: Context: This is the overridden method ('x').
+//   final T x = null;
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object* = dynamic> extends core::Object {
+  final field self::A::T* x;
+  synthetic constructor •() → self::A<self::A::T*>*
+    ;
+}
+class B extends core::Object implements self::A<core::int*> {
+  synthetic constructor •() → self::B*
+    ;
+  get x() → dynamic
+    ;
+}
+static method foo() → dynamic
+  ;
+static method main() → dynamic
+  ;

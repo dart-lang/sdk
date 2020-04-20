@@ -16,7 +16,7 @@
 #error Do not include simulator_arm.h directly; use simulator.h.
 #endif
 
-#include "vm/constants_arm.h"
+#include "vm/constants.h"
 
 namespace dart {
 
@@ -50,13 +50,16 @@ class Simulator {
   // architecture specification and is off by 8 from the currently executing
   // instruction.
   void set_register(Register reg, int32_t value);
-  int32_t get_register(Register reg) const;
+  DART_FORCE_INLINE int32_t get_register(Register reg) const {
+    ASSERT((reg >= 0) && (reg < kNumberOfCpuRegisters));
+    return registers_[reg] + ((reg == PC) ? Instr::kPCReadOffset : 0);
+  }
 
   int32_t get_sp() const { return get_register(SPREG); }
 
   // Special case of set_register and get_register to access the raw PC value.
   void set_pc(int32_t value);
-  int32_t get_pc() const;
+  DART_FORCE_INLINE int32_t get_pc() const { return registers_[PC]; }
 
   // Accessors for VFP register state.
   void set_sregister(SRegister reg, float value);
@@ -76,20 +79,16 @@ class Simulator {
 
   // High address.
   uword stack_base() const { return stack_base_; }
+  // Limit for StackOverflowError.
+  uword overflow_stack_limit() const { return overflow_stack_limit_; }
   // Low address.
   uword stack_limit() const { return stack_limit_; }
 
   // Accessor to the instruction counter.
   uint64_t get_icount() const { return icount_; }
 
-  // The thread's top_exit_frame_info refers to a Dart frame in the simulator
-  // stack. The simulator's top_exit_frame_info refers to a C++ frame in the
-  // native stack.
-  uword top_exit_frame_info() const { return top_exit_frame_info_; }
-  void set_top_exit_frame_info(uword value) { top_exit_frame_info_ = value; }
-
   // Call on program start.
-  static void InitOnce();
+  static void Init();
 
   // Dart generally calls into generated code with 4 parameters. This is a
   // convenience function, which sets up the simulator state and grabs the
@@ -152,12 +151,12 @@ class Simulator {
   // Simulator support.
   char* stack_;
   uword stack_limit_;
+  uword overflow_stack_limit_;
   uword stack_base_;
   bool pc_modified_;
   uint64_t icount_;
   static int32_t flag_stop_sim_at_;
   SimulatorSetjmpBuffer* last_setjmp_buffer_;
-  uword top_exit_frame_info_;
 
   // Registered breakpoints.
   Instr* break_pc_;
@@ -232,6 +231,7 @@ class Simulator {
 
   // Executes one instruction.
   void InstructionDecode(Instr* instr);
+  void InstructionDecodeImpl(Instr* instr);
 
   // Executes ARM instructions until the PC reaches kEndSimulatingPC.
   void Execute();

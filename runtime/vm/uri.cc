@@ -80,7 +80,7 @@ static int GetEscapedValue(const char* str, intptr_t pos, intptr_t len) {
 
 static char* NormalizeEscapes(const char* str, intptr_t len) {
   // Allocate the buffer.
-  Zone* zone = Thread::Current()->zone();
+  Zone* zone = ThreadState::Current()->zone();
   // We multiply len by three because a percent-escape sequence is
   // three characters long (e.g. ' ' -> '%20).  +1 for '\0'.  We could
   // take two passes through the string and avoid the excess
@@ -100,7 +100,7 @@ static char* NormalizeEscapes(const char* str, intptr_t len) {
         buffer[buffer_pos] = escaped_value;
         buffer_pos++;
       } else {
-        OS::SNPrint(buffer + buffer_pos, 4, "%%%02X", escaped_value);
+        Utils::SNPrint(buffer + buffer_pos, 4, "%%%02X", escaped_value);
         buffer_pos += 3;
       }
       pos += 3;
@@ -114,7 +114,7 @@ static char* NormalizeEscapes(const char* str, intptr_t len) {
         buffer_pos++;
       } else {
         // Escape funky characters.
-        OS::SNPrint(buffer + buffer_pos, 4, "%%%02X", c);
+        Utils::SNPrint(buffer + buffer_pos, 4, "%%%02X", c);
         buffer_pos += 3;
       }
       pos++;
@@ -156,7 +156,7 @@ static void ClearParsedUri(ParsedUri* parsed_uri) {
 }
 
 static intptr_t ParseAuthority(const char* authority, ParsedUri* parsed_uri) {
-  Zone* zone = Thread::Current()->zone();
+  Zone* zone = ThreadState::Current()->zone();
   const char* current = authority;
   intptr_t len = 0;
 
@@ -191,7 +191,7 @@ static intptr_t ParseAuthority(const char* authority, ParsedUri* parsed_uri) {
 // Performs a simple parse of a uri into its components.
 // See RFC 3986 Section 3: Syntax.
 bool ParseUri(const char* uri, ParsedUri* parsed_uri) {
-  Zone* zone = Thread::Current()->zone();
+  Zone* zone = ThreadState::Current()->zone();
 
   // The first ':' separates the scheme from the rest of the uri.  If
   // a ':' occurs after the first '/' it doesn't count.
@@ -284,7 +284,7 @@ static const char* RemoveDotSegments(const char* path) {
 
   // The output path will always be less than or equal to the size of
   // the input path.
-  Zone* zone = Thread::Current()->zone();
+  Zone* zone = ThreadState::Current()->zone();
   char* buffer = zone->Alloc<char>(strlen(path) + 1);  // +1 for '\0'
   char* output = buffer;
 
@@ -342,7 +342,7 @@ static const char* RemoveDotSegments(const char* path) {
 
 // See RFC 3986 Section 5.2.3: Merge Paths.
 static const char* MergePaths(const char* base_path, const char* ref_path) {
-  Zone* zone = Thread::Current()->zone();
+  Zone* zone = ThreadState::Current()->zone();
   if (base_path[0] == '\0') {
     // If the base_path is empty, we prepend '/'.
     return zone->PrintToString("/%s", ref_path);
@@ -378,7 +378,7 @@ static const char* MergePaths(const char* base_path, const char* ref_path) {
 }
 
 static char* BuildUri(const ParsedUri& uri) {
-  Zone* zone = Thread::Current()->zone();
+  Zone* zone = ThreadState::Current()->zone();
   ASSERT(uri.path != NULL);
 
   const char* fragment = uri.fragment == NULL ? "" : uri.fragment;
@@ -436,7 +436,7 @@ bool ResolveUri(const char* ref_uri,
   ParsedUri target;
   if (ref.scheme != NULL) {
     if (strcmp(ref.scheme, "dart") == 0) {
-      Zone* zone = Thread::Current()->zone();
+      Zone* zone = ThreadState::Current()->zone();
       *target_uri = zone->MakeCopyOfString(ref_uri);
       return true;
     }
@@ -461,7 +461,7 @@ bool ResolveUri(const char* ref_uri,
   }
 
   if ((base.scheme != NULL) && strcmp(base.scheme, "dart") == 0) {
-    Zone* zone = Thread::Current()->zone();
+    Zone* zone = ThreadState::Current()->zone();
     *target_uri = zone->MakeCopyOfString(ref_uri);
     return true;
   }

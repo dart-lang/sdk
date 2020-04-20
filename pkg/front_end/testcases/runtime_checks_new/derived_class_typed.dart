@@ -6,15 +6,12 @@
 library test;
 
 class B<T> {
-  void f(T /*@covariance=genericInterface, genericImpl*/ x) {}
-  void g({T /*@covariance=genericInterface, genericImpl*/ x}) {}
-  void h< /*@covariance=genericInterface, genericImpl*/ U extends T>() {}
+  void f(T x) {}
+  void g({T x}) {}
+  void h<U extends T>() {}
 }
 
-class /*@forwardingStub=abstract void f(covariance=(genericImpl) int x)*/
-/*@forwardingStub=abstract void h<covariance=(genericImpl) U extends int>()*/
-/*@forwardingStub=abstract void g({covariance=(genericImpl) int x})*/
-    C extends B<int> {}
+class C extends B<int> {}
 
 void g1(B<num> b) {
   b.f(1.5);

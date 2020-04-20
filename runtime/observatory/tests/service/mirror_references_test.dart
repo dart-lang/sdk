@@ -1,13 +1,12 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 library vm_references_test;
 
 import 'dart:mirrors';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 class Foo {}
@@ -25,9 +24,9 @@ void script() {
       .reflectee;
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
-    var lib = await isolate.rootLibrary.load();
+    Library lib = await isolate.rootLibrary.load();
     Field fooField = lib.variables.singleWhere((v) => v.name == 'foo');
     await fooField.load();
     Instance foo = fooField.staticValue;
@@ -38,7 +37,7 @@ var tests = [
     expect(foo.isMirrorReference, isFalse);
     expect(ref.isMirrorReference, isTrue);
     expect(ref.referent, isNull);
-    var loadedRef = await ref.load();
+    Instance loadedRef = await ref.load();
     expect(loadedRef.referent, isNotNull);
     expect(loadedRef.referent.name, equals('Foo'));
     expect(loadedRef.referent, equals(foo.clazz));

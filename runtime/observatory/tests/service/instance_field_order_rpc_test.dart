@@ -1,36 +1,44 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 library get_object_rpc_test;
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 class Super {
+  // Make sure these fields are not removed by the tree shaker.
+  @pragma("vm:entry-point")
   var z = 1;
+  @pragma("vm:entry-point")
   var y = 2;
 }
 
 class Sub extends Super {
+  @pragma("vm:entry-point")
   var y = 3;
+  @pragma("vm:entry-point")
   var x = 4;
 }
 
-eval(Isolate isolate, String expression) async {
+@pragma("vm:entry-point")
+getSub() => new Sub();
+
+invoke(Isolate isolate, String selector) async {
   Map params = {
     'targetId': isolate.rootLibrary.id,
-    'expression': expression,
+    'selector': selector,
+    'argumentIds': <String>[],
   };
-  return await isolate.invokeRpcNoUpgrade('evaluate', params);
+  return await isolate.invokeRpcNoUpgrade('invoke', params);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     // Call eval to get a Dart list.
-    var evalResult = await eval(isolate, 'new Sub()');
+    var evalResult = await invoke(isolate, 'getSub');
     var params = {
       'objectId': evalResult['id'],
     };

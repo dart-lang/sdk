@@ -7,7 +7,6 @@
 
 #include "vm/code_patcher.h"
 
-#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
 
@@ -33,29 +32,46 @@ void CodePatcher::InsertDeoptimizationCallAt(uword start) {
 }
 
 RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
-                                        const Code& code,
-                                        ICData* ic_data) {
-  ASSERT(code.ContainsInstructionAt(return_address));
-  CallPattern call(return_address, code);
-  if (ic_data != NULL) {
-    *ic_data = call.IcData();
+                                        const Code& caller_code,
+                                        Object* data) {
+  ASSERT(caller_code.ContainsInstructionAt(return_address));
+  ICCallPattern call(return_address, caller_code);
+  if (data != NULL) {
+    *data = call.Data();
   }
   return call.TargetCode();
 }
 
-intptr_t CodePatcher::InstanceCallSizeInBytes() {
-  // The instance call instruction sequence has a variable size on ARM.
-  UNREACHABLE();
-  return 0;
+void CodePatcher::PatchInstanceCallAt(uword return_address,
+                                      const Code& caller_code,
+                                      const Object& data,
+                                      const Code& target) {
+  auto thread = Thread::Current();
+  thread->isolate_group()->RunWithStoppedMutators([&]() {
+    PatchInstanceCallAtWithMutatorsStopped(thread, return_address, caller_code,
+                                           data, target);
+  });
+}
+
+void CodePatcher::PatchInstanceCallAtWithMutatorsStopped(
+    Thread* thread,
+    uword return_address,
+    const Code& caller_code,
+    const Object& data,
+    const Code& target) {
+  ASSERT(caller_code.ContainsInstructionAt(return_address));
+  ICCallPattern call(return_address, caller_code);
+  call.SetData(data);
+  call.SetTargetCode(target);
 }
 
 RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
-                                                     const Code& code,
+                                                     const Code& caller_code,
                                                      ICData* ic_data_result) {
-  ASSERT(code.ContainsInstructionAt(return_address));
-  CallPattern static_call(return_address, code);
+  ASSERT(caller_code.ContainsInstructionAt(return_address));
+  ICCallPattern static_call(return_address, caller_code);
   ICData& ic_data = ICData::Handle();
-  ic_data ^= static_call.IcData();
+  ic_data ^= static_call.Data();
   if (ic_data_result != NULL) {
     *ic_data_result = ic_data.raw();
   }
@@ -66,34 +82,66 @@ void CodePatcher::PatchSwitchableCallAt(uword return_address,
                                         const Code& caller_code,
                                         const Object& data,
                                         const Code& target) {
+  auto thread = Thread::Current();
+  // Ensure all threads are suspended as we update data and target pair.
+  thread->isolate_group()->RunWithStoppedMutators([&]() {
+    PatchSwitchableCallAtWithMutatorsStopped(thread, return_address,
+                                             caller_code, data, target);
+  });
+}
+
+void CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
+    Thread* thread,
+    uword return_address,
+    const Code& caller_code,
+    const Object& data,
+    const Code& target) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
-  SwitchableCallPattern call(return_address, caller_code);
-  call.SetData(data);
-  call.SetTarget(target);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    BareSwitchableCallPattern call(return_address, caller_code);
+    call.SetData(data);
+    call.SetTarget(target);
+  } else {
+    SwitchableCallPattern call(return_address, caller_code);
+    call.SetData(data);
+    call.SetTarget(target);
+  }
 }
 
 RawCode* CodePatcher::GetSwitchableCallTargetAt(uword return_address,
                                                 const Code& caller_code) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
-  SwitchableCallPattern call(return_address, caller_code);
-  return call.target();
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    BareSwitchableCallPattern call(return_address, caller_code);
+    return call.target();
+  } else {
+    SwitchableCallPattern call(return_address, caller_code);
+    return call.target();
+  }
 }
 
 RawObject* CodePatcher::GetSwitchableCallDataAt(uword return_address,
                                                 const Code& caller_code) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
-  SwitchableCallPattern call(return_address, caller_code);
-  return call.data();
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    BareSwitchableCallPattern call(return_address, caller_code);
+    return call.data();
+  } else {
+    SwitchableCallPattern call(return_address, caller_code);
+    return call.data();
+  }
 }
 
 void CodePatcher::PatchNativeCallAt(uword return_address,
                                     const Code& code,
                                     NativeFunction target,
                                     const Code& trampoline) {
-  ASSERT(code.ContainsInstructionAt(return_address));
-  NativeCallPattern call(return_address, code);
-  call.set_target(trampoline);
-  call.set_native_function(target);
+  Thread::Current()->isolate_group()->RunWithStoppedMutators([&]() {
+    ASSERT(code.ContainsInstructionAt(return_address));
+    NativeCallPattern call(return_address, code);
+    call.set_target(trampoline);
+    call.set_native_function(target);
+  });
 }
 
 RawCode* CodePatcher::GetNativeCallAt(uword return_address,

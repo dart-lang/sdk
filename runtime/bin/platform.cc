@@ -4,6 +4,7 @@
 
 #include "bin/platform.h"
 
+#include "bin/dartutils.h"
 #include "bin/file.h"
 #include "bin/utils.h"
 #include "include/dart_api.h"
@@ -16,7 +17,9 @@ void FUNCTION_NAME(Platform_NumberOfProcessors)(Dart_NativeArguments args) {
 }
 
 void FUNCTION_NAME(Platform_OperatingSystem)(Dart_NativeArguments args) {
-  Dart_SetReturnValue(args, DartUtils::NewString(Platform::OperatingSystem()));
+  Dart_Handle str = DartUtils::NewString(Platform::OperatingSystem());
+  ThrowIfError(str);
+  Dart_SetReturnValue(args, str);
 }
 
 void FUNCTION_NAME(Platform_OperatingSystemVersion)(Dart_NativeArguments args) {
@@ -24,19 +27,25 @@ void FUNCTION_NAME(Platform_OperatingSystemVersion)(Dart_NativeArguments args) {
   if (version == NULL) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewString(version));
+    Dart_Handle str = DartUtils::NewString(version);
+    ThrowIfError(str);
+    Dart_SetReturnValue(args, str);
   }
 }
 
 void FUNCTION_NAME(Platform_PathSeparator)(Dart_NativeArguments args) {
-  Dart_SetReturnValue(args, DartUtils::NewString(File::PathSeparator()));
+  Dart_Handle str = DartUtils::NewString(File::PathSeparator());
+  ThrowIfError(str);
+  Dart_SetReturnValue(args, str);
 }
 
 void FUNCTION_NAME(Platform_LocalHostname)(Dart_NativeArguments args) {
   const intptr_t HOSTNAME_LENGTH = 256;
   char hostname[HOSTNAME_LENGTH];
   if (Platform::LocalHostname(hostname, HOSTNAME_LENGTH)) {
-    Dart_SetReturnValue(args, DartUtils::NewString(hostname));
+    Dart_Handle str = DartUtils::NewString(hostname);
+    ThrowIfError(str);
+    Dart_SetReturnValue(args, str);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
@@ -63,13 +72,11 @@ void FUNCTION_NAME(Platform_ResolvedExecutableName)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Platform_ExecutableArguments)(Dart_NativeArguments args) {
   int end = Platform::GetScriptIndex();
   char** argv = Platform::GetArgv();
-  Dart_Handle result = Dart_NewList(end - 1);
+  Dart_Handle result = Dart_NewListOf(Dart_CoreType_String, end - 1);
   for (intptr_t i = 1; i < end; i++) {
     Dart_Handle str = DartUtils::NewString(argv[i]);
-    Dart_Handle error = Dart_ListSetAt(result, i - 1, str);
-    if (Dart_IsError(error)) {
-      Dart_PropagateError(error);
-    }
+    ThrowIfError(str);
+    ThrowIfError(Dart_ListSetAt(result, i - 1, str));
   }
   Dart_SetReturnValue(args, result);
 }
@@ -83,9 +90,7 @@ void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError(&error));
   } else {
     Dart_Handle result = Dart_NewList(count);
-    if (Dart_IsError(result)) {
-      Dart_PropagateError(result);
-    }
+    ThrowIfError(result);
     intptr_t result_idx = 0;
     for (intptr_t env_idx = 0; env_idx < count; env_idx++) {
       Dart_Handle str = DartUtils::NewString(env[env_idx]);
@@ -95,9 +100,7 @@ void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
         continue;
       }
       Dart_Handle error = Dart_ListSetAt(result, result_idx, str);
-      if (Dart_IsError(error)) {
-        Dart_PropagateError(error);
-      }
+      ThrowIfError(error);
       result_idx++;
     }
     Dart_SetReturnValue(args, result);

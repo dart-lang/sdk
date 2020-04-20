@@ -5,7 +5,10 @@
 #ifndef RUNTIME_VM_SCOPE_TIMER_H_
 #define RUNTIME_VM_SCOPE_TIMER_H_
 
+#include "platform/allocation.h"
 #include "platform/globals.h"
+
+#include "vm/os.h"
 
 namespace dart {
 
@@ -32,7 +35,8 @@ class ScopeTimer : public ValueObject {
     }
     int64_t elapsed = GetElapsed();
     double seconds = MicrosecondsToSeconds(elapsed);
-    OS::Print("%s: %f seconds (%" Pd64 " \u00B5s)\n", name_, seconds, elapsed);
+    OS::PrintErr("%s: %f seconds (%" Pd64 " \u00B5s)\n", name_, seconds,
+                 elapsed);
   }
 
  private:

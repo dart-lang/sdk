@@ -33,14 +33,14 @@ void testStream(
     String name, StreamController controller, Stream stream, bool overrideDone,
     [int registerExpect = 0]) {
   asyncStart();
-  StreamSubscription sub;
-  Zone zone;
+  late StreamSubscription sub;
+  late Zone zone;
   int registerCount = 0;
   int callbackBits = 0;
   int stepCount = 0;
-  Function step;
+  late void Function() step;
   void nextStep() {
-    Zone.ROOT.scheduleMicrotask(step);
+    Zone.root.scheduleMicrotask(step);
   }
 
   runZoned(() {
@@ -92,7 +92,7 @@ void testStream(
   int expectedBits = 0;
   step = () {
     var stepName = "$name-$stepCount";
-    Expect.identical(Zone.ROOT, Zone.current, stepName);
+    Expect.identical(Zone.root, Zone.current, stepName);
     Expect.equals(expectedBits, callbackBits, stepName);
     switch (stepCount++) {
       case 0:

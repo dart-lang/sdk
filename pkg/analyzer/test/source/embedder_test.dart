@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -28,11 +28,11 @@ main() {
 @reflectiveTest
 class DartUriResolverTest extends EmbedderRelatedTest {
   void test_embedderYaml() {
-    EmbedderYamlLocator locator = new EmbedderYamlLocator({
+    EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = new EmbedderSdk(locator.embedderYamls);
-    DartUriResolver resolver = new DartUriResolver(sdk);
+    EmbedderSdk sdk = EmbedderSdk(locator.embedderYamls);
+    DartUriResolver resolver = DartUriResolver(sdk);
 
     void expectResolved(dartUri, posixPath) {
       Source source = resolver.resolveAbsolute(Uri.parse(dartUri));
@@ -52,19 +52,19 @@ class DartUriResolverTest extends EmbedderRelatedTest {
 @reflectiveTest
 class EmbedderSdkTest extends EmbedderRelatedTest {
   void test_creation() {
-    EmbedderYamlLocator locator = new EmbedderYamlLocator({
+    EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = new EmbedderSdk(locator.embedderYamls);
+    EmbedderSdk sdk = EmbedderSdk(locator.embedderYamls);
 
     expect(sdk.urlMappings, hasLength(5));
   }
 
   void test_fromFileUri() {
-    EmbedderYamlLocator locator = new EmbedderYamlLocator({
+    EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = new EmbedderSdk(locator.embedderYamls);
+    EmbedderSdk sdk = EmbedderSdk(locator.embedderYamls);
 
     expectSource(String posixPath, String dartUri) {
       Uri uri = Uri.parse(posixToOSFileUri(posixPath));
@@ -80,10 +80,10 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
   }
 
   void test_getSdkLibrary() {
-    EmbedderYamlLocator locator = new EmbedderYamlLocator({
+    EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = new EmbedderSdk(locator.embedderYamls);
+    EmbedderSdk sdk = EmbedderSdk(locator.embedderYamls);
 
     SdkLibrary lib = sdk.getSdkLibrary('dart:fox');
     expect(lib, isNotNull);
@@ -92,10 +92,10 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
   }
 
   void test_mapDartUri() {
-    EmbedderYamlLocator locator = new EmbedderYamlLocator({
+    EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = new EmbedderSdk(locator.embedderYamls);
+    EmbedderSdk sdk = EmbedderSdk(locator.embedderYamls);
 
     void expectSource(String dartUri, String posixPath) {
       Source source = sdk.mapDartUri(dartUri);
@@ -114,10 +114,10 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
 @reflectiveTest
 class EmbedderUriResolverTest extends EmbedderRelatedTest {
   void test_embedderYaml() {
-    var locator = new EmbedderYamlLocator({
+    var locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    var resolver = new EmbedderUriResolver(locator.embedderYamls);
+    var resolver = EmbedderUriResolver(locator.embedderYamls);
 
     expectResolved(dartUri, posixPath) {
       Source source = resolver.resolveAbsolute(Uri.parse(dartUri));
@@ -136,15 +136,15 @@ class EmbedderUriResolverTest extends EmbedderRelatedTest {
   }
 
   void test_nullEmbedderYamls() {
-    var resolver = new EmbedderUriResolver(null);
+    var resolver = EmbedderUriResolver(null);
     expect(resolver, hasLength(0));
   }
 
   void test_restoreAbsolute() {
-    var locator = new EmbedderYamlLocator({
+    var locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    var resolver = new EmbedderUriResolver(locator.embedderYamls);
+    var resolver = EmbedderUriResolver(locator.embedderYamls);
 
     expectRestore(String dartUri, [String expected]) {
       var parsedUri = Uri.parse(dartUri);

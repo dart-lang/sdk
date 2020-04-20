@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,10 +11,7 @@ import 'find_top_level_declarations_test.dart'
     as find_top_level_declarations_test;
 import 'get_type_hierarchy_test.dart' as get_type_hierarchy_test;
 
-/**
- * Utility for manually running all integration tests.
- */
-main() {
+void main() {
   defineReflectiveSuite(() {
     find_element_references_test.main();
     find_member_declarations_test.main();

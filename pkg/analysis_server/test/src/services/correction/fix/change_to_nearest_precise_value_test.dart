@@ -1,0 +1,66 @@
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import 'fix_processor.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ChangeToNearestPreciseValueTest);
+  });
+}
+
+@reflectiveTest
+class ChangeToNearestPreciseValueTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CHANGE_TO_NEAREST_PRECISE_VALUE;
+
+  Future<void> test_impreciseIntAsDouble() async {
+    await resolveTestUnit('''
+double x = 1000000000000000000000000;
+''');
+    await assertHasFix('''
+double x = 999999999999999983222784;
+''');
+  }
+
+  Future<void> test_impreciseIntAsDouble_asCapitalHex() async {
+    await resolveTestUnit('''
+double x = 0X1000000000000000000000001;
+''');
+    await assertHasFix('''
+double x = 0x1000000000000000000000000;
+''');
+  }
+
+  Future<void> test_impreciseIntAsDouble_asHex() async {
+    await resolveTestUnit('''
+double x = 0x1000000000000000000000001;
+''');
+    await assertHasFix('''
+double x = 0x1000000000000000000000000;
+''');
+  }
+
+  Future<void> test_impreciseIntAsDouble_maxValue() async {
+    await resolveTestUnit('''
+double x = 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000;
+''');
+    await assertHasFix('''
+double x = 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368;
+''');
+  }
+
+  Future<void> test_impreciseIntAsDouble_maxValue_asHex() async {
+    await resolveTestUnit('''
+double x = 0x100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000;
+''');
+    await assertHasFix('''
+double x = 0xFFFFFFFFFFFFF800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000;
+''');
+  }
+}

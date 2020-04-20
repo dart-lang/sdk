@@ -19,7 +19,7 @@ TemplateManager templateManager = new TemplateManager();
 
 /**
 
-[js] is a singleton instace of JsBuilder.  JsBuilder is a set of conveniences
+[js] is a singleton instance of JsBuilder.  JsBuilder is a set of conveniences
 for constructing JavaScript ASTs.
 
 [string] and [number] are used to create leaf AST nodes:
@@ -60,7 +60,7 @@ still has one semicolon:
       return 123;
 
 If the placeholder is not followed by a semicolon, it is part of an expression.
-Here the paceholder is in the position of the function in a function call:
+Here the placeholder is in the position of the function in a function call:
 
     var vFoo = new VariableUse('foo');
     js.statement('if (happy) #("Happy!")', vFoo)
@@ -71,7 +71,7 @@ Here the paceholder is in the position of the function in a function call:
 Generally, a placeholder in an expression position requires an Expression AST as
 an argument and a placeholder in a statement position requires a Statement AST.
 An expression will be converted to a Statement if needed by creating an
-ExpessionStatement.  A String argument will be converted into a VariableUse and
+ExpressionStatement.  A String argument will be converted into a VariableUse and
 requires that the string is a JavaScript identifier.
 
     js('# + 1', vFoo)       -->  foo + 1
@@ -146,7 +146,7 @@ bool argument, which selects the then-part or else-part of the if-statement:
     js.statement('if (#) return;', eTrue)  -->  if (true) return;
 
 Combined with block splicing, if-statement condition context placeholders allows
-the creation of tenplates that select code depending on variables.
+the creation of templates that select code depending on variables.
 
     js.statement('{ 1; if (#) 2; else { 3; 4; } 5;}', true)
     --> { 1; 2; 5; }
@@ -168,10 +168,10 @@ for `a["b"]`:
     js('a.#', 'x')    -->  a.x        (i.e. a["x"])
 
 (Question - should `.#` be restricted to permit only String arguments? The
-template should probably be writted with `[]` if non-strings are accepted.)
+template should probably be written with `[]` if non-strings are accepted.)
 
 
-Object initialiers allow placeholders in the key property name position:
+Object initializers allow placeholders in the key property name position:
 
     js('{#:1, #:2}',  [s, 'bye'])    -->  {hello: 1, bye: 2}
 
@@ -318,6 +318,7 @@ class JsBuilder {
         case "\v":
           return r"\v";
       }
+      throw new UnsupportedError("Unexpected match: ${match.group(0)}");
     });
     LiteralString result = string(escaped);
     // We don't escape ' under the assumption that the string is wrapped
@@ -466,7 +467,7 @@ class JsBuilder {
   }
 
   Iterable<Literal> joinLiterals(Iterable<Literal> list, Literal separator) {
-    return new _InterleaveIterable(list, separator);
+    return new _InterleaveIterable<Literal>(list, separator);
   }
 
   LiteralString quoteName(Name name, {allowNull: false}) {
@@ -827,9 +828,9 @@ class MiniJsParser {
       }
       lastCategory = NUMERIC;
       lastToken = src.substring(lastPosition, position);
-      int.parse(lastToken, onError: (_) {
+      if (int.tryParse(lastToken) == null) {
         error("Unparseable number");
-      });
+      }
     } else if (code == charCodes.$SLASH) {
       // Tokens that start with / are special due to regexp literals.
       lastCategory = SYMBOL;
@@ -861,9 +862,9 @@ class MiniJsParser {
       lastCategory = cat;
       lastToken = src.substring(lastPosition, position);
       if (cat == NUMERIC) {
-        double.parse(lastToken, (_) {
+        if (double.tryParse(lastToken) == null) {
           error("Unparseable number");
-        });
+        }
       } else if (cat == SYMBOL) {
         int binaryPrecendence = BINARY_PRECEDENCE[lastToken];
         if (binaryPrecendence == null && !UNARY_OPERATORS.contains(lastToken)) {
@@ -1029,15 +1030,15 @@ class MiniJsParser {
     AsyncModifier asyncModifier;
     if (acceptString('async')) {
       if (acceptString('*')) {
-        asyncModifier = const AsyncModifier.asyncStar();
+        asyncModifier = AsyncModifier.asyncStar;
       } else {
-        asyncModifier = const AsyncModifier.async();
+        asyncModifier = AsyncModifier.async;
       }
     } else if (acceptString('sync')) {
       if (!acceptString('*')) error("Only sync* is valid - sync is implied");
-      asyncModifier = const AsyncModifier.syncStar();
+      asyncModifier = AsyncModifier.syncStar;
     } else {
-      asyncModifier = const AsyncModifier.sync();
+      asyncModifier = AsyncModifier.sync;
     }
     expectCategory(LBRACE);
     Block block = parseBlock();
@@ -1254,7 +1255,7 @@ class MiniJsParser {
 
   VariableDeclarationList finishVariableDeclarationList(
       Declaration firstVariable) {
-    var initialization = [];
+    var initialization = <VariableInitialization>[];
 
     void declare(Declaration declaration) {
       Expression initializer = null;
@@ -1574,9 +1575,9 @@ class MiniJsParser {
   }
 }
 
-class _InterleaveIterator implements Iterator<Node> {
-  Iterator<Node> source;
-  Node separator;
+class _InterleaveIterator<T extends Node> implements Iterator<T> {
+  Iterator<T> source;
+  T separator;
   bool isNextSeparator = false;
   bool isInitialized = false;
 
@@ -1594,19 +1595,19 @@ class _InterleaveIterator implements Iterator<Node> {
     }
   }
 
-  Node get current {
+  T get current {
     if (isNextSeparator) return separator;
     return source.current;
   }
 }
 
-class _InterleaveIterable extends IterableBase {
-  Iterable<Node> source;
-  Node separator;
+class _InterleaveIterable<T extends Node> extends IterableBase<T> {
+  Iterable<T> source;
+  T separator;
 
   _InterleaveIterable(this.source, this.separator);
 
-  Iterator<Node> get iterator {
-    return new _InterleaveIterator(source.iterator, separator);
+  Iterator<T> get iterator {
+    return new _InterleaveIterator<T>(source.iterator, separator);
   }
 }

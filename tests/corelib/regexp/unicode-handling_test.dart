@@ -64,12 +64,12 @@ void main() {
   var sample = "sample bm\u2820p cm\\u2820p";
 
   var inlineRe = new RegExp(r".m\u2820p");
-  assertEquals(inlineRe.firstMatch(sample).group(0), 'bm\u2820p');
+  assertEquals(inlineRe.firstMatch(sample)!.group(0), 'bm\u2820p');
 
   // Test handling of \u007c "|"
   var bsample = "sample bm\u007cp cm\\u007cp";
 
   var binlineRe = new RegExp(r".m\u007cp");
 
-  assertEquals(binlineRe.firstMatch(bsample).group(0), 'bm|p');
+  assertEquals(binlineRe.firstMatch(bsample)!.group(0), 'bm|p');
 }

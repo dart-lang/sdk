@@ -23,7 +23,7 @@ namespace dart {
 // point.
 static struct NativeEntries {
   const char* name_;
-  Dart_NativeFunction function_;
+  BootstrapNativeFunction function_;
   int argument_count_;
 } BootStrapEntries[] = {BOOTSTRAP_NATIVE_LIST(REGISTER_NATIVE_ENTRY)
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -34,7 +34,9 @@ static struct NativeEntries {
 Dart_NativeFunction BootstrapNatives::Lookup(Dart_Handle name,
                                              int argument_count,
                                              bool* auto_setup_scope) {
-  const Object& obj = Object::Handle(Api::UnwrapHandle(name));
+  Thread* thread = Thread::Current();
+  TransitionNativeToVM transition(thread);
+  const Object& obj = Object::Handle(thread->zone(), Api::UnwrapHandle(name));
   if (!obj.IsString()) {
     return NULL;
   }
@@ -98,6 +100,11 @@ void Bootstrap::SetupNativeResolver() {
   library.set_native_entry_resolver(resolver);
   library.set_native_entry_symbol_resolver(symbol_resolver);
 
+  library = Library::FfiLibrary();
+  ASSERT(!library.IsNull());
+  library.set_native_entry_resolver(resolver);
+  library.set_native_entry_symbol_resolver(symbol_resolver);
+
   library = Library::InternalLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
@@ -120,11 +127,6 @@ void Bootstrap::SetupNativeResolver() {
   library.set_native_entry_symbol_resolver(symbol_resolver);
 #endif
 
-  library = Library::ProfilerLibrary();
-  ASSERT(!library.IsNull());
-  library.set_native_entry_resolver(resolver);
-  library.set_native_entry_symbol_resolver(symbol_resolver);
-
   library = Library::TypedDataLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
@@ -134,9 +136,14 @@ void Bootstrap::SetupNativeResolver() {
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
   library.set_native_entry_symbol_resolver(symbol_resolver);
+
+  library = Library::WasmLibrary();
+  ASSERT(!library.IsNull());
+  library.set_native_entry_resolver(resolver);
+  library.set_native_entry_symbol_resolver(symbol_resolver);
 }
 
-bool Bootstrap::IsBootstapResolver(Dart_NativeEntryResolver resolver) {
+bool Bootstrap::IsBootstrapResolver(Dart_NativeEntryResolver resolver) {
   return (resolver ==
           reinterpret_cast<Dart_NativeEntryResolver>(BootstrapNatives::Lookup));
 }

@@ -1,0 +1,27 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:4:3: Error: Method not found: 'b'.
+//   b();
+//   ^
+//
+
+  import "package:example/b.dart";
+
+  static method main() → dynamic {
+    dart.core::print("hello");
+    invalid-expression "org-dartlang-test:///main.dart:4:3: Error: Method not found: 'b'.\n  b();\n  ^";
+  }
+}
+library from "package:example/b.dart" as b {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:1:8: Error: Not found: 'package:example/b.dart'
+// import "package:example/b.dart";
+//        ^
+//
+
+}

@@ -5,9 +5,10 @@
 // Test the Stream.single method.
 library stream_single_test;
 
-import "package:expect/expect.dart";
 import 'dart:async';
-import 'package:unittest/unittest.dart';
+
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_minitest.dart';
 
 main() {
   test("subscription.asFuture success", () {
@@ -70,7 +71,7 @@ main() {
     var subscription = stream.listen((x) {
       output.add(x);
     });
-    subscription.asFuture(output).catchError(expectAsync((error) {
+    subscription.asFuture<List?>(output).catchError(expectAsync((error) {
       Expect.equals(error, "foo");
     }));
   });
@@ -84,7 +85,7 @@ main() {
     var subscription = stream.listen((x) {
       output.add(x);
     });
-    subscription.asFuture(output).catchError(expectAsync((error) {
+    subscription.asFuture<List?>(output).catchError(expectAsync((error) {
       Expect.equals(error, "foo");
     }));
   });
@@ -102,7 +103,7 @@ main() {
       output.add(x);
     });
     bool catchErrorHasRun = false;
-    subscription.asFuture(output).catchError(expectAsync((error) {
+    subscription.asFuture<List?>(output).catchError(expectAsync((error) {
       Expect.equals(error, "foo");
       catchErrorHasRun = true;
     }));
@@ -113,7 +114,7 @@ main() {
   });
 
   test("subscription.asFuture failure in cancel", () {
-    runZoned(() {
+    runZonedGuarded(() {
       var completer = new Completer();
       var controller =
           new StreamController(onCancel: () => completer.future, sync: true);
@@ -126,7 +127,7 @@ main() {
         output.add(x);
       });
       bool catchErrorHasRun = false;
-      subscription.asFuture(output).catchError(expectAsync((error) {
+      subscription.asFuture<List?>(output).catchError(expectAsync((error) {
         Expect.equals(error, "foo");
         catchErrorHasRun = true;
       }));
@@ -134,7 +135,7 @@ main() {
         Expect.isFalse(catchErrorHasRun);
         completer.completeError(499);
       }));
-    }, onError: expectAsync((e) {
+    }, expectAsync2((e, s) {
       Expect.equals(499, e);
     }));
   });

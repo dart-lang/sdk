@@ -73,7 +73,7 @@ static void StackAllocatedDestructionHelper(int* ptr) {
   *ptr = 3;
 }
 
-VM_UNIT_TEST_CASE(StackAllocatedDestruction) {
+ISOLATE_UNIT_TEST_CASE(StackAllocatedDestruction) {
   int data = 1;
   StackAllocatedDestructionHelper(&data);
   EXPECT_EQ(4, data);
@@ -89,7 +89,7 @@ static void StackAllocatedLongJumpHelper(int* ptr, LongJumpScope* jump) {
   UNREACHABLE();
 }
 
-TEST_CASE(StackAllocatedLongJump) {
+ISOLATE_UNIT_TEST_CASE(StackAllocatedLongJump) {
   LongJumpScope jump;
   int data = 1;
   if (setjmp(*jump.Set()) == 0) {
@@ -114,7 +114,7 @@ static void StackResourceDestructionHelper(int* ptr) {
   // Do not set data because the LongJump version does not return control here.
 }
 
-TEST_CASE(StackResourceDestruction) {
+ISOLATE_UNIT_TEST_CASE(StackResourceDestruction) {
   int data = 1;
   StackResourceDestructionHelper(&data);
   EXPECT_EQ(7, data);
@@ -138,7 +138,7 @@ static void StackResourceLongJumpHelper(int* ptr, LongJumpScope* jump) {
   UNREACHABLE();
 }
 
-TEST_CASE(StackResourceLongJump) {
+ISOLATE_UNIT_TEST_CASE(StackResourceLongJump) {
   LongJumpScope* base = Thread::Current()->long_jump_base();
   {
     LongJumpScope jump;

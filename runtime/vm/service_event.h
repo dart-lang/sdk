@@ -6,7 +6,7 @@
 #define RUNTIME_VM_SERVICE_EVENT_H_
 
 #include "vm/globals.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 
 namespace dart {
 
@@ -22,7 +22,8 @@ class TimelineEventBlock;
 class ServiceEvent {
  public:
   enum EventKind {
-    kVMUpdate,  // VM identity information has changed
+    kVMUpdate,      // VM identity information has changed
+    kVMFlagUpdate,  // VM flags updated
 
     kIsolateStart,           // New isolate has started
     kIsolateRunnable,        // Isolate is ready to run
@@ -97,6 +98,12 @@ class ServiceEvent {
         return false;
     }
   }
+
+  const char* flag_name() const { return flag_name_; }
+  void set_flag_name(const char* flag) { flag_name_ = flag; }
+
+  const char* flag_new_value() const { return flag_new_value_; }
+  void set_flag_new_value(const char* value) { flag_new_value_ = value; }
 
   const char* embedder_kind() const { return embedder_kind_; }
 
@@ -214,6 +221,8 @@ class ServiceEvent {
  private:
   Isolate* isolate_;
   EventKind kind_;
+  const char* flag_name_;
+  const char* flag_new_value_;
   const char* embedder_kind_;
   const char* embedder_stream_id_;
   Breakpoint* breakpoint_;

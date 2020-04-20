@@ -8,7 +8,7 @@ Element navBar(Iterable<Element> content) {
   assert(content != null);
   return document.createElement('nav')
     ..classes = ['nav-bar']
-    ..children = [
+    ..children = <Element>[
       new UListElement()..children = content,
     ];
 }

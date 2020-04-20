@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,19 +7,13 @@ library analyzer.src.generated.sdk_io;
 
 import 'dart:collection';
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_io.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
-import 'package:analyzer/src/summary/package_bundle_reader.dart';
 
 /**
  * An abstract implementation of a Dart SDK in which the available libraries are
@@ -31,7 +25,7 @@ abstract class AbstractDartSdk implements DartSdk {
   /**
    * A mapping from Dart library URI's to the library represented by that URI.
    */
-  LibraryMap libraryMap = new LibraryMap();
+  LibraryMap libraryMap = LibraryMap();
 
   /**
    * The [AnalysisOptions] to use to create the [context].
@@ -47,20 +41,18 @@ abstract class AbstractDartSdk implements DartSdk {
   /**
    * The [AnalysisContext] which is used for all of the sources in this SDK.
    */
-  InternalAnalysisContext _analysisContext;
+  SdkAnalysisContext _analysisContext;
 
-  /**
-   * The mapping from Dart URI's to the corresponding sources.
-   */
-  Map<String, Source> _uriToSourceMap = new HashMap<String, Source>();
+  /// The mapping from Dart URI's to the corresponding sources.
+  final Map<String, Source> _uriToSourceMap = HashMap<String, Source>();
 
   /**
    * Set the [options] for this SDK analysis context.  Throw [StateError] if the
    * context has been already created.
    */
-  void set analysisOptions(AnalysisOptions options) {
+  set analysisOptions(AnalysisOptions options) {
     if (_analysisContext != null) {
-      throw new StateError(
+      throw StateError(
           'Analysis options cannot be changed after context creation.');
     }
     _analysisOptions = options;
@@ -69,19 +61,8 @@ abstract class AbstractDartSdk implements DartSdk {
   @override
   AnalysisContext get context {
     if (_analysisContext == null) {
-      _analysisContext = new SdkAnalysisContext(_analysisOptions);
-      SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
-      _analysisContext.sourceFactory = factory;
-      if (_useSummary) {
-        bool strongMode = _analysisOptions?.strongMode ?? false;
-        PackageBundle sdkBundle = getSummarySdkBundle(strongMode);
-        if (sdkBundle != null) {
-          SummaryDataStore dataStore = new SummaryDataStore([]);
-          dataStore.addBundle(null, sdkBundle);
-          _analysisContext.resultProvider =
-              new InputPackagesResultProvider(_analysisContext, dataStore);
-        }
-      }
+      var factory = SourceFactory([DartUriResolver(this)]);
+      _analysisContext = SdkAnalysisContext(_analysisOptions, factory);
     }
     return _analysisContext;
   }
@@ -100,9 +81,9 @@ abstract class AbstractDartSdk implements DartSdk {
   /**
    * Specify whether SDK summary should be used.
    */
-  void set useSummary(bool use) {
+  set useSummary(bool use) {
     if (_analysisContext != null) {
-      throw new StateError(
+      throw StateError(
           'The "useSummary" flag cannot be changed after context creation.');
     }
     _useSummary = use;
@@ -116,7 +97,7 @@ abstract class AbstractDartSdk implements DartSdk {
   void addExtensions(Map<String, String> extensions) {
     extensions.forEach((String uri, String path) {
       String shortName = uri.substring(uri.indexOf(':') + 1);
-      SdkLibraryImpl library = new SdkLibraryImpl(shortName);
+      SdkLibraryImpl library = SdkLibraryImpl(shortName);
       library.path = path;
       libraryMap.setLibrary(uri, library);
     });
@@ -124,18 +105,18 @@ abstract class AbstractDartSdk implements DartSdk {
 
   @override
   Source fromFileUri(Uri uri) {
-    JavaFile file = new JavaFile.fromUri(uri);
+    JavaFile file = JavaFile.fromUri(uri);
 
     String path = _getPath(file);
     if (path == null) {
       return null;
     }
     try {
-      return new FileBasedSource(file, Uri.parse(path));
+      return FileBasedSource(file, Uri.parse(path));
     } on FormatException catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logInformation(
+      AnalysisEngine.instance.instrumentationService.logInfo(
           "Failed to create URI: $path",
-          new CaughtException(exception, stackTrace));
+          CaughtException(exception, stackTrace));
     }
     return null;
   }
@@ -150,7 +131,8 @@ abstract class AbstractDartSdk implements DartSdk {
    * This method should not be used outside of `analyzer` and `analyzer_cli`
    * packages.
    */
-  PackageBundle getSummarySdkBundle(bool strongMode);
+  @deprecated
+  PackageBundle getSummarySdkBundle(bool _);
 
   FileBasedSource internalMapDartUri(String dartUri) {
     // TODO(brianwilkerson) Figure out how to unify the implementations in the
@@ -186,8 +168,8 @@ abstract class AbstractDartSdk implements DartSdk {
     }
     String filePath = srcPath.replaceAll('/', JavaFile.separator);
     try {
-      JavaFile file = new JavaFile(filePath);
-      return new FileBasedSource(file, Uri.parse(dartUri));
+      JavaFile file = JavaFile(filePath);
+      return FileBasedSource(file, Uri.parse(dartUri));
     } on FormatException {
       return null;
     }
@@ -206,7 +188,7 @@ abstract class AbstractDartSdk implements DartSdk {
   String _getPath(JavaFile file) {
     List<SdkLibrary> libraries = libraryMap.sdkLibraries;
     int length = libraries.length;
-    List<String> paths = new List(length);
+    List<String> paths = List(length);
     String filePath = getRelativePathFromFile(file);
     if (filePath == null) {
       return null;
@@ -234,70 +216,5 @@ abstract class AbstractDartSdk implements DartSdk {
       }
     }
     return null;
-  }
-}
-
-/**
- * An object used to read and parse the libraries file
- * (dart-sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart) for information
- * about the libraries in an SDK. The library information is represented as a
- * Dart file containing a single top-level variable whose value is a const map.
- * The keys of the map are the names of libraries defined in the SDK and the
- * values in the map are info objects defining the library. For example, a
- * subset of a typical SDK might have a libraries file that looks like the
- * following:
- *
- *     final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
- *       // Used by VM applications
- *       "builtin" : const LibraryInfo(
- *         "builtin/builtin_runtime.dart",
- *         category: "Server",
- *         platforms: VM_PLATFORM),
- *
- *       "compiler" : const LibraryInfo(
- *         "compiler/compiler.dart",
- *         category: "Tools",
- *         platforms: 0),
- *     };
- */
-@deprecated
-class SdkLibrariesReader {
-  /**
-   * A flag indicating whether the dart2js path should be used when it is
-   * available.
-   */
-  final bool _useDart2jsPaths;
-
-  /**
-   * Initialize a newly created library reader to use the dart2js path if
-   * [_useDart2jsPaths] is `true`.
-   */
-  SdkLibrariesReader(this._useDart2jsPaths);
-
-  /**
-   * Return the library map read from the given [file], given that the content
-   * of the file is already known to be [libraryFileContents].
-   */
-  LibraryMap readFromFile(JavaFile file, String libraryFileContents) =>
-      readFromSource(new FileBasedSource(file), libraryFileContents);
-
-  /**
-   * Return the library map read from the given [source], given that the content
-   * of the file is already known to be [libraryFileContents].
-   */
-  LibraryMap readFromSource(Source source, String libraryFileContents) {
-    BooleanErrorListener errorListener = new BooleanErrorListener();
-    Scanner scanner = new Scanner(
-        source, new CharSequenceReader(libraryFileContents), errorListener);
-    Parser parser = new Parser(source, errorListener);
-    CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
-    SdkLibrariesReader_LibraryBuilder libraryBuilder =
-        new SdkLibrariesReader_LibraryBuilder(_useDart2jsPaths);
-    // If any syntactic errors were found then don't try to visit the AST
-    // structure.
-    if (!errorListener.errorReported) {
-      unit.accept(libraryBuilder);
-    }
-    return libraryBuilder.librariesMap;
   }
 }

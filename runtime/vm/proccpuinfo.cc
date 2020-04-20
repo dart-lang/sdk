@@ -17,7 +17,7 @@ namespace dart {
 char* ProcCpuInfo::data_ = NULL;
 intptr_t ProcCpuInfo::datalen_ = 0;
 
-void ProcCpuInfo::InitOnce() {
+void ProcCpuInfo::Init() {
   // Get the size of the cpuinfo file by reading it until the end. This is
   // required because files under /proc do not always return a valid size
   // when using fseek(0, SEEK_END) + ftell(). Nor can they be mmap()-ed.
@@ -76,7 +76,7 @@ char* ProcCpuInfo::FieldStart(const char* field) {
 
   // Skip to the first colon followed by a space.
   p = strchr(p + fieldlen, ':');
-  if (p == NULL || !isspace(p[1])) {
+  if (p == NULL || (isspace(p[1]) == 0)) {
     return NULL;
   }
   p += 2;

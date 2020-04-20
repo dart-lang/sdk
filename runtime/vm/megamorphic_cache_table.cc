@@ -5,6 +5,7 @@
 #include "vm/megamorphic_cache_table.h"
 
 #include <stdlib.h>
+#include "vm/compiler/jit/compiler.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/stub_code.h"
@@ -12,11 +13,12 @@
 
 namespace dart {
 
-RawMegamorphicCache* MegamorphicCacheTable::Lookup(Isolate* isolate,
+RawMegamorphicCache* MegamorphicCacheTable::Lookup(Thread* thread,
                                                    const String& name,
                                                    const Array& descriptor) {
+  Isolate* isolate = thread->isolate();
   // Multiple compilation threads could access this lookup.
-  SafepointMutexLocker ml(isolate->megamorphic_lookup_mutex());
+  SafepointMutexLocker ml(isolate->megamorphic_mutex());
   ASSERT(name.IsSymbol());
   // TODO(rmacnak): ASSERT(descriptor.IsCanonical());
 
@@ -43,31 +45,38 @@ RawMegamorphicCache* MegamorphicCacheTable::Lookup(Isolate* isolate,
 }
 
 RawFunction* MegamorphicCacheTable::miss_handler(Isolate* isolate) {
-  ASSERT(isolate->object_store()->megamorphic_miss_function() !=
+  ASSERT(isolate->object_store()->megamorphic_call_miss_function() !=
          Function::null());
-  return isolate->object_store()->megamorphic_miss_function();
+  return isolate->object_store()->megamorphic_call_miss_function();
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
   // The miss handler for a class ID not found in the table is invoked as a
   // normal Dart function.
+  compiler::ObjectPoolBuilder object_pool_builder;
   const Code& code = Code::Handle(StubCode::Generate(
-      "_stub_MegamorphicMiss", StubCode::GenerateMegamorphicMissStub));
+      "_stub_MegamorphicCallMiss", &object_pool_builder,
+      compiler::StubCodeCompiler::GenerateMegamorphicCallMissStub));
+
+  const auto& object_pool =
+      ObjectPool::Handle(ObjectPool::NewFromBuilder(object_pool_builder));
+  code.set_object_pool(object_pool.raw());
+
   // When FLAG_lazy_dispatchers=false, this stub can be on the stack during
   // exceptions, but it has a corresponding function so IsStubCode is false and
   // it is considered in the search for an exception handler.
   code.set_exception_handlers(Object::empty_exception_handlers());
   const Class& cls =
       Class::Handle(Type::Handle(Type::DartFunctionType()).type_class());
-  const Function& function = Function::Handle(
-      Function::New(Symbols::MegamorphicMiss(), RawFunction::kRegularFunction,
-                    true,   // Static, but called as a method.
-                    false,  // Not const.
-                    false,  // Not abstract.
-                    false,  // Not external.
-                    false,  // Not native.
-                    cls, TokenPosition::kNoSource));
+  const Function& function = Function::Handle(Function::New(
+      Symbols::MegamorphicCallMiss(), RawFunction::kRegularFunction,
+      true,   // Static, but called as a method.
+      false,  // Not const.
+      false,  // Not abstract.
+      false,  // Not external.
+      false,  // Not native.
+      cls, TokenPosition::kNoSource));
   function.set_result_type(Type::Handle(Type::DynamicType()));
   function.set_is_debuggable(false);
   function.set_is_visible(false);
@@ -75,10 +84,28 @@ void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
   // For inclusion in Snapshot::kFullJIT.
   function.set_unoptimized_code(code);
 
-  ASSERT(isolate->object_store()->megamorphic_miss_function() ==
+  ASSERT(isolate->object_store()->megamorphic_call_miss_function() ==
          Function::null());
-  isolate->object_store()->SetMegamorphicMissHandler(code, function);
+  isolate->object_store()->SetMegamorphicCallMissHandler(code, function);
 }
+
+void MegamorphicCacheTable::ReInitMissHandlerCode(
+    Isolate* isolate,
+    compiler::ObjectPoolBuilder* wrapper) {
+  ASSERT(FLAG_precompiled_mode && FLAG_use_bare_instructions);
+
+  const Code& code = Code::Handle(StubCode::Generate(
+      "_stub_MegamorphicCallMiss", wrapper,
+      compiler::StubCodeCompiler::GenerateMegamorphicCallMissStub));
+  code.set_exception_handlers(Object::empty_exception_handlers());
+
+  auto object_store = isolate->object_store();
+  auto& function =
+      Function::Handle(object_store->megamorphic_call_miss_function());
+  function.AttachCode(code);
+  object_store->SetMegamorphicCallMissHandler(code, function);
+}
+
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void MegamorphicCacheTable::PrintSizes(Isolate* isolate) {
@@ -99,8 +126,8 @@ void MegamorphicCacheTable::PrintSizes(Isolate* isolate) {
       max_size = buckets.Length();
     }
   }
-  OS::Print("%" Pd " megamorphic caches using %" Pd "KB.\n", table.Length(),
-            size / 1024);
+  OS::PrintErr("%" Pd " megamorphic caches using %" Pd "KB.\n", table.Length(),
+               size / 1024);
 
   intptr_t* probe_counts = new intptr_t[max_size];
   intptr_t entry_count = 0;
@@ -141,9 +168,10 @@ void MegamorphicCacheTable::PrintSizes(Isolate* isolate) {
   intptr_t cumulative_entries = 0;
   for (intptr_t i = 0; i <= max_probe_count; i++) {
     cumulative_entries += probe_counts[i];
-    OS::Print("Megamorphic probe %" Pd ": %" Pd " (%lf)\n", i, probe_counts[i],
-              static_cast<double>(cumulative_entries) /
-                  static_cast<double>(entry_count));
+    OS::PrintErr("Megamorphic probe %" Pd ": %" Pd " (%lf)\n", i,
+                 probe_counts[i],
+                 static_cast<double>(cumulative_entries) /
+                     static_cast<double>(entry_count));
   }
   delete[] probe_counts;
 }

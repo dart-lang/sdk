@@ -1,7 +1,11 @@
 Dart - Fixed-Size Integers
 ===
-2017-09-26
-floitsch@google.com
+
+**Author**: floitsch@
+
+**Version**: 2017-09-26.
+
+**Status**: Background material, the normative source is now the language specification.
 
 This document discusses Dart's plan to switch the `int` type so that it represents 64-bit integers instead of bigints. It is part of our continued effort of changing the integer type to fixed size ([issue]).
 

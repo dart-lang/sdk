@@ -8,7 +8,6 @@ import "dart:math" show pow;
 
 var smallNumber = 1234567890; //   is 31-bit integer.
 var mediumNumber = 1234567890123456; // is 53-bit integer
-var bigNumber = 590295810358705600000; // is > 64-bit integer, exact as double.
 
 testModPow() {
   test(x, e, m, expectedResult) {
@@ -18,7 +17,7 @@ testModPow() {
       slowModPow(x, e, m) {
         var r = 1;
         while (e > 0) {
-          if (e.isOdd) r = (r * x) % m;
+          if (e.isOdd) r = (r * x) % m as int;
           e >>= 1;
           x = (x * x) % m;
         }
@@ -26,7 +25,7 @@ testModPow() {
       }
 
       return slowModPow(x, e, m) == expectedResult;
-    });
+    }());
     var result = x.modPow(e, m);
     Expect.equals(expectedResult, result, "$x.modPow($e, $m)");
   }
@@ -38,26 +37,6 @@ testModPow() {
   test(19, 1000000001, 1234567890, 84910879);
   test(1000000001, 19, 1234567890, 872984351);
   test(1000000001, 1234567890, 19, 0);
-  test(12345678901234567890, 10000000000000000001, 19, 2);
-  test(12345678901234567890, 19, 10000000000000000001, 3239137215315834625);
-  test(19, 12345678901234567890, 10000000000000000001, 4544207837373941034);
-  test(19, 10000000000000000001, 12345678901234567890, 11135411705397624859);
-  test(10000000000000000001, 19, 12345678901234567890, 2034013733189773841);
-  test(10000000000000000001, 12345678901234567890, 19, 1);
-  test(12345678901234567890, 19, 10000000000000000001, 3239137215315834625);
-  test(12345678901234567890, 10000000000000000001, 19, 2);
-  test(123456789012345678901234567890, 123456789012345678901234567891,
-      123456789012345678901234567899, 116401406051033429924651549616);
-  test(123456789012345678901234567890, 123456789012345678901234567899,
-      123456789012345678901234567891, 123456789012345678901234567890);
-  test(123456789012345678901234567899, 123456789012345678901234567890,
-      123456789012345678901234567891, 35088523091000351053091545070);
-  test(123456789012345678901234567899, 123456789012345678901234567891,
-      123456789012345678901234567890, 18310047270234132455316941949);
-  test(123456789012345678901234567891, 123456789012345678901234567899,
-      123456789012345678901234567890, 1);
-  test(123456789012345678901234567891, 123456789012345678901234567890,
-      123456789012345678901234567899, 40128068573873018143207285483);
 }
 
 testModInverse() {
@@ -81,8 +60,8 @@ testModInverse() {
 
   testThrows(x, m) {
     // Throws if not co-prime, which is a symmetric property.
-    Expect.throws(() => x.modInverse(m), null, "$x modinv $m");
-    Expect.throws(() => m.modInverse(x), null, "$m modinv $x");
+    Expect.throws(() => x.modInverse(m));
+    Expect.throws(() => m.modInverse(x));
   }
 
   test(1, 1, 0);
@@ -91,7 +70,6 @@ testModInverse() {
   testThrows(2, 4);
   testThrows(99, 9);
   testThrows(19, 1000000001);
-  testThrows(123456789012345678901234567890, 123456789012345678901234567899);
 
   // Co-prime numbers
   test(1234567890, 19, 11);
@@ -106,9 +84,6 @@ testModInverse() {
   test(137, smallNumber, 856087223);
   test(mediumNumber, 137, 77);
   test(137, mediumNumber, 540686667207353);
-  test(bigNumber, 137, 128); //                 //# bignum: ok
-  // Bigger numbers as modulo is tested in big_integer_arith_vm_test.dart.
-  // Big doubles are not co-prime, so there is nothing to test for dart2js.
 }
 
 testGcd() {
@@ -149,7 +124,7 @@ testGcd() {
   // Test that gcd of value and other (non-negative) throws.
   testThrows(value, other) {
     callCombos(value, other, (a, b) {
-      Expect.throws(() => a.gcd(b), null, "$a.gcd($b)");
+      Expect.throws(() => a.gcd(b));
     });
   }
 
@@ -186,8 +161,8 @@ testGcd() {
 
   test(pow(2, 54), pow(2, 53), pow(2, 53));
 
-  test((pow(2, 52) - 1) * pow(2, 14), (pow(2, 26) - 1) * pow(2, 22),
-      (pow(2, 26) - 1) * pow(2, 14));
+  test((pow(2, 52) - 1) * pow(2, 10), (pow(2, 26) - 1) * pow(2, 22),
+      (pow(2, 26) - 1) * pow(2, 10));
 }
 
 main() {

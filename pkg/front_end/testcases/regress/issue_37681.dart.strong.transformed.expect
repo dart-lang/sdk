@@ -1,0 +1,161 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_37681.dart:6:7: Error: Functions marked 'async' must have a return type assignable to 'Future'.
+//   int f_async() async { return 42; }
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_37681.dart:9:7: Error: Functions marked 'async*' must have a return type assignable to 'Stream'.
+//   int f_async_star() async* { yield 42; }
+//       ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_37681.dart:14:7: Error: Functions marked 'sync*' must have a return type assignable to 'Iterable'.
+//   int f_sync_star() sync* { yield 42; }
+//       ^^^^^^^^^^^
+//
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method main() → dynamic /* originally async */ {
+  final asy::_AsyncAwaitCompleter<dynamic>* :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
+  asy::FutureOr<dynamic>* :return_value;
+  dynamic :async_stack_trace;
+  (dynamic) →* dynamic :async_op_then;
+  (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+  core::int* :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  dynamic :saved_try_context_var0;
+  dynamic :saved_try_context_var1;
+  dynamic :exception0;
+  dynamic :stack_trace0;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L1:
+      {
+        function f_async() → core::int* /* originally async */ {
+          final asy::_AsyncAwaitCompleter<dynamic>* :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
+          asy::FutureOr<dynamic>* :return_value;
+          dynamic :async_stack_trace;
+          (dynamic) →* dynamic :async_op_then;
+          (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+          core::int* :await_jump_var = 0;
+          dynamic :await_ctx_var;
+          function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+            try {
+              #L2:
+              {
+                :return_value = 42;
+                break #L2;
+              }
+              asy::_completeOnAsyncReturn(:async_completer, :return_value);
+              return;
+            }
+            on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+              :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+            }
+          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+          :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+          :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+          :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+          return :async_completer.{asy::Completer::future};
+        }
+        [yield] let dynamic #t1 = asy::_awaitHelper(f_async.call(), :async_op_then, :async_op_error, :async_op) in null;
+        core::print(_in::unsafeCast<core::int*>(:result));
+        function f_async_star() → core::int* /* originally async* */ {
+          asy::_AsyncStarStreamController<dynamic>* :controller;
+          dynamic :controller_stream;
+          dynamic :async_stack_trace;
+          (dynamic) →* dynamic :async_op_then;
+          (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+          core::int* :await_jump_var = 0;
+          dynamic :await_ctx_var;
+          dynamic :saved_try_context_var0;
+          dynamic :saved_try_context_var1;
+          function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+            try
+              try {
+                #L3:
+                {
+                  if(:controller.{asy::_AsyncStarStreamController::add}(42))
+                    return null;
+                  else
+                    [yield] null;
+                }
+                return;
+              }
+              on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+                :controller.{asy::_AsyncStarStreamController::addError}(:exception, :stack_trace);
+              }
+            finally {
+              :controller.{asy::_AsyncStarStreamController::close}();
+            }
+          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+          :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+          :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+          :controller = new asy::_AsyncStarStreamController::•<dynamic>(:async_op);
+          :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
+          return :controller_stream;
+        }
+        {
+          asy::Stream<dynamic>* :stream = (f_async_star.call() as dynamic) as{TypeError,ForDynamic} asy::Stream<dynamic>*;
+          asy::_asyncStarListenHelper(:stream, :async_op);
+          asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
+          try
+            #L4:
+            while (true) {
+              dynamic #t2 = asy::_asyncStarMoveNextHelper(:stream);
+              [yield] let dynamic #t3 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
+              if(_in::unsafeCast<core::bool*>(:result)) {
+                dynamic x = :for-iterator.{asy::_StreamIterator::current};
+                {
+                  core::print(x);
+                }
+              }
+              else
+                break #L4;
+            }
+          finally
+            if(!:for-iterator.{asy::_StreamIterator::_subscription}.{core::Object::==}(null)) {
+              [yield] let dynamic #t4 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
+              :result;
+            }
+        }
+        function f_sync_star() → core::int* /* originally sync* */ {
+          core::int* :await_jump_var = 0;
+          dynamic :await_ctx_var;
+          function :sync_op(core::_SyncIterator<dynamic>* :iterator) → core::bool* yielding {
+            {
+              {
+                :iterator.{core::_SyncIterator::_current} = 42;
+                [yield] true;
+              }
+            }
+            return false;
+          }
+          return new core::_SyncIterable::•<dynamic>(:sync_op);
+        }
+        {
+          core::Iterator<dynamic>* :sync-for-iterator = ((f_sync_star.call() as dynamic) as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
+          for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+            dynamic x = :sync-for-iterator.{core::Iterator::current};
+            {
+              core::print(x);
+            }
+          }
+        }
+      }
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic :exception, core::StackTrace* :stack_trace) {
+      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+  return :async_completer.{asy::Completer::future};
+}

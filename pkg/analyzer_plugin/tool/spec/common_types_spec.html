@@ -6,7 +6,7 @@
 </head>
 <body>
 <h1>Common Types</h1>
-<version>1.0.0</version>
+<version>1.1.0</version>
 <p>
   This document contains a specification of the types that are common between
   the analysis server wire protocol and the analysis server plugin wire
@@ -93,6 +93,21 @@
         <ref>String</ref>
         <p>
           The name, as a string, of the error code associated with this error.
+        </p>
+      </field>
+      <field name="url" optional="true">
+        <ref>String</ref>
+        <p>
+          The URL of a page containing documentation associated with this error.
+        </p>
+      </field>
+      <field name="contextMessages" optional="true">
+        <list>
+          <ref>DiagnosticMessage</ref>
+        </list>
+        <p>
+          Additional messages associated with this diagnostic that provide
+          context to help the user understand the diagnostic.
         </p>
       </field>
       <field name="hasFix" optional="true">
@@ -198,6 +213,14 @@
           required in order to do so is contained in other fields.
         </p>
       </field>
+      <field name="displayText" optional="true">
+        <ref>String</ref>
+        <p>
+          Text to be displayed in, for example, a completion pop-up. This field
+          is only defined if the displayed text should be different than the
+          completion.  Otherwise it is omitted.
+        </p>
+      </field>
       <field name="selectionOffset">
         <ref>int</ref>
         <p>
@@ -228,7 +251,7 @@
         <ref>String</ref>
         <p>
           An abbreviated version of the Dartdoc associated with the element
-          being suggested, This field is omitted if there is no Dartdoc
+          being suggested. This field is omitted if there is no Dartdoc
           associated with the element.
         </p>
       </field>
@@ -331,13 +354,6 @@
           omitted if the parameterName field is omitted.
         </p>
       </field>
-      <field name="importUri" optional="true">
-        <ref>String</ref>
-        <p>
-          The import to be added if the suggestion is out of scope and needs
-          an import to be added to be in scope.
-        </p>
-      </field>
     </object>
   </type>
   <type name="CompletionSuggestionKind">
@@ -391,8 +407,39 @@
         </p>
       </value>
       <value><code>OPTIONAL_ARGUMENT</code></value>
+      <value>
+        <code>OVERRIDE</code>
+        <p>
+          An overriding implementation of a class member is being suggested.
+        </p>
+      </value>
       <value><code>PARAMETER</code></value>
     </enum>
+  </type>
+  <type name="DiagnosticMessage">
+    <p>
+      A message associated with a diagnostic.
+    </p>
+    <p>
+      For example, if the diagnostic is reporting that a variable has been
+      referenced before it was declared, it might have a diagnostic message that
+      indicates where the variable is declared.
+    </p>
+    <object>
+      <field name="message">
+        <ref>String</ref>
+        <p>
+          The message to be displayed to the user.
+        </p>
+      </field>
+      <field name="location">
+        <ref>Location</ref>
+        <p>
+          The location associated with or referenced by the message. Clients
+          should provide the ability to navigate to the location.
+        </p>
+      </field>
+    </object>
   </type>
   <type name="Element">
     <p>
@@ -483,6 +530,7 @@
       <value><code>CONSTRUCTOR_INVOCATION</code></value>
       <value><code>ENUM</code></value>
       <value><code>ENUM_CONSTANT</code></value>
+      <value><code>EXTENSION</code></value>
       <value><code>FIELD</code></value>
       <value><code>FILE</code></value>
       <value><code>FUNCTION</code></value>
@@ -493,6 +541,7 @@
       <value><code>LIBRARY</code></value>
       <value><code>LOCAL_VARIABLE</code></value>
       <value><code>METHOD</code></value>
+      <value><code>MIXIN</code></value>
       <value><code>PARAMETER</code></value>
       <value><code>PREFIX</code></value>
       <value><code>SETTER</code></value>
@@ -519,11 +568,14 @@
       An enumeration of the kinds of folding regions.
     </p>
     <enum>
-      <value><code>COMMENT</code></value>
-      <value><code>CLASS_MEMBER</code></value>
+      <value><code>ANNOTATIONS</code></value>
+      <value><code>CLASS_BODY</code></value>
       <value><code>DIRECTIVES</code></value>
       <value><code>DOCUMENTATION_COMMENT</code></value>
-      <value><code>TOP_LEVEL_DECLARATION</code></value>
+      <value><code>FILE_HEADER</code></value>
+      <value><code>FUNCTION_BODY</code></value>
+      <value><code>INVOCATION</code></value>
+      <value><code>LITERAL</code></value>
     </enum>
   </type>
   <type name="FoldingRegion">
@@ -1127,16 +1179,85 @@
           The length of the element.
         </p>
       </field>
+      <field name="codeOffset">
+        <ref>int</ref>
+        <p>
+          The offset of the first character of the element code, which is
+          neither documentation, nor annotation.
+        </p>
+      </field>
+      <field name="codeLength">
+        <ref>int</ref>
+        <p>
+          The length of the element code.
+        </p>
+      </field>
       <field name="children" optional="true">
         <list>
           <ref>Outline</ref>
         </list>
         <p>
           The children of the node. The field will be omitted if the node has no
-          children.
+          children. Children are sorted by offset.
         </p>
       </field>
     </object>
+  </type>
+  <type name="ParameterInfo" experimental="true">
+    <p>
+      A description of a member that is being overridden.
+    </p>
+    <object>
+      <field name="kind">
+        <ref>ParameterKind</ref>
+        <p>
+          The kind of the parameter.
+        </p>
+      </field>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name of the parameter.
+        </p>
+      </field>
+      <field name="type">
+        <ref>String</ref>
+        <p>
+          The type of the parameter.
+        </p>
+      </field>
+      <field name="defaultValue" optional="true">
+        <ref>String</ref>
+        <p>The default value for this parameter. This value will be omitted if the parameter
+          does not have a default value.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="ParameterKind" experimental="true">
+    <p>
+      An enumeration of the types of parameters.
+    </p>
+    <enum>
+      <value>
+        <code>NAMED</code>
+        <p>
+          A named parameter.
+        </p>
+      </value>
+      <value>
+        <code>OPTIONAL</code>
+        <p>
+          An optional parameter.
+        </p>
+      </value>
+      <value>
+        <code>REQUIRED</code>
+        <p>
+          A required parameter.
+        </p>
+      </value>
+    </enum>
   </type>
   <type name="Position">
     <p>
@@ -1166,11 +1287,11 @@
       <value><code>CONVERT_METHOD_TO_GETTER</code></value>
       <value><code>EXTRACT_LOCAL_VARIABLE</code></value>
       <value><code>EXTRACT_METHOD</code></value>
+      <value><code>EXTRACT_WIDGET</code></value>
       <value><code>INLINE_LOCAL_VARIABLE</code></value>
       <value><code>INLINE_METHOD</code></value>
       <value><code>MOVE_FILE</code></value>
       <value><code>RENAME</code></value>
-      <value><code>SORT_MEMBERS</code></value>
     </enum>
   </type>
   <type name="RefactoringMethodParameter">
@@ -1347,6 +1468,13 @@
         <p>
           The position that should be selected after the edits have been
           applied.
+        </p>
+      </field>
+      <field name="id" optional="true">
+        <ref>String</ref>
+        <p>
+          The optional identifier of the change kind. The identifier remains
+          stable even if the message changes, or is parameterized.
         </p>
       </field>
     </object>

@@ -1,0 +1,7 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+static method error() → dynamic
+  ;
+static method main() → dynamic
+  ;

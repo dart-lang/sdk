@@ -78,7 +78,7 @@ class ExpectationSet {
 
   const ExpectationSet(this.internalMap);
 
-  operator [](String name) {
+  Expectation operator [](String name) {
     return internalMap[name.toLowerCase()] ??
         (throw "No expectation named: '$name'.");
   }

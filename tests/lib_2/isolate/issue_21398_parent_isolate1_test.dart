@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Note: the following comment is used by test.dart to additionally compile the
-// other isolate's code.
-// OtherScripts=issue_21398_child_isolate1.dart
-// OtherScripts=issue_21398_child_isolate11.dart
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
 
 import 'dart:isolate';
-import 'dart:async';
 import "package:expect/expect.dart";
 import 'package:async_helper/async_helper.dart';
 
@@ -72,8 +69,8 @@ spawnFuncTest() {
             // sendports over to the other.
             Isolate.spawnUri(
                 Uri.parse('issue_21398_child_isolate1.dart'),
-                [spawnFunctionIsolate1SendPort, spawnFunctionIsolate2SendPort],
-                "no-msg");
+                null,
+                [spawnFunctionIsolate1SendPort, spawnFunctionIsolate2SendPort]);
           }, onError: (e) => print('$e'));
         });
       } else if (msg == "done") {
@@ -133,8 +130,8 @@ spawnUriTest() {
             // sendports over to the other.
             Isolate.spawnUri(
                 Uri.parse('issue_21398_child_isolate1.dart'),
-                [spawnFunctionIsolateSendPort, spawnUriIsolateSendPort],
-                "no-msg");
+                null,
+                [spawnFunctionIsolateSendPort, spawnUriIsolateSendPort]);
           }, onError: (e) => print('$e'));
         });
       } else if (msg == "done") {

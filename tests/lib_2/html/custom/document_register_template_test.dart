@@ -1,14 +1,15 @@
 import 'dart:html';
 
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 
-import '../utils.dart';
+import 'utils.dart';
 
-main() {
-  setUp(() => customElementsReady);
+main() async {
+  await customElementsReady;
 
   test('can register custom template with webcomponents-lite polyfill', () {
-    document.registerElement('my-element', MyElement, extendsTag: 'template');
+    document.registerElement2(
+        'my-element', {'prototype': MyElement, 'extends': 'template'});
     dynamic e = new Element.tag('template', 'my-element');
     document.body.append(e);
     expect(e is TemplateElement, isTrue);

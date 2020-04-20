@@ -8,7 +8,7 @@ import "dart:async";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-Future testGoogleUrl(SecurityContext context, String outcome) async {
+Future testGoogleUrl(SecurityContext? context, String outcome) async {
   var client = new HttpClient(context: context);
   // We need to use an external server that is backed by a
   // built-in root certificate authority.
@@ -35,6 +35,8 @@ main() async {
   asyncStart();
   await testGoogleUrl(null, "pass");
   await testGoogleUrl(SecurityContext.defaultContext, "pass");
+  await testGoogleUrl(new SecurityContext(withTrustedRoots: true), "pass");
+  await testGoogleUrl(new SecurityContext(withTrustedRoots: false), "fail");
   await testGoogleUrl(new SecurityContext(), "fail");
   asyncEnd();
 }

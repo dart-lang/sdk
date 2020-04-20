@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Test that when a deferred import fails to load, it is possible to retry.
 
 import "deferred_fail_and_retry_lib.dart" deferred as lib;

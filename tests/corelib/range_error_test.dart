@@ -18,17 +18,12 @@ void testRead() {
   testListRead([], -1);
   testListRead([], 1);
 
-  var list = [1];
+  var list = <int?>[1];
   testListRead(list, -1);
   testListRead(list, 1);
 
-  list = new List(1);
+  list = new List.filled(1, null);
   testListRead(list, -1);
-  testListRead(list, 1);
-
-  list = new List();
-  testListRead(list, -1);
-  testListRead(list, 0);
   testListRead(list, 1);
 }
 
@@ -37,17 +32,12 @@ void testWrite() {
   testListWrite([], -1);
   testListWrite([], 1);
 
-  var list = [1];
+  var list = <int?>[1];
   testListWrite(list, -1);
   testListWrite(list, 1);
 
-  list = new List(1);
+  list = new List.filled(1, null);
   testListWrite(list, -1);
-  testListWrite(list, 1);
-
-  list = new List();
-  testListWrite(list, -1);
-  testListWrite(list, 0);
   testListWrite(list, 1);
 }
 
@@ -86,7 +76,7 @@ void testListRead(list, index) {
 void testListWrite(list, index) {
   var exception = null;
   try {
-    list[index] = null;
+    list[index] = 0;
   } on RangeError catch (e) {
     exception = e;
   }

@@ -68,7 +68,7 @@ main() {
   // runGuarded calls run, captures the synchronous error (if any) and
   // gives that one to handleUncaughtError.
 
-  Expect.identical(Zone.ROOT, Zone.current);
+  Expect.identical(Zone.root, Zone.current);
   Zone forked;
   forked = Zone.current.fork(specification: DEBUG_SPECIFICATION);
 

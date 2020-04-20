@@ -69,37 +69,37 @@ main() {
   Expect.equals(#_C, cm.simpleName);
   Expect.equals('_C', MirrorSystem.getName(cm.simpleName));
 
-  MethodMirror mm = cm.declarations[#g];
+  MethodMirror mm = cm.declarations[#g] as MethodMirror;
   Expect.isNotNull(mm);
   Expect.isTrue(mm.isGetter);
   Expect.equals(#g, mm.simpleName);
   Expect.equals('g', MirrorSystem.getName(mm.simpleName));
 
-  mm = cm.declarations[const Symbol('s=')];
+  mm = cm.declarations[const Symbol('s=')] as MethodMirror;
   Expect.isNotNull(mm);
   Expect.isTrue(mm.isSetter);
   Expect.equals(const Symbol('s='), mm.simpleName);
   Expect.equals('s=', MirrorSystem.getName(mm.simpleName));
 
-  mm = cm.declarations[#m];
+  mm = cm.declarations[#m] as MethodMirror;
   Expect.isNotNull(mm);
   Expect.isTrue(mm.isRegularMethod);
   Expect.equals(#m, mm.simpleName);
   Expect.equals('m', MirrorSystem.getName(mm.simpleName));
 
-  mm = cm.declarations[#_g];
+  mm = cm.declarations[#_g] as MethodMirror;
   Expect.isNotNull(mm);
   Expect.isTrue(mm.isGetter);
   Expect.equals(#_g, mm.simpleName);
   Expect.equals('_g', MirrorSystem.getName(mm.simpleName));
 
-  mm = cm.declarations[MirrorSystem.getSymbol('_s=', libtest)];
+  mm = cm.declarations[MirrorSystem.getSymbol('_s=', libtest)] as MethodMirror;
   Expect.isNotNull(mm);
   Expect.isTrue(mm.isSetter);
   Expect.equals(MirrorSystem.getSymbol('_s=', libtest), mm.simpleName);
   Expect.equals('_s=', MirrorSystem.getName(mm.simpleName));
 
-  mm = cm.declarations[#_m];
+  mm = cm.declarations[#_m] as MethodMirror;
   Expect.isNotNull(mm);
   Expect.isTrue(mm.isRegularMethod);
   Expect.equals(#_m, mm.simpleName);
@@ -110,7 +110,7 @@ main() {
   Expect.equals(#_T, tvm.simpleName);
   Expect.equals('_T', MirrorSystem.getName(tvm.simpleName));
 
-  TypedefMirror tdm = reflectType(_F);
+  TypedefMirror tdm = reflectType(_F) as TypedefMirror;
   Expect.equals(#_F, tdm.simpleName);
   Expect.equals('_F', MirrorSystem.getName(tdm.simpleName));
 

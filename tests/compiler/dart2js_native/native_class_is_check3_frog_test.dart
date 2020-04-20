@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import "native_testing.dart";
 
 // Test for correct simple is-checks on hidden native classes.
@@ -10,7 +12,7 @@ abstract class J {}
 
 abstract class I extends J {
   I read();
-  write(I x);
+  write(covariant I x);
 }
 
 // Native implementation.

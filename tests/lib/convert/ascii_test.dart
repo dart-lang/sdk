@@ -39,9 +39,9 @@ void main() {
 }
 
 void testDirectConversions() {
-  for (var codec in [ASCII, new AsciiCodec()]) {
+  for (var codec in [ascii, new AsciiCodec()]) {
     for (var asciiString in asciiStrings) {
-      List bytes = codec.encoder.convert(asciiString);
+      List<int> bytes = codec.encoder.convert(asciiString);
       Expect.listEquals(asciiString.codeUnits.toList(), bytes, asciiString);
       String roundTripString = codec.decoder.convert(bytes);
       Expect.equals(asciiString, roundTripString);
@@ -52,7 +52,7 @@ void testDirectConversions() {
     for (var nonAsciiString in nonAsciiStrings) {
       Expect.throws(() {
         print(codec.encoder.convert(nonAsciiString));
-      }, null, nonAsciiString);
+      }, (_) => true, nonAsciiString);
     }
 
     var encode = codec.encoder.convert;
@@ -108,15 +108,14 @@ void testDirectConversions() {
   Expect.equals("\x00\x01\uFFFD\uFFFD\x00", decoded);
   decoded = allowInvalidCodec.decoder.convert(invalidBytes);
   Expect.equals("\x00\x01\uFFFD\uFFFD\x00", decoded);
-  decoded = ASCII.decode(invalidBytes, allowInvalid: true);
+  decoded = ascii.decode(invalidBytes, allowInvalid: true);
   Expect.equals("\x00\x01\uFFFD\uFFFD\x00", decoded);
 }
 
 List<int> encode(
     String str, int chunkSize, Converter<String, List<int>> converter) {
   List<int> bytes = <int>[];
-  ChunkedConversionSink byteSink =
-      new ByteConversionSink.withCallback(bytes.addAll);
+  var byteSink = new ByteConversionSink.withCallback(bytes.addAll);
   var stringConversionSink = converter.startChunkedConversion(byteSink);
   for (int i = 0; i < str.length; i += chunkSize) {
     if (i + chunkSize <= str.length) {
@@ -148,7 +147,7 @@ String decode(
 void testChunkedConversions() {
   // Check encoding.
   for (var converter in [
-    ASCII.encoder,
+    ascii.encoder,
     new AsciiCodec().encoder,
     new AsciiEncoder()
   ]) {
@@ -167,7 +166,7 @@ void testChunkedConversions() {
   }
   // Check decoding.
   for (var converter in [
-    ASCII.decoder,
+    ascii.decoder,
     new AsciiCodec().decoder,
     new AsciiDecoder()
   ]) {

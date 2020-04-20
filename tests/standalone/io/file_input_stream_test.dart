@@ -22,8 +22,11 @@ void testStringLineSplitter() {
   // File contains "Hello Dart\nwassup!\n"
   File file = new File(fileName);
   int linesRead = 0;
-  var lineStream =
-      file.openRead().transform(UTF8.decoder).transform(new LineSplitter());
+  var lineStream = file
+      .openRead()
+      .cast<List<int>>()
+      .transform(utf8.decoder)
+      .transform(new LineSplitter());
   lineStream.listen((line) {
     linesRead++;
     if (linesRead == 1) {
@@ -77,7 +80,7 @@ void testInputStreamTruncate() {
     if (streamedBytes == 0) {
       subscription.pause();
       // Truncate the file by opening it for writing.
-      file.open(mode: FileMode.WRITE).then((opened) {
+      file.open(mode: FileMode.write).then((opened) {
         opened.close().then((_) {
           Expect.equals(0, file.lengthSync());
           subscription.resume();
@@ -141,7 +144,7 @@ void testInputStreamAppend() {
       subscription.pause();
       // Double the length of the underlying file.
       file.readAsBytes().then((bytes) {
-        file.writeAsBytes(bytes, mode: FileMode.APPEND).then((_) {
+        file.writeAsBytes(bytes, mode: FileMode.append).then((_) {
           Expect.equals(2 * originalLength, file.lengthSync());
           subscription.resume();
         });
@@ -157,7 +160,7 @@ void testInputStreamAppend() {
 }
 
 void testInputStreamOffset() {
-  void test(int start, int end, int expectedBytes) {
+  void test(int? start, int? end, int expectedBytes) {
     asyncStart();
     var temp = Directory.systemTemp.createTempSync('file_input_stream_test');
     var file = new File('${temp.path}/input_stream_offset.txt');
@@ -185,7 +188,7 @@ void testInputStreamOffset() {
 }
 
 void testInputStreamBadOffset() {
-  void test(int start, int end) {
+  void test(int? start, int? end) {
     asyncStart();
     var temp = Directory.systemTemp.createTempSync('file_input_stream_test');
     var file = new File('${temp.path}/input_stream_bad_offset.txt');
@@ -213,8 +216,11 @@ void testStringLineSplitterEnding(String name, int length) {
   // File contains 10 lines.
   File file = new File(fileName);
   Expect.equals(length, file.lengthSync());
-  var lineStream =
-      file.openRead().transform(UTF8.decoder).transform(new LineSplitter());
+  var lineStream = file
+      .openRead()
+      .cast<List<int>>()
+      .transform(utf8.decoder)
+      .transform(new LineSplitter());
   int lineCount = 0;
   lineStream.listen((line) {
     lineCount++;

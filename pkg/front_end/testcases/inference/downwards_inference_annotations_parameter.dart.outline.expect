@@ -2,12 +2,13 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-class Foo extends core::Object {
-  const constructor •(core::List<core::String> l) → void
+class Foo extends core::Object /*hasConstConstructor*/  {
+  const constructor •(core::List<core::String*>* l) → self::Foo*
+    : super core::Object::•()
     ;
 }
 class C extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::C*
     ;
   method m(dynamic x) → void
     ;

@@ -10,7 +10,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class SubtypeTestCacheRefElement extends HtmlElement implements Renderable {
+class SubtypeTestCacheRefElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<SubtypeTestCacheRefElement>('subtypetestcache-ref');
 
@@ -30,14 +30,14 @@ class SubtypeTestCacheRefElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(subtypeTestCache != null);
-    SubtypeTestCacheRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    SubtypeTestCacheRefElement e = new SubtypeTestCacheRefElement.created();
+    e._r = new RenderingScheduler<SubtypeTestCacheRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._subtypeTestCache = subtypeTestCache;
     return e;
   }
 
-  SubtypeTestCacheRefElement.created() : super.created();
+  SubtypeTestCacheRefElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -49,13 +49,13 @@ class SubtypeTestCacheRefElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new AnchorElement(href: Uris.inspect(_isolate, object: _subtypeTestCache))
-        ..children = [
+        ..children = <Element>[
           new SpanElement()
             ..classes = ['emphasize']
             ..text = 'SubtypeTestCache',

@@ -4,69 +4,51 @@
 
 part of dart2js.js_emitter.program_builder;
 
-/**
- * [member] is a field (instance, static, or top level).
- *
- * [name] is the field name that the [Namer] has picked for this field's
- * storage, that is, the JavaScript property name.
- *
- * [accessorName] is the name of the accessor. For instance fields this is
- * mostly the same as [name] except when [member] is shadowing a field in its
- * superclass.  For other fields, they are rarely the same.
- *
- * [needsGetter] and [needsSetter] represent if a getter or a setter
- * respectively is needed.  There are many factors in this, for example, if the
- * accessor can be inlined.
- *
- * [needsCheckedSetter] indicates that a checked getter is needed, and in this
- * case, [needsSetter] is always false. [needsCheckedSetter] is only true when
- * type assertions are enabled (checked mode).
- */
+/// [member] is a field (instance, static, or top level).
+///
+/// [name] is the field name that the [Namer] has picked for this field's
+/// storage, that is, the JavaScript property name.
+///
+/// [accessorName] is the name of the accessor. For instance fields this is
+/// mostly the same as [name] except when [member] is shadowing a field in its
+/// superclass.  For other fields, they are rarely the same.
+///
+/// [needsGetter] and [needsSetter] represent if a getter or a setter
+/// respectively is needed.  There are many factors in this, for example, if the
+/// accessor can be inlined.
+///
+/// [needsCheckedSetter] indicates that a checked getter is needed, and in this
+/// case, [needsSetter] is always false. [needsCheckedSetter] is only true when
+/// type assertions are enabled (checked mode).
 typedef void AcceptField(FieldEntity member, js.Name name, js.Name accessorName,
     bool needsGetter, bool needsSetter, bool needsCheckedSetter);
 
 class FieldVisitor {
-  final CompilerOptions _options;
-  final ElementEnvironment _elementEnvironment;
-  final CommonElements _commonElements;
-  final CodegenWorldBuilder _codegenWorldBuilder;
+  final JElementEnvironment _elementEnvironment;
+  final CodegenWorld _codegenWorld;
   final NativeData _nativeData;
-  final MirrorsData _mirrorsData;
   final Namer _namer;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
 
-  FieldVisitor(
-      this._options,
-      this._elementEnvironment,
-      this._commonElements,
-      this._codegenWorldBuilder,
-      this._nativeData,
-      this._mirrorsData,
-      this._namer,
-      this._closedWorld);
+  FieldVisitor(this._elementEnvironment, this._codegenWorld, this._nativeData,
+      this._namer, this._closedWorld);
 
-  /**
-   * Invokes [f] for each of the fields of [element].
-   *
-   * [element] must be a [ClassEntity] or a [LibraryEntity].
-   *
-   * If [element] is a [ClassEntity], the static fields of the class are
-   * visited if [visitStatics] is true and the instance fields are visited if
-   * [visitStatics] is false.
-   *
-   * If [element] is a [LibraryEntity], [visitStatics] must be true.
-   *
-   * When visiting the instance fields of a class, the fields of its superclass
-   * are also visited if the class is instantiated.
-   *
-   * Invariant: [element] must be a declaration element.
-   */
+  /// Invokes [f] for each of the fields of [element].
+  ///
+  /// [element] must be a [ClassEntity] or a [LibraryEntity].
+  ///
+  /// If [element] is a [ClassEntity], the static fields of the class are
+  /// visited if [visitStatics] is true and the instance fields are visited if
+  /// [visitStatics] is false.
+  ///
+  /// If [element] is a [LibraryEntity], [visitStatics] must be true.
+  ///
+  /// When visiting the instance fields of a class, the fields of its superclass
+  /// are also visited if the class is instantiated.
+  ///
+  /// Invariant: [element] must be a declaration element.
   void visitFields(AcceptField f,
       {bool visitStatics: false, LibraryEntity library, ClassEntity cls}) {
-    assert(!(library is LibraryElement && !library.isDeclaration),
-        failedAt(library));
-    assert(!(cls is ClassElement && !cls.isDeclaration), failedAt(cls));
-
     bool isNativeClass = false;
     bool isLibrary = false;
     bool isInstantiated = false;
@@ -75,8 +57,7 @@ class FieldVisitor {
 
       // If the class is never instantiated we still need to set it up for
       // inheritance purposes, but we can simplify its JavaScript constructor.
-      isInstantiated =
-          _codegenWorldBuilder.directlyInstantiatedClasses.contains(cls);
+      isInstantiated = _codegenWorld.directlyInstantiatedClasses.contains(cls);
     } else if (library != null) {
       isLibrary = true;
       assert(visitStatics, failedAt(library));
@@ -86,8 +67,6 @@ class FieldVisitor {
     }
 
     void visitField(FieldEntity field, {ClassEntity holder}) {
-      assert(!(field is FieldElement && !field.isDeclaration), failedAt(field));
-
       bool isMixinNativeField =
           isNativeClass && _elementEnvironment.isMixinApplication(holder);
 
@@ -108,7 +87,9 @@ class FieldVisitor {
         js.Name accessorName = _namer.fieldAccessorName(field);
         js.Name fieldName = _namer.fieldPropertyName(field);
         bool needsCheckedSetter = false;
-        if (_options.enableTypeAssertions &&
+        if (_closedWorld.annotationsData
+                .getParameterCheckPolicy(field)
+                .isEmitted &&
             needsSetter &&
             !canAvoidGeneratedCheckedSetter(field)) {
           needsCheckedSetter = true;
@@ -153,18 +134,14 @@ class FieldVisitor {
   bool fieldNeedsGetter(FieldEntity field) {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
-    if (_mirrorsData.shouldRetainGetter(field)) return true;
-    return field.enclosingClass != null &&
-        _codegenWorldBuilder.hasInvokedGetter(field, _closedWorld);
+    return field.isInstanceMember && _codegenWorld.hasInvokedGetter(field);
   }
 
   bool fieldNeedsSetter(FieldEntity field) {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
     if (!field.isAssignable) return false;
-    if (_mirrorsData.shouldRetainSetter(field)) return true;
-    return field.enclosingClass != null &&
-        _codegenWorldBuilder.hasInvokedSetter(field, _closedWorld);
+    return field.isInstanceMember && _codegenWorld.hasInvokedSetter(field);
   }
 
   static bool fieldAccessNeverThrows(FieldEntity field) {
@@ -173,13 +150,14 @@ class FieldVisitor {
         // knowing that it is there.  Therefore we don't need to use a getter
         // (that will throw if the getter method is missing), but can always
         // access the field directly.
-        field is ClosureFieldElement;
+        // TODO(johnniwinther): Return `true` JClosureField.
+        false;
   }
 
   bool canAvoidGeneratedCheckedSetter(FieldEntity member) {
     // We never generate accessors for top-level/static fields.
     if (!member.isInstanceMember) return true;
     DartType type = _elementEnvironment.getFieldType(member);
-    return type.treatAsDynamic || type == _commonElements.objectType;
+    return _closedWorld.dartTypes.isTopType(type);
   }
 }

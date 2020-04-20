@@ -5,7 +5,7 @@
 import "dart:io";
 
 main() {
-  var scriptDir = Platform.environment['SCRIPTDIR'];
+  var scriptDir = Platform.environment['SCRIPTDIR']!;
   if (!scriptDir.contains('å')) throw "scriptDir not containing character å";
   scriptDir = Platform.environment['ScriptDir'];
   if (!scriptDir.contains('å')) throw "scriptDir not containing character å";

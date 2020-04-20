@@ -1,15 +1,8 @@
-dev_compiler
-============
-
-[![Build Status](https://travis-ci.org/dart-lang/sdk.svg?branch=master)](https://travis-ci.org/dart-lang/sdk)
-
-The Dart Dev Compiler (DDC) is a fast, modular compiler that generates modern JavaScript (EcmaScript 6).  Its primary use today is to support fast, iterative development of Dart web applications for Chrome and other modern browers.
-
-Most users will use DDC via [pub](https://webdev.dartlang.org/tools/pub/pub-serve).  It is supported by pub starting with the Dart 1.24 release.
+The Dart Dev Compiler (DDC) is a fast, modular compiler that generates modern JavaScript (EcmaScript 6).  Its primary use today is to support fast, iterative development of Dart web applications for Chrome and other modern browsers.
 
 # Soundness and Restrictions
 
-DDC is built upon Dart's new [strong mode](STRONG_MODE.md) type system.  It only compiles programs that statically type check (i.e., no strong mode errors).  It leverages static type checking to generate simpler, readable, and more idiomatic code with fewer runtime checks.  In general, DDC is able to provide stronger type guarantees - i.e., *soundness* - than traditional Dart checked mode with significantly fewer runtime checks.
+DDC is built upon Dart's [sound](https://www.dartlang.org/guides/language/sound-dart) type system.  It only compiles programs that statically type check (i.e., no strong mode errors).  It leverages static type checking to generate simpler, readable, and more idiomatic code with fewer runtime checks.  In general, DDC is able to provide stronger type guarantees - i.e., *soundness* - than traditional Dart checked mode with significantly fewer runtime checks.
 
 With strong mode, DDC is stricter than traditional Dart production mode or checked mode.  Running existing Dart code on DDC will generally require fixing both static and runtime type errors.  
 
@@ -28,16 +21,10 @@ List<Object> list2 = list;  // Generics are covariant.  No runtime check require
 List<int> list3 = list2;  // Implicit runtime downcast triggers error.
 ```  
 
-See the [strong mode documentation](STRONG_MODE.md) for more details.
-
 # Modularity
 
-DDC provides fast, incremental compilation based on standard JavaScript modules.  Unlike Dart2JS, DDC does not require an entire Dart application.  Instead, it operates modularly: it compiles a set of Dart files into a JavaScript module.  A DDC compilation step requires a set of input Dart files and a set of *summaries* of dependencies.  It performs modular type checking as part of this compilation step, and, if the input type checks, it generates a JavaScript module (e.g., [*ES6*](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import), [*AMD*](https://github.com/amdjs/amdjs-api/blob/master/AMD.md), or [*CommonJS*](https://nodejs.org/docs/latest/api/modules.html).  The browser (i.e., the JavaScript runtime) loads and links the generated modules when running the application.  
-During development, a compilation step only needs to be rerun if the Dart files or summaries it relies upon change.  For most changes, only a very small part of your code will require recompilation.  Morever, modules that are unchanged can be cached in the browser.
-
-Most users invoke DDC indirectly via [pub](https://webdev.dartlang.org/tools/pub/pub-serve).  Pub computes module structure and build steps automatically and invoke DDC accordingly.  Pub configures DDC to use AMD modules and uses the standard [AMD `require.js` loader](http://requirejs.org/) to bootstrap and load the application.
-
-More advanced users may want to configure or invoke DDC directly.  In general, the mapping of Dart files to JS modules is flexible.  The key requirement is that module dependences (i.e., `require` in AMD or CommonJS or `import` in ES6) must be acyclic.  In practice, this means that individual Dart libraries cannot each be mapped to a corresponding JS module (as Dart imports can be and often are cyclic).  See the [usage document](USAGE.md) for more details.
+DDC provides fast, incremental compilation based on standard JavaScript modules.  Unlike Dart2JS, DDC does not require an entire Dart application.  Instead, it operates modularly: it compiles a set of Dart files into a JavaScript module.  A DDC compilation step requires a set of input Dart files and a set of *summaries* of dependencies.  It performs modular type checking as part of this compilation step, and, if the input type checks, it generates a JavaScript module (e.g., [*ES6*](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import), [*AMD*](https://github.com/amdjs/amdjs-api/blob/master/AMD.md), or [*CommonJS*](https://nodejs.org/docs/latest/api/modules.html)).  The browser (i.e., the JavaScript runtime) loads and links the generated modules when running the application.
+During development, a compilation step only needs to be rerun if the Dart files or summaries it relies upon change.  For most changes, only a very small part of your code will require recompilation.  Moreover, modules that are unchanged can be cached in the browser.
 
 # EcmaScript 6
 

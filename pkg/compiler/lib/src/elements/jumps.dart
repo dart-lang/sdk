@@ -7,9 +7,9 @@ library elements.jumps;
 import 'entities.dart';
 
 /// The label entity defined by a labeled statement.
-abstract class LabelDefinition<T> extends Entity {
+abstract class LabelDefinition extends Entity {
   String get labelName;
-  JumpTarget<T> get target;
+  JumpTarget get target;
 
   bool get isTarget => isBreakTarget || isContinueTarget;
 
@@ -19,20 +19,20 @@ abstract class LabelDefinition<T> extends Entity {
 
 /// A jump target is the reference point of a statement or switch-case,
 /// either by label or as the default target of a break or continue.
-abstract class JumpTarget<T> extends Local {
+abstract class JumpTarget extends Local {
+  @override
   String get name => 'target';
 
   bool get isTarget => isBreakTarget || isContinueTarget;
 
-  T get statement;
   int get nestingLevel;
-  List<LabelDefinition<T>> get labels;
+  List<LabelDefinition> get labels;
 
   bool get isBreakTarget;
   bool get isContinueTarget;
   bool get isSwitch;
   bool get isSwitchCase;
 
-  LabelDefinition<T> addLabel(covariant T label, String labelName,
+  LabelDefinition addLabel(String labelName,
       {bool isBreakTarget: false, bool isContinueTarget: false});
 }

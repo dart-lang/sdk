@@ -12,7 +12,7 @@ jsonTest(testName, expect, action(sink)) {
     var value = values[0];
     Expect.equals(expect, value, "$testName:$value");
   });
-  var decoderSink = JSON.decoder.startChunkedConversion(sink);
+  var decoderSink = json.decoder.startChunkedConversion(sink);
   action(decoderSink);
 }
 
@@ -20,7 +20,7 @@ jsonThrowsTest(testName, action(sink)) {
   var sink = new ChunkedConversionSink.withCallback((values) {
     Expect.fail("Should have thrown: $testName");
   });
-  var decoderSink = JSON.decoder.startChunkedConversion(sink);
+  var decoderSink = json.decoder.startChunkedConversion(sink);
   Expect.throwsFormatException(() => action(decoderSink), testName);
 }
 

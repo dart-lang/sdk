@@ -1,0 +1,23 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Test that deleting an instance method works, even if stored in a tear-off
+
+  class C {
+  <<<< ["instance is null","v1"]
+    m() {
+      print('v1');
+    }
+  ==== {"messages":[],"hasCompileTimeError":1}
+  >>>>
+  }
+  var closure;
+  main() {
+    if (closure == null) {
+      print('instance is null');
+      closure = new C().m;
+    }
+    closure();
+  }

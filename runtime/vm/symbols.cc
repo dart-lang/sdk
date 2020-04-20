@@ -4,6 +4,7 @@
 
 #include "vm/symbols.h"
 
+#include "platform/unicode.h"
 #include "vm/handles.h"
 #include "vm/hash_table.h"
 #include "vm/isolate.h"
@@ -12,7 +13,7 @@
 #include "vm/raw_object.h"
 #include "vm/reusable_handles.h"
 #include "vm/snapshot_ids.h"
-#include "vm/unicode.h"
+#include "vm/type_table.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -204,7 +205,7 @@ const String& Symbols::Token(Token::Kind token) {
   return *symbol_handles_[token_id];
 }
 
-void Symbols::InitOnce(Isolate* vm_isolate) {
+void Symbols::Init(Isolate* vm_isolate) {
   // Should only be run by the vm isolate.
   ASSERT(Isolate::Current() == Dart::vm_isolate());
   ASSERT(vm_isolate == Dart::vm_isolate());
@@ -250,7 +251,7 @@ void Symbols::InitOnce(Isolate* vm_isolate) {
   vm_isolate->object_store()->set_symbol_table(table.Release());
 }
 
-void Symbols::InitOnceFromSnapshot(Isolate* vm_isolate) {
+void Symbols::InitFromSnapshot(Isolate* vm_isolate) {
   // Should only be run by the vm isolate.
   ASSERT(Isolate::Current() == Dart::vm_isolate());
   ASSERT(vm_isolate == Dart::vm_isolate());
@@ -302,94 +303,106 @@ void Symbols::SetupSymbolTable(Isolate* isolate) {
   isolate->object_store()->set_symbol_table(array);
 }
 
-RawArray* Symbols::UnifiedSymbolTable() {
+void Symbols::Compact() {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  ASSERT(thread->isolate() != Dart::vm_isolate());
+  HANDLESCOPE(thread);
   Zone* zone = thread->zone();
+  ObjectStore* object_store = thread->isolate()->object_store();
 
-  ASSERT(thread->IsMutatorThread());
-  ASSERT(isolate->background_compiler() == NULL);
+  // 1. Drop the tables and do a full garbage collection.
+  object_store->set_symbol_table(Object::empty_array());
+  object_store->set_canonical_types(Object::empty_array());
+  object_store->set_canonical_type_arguments(Object::empty_array());
+  thread->heap()->CollectAllGarbage();
 
-  SymbolTable vm_table(zone,
-                       Dart::vm_isolate()->object_store()->symbol_table());
-  SymbolTable table(zone, isolate->object_store()->symbol_table());
-  intptr_t unified_size = vm_table.NumOccupied() + table.NumOccupied();
-  SymbolTable unified_table(
-      zone, HashTables::New<SymbolTable>(unified_size, Heap::kOld));
-  String& symbol = String::Handle(zone);
-
-  SymbolTable::Iterator vm_iter(&vm_table);
-  while (vm_iter.MoveNext()) {
-    symbol ^= vm_table.GetKey(vm_iter.Current());
-    ASSERT(!symbol.IsNull());
-    bool present = unified_table.Insert(symbol);
-    ASSERT(!present);
-  }
-  vm_table.Release();
-
-  SymbolTable::Iterator iter(&table);
-  while (iter.MoveNext()) {
-    symbol ^= table.GetKey(iter.Current());
-    ASSERT(!symbol.IsNull());
-    bool present = unified_table.Insert(symbol);
-    ASSERT(!present);
-  }
-  table.Release();
-
-  // TODO(30378): The default load factor of 0.75 / 2 burns ~100KB, but
-  // increasing the load factor regresses Flutter's hot restart time.
-  // const double kMinLoad = 0.90;
-  // const double kMaxLoad = 0.90;
-  // HashTables::EnsureLoadFactor(kMinLoad, kMaxLoad, unified_table);
-
-  return unified_table.Release().raw();
-}
-
-void Symbols::Compact(Isolate* isolate) {
-  ASSERT(isolate != Dart::vm_isolate());
-  Zone* zone = Thread::Current()->zone();
-
-  // 1. Drop the symbol table and do a full garbage collection.
-  isolate->object_store()->set_symbol_table(Object::empty_array());
-  isolate->heap()->CollectAllGarbage();
-
-  // 2. Walk the heap to find surviving symbols.
+  // 2. Walk the heap to find surviving canonical objects.
   GrowableArray<String*> symbols;
+  GrowableArray<class Type*> types;
+  GrowableArray<class TypeArguments*> type_args;
   class SymbolCollector : public ObjectVisitor {
    public:
-    SymbolCollector(Thread* thread, GrowableArray<String*>* symbols)
-        : symbols_(symbols), zone_(thread->zone()) {}
+    SymbolCollector(Thread* thread,
+                    GrowableArray<String*>* symbols,
+                    GrowableArray<class Type*>* types,
+                    GrowableArray<class TypeArguments*>* type_args)
+        : symbols_(symbols),
+          types_(types),
+          type_args_(type_args),
+          zone_(thread->zone()) {}
 
     void VisitObject(RawObject* obj) {
-      if (obj->IsCanonical() && obj->IsStringInstance()) {
-        symbols_->Add(&String::ZoneHandle(zone_, String::RawCast(obj)));
+      if (obj->IsCanonical()) {
+        if (obj->IsStringInstance()) {
+          symbols_->Add(&String::Handle(zone_, String::RawCast(obj)));
+        } else if (obj->IsType()) {
+          types_->Add(&Type::Handle(zone_, Type::RawCast(obj)));
+        } else if (obj->IsTypeArguments()) {
+          type_args_->Add(
+              &TypeArguments::Handle(zone_, TypeArguments::RawCast(obj)));
+        }
       }
     }
 
    private:
     GrowableArray<String*>* symbols_;
+    GrowableArray<class Type*>* types_;
+    GrowableArray<class TypeArguments*>* type_args_;
     Zone* zone_;
   };
 
   {
-    Thread* thread = Thread::Current();
     HeapIterationScope iteration(thread);
-    SymbolCollector visitor(thread, &symbols);
+    SymbolCollector visitor(thread, &symbols, &types, &type_args);
     iteration.IterateObjects(&visitor);
   }
 
-  // 3. Build a new table from the surviving symbols.
-  Array& array = Array::Handle(
-      zone, HashTables::New<SymbolTable>(symbols.length() * 4 / 3, Heap::kOld));
-  SymbolTable table(zone, array.raw());
-  for (intptr_t i = 0; i < symbols.length(); i++) {
-    String& symbol = *symbols[i];
-    ASSERT(symbol.IsString());
-    ASSERT(symbol.IsCanonical());
-    bool present = table.Insert(symbol);
-    ASSERT(!present);
+  // 3. Build new tables from the surviving canonical objects.
+  {
+    Array& array = Array::Handle(
+        zone,
+        HashTables::New<SymbolTable>(symbols.length() * 4 / 3, Heap::kOld));
+    SymbolTable table(zone, array.raw());
+    for (intptr_t i = 0; i < symbols.length(); i++) {
+      String& symbol = *symbols[i];
+      ASSERT(symbol.IsString());
+      ASSERT(symbol.IsCanonical());
+      bool present = table.Insert(symbol);
+      ASSERT(!present);
+    }
+    object_store->set_symbol_table(table.Release());
   }
-  isolate->object_store()->set_symbol_table(table.Release());
+
+  {
+    Array& array = Array::Handle(zone, HashTables::New<CanonicalTypeSet>(
+                                           types.length() * 4 / 3, Heap::kOld));
+    CanonicalTypeSet table(zone, array.raw());
+    for (intptr_t i = 0; i < types.length(); i++) {
+      class Type& type = *types[i];
+      ASSERT(type.IsType());
+      ASSERT(type.IsCanonical());
+      bool present = table.Insert(type);
+      // Two recursive types with different topology (and hashes) may be equal.
+      ASSERT(!present || type.IsRecursive());
+    }
+    object_store->set_canonical_types(table.Release());
+  }
+
+  {
+    Array& array =
+        Array::Handle(zone, HashTables::New<CanonicalTypeArgumentsSet>(
+                                type_args.length() * 4 / 3, Heap::kOld));
+    CanonicalTypeArgumentsSet table(zone, array.raw());
+    for (intptr_t i = 0; i < type_args.length(); i++) {
+      class TypeArguments& type_arg = *type_args[i];
+      ASSERT(type_arg.IsTypeArguments());
+      ASSERT(type_arg.IsCanonical());
+      bool present = table.Insert(type_arg);
+      // Two recursive types with different topology (and hashes) may be equal.
+      ASSERT(!present || type_arg.IsRecursive());
+    }
+    object_store->set_canonical_type_arguments(table.Release());
+  }
 }
 
 void Symbols::GetStats(Isolate* isolate, intptr_t* size, intptr_t* capacity) {
@@ -418,12 +431,18 @@ RawString* Symbols::FromUTF8(Thread* thread,
   Zone* zone = thread->zone();
   if (type == Utf8::kLatin1) {
     uint8_t* characters = zone->Alloc<uint8_t>(len);
-    Utf8::DecodeToLatin1(utf8_array, array_len, characters, len);
+    if (!Utf8::DecodeToLatin1(utf8_array, array_len, characters, len)) {
+      Utf8::ReportInvalidByte(utf8_array, array_len, len);
+      return String::null();
+    }
     return FromLatin1(thread, characters, len);
   }
   ASSERT((type == Utf8::kBMP) || (type == Utf8::kSupplementary));
   uint16_t* characters = zone->Alloc<uint16_t>(len);
-  Utf8::DecodeToUTF16(utf8_array, array_len, characters, len);
+  if (!Utf8::DecodeToUTF16(utf8_array, array_len, characters, len)) {
+    Utf8::ReportInvalidByte(utf8_array, array_len, len);
+    return String::null();
+  }
   return FromUTF16(thread, characters, len);
 }
 
@@ -556,18 +575,37 @@ RawString* Symbols::NewSymbol(Thread* thread, const StringType& str) {
   Array& data = thread->ArrayHandle();
   {
     Isolate* vm_isolate = Dart::vm_isolate();
-    data ^= vm_isolate->object_store()->symbol_table();
+    data = vm_isolate->object_store()->symbol_table();
     SymbolTable table(&key, &value, &data);
     symbol ^= table.GetOrNull(str);
     table.Release();
   }
   if (symbol.IsNull()) {
+    IsolateGroup* group = thread->isolate_group();
     Isolate* isolate = thread->isolate();
-    SafepointMutexLocker ml(isolate->symbols_mutex());
-    data ^= isolate->object_store()->symbol_table();
-    SymbolTable table(&key, &value, &data);
-    symbol ^= table.InsertNewOrGet(str);
-    isolate->object_store()->set_symbol_table(table.Release());
+    // in JIT object_store lives on isolate, not on isolate group.
+    ObjectStore* object_store = group->object_store() == nullptr
+                                    ? isolate->object_store()
+                                    : group->object_store();
+    // in AOT no need to worry about background compiler, only about
+    // other mutators.
+#if defined(DART_PRECOMPILED_RUNTIME)
+    group->RunWithStoppedMutators(
+        [&]() {
+#else
+    SafepointRwLock* symbols_lock = group->object_store() == nullptr
+                                        ? isolate->symbols_lock()
+                                        : group->symbols_lock();
+    SafepointWriteRwLocker sl(thread, symbols_lock);
+#endif
+          data = object_store->symbol_table();
+          SymbolTable table(&key, &value, &data);
+          symbol ^= table.InsertNewOrGet(str);
+          object_store->set_symbol_table(table.Release());
+#if defined(DART_PRECOMPILED_RUNTIME)
+        },
+        /*use_force_growth=*/true);
+#endif
   }
   ASSERT(symbol.IsSymbol());
   ASSERT(symbol.HasHash());
@@ -585,15 +623,27 @@ RawString* Symbols::Lookup(Thread* thread, const StringType& str) {
   Array& data = thread->ArrayHandle();
   {
     Isolate* vm_isolate = Dart::vm_isolate();
-    data ^= vm_isolate->object_store()->symbol_table();
+    data = vm_isolate->object_store()->symbol_table();
     SymbolTable table(&key, &value, &data);
     symbol ^= table.GetOrNull(str);
     table.Release();
   }
   if (symbol.IsNull()) {
+    IsolateGroup* group = thread->isolate_group();
     Isolate* isolate = thread->isolate();
-    SafepointMutexLocker ml(isolate->symbols_mutex());
-    data ^= isolate->object_store()->symbol_table();
+    // in JIT object_store lives on isolate, not on isolate group.
+    ObjectStore* object_store = group->object_store() == nullptr
+                                    ? isolate->object_store()
+                                    : group->object_store();
+    // in AOT no need to worry about background compiler, only about
+    // other mutators.
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    SafepointRwLock* symbols_lock = group->object_store() == nullptr
+                                        ? isolate->symbols_lock()
+                                        : group->symbols_lock();
+    SafepointReadRwLocker sl(thread, symbols_lock);
+#endif
+    data = object_store->symbol_table();
     SymbolTable table(&key, &value, &data);
     symbol ^= table.GetOrNull(str);
     table.Release();
@@ -655,12 +705,12 @@ RawString* Symbols::NewFormattedV(Thread* thread,
                                   va_list args) {
   va_list args_copy;
   va_copy(args_copy, args);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args_copy);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, args_copy);
   va_end(args_copy);
 
   Zone* zone = Thread::Current()->zone();
   char* buffer = zone->Alloc<char>(len + 1);
-  OS::VSNPrint(buffer, (len + 1), format, args);
+  Utils::VSNPrint(buffer, (len + 1), format, args);
 
   return Symbols::New(thread, buffer);
 }
@@ -677,14 +727,21 @@ void Symbols::DumpStats(Isolate* isolate) {
   intptr_t capacity = -1;
   // First dump VM symbol table stats.
   GetStats(Dart::vm_isolate(), &size, &capacity);
-  OS::Print("VM Isolate: Number of symbols : %" Pd "\n", size);
-  OS::Print("VM Isolate: Symbol table capacity : %" Pd "\n", capacity);
+  OS::PrintErr("VM Isolate: Number of symbols : %" Pd "\n", size);
+  OS::PrintErr("VM Isolate: Symbol table capacity : %" Pd "\n", capacity);
   // Now dump regular isolate symbol table stats.
   GetStats(isolate, &size, &capacity);
-  OS::Print("Isolate: Number of symbols : %" Pd "\n", size);
-  OS::Print("Isolate: Symbol table capacity : %" Pd "\n", capacity);
+  OS::PrintErr("Isolate: Number of symbols : %" Pd "\n", size);
+  OS::PrintErr("Isolate: Symbol table capacity : %" Pd "\n", capacity);
   // TODO(koda): Consider recording growth and collision stats in HashTable,
   // in DEBUG mode.
+}
+
+void Symbols::DumpTable(Isolate* isolate) {
+  OS::PrintErr("symbols:\n");
+  SymbolTable table(isolate->object_store()->symbol_table());
+  table.Dump();
+  table.Release();
 }
 
 intptr_t Symbols::LookupPredefinedSymbol(RawObject* obj) {

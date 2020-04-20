@@ -1,12 +1,12 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 library string_escaping_test;
 
+import 'dart:async';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 var ascii;
@@ -48,7 +48,7 @@ void script() {
   malformedWithTrailSurrogate = "before" + "𝄞"[1] + "after";
 }
 
-testStrings(Isolate isolate) async {
+Future testStrings(Isolate isolate) async {
   Library lib = isolate.rootLibrary;
   await lib.load();
   for (var variable in lib.variables) {
@@ -87,7 +87,7 @@ testStrings(Isolate isolate) async {
   expectFullString('malformedWithTrailSurrogate', malformedWithTrailSurrogate);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   testStrings,
 ];
 

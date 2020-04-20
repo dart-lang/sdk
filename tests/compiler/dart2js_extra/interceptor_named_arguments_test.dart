@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Test that the proper one-shot interceptor is used for different
 // combinations of named arguments.
 import "package:expect/expect.dart";
@@ -19,27 +21,27 @@ class Other {
   }
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 bool wontTell(bool x) => x;
 
 // Ensure that we use the interceptor only once per context so that we
 // actually get a one-shot interceptor. This is a little brittle...
-@NoInline()
+@pragma('dart2js:noInline')
 testA(thing) {
   Expect.equals(0, thing.createFragment(null));
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 testB(thing) {
   Expect.equals(2, thing.createFragment(null, validator: 1));
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 testC(thing) {
   Expect.equals(1, thing.createFragment(null, treeSanitizer: 1));
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 testD(thing) {
   Expect.equals(3, thing.createFragment(null, validator: 1, treeSanitizer: 1));
 }

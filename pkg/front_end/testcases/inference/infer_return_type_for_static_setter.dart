@@ -6,9 +6,9 @@
 library test;
 
 class C {
-  static set /*@topType=void*/ foo(int x) {}
+  static set foo(int x) {}
 }
 
-set /*@topType=void*/ bar(int x) {}
+set bar(int x) {}
 
 main() {}

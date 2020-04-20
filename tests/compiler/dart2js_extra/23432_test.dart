@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Regression test for http://dartbug.com/23432.  Test that the receiver of a
 // NoSuchMethodError is correct on an intercepted method.  The bug (issue 23432)
 // is that the interceptor is captured instead of the receiver.
@@ -15,12 +17,12 @@ class N {
   }
 }
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 get NEVER => false;
 
 main() {
-  var c = 12345;
+  dynamic c = 12345;
   if (NEVER) c = new N();
   var e;
   try {

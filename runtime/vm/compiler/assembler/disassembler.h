@@ -6,9 +6,13 @@
 #define RUNTIME_VM_COMPILER_ASSEMBLER_DISASSEMBLER_H_
 
 #include "vm/allocation.h"
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/globals.h"
 #include "vm/log.h"
+#include "vm/object.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/assembler/assembler.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -24,8 +28,7 @@ class DisassemblyFormatter {
   virtual ~DisassemblyFormatter() {}
 
   // Consume the decoded instruction at the given pc.
-  virtual void ConsumeInstruction(const Code& code,
-                                  char* hex_buffer,
+  virtual void ConsumeInstruction(char* hex_buffer,
                                   intptr_t hex_size,
                                   char* human_buffer,
                                   intptr_t human_size,
@@ -33,7 +36,7 @@ class DisassemblyFormatter {
                                   uword pc) = 0;
 
   // Print a formatted message.
-  virtual void Print(const char* format, ...) = 0;
+  virtual void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3) = 0;
 };
 
 // Basic disassembly formatter that outputs the disassembled instruction
@@ -43,8 +46,7 @@ class DisassembleToStdout : public DisassemblyFormatter {
   DisassembleToStdout() : DisassemblyFormatter() {}
   ~DisassembleToStdout() {}
 
-  virtual void ConsumeInstruction(const Code& code,
-                                  char* hex_buffer,
+  virtual void ConsumeInstruction(char* hex_buffer,
                                   intptr_t hex_size,
                                   char* human_buffer,
                                   intptr_t human_size,
@@ -65,8 +67,7 @@ class DisassembleToJSONStream : public DisassemblyFormatter {
       : DisassemblyFormatter(), jsarr_(jsarr) {}
   ~DisassembleToJSONStream() {}
 
-  virtual void ConsumeInstruction(const Code& code,
-                                  char* hex_buffer,
+  virtual void ConsumeInstruction(char* hex_buffer,
                                   intptr_t hex_size,
                                   char* human_buffer,
                                   intptr_t human_size,
@@ -81,6 +82,36 @@ class DisassembleToJSONStream : public DisassemblyFormatter {
   DISALLOW_COPY_AND_ASSIGN(DisassembleToJSONStream);
 };
 
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+// Basic disassembly formatter that outputs the disassembled instruction
+// to a memory buffer. This is only intended for test writing.
+class DisassembleToMemory : public DisassemblyFormatter {
+ public:
+  DisassembleToMemory(char* buffer, uintptr_t length)
+      : DisassemblyFormatter(),
+        buffer_(buffer),
+        remaining_(length),
+        overflowed_(false) {}
+  ~DisassembleToMemory() {}
+
+  virtual void ConsumeInstruction(char* hex_buffer,
+                                  intptr_t hex_size,
+                                  char* human_buffer,
+                                  intptr_t human_size,
+                                  Object* object,
+                                  uword pc);
+
+  virtual void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+
+ private:
+  char* buffer_;
+  int remaining_;
+  bool overflowed_;
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(DisassembleToMemory);
+};
+#endif
+
 // Disassemble instructions.
 class Disassembler : public AllStatic {
  public:
@@ -90,7 +121,8 @@ class Disassembler : public AllStatic {
   static void Disassemble(uword start,
                           uword end,
                           DisassemblyFormatter* formatter,
-                          const Code& code);
+                          const Code& code,
+                          const Code::Comments* comments = nullptr);
 
   static void Disassemble(uword start,
                           uword end,
@@ -98,8 +130,15 @@ class Disassembler : public AllStatic {
     Disassemble(start, end, formatter, Code::Handle());
   }
 
+  static void Disassemble(uword start,
+                          uword end,
+                          DisassemblyFormatter* formatter,
+                          const Code::Comments* comments) {
+    Disassemble(start, end, formatter, Code::Handle(), comments);
+  }
+
   static void Disassemble(uword start, uword end, const Code& code) {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
     DisassembleToStdout stdout_formatter;
     LogBlock lb;
     Disassemble(start, end, &stdout_formatter, code);
@@ -109,10 +148,23 @@ class Disassembler : public AllStatic {
   }
 
   static void Disassemble(uword start, uword end) {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
     DisassembleToStdout stdout_formatter;
     LogBlock lb;
     Disassemble(start, end, &stdout_formatter);
+#else
+    UNREACHABLE();
+#endif
+  }
+
+  static void Disassemble(uword start,
+                          uword end,
+                          char* buffer,
+                          uintptr_t buffer_size) {
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+    DisassembleToMemory memory_formatter(buffer, buffer_size);
+    LogBlock lb;
+    Disassemble(start, end, &memory_formatter);
 #else
     UNREACHABLE();
 #endif
@@ -134,6 +186,8 @@ class Disassembler : public AllStatic {
   static void DisassembleCode(const Function& function,
                               const Code& code,
                               bool optimized);
+
+  static void DisassembleStub(const char* name, const Code& code);
 
  private:
   static void DisassembleCodeHelper(const char* function_fullname,

@@ -1,0 +1,49 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/cascade.dart:28:5: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
+//  - 'List' is from 'dart:core'.
+//     [1]
+//     ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/cascade.dart:30:13: Error: The getter 'last' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'last'.
+//     ..first.last.toString()
+//             ^^^^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/cascade.dart:31:12: Error: The operator '[]' isn't defined for the class 'int'.
+// Try correcting the operator to an existing operator, or defining a '[]' operator.
+//     ..first[0].toString()
+//            ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/cascade.dart:32:11: Error: The getter 'last' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'last'.
+//     ..[0].last.toString();
+//           ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::List<core::int*>* list = let final core::List<core::int*>* #t1 = <core::int*>[1] in let final void #t2 = #t1.{core::List::add}(2) in let final void #t3 = #t1.{core::List::add}(3) in let final void #t4 = #t1.{core::List::addAll}(<core::int*>[4, 5]) in #t1;
+  core::print(list);
+  let final core::List<core::int*>* #t5 = list in let final void #t6 = #t5.{core::List::add}(2) in let final void #t7 = #t5.{core::List::length} in let final void #t8 = #t5.{core::List::length} = 0 in #t5;
+  core::print(list);
+  let final core::List<core::int*>* #t9 = list in let final void #t10 = #t9.{core::List::add}(2) in let final void #t11 = #t9.{core::List::[]}(0) in let final void #t12 = #t9.{core::List::[]=}(0, 87) in #t9;
+  core::print(list);
+  list = let final core::List<core::int*>* #t13 = <core::int*>[let final<BottomType> #t14 = invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/cascade.dart:28:5: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
+ - 'List' is from 'dart:core'.
+    [1]
+    ^" in <core::int*>[1] as{TypeError} core::int*] in let final void #t15 = invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/cascade.dart:30:13: Error: The getter 'last' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'last'.
+    ..first.last.toString()
+            ^^^^".{core::Object::toString}() in let final void #t16 = invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/cascade.dart:31:12: Error: The operator '[]' isn't defined for the class 'int'.
+Try correcting the operator to an existing operator, or defining a '[]' operator.
+    ..first[0].toString()
+           ^".{core::Object::toString}() in let final void #t17 = invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/cascade.dart:32:11: Error: The getter 'last' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'last'.
+    ..[0].last.toString();
+          ^^^^".{core::Object::toString}() in #t13;
+  core::print(list);
+}

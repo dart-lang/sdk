@@ -4,41 +4,21 @@
 
 library fasta.messages;
 
-import 'package:kernel/ast.dart' show Library, Location, Program, TreeNode;
-
-import 'util/relativize.dart' show relativizeUri;
+import 'package:kernel/ast.dart' show Library, Location, Component, TreeNode;
 
 import 'compiler_context.dart' show CompilerContext;
-
-import 'fasta_codes.dart' show LocatedMessage, Message;
-
-import 'severity.dart' show Severity;
 
 export 'fasta_codes.dart';
 
 bool get isVerbose => CompilerContext.current.options.verbose;
 
-void warning(Message message, int charOffset, Uri uri) {
-  report(message.withLocation(uri, charOffset), Severity.warning);
-}
-
-void nit(Message message, int charOffset, Uri uri) {
-  report(message.withLocation(uri, charOffset), Severity.nit);
-}
-
-void report(LocatedMessage message, Severity severity) {
-  CompilerContext.current.report(message, severity);
-}
-
-Location getLocation(String path, int charOffset) {
-  return CompilerContext.current.uriToSource[path]
-      ?.getLocation(path, charOffset);
+Location getLocation(Uri uri, int charOffset) {
+  return CompilerContext.current.uriToSource[uri]?.getLocation(uri, charOffset);
 }
 
 Location getLocationFromUri(Uri uri, int charOffset) {
   if (charOffset == -1) return null;
-  String path = relativizeUri(uri);
-  return getLocation(path, charOffset);
+  return getLocation(uri, charOffset);
 }
 
 String getSourceLine(Location location) {
@@ -48,18 +28,19 @@ String getSourceLine(Location location) {
 }
 
 Location getLocationFromNode(TreeNode node) {
-  if (node.enclosingProgram == null) {
+  if (node.enclosingComponent == null) {
     TreeNode parent = node;
     while (parent != null && parent is! Library) {
       parent = parent.parent;
     }
     if (parent is Library) {
-      Program program =
-          new Program(uriToSource: CompilerContext.current.uriToSource);
-      program.libraries.add(parent);
-      parent.parent = program;
+      Component component = CompilerContext.current.options.target
+          .configureComponent(
+              new Component(uriToSource: CompilerContext.current.uriToSource));
+      component.libraries.add(parent);
+      parent.parent = component;
       Location result = node.location;
-      program.libraries.clear();
+      component.libraries.clear();
       parent.parent = null;
       return result;
     } else {

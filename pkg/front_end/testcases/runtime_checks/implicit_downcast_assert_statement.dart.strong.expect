@@ -1,0 +1,13 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::Object* o = 1;
+  try {
+    assert(o as{TypeError} core::bool*);
+    assert(false, "no exception");
+  }
+  on core::TypeError* catch(no-exception-var) {
+  }
+}

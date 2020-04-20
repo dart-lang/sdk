@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,32 +7,15 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new LocalVariableTest().buildAll();
+  LocalVariableTest().buildAll();
 }
 
 class LocalVariableTest extends PartialCodeTest {
   buildAll() {
-    List<String> allExceptEof = <String>[
-      'assert',
-      'block',
-      'break',
-      'continue',
-      'do',
-      'if',
-      'for',
-      'labeled',
-      'localFunctionNonVoid',
-      'localFunctionVoid',
-      'localVariable',
-      'switch',
-      'try',
-      'return',
-      'while'
-    ];
     buildTests(
         'local_variable',
         [
-          new TestDescriptor(
+          TestDescriptor(
               'const',
               'const',
               [
@@ -41,13 +24,16 @@ class LocalVariableTest extends PartialCodeTest {
               ],
               "const _s_;",
               allFailing: true),
-          new TestDescriptor('constName', 'const a',
+          TestDescriptor('constName', 'const a',
               [ParserErrorCode.EXPECTED_TOKEN], "const a;",
-              allFailing: true),
-          new TestDescriptor('constTypeName', 'const int a',
-              [ParserErrorCode.EXPECTED_TOKEN], "const int a;",
-              allFailing: true),
-          new TestDescriptor(
+              failing: <String>[
+                'eof',
+                'labeled',
+                'localFunctionNonVoid',
+              ]),
+          TestDescriptor('constTypeName', 'const int a',
+              [ParserErrorCode.EXPECTED_TOKEN], "const int a;"),
+          TestDescriptor(
               'constNameComma',
               'const a,',
               [
@@ -56,18 +42,10 @@ class LocalVariableTest extends PartialCodeTest {
               ],
               "const a, _s_;",
               failing: <String>[
-                'eof',
-                'assert',
-                'block',
-                'break',
-                'continue',
-                'for',
                 'labeled',
                 'localFunctionNonVoid',
-                'localFunctionVoid',
-                'return',
               ]),
-          new TestDescriptor(
+          TestDescriptor(
               'constTypeNameComma',
               'const int a,',
               [
@@ -76,22 +54,14 @@ class LocalVariableTest extends PartialCodeTest {
               ],
               "const int a, _s_;",
               failing: [
-                'eof',
-                'assert',
-                'block',
-                'break',
-                'continue',
-                'for',
                 'labeled',
                 'localFunctionNonVoid',
-                'localFunctionVoid',
-                'return',
               ]),
-          new TestDescriptor('constNameCommaName', 'const a, b',
+          TestDescriptor('constNameCommaName', 'const a, b',
               [ParserErrorCode.EXPECTED_TOKEN], "const a, b;"),
-          new TestDescriptor('constTypeNameCommaName', 'const int a, b',
+          TestDescriptor('constTypeNameCommaName', 'const int a, b',
               [ParserErrorCode.EXPECTED_TOKEN], "const int a, b;"),
-          new TestDescriptor(
+          TestDescriptor(
               'final',
               'final',
               [
@@ -100,27 +70,20 @@ class LocalVariableTest extends PartialCodeTest {
               ],
               "final _s_;",
               failing: [
-                'eof',
-                'assert',
-                'block',
-                'break',
-                'continue',
-                'for',
                 'labeled',
                 'localFunctionNonVoid',
                 'localFunctionVoid',
                 'localVariable',
-                'return',
               ]),
-          new TestDescriptor('finalName', 'final a',
+          TestDescriptor('finalName', 'final a',
               [ParserErrorCode.EXPECTED_TOKEN], "final a;",
               failing: [
                 'labeled',
                 'localFunctionNonVoid',
               ]),
-          new TestDescriptor('finalTypeName', 'final int a',
+          TestDescriptor('finalTypeName', 'final int a',
               [ParserErrorCode.EXPECTED_TOKEN], "final int a;"),
-          new TestDescriptor(
+          TestDescriptor(
               'type',
               'int',
               [
@@ -129,10 +92,9 @@ class LocalVariableTest extends PartialCodeTest {
               ],
               "int _s_;",
               allFailing: true),
-          new TestDescriptor(
-              'typeName', 'int a', [ParserErrorCode.EXPECTED_TOKEN], "int a;",
-              allFailing: true),
-          new TestDescriptor(
+          TestDescriptor(
+              'typeName', 'int a', [ParserErrorCode.EXPECTED_TOKEN], "int a;"),
+          TestDescriptor(
               'var',
               'var',
               [
@@ -141,25 +103,18 @@ class LocalVariableTest extends PartialCodeTest {
               ],
               "var _s_;",
               failing: [
-                'eof',
-                'assert',
-                'block',
-                'break',
-                'continue',
-                'for',
                 'labeled',
                 'localFunctionNonVoid',
                 'localFunctionVoid',
                 'localVariable',
-                'return',
               ]),
-          new TestDescriptor(
+          TestDescriptor(
               'varName', 'var a', [ParserErrorCode.EXPECTED_TOKEN], "var a;",
               failing: [
                 'labeled',
                 'localFunctionNonVoid',
               ]),
-          new TestDescriptor(
+          TestDescriptor(
               'varNameEquals',
               'var a =',
               [
@@ -167,16 +122,16 @@ class LocalVariableTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "var a = _s_;",
-              failing: allExceptEof),
-          new TestDescriptor(
-              'varNameEqualsExpression',
-              'var a = b',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "var a = b;",
-              allFailing: true),
+              failing: [
+                'block',
+                'assert',
+                'labeled',
+                'localFunctionNonVoid',
+                'localFunctionVoid',
+                'return'
+              ]),
+          TestDescriptor('varNameEqualsExpression', 'var a = b',
+              [ParserErrorCode.EXPECTED_TOKEN], "var a = b;"),
         ],
         PartialCodeTest.statementSuffixes,
         head: 'f() { ',

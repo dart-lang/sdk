@@ -9,16 +9,16 @@ import "package:expect/expect.dart";
 main() {
   // testIterable takes an iterable and a list expected to be equal to
   // the iterable's toList result, including the type parameter of the list.
-  testIterable([], []);
+  testIterable(<dynamic>[], <dynamic>[]);
   testIterable(<int>[], <int>[]);
   testIterable(<String>[], <String>[]);
   testIterable([1, 2, 3], [1, 2, 3]);
   testIterable(<int>[1, 2, 3], <int>[1, 2, 3]);
   testIterable(const [1, 2], [1, 2]);
   testIterable(const <int>[1, 2], <int>[1, 2]);
-  testIterable({"x": 1, "y": 1}.keys, ["x", "y"]);
+  testIterable(<dynamic, dynamic>{"x": 1, "y": 1}.keys, <dynamic>["x", "y"]);
   testIterable(<String, int>{"x": 1, "y": 1}.keys, <String>["x", "y"]);
-  testIterable({"x": 2, "y": 3}.values, [2, 3]);
+  testIterable(<dynamic, dynamic>{"x": 2, "y": 3}.values, <dynamic>[2, 3]);
   testIterable(<String, int>{"x": 2, "y": 3}.values, <int>[2, 3]);
   testIterable(new Iterable.generate(3), [0, 1, 2]);
   testIterable(new Iterable<int>.generate(3), <int>[0, 1, 2]);
@@ -29,9 +29,9 @@ main() {
   testIterable(new Queue.from([1, 2, 3]), [1, 2, 3]);
   testIterable(new Queue<int>.from(<int>[1, 2, 3]), <int>[1, 2, 3]);
   testIterable(new Uint8List.fromList(<int>[1, 2, 3]), //    //# 01: ok
-               <int>[1, 2, 3]); //                           //# 01: continued
+      <int>[1, 2, 3]); //                                    //# 01: continued
   testIterable(new Float32List.fromList([1.0, 2.0, 3.0]), // //# 01: continued
-               <double>[1.0, 2.0, 3.0]); //                  //# 01: continued
+      <double>[1.0, 2.0, 3.0]); //                           //# 01: continued
   testIterable("abc".codeUnits, <int>[97, 98, 99]); //       //# 01: continued
   testIterable("abc".runes, <int>[97, 98, 99]);
 }

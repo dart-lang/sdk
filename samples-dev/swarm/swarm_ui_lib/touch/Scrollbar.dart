@@ -218,7 +218,7 @@ class Scrollbar implements ScrollListener {
     _currentScrollStartMouse = coordinate;
   }
 
-  void _onEnd(UIEvent e) {
+  void _onEnd(Event e) {
     _scrollBarDragInProgress = false;
     // TODO(jacobr): make scrollbar less tightly coupled to the scroller.
     _scroller._onScrollerDragEnd.add(new Event(ScrollerEventType.DRAG_END));

@@ -18,25 +18,20 @@ library front_end.tool.perf;
 import 'dart:async';
 import 'dart:io' show Directory, File, Platform, exit;
 
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/file_system.dart' show ResourceUriResolver;
-import 'package:analyzer/file_system/physical_file_system.dart'
-    show PhysicalResourceProvider;
-import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/file_system/file_system.dart' show Folder;
+import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/link.dart';
-import 'package:analyzer/src/summary/summarize_ast.dart';
-import 'package:front_end/src/scanner/reader.dart';
-import 'package:front_end/src/scanner/scanner.dart';
-import 'package:front_end/src/scanner/token.dart';
-import 'package:package_config/discovery.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:path/path.dart' as path;
 
 main(List<String> args) async {
@@ -49,16 +44,12 @@ main(List<String> args) async {
   var bench = args[0];
   var entryUri = Uri.base.resolve(args[1]);
 
-  await setup(entryUri);
+  await setup(path.fromUri(entryUri));
 
   Set<Source> files = scanReachableFiles(entryUri);
   var handlers = {
     'scan': () async => scanFiles(files),
     'parse': () async => parseFiles(files),
-    'unlinked_summarize': () async => summarize(files),
-    'unlinked_summarize_from_sources': () async => summarize(files),
-    'prelinked_summarize': () async => summarize(files, prelink: true),
-    'linked_summarize': () async => summarize(files, link: true),
   };
 
   var handler = handlers[bench];
@@ -81,9 +72,6 @@ main(List<String> args) async {
 
 /// Cumulative time spent parsing.
 Stopwatch parseTimer = new Stopwatch();
-
-/// Cumulative time spent building unlinked summaries.
-Stopwatch unlinkedSummarizeTimer = new Stopwatch();
 
 /// Cumulative time spent scanning.
 Stopwatch scanTimer = new Stopwatch();
@@ -109,62 +97,14 @@ void collectSources(Source start, Set<Source> files) {
   }
 }
 
-/// Generates unlinkmed summaries for all files in [files], and returns them in
-/// an [_UnlinkedSummaries] container.
-_UnlinkedSummaries generateUnlinkedSummaries(Set<Source> files) {
-  var unlinkedSummaries = new _UnlinkedSummaries();
-  for (var source in files) {
-    unlinkedSummaries.summariesByUri[source.uri.toString()] =
-        unlinkedSummarize(source);
-  }
-  return unlinkedSummaries;
-}
-
-/// Generates unlinked summaries for every file in [files] and, if requested via
-/// [prelink] or [link], generates the pre-linked and linked summaries as well.
-///
-/// This function also prints a report of the time spent on each action.
-void summarize(Set<Source> files, {bool prelink: false, bool link: false}) {
-  scanTimer = new Stopwatch();
-  parseTimer = new Stopwatch();
-  unlinkedSummarizeTimer = new Stopwatch();
-  var unlinkedSummaries = generateUnlinkedSummaries(files);
-  report('scan', scanTimer.elapsedMicroseconds);
-  report('parse', parseTimer.elapsedMicroseconds);
-  report('unlinked_summarize', unlinkedSummarizeTimer.elapsedMicroseconds);
-  report(
-      'unlinked_summarize_from_sources',
-      unlinkedSummarizeTimer.elapsedMicroseconds +
-          parseTimer.elapsedMicroseconds +
-          scanTimer.elapsedMicroseconds);
-
-  if (prelink || link) {
-    var prelinkTimer = new Stopwatch()..start();
-    var prelinkedLibraries = prelinkSummaries(files, unlinkedSummaries);
-    prelinkTimer.stop();
-    report('prelinked_summarize', prelinkTimer.elapsedMicroseconds);
-
-    if (link) {
-      var linkTimer = new Stopwatch()..start();
-      LinkedLibrary getDependency(String uri) {
-        // getDependency should never be called because all dependencies are
-        // present in [prelinkedLibraries].
-        print('Warning: getDependency called for: $uri');
-        return null;
-      }
-
-      relink(prelinkedLibraries, getDependency, unlinkedSummaries.getUnit,
-          true /*strong*/);
-      linkTimer.stop();
-      report('linked_summarize', linkTimer.elapsedMicroseconds);
-    }
-  }
-}
-
 /// Uses the diet-parser to parse only directives in [source].
 CompilationUnit parseDirectives(Source source) {
   var token = tokenize(source);
-  var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
+  var parser = new Parser(
+    source,
+    AnalysisErrorListener.NULL_LISTENER,
+    featureSet: FeatureSet.fromEnableFlags([]),
+  );
   return parser.parseDirectives(token);
 }
 
@@ -184,33 +124,23 @@ void parseFiles(Set<Source> files) {
 CompilationUnit parseFull(Source source) {
   var token = tokenize(source);
   parseTimer.start();
-  var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
+  var parser = new Parser(
+    source,
+    AnalysisErrorListener.NULL_LISTENER,
+    featureSet: FeatureSet.fromEnableFlags([]),
+  );
   var unit = parser.parseCompilationUnit(token);
   parseTimer.stop();
   return unit;
 }
 
-/// Prelinks all the summaries for [files], using [unlinkedSummaries] to obtain
-/// their unlinked summaries.
-///
-/// The return value is suitable for passing to the summary linker.
-Map<String, LinkedLibraryBuilder> prelinkSummaries(
-    Set<Source> files, _UnlinkedSummaries unlinkedSummaries) {
-  Set<String> libraryUris = files.map((source) => '${source.uri}').toSet();
-
-  String getDeclaredVariable(String s) => null;
-  var prelinkedLibraries =
-      setupForLink(libraryUris, unlinkedSummaries.getUnit, getDeclaredVariable);
-  return prelinkedLibraries;
-}
-
 /// Report that metric [name] took [time] micro-seconds to process
 /// [inputSize] characters.
 void report(String name, int time) {
-  var sb = new StringBuffer();
-  var padding = ' ' * (20 - name.length);
+  StringBuffer sb = new StringBuffer();
+  String padding = ' ' * (20 - name.length);
   sb.write('$name:$padding $time us, ${time ~/ 1000} ms');
-  var invSpeed = (time * 1000 / inputSize).toStringAsFixed(2);
+  String invSpeed = (time * 1000 / inputSize).toStringAsFixed(2);
   sb.write(', $invSpeed ns/char');
   print('$sb');
 }
@@ -257,7 +187,9 @@ Set<Source> scanReachableFiles(Uri entryUri) {
   loadTimer.stop();
 
   inputSize = 0;
-  for (var s in files) inputSize += s.contents.data.length;
+  for (var s in files) {
+    inputSize += s.contents.data.length;
+  }
   print('input size: ${inputSize} chars');
   var loadTime = loadTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
   report('load', loadTime);
@@ -267,10 +199,19 @@ Set<Source> scanReachableFiles(Uri entryUri) {
 
 /// Sets up analyzer to be able to load and resolve app, packages, and sdk
 /// sources.
-Future setup(Uri entryUri) async {
+Future setup(String path) async {
   var provider = PhysicalResourceProvider.INSTANCE;
-  var packageMap = new ContextBuilder(provider, null, null)
-      .convertPackagesToMap(await findPackages(entryUri));
+
+  var packages = findPackagesFrom(
+    provider,
+    provider.getResource(path),
+  );
+
+  var packageMap = <String, List<Folder>>{};
+  for (var package in packages.packages) {
+    packageMap[package.name] = [package.libFolder];
+  }
+
   sources = new SourceFactory([
     new ResourceUriResolver(provider),
     new PackageMapUriResolver(provider, packageMap),
@@ -284,18 +225,17 @@ Token tokenize(Source source) {
   scanTimer.start();
   // TODO(sigmund): is there a way to scan from a random-access-file without
   // first converting to String?
-  var scanner = new _Scanner(source.contents.data);
-  var token = scanner.tokenize();
+  ScannerResult result =
+      scanString(source.contents.data, includeComments: false);
+  var token = result.tokens;
+  if (result.hasErrors) {
+    // Ignore errors.
+    while (token is ErrorToken) {
+      token = token.next;
+    }
+  }
   scanTimer.stop();
   return token;
-}
-
-UnlinkedUnitBuilder unlinkedSummarize(Source source) {
-  var unit = parseFull(source);
-  unlinkedSummarizeTimer.start();
-  var unlinkedUnit = serializeAstUnlinked(unit);
-  unlinkedSummarizeTimer.stop();
-  return unlinkedUnit;
 }
 
 String _findSdkPath() {
@@ -305,37 +245,10 @@ String _findSdkPath() {
     path.dirname(executableDir),
     path.join(executableDir, 'dart-sdk')
   ]) {
-    if (new File(path.join(candidate, 'lib', 'dart_server.platform'))
-        .existsSync()) {
+    if (new File(path.join(candidate, 'lib', 'libraries.json')).existsSync()) {
       return candidate;
     }
   }
   // Not found; guess "sdk" relative to the current directory.
   return new Directory('sdk').absolute.path;
-}
-
-/// Simple container for a mapping from URI string to an unlinked summary.
-class _UnlinkedSummaries {
-  final summariesByUri = <String, UnlinkedUnit>{};
-
-  /// Get the unlinked summary for the given URI, and report a warning if it
-  /// can't be found.
-  UnlinkedUnit getUnit(String uri) {
-    var result = summariesByUri[uri];
-    if (result == null) {
-      print('Warning: no summary found for: $uri');
-    }
-    return result;
-  }
-}
-
-class _Scanner extends Scanner {
-  _Scanner(String contents) : super.create(new CharSequenceReader(contents)) {
-    preserveComments = false;
-  }
-
-  @override
-  void reportError(errorCode, int offset, List<Object> arguments) {
-    // ignore errors.
-  }
 }

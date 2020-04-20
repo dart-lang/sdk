@@ -1,30 +1,33 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'dart:async';
 import 'dart:developer';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-primeDartTimeline() {
+primeDartTimeline() async {
   while (true) {
     Timeline.startSync('apple');
     Timeline.finishSync();
+    // Give the VM a chance to send the timeline events. This test is
+    // significantly slower if we loop without yielding control after each
+    // iteration.
+    await Future.delayed(const Duration(milliseconds: 1));
   }
 }
 
-bool isDart(Map event) => event['cat'] == 'Dart';
+bool isDart(event) => event['cat'] == 'Dart';
 
-List<Map> filterEvents(List<Map> events, filter) {
+List filterEvents(List events, filter) {
   return events.where(filter).toList();
 }
 
-Completer completer = new Completer();
-int eventCount = 0;
+Completer completer;
+int eventCount;
 
 onTimelineEvent(ServiceEvent event) {
   eventCount++;
@@ -34,7 +37,12 @@ onTimelineEvent(ServiceEvent event) {
   }
 }
 
-var tests = [
+var tests = <IsolateTest>[
+  (Isolate isolate) async {
+    // Clear global state.
+    eventCount = 0;
+    completer = Completer<void>();
+  },
   (Isolate isolate) async {
     // Subscribe to the Timeline stream.
     await subscribeToStream(isolate.vm, VM.kTimelineStream, onTimelineEvent);
@@ -46,7 +54,7 @@ var tests = [
   },
   (Isolate isolate) async {
     // Get the flags.
-    Map flags = await isolate.vm.invokeRpcNoUpgrade('_getVMTimelineFlags', {});
+    Map flags = await isolate.vm.invokeRpcNoUpgrade('getVMTimelineFlags', {});
     expect(flags['type'], 'TimelineFlags');
     // Confirm that 'Dart' is available.
     expect(flags['availableStreams'].contains('Dart'), isTrue);
@@ -55,7 +63,7 @@ var tests = [
   },
   (Isolate isolate) async {
     // Enable the Dart category.
-    await isolate.vm.invokeRpcNoUpgrade('_setVMTimelineFlags', {
+    await isolate.vm.invokeRpcNoUpgrade('setVMTimelineFlags', {
       "recordedStreams": ["Dart"]
     });
   },

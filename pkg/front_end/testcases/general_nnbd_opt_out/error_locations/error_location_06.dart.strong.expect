@@ -1,0 +1,30 @@
+library error_location_06;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/error_locations/error_location_06_lib1.dart:14:8: Error: Duplicated parameter name 'z'.
+// x1(z, {z}) {}
+//        ^
+// pkg/front_end/testcases/general_nnbd_opt_out/error_locations/error_location_06_lib1.dart:14:4: Context: Other parameter named 'z'.
+// x1(z, {z}) {}
+//    ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/error_locations/error_location_06_lib1.dart:17:9: Error: 'z' is already declared in this scope.
+//   y(z, {z}) {}
+//         ^
+// pkg/front_end/testcases/general_nnbd_opt_out/error_locations/error_location_06_lib1.dart:17:5: Context: Previous declaration of 'z'.
+//   y(z, {z}) {}
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+part error_location_06_lib1.dart;
+static method /* from org-dartlang-testcase:///error_location_06_lib1.dart */ x1(dynamic z, {dynamic z = #C1}) → dynamic {}
+static method /* from org-dartlang-testcase:///error_location_06_lib1.dart */ x2() → dynamic {
+  function y(dynamic z, {dynamic z = #C1}) → core::Null? {}
+}
+
+constants  {
+  #C1 = null
+}

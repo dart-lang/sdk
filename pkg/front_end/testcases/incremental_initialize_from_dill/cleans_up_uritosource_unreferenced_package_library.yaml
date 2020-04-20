@@ -1,0 +1,33 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with a package. Update the world so that the .packages
+# no longer reference the package (and the source no longe ruse it) and
+# recompile. The now no longer referenced package library should also have been
+# removed from the uri to sources.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      .packages: example:pkg/example
+      main.dart: |
+        import "package:example/b.dart";
+        main() { b(); }
+      pkg/example/b.dart: |
+        b() {}
+    expectedLibraryCount: 2
+  - entry: main.dart
+    worldType: updated
+    invalidate:
+      - main.dart
+      - .packages
+    expectInitializeFromDill: false
+    sources:
+      .packages: 
+      main.dart: |
+        main() {}
+    expectedLibraryCount: 1
+    uriToSourcesDoesntInclude:
+      - pkg/example/b.dart

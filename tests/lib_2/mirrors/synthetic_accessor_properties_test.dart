@@ -4,35 +4,34 @@
 
 library test.synthetic_accessor_properties;
 
-@MirrorsUsed(targets: "test.synthetic_accessor_properties")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 import 'stringify.dart';
 
 class C {
-  String instanceField;
+  String instanceField = "1";
   final num finalInstanceField = 2;
 
-  static bool staticField;
+  static bool staticField = false;
   static final int finalStaticField = 4;
 }
 
-String topLevelField;
+String topLevelField = "5";
 final double finalTopLevelField = 6.0;
 
 main() {
   ClassMirror cm = reflectClass(C);
-  LibraryMirror lm = cm.owner;
+  LibraryMirror lm = cm.owner as LibraryMirror;
   MethodMirror mm;
   ParameterMirror pm;
 
-  mm = cm.instanceMembers[#instanceField];
+  mm = cm.instanceMembers[#instanceField] as MethodMirror;
   expect('Method(s(instanceField) in s(C), synthetic, getter)', mm);
   Expect.equals(reflectClass(String), mm.returnType);
   Expect.listEquals([], mm.parameters);
 
-  mm = cm.instanceMembers[const Symbol('instanceField=')];
+  mm = cm.instanceMembers[const Symbol('instanceField=')] as MethodMirror;
   expect('Method(s(instanceField=) in s(C), synthetic, setter)', mm);
   Expect.equals(reflectClass(String), mm.returnType);
   pm = mm.parameters.single;
@@ -41,20 +40,20 @@ main() {
       ' type = Class(s(String) in s(dart.core), top-level))',
       pm);
 
-  mm = cm.instanceMembers[#finalInstanceField];
+  mm = cm.instanceMembers[#finalInstanceField] as MethodMirror;
   expect('Method(s(finalInstanceField) in s(C), synthetic, getter)', mm);
   Expect.equals(reflectClass(num), mm.returnType);
   Expect.listEquals([], mm.parameters);
 
-  mm = cm.instanceMembers[const Symbol('finalInstanceField=')];
+  mm = cm.instanceMembers[const Symbol('finalInstanceField=')] as MethodMirror;
   Expect.isNull(mm);
 
-  mm = cm.staticMembers[#staticField];
+  mm = cm.staticMembers[#staticField] as MethodMirror;
   expect('Method(s(staticField) in s(C), synthetic, static, getter)', mm);
   Expect.equals(reflectClass(bool), mm.returnType);
   Expect.listEquals([], mm.parameters);
 
-  mm = cm.staticMembers[const Symbol('staticField=')];
+  mm = cm.staticMembers[const Symbol('staticField=')] as MethodMirror;
   expect('Method(s(staticField=) in s(C), synthetic, static, setter)', mm);
   Expect.equals(reflectClass(bool), mm.returnType);
   pm = mm.parameters.single;
@@ -63,11 +62,11 @@ main() {
       ' type = Class(s(bool) in s(dart.core), top-level))',
       pm);
 
-  mm = cm.staticMembers[#finalStaticField];
+  mm = cm.staticMembers[#finalStaticField] as MethodMirror;
   expect('Method(s(finalStaticField) in s(C), synthetic, static, getter)', mm);
   Expect.equals(reflectClass(int), mm.returnType);
   Expect.listEquals([], mm.parameters);
 
-  mm = cm.staticMembers[const Symbol('finalStaticField=')];
+  mm = cm.staticMembers[const Symbol('finalStaticField=')] as MethodMirror;
   Expect.isNull(mm);
 }

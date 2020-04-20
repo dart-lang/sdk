@@ -8,9 +8,12 @@
 #include "bin/thread.h"
 #include "bin/thread_fuchsia.h"
 
-#include <errno.h>         // NOLINT
-#include <sys/resource.h>  // NOLINT
-#include <sys/time.h>      // NOLINT
+#include <errno.h>     // NOLINT
+#include <sys/time.h>  // NOLINT
+#include <zircon/status.h>
+#include <zircon/syscalls.h>
+#include <zircon/threads.h>
+#include <zircon/types.h>
 
 #include "platform/assert.h"
 #include "platform/utils.h"
@@ -58,13 +61,17 @@ static void ComputeTimeSpecMicros(struct timespec* ts, int64_t micros) {
 
 class ThreadStartData {
  public:
-  ThreadStartData(Thread::ThreadStartFunction function, uword parameter)
-      : function_(function), parameter_(parameter) {}
+  ThreadStartData(const char* name,
+                  Thread::ThreadStartFunction function,
+                  uword parameter)
+      : name_(name), function_(function), parameter_(parameter) {}
 
+  const char* name() const { return name_; }
   Thread::ThreadStartFunction function() const { return function_; }
   uword parameter() const { return parameter_; }
 
  private:
+  const char* name_;
   Thread::ThreadStartFunction function_;
   uword parameter_;
 
@@ -77,9 +84,14 @@ class ThreadStartData {
 static void* ThreadStart(void* data_ptr) {
   ThreadStartData* data = reinterpret_cast<ThreadStartData*>(data_ptr);
 
+  const char* name = data->name();
   Thread::ThreadStartFunction function = data->function();
   uword parameter = data->parameter();
   delete data;
+
+  // Set the thread name.
+  zx_handle_t thread_handle = thrd_get_zx_handle(thrd_current());
+  zx_object_set_property(thread_handle, ZX_PROP_NAME, name, strlen(name) + 1);
 
   // Call the supplied thread start function handing it its parameters.
   function(parameter);
@@ -87,7 +99,9 @@ static void* ThreadStart(void* data_ptr) {
   return NULL;
 }
 
-int Thread::Start(ThreadStartFunction function, uword parameter) {
+int Thread::Start(const char* name,
+                  ThreadStartFunction function,
+                  uword parameter) {
   pthread_attr_t attr;
   int result = pthread_attr_init(&attr);
   RETURN_ON_PTHREAD_FAILURE(result);
@@ -98,7 +112,7 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
   result = pthread_attr_setstacksize(&attr, Thread::GetMaxStackSize());
   RETURN_ON_PTHREAD_FAILURE(result);
 
-  ThreadStartData* data = new ThreadStartData(function, parameter);
+  ThreadStartData* data = new ThreadStartData(name, function, parameter);
 
   pthread_t tid;
   result = pthread_create(&tid, &attr, ThreadStart, data);
@@ -150,10 +164,6 @@ intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
 
 bool Thread::Compare(ThreadId a, ThreadId b) {
   return (pthread_equal(a, b) != 0);
-}
-
-void Thread::InitOnce() {
-  // Nothing to be done.
 }
 
 Mutex::Mutex() {

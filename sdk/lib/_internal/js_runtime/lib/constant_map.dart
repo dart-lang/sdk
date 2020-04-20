@@ -2,16 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of _js_helper;
 
-class ConstantMapView<K, V> extends UnmodifiableMapView implements ConstantMap {
-  ConstantMapView(Map base) : super(base);
+class ConstantMapView<K, V> extends UnmodifiableMapView<K, V>
+    implements ConstantMap<K, V> {
+  ConstantMapView(Map<K, V> base) : super(base);
 }
 
 abstract class ConstantMap<K, V> implements Map<K, V> {
   // Used to create unmodifiable maps from other maps.
   factory ConstantMap.from(Map other) {
-    List keys = other.keys.toList();
+    List keys = new List<K>.from(other.keys);
     bool allStrings = true;
     for (var k in keys) {
       if (k is! String) {
@@ -25,7 +28,7 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
       var object = JS('=Object', '{}');
       int length = 0;
       for (var k in keys) {
-        var v = other[k];
+        V v = other[k];
         if (k != '__proto__') {
           if (!jsHasOwnProperty(object, k)) length++;
           JS('void', '#[#] = #', object, k, v);
@@ -46,21 +49,51 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
 
   const ConstantMap._();
 
+  Map<RK, RV> cast<RK, RV>() => Map.castFrom<K, V, RK, RV>(this);
   bool get isEmpty => length == 0;
 
   bool get isNotEmpty => !isEmpty;
 
-  String toString() => Maps.mapToString(this);
+  String toString() => MapBase.mapToString(this);
 
-  static _throwUnmodifiable() {
+  static Null _throwUnmodifiable() {
     throw new UnsupportedError('Cannot modify unmodifiable Map');
   }
 
   void operator []=(K key, V val) => _throwUnmodifiable();
   V putIfAbsent(K key, V ifAbsent()) => _throwUnmodifiable();
-  V remove(K key) => _throwUnmodifiable();
+  V remove(Object key) => _throwUnmodifiable();
   void clear() => _throwUnmodifiable();
   void addAll(Map<K, V> other) => _throwUnmodifiable();
+
+  Iterable<MapEntry<K, V>> get entries sync* {
+    for (var key in keys) yield new MapEntry<K, V>(key, this[key]);
+  }
+
+  void addEntries(Iterable<MapEntry<K, V>> entries) {
+    for (var entry in entries) this[entry.key] = entry.value;
+  }
+
+  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> transform(K key, V value)) {
+    var result = <K2, V2>{};
+    this.forEach((K key, V value) {
+      var entry = transform(key, value);
+      result[entry.key] = entry.value;
+    });
+    return result;
+  }
+
+  V update(K key, V update(V value), {V ifAbsent()}) {
+    _throwUnmodifiable();
+  }
+
+  void updateAll(V update(K key, V value)) {
+    _throwUnmodifiable();
+  }
+
+  void removeWhere(bool test(K key, V value)) {
+    _throwUnmodifiable();
+  }
 }
 
 class ConstantStringMap<K, V> extends ConstantMap<K, V> {
@@ -76,7 +109,7 @@ class ConstantStringMap<K, V> extends ConstantMap<K, V> {
   final List<K> _keys;
 
   int get length => JS('JSUInt31', '#', _length);
-  List get _keysArray => JS('JSUnmodifiableArray', '#', _keys);
+  List<K> get _keysArray => JS('JSUnmodifiableArray', '#', _keys);
 
   bool containsValue(Object needle) {
     return values.any((V value) => value == needle);
@@ -90,7 +123,7 @@ class ConstantStringMap<K, V> extends ConstantMap<K, V> {
 
   V operator [](Object key) {
     if (!containsKey(key)) return null;
-    return _fetch(key);
+    return JS('', '#', _fetch(key));
   }
 
   // [_fetch] is the indexer for keys for which `containsKey(key)` is true.

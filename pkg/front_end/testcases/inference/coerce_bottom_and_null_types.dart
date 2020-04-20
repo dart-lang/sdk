@@ -6,20 +6,20 @@
 library test;
 
 f() {
-  var /*@type=int*/ a = 0;
-  var /*@type=dynamic*/ b = null;
-  var /*@type=dynamic*/ c = throw 'foo';
-  var /*@type=() -> int*/ d = /*@returnType=int*/ () => 0;
-  var /*@type=() -> dynamic*/ e = /*@returnType=dynamic*/ () => null;
-  var /*@type=() -> <BottomType>*/ f = /*@returnType=<BottomType>*/ () =>
+  var /*@ type=int* */ a = 0;
+  var /*@ type=dynamic */ b = null;
+  var /*@ type=dynamic */ c = throw 'foo';
+  var /*@ type=() ->* int* */ d = /*@ returnType=int* */ () => 0;
+  var /*@ type=() ->* Null? */ e = /*@ returnType=Null? */ () => null;
+  var /*@ type=() ->* <BottomType> */ f = /*@ returnType=<BottomType> */ () =>
       throw 'foo';
-  var /*@type=() -> int*/ g = /*@returnType=int*/ () {
+  var /*@ type=() ->* int* */ g = /*@ returnType=int* */ () {
     return 0;
   };
-  var /*@type=() -> Null*/ h = /*@returnType=Null*/ () {
+  var /*@ type=() ->* Null? */ h = /*@ returnType=Null? */ () {
     return null;
   };
-  var /*@type=() -> <BottomType>*/ i = /*@returnType=<BottomType>*/ () {
+  var /*@ type=() ->* <BottomType> */ i = /*@ returnType=<BottomType> */ () {
     return (throw 'foo');
   };
 }

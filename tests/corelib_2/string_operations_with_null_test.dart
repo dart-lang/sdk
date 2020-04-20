@@ -4,8 +4,8 @@
 
 import "package:expect/expect.dart";
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 returnStringOrNull() {
   return new DateTime.now().millisecondsSinceEpoch == 0 ? 'foo' : null;
 }

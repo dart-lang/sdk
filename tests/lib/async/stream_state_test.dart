@@ -5,8 +5,9 @@
 // Test the event/callback protocol of the stream implementations.
 library stream_state_test;
 
-import "package:unittest/unittest.dart";
-import "stream_state_helper.dart";
+import 'package:async_helper/async_minitest.dart';
+
+import 'stream_state_helper.dart';
 
 const ms5 = const Duration(milliseconds: 5);
 
@@ -30,7 +31,7 @@ void terminateWithDone(t, asBroadcast) {
   }
 }
 
-mainTest({bool sync, bool asBroadcast}) {
+mainTest({required bool sync, required bool asBroadcast}) {
   var p = (sync ? "S" : "AS") + (asBroadcast ? "BC" : "SC");
   test("$p-sub-data-done", () {
     var t = asBroadcast

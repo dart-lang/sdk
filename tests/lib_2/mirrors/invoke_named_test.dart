@@ -122,21 +122,19 @@ testSyncNewInstance() {
   ClassMirror cm = reflectClass(E);
   InstanceMirror result;
 
-  result = cm.newInstance(const Symbol(''), ['X']);
+  result = cm.newInstance(Symbol.empty, ['X']);
   Expect.equals('X-B-null', result.reflectee.field);
-  result = cm.newInstance(const Symbol(''), ['X'], {const Symbol('b'): 'Y'});
+  result = cm.newInstance(Symbol.empty, ['X'], {const Symbol('b'): 'Y'});
   Expect.equals('X-Y-null', result.reflectee.field);
-  result = cm.newInstance(const Symbol(''), ['X'],
-      {const Symbol('c'): 'Z', const Symbol('b'): 'Y'});
+  result = cm.newInstance(
+      Symbol.empty, ['X'], {const Symbol('c'): 'Z', const Symbol('b'): 'Y'});
   Expect.equals('X-Y-Z', result.reflectee.field);
-  Expect.throwsNoSuchMethodError(() => cm.newInstance(const Symbol(''), []),
+  Expect.throwsNoSuchMethodError(() => cm.newInstance(Symbol.empty, []),
       'Insufficient positional arguments');
-  Expect.throwsNoSuchMethodError(
-      () => cm.newInstance(const Symbol(''), ['X', 'Y']),
+  Expect.throwsNoSuchMethodError(() => cm.newInstance(Symbol.empty, ['X', 'Y']),
       'Extra positional arguments');
   Expect.throwsNoSuchMethodError(
-      () =>
-          cm.newInstance(const Symbol(''), ['X'], {const Symbol('undef'): 'Y'}),
+      () => cm.newInstance(Symbol.empty, ['X'], {const Symbol('undef'): 'Y'}),
       'Unmatched named argument');
 
   result = cm.newInstance(const Symbol('b'), []);
@@ -202,7 +200,7 @@ testSyncApply() {
   ClosureMirror cm;
   InstanceMirror result;
 
-  cm = reflect(a);
+  cm = reflect(a) as ClosureMirror;
   result = cm.apply(['X']);
   Expect.equals('X-B-null', result.reflectee);
   result = cm.apply(['X'], {const Symbol('b'): 'Y'});
@@ -217,7 +215,7 @@ testSyncApply() {
       () => cm.apply(['X'], {const Symbol('undef'): 'Y'}),
       'Unmatched named argument');
 
-  cm = reflect(b);
+  cm = reflect(b) as ClosureMirror;
   result = cm.apply([]);
   Expect.equals('A-null-null', result.reflectee);
   result = cm.apply([], {const Symbol('a'): 'X'});
@@ -231,7 +229,7 @@ testSyncApply() {
       () => cm.apply(['X'], {const Symbol('undef'): 'Y'}),
       'Unmatched named argument');
 
-  cm = reflect(c);
+  cm = reflect(c) as ClosureMirror;
   result = cm.apply(['X']);
   Expect.equals('X-null-C', result.reflectee);
   result = cm.apply(['X', 'Y']);
@@ -246,7 +244,7 @@ testSyncApply() {
       () => cm.apply(['X'], {const Symbol('undef'): 'Y'}),
       'Unmatched named argument');
 
-  cm = reflect(d);
+  cm = reflect(d) as ClosureMirror;
   result = cm.apply([]);
   Expect.equals('null-B-C', result.reflectee);
   result = cm.apply(['X']);
@@ -261,7 +259,7 @@ testSyncApply() {
       () => cm.apply(['X'], {const Symbol('undef'): 'Y'}),
       'Unmatched named argument');
 
-  cm = reflect(e);
+  cm = reflect(e) as ClosureMirror;
   result = cm.apply(['X', 'Y', 'Z']);
   Expect.equals('X-Y-Z', result.reflectee);
   Expect.throwsNoSuchMethodError(
@@ -281,7 +279,7 @@ main() {
   if (isDart2js) return;
 
   testSyncInvoke(reflectClass(D)); // ClassMirror
-  LibraryMirror lib = reflectClass(D).owner;
+  LibraryMirror lib = reflectClass(D).owner as LibraryMirror;
   testSyncInvoke(lib); // LibraryMirror
 
   testSyncNewInstance();

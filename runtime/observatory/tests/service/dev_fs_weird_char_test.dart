@@ -1,19 +1,18 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'dart:convert';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
-var tests = [
+var tests = <VMTest>[
   // Write a file with the ? character in the filename.
   (VM vm) async {
     var fsId = 'test';
     var filePath = '/foo/bar?dat';
-    var fileContents = BASE64.encode(UTF8.encode('fileContents'));
+    var fileContents = base64Encode(utf8.encode('fileContents'));
 
     var result;
     // Create DevFS.

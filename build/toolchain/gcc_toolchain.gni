@@ -40,6 +40,9 @@ concurrent_links = exec_script("get_concurrent_links.py", [], "value")
 #      Location of the strip executable. When specified, strip will be run on
 #      all executables as they are built. The stripped artifacts will be put in
 #      exe.stripped/.
+#  - llvm_objcopy
+#      Location of the llvm-objcopy executable. Used as strip instead of strip
+#      when specified.
 template("gcc_toolchain") {
   toolchain(target_name) {
     assert(defined(invoker.cc), "gcc_toolchain() must specify a \"cc\" value")
@@ -98,9 +101,8 @@ template("gcc_toolchain") {
       command = "$cc -MMD -MF $depfile {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
       description = "CC {{output}}"
-      outputs = [
-        "{{target_out_dir}}/{{target_output_name}}/{{source_name_part}}.o",
-      ]
+      outputs =
+          [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
     }
 
     tool("cxx") {
@@ -108,9 +110,8 @@ template("gcc_toolchain") {
       command = "$cxx -MMD -MF $depfile {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
       description = "CXX {{output}}"
-      outputs = [
-        "{{target_out_dir}}/{{target_output_name}}/{{source_name_part}}.o",
-      ]
+      outputs =
+          [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
     }
 
     tool("asm") {
@@ -119,9 +120,8 @@ template("gcc_toolchain") {
       command = "$cc -MMD -MF $depfile {{defines}} {{include_dirs}} {{asmflags}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
       description = "ASM {{output}}"
-      outputs = [
-        "{{target_out_dir}}/{{target_output_name}}/{{source_name_part}}.o",
-      ]
+      outputs =
+          [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
     }
 
     tool("alink") {
@@ -129,9 +129,8 @@ template("gcc_toolchain") {
       command = "rm -f {{output}} && $ar rcs {{output}} @$rspfile"
       description = "AR {{output}}"
       rspfile_content = "{{inputs}}"
-      outputs = [
-        "{{target_out_dir}}/{{target_output_name}}{{output_extension}}",
-      ]
+      outputs =
+          [ "{{target_out_dir}}/{{target_output_name}}{{output_extension}}" ]
       default_output_extension = ".a"
       output_prefix = "lib"
     }
@@ -193,7 +192,7 @@ template("gcc_toolchain") {
       outfile = "{{root_out_dir}}/$exename"
       rspfile = "$outfile.rsp"
 
-      if (defined(invoker.strip)) {
+      if (defined(invoker.strip) || defined(invoker.llvm_objcopy)) {
         stripped_outfile = "{{root_out_dir}}/exe.stripped/$exename"
       }
 
@@ -203,16 +202,18 @@ template("gcc_toolchain") {
         strip_command =
             "${strip} --strip-unneeded -o $stripped_outfile $outfile"
         command += " && " + strip_command
+      } else if (defined(invoker.llvm_objcopy)) {
+        strip = invoker.llvm_objcopy
+        strip_command = "${strip} --strip-all $outfile $stripped_outfile"
+        command += " && " + strip_command
       }
       if (defined(invoker.postlink)) {
         command += " && " + invoker.postlink
       }
       description = "LINK $outfile"
       rspfile_content = "{{inputs}}"
-      outputs = [
-        outfile,
-      ]
-      if (defined(invoker.strip)) {
+      outputs = [ outfile ]
+      if (defined(invoker.strip) || defined(invoker.llvm_objcopy)) {
         outputs += [ stripped_outfile ]
       }
       if (defined(invoker.link_outputs)) {

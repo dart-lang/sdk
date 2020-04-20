@@ -24,23 +24,32 @@ class Program;
 
 class Dart : public AllStatic {
  public:
-  static char* InitOnce(const uint8_t* vm_snapshot_data,
-                        const uint8_t* vm_snapshot_instructions,
-                        Dart_IsolateCreateCallback create,
-                        Dart_IsolateShutdownCallback shutdown,
-                        Dart_IsolateCleanupCallback cleanup,
-                        Dart_ThreadExitCallback thread_exit,
-                        Dart_FileOpenCallback file_open,
-                        Dart_FileReadCallback file_read,
-                        Dart_FileWriteCallback file_write,
-                        Dart_FileCloseCallback file_close,
-                        Dart_EntropySource entropy_source,
-                        Dart_GetVMServiceAssetsArchive get_service_assets,
-                        bool start_kernel_isolate);
-  static const char* Cleanup();
+  // Returns null if initialization succeeds, otherwise returns an error message
+  // (caller owns error message and has to free it).
+  static char* Init(const uint8_t* vm_snapshot_data,
+                    const uint8_t* vm_snapshot_instructions,
+                    Dart_IsolateGroupCreateCallback create_group,
+                    Dart_InitializeIsolateCallback initialize_isolate,
+                    Dart_IsolateShutdownCallback shutdown,
+                    Dart_IsolateCleanupCallback cleanup,
+                    Dart_IsolateGroupCleanupCallback cleanup_group,
+                    Dart_ThreadExitCallback thread_exit,
+                    Dart_FileOpenCallback file_open,
+                    Dart_FileReadCallback file_read,
+                    Dart_FileWriteCallback file_write,
+                    Dart_FileCloseCallback file_close,
+                    Dart_EntropySource entropy_source,
+                    Dart_GetVMServiceAssetsArchive get_service_assets,
+                    bool start_kernel_isolate,
+                    Dart_CodeObserver* observer);
+
+  // Returns null if cleanup succeeds, otherwise returns an error message
+  // (caller owns error message and has to free it).
+  static char* Cleanup();
 
   static Isolate* CreateIsolate(const char* name_prefix,
-                                const Dart_IsolateFlags& api_flags);
+                                const Dart_IsolateFlags& api_flags,
+                                IsolateGroup* isolate_group);
 
   // Initialize an isolate, either from a snapshot, from a Kernel binary, or
   // from SDK library sources.  If the snapshot_buffer is non-NULL,
@@ -48,15 +57,23 @@ class Dart : public AllStatic {
   // from_kernel.  Otherwise, initialize from sources.
   static RawError* InitializeIsolate(const uint8_t* snapshot_data,
                                      const uint8_t* snapshot_instructions,
-                                     intptr_t snapshot_length,
-                                     kernel::Program* kernel_program,
+                                     const uint8_t* kernel_buffer,
+                                     intptr_t kernel_buffer_size,
+                                     IsolateGroup* source_isolate_group,
                                      void* data);
+  static RawError* InitIsolateFromSnapshot(Thread* T,
+                                           Isolate* I,
+                                           const uint8_t* snapshot_data,
+                                           const uint8_t* snapshot_instructions,
+                                           const uint8_t* kernel_buffer,
+                                           intptr_t kernel_buffer_size);
   static void RunShutdownCallback();
   static void ShutdownIsolate(Isolate* isolate);
   static void ShutdownIsolate();
 
   static Isolate* vm_isolate() { return vm_isolate_; }
   static ThreadPool* thread_pool() { return thread_pool_; }
+  static bool VmIsolateNameEquals(const char* name);
 
   static int64_t UptimeMicros();
   static int64_t UptimeMillis() {
@@ -74,14 +91,10 @@ class Dart : public AllStatic {
   static uword AllocateReadOnlyHandle();
   static bool IsReadOnlyHandle(uword address);
 
-  static const char* FeaturesString(Isolate* isolate, Snapshot::Kind kind);
+  static const char* FeaturesString(Isolate* isolate,
+                                    bool is_vm_snapshot,
+                                    Snapshot::Kind kind);
   static Snapshot::Kind vm_snapshot_kind() { return vm_snapshot_kind_; }
-  static const uint8_t* vm_snapshot_instructions() {
-    return vm_snapshot_instructions_;
-  }
-  static void set_vm_snapshot_instructions(const uint8_t* buffer) {
-    vm_snapshot_instructions_ = buffer;
-  }
 
   static Dart_ThreadExitCallback thread_exit_callback() {
     return thread_exit_callback_;
@@ -119,7 +132,13 @@ class Dart : public AllStatic {
     return entropy_source_callback_;
   }
 
+  // TODO(dartbug.com/40342): Delete these functions.
+  static void set_non_nullable_flag(bool value) { non_nullable_flag_ = value; }
+  static bool non_nullable_flag() { return true; }
+
  private:
+  static constexpr const char* kVmIsolateName = "vm-isolate";
+
   static void WaitForIsolateShutdown();
   static void WaitForApplicationIsolateShutdown();
 
@@ -129,13 +148,13 @@ class Dart : public AllStatic {
   static DebugInfo* pprof_symbol_generator_;
   static ReadOnlyHandles* predefined_handles_;
   static Snapshot::Kind vm_snapshot_kind_;
-  static const uint8_t* vm_snapshot_instructions_;
   static Dart_ThreadExitCallback thread_exit_callback_;
   static Dart_FileOpenCallback file_open_callback_;
   static Dart_FileReadCallback file_read_callback_;
   static Dart_FileWriteCallback file_write_callback_;
   static Dart_FileCloseCallback file_close_callback_;
   static Dart_EntropySource entropy_source_callback_;
+  static bool non_nullable_flag_;
 };
 
 }  // namespace dart

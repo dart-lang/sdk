@@ -1,0 +1,1520 @@
+# Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+declare_args() {
+  llvm_prefix = "//third_party/llvm"
+}
+
+template("llvm_library") {
+  config(target_name + "_config") {
+    visibility = [ ":*" ]
+    include_dirs = [ "include" ]
+    libs = [ "lib/lib${target_name}.a" ]
+  }
+
+  group(target_name) {
+    forward_variables_from(invoker, [ "deps" ])
+    public_configs = [ ":${target_name}_config" ]
+  }
+}
+
+llvm_library("LLVMDemangle") {
+}
+
+llvm_library("LLVMSupport") {
+  deps = [ ":LLVMDemangle" ]
+}
+
+llvm_library("LLVMAArch64Utils") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMBinaryFormat") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMDebugInfoMSF") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMDebugInfoCodeView") {
+  deps = [
+    ":LLVMDebugInfoMSF",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMMC") {
+  deps = [
+    ":LLVMBinaryFormat",
+    ":LLVMDebugInfoCodeView",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMAArch64AsmPrinter") {
+  deps = [
+    ":LLVMAArch64Utils",
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMAArch64Info") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMAArch64Desc") {
+  deps = [
+    ":LLVMAArch64AsmPrinter",
+    ":LLVMAArch64Info",
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMMCParser") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMAArch64AsmParser") {
+  deps = [
+    ":LLVMAArch64Desc",
+    ":LLVMAArch64Info",
+    ":LLVMAArch64Utils",
+    ":LLVMMC",
+    ":LLVMMCParser",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMCore") {
+  deps = [
+    ":LLVMBinaryFormat",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMBitReader") {
+  deps = [
+    ":LLVMCore",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMObject") {
+  deps = [
+    ":LLVMBinaryFormat",
+    ":LLVMBitReader",
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMMCParser",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMProfileData") {
+  deps = [
+    ":LLVMCore",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMAnalysis") {
+  deps = [
+    ":LLVMBinaryFormat",
+    ":LLVMCore",
+    ":LLVMObject",
+    ":LLVMProfileData",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMBitWriter") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMObject",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMTransformUtils") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMCore",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMAggressiveInstCombine") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMCore",
+    ":LLVMSupport",
+    ":LLVMTransformUtils",
+  ]
+}
+
+llvm_library("LLVMInstCombine") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMCore",
+    ":LLVMSupport",
+    ":LLVMTransformUtils",
+  ]
+}
+
+llvm_library("LLVMScalarOpts") {
+  deps = [
+    ":LLVMAggressiveInstCombine",
+    ":LLVMAnalysis",
+    ":LLVMCore",
+    ":LLVMInstCombine",
+    ":LLVMSupport",
+    ":LLVMTransformUtils",
+  ]
+}
+
+llvm_library("LLVMTarget") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMCodeGen") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMBitReader",
+    ":LLVMBitWriter",
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMProfileData",
+    ":LLVMScalarOpts",
+    ":LLVMSupport",
+    ":LLVMTarget",
+    ":LLVMTransformUtils",
+  ]
+}
+
+llvm_library("LLVMAsmPrinter") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMBinaryFormat",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMDebugInfoCodeView",
+    ":LLVMDebugInfoMSF",
+    ":LLVMMC",
+    ":LLVMMCParser",
+    ":LLVMSupport",
+    ":LLVMTarget",
+  ]
+}
+
+llvm_library("LLVMSelectionDAG") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMSupport",
+    ":LLVMTarget",
+    ":LLVMTransformUtils",
+  ]
+}
+
+llvm_library("LLVMGlobalISel") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMSupport",
+    ":LLVMTarget",
+    ":LLVMTransformUtils",
+  ]
+}
+
+llvm_library("LLVMAArch64CodeGen") {
+  deps = [
+    ":LLVMAArch64AsmPrinter",
+    ":LLVMAArch64Desc",
+    ":LLVMAArch64Info",
+    ":LLVMAArch64Utils",
+    ":LLVMAnalysis",
+    ":LLVMAsmPrinter",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMGlobalISel",
+    ":LLVMMC",
+    ":LLVMScalarOpts",
+    ":LLVMSelectionDAG",
+    ":LLVMSupport",
+    ":LLVMTarget",
+  ]
+}
+
+llvm_library("LLVMMCDisassembler") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMAArch64Disassembler") {
+  deps = [
+    ":LLVMAArch64Desc",
+    ":LLVMAArch64Info",
+    ":LLVMAArch64Utils",
+    ":LLVMMC",
+    ":LLVMMCDisassembler",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMAMDGPUUtils") {
+  deps = [
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMAMDGPUAsmPrinter") {
+  deps = [
+    ":LLVMAMDGPUUtils",
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMAMDGPUInfo") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMAMDGPUDesc") {
+  deps = [
+    ":LLVMAMDGPUAsmPrinter",
+    ":LLVMAMDGPUInfo",
+    ":LLVMAMDGPUUtils",
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMAMDGPUAsmParser") {
+  deps = [
+    ":LLVMAMDGPUDesc",
+    ":LLVMAMDGPUInfo",
+    ":LLVMAMDGPUUtils",
+    ":LLVMMC",
+    ":LLVMMCParser",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMAsmParser") {
+  deps = [
+    ":LLVMBinaryFormat",
+    ":LLVMCore",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMIRReader") {
+  deps = [
+    ":LLVMAsmParser",
+    ":LLVMBitReader",
+    ":LLVMCore",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMLinker") {
+  deps = [
+    ":LLVMCore",
+    ":LLVMSupport",
+    ":LLVMTransformUtils",
+  ]
+}
+
+llvm_library("LLVMVectorize") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMCore",
+    ":LLVMSupport",
+    ":LLVMTransformUtils",
+  ]
+}
+
+llvm_library("LLVMInstrumentation") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMProfileData",
+    ":LLVMSupport",
+    ":LLVMTransformUtils",
+  ]
+}
+
+llvm_library("LLVMipo") {
+  deps = [
+    ":LLVMAggressiveInstCombine",
+    ":LLVMAnalysis",
+    ":LLVMBitReader",
+    ":LLVMBitWriter",
+    ":LLVMCore",
+    ":LLVMIRReader",
+    ":LLVMInstCombine",
+    ":LLVMInstrumentation",
+    ":LLVMLinker",
+    ":LLVMObject",
+    ":LLVMProfileData",
+    ":LLVMScalarOpts",
+    ":LLVMSupport",
+    ":LLVMTransformUtils",
+    ":LLVMVectorize",
+  ]
+}
+
+llvm_library("LLVMAMDGPUCodeGen") {
+  deps = [
+    ":LLVMAMDGPUAsmPrinter",
+    ":LLVMAMDGPUDesc",
+    ":LLVMAMDGPUInfo",
+    ":LLVMAMDGPUUtils",
+    ":LLVMAnalysis",
+    ":LLVMAsmPrinter",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMGlobalISel",
+    ":LLVMMC",
+    ":LLVMScalarOpts",
+    ":LLVMSelectionDAG",
+    ":LLVMSupport",
+    ":LLVMTarget",
+    ":LLVMTransformUtils",
+    ":LLVMVectorize",
+    ":LLVMipo",
+  ]
+}
+
+llvm_library("LLVMAMDGPUDisassembler") {
+  deps = [
+    ":LLVMAMDGPUDesc",
+    ":LLVMAMDGPUInfo",
+    ":LLVMAMDGPUUtils",
+    ":LLVMMC",
+    ":LLVMMCDisassembler",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMARCAsmPrinter") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMARCInfo") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMARCDesc") {
+  deps = [
+    ":LLVMARCAsmPrinter",
+    ":LLVMARCInfo",
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMARCCodeGen") {
+  deps = [
+    ":LLVMARCAsmPrinter",
+    ":LLVMARCDesc",
+    ":LLVMARCInfo",
+    ":LLVMAnalysis",
+    ":LLVMAsmPrinter",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMSelectionDAG",
+    ":LLVMSupport",
+    ":LLVMTarget",
+    ":LLVMTransformUtils",
+  ]
+}
+
+llvm_library("LLVMARCDisassembler") {
+  deps = [
+    ":LLVMARCInfo",
+    ":LLVMMCDisassembler",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMARMUtils") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMARMAsmPrinter") {
+  deps = [
+    ":LLVMARMUtils",
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMARMInfo") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMARMDesc") {
+  deps = [
+    ":LLVMARMAsmPrinter",
+    ":LLVMARMInfo",
+    ":LLVMMC",
+    ":LLVMMCDisassembler",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMARMAsmParser") {
+  deps = [
+    ":LLVMARMDesc",
+    ":LLVMARMInfo",
+    ":LLVMARMUtils",
+    ":LLVMMC",
+    ":LLVMMCParser",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMARMCodeGen") {
+  deps = [
+    ":LLVMARMAsmPrinter",
+    ":LLVMARMDesc",
+    ":LLVMARMInfo",
+    ":LLVMARMUtils",
+    ":LLVMAnalysis",
+    ":LLVMAsmPrinter",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMGlobalISel",
+    ":LLVMMC",
+    ":LLVMScalarOpts",
+    ":LLVMSelectionDAG",
+    ":LLVMSupport",
+    ":LLVMTarget",
+    ":LLVMTransformUtils",
+  ]
+}
+
+llvm_library("LLVMARMDisassembler") {
+  deps = [
+    ":LLVMARMDesc",
+    ":LLVMARMInfo",
+    ":LLVMARMUtils",
+    ":LLVMMCDisassembler",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMAVRAsmPrinter") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMAVRInfo") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMAVRDesc") {
+  deps = [
+    ":LLVMAVRAsmPrinter",
+    ":LLVMAVRInfo",
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMAVRAsmParser") {
+  deps = [
+    ":LLVMAVRDesc",
+    ":LLVMAVRInfo",
+    ":LLVMMC",
+    ":LLVMMCParser",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMAVRCodeGen") {
+  deps = [
+    ":LLVMAVRAsmPrinter",
+    ":LLVMAVRDesc",
+    ":LLVMAVRInfo",
+    ":LLVMAsmPrinter",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMSelectionDAG",
+    ":LLVMSupport",
+    ":LLVMTarget",
+  ]
+}
+
+llvm_library("LLVMAVRDisassembler") {
+  deps = [
+    ":LLVMAVRInfo",
+    ":LLVMMCDisassembler",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMBPFAsmPrinter") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMBPFInfo") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMBPFDesc") {
+  deps = [
+    ":LLVMBPFAsmPrinter",
+    ":LLVMBPFInfo",
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMBPFAsmParser") {
+  deps = [
+    ":LLVMBPFDesc",
+    ":LLVMBPFInfo",
+    ":LLVMMC",
+    ":LLVMMCParser",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMBPFCodeGen") {
+  deps = [
+    ":LLVMAsmPrinter",
+    ":LLVMBPFAsmPrinter",
+    ":LLVMBPFDesc",
+    ":LLVMBPFInfo",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMSelectionDAG",
+    ":LLVMSupport",
+    ":LLVMTarget",
+  ]
+}
+
+llvm_library("LLVMBPFDisassembler") {
+  deps = [
+    ":LLVMBPFInfo",
+    ":LLVMMCDisassembler",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMCoroutines") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMCore",
+    ":LLVMScalarOpts",
+    ":LLVMSupport",
+    ":LLVMTransformUtils",
+    ":LLVMipo",
+  ]
+}
+
+llvm_library("LLVMCoverage") {
+  deps = [
+    ":LLVMCore",
+    ":LLVMObject",
+    ":LLVMProfileData",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMDebugInfoDWARF") {
+  deps = [
+    ":LLVMBinaryFormat",
+    ":LLVMMC",
+    ":LLVMObject",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMDebugInfoPDB") {
+  deps = [
+    ":LLVMDebugInfoCodeView",
+    ":LLVMDebugInfoMSF",
+    ":LLVMObject",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMOption") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMDlltoolDriver") {
+  deps = [
+    ":LLVMObject",
+    ":LLVMOption",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMRuntimeDyld") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMObject",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMExecutionEngine") {
+  deps = [
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMObject",
+    ":LLVMRuntimeDyld",
+    ":LLVMSupport",
+    ":LLVMTarget",
+  ]
+}
+
+llvm_library("LLVMMCJIT") {
+  deps = [
+    ":LLVMCore",
+    ":LLVMExecutionEngine",
+    ":LLVMObject",
+    ":LLVMRuntimeDyld",
+    ":LLVMSupport",
+    ":LLVMTarget",
+  ]
+}
+
+llvm_library("LLVMFuzzMutate") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMBitReader",
+    ":LLVMBitWriter",
+    ":LLVMCore",
+    ":LLVMScalarOpts",
+    ":LLVMSupport",
+    ":LLVMTarget",
+  ]
+}
+
+llvm_library("LLVMHexagonInfo") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMHexagonDesc") {
+  deps = [
+    ":LLVMHexagonInfo",
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMHexagonAsmParser") {
+  deps = [
+    ":LLVMHexagonDesc",
+    ":LLVMHexagonInfo",
+    ":LLVMMC",
+    ":LLVMMCParser",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMHexagonCodeGen") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMAsmPrinter",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMHexagonAsmParser",
+    ":LLVMHexagonDesc",
+    ":LLVMHexagonInfo",
+    ":LLVMMC",
+    ":LLVMScalarOpts",
+    ":LLVMSelectionDAG",
+    ":LLVMSupport",
+    ":LLVMTarget",
+    ":LLVMTransformUtils",
+    ":LLVMipo",
+  ]
+}
+
+llvm_library("LLVMHexagonDisassembler") {
+  deps = [
+    ":LLVMHexagonDesc",
+    ":LLVMHexagonInfo",
+    ":LLVMMC",
+    ":LLVMMCDisassembler",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMInterpreter") {
+  deps = [
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMExecutionEngine",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMObjCARCOpts") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMCore",
+    ":LLVMSupport",
+    ":LLVMTransformUtils",
+  ]
+}
+
+llvm_library("LLVMPasses") {
+  deps = [
+    ":LLVMAggressiveInstCombine",
+    ":LLVMAnalysis",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMInstCombine",
+    ":LLVMInstrumentation",
+    ":LLVMScalarOpts",
+    ":LLVMSupport",
+    ":LLVMTarget",
+    ":LLVMTransformUtils",
+    ":LLVMVectorize",
+    ":LLVMipo",
+  ]
+}
+
+llvm_library("LLVMLTO") {
+  deps = [
+    ":LLVMAggressiveInstCombine",
+    ":LLVMAnalysis",
+    ":LLVMBitReader",
+    ":LLVMBitWriter",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMInstCombine",
+    ":LLVMLinker",
+    ":LLVMMC",
+    ":LLVMObjCARCOpts",
+    ":LLVMObject",
+    ":LLVMPasses",
+    ":LLVMScalarOpts",
+    ":LLVMSupport",
+    ":LLVMTarget",
+    ":LLVMTransformUtils",
+    ":LLVMipo",
+  ]
+}
+
+llvm_library("LLVMLanaiInfo") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMLanaiAsmPrinter") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMLanaiDesc") {
+  deps = [
+    ":LLVMLanaiAsmPrinter",
+    ":LLVMLanaiInfo",
+    ":LLVMMC",
+    ":LLVMMCDisassembler",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMLanaiAsmParser") {
+  deps = [
+    ":LLVMLanaiDesc",
+    ":LLVMLanaiInfo",
+    ":LLVMMC",
+    ":LLVMMCParser",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMLanaiCodeGen") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMAsmPrinter",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMLanaiAsmParser",
+    ":LLVMLanaiAsmPrinter",
+    ":LLVMLanaiDesc",
+    ":LLVMLanaiInfo",
+    ":LLVMMC",
+    ":LLVMSelectionDAG",
+    ":LLVMSupport",
+    ":LLVMTarget",
+    ":LLVMTransformUtils",
+  ]
+}
+
+llvm_library("LLVMLanaiDisassembler") {
+  deps = [
+    ":LLVMLanaiDesc",
+    ":LLVMLanaiInfo",
+    ":LLVMMC",
+    ":LLVMMCDisassembler",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMLibDriver") {
+  deps = [
+    ":LLVMBinaryFormat",
+    ":LLVMObject",
+    ":LLVMOption",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMLineEditor") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMMIRParser") {
+  deps = [
+    ":LLVMAsmParser",
+    ":LLVMBinaryFormat",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMSupport",
+    ":LLVMTarget",
+  ]
+}
+
+llvm_library("LLVMMSP430AsmPrinter") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMMSP430Info") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMMSP430Desc") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMMSP430AsmPrinter",
+    ":LLVMMSP430Info",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMMSP430CodeGen") {
+  deps = [
+    ":LLVMAsmPrinter",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMMSP430AsmPrinter",
+    ":LLVMMSP430Desc",
+    ":LLVMMSP430Info",
+    ":LLVMSelectionDAG",
+    ":LLVMSupport",
+    ":LLVMTarget",
+  ]
+}
+
+llvm_library("LLVMMipsAsmPrinter") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMMipsInfo") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMMipsDesc") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMMipsAsmPrinter",
+    ":LLVMMipsInfo",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMMipsAsmParser") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMMCParser",
+    ":LLVMMipsDesc",
+    ":LLVMMipsInfo",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMMipsCodeGen") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMAsmPrinter",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMGlobalISel",
+    ":LLVMMC",
+    ":LLVMMipsAsmPrinter",
+    ":LLVMMipsDesc",
+    ":LLVMMipsInfo",
+    ":LLVMSelectionDAG",
+    ":LLVMSupport",
+    ":LLVMTarget",
+  ]
+}
+
+llvm_library("LLVMMipsDisassembler") {
+  deps = [
+    ":LLVMMCDisassembler",
+    ":LLVMMipsInfo",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMNVPTXAsmPrinter") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMNVPTXInfo") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMNVPTXDesc") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMNVPTXAsmPrinter",
+    ":LLVMNVPTXInfo",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMNVPTXCodeGen") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMAsmPrinter",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMNVPTXAsmPrinter",
+    ":LLVMNVPTXDesc",
+    ":LLVMNVPTXInfo",
+    ":LLVMScalarOpts",
+    ":LLVMSelectionDAG",
+    ":LLVMSupport",
+    ":LLVMTarget",
+    ":LLVMTransformUtils",
+    ":LLVMVectorize",
+    ":LLVMipo",
+  ]
+}
+
+llvm_library("LLVMX86Utils") {
+  deps = [
+    ":LLVMCore",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMX86AsmPrinter") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+    ":LLVMX86Utils",
+  ]
+}
+
+llvm_library("LLVMX86Info") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMX86Desc") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMMCDisassembler",
+    ":LLVMObject",
+    ":LLVMSupport",
+    ":LLVMX86AsmPrinter",
+    ":LLVMX86Info",
+  ]
+}
+
+llvm_library("LLVMX86CodeGen") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMAsmPrinter",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMGlobalISel",
+    ":LLVMMC",
+    ":LLVMSelectionDAG",
+    ":LLVMSupport",
+    ":LLVMTarget",
+    ":LLVMX86AsmPrinter",
+    ":LLVMX86Desc",
+    ":LLVMX86Info",
+    ":LLVMX86Utils",
+  ]
+}
+
+llvm_library("LLVMNios2AsmPrinter") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMNios2Info") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMNios2Desc") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMNios2AsmPrinter",
+    ":LLVMNios2Info",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMNios2CodeGen") {
+  deps = [
+    ":LLVMAsmPrinter",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMGlobalISel",
+    ":LLVMMC",
+    ":LLVMNios2Desc",
+    ":LLVMNios2Info",
+    ":LLVMSelectionDAG",
+    ":LLVMSupport",
+    ":LLVMTarget",
+  ]
+}
+
+llvm_library("LLVMObjectYAML") {
+  deps = [
+    ":LLVMDebugInfoCodeView",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMOrcJIT") {
+  deps = [
+    ":LLVMCore",
+    ":LLVMExecutionEngine",
+    ":LLVMMC",
+    ":LLVMObject",
+    ":LLVMRuntimeDyld",
+    ":LLVMSupport",
+    ":LLVMTarget",
+    ":LLVMTransformUtils",
+  ]
+}
+
+llvm_library("LLVMPowerPCAsmPrinter") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMPowerPCInfo") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMPowerPCDesc") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMPowerPCAsmPrinter",
+    ":LLVMPowerPCInfo",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMPowerPCAsmParser") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMMCParser",
+    ":LLVMPowerPCDesc",
+    ":LLVMPowerPCInfo",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMPowerPCCodeGen") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMAsmPrinter",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMPowerPCAsmPrinter",
+    ":LLVMPowerPCDesc",
+    ":LLVMPowerPCInfo",
+    ":LLVMScalarOpts",
+    ":LLVMSelectionDAG",
+    ":LLVMSupport",
+    ":LLVMTarget",
+    ":LLVMTransformUtils",
+  ]
+}
+
+llvm_library("LLVMPowerPCDisassembler") {
+  deps = [
+    ":LLVMMCDisassembler",
+    ":LLVMPowerPCInfo",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMRISCVAsmPrinter") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMRISCVInfo") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMRISCVDesc") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMRISCVAsmPrinter",
+    ":LLVMRISCVInfo",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMRISCVAsmParser") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMMCParser",
+    ":LLVMRISCVDesc",
+    ":LLVMRISCVInfo",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMRISCVCodeGen") {
+  deps = [
+    ":LLVMAsmPrinter",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMRISCVAsmPrinter",
+    ":LLVMRISCVDesc",
+    ":LLVMRISCVInfo",
+    ":LLVMSelectionDAG",
+    ":LLVMSupport",
+    ":LLVMTarget",
+  ]
+}
+
+llvm_library("LLVMRISCVDisassembler") {
+  deps = [
+    ":LLVMMCDisassembler",
+    ":LLVMRISCVInfo",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMSparcAsmPrinter") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMSparcInfo") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMSparcDesc") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSparcAsmPrinter",
+    ":LLVMSparcInfo",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMSparcAsmParser") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMMCParser",
+    ":LLVMSparcDesc",
+    ":LLVMSparcInfo",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMSparcCodeGen") {
+  deps = [
+    ":LLVMAsmPrinter",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMSelectionDAG",
+    ":LLVMSparcAsmPrinter",
+    ":LLVMSparcDesc",
+    ":LLVMSparcInfo",
+    ":LLVMSupport",
+    ":LLVMTarget",
+  ]
+}
+
+llvm_library("LLVMSparcDisassembler") {
+  deps = [
+    ":LLVMMCDisassembler",
+    ":LLVMSparcInfo",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMSymbolize") {
+  deps = [
+    ":LLVMDebugInfoDWARF",
+    ":LLVMDebugInfoPDB",
+    ":LLVMDemangle",
+    ":LLVMObject",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMSystemZAsmPrinter") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMSystemZInfo") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMSystemZDesc") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+    ":LLVMSystemZAsmPrinter",
+    ":LLVMSystemZInfo",
+  ]
+}
+
+llvm_library("LLVMSystemZAsmParser") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMMCParser",
+    ":LLVMSupport",
+    ":LLVMSystemZDesc",
+    ":LLVMSystemZInfo",
+  ]
+}
+
+llvm_library("LLVMSystemZCodeGen") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMAsmPrinter",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMScalarOpts",
+    ":LLVMSelectionDAG",
+    ":LLVMSupport",
+    ":LLVMSystemZAsmPrinter",
+    ":LLVMSystemZDesc",
+    ":LLVMSystemZInfo",
+    ":LLVMTarget",
+  ]
+}
+
+llvm_library("LLVMSystemZDisassembler") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMMCDisassembler",
+    ":LLVMSupport",
+    ":LLVMSystemZDesc",
+    ":LLVMSystemZInfo",
+  ]
+}
+
+llvm_library("LLVMTableGen") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMTestingSupport") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMWebAssemblyInfo") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMWebAssemblyAsmParser") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMMCParser",
+    ":LLVMSupport",
+    ":LLVMWebAssemblyInfo",
+  ]
+}
+
+llvm_library("LLVMWebAssemblyAsmPrinter") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMWebAssemblyDesc") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+    ":LLVMWebAssemblyAsmPrinter",
+    ":LLVMWebAssemblyInfo",
+  ]
+}
+
+llvm_library("LLVMWebAssemblyCodeGen") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMAsmPrinter",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMScalarOpts",
+    ":LLVMSelectionDAG",
+    ":LLVMSupport",
+    ":LLVMTarget",
+    ":LLVMTransformUtils",
+    ":LLVMWebAssemblyAsmPrinter",
+    ":LLVMWebAssemblyDesc",
+    ":LLVMWebAssemblyInfo",
+  ]
+}
+
+llvm_library("LLVMWebAssemblyDisassembler") {
+  deps = [
+    ":LLVMMCDisassembler",
+    ":LLVMSupport",
+    ":LLVMWebAssemblyInfo",
+  ]
+}
+
+llvm_library("LLVMWindowsManifest") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMX86AsmParser") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMMCParser",
+    ":LLVMSupport",
+    ":LLVMX86AsmPrinter",
+    ":LLVMX86Desc",
+    ":LLVMX86Info",
+  ]
+}
+
+llvm_library("LLVMX86Disassembler") {
+  deps = [
+    ":LLVMMCDisassembler",
+    ":LLVMSupport",
+    ":LLVMX86Info",
+  ]
+}
+
+llvm_library("LLVMXCoreAsmPrinter") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+  ]
+}
+
+llvm_library("LLVMXCoreInfo") {
+  deps = [ ":LLVMSupport" ]
+}
+
+llvm_library("LLVMXCoreDesc") {
+  deps = [
+    ":LLVMMC",
+    ":LLVMSupport",
+    ":LLVMXCoreAsmPrinter",
+    ":LLVMXCoreInfo",
+  ]
+}
+
+llvm_library("LLVMXCoreCodeGen") {
+  deps = [
+    ":LLVMAnalysis",
+    ":LLVMAsmPrinter",
+    ":LLVMCodeGen",
+    ":LLVMCore",
+    ":LLVMMC",
+    ":LLVMSelectionDAG",
+    ":LLVMSupport",
+    ":LLVMTarget",
+    ":LLVMTransformUtils",
+    ":LLVMXCoreAsmPrinter",
+    ":LLVMXCoreDesc",
+    ":LLVMXCoreInfo",
+  ]
+}
+
+llvm_library("LLVMXCoreDisassembler") {
+  deps = [
+    ":LLVMMCDisassembler",
+    ":LLVMSupport",
+    ":LLVMXCoreInfo",
+  ]
+}

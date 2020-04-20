@@ -15,7 +15,7 @@ abstract class A {
 // So B.x doesn't inherit A.x's type.
 
 class B extends A {
-  static var /*@topType=dynamic*/ x = f();
+  static var x = f();
 }
 
 // Similar with C.x.  It is not even eligible for inference since it's static

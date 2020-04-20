@@ -5,19 +5,16 @@
 // Ensure that otherwise uninstantiated classes can be instantiated
 // reflectively.
 
-library lib;
-
-@MirrorsUsed(targets: "lib")
 import "dart:mirrors";
 
 class Foo {
-  int a;
+  int a = 0;
 }
 
 main() {
   // Do NOT instantiate Foo.
   var m = reflectClass(Foo);
-  var instance = m.newInstance(const Symbol(''), []);
+  var instance = m.newInstance(Symbol.empty, []);
   print(instance);
   bool threw = false;
   try {

@@ -4,36 +4,40 @@
 // VMOptions=--max_deoptimization_counter_threshold=1000 --optimization-counter-threshold=10 --no-background-compilation
 // VMOptions=--no-intrinsify
 
+// Requirements=nnbd-strong
+
 library int32x4_test;
 
 import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
+// TODO(eernst): Come pure null-safety, it can only be `TypeError`.
+bool isTypeError(e) => e is TypeError || e is ArgumentError;
+
 void testBadArguments() {
-  Expect.throws(() => new Int32x4(null, 2, 3, 4), (e) => e is ArgumentError);
-  Expect.throws(() => new Int32x4(1, null, 3, 4), (e) => e is ArgumentError);
-  Expect.throws(() => new Int32x4(1, 2, null, 4), (e) => e is ArgumentError);
-  Expect.throws(() => new Int32x4(1, 2, 3, null), (e) => e is ArgumentError);
+  // Check that the actual argument type error is detected and a dynamic
+  // error is raised. This is not trivially covered by similar dynamic type
+  // checks on actual parameters of user-written functions because `Int32x4`
+  // is a built-in type.
+
+  dynamic dynamicNull = null;
+  Expect.throws(() => new Int32x4(dynamicNull, 2, 3, 4), isTypeError);
+  Expect.throws(() => new Int32x4(1, dynamicNull, 3, 4), isTypeError);
+  Expect.throws(() => new Int32x4(1, 2, dynamicNull, 4), isTypeError);
+  Expect.throws(() => new Int32x4(1, 2, 3, dynamicNull), isTypeError);
+
   // Use a local variable typed as dynamic to avoid static warnings.
-  var str = "foo";
-  Expect.throws(() => new Int32x4(str, 2, 3, 4),
-      (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(() => new Int32x4(1, str, 3, 4),
-      (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(() => new Int32x4(1, 2, str, 4),
-      (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(() => new Int32x4(1, 2, 3, str),
-      (e) => e is ArgumentError || e is TypeError);
+  dynamic str = "foo";
+  Expect.throws(() => new Int32x4(str, 2, 3, 4), isTypeError);
+  Expect.throws(() => new Int32x4(1, str, 3, 4), isTypeError);
+  Expect.throws(() => new Int32x4(1, 2, str, 4), isTypeError);
+  Expect.throws(() => new Int32x4(1, 2, 3, str), isTypeError);
   // Use a local variable typed as dynamic to avoid static warnings.
-  var d = 0.5;
-  Expect.throws(() => new Int32x4(d, 2, 3, 4),
-      (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(() => new Int32x4(1, d, 3, 4),
-      (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(() => new Int32x4(1, 2, d, 4),
-      (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(() => new Int32x4(1, 2, 3, d),
-      (e) => e is ArgumentError || e is TypeError);
+  dynamic d = 0.5;
+  Expect.throws(() => new Int32x4(d, 2, 3, 4), isTypeError);
+  Expect.throws(() => new Int32x4(1, d, 3, 4), isTypeError);
+  Expect.throws(() => new Int32x4(1, 2, d, 4), isTypeError);
+  Expect.throws(() => new Int32x4(1, 2, 3, d), isTypeError);
 }
 
 void testBigArguments() {

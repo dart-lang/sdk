@@ -10,14 +10,12 @@ class B {
 }
 
 abstract class I<T> {
-  void f(T /*@covariance=genericInterface, genericImpl*/ x);
+  void f(T x);
 }
 
 class M {}
 
-class /*@forwardingStub=void f(covariance=(genericImpl) int x)*/ C = B
-    with M
-    implements I<int>;
+class C = B with M implements I<int>;
 void g1(C c) {
   c.f(1);
 }

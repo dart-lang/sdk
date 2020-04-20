@@ -1,0 +1,29 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_35900.dart:5:25: Error: Can't find '}' to match '${'.
+// main () { int x; print('${x' '); }
+//                         ^
+//
+// pkg/front_end/testcases/regress/issue_35900.dart:5:24: Error: String starting with ' must end with '.
+// main () { int x; print('${x' '); }
+//                        ^^^^^^^^^^^^...
+//
+// pkg/front_end/testcases/regress/issue_35900.dart:6:1: Error: Expected a declaration, but got ''.
+//
+// pkg/front_end/testcases/regress/issue_35900.dart:5:28: Error: Expected '}' before this.
+// main () { int x; print('${x' '); }
+//                            ^^^
+//
+// pkg/front_end/testcases/regress/issue_35900.dart:5:31: Error: Expected a String, but got ')'.
+// main () { int x; print('${x' '); }
+//                               ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::int* x;
+  core::print("${x}");
+}

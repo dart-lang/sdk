@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+// @dart = 2.7
+
+/*member: main:[null]*/
 main() {
   ifNull();
   ifNotNullInvoke();
@@ -13,10 +15,10 @@ main() {
 // If-null on parameter.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _ifNull:[exact=JSUInt31]*/
+/*member: _ifNull:[exact=JSUInt31]*/
 _ifNull(/*[null|exact=JSUInt31]*/ o) => o ?? 0;
 
-/*element: ifNull:[null]*/
+/*member: ifNull:[null]*/
 ifNull() {
   _ifNull(null);
   _ifNull(0);
@@ -26,12 +28,14 @@ ifNull() {
 // If-not-null access on parameter.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _ifNotNullInvoke:[null|exact=JSBool]*/
+/*member: _ifNotNullInvoke:[null|exact=JSBool]*/
 _ifNotNullInvoke(/*[null|exact=JSUInt31]*/ o) {
-  return o?. /*ast.[null|exact=JSUInt31]*/ /*kernel.[exact=JSUInt31]*/ isEven;
+  return o?.
+      /*[exact=JSUInt31]*/
+      isEven;
 }
 
-/*element: ifNotNullInvoke:[null]*/
+/*member: ifNotNullInvoke:[null]*/
 ifNotNullInvoke() {
   _ifNotNullInvoke(null);
   _ifNotNullInvoke(0);
@@ -41,12 +45,12 @@ ifNotNullInvoke() {
 // As above but unconditional access.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _notIfNotNullInvoke:[exact=JSBool]*/
+/*member: _notIfNotNullInvoke:[exact=JSBool]*/
 _notIfNotNullInvoke(/*[null|exact=JSUInt31]*/ o) {
   return o. /*[null|exact=JSUInt31]*/ isEven;
 }
 
-/*element: notIfNotNullInvoke:[null]*/
+/*member: notIfNotNullInvoke:[null]*/
 notIfNotNullInvoke() {
   _notIfNotNullInvoke(null);
   _notIfNotNullInvoke(0);

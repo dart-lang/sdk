@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 void main() {
   var x = 3;
   if (x == x) {
@@ -9,7 +11,7 @@ void main() {
   } else {
     throw "x != x with x == 3";
   }
-  var y = x;
+  dynamic y = x;
   if (true) {
     y = 10;
   }

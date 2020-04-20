@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.io;
 
 /**
@@ -111,11 +113,12 @@ part of dart.io;
  *   a tutorial about writing command-line apps, includes information about
  *   files and directories.
  */
+@pragma("vm:entry-point")
 abstract class Directory implements FileSystemEntity {
   /**
    * Gets the path of this directory.
    */
-  final String path;
+  String get path;
 
   /**
    * Creates a [Directory] object.
@@ -126,12 +129,19 @@ abstract class Directory implements FileSystemEntity {
    * If [path] is an absolute path, it will be immune to changes to the
    * current working directory.
    */
+  @pragma("vm:entry-point")
   factory Directory(String path) {
     final IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
       return new _Directory(path);
     }
     return overrides.createDirectory(path);
+  }
+
+  @pragma("vm:entry-point")
+  factory Directory.fromRawPath(Uint8List path) {
+    // TODO(bkonyi): Handle overrides.
+    return new _Directory.fromRawPath(path);
   }
 
   /**

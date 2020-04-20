@@ -10,13 +10,13 @@ class Foo {
 }
 
 abstract class Bar {
-  @Foo(/*@typeArgs=String*/ const [])
+  @Foo(/*@ typeArgs=String* */ const [])
   Bar();
 
-  @Foo(/*@typeArgs=String*/ const [])
-  var /*@topType=dynamic*/ x;
+  @Foo(/*@ typeArgs=String* */ const [])
+  var x;
 
-  @Foo(/*@typeArgs=String*/ const [])
+  @Foo(/*@ typeArgs=String* */ const [])
   void f();
 }
 

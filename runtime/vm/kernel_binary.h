@@ -7,147 +7,216 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
-#include <map>
-
-#include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/kernel.h"
 #include "vm/object.h"
 
 namespace dart {
 namespace kernel {
 
-// Keep in sync with package:kernel/lib/binary/tag.dart.
+// Keep in sync with package:kernel/lib/binary/tag.dart,
+// package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kBinaryFormatVersion = 1;
+
+// Both version numbers are inclusive.
+static const uint32_t kMinSupportedKernelFormatVersion = 29;
+static const uint32_t kMaxSupportedKernelFormatVersion = 42;
+
+// Keep in sync with package:kernel/lib/binary/tag.dart
+#define KERNEL_TAG_LIST(V)                                                     \
+  V(Nothing, 0)                                                                \
+  V(Something, 1)                                                              \
+  V(Class, 2)                                                                  \
+  V(Extension, 115)                                                            \
+  V(FunctionNode, 3)                                                           \
+  V(Field, 4)                                                                  \
+  V(Constructor, 5)                                                            \
+  V(Procedure, 6)                                                              \
+  V(RedirectingFactoryConstructor, 108)                                        \
+  V(InvalidInitializer, 7)                                                     \
+  V(FieldInitializer, 8)                                                       \
+  V(SuperInitializer, 9)                                                       \
+  V(RedirectingInitializer, 10)                                                \
+  V(LocalInitializer, 11)                                                      \
+  V(AssertInitializer, 12)                                                     \
+  V(CheckLibraryIsLoaded, 13)                                                  \
+  V(LoadLibrary, 14)                                                           \
+  V(DirectPropertyGet, 15)                                                     \
+  V(DirectPropertySet, 16)                                                     \
+  V(DirectMethodInvocation, 17)                                                \
+  V(ConstStaticInvocation, 18)                                                 \
+  V(InvalidExpression, 19)                                                     \
+  V(VariableGet, 20)                                                           \
+  V(VariableSet, 21)                                                           \
+  V(PropertyGet, 22)                                                           \
+  V(PropertySet, 23)                                                           \
+  V(SuperPropertyGet, 24)                                                      \
+  V(SuperPropertySet, 25)                                                      \
+  V(StaticGet, 26)                                                             \
+  V(StaticSet, 27)                                                             \
+  V(MethodInvocation, 28)                                                      \
+  V(SuperMethodInvocation, 29)                                                 \
+  V(StaticInvocation, 30)                                                      \
+  V(ConstructorInvocation, 31)                                                 \
+  V(ConstConstructorInvocation, 32)                                            \
+  V(Not, 33)                                                                   \
+  V(NullCheck, 117)                                                            \
+  V(LogicalExpression, 34)                                                     \
+  V(ConditionalExpression, 35)                                                 \
+  V(StringConcatenation, 36)                                                   \
+  V(ListConcatenation, 111)                                                    \
+  V(SetConcatenation, 112)                                                     \
+  V(MapConcatenation, 113)                                                     \
+  V(InstanceCreation, 114)                                                     \
+  V(FileUriExpression, 116)                                                    \
+  V(IsExpression, 37)                                                          \
+  V(AsExpression, 38)                                                          \
+  V(StringLiteral, 39)                                                         \
+  V(DoubleLiteral, 40)                                                         \
+  V(TrueLiteral, 41)                                                           \
+  V(FalseLiteral, 42)                                                          \
+  V(NullLiteral, 43)                                                           \
+  V(SymbolLiteral, 44)                                                         \
+  V(TypeLiteral, 45)                                                           \
+  V(ThisExpression, 46)                                                        \
+  V(Rethrow, 47)                                                               \
+  V(Throw, 48)                                                                 \
+  V(ListLiteral, 49)                                                           \
+  V(SetLiteral, 109)                                                           \
+  V(MapLiteral, 50)                                                            \
+  V(AwaitExpression, 51)                                                       \
+  V(FunctionExpression, 52)                                                    \
+  V(Let, 53)                                                                   \
+  V(BlockExpression, 82)                                                       \
+  V(Instantiation, 54)                                                         \
+  V(PositiveIntLiteral, 55)                                                    \
+  V(NegativeIntLiteral, 56)                                                    \
+  V(BigIntLiteral, 57)                                                         \
+  V(ConstListLiteral, 58)                                                      \
+  V(ConstSetLiteral, 110)                                                      \
+  V(ConstMapLiteral, 59)                                                       \
+  V(ExpressionStatement, 61)                                                   \
+  V(Block, 62)                                                                 \
+  V(EmptyStatement, 63)                                                        \
+  V(AssertStatement, 64)                                                       \
+  V(LabeledStatement, 65)                                                      \
+  V(BreakStatement, 66)                                                        \
+  V(WhileStatement, 67)                                                        \
+  V(DoStatement, 68)                                                           \
+  V(ForStatement, 69)                                                          \
+  V(ForInStatement, 70)                                                        \
+  V(SwitchStatement, 71)                                                       \
+  V(ContinueSwitchStatement, 72)                                               \
+  V(IfStatement, 73)                                                           \
+  V(ReturnStatement, 74)                                                       \
+  V(TryCatch, 75)                                                              \
+  V(TryFinally, 76)                                                            \
+  V(YieldStatement, 77)                                                        \
+  V(VariableDeclaration, 78)                                                   \
+  V(FunctionDeclaration, 79)                                                   \
+  V(AsyncForInStatement, 80)                                                   \
+  V(AssertBlock, 81)                                                           \
+  V(TypedefType, 87)                                                           \
+  V(BottomType, 89)                                                            \
+  V(NeverType, 98)                                                             \
+  V(InvalidType, 90)                                                           \
+  V(DynamicType, 91)                                                           \
+  V(VoidType, 92)                                                              \
+  V(InterfaceType, 93)                                                         \
+  V(FunctionType, 94)                                                          \
+  V(TypeParameterType, 95)                                                     \
+  V(SimpleInterfaceType, 96)                                                   \
+  V(SimpleFunctionType, 97)                                                    \
+  V(ConstantExpression, 106)                                                   \
+  V(SpecializedVariableGet, 128)                                               \
+  V(SpecializedVariableSet, 136)                                               \
+  V(SpecializedIntLiteral, 144)
+
+static const intptr_t kSpecializedTagHighBit = 0x80;
+static const intptr_t kSpecializedTagMask = 0xf8;
+static const intptr_t kSpecializedPayloadMask = 0x7;
 
 enum Tag {
-  kNothing = 0,
-  kSomething = 1,
+#define DECLARE(Name, value) k##Name = value,
+  KERNEL_TAG_LIST(DECLARE)
+#undef DECLARE
+};
 
-  kClass = 2,
+// Keep in sync with package:kernel/lib/binary/tag.dart
+enum ConstantTag {
+  kNullConstant = 0,
+  kBoolConstant = 1,
+  kIntConstant = 2,
+  kDoubleConstant = 3,
+  kStringConstant = 4,
+  kSymbolConstant = 5,
+  kMapConstant = 6,
+  kListConstant = 7,
+  kSetConstant = 13,
+  kInstanceConstant = 8,
+  kPartialInstantiationConstant = 9,
+  kTearOffConstant = 10,
+  kTypeLiteralConstant = 11,
+  // These constants are not expected to be seen by the VM, because all
+  // constants are fully evaluated.
+  kUnevaluatedConstant = 12,
+};
 
-  kFunctionNode = 3,
-  kField = 4,
-  kConstructor = 5,
-  kProcedure = 6,
+// Keep in sync with package:kernel/lib/ast.dart
+enum class KernelNullability : int8_t {
+  kUndetermined = 0,
+  kNullable = 1,
+  kNonNullable = 2,
+  kLegacy = 3,
+};
 
-  kInvalidInitializer = 7,
-  kFieldInitializer = 8,
-  kSuperInitializer = 9,
-  kRedirectingInitializer = 10,
-  kLocalInitializer = 11,
+// Keep in sync with package:kernel/lib/ast.dart
+enum Variance {
+  kUnrelated = 0,
+  kCovariant = 1,
+  kContravariant = 2,
+  kInvariant = 3,
+  kLegacyCovariant = 4,
+};
 
-  kDirectPropertyGet = 15,
-  kDirectPropertySet = 16,
-  kDirectMethodInvocation = 17,
-  kConstStaticInvocation = 18,
-  kInvalidExpression = 19,
-  kVariableGet = 20,
-  kVariableSet = 21,
-  kPropertyGet = 22,
-  kPropertySet = 23,
-  kSuperPropertyGet = 24,
-  kSuperPropertySet = 25,
-  kStaticGet = 26,
-  kStaticSet = 27,
-  kMethodInvocation = 28,
-  kSuperMethodInvocation = 29,
-  kStaticInvocation = 30,
-  kConstructorInvocation = 31,
-  kConstConstructorInvocation = 32,
-  kNot = 33,
-  kLogicalExpression = 34,
-  kConditionalExpression = 35,
-  kStringConcatenation = 36,
-  kIsExpression = 37,
-  kAsExpression = 38,
-  kStringLiteral = 39,
-  kDoubleLiteral = 40,
-  kTrueLiteral = 41,
-  kFalseLiteral = 42,
-  kNullLiteral = 43,
-  kSymbolLiteral = 44,
-  kTypeLiteral = 45,
-  kThisExpression = 46,
-  kRethrow = 47,
-  kThrow = 48,
-  kListLiteral = 49,
-  kMapLiteral = 50,
-  kAwaitExpression = 51,
-  kFunctionExpression = 52,
-  kLet = 53,
+// Keep in sync with package:kernel/lib/ast.dart
+enum AsExpressionFlags {
+  kAsExpressionFlagTypeError = 1 << 0,
+  kAsExpressionFlagCovarianceCheck = 1 << 1,
+  kAsExpressionFlagForDynamic = 1 << 2,
+  kAsExpressionFlagForNonNullableByDefault = 1 << 3,
+};
 
-  kPositiveIntLiteral = 55,
-  kNegativeIntLiteral = 56,
-  kBigIntLiteral = 57,
-  kConstListLiteral = 58,
-  kConstMapLiteral = 59,
+// Keep in sync with package:kernel/lib/ast.dart
+enum IsExpressionFlags {
+  kIsExpressionFlagForNonNullableByDefault = 1 << 0,
+};
 
-  kInvalidStatement = 60,
-  kExpressionStatement = 61,
-  kBlock = 62,
-  kEmptyStatement = 63,
-  kAssertStatement = 64,
-  kLabeledStatement = 65,
-  kBreakStatement = 66,
-  kWhileStatement = 67,
-  kDoStatement = 68,
-  kForStatement = 69,
-  kForInStatement = 70,
-  kSwitchStatement = 71,
-  kContinueSwitchStatement = 72,
-  kIfStatement = 73,
-  kReturnStatement = 74,
-  kTryCatch = 75,
-  kTryFinally = 76,
-  kYieldStatement = 77,
-  kVariableDeclaration = 78,
-  kFunctionDeclaration = 79,
-  kAsyncForInStatement = 80,
-
-  kTypedefType = 87,
-  kVectorType = 88,
-  kBottomType = 89,
-  kInvalidType = 90,
-  kDynamicType = 91,
-  kVoidType = 92,
-  kInterfaceType = 93,
-  kFunctionType = 94,
-  kTypeParameterType = 95,
-  kSimpleInterfaceType = 96,
-  kSimpleFunctionType = 97,
-
-  kVectorCreation = 102,
-  kVectorGet = 103,
-  kVectorSet = 104,
-  kVectorCopy = 105,
-
-  kClosureCreation = 106,
-
-  kSpecializedTagHighBit = 0x80,  // 10000000
-  kSpecializedTagMask = 0xF8,     // 11111000
-  kSpecializedPayloadMask = 0x7,  // 00000111
-
-  kSpecializedVariableGet = 128,
-  kSpecializedVariableSet = 136,
-  kSpecialIntLiteral = 144,
+// Keep in sync with package:kernel/lib/ast.dart
+enum class NamedTypeFlags : uint8_t {
+  kIsRequired = 1 << 0,
 };
 
 static const int SpecializedIntLiteralBias = 3;
 static const int LibraryCountFieldCountFromEnd = 1;
-static const int SourceTableFieldCountFromFirstLibraryOffset = 3;
+static const int KernelFormatVersionOffset = 4;
+static const int SourceTableFieldCountFromFirstLibraryOffsetPre41 = 6;
+static const int SourceTableFieldCountFromFirstLibraryOffset41Plus = 7;
 
 static const int HeaderSize = 8;  // 'magic', 'formatVersion'.
-static const int MetadataPayloadOffset = HeaderSize;  // Right after header.
 
-class Reader {
+class Reader : public ValueObject {
  public:
   Reader(const uint8_t* buffer, intptr_t size)
-      : raw_buffer_(buffer), typed_data_(NULL), size_(size), offset_(0) {}
+      : thread_(NULL),
+        raw_buffer_(buffer),
+        typed_data_(NULL),
+        size_(size),
+        offset_(0) {}
 
-  explicit Reader(const TypedData& typed_data)
-      : raw_buffer_(NULL),
+  explicit Reader(const ExternalTypedData& typed_data)
+      : thread_(Thread::Current()),
+        raw_buffer_(NULL),
         typed_data_(&typed_data),
         size_(typed_data.IsNull() ? 0 : typed_data.Length()),
         offset_(0) {}
@@ -165,11 +234,13 @@ class Reader {
 
   uint32_t ReadUInt32At(intptr_t offset) const {
     ASSERT((size_ >= 4) && (offset >= 0) && (offset <= size_ - 4));
-
-    const uint8_t* buffer = this->buffer();
-    uint32_t value = (buffer[offset + 0] << 24) | (buffer[offset + 1] << 16) |
-                     (buffer[offset + 2] << 8) | (buffer[offset + 3] << 0);
-    return value;
+    uint32_t value;
+    if (raw_buffer_ != NULL) {
+      value = *reinterpret_cast<const uint32_t*>(raw_buffer_ + offset);
+    } else {
+      value = typed_data_->GetUint32(offset);
+    }
+    return Utils::BigEndianToHost32(value);
   }
 
   uint32_t ReadFromIndexNoReset(intptr_t end_offset,
@@ -183,6 +254,14 @@ class Reader {
   uint32_t ReadUInt32() {
     uint32_t value = ReadUInt32At(offset_);
     offset_ += 4;
+    return value;
+  }
+
+  double ReadDouble() {
+    ASSERT((size_ >= 8) && (offset_ >= 0) && (offset_ <= size_ - 8));
+    double value = ReadUnaligned(
+        reinterpret_cast<const double*>(&this->buffer()[offset_]));
+    offset_ += 8;
     return value;
   }
 
@@ -209,6 +288,16 @@ class Reader {
       offset_ += 4;
       return value;
     }
+  }
+
+  intptr_t ReadSLEB128() {
+    const uint8_t* buffer = this->buffer();
+    return Utils::DecodeSLEB128<intptr_t>(buffer, size_, &offset_);
+  }
+
+  int64_t ReadSLEB128AsInt64() {
+    const uint8_t* buffer = this->buffer();
+    return Utils::DecodeSLEB128<int64_t>(buffer, size_, &offset_);
   }
 
   /**
@@ -239,6 +328,8 @@ class Reader {
 
   uint8_t ReadFlags() { return ReadByte(); }
 
+  static const char* TagName(Tag tag);
+
   Tag ReadTag(uint8_t* payload = NULL) {
     uint8_t byte = ReadByte();
     bool has_payload = (byte & kSpecializedTagHighBit) != 0;
@@ -265,6 +356,29 @@ class Reader {
     }
   }
 
+  static Nullability ConvertNullability(KernelNullability kernel_nullability) {
+    switch (kernel_nullability) {
+      case KernelNullability::kNullable:
+        return Nullability::kNullable;
+      case KernelNullability::kLegacy:
+        return Nullability::kLegacy;
+      case KernelNullability::kNonNullable:
+      case KernelNullability::kUndetermined:
+        return Nullability::kNonNullable;
+    }
+    UNREACHABLE();
+  }
+
+  Nullability ReadNullability() {
+    const uint8_t byte = ReadByte();
+    return ConvertNullability(static_cast<KernelNullability>(byte));
+  }
+
+  Variance ReadVariance() {
+    uint8_t byte = ReadByte();
+    return static_cast<Variance>(byte);
+  }
+
   void EnsureEnd() {
     if (offset_ != size_) {
       FATAL2(
@@ -287,45 +401,45 @@ class Reader {
   // the root name as in the canonical name table.
   NameIndex ReadCanonicalNameReference() { return NameIndex(ReadUInt() - 1); }
 
-  intptr_t offset() { return offset_; }
+  intptr_t offset() const { return offset_; }
   void set_offset(intptr_t offset) { offset_ = offset; }
 
-  intptr_t size() { return size_; }
+  intptr_t size() const { return size_; }
   void set_size(intptr_t size) { size_ = size; }
 
-  const TypedData* typed_data() { return typed_data_; }
-  void set_typed_data(const TypedData* typed_data) { typed_data_ = typed_data; }
+  const ExternalTypedData* typed_data() const { return typed_data_; }
+  void set_typed_data(const ExternalTypedData* typed_data) {
+    typed_data_ = typed_data;
+  }
 
-  const uint8_t* raw_buffer() { return raw_buffer_; }
+  const uint8_t* raw_buffer() const { return raw_buffer_; }
   void set_raw_buffer(const uint8_t* raw_buffer) { raw_buffer_ = raw_buffer; }
 
-  void CopyDataToVMHeap(const TypedData& typed_data,
-                        intptr_t offset,
-                        intptr_t size) {
-    NoSafepointScope no_safepoint;
-    memmove(typed_data.DataAddr(0), buffer() + offset, size);
+  RawExternalTypedData* ExternalDataFromTo(intptr_t start, intptr_t end) {
+    return ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
+                                  const_cast<uint8_t*>(buffer() + start),
+                                  end - start, Heap::kOld);
   }
 
-  uint8_t* CopyDataIntoZone(Zone* zone, intptr_t offset, intptr_t length) {
-    uint8_t* buffer_ = zone->Alloc<uint8_t>(length);
-    {
-      NoSafepointScope no_safepoint;
-      memmove(buffer_, buffer() + offset, length);
-    }
-    return buffer_;
+  const uint8_t* BufferAt(intptr_t offset) {
+    ASSERT((offset >= 0) && (offset < size_));
+    return &buffer()[offset];
   }
+
+  RawTypedData* ReadLineStartsData(intptr_t line_start_count);
 
  private:
   const uint8_t* buffer() const {
     if (raw_buffer_ != NULL) {
       return raw_buffer_;
     }
-    NoSafepointScope no_safepoint;
+    NoSafepointScope no_safepoint(thread_);
     return reinterpret_cast<uint8_t*>(typed_data_->DataAddr(0));
   }
 
+  Thread* thread_;
   const uint8_t* raw_buffer_;
-  const TypedData* typed_data_;
+  const ExternalTypedData* typed_data_;
   intptr_t size_;
   intptr_t offset_;
   TokenPosition max_position_;
@@ -334,6 +448,66 @@ class Reader {
 
   friend class PositionScope;
   friend class Program;
+};
+
+// A helper class that saves the current reader position, goes to another reader
+// position, and upon destruction, resets to the original reader position.
+class AlternativeReadingScope {
+ public:
+  AlternativeReadingScope(Reader* reader, intptr_t new_position)
+      : reader_(reader), saved_offset_(reader_->offset()) {
+    reader_->set_offset(new_position);
+  }
+
+  explicit AlternativeReadingScope(Reader* reader)
+      : reader_(reader), saved_offset_(reader_->offset()) {}
+
+  ~AlternativeReadingScope() { reader_->set_offset(saved_offset_); }
+
+  intptr_t saved_offset() { return saved_offset_; }
+
+ private:
+  Reader* const reader_;
+  const intptr_t saved_offset_;
+
+  DISALLOW_COPY_AND_ASSIGN(AlternativeReadingScope);
+};
+
+// Similar to AlternativeReadingScope, but also switches reading to another
+// typed data array.
+class AlternativeReadingScopeWithNewData {
+ public:
+  AlternativeReadingScopeWithNewData(Reader* reader,
+                                     const ExternalTypedData* new_typed_data,
+                                     intptr_t new_position)
+      : reader_(reader),
+        saved_size_(reader_->size()),
+        saved_raw_buffer_(reader_->raw_buffer()),
+        saved_typed_data_(reader_->typed_data()),
+        saved_offset_(reader_->offset()) {
+    reader_->set_raw_buffer(nullptr);
+    reader_->set_typed_data(new_typed_data);
+    reader_->set_size(new_typed_data->Length());
+    reader_->set_offset(new_position);
+  }
+
+  ~AlternativeReadingScopeWithNewData() {
+    reader_->set_raw_buffer(saved_raw_buffer_);
+    reader_->set_typed_data(saved_typed_data_);
+    reader_->set_size(saved_size_);
+    reader_->set_offset(saved_offset_);
+  }
+
+  intptr_t saved_offset() { return saved_offset_; }
+
+ private:
+  Reader* reader_;
+  intptr_t saved_size_;
+  const uint8_t* saved_raw_buffer_;
+  const ExternalTypedData* saved_typed_data_;
+  intptr_t saved_offset_;
+
+  DISALLOW_COPY_AND_ASSIGN(AlternativeReadingScopeWithNewData);
 };
 
 // A helper class that resets the readers min and max positions both upon
@@ -363,6 +537,8 @@ class PositionScope {
   Reader* reader_;
   TokenPosition min_;
   TokenPosition max_;
+
+  DISALLOW_COPY_AND_ASSIGN(PositionScope);
 };
 
 }  // namespace kernel

@@ -4,10 +4,8 @@
 
 part of $LIBRARYNAME;
 
-@DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-  @DomName('HTMLTableSectionElement.rows')
   List<TableRowElement> get rows =>
     new _WrappedList<TableRowElement>(_rows);
 
@@ -15,10 +13,11 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return insertRow(-1);
   }
 
-  TableRowElement insertRow(int index) => _insertRow(index);
+  TableRowElement insertRow(int index) => _insertRow(index) $#NULLSAFECAST(as TableRowElement);
 
   DocumentFragment createFragment(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {
       return super.createFragment(
           html, validator: validator, treeSanitizer: treeSanitizer);

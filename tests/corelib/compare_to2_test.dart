@@ -23,16 +23,18 @@ main() {
   var two53p1 = two53 + 1;
   var maxFiniteAsDouble = 1.7976931348623157e+308;
   var maxFiniteAsInt = maxFiniteAsDouble.truncate();
-  int huge = 1 << 2000;
-  int hugeP1 = huge + 1;
-  var inf = double.INFINITY;
-  var nan = double.NAN;
+  var inf = double.infinity;
+  var nan = double.nan;
   var mnan = negate(nan);
+  var minInt64 = -0x8000000000000000;
+  var minInt64AsDouble = minInt64.toDouble();
+  var maxInt64 = 0x7fffffffffffffff;
+  var maxInt64AsDouble = maxInt64.toDouble(); // 1 << 63
   var matrix = [
     -inf,
-    -hugeP1,
-    -huge,
-    [-maxFiniteAsDouble, -maxFiniteAsInt],
+    -maxFiniteAsDouble,
+    [minInt64, minInt64AsDouble],
+    [-maxInt64, -maxFiniteAsInt],
     -two53p1,
     [-two53, -maxExactIntAsInt, -maxExactIntAsDouble],
     -maxNonInt,
@@ -57,9 +59,9 @@ main() {
     maxNonInt,
     [two53, maxExactIntAsInt, maxExactIntAsDouble],
     two53p1,
-    [maxFiniteAsDouble, maxFiniteAsInt],
-    huge,
-    hugeP1,
+    [maxInt64, maxFiniteAsInt],
+    maxInt64AsDouble,
+    maxFiniteAsDouble,
     inf,
     [nan, mnan],
   ];

@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+// @dart = 2.7
+
+/*member: main:[null]*/
 main() {
   unconditionalThrow();
   conditionalThrow();
@@ -14,19 +16,19 @@ main() {
 /// Method that throws unconditionally.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: unconditionalThrow:[empty]*/
+/*member: unconditionalThrow:[empty]*/
 unconditionalThrow() => throw 'foo';
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Method that throws conditionally.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _conditionalThrow:[null]*/
+/*member: _conditionalThrow:[null]*/
 _conditionalThrow(/*[exact=JSBool]*/ o) {
   if (o) throw 'foo';
 }
 
-/*element: conditionalThrow:[null]*/
+/*member: conditionalThrow:[null]*/
 conditionalThrow() {
   _conditionalThrow(true);
   _conditionalThrow(false);
@@ -36,13 +38,13 @@ conditionalThrow() {
 /// Method that throws conditionally and return 0.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _conditionalThrowReturn:[exact=JSUInt31]*/
+/*member: _conditionalThrowReturn:[exact=JSUInt31]*/
 _conditionalThrowReturn(/*[exact=JSBool]*/ o) {
   if (o) throw 'foo';
   return 0;
 }
 
-/*element: conditionalThrowReturn:[null]*/
+/*member: conditionalThrowReturn:[null]*/
 conditionalThrowReturn() {
   _conditionalThrowReturn(true);
   _conditionalThrowReturn(false);
@@ -52,7 +54,7 @@ conditionalThrowReturn() {
 /// Method that rethrows unconditionally.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: unconditionalRethrow:[null]*/
+/*member: unconditionalRethrow:[null]*/
 unconditionalRethrow() {
   try {
     throw 'foo';

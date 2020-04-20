@@ -12,17 +12,17 @@ abstract class MyStream<T> extends Stream<T> {
 }
 
 Stream<List<int>> foo() async* {
-  yield /*@typeArgs=int*/ [];
-  yield /*error:YIELD_OF_INVALID_TYPE*/ new /*@typeArgs=dynamic*/ MyStream();
-  yield* /*error:YIELD_OF_INVALID_TYPE*/ /*@typeArgs=dynamic*/ [];
-  yield* new /*@typeArgs=List<int>*/ MyStream();
+  yield new /*@ typeArgs=int* */ List();
+  yield /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic */ MyStream();
+  yield* /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic */ List();
+  yield* new /*@ typeArgs=List<int*>* */ MyStream();
 }
 
 Iterable<Map<int, int>> bar() sync* {
-  yield /*@typeArgs=int, int*/ {};
-  yield /*error:YIELD_OF_INVALID_TYPE*/ new /*@typeArgs=dynamic*/ List();
-  yield* /*error:YIELD_OF_INVALID_TYPE*/ /*@typeArgs=dynamic, dynamic*/ {};
-  yield* new /*@typeArgs=Map<int, int>*/ List();
+  yield new /*@ typeArgs=int*, int* */ Map();
+  yield /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic */ List();
+  yield* /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic, dynamic */ Map();
+  yield* new /*@ typeArgs=Map<int*, int*>* */ List();
 }
 
 main() {}

@@ -6,7 +6,7 @@ import 'dart:async';
 import 'test_helper.dart';
 import 'service_test_common.dart';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 const int LINE_A = 14;
 
@@ -14,7 +14,7 @@ code() {
   var x = {}; // LINE_A
 }
 
-Future<Isolate> stepThroughProgram(Isolate isolate) async {
+Future stepThroughProgram(Isolate isolate) async {
   Completer completer = new Completer();
   int pauseEventsSeen = 0;
 
@@ -36,7 +36,7 @@ Future<Isolate> stepThroughProgram(Isolate isolate) async {
   return completer.future;
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasPausedAtStart,
   markDartColonLibrariesDebuggable,
   setBreakpointAtLine(LINE_A),

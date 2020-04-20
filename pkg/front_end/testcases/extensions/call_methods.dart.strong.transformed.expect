@@ -1,0 +1,96 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/call_methods.dart:31:4: Error: 'call' isn't a function or method and can't be invoked.
+//   1(10);
+//    ^
+//
+// pkg/front_end/testcases/extensions/call_methods.dart:32:4: Error: 'call' isn't a function or method and can't be invoked.
+//   1("10");
+//    ^
+//
+// pkg/front_end/testcases/extensions/call_methods.dart:33:6: Error: 'call' isn't a function or method and can't be invoked.
+//   1.0(10);
+//      ^
+//
+// pkg/front_end/testcases/extensions/call_methods.dart:34:6: Error: 'call' isn't a function or method and can't be invoked.
+//   1.0("10");
+//      ^
+//
+// pkg/front_end/testcases/extensions/call_methods.dart:36:4: Error: 'call' isn't a function or method and can't be invoked.
+//   a(2);
+//    ^
+//
+// pkg/front_end/testcases/extensions/call_methods.dart:37:4: Error: 'call' isn't a function or method and can't be invoked.
+//   a(2, "3");
+//    ^
+//
+// pkg/front_end/testcases/extensions/call_methods.dart:39:4: Error: Cannot invoke an instance of 'B' because it declares 'call' to be something other than a method.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/call_methods.dart'.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+//   b();
+//    ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  get call() → core::String*
+    return "My name is A";
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B*
+    : super core::Object::•()
+    ;
+  get call() → () →* core::String*
+    return () → core::String* => "My name is B";
+}
+extension _extension#0 on core::int* {
+  get call = self::_extension#0|get#call;
+}
+extension _extension#1 on core::num* {
+  get call = self::_extension#1|get#call;
+}
+extension _extension#2 on core::String* {
+  get call = self::_extension#2|get#call;
+}
+static method _extension#0|get#call(final core::int* #this) → core::String*
+  return "My name is int";
+static method _extension#1|get#call(final core::num* #this) → core::String*
+  return "My name is num";
+static method _extension#2|get#call(final core::String* #this) → () →* core::String*
+  return () → core::String* => "My name is String";
+static method main() → dynamic {
+  self::_extension#2|get#call("").call();
+}
+static method errors() → dynamic {
+  invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:31:4: Error: 'call' isn't a function or method and can't be invoked.
+  1(10);
+   ^";
+  invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:32:4: Error: 'call' isn't a function or method and can't be invoked.
+  1(\"10\");
+   ^";
+  invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:33:6: Error: 'call' isn't a function or method and can't be invoked.
+  1.0(10);
+     ^";
+  invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:34:6: Error: 'call' isn't a function or method and can't be invoked.
+  1.0(\"10\");
+     ^";
+  self::A* a = new self::A::•();
+  invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:36:4: Error: 'call' isn't a function or method and can't be invoked.
+  a(2);
+   ^";
+  invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:37:4: Error: 'call' isn't a function or method and can't be invoked.
+  a(2, \"3\");
+   ^";
+  self::B* b = new self::B::•();
+  invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:39:4: Error: Cannot invoke an instance of 'B' because it declares 'call' to be something other than a method.
+ - 'B' is from 'pkg/front_end/testcases/extensions/call_methods.dart'.
+Try changing 'call' to a method or explicitly invoke 'call'.
+  b();
+   ^";
+}

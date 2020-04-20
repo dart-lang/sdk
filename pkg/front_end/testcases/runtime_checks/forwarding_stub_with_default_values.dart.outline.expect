@@ -3,25 +3,29 @@ import self as self;
 import "dart:core" as core;
 
 class B extends core::Object {
-  field core::Object _x;
-  default constructor •() → void
+  field core::Object* _x;
+  synthetic constructor •() → self::B*
     ;
-  method f([core::num x]) → void
+  method f([core::num* x = 10]) → void
     ;
-  method g({core::num x}) → void
+  method g({core::num* x = 20}) → void
     ;
-  method check(core::Object expectedValue) → void
+  method check(core::Object* expectedValue) → void
     ;
 }
-abstract class I<T extends core::Object> extends core::Object {
-  default constructor •() → void
+abstract class I<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::T*>*
     ;
-  abstract method f([self::I::T x]) → void;
-  abstract method g({self::I::T x}) → void;
+  abstract method f([generic-covariant-impl self::I::T* x]) → void;
+  abstract method g({generic-covariant-impl self::I::T* x}) → void;
 }
-class C extends self::B implements self::I<core::num> {
-  default constructor •() → void
+class C extends self::B implements self::I<core::num*> {
+  synthetic constructor •() → self::C*
     ;
+  forwarding-stub method f([generic-covariant-impl core::num* x]) → void
+    return super.{self::B::f}(x);
+  forwarding-stub method g({generic-covariant-impl core::num* x}) → void
+    return super.{self::B::g}(x: x);
 }
 static method main() → dynamic
   ;

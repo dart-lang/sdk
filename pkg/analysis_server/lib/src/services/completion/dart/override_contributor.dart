@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,47 +8,52 @@ import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/protocol_server.dart' as protocol
     hide CompletionSuggestion, CompletionSuggestionKind;
-import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-/**
- * A completion contributor used to suggest replacing partial identifiers inside
- * a class declaration with templates for inherited members.
- */
+/// A completion contributor used to suggest replacing partial identifiers
+/// inside a class declaration with templates for inherited members.
 class OverrideContributor implements DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
-    SimpleIdentifier targetId = _getTargetId(request.target);
+      DartCompletionRequest request, SuggestionBuilder builder) async {
+    var targetId = _getTargetId(request.target);
     if (targetId == null) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
-    ClassDeclaration classDecl =
-        targetId.getAncestor((p) => p is ClassDeclaration);
+    var classDecl = targetId.thisOrAncestorOfType<ClassOrMixinDeclaration>();
     if (classDecl == null) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
+
+    var inheritance = InheritanceManager3();
 
     // Generate a collection of inherited members
-    ClassElement classElem = classDecl.element;
-    InheritanceManager manager = new InheritanceManager(classElem.library);
-    Map<String, ExecutableElement> map =
-        manager.getMembersInheritedFromInterfaces(classElem);
-    List<String> memberNames = _computeMemberNames(map, classElem);
+    var classElem = classDecl.declaredElement;
+    var classType = _thisType(request, classElem);
+    var interface = inheritance.getInterface(classType);
+    var interfaceMap = interface.map;
+    var namesToOverride =
+        _namesToOverride(classElem.librarySource.uri, interface);
 
     // Build suggestions
-    List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
-    for (String memberName in memberNames) {
-      ExecutableElement element = map[memberName];
+    var suggestions = <CompletionSuggestion>[];
+    for (var name in namesToOverride) {
+      var element = interfaceMap[name];
       // Gracefully degrade if the overridden element has not been resolved.
       if (element.returnType != null) {
-        CompletionSuggestion suggestion =
-            _buildSuggestion(request, targetId, element);
+        var invokeSuper = interface.isSuperImplemented(name);
+        var suggestion =
+            await _buildSuggestion(request, targetId, element, invokeSuper);
         if (suggestion != null) {
           suggestions.add(suggestion);
         }
@@ -57,94 +62,147 @@ class OverrideContributor implements DartCompletionContributor {
     return suggestions;
   }
 
-  /**
-   * Return a template for an override of the given [element] in the given
-   * [source]. If selected, the template will replace [targetId].
-   */
-  String _buildRepacementText(Source source, SimpleIdentifier targetId,
-      CompilationUnit unit, ExecutableElement element) {
-    // AnalysisContext context = element.context;
-    // Inject partially resolved unit for use by change builder
-    // DartChangeBuilder builder = new DartChangeBuilder(context, unit);
-    // builder.addFileEdit(source, context.getModificationStamp(source),
-    //     (DartFileEditBuilder builder) {
-    //   builder.addReplacement(targetId.offset, targetId.length,
-    //       (DartEditBuilder builder) {
-    //     builder.writeOverrideOfInheritedMember(element);
-    //   });
-    // });
-    // return builder.sourceChange.edits[0].edits[0].replacement.trim();
-    return '';
-  }
+  /// Build a suggestion to replace [targetId] in the given [request] with an
+  /// override of the given [element].
+  Future<CompletionSuggestion> _buildSuggestion(
+      DartCompletionRequest request,
+      SimpleIdentifier targetId,
+      ExecutableElement element,
+      bool invokeSuper) async {
+    var displayTextBuffer = StringBuffer();
+    var builder = DartChangeBuilder(request.result.session);
+    await builder.addFileEdit(request.result.path, (builder) {
+      builder.addReplacement(range.node(targetId), (builder) {
+        builder.writeOverride(
+          element,
+          displayTextBuffer: displayTextBuffer,
+          invokeSuper: invokeSuper,
+        );
+      });
+    });
 
-  /**
-   * Build a suggestion to replace [targetId] in the given [unit]
-   * with an override of the given [element].
-   */
-  CompletionSuggestion _buildSuggestion(DartCompletionRequest request,
-      SimpleIdentifier targetId, ExecutableElement element) {
-    String completion = _buildRepacementText(
-        request.source, targetId, request.target.unit, element);
-    if (completion == null || completion.length == 0) {
+    var fileEdits = builder.sourceChange.edits;
+    if (fileEdits.length != 1) return null;
+
+    var sourceEdits = fileEdits[0].edits;
+    if (sourceEdits.length != 1) return null;
+
+    var replacement = sourceEdits[0].replacement;
+    var completion = replacement.trim();
+    var overrideAnnotation = '@override';
+    if (_hasOverride(request.target.containingNode) &&
+        completion.startsWith(overrideAnnotation)) {
+      completion = completion.substring(overrideAnnotation.length).trim();
+    }
+    if (completion.isEmpty) {
       return null;
     }
-    CompletionSuggestion suggestion = new CompletionSuggestion(
-        CompletionSuggestionKind.IDENTIFIER,
-        DART_RELEVANCE_HIGH,
+
+    var selectionRange = builder.selectionRange;
+    if (selectionRange == null) {
+      return null;
+    }
+    var offsetDelta = targetId.offset + replacement.indexOf(completion);
+    var displayText =
+        displayTextBuffer.isNotEmpty ? displayTextBuffer.toString() : null;
+    var suggestion = CompletionSuggestion(
+        CompletionSuggestionKind.OVERRIDE,
+        request.useNewRelevance ? Relevance.override : DART_RELEVANCE_HIGH,
         completion,
-        targetId.offset,
-        0,
-        element.isDeprecated,
-        false);
+        selectionRange.offset - offsetDelta,
+        selectionRange.length,
+        element.hasDeprecated,
+        false,
+        displayText: displayText);
     suggestion.element = protocol.convertElement(element);
     return suggestion;
   }
 
-  /**
-   * Return a list containing the names of all of the inherited but not
-   * implemented members of the class represented by the given [element].
-   * The [map] is used to find all of the members that are inherited.
-   */
-  List<String> _computeMemberNames(
-      Map<String, ExecutableElement> map, ClassElement element) {
-    List<String> memberNames = <String>[];
-    for (String memberName in map.keys) {
-      if (!_hasMember(element, memberName)) {
-        memberNames.add(memberName);
-      }
-    }
-    return memberNames;
-  }
-
-  /**
-   * If the target looks like a partial identifier inside a class declaration
-   * then return that identifier, otherwise return `null`.
-   */
+  /// If the target looks like a partial identifier inside a class declaration
+  /// then return that identifier, otherwise return `null`.
   SimpleIdentifier _getTargetId(CompletionTarget target) {
-    AstNode node = target.containingNode;
-    if (node is ClassDeclaration) {
-      Object entity = target.entity;
+    var node = target.containingNode;
+    if (node is ClassOrMixinDeclaration) {
+      var entity = target.entity;
       if (entity is FieldDeclaration) {
-        NodeList<VariableDeclaration> variables = entity.fields.variables;
-        if (variables.length == 1) {
-          SimpleIdentifier targetId = variables[0].name;
-          if (targetId.name.isEmpty) {
-            return targetId;
-          }
-        }
+        return _getTargetIdFromVarList(entity.fields);
+      }
+    } else if (node is FieldDeclaration) {
+      var entity = target.entity;
+      if (entity is VariableDeclarationList) {
+        return _getTargetIdFromVarList(entity);
       }
     }
     return null;
   }
 
-  /**
-   * Return `true` if the given [classElement] directly declares a member with
-   * the given [memberName].
-   */
-  bool _hasMember(ClassElement classElement, String memberName) {
-    return classElement.getField(memberName) != null ||
-        classElement.getGetter(memberName) != null ||
-        classElement.getMethod(memberName) != null ||
-        classElement.getSetter(memberName) != null;
+  SimpleIdentifier _getTargetIdFromVarList(VariableDeclarationList fields) {
+    var variables = fields.variables;
+    if (variables.length == 1) {
+      var variable = variables[0];
+      var targetId = variable.name;
+      if (targetId.name.isEmpty) {
+        // analyzer parser
+        // Actual: class C { foo^ }
+        // Parsed: class C { foo^ _s_ }
+        //   where _s_ is a synthetic id inserted by the analyzer parser
+        return targetId;
+      } else if (fields.keyword == null &&
+          fields.type == null &&
+          variable.initializer == null) {
+        // fasta parser does not insert a synthetic identifier
+        return targetId;
+      }
+    }
+    return null;
+  }
+
+  /// Return `true` if the given [node] has an `override` annotation.
+  bool _hasOverride(AstNode node) {
+    if (node is AnnotatedNode) {
+      var metadata = node.metadata;
+      for (var annotation in metadata) {
+        if (annotation.name.name == 'override' &&
+            annotation.arguments == null) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Return the list of names that belong to the [interface] of a class, but
+  /// are not yet declared in the class.
+  List<Name> _namesToOverride(Uri libraryUri, Interface interface) {
+    var namesToOverride = <Name>[];
+    for (var name in interface.map.keys) {
+      if (name.isAccessibleFor(libraryUri)) {
+        if (!interface.declared.containsKey(name)) {
+          namesToOverride.add(name);
+        }
+      }
+    }
+    return namesToOverride;
+  }
+
+  InterfaceType _thisType(
+    DartCompletionRequest request,
+    ClassElement thisElement,
+  ) {
+    var typeParameters = thisElement.typeParameters;
+    var typeArguments = const <DartType>[];
+    if (typeParameters.isNotEmpty) {
+      var nullabilitySuffix = request.featureSet.isEnabled(Feature.non_nullable)
+          ? NullabilitySuffix.none
+          : NullabilitySuffix.star;
+      typeArguments = typeParameters.map((t) {
+        return t.instantiate(nullabilitySuffix: nullabilitySuffix);
+      }).toList();
+    }
+
+    return thisElement.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 }

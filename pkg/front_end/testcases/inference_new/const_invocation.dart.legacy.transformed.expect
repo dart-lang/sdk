@@ -1,0 +1,40 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<U extends core::Object* = dynamic, V extends core::Object* = dynamic> = (U*) →* V*;
+class Foo<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::Foo<self::Foo::T*>*
+    : super core::Object::•()
+    ;
+  get v1() → self::Bar<self::Foo::T*>*
+    return #C1;
+  get v2() → self::Bar<core::List<self::Foo::T*>*>*
+    return #C1;
+  get v3() → self::Bar<(self::Foo::T*) →* self::Foo::T*>*
+    return #C1;
+  get v4() → self::Bar<((self::Foo::T*) →* self::Foo::T*) →* self::Foo::T*>*
+    return #C1;
+  get v5() → core::List<self::Foo::T*>*
+    return #C2;
+  get v6() → core::List<(self::Foo::T*) →* self::Foo::T*>*
+    return #C2;
+  get v7() → core::Map<self::Foo::T*, self::Foo::T*>*
+    return #C3;
+  get v8() → core::Map<(self::Foo::T*) →* self::Foo::T*, self::Foo::T*>*
+    return #C3;
+  get v9() → core::Map<self::Foo::T*, (self::Foo::T*) →* self::Foo::T*>*
+    return #C3;
+}
+class Bar<T extends core::Object* = dynamic> extends core::Object {
+  const constructor •() → self::Bar<self::Bar::T*>*
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = self::Bar<dynamic> {}
+  #C2 = <dynamic>[]
+  #C3 = core::_ImmutableMap<dynamic, dynamic> {_kvPairs:#C2}
+}

@@ -6,9 +6,6 @@
 // etc. The test is using getField, as invoke, setField, and getField all share
 // the same caching.
 
-library lib;
-
-@MirrorsUsed(targets: const ["lib", "dart.core"])
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

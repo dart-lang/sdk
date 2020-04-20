@@ -1,0 +1,17 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference_new/invalid_assignment_during_toplevel_inference.dart:9:13: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// var x = i = s;
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field core::int* i;
+static field core::String* s;
+static field core::String* x = self::i = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference_new/invalid_assignment_during_toplevel_inference.dart:9:13: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+var x = i = s;
+            ^" in self::s as{TypeError} core::int*;
+static method main() → dynamic {}

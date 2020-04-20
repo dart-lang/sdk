@@ -10,20 +10,20 @@
 // OtherResources=certificates/server_key.pem
 // OtherResources=certificates/trusted_certs.pem
 
-import "package:expect/expect.dart";
-import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
+import "package:expect/expect.dart";
+import "package:path/path.dart";
 
 String localFile(path) => Platform.script.resolve(path).toFilePath();
 
-SecurityContext serverContext = new SecurityContext()
+final SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
   ..usePrivateKey(localFile('certificates/server_key.pem'),
       password: 'dartdart');
 
-SecurityContext clientContext = new SecurityContext()
+final SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
 
 main() async {
@@ -44,18 +44,18 @@ main() async {
       context: clientContext);
   socket.listen((RawSocketEvent event) {
     switch (event) {
-      case RawSocketEvent.READ:
-        body.addAll(socket.read());
+      case RawSocketEvent.read:
+        body.addAll(socket.read()!);
         break;
-      case RawSocketEvent.WRITE:
+      case RawSocketEvent.write:
         written += socket.write(message, written, message.length - written);
         if (written < message.length) {
           socket.writeEventsEnabled = true;
         } else {
-          socket.shutdown(SocketDirection.SEND);
+          socket.shutdown(SocketDirection.send);
         }
         break;
-      case RawSocketEvent.READ_CLOSED:
+      case RawSocketEvent.readClosed:
         Expect.isTrue(body.length > 100, "$body\n${body.length}");
         Expect.equals(72, body[0]);
         Expect.equals(9, body[body.length - 1]);

@@ -4,11 +4,10 @@
 
 library stream_controller_async_test;
 
-import "package:expect/expect.dart";
 import 'dart:async';
-import 'package:unittest/unittest.dart';
-import 'event_helper.dart';
-import 'stream_state_helper.dart';
+
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 
 class A {
   const A();
@@ -18,17 +17,30 @@ class B extends A {
   const B();
 }
 
-main() {
-  Events sentEvents = new Events()..close();
+class C extends B {
+  const C();
+}
 
-  // Make sure that firstWhere allows to return instances of types that are
-  // different than the generic type of the stream.
-  test("firstWhere with super class", () {
-    StreamController c = new StreamController<B>();
-    Future f = c.stream.firstWhere((x) => false, defaultValue: () => const A());
-    f.then(expectAsync((v) {
-      Expect.equals(const A(), v);
-    }));
-    sentEvents.replay(c);
-  });
+main() {
+  asyncStart();
+  {
+    Stream<B> stream = new Stream<B>.fromIterable([new B()]);
+    A aFunc() => const A();
+    // Make sure that firstWhere does not allow you to return instances
+    // of types that are not subtypes of the generic type of the stream.
+    stream.firstWhere((x) => false, //# badType: compile-time error
+        orElse: aFunc); //          //# badType: continued
+  }
+  {
+    asyncStart();
+    C cFunc() => const C();
+    Stream<B> stream = new Stream<B>.fromIterable([new B()]);
+    // Make sure that firstWhere does allow you to return instances
+    // of types that are subtypes of the generic type of the stream.
+    stream.firstWhere((x) => false, orElse: cFunc).then((value) {
+      Expect.identical(const C(), value);
+      asyncEnd();
+    });
+  }
+  asyncEnd();
 }

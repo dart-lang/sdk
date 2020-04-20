@@ -12,10 +12,10 @@
 
 #include "bin/dartutils.h"
 #include "bin/file.h"
-#include "bin/log.h"
 #include "bin/namespace.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
+#include "platform/syslog.h"
 
 #undef DeleteFile
 
@@ -226,7 +226,7 @@ void DirectoryListingEntry::ResetLink() {
   }
 }
 
-static bool DeleteFile(wchar_t* file_name, PathBuffer* path) {
+static bool DeleteFile(const wchar_t* file_name, PathBuffer* path) {
   if (!path->AddW(file_name)) {
     return false;
   }
@@ -258,7 +258,7 @@ static bool DeleteFile(wchar_t* file_name, PathBuffer* path) {
   return false;
 }
 
-static bool DeleteDir(wchar_t* dir_name, PathBuffer* path) {
+static bool DeleteDir(const wchar_t* dir_name, PathBuffer* path) {
   if ((wcscmp(dir_name, L".") == 0) || (wcscmp(dir_name, L"..") == 0)) {
     return true;
   }

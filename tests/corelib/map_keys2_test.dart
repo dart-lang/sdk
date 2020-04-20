@@ -15,16 +15,16 @@ main() {
   var map6 = new Map<String, bool>();
 
   Expect.isTrue(map1.keys is Iterable<String>);
-  Expect.isTrue(map1.keys is Iterable<bool>);
+  Expect.isFalse(map1.keys is Iterable<bool>);
 
-  Expect.isTrue(map2.keys is Iterable<String>);
-  Expect.isTrue(map2.keys is Iterable<bool>);
+  Expect.isFalse(map2.keys is Iterable<String>);
+  Expect.isFalse(map2.keys is Iterable<bool>);
 
   Expect.isTrue(map3.keys is Iterable<String>);
-  Expect.isTrue(map3.keys is Iterable<bool>);
+  Expect.isFalse(map3.keys is Iterable<bool>);
 
-  Expect.isTrue(map4.keys is Iterable<String>);
-  Expect.isTrue(map4.keys is Iterable<bool>);
+  Expect.isFalse(map4.keys is Iterable<String>);
+  Expect.isFalse(map4.keys is Iterable<bool>);
 
   Expect.isTrue(map5.keys is Iterable<String>);
   Expect.isFalse(map5.keys is Iterable<bool>);

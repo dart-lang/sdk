@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method bar<K extends core::Object* = dynamic, V extends core::Object* = dynamic>() → core::Map<self::bar::K*, self::bar::V*>*
+  ;
+static method foo(dynamic dynVar) → dynamic
+  ;
+static method main() → dynamic
+  ;

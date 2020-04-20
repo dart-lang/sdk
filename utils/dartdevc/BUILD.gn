@@ -2,35 +2,74 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../../build/dart/dart_action.gni")
+import("../../sdk_args.gni")
+import("../../utils/compile_platform.gni")
 import("../application_snapshot.gni")
 import("../create_timestamp.gni")
 
+patched_sdk_dir = "$target_gen_dir/patched_sdk"
+sdk_summary = "$target_gen_dir/ddc_sdk.sum"
+
+# TODO(sigmund): rename to ddc_outline.dill to be consistent with the naming
+# convention from other tools.
+sdk_outline_dill = "$root_out_dir/ddc_sdk.dill"
+sdk_full_dill = "$root_out_dir/ddc_platform.dill"
+
+if (use_nnbd) {
+  libraries_specification_path = "sdk_nnbd/lib/libraries.json"
+} else {
+  libraries_specification_path = "sdk/lib/libraries.json"
+}
+
 application_snapshot("dartdevc") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
+
   training_args = [
     "--dart-sdk",
     rebase_path("../../sdk"),
     "--dart-sdk-summary",
-    rebase_path("../../pkg/dev_compiler/lib/sdk/ddc_sdk.sum"),
-    "--library-root",
-    rebase_path("../../pkg/dev_compiler"),
+    rebase_path(sdk_outline_dill),
+    "-k",
     "-o",
     "dartdevc.js",
-    "--unsafe-force-compile",
-    rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart"),
   ]
-  inputs = exec_script("../../tools/list_dart_files.py",
-                       [
-                         "absolute",
-                         rebase_path("../../pkg/dev_compiler/bin"),
-                       ],
-                       "list lines")
+
+  if (use_nnbd) {
+    training_args += [
+      "--enable-experiment=non-nullable",
+
+      # TODO(sigmund): restore training with dartdevc.dart. Currently blocked by
+      # some regressions in type-promotion in the CFE when nnbd is enabled.
+      # The following test file is pretty simple and has no imports, so it
+      # should be easier to compile while we bootstrap NNBD.
+      rebase_path("../../tests/language_2/abstract/equal_test.dart"),
+    ]
+  } else {
+    training_args += [ rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart") ]
+  }
+
+  deps = [
+    ":dartdevc_kernel_sdk",
+    ":dartdevc_platform",
+  ]
+
+  inputs = [ sdk_outline_dill ]
+}
+
+# TODO(#38701) Cleanup after merging the forked SDK into mainline.
+if (use_nnbd) {
+  sdk_root = "../../sdk_nnbd"
+  libraries_specification_path = "sdk_nnbd/lib/libraries.json"
+} else {
+  sdk_root = "../../sdk"
+  libraries_specification_path = "sdk/lib/libraries.json"
 }
 
 sdk_lib_files = exec_script("../../tools/list_dart_files.py",
                             [
                               "absolute",
-                              rebase_path("../../sdk/lib"),
+                              rebase_path("$sdk_root/lib"),
                             ],
                             "list lines")
 
@@ -56,30 +95,27 @@ template("dart2js_compile") {
   abs_main = rebase_path(main)
   abs_output = rebase_path(out)
 
-  compiled_action(target_name) {
-    tool = "../../runtime/bin:dart"
-    inputs = sdk_lib_files + compiler_files + dev_compiler_files
-    outputs = [
-      out,
-    ]
+  prebuilt_dart_action(target_name) {
+    deps = [ "../compiler:compile_dart2js_platform" ]
 
-    dot_packages = rebase_path("../../.packages")
-    compiler = rebase_path("../../pkg/compiler/lib/src/dart2js.dart")
+    inputs = sdk_lib_files + compiler_files + dev_compiler_files + [
+               "$root_out_dir/dart2js_platform.dill",
+               "$root_out_dir/dart2js_outline.dill",
+             ]
+    outputs = [ out ]
+
+    script = "../../pkg/compiler/lib/src/dart2js.dart"
+
+    packages = "../../.packages"
 
     args = [
-      "--packages=$dot_packages",
-      compiler,
-      "--packages=$dot_packages",
       "$abs_main",
       "-m",
       "-o$abs_output",
+      "--no-source-maps",
+      "--platform-binaries=" + rebase_path("$root_out_dir"),
     ]
   }
-}
-
-dart2js_compile("dartdevc_web") {
-  main = rebase_path("../../pkg/dev_compiler/web/main.dart")
-  out = "$root_out_dir/dev_compiler/build/web/ddc_web_compiler.js"
 }
 
 dart2js_compile("stack_trace_mapper") {
@@ -87,13 +123,66 @@ dart2js_compile("stack_trace_mapper") {
   out = "$root_out_dir/dev_compiler/build/web/dart_stack_trace_mapper.js"
 }
 
-# Builds everything needed to run dartdevc and dartdevk tests using test.dart.
+# Apply dev_compiler's patch files to create the Dart version of the dartdevc
+# SDK.
+prebuilt_dart_action("dartdevc_patch_sdk") {
+  deps = [
+    ":dartdevc_files_stamp",
+    ":dartdevc_sdk_patch_stamp",
+
+    # The patch script uses several packages, including analyzer, so consider
+    # it dirty if any of those change.
+    "../../pkg:pkg_files_stamp",
+  ]
+
+  script = "../../pkg/dev_compiler/tool/patch_sdk.dart"
+
+  inputs = sdk_lib_files
+
+  # Arbitrarily use the version file as a token file to check against to see if
+  # the sources have changed.
+  # TODO(rnystrom): List the outputs more precisely?
+  outputs = [ "$patched_sdk_dir/version" ]
+
+  args = [
+    "--libraries",
+    rebase_path("$sdk_root/lib/libraries.json"),
+    "--target",
+    "dartdevc",
+    "--out",
+    rebase_path("$patched_sdk_dir/"),
+  ]
+
+  # TODO(#38701) Cleanup after merging the forked SDK into mainline.
+  if (use_nnbd) {
+    args += [ "--nnbd" ]
+  }
+}
+
+# Builds everything needed to run dartdevc tests using test.dart.
 group("dartdevc_test") {
   deps = [
     ":dartdevc",
-    ":dartdevc_sdk_kernel_summary",
-    ":dartdevc_test_pkg",
-    "../../sdk:create_sdk",
+    ":dartdevc_kernel_sdk",
+    ":dartdevc_test_kernel_pkg",
+    "../..:create_sdk",
+  ]
+}
+
+# Builds everything needed to run dartdevc tests locally using test.dart without
+# --use-sdk. This is the same as dartdevc_test, but skips things rely on
+# building the Dart VM and create_sdk.
+group("dartdevc_test_local") {
+  deps = [
+    ":dartdevc_kernel_sdk",
+    ":dartdevc_test_kernel_pkg",
+  ]
+}
+
+group("dartdevc_test_kernel_local") {
+  deps = [
+    ":dartdevc_kernel_sdk",
+    ":dartdevc_test_kernel_pkg",
   ]
 }
 
@@ -102,80 +191,208 @@ create_timestamp_file("dartdevc_files_stamp") {
   output = "$target_gen_dir/dartdevc_files.stamp"
 }
 
-# Compiles the packages used by the tests to JS with dartdevc so that they are
-# available for loading by the tests.
-compiled_action("dartdevc_test_pkg") {
-  tool = "../../runtime/bin:dart"
+create_timestamp_file("dartdevc_sdk_patch_stamp") {
+  path = rebase_path("$sdk_root/lib/_internal/js_dev_runtime")
+  output = "$target_gen_dir/dartdevc_sdk_patch_stamp.stamp"
+}
 
+# Compiles to JavaScript any package used from tests.
+# TODO(sigmund): generate a js bundle or a module that load these indirectly so
+# we can stop referring to this list of packages explicitly in the test_runner.
+group("dartdevc_test_kernel_pkg") {
   deps = [
-    ":dartdevc_sdk_kernel_summary",
-    ":dartdevc_files_stamp",
-    "../../pkg:pkg_files_stamp"
-  ]
-
-  inputs = [
-    "$target_gen_dir/ddc_sdk.dill",
-    "$target_gen_dir/dartdevc_files.stamp",
-    "$root_gen_dir/pkg_files.stamp",
-  ]
-
-  outputs = [
-    "$target_gen_dir/pkg/async_helper.dill",
-    "$target_gen_dir/pkg/async_helper.js",
-    "$target_gen_dir/pkg/async_helper.sum",
-    "$target_gen_dir/pkg/collection.dill",
-    "$target_gen_dir/pkg/collection.js",
-    "$target_gen_dir/pkg/collection.sum",
-    "$target_gen_dir/pkg/expect.dill",
-    "$target_gen_dir/pkg/expect.js",
-    "$target_gen_dir/pkg/expect.sum",
-    "$target_gen_dir/pkg/js.dill",
-    "$target_gen_dir/pkg/js.js",
-    "$target_gen_dir/pkg/js.sum",
-    "$target_gen_dir/pkg/matcher.dill",
-    "$target_gen_dir/pkg/matcher.js",
-    "$target_gen_dir/pkg/matcher.sum",
-    "$target_gen_dir/pkg/meta.dill",
-    "$target_gen_dir/pkg/meta.js",
-    "$target_gen_dir/pkg/meta.sum",
-    "$target_gen_dir/pkg/path.dill",
-    "$target_gen_dir/pkg/path.js",
-    "$target_gen_dir/pkg/path.sum",
-    "$target_gen_dir/pkg/stack_trace.dill",
-    "$target_gen_dir/pkg/stack_trace.js",
-    "$target_gen_dir/pkg/stack_trace.sum",
-
-    # TODO(rnystrom): Remove this when unittest is no longer used. Also remove
-    # any of the above packages that are only here because unittest uses them.
-    "$target_gen_dir/pkg/unittest.dill",
-    "$target_gen_dir/pkg/unittest.js",
-    "$target_gen_dir/pkg/unittest.sum",
-  ]
-
-  args = [
-    rebase_path("../../pkg/dev_compiler/tool/build_pkgs.dart"),
-    rebase_path("$target_gen_dir"),
+    ":async_helper_js",
+    ":collection_js",
+    ":expect_js",
+    ":js_js",
+    ":matcher_js",
+    ":meta_js",
+    ":path_js",
+    ":stack_trace_js",
   ]
 }
 
-# Compiles the DDC SDK's kernel summary.
-compiled_action("dartdevc_sdk_kernel_summary") {
-  tool = "../../runtime/bin:dart"
+template("dartdevc_kernel_compile") {
+  assert(defined(invoker.package),
+         "Need 'package' in $target_name (the name of the package)")
 
+  # Other optional invoker parameters:
+  #   * extra_libraries: entrypoints to include in the module as
+  #     "package:package_name/library_name.dart" (the rule implicitly adds
+  #     the default import "package:package_name/package_name.dart").
+  #   * package_dependencies: the name of other packages this package depends
+  #     on. When providing `name`, a separate `dartdevc_kernel_compile` target
+  #     named `${name}_js` must exist.
+  #   * args: additional args to pass to dartdevc
+
+  prebuilt_dart_action(target_name) {
+    script = "../../pkg/dev_compiler/bin/dartdevc.dart"
+    module = invoker.package
+    outdir = rebase_path("$target_gen_dir")
+    sdk_path = rebase_path(sdk_outline_dill)
+
+    deps = [
+      ":dartdevc_files_stamp",
+      ":dartdevc_platform",
+
+      # TODO(sigmund): depend only on the compiler and the actual files in the
+      # package
+      "../../pkg:pkg_files_stamp",
+    ]
+
+    inputs = [
+      sdk_outline_dill,
+      "$target_gen_dir/dartdevc_files.stamp",
+      "$root_gen_dir/pkg_files.stamp",
+    ]
+
+    outputs = [
+      "$target_gen_dir/pkg_kernel/$module.dill",
+      "$target_gen_dir/pkg_kernel/$module.js",
+    ]
+
+    args = [
+      "-k",
+      "--dart-sdk-summary=$sdk_path",
+      "-o$outdir/pkg_kernel/$module.js",
+      "package:$module/$module.dart",
+    ]
+
+    if (defined(invoker.extra_libraries)) {
+      foreach(lib, invoker.extra_libraries) {
+        args += [ "package:$module/$lib.dart" ]
+      }
+    }
+
+    if (defined(invoker.package_dependencies)) {
+      foreach(dep, invoker.package_dependencies) {
+        deps += [ ":${dep}_js" ]
+        args += [ "-s$outdir/pkg_kernel/$dep.dill" ]
+      }
+    }
+
+    if (defined(invoker.args)) {
+      args += invoker.args
+    }
+
+    # TODO(38701): Cleanup after merging the forked SDK into mainline.
+    if (use_nnbd) {
+      args += [ "--enable-experiment=non-nullable" ]
+    }
+  }
+}
+
+dartdevc_kernel_compile("async_helper_js") {
+  package = "async_helper"
+}
+
+dartdevc_kernel_compile("collection_js") {
+  package = "collection"
+}
+
+dartdevc_kernel_compile("expect_js") {
+  package = "expect"
+  extra_libraries = [ "minitest" ]
+}
+
+dartdevc_kernel_compile("js_js") {
+  package = "js"
+  extra_libraries = [ "js_util" ]
+}
+
+dartdevc_kernel_compile("matcher_js") {
+  package = "matcher"
+  package_dependencies = [ "stack_trace" ]
+}
+
+dartdevc_kernel_compile("meta_js") {
+  package = "meta"
+}
+
+dartdevc_kernel_compile("path_js") {
+  package = "path"
+}
+
+dartdevc_kernel_compile("stack_trace_js") {
+  package = "stack_trace"
+  package_dependencies = [ "path" ]
+}
+
+compile_platform("dartdevc_platform") {
+  single_root_scheme = "org-dartlang-sdk"
+  single_root_base = rebase_path("../../")
+  libraries_specification_uri =
+      "org-dartlang-sdk:///$libraries_specification_path"
+
+  outputs = [
+    sdk_full_dill,
+    sdk_outline_dill,
+  ]
+
+  args = [
+    "--target=dartdevc",
+    "dart:core",
+  ]
+
+  # TODO(38701): Cleanup after merging the forked SDK into mainline.
+  if (use_nnbd) {
+    args += [ "--enable-experiment=non-nullable" ]
+  }
+}
+
+# Compiles the DDC SDK's kernel summary and JS code.
+prebuilt_dart_action("dartdevc_kernel_sdk") {
   deps = [
     ":dartdevc_files_stamp",
+    ":dartdevc_platform",
+    "../../pkg:pkg_files_stamp",
   ]
 
   inputs = [
     "$target_gen_dir/dartdevc_files.stamp",
+    "$root_gen_dir/pkg_files.stamp",
+    sdk_full_dill,
   ]
 
   outputs = [
-    "$target_gen_dir/ddc_sdk.dill",
+    "$target_gen_dir/kernel/amd/dart_sdk.js",
+    "$target_gen_dir/kernel/amd/dart_sdk.js.map",
+    "$target_gen_dir/kernel/common/dart_sdk.js",
+    "$target_gen_dir/kernel/common/dart_sdk.js.map",
+    "$target_gen_dir/kernel/es6/dart_sdk.js",
+    "$target_gen_dir/kernel/es6/dart_sdk.js.map",
+    "$target_gen_dir/kernel/legacy/dart_sdk.js",
+    "$target_gen_dir/kernel/legacy/dart_sdk.js.map",
   ]
 
+  script = "../../pkg/dev_compiler/tool/compile_dartdevc_sdk.dart"
+
   args = [
-    rebase_path("../../pkg/dev_compiler/tool/kernel_sdk.dart"),
-    rebase_path("$target_gen_dir/ddc_sdk.dill"),
+    "--multi-root-scheme",
+    "org-dartlang-sdk",
+    "--multi-root-output-path",
+    rebase_path("$target_gen_dir/../../../"),
+    "--modules",
+    "amd",
+    "-o",
+    rebase_path("$target_gen_dir/kernel/amd/dart_sdk.js"),
+    "--modules",
+    "common",
+    "-o",
+    rebase_path("$target_gen_dir/kernel/common/dart_sdk.js"),
+    "--modules",
+    "es6",
+    "-o",
+    rebase_path("$target_gen_dir/kernel/es6/dart_sdk.js"),
+    "--modules",
+    "legacy",
+    "-o",
+    rebase_path("$target_gen_dir/kernel/legacy/dart_sdk.js"),
+    rebase_path("$sdk_full_dill"),
   ]
+
+  # TODO(38701): Cleanup after merging the forked SDK into mainline.
+  if (use_nnbd) {
+    args += [ "--enable-experiment=non-nullable" ]
+  }
 }

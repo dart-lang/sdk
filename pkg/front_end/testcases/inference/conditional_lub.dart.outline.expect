@@ -2,9 +2,9 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static field core::bool b;
-static field core::int x;
-static field core::double y;
-static field dynamic z;
+static field core::bool* b;
+static field core::int* x;
+static field core::double* y;
+static field core::num* z;
 static method main() → dynamic
   ;

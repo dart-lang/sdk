@@ -60,7 +60,7 @@ void testTypes() {
   var isDoubleList = new Is<List<double>>('List<double>');
   var isNumList = new Is<List<num>>('List<num>');
 
-  var allChecks = [
+  var allChecks = <Is<List>>[
     isFloat32list,
     isFloat64list,
     isInt8List,
@@ -73,11 +73,12 @@ void testTypes() {
   ];
 
   testInt(list, check) {
-    testSublistType(list, [check, isIntList, isNumList], allChecks);
+    testSublistType(list, <Is<List>>[check, isIntList, isNumList], allChecks);
   }
 
   testDouble(list, check) {
-    testSublistType(list, [check, isDoubleList, isNumList], allChecks);
+    testSublistType(
+        list, <Is<List>>[check, isDoubleList, isNumList], allChecks);
   }
 
   testDouble(new Float32List(10), isFloat32list);

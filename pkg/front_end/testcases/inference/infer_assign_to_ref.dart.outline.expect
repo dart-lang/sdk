@@ -1,0 +1,13 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int* f;
+  synthetic constructor •() → self::A*
+    ;
+}
+static field self::A* a;
+static field core::int* c;
+static method main() → dynamic
+  ;

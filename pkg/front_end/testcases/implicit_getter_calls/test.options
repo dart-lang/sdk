@@ -1,0 +1,2 @@
+--force-no-explicit-getter-calls
+--target=none

@@ -4,12 +4,9 @@
 
 part of $LIBRARYNAME;
 
-@DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
-  @DomName('IDBDatabase.createObjectStore')
-  @DocsEditable()
   ObjectStore createObjectStore(String name,
-      {String keyPath, bool autoIncrement}) {
+      {keyPath, bool$NULLABLE autoIncrement}) {
     var options = {};
     if (keyPath != null) {
       options['keyPath'] = keyPath;

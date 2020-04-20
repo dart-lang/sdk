@@ -1,0 +1,19 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# When the entry is not given as a package-url, but is intepreted as one
+# (Interpreting this as package URI, 'package:untitled/main.dart'.) the library
+# should still be included in the output.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        main() {
+        }
+      .packages: untitled:/
+    expectedLibraryCount: 1
+    errors: false
+    warnings: true

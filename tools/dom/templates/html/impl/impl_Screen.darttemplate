@@ -4,13 +4,8 @@
 
 part of $LIBRARYNAME;
 
-@DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-  @DomName('Screen.availHeight')
-  @DomName('Screen.availLeft')
-  @DomName('Screen.availTop')
-  @DomName('Screen.availWidth')
   Rectangle get available => new Rectangle(_availLeft, _availTop, _availWidth,
       _availHeight);
 $!MEMBERS}

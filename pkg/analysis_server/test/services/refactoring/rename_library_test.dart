@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_rename.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameLibraryTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class RenameLibraryTest extends RenameRefactoringTest {
-  test_checkNewName() async {
+  Future<void> test_checkNewName() async {
     await indexTestUnit('''
 library my.app;
 ''');
@@ -25,22 +25,22 @@ library my.app;
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Library name must not be null.");
+        expectedMessage: 'Library name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Library name must not be blank.");
+        expectedMessage: 'Library name must not be blank.');
     // same name
     refactoring.newName = 'my.app';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
         expectedMessage:
-            "The new name must be different than the current name.");
+            'The new name must be different than the current name.');
   }
 
-  test_createChange() async {
-    addSource('/part.dart', '''
+  Future<void> test_createChange() async {
+    addSource('/home/test/lib/part.dart', '''
 part of my.app;
 ''');
     await indexTestUnit('''
@@ -57,13 +57,13 @@ part 'part.dart';
 library the.new.name;
 part 'part.dart';
 ''');
-    assertFileChangeResult('/part.dart', '''
+    assertFileChangeResult('/home/test/lib/part.dart', '''
 part of the.new.name;
 ''');
   }
 
-  test_createChange_hasWhitespaces() async {
-    addSource('/part.dart', '''
+  Future<void> test_createChange_hasWhitespaces() async {
+    addSource('/home/test/lib/part.dart', '''
 part of my .  app;
 ''');
     await indexTestUnit('''
@@ -80,7 +80,7 @@ part 'part.dart';
 library the.new.name;
 part 'part.dart';
 ''');
-    assertFileChangeResult('/part.dart', '''
+    assertFileChangeResult('/home/test/lib/part.dart', '''
 part of the.new.name;
 ''');
   }

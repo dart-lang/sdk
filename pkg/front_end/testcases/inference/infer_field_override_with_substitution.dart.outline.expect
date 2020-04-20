@@ -2,18 +2,18 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-abstract class A<T extends core::Object> extends core::Object {
-  field core::List<self::A::T> z;
-  default constructor •() → void
+abstract class A<T extends core::Object* = dynamic> extends core::Object {
+  generic-covariant-impl field core::List<self::A::T*>* z;
+  synthetic constructor •() → self::A<self::A::T*>*
     ;
-  abstract get x() → core::List<self::A::T>;
-  abstract set y(core::List<self::A::T> value) → void;
+  abstract get x() → core::List<self::A::T*>*;
+  abstract set y(generic-covariant-impl core::List<self::A::T*>* value) → void;
 }
-class B extends self::A<core::int> {
-  field dynamic x;
-  field dynamic y;
-  field dynamic z;
-  default constructor •() → void
+class B extends self::A<core::int*> {
+  field core::List<core::int*>* x;
+  generic-covariant-impl field core::List<core::int*>* y;
+  generic-covariant-impl field core::List<core::int*>* z;
+  synthetic constructor •() → self::B*
     ;
 }
 static method main() → dynamic

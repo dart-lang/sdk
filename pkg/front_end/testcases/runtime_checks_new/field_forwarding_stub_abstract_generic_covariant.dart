@@ -6,10 +6,9 @@
 library test;
 
 class B<T> {
-  T /*@covariance=genericInterface, genericImpl*/ x;
+  T x;
 }
 
-class /*@forwardingStub=abstract void set x(covariance=(genericImpl) num _)*/ C
-    extends B<num> {}
+class C extends B<num> {}
 
 void main() {}

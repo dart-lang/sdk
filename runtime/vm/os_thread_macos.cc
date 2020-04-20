@@ -14,14 +14,16 @@
 #include <mach/task_info.h>    // NOLINT
 #include <mach/thread_act.h>   // NOLINT
 #include <mach/thread_info.h>  // NOLINT
+#include <signal.h>            // NOLINT
 #include <sys/errno.h>         // NOLINT
 #include <sys/sysctl.h>        // NOLINT
 #include <sys/types.h>         // NOLINT
 
+#include "platform/address_sanitizer.h"
 #include "platform/assert.h"
+#include "platform/safe_stack.h"
+#include "platform/signal_blocker.h"
 #include "platform/utils.h"
-
-#include "vm/profiler.h"
 
 namespace dart {
 
@@ -29,7 +31,6 @@ namespace dart {
   if (result != 0) {                                                           \
     const int kBufferSize = 1024;                                              \
     char error_message[kBufferSize];                                           \
-    NOT_IN_PRODUCT(Profiler::DumpStackTrace());                                \
     Utils::StrError(result, error_message, kBufferSize);                       \
     FATAL2("pthread error: %d (%s)", result, error_message);                   \
   }
@@ -41,7 +42,6 @@ namespace dart {
   if (result != 0) {                                                           \
     const int kBufferSize = 1024;                                              \
     char error_message[kBufferSize];                                           \
-    NOT_IN_PRODUCT(Profiler::DumpStackTrace());                                \
     Utils::StrError(result, error_message, kBufferSize);                       \
     FATAL3("[%s] pthread error: %d (%s)", name_, result, error_message);       \
   }
@@ -99,12 +99,14 @@ static void* ThreadStart(void* data_ptr) {
   uword parameter = data->parameter();
   delete data;
 
+  // Set the thread name.
+  pthread_setname_np(name);
+
   // Create new OSThread object and set as TLS for new thread.
   OSThread* thread = OSThread::CreateOSThread();
   if (thread != NULL) {
     OSThread::SetCurrent(thread);
     thread->set_name(name);
-
     // Call the supplied thread start function handing it its parameters.
     function(parameter);
   }
@@ -167,7 +169,7 @@ ThreadId OSThread::GetCurrentThreadId() {
   return pthread_self();
 }
 
-#ifndef PRODUCT
+#ifdef SUPPORT_TIMELINE
 ThreadId OSThread::GetCurrentThreadTraceId() {
   return ThreadIdFromIntPtr(pthread_mach_thread_np(pthread_self()));
 }
@@ -209,6 +211,21 @@ bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
   *lower = *upper - pthread_get_stacksize_np(pthread_self());
   return true;
 }
+
+#if defined(USING_SAFE_STACK)
+NO_SANITIZE_ADDRESS
+NO_SANITIZE_SAFE_STACK
+uword OSThread::GetCurrentSafestackPointer() {
+#error "SAFE_STACK is unsupported on this platform"
+  return 0;
+}
+
+NO_SANITIZE_ADDRESS
+NO_SANITIZE_SAFE_STACK
+void OSThread::SetCurrentSafestackPointer(uword ssp) {
+#error "SAFE_STACK is unsupported on this platform"
+}
+#endif
 
 Mutex::Mutex(NOT_IN_PRODUCT(const char* name))
 #if !defined(PRODUCT)

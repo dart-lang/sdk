@@ -33,8 +33,7 @@ void testSuccessfulAlpnNegotiationConnection(List<String> clientProtocols,
     List<String> serverProtocols, String selectedProtocol) {
   asyncStart();
   var sContext = serverContext()..setAlpnProtocols(serverProtocols, true);
-  SecureServerSocket
-      .bind('localhost', 0, sContext)
+  SecureServerSocket.bind('localhost', 0, sContext)
       .then((SecureServerSocket server) {
     asyncStart();
     server.first.then((SecureSocket socket) {
@@ -42,22 +41,21 @@ void testSuccessfulAlpnNegotiationConnection(List<String> clientProtocols,
       socket
         ..write('server message')
         ..close();
-      socket.transform(ASCII.decoder).join('').then((String s) {
+      ascii.decoder.bind(socket).join('').then((String s) {
         Expect.equals('client message', s);
         asyncEnd();
       });
     });
 
     asyncStart();
-    SecureSocket
-        .connect('localhost', server.port,
+    SecureSocket.connect('localhost', server.port,
             context: clientContext(), supportedProtocols: clientProtocols)
         .then((socket) {
       Expect.equals(selectedProtocol, socket.selectedProtocol);
       socket
         ..write('client message')
         ..close();
-      socket.transform(ASCII.decoder).join('').then((String s) {
+      ascii.decoder.bind(socket).join('').then((String s) {
         Expect.equals('server message', s);
         server.close();
         asyncEnd();
@@ -108,8 +106,7 @@ void testInvalidArgumentClientConnect(
     });
 
     asyncStart();
-    SecureSocket
-        .connect('localhost', server.port,
+    SecureSocket.connect('localhost', server.port,
             context: clientContext(), supportedProtocols: protocols)
         .then((socket) {
       Expect.fail(

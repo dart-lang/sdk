@@ -45,36 +45,12 @@ namespace dart {
 //   Handles::AllocateZoneHandle() function for creating zone handles.
 //   The ZoneHandle function of the object type is the only way to create
 //   zone handles in the dart VM.
-//
-// There are some critical regions of the Dart VM were we may need to manipulate
-// raw dart objects directly. We use NOHANDLESCOPE to assert that we do not
-// add code that will allocate new handles during this critical area.
-// {
-//   NOHANDLESCOPE(thread);
-//   ....
-//   ....
-// }
 
 // Forward declarations.
 class ObjectPointerVisitor;
-class Thread;
+class HandleVisitor;
 
 DECLARE_FLAG(bool, verify_handles);
-
-class HandleVisitor {
- public:
-  explicit HandleVisitor(Thread* thread) : thread_(thread) {}
-  virtual ~HandleVisitor() {}
-
-  Thread* thread() const { return thread_; }
-
-  virtual void VisitHandle(uword addr) = 0;
-
- private:
-  Thread* thread_;
-
-  DISALLOW_IMPLICIT_CONSTRUCTORS(HandleVisitor);
-};
 
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 class Handles {
@@ -116,7 +92,6 @@ class Handles {
   // Returns true if specified handle is a zone handle.
   static bool IsZoneHandle(uword handle);
 
- protected:
   // Allocates space for a scoped handle.
   uword AllocateScopedHandle() {
     if (scoped_blocks_->IsFull()) {
@@ -125,6 +100,7 @@ class Handles {
     return scoped_blocks_->AllocateHandle();
   }
 
+ protected:
   // Returns a count of active handles (used for testing purposes).
   int CountScopedHandles() const;
   int CountZoneHandles() const;
@@ -231,8 +207,9 @@ class Handles {
 
   friend class HandleScope;
   friend class Dart;
+  friend class IsolateObjectStore;
   friend class ObjectStore;
-  friend class Thread;
+  friend class ThreadState;
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Handles);
 };
@@ -289,7 +266,7 @@ class VMHandles : public Handles<kVMHandleSizeInWords,
 // }
 class HandleScope : public StackResource {
  public:
-  explicit HandleScope(Thread* thread);
+  explicit HandleScope(ThreadState* thread);
   ~HandleScope();
 
  private:
@@ -306,43 +283,6 @@ class HandleScope : public StackResource {
 // Macro to start a new Handle scope.
 #define HANDLESCOPE(thread)                                                    \
   dart::HandleScope vm_internal_handles_scope_(thread);
-
-// The class NoHandleScope is used in critical regions of the virtual machine
-// code where raw dart object pointers are directly manipulated.
-// This class asserts that we do not add code that will allocate new handles
-// during this critical area.
-// It is used as follows:
-// {
-//   NOHANDLESCOPE(thread);
-//   ....
-//   .....
-//   critical code that manipulates dart objects directly.
-//   ....
-// }
-#if defined(DEBUG)
-class NoHandleScope : public StackResource {
- public:
-  explicit NoHandleScope(Thread* thread);
-  ~NoHandleScope();
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(NoHandleScope);
-};
-#else   // defined(DEBUG)
-class NoHandleScope : public ValueObject {
- public:
-  explicit NoHandleScope(Thread* thread) {}
-  NoHandleScope() {}
-  ~NoHandleScope() {}
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(NoHandleScope);
-};
-#endif  // defined(DEBUG)
-
-// Macro to start a no handles scope in the code.
-#define NOHANDLESCOPE(thread)                                                  \
-  dart::NoHandleScope no_vm_internal_handles_scope_(thread);
 
 }  // namespace dart
 

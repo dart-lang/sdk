@@ -330,9 +330,9 @@ class _GridTrackParser extends _Parser {
   final Map<String, int> _lineNames;
 
   _GridTrackParser._internal(String src)
-      : super(src),
-        _tracks = new List<GridTrack>(),
-        _lineNames = new Map<String, int>();
+      : _tracks = new List<GridTrack>(),
+        _lineNames = new Map<String, int>(),
+        super(src);
 
   /** Parses the grid-rows and grid-columns CSS properties into object form. */
   static GridTrackList parse(String str) {

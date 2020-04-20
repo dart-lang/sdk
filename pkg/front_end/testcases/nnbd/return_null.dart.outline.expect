@@ -1,0 +1,51 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class Enum extends core::Object /*isEnum*/  {
+  final field core::int index;
+  final field core::String _name;
+  static const field core::List<self::Enum> values = const <self::Enum>[self::Enum::a, self::Enum::b];
+  static const field self::Enum a = const self::Enum::•(0, "Enum.a");
+  static const field self::Enum b = const self::Enum::•(1, "Enum.b");
+  const constructor •(core::int index, core::String _name) → self::Enum
+    : self::Enum::index = index, self::Enum::_name = _name, super core::Object::•()
+    ;
+  method toString() → core::String
+    return this.{=self::Enum::_name};
+}
+static method returnImplicit() → core::String
+  ;
+static method returnExplicit() → core::String
+  ;
+static method returnMixed(core::bool b) → core::String
+  ;
+static method returnAsync1() → asy::Future<dynamic>
+  ;
+static method returnAsync2() → asy::FutureOr<dynamic>
+  ;
+static method returnAsync3() → asy::FutureOr<core::int>
+  ;
+static method returnAsync4() → asy::FutureOr<core::int?>
+  ;
+static method returnAsync5() → dynamic
+  ;
+static method returnAsync6() → asy::Future<core::int?>
+  ;
+static method returnAsync7() → asy::Future<core::int?>
+  ;
+static method yieldSync() → core::Iterable<dynamic>
+  ;
+static method yieldAsync() → asy::Stream<dynamic>
+  ;
+static method caseReturn1(self::Enum e) → self::Enum
+  ;
+static method caseReturn2(self::Enum e) → self::Enum
+  ;
+static method localFunctions() → dynamic
+  ;
+static method main() → dynamic
+  ;

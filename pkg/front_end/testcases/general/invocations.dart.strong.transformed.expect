@@ -1,0 +1,69 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/invocations.dart:7:3: Error: Method not found: 'z'.
+//   z("Hello, World!");
+//   ^
+//
+// pkg/front_end/testcases/general/invocations.dart:8:3: Error: Getter not found: 'z'.
+//   z.print("Hello, World!");
+//   ^
+//
+// pkg/front_end/testcases/general/invocations.dart:9:3: Error: Getter not found: 'y'.
+//   y.z.print("Hello, World!");
+//   ^
+//
+// pkg/front_end/testcases/general/invocations.dart:10:3: Error: Getter not found: 'x'.
+//   x.y.z.print("Hello, World!");
+//   ^
+//
+// pkg/front_end/testcases/general/invocations.dart:14:7: Error: Method not found: 'z'.
+//       z("Hello, World!") +
+//       ^
+//
+// pkg/front_end/testcases/general/invocations.dart:15:7: Error: Getter not found: 'z'.
+//       z.print("Hello, World!") +
+//       ^
+//
+// pkg/front_end/testcases/general/invocations.dart:16:7: Error: Getter not found: 'y'.
+//       y.z.print("Hello, World!") +
+//       ^
+//
+// pkg/front_end/testcases/general/invocations.dart:17:7: Error: Getter not found: 'x'.
+//       x.y.z.print("Hello, World!");
+//       ^
+//
+// pkg/front_end/testcases/general/invocations.dart:13:7: Error: This expression has type 'void' and can't be used.
+//       print("Hello, World!") +
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::print("Hello, World!");
+  invalid-expression "pkg/front_end/testcases/general/invocations.dart:7:3: Error: Method not found: 'z'.
+  z(\"Hello, World!\");
+  ^";
+  invalid-expression "pkg/front_end/testcases/general/invocations.dart:8:3: Error: Getter not found: 'z'.
+  z.print(\"Hello, World!\");
+  ^".print("Hello, World!");
+  invalid-expression "pkg/front_end/testcases/general/invocations.dart:9:3: Error: Getter not found: 'y'.
+  y.z.print(\"Hello, World!\");
+  ^".z.print("Hello, World!");
+  invalid-expression "pkg/front_end/testcases/general/invocations.dart:10:3: Error: Getter not found: 'x'.
+  x.y.z.print(\"Hello, World!\");
+  ^".y.z.print("Hello, World!");
+  1.{core::num::+}(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/invocations.dart:13:7: Error: This expression has type 'void' and can't be used.
+      print(\"Hello, World!\") +
+      ^" in core::print("Hello, World!")).{core::num::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:14:7: Error: Method not found: 'z'.
+      z(\"Hello, World!\") +
+      ^" as{TypeError,ForDynamic} core::num*).{core::num::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:15:7: Error: Getter not found: 'z'.
+      z.print(\"Hello, World!\") +
+      ^".print("Hello, World!") as{TypeError,ForDynamic} core::num*).{core::num::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:16:7: Error: Getter not found: 'y'.
+      y.z.print(\"Hello, World!\") +
+      ^".z.print("Hello, World!") as{TypeError,ForDynamic} core::num*).{core::num::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:17:7: Error: Getter not found: 'x'.
+      x.y.z.print(\"Hello, World!\");
+      ^".y.z.print("Hello, World!") as{TypeError,ForDynamic} core::num*);
+}

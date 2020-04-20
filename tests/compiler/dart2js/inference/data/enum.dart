@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+// @dart = 2.7
+
+/*member: main:[null]*/
 main() {
   enumValue();
   enumIndex();
@@ -16,11 +18,10 @@ main() {
 ////////////////////////////////////////////////////////////////////////////////
 
 enum Enum1 {
-  /*element: Enum1.a:[exact=Enum1]*/
   a,
 }
 
-/*element: enumValue:[exact=Enum1]*/
+/*member: enumValue:[exact=Enum1]*/
 enumValue() => Enum1.a;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -28,11 +29,10 @@ enumValue() => Enum1.a;
 ////////////////////////////////////////////////////////////////////////////////
 
 enum Enum2 {
-  /*element: Enum2.a:[exact=Enum2]*/
   a,
 }
 
-/*element: enumIndex:[exact=JSUInt31]*/
+/*member: enumIndex:[exact=JSUInt31]*/
 enumIndex() => Enum2.a. /*[exact=Enum2]*/ index;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -40,13 +40,11 @@ enumIndex() => Enum2.a. /*[exact=Enum2]*/ index;
 ////////////////////////////////////////////////////////////////////////////////
 
 enum Enum3 {
-  /*element: Enum3.a:[exact=Enum3]*/
   a,
-  /*element: Enum3.b:[exact=Enum3]*/
   b,
 }
 
-/*element: enumValues:Container mask: [exact=Enum3] length: 2 type: [exact=JSUnmodifiableArray]*/
+/*member: enumValues:Container([exact=JSUnmodifiableArray], element: [exact=Enum3], length: 2)*/
 enumValues() => Enum3.values;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -54,11 +52,10 @@ enumValues() => Enum3.values;
 ////////////////////////////////////////////////////////////////////////////////
 
 enum Enum4 {
-  /*element: Enum4.a:[exact=Enum4]*/
   a,
 }
 
-/*element: enumToString1:Value mask: ["Enum4.a"] type: [exact=JSString]*/
+/*member: enumToString1:Value([exact=JSString], value: "Enum4.a")*/
 enumToString1() {
   return Enum4.a. /*invoke: [exact=Enum4]*/ toString();
 }
@@ -68,13 +65,11 @@ enumToString1() {
 ////////////////////////////////////////////////////////////////////////////////
 
 enum Enum5 {
-  /*element: Enum5.a:[exact=Enum5]*/
   a,
-  /*element: Enum5.b:[exact=Enum5]*/
   b,
 }
 
-/*element: enumToString2:[exact=JSString]*/
+/*member: enumToString2:[exact=JSString]*/
 enumToString2() {
   Enum5.b. /*invoke: [exact=Enum5]*/ toString();
   return Enum5.a. /*invoke: [exact=Enum5]*/ toString();

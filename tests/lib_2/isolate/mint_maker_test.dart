@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
+
 library MintMakerTest;
 
 import 'dart:async';
 import 'dart:isolate';
-import 'package:unittest/unittest.dart';
-import "remote_unittest_helper.dart";
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
 
 class Mint {
   Map<SendPort, Purse> _registry;
@@ -44,8 +47,8 @@ class MintWrapper {
 
   void createPurse(int balance, handlePurse(PurseWrapper purse)) {
     ReceivePort reply = new ReceivePort();
-    reply.first.then((SendPort purse) {
-      handlePurse(new PurseWrapper(purse));
+    reply.first.then((purse) {
+      handlePurse(new PurseWrapper(purse as SendPort));
     });
     _mint.send([balance, reply.sendPort]);
   }
@@ -103,10 +106,10 @@ class PurseWrapper {
 
   PurseWrapper(this._purse) {}
 
-  void _sendReceive(message, replyHandler(reply)) {
+  void _sendReceive<T>(String message, replyHandler(T reply)) {
     ReceivePort reply = new ReceivePort();
     _purse.send([message, reply.sendPort]);
-    reply.first.then(replyHandler);
+    reply.first.then((a) => replyHandler(a as T));
   }
 
   void queryBalance(handleBalance(int balance)) {
@@ -127,9 +130,9 @@ class PurseWrapper {
 mintMakerWrapper(SendPort replyPort) {
   ReceivePort receiver = new ReceivePort();
   replyPort.send(receiver.sendPort);
-  receiver.listen((SendPort replyTo) {
+  receiver.listen((replyTo) {
     Mint mint = new Mint();
-    replyTo.send(mint.port);
+    (replyTo as SendPort).send(mint.port);
   });
 }
 
@@ -138,8 +141,7 @@ class MintMakerWrapper {
 
   static Future<MintMakerWrapper> create() {
     ReceivePort reply = new ReceivePort();
-    return Isolate
-        .spawn(mintMakerWrapper, reply.sendPort)
+    return Isolate.spawn(mintMakerWrapper, reply.sendPort)
         .then((_) => reply.first.then((port) => new MintMakerWrapper._(port)));
   }
 
@@ -147,40 +149,39 @@ class MintMakerWrapper {
 
   void makeMint(handleMint(MintWrapper mint)) {
     ReceivePort reply = new ReceivePort();
-    reply.first.then((SendPort mint) {
-      handleMint(new MintWrapper(mint));
+    reply.first.then((mint) {
+      handleMint(new MintWrapper(mint as SendPort));
     });
     _port.send(reply.sendPort);
   }
 }
 
 _checkBalance(PurseWrapper wrapper, expected) {
-  wrapper.queryBalance(expectAsync((int balance) {
-    expect(balance, equals(expected));
-  }));
+  wrapper.queryBalance((balance) {
+    Expect.equals(balance, expected);
+  });
 }
 
 void main([args, port]) {
-  if (testRemote(main, port)) return;
-  test("creating purse, deposit, and query balance", () {
-    MintMakerWrapper.create().then(expectAsync((mintMaker) {
-      mintMaker.makeMint(expectAsync((MintWrapper mint) {
-        mint.createPurse(100, expectAsync((PurseWrapper purse) {
+  asyncStart();
+  MintMakerWrapper.create().then((mintMaker) {
+    mintMaker.makeMint((mint) {
+      mint.createPurse(100, (purse) {
+        _checkBalance(purse, 100);
+        purse.sproutPurse((sprouted) {
+          _checkBalance(sprouted, 0);
           _checkBalance(purse, 100);
-          purse.sproutPurse(expectAsync((PurseWrapper sprouted) {
-            _checkBalance(sprouted, 0);
-            _checkBalance(purse, 100);
 
-            sprouted.deposit(purse, 5);
-            _checkBalance(sprouted, 0 + 5);
-            _checkBalance(purse, 100 - 5);
+          sprouted.deposit(purse, 5);
+          _checkBalance(sprouted, 0 + 5);
+          _checkBalance(purse, 100 - 5);
 
-            sprouted.deposit(purse, 42);
-            _checkBalance(sprouted, 0 + 5 + 42);
-            _checkBalance(purse, 100 - 5 - 42);
-          }));
-        }));
-      }));
-    }));
+          sprouted.deposit(purse, 42);
+          _checkBalance(sprouted, 0 + 5 + 42);
+          _checkBalance(purse, 100 - 5 - 42);
+          asyncEnd();
+        });
+      });
+    });
   });
 }

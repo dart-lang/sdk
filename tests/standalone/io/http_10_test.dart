@@ -7,10 +7,10 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:isolate";
 import "dart:io";
+import "package:expect/expect.dart";
 
 // Client makes a HTTP 1.0 request without connection keep alive. The
 // server sets a content length but still needs to close the
@@ -29,7 +29,9 @@ void testHttp10NoKeepAlive() {
       response.write("Z");
       response.write("Z");
       response.close();
-      response.write("x");
+      Expect.throws(() {
+        response.write("x");
+      }, (e) => e is StateError);
     }, onError: (e, trace) {
       String msg = "Unexpected error $e";
       if (trace != null) msg += "\nStackTrace: $trace";

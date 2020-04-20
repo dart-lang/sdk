@@ -9,11 +9,11 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(Stopwatch_now, 0) {
+DEFINE_NATIVE_ENTRY(Stopwatch_now, 0, 0) {
   return Integer::New(OS::GetCurrentMonotonicTicks());
 }
 
-DEFINE_NATIVE_ENTRY(Stopwatch_frequency, 0) {
+DEFINE_NATIVE_ENTRY(Stopwatch_frequency, 0, 0) {
   return Integer::New(OS::GetCurrentMonotonicFrequency());
 }
 

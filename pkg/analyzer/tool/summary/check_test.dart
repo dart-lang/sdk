@@ -1,13 +1,11 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.tool.summary.check_test;
-
-import 'package:front_end/src/codegen/tools.dart';
-import 'package:front_end/src/testing/package_root.dart' as package_root;
+import 'package:analysis_tool/tools.dart';
 import 'package:path/path.dart';
 
+import '../../test/utils/package_root.dart' as package_root;
 import 'generate.dart';
 
 /**
@@ -15,7 +13,10 @@ import 'generate.dart';
  * user to run generate.dart.
  */
 main() async {
-  String pkgPath = normalize(join(package_root.packageRoot, 'analyzer'));
-  await GeneratedContent.checkAll(
-      pkgPath, 'tool/summary/generate.dart', allTargets);
+  var idlFolderPath = normalize(
+      join(package_root.packageRoot, 'analyzer', 'lib', 'src', 'summary'));
+  var idlPath = normalize(join(idlFolderPath, 'idl.dart'));
+  await GeneratedContent.checkAll(idlFolderPath,
+      'pkg/analyzer/tool/summary/generate.dart', getAllTargets(idlPath),
+      args: [idlPath]);
 }

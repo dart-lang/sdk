@@ -156,6 +156,7 @@ namespace dart {
   KW(kCONTINUE, "continue", 0, kKeyword)                                       \
   KW(kCOVARIANT, "covariant", 0, kPseudoKeyword)                               \
   KW(kDEFAULT, "default", 0, kKeyword)                                         \
+  KW(kDEFERRED, "deferred", 0, kPseudoKeyword)                                 \
   KW(kDO, "do", 0, kKeyword)                                                   \
   KW(kELSE, "else", 0, kKeyword)                                               \
   KW(kENUM, "enum", 0, kKeyword)                                               \
@@ -258,6 +259,19 @@ class Token {
     return tok_str_[tok];
   }
 
+  static bool FromStr(const char* str, Kind* out) {
+    ASSERT(str != nullptr && out != nullptr);
+#define TOK_CASE(t, s, p, a)                                                   \
+  if (strcmp(str, tok_str_[(t)]) == 0) {                                       \
+    *out = (t);                                                                \
+    return true;                                                               \
+  }
+    DART_TOKEN_LIST(TOK_CASE)
+    DART_KEYWORD_LIST(TOK_CASE)
+#undef TOK_CASE
+    return false;
+  }
+
   static int Precedence(Kind tok) {
     ASSERT(tok < kNumTokens);
     return precedence_[tok];
@@ -315,6 +329,32 @@ class Token {
         return Token::kISNOT;
       case Token::kISNOT:
         return Token::kIS;
+      default:
+        UNREACHABLE();
+        return Token::kILLEGAL;
+    }
+  }
+
+  // For a comparison operation return an operation for the equivalent flipped
+  // comparison: a (op) b === b (op') a.
+  static Token::Kind FlipComparison(Token::Kind op) {
+    switch (op) {
+      case Token::kEQ:
+        return Token::kEQ;
+      case Token::kNE:
+        return Token::kNE;
+      case Token::kLT:
+        return Token::kGT;
+      case Token::kGT:
+        return Token::kLT;
+      case Token::kLTE:
+        return Token::kGTE;
+      case Token::kGTE:
+        return Token::kLTE;
+      case Token::kEQ_STRICT:
+        return Token::kEQ_STRICT;
+      case Token::kNE_STRICT:
+        return Token::kNE_STRICT;
       default:
         UNREACHABLE();
         return Token::kILLEGAL;

@@ -4,8 +4,8 @@
 
 library compiler.src.inferrer.map_tracer;
 
+import '../common/names.dart';
 import '../elements/entities.dart';
-import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../universe/selector.dart' show Selector;
 import 'node_tracer.dart';
 import 'type_graph_nodes.dart';
@@ -35,20 +35,18 @@ class MapTracerVisitor extends TracerVisitor {
   // These lists are used to keep track of newly discovered assignments to
   // the map. Note that elements at corresponding indices are expected to
   // belong to the same assignment operation.
-  List<TypeInformation> keyAssignments = <TypeInformation>[];
-  List<TypeInformation> valueAssignments = <TypeInformation>[];
+  List<TypeInformation> keyInputs = <TypeInformation>[];
+  List<TypeInformation> valueInputs = <TypeInformation>[];
   // This list is used to keep track of assignments of entire maps to
   // this map.
-  List<MapTypeInformation> mapAssignments = <MapTypeInformation>[];
+  List<MapTypeInformation> mapInputs = <MapTypeInformation>[];
 
   MapTracerVisitor(tracedType, inferrer) : super(tracedType, inferrer);
 
-  /**
-   * Returns [true] if the analysis completed successfully, [false]
-   * if it bailed out. In the former case, [keyAssignments] and
-   * [valueAssignments] hold a list of [TypeInformation] nodes that
-   * flow into the key and value types of this map.
-   */
+  /// Returns [true] if the analysis completed successfully, [false]
+  /// if it bailed out. In the former case, [keyInputs] and
+  /// [valueInputs] hold a list of [TypeInformation] nodes that
+  /// flow into the key and value types of this map.
   bool run() {
     analyze();
     MapTypeInformation map = tracedType;
@@ -56,23 +54,26 @@ class MapTracerVisitor extends TracerVisitor {
       map.addFlowsIntoTargets(flowsInto);
       return true;
     }
-    keyAssignments = valueAssignments = mapAssignments = null;
+    keyInputs = valueInputs = mapInputs = null;
     return false;
   }
 
+  @override
   visitClosureCallSiteTypeInformation(ClosureCallSiteTypeInformation info) {
     bailout('Passed to a closure');
   }
 
+  @override
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     super.visitStaticCallSiteTypeInformation(info);
     MemberEntity called = info.calledElement;
     if (inferrer.closedWorld.commonElements.isForeign(called) &&
-        called.name == JavaScriptBackend.JS) {
+        called.name == Identifiers.JS) {
       bailout('Used in JS ${info.debugName}');
     }
   }
 
+  @override
   visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info) {
     super.visitDynamicCallSiteTypeInformation(info);
     Selector selector = info.selector;
@@ -86,7 +87,7 @@ class MapTracerVisitor extends TracerVisitor {
             TypeInformation map = info.arguments.positional[0];
             if (map is MapTypeInformation) {
               inferrer.analyzeMapAndEnqueue(map);
-              mapAssignments.add(map);
+              mapInputs.add(map);
             } else {
               // If we could select a component from a [TypeInformation],
               // like the keytype or valuetype in this case, we could
@@ -102,8 +103,8 @@ class MapTracerVisitor extends TracerVisitor {
             // to go to dynamic.
             // TODO(herhut,16507): Use return type of closure in
             // Map.putIfAbsent.
-            keyAssignments.add(info.arguments.positional[0]);
-            valueAssignments.add(inferrer.types.dynamicType);
+            keyInputs.add(info.arguments.positional[0]);
+            valueInputs.add(inferrer.types.dynamicType);
           } else {
             // It would be nice to handle [Map.keys] and [Map.values], too.
             // However, currently those calls do not trigger the creation
@@ -114,15 +115,16 @@ class MapTracerVisitor extends TracerVisitor {
             return;
           }
         } else if (selector.isIndexSet) {
-          keyAssignments.add(info.arguments.positional[0]);
-          valueAssignments.add(info.arguments.positional[1]);
+          keyInputs.add(info.arguments.positional[0]);
+          valueInputs.add(info.arguments.positional[1]);
         } else if (!selector.isIndex) {
           bailout('Map used in a not-ok selector [$selectorName]');
           return;
         }
       }
     } else if (selector.isCall &&
-        !info.targets.every((element) => element.isFunction)) {
+        (info.hasClosureCallTargets ||
+            info.concreteTargets.any((element) => !element.isFunction))) {
       bailout('Passed to a closure');
       return;
     }

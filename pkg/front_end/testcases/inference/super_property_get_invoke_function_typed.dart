@@ -6,12 +6,12 @@
 library test;
 
 class C {
-  var /*@topType=() -> int*/ f = /*@returnType=int*/ () => 0;
+  var f = /*@ returnType=int* */ () => 0;
 }
 
 class D extends C {
   void g() {
-    var /*@type=int*/ y = super. /*@target=C::f*/ f();
+    var /*@ type=int* */ y = super. /*@target=C::f*/ f();
   }
 }
 

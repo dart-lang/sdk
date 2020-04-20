@@ -9,7 +9,7 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 import "test_utils.dart" show retry;
 
-const ANY = InternetAddressType.ANY;
+const ANY = InternetAddressType.any;
 
 Future testIPv6toIPv6() {
   asyncStart();
@@ -58,7 +58,7 @@ Future testIPv6toIPv4() {
       server.listen((socket) {
         throw "Unexpected socket";
       });
-      return Socket.connect(clientAddr.first, server.port).then((socket) {
+      return Socket.connect(clientAddr.first, server.port).then<Null>((socket) {
         socket.destroy();
         throw "Unexpected connect";
       }, onError: (e) {}).whenComplete(() {
@@ -90,7 +90,7 @@ Future testIPv6Lookup() {
   return InternetAddress.lookup("::0", type: ANY).then((list) {
     if (list.length < 0) throw "no address";
     for (var entry in list) {
-      if (entry.type != InternetAddressType.IP_V6) {
+      if (entry.type != InternetAddressType.IPv6) {
         throw "Wrong IP type";
       }
     }
@@ -103,7 +103,7 @@ Future testIPv4Lookup() {
   return InternetAddress.lookup("127.0.0.1").then((list) {
     if (list.length < 0) throw "no address";
     for (var entry in list) {
-      if (entry.type != InternetAddressType.IP_V4) {
+      if (entry.type != InternetAddressType.IPv4) {
         throw "Wrong IP type";
       }
     }
@@ -118,7 +118,7 @@ Future testIPv4toIPv6_IPV6Only() {
       server.listen((socket) {
         throw "Unexpected socket";
       });
-      return Socket.connect("127.0.0.1", server.port).then((socket) {
+      return Socket.connect("127.0.0.1", server.port).then<Null>((socket) {
         socket.destroy();
         throw "Unexpected connect";
       }, onError: (e) {}).whenComplete(() {
@@ -130,6 +130,7 @@ Future testIPv4toIPv6_IPV6Only() {
 }
 
 main() async {
+  asyncStart();
   await testIPv6toIPv6(); //               //# 01: ok
   await testIPv4toIPv6(); //               //# 02: ok
   await testIPv4toIPv4(); //               //# 03: ok
@@ -138,4 +139,5 @@ main() async {
 
   await retry(testIPv6toIPv4); //          //# 06: ok
   await retry(testIPv4toIPv6_IPV6Only); // //# 07: ok
+  asyncEnd();
 }

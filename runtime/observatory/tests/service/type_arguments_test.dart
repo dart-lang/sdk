@@ -1,15 +1,14 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) =>
-      isolate.getTypeArgumentsList(false).then((ServiceMap allTypeArgs) {
+      isolate.getTypeArgumentsList(false).then((dynamic allTypeArgs) {
         var allTypeArgsTableSize =
             allTypeArgs['canonicalTypeArgumentsTableSize'];
         var allTypeArgsTableUsed =
@@ -21,22 +20,23 @@ var tests = [
             allTypeArgsTableSize, greaterThanOrEqualTo(allTypeArgsTableUsed));
         return isolate
             .getTypeArgumentsList(true)
-            .then((ServiceMap instantiatedTypeARgs) {
+            .then((dynamic instantiatedTypeArgs) {
           var instantiatedTypeArgsTableSize =
-              instantiatedTypeARgs['canonicalTypeArgumentsTableSize'];
+              instantiatedTypeArgs['canonicalTypeArgumentsTableSize'];
           var instantiatedTypeArgsTableUsed =
-              instantiatedTypeARgs['canonicalTypeArgumentsTableUsed'];
+              instantiatedTypeArgs['canonicalTypeArgumentsTableUsed'];
           // Check size >= used.
           expect(instantiatedTypeArgsTableSize,
               greaterThanOrEqualTo(instantiatedTypeArgsTableUsed));
           // Check that |instantiated| <= |all|
-          var instantiatedTypeArgsList = instantiatedTypeARgs['typeArguments'];
+          var instantiatedTypeArgsList = instantiatedTypeArgs['typeArguments'];
           expect(instantiatedTypeArgsList, isNotNull);
           expect(allTypeArgsList.length,
               greaterThanOrEqualTo(instantiatedTypeArgsList.length));
           // Check that we can 'get' this object again.
           var firstType = allTypeArgsList[0];
-          return isolate.getObject(firstType.id).then((TypeArguments type) {
+          return isolate.getObject(firstType.id).then((ServiceObject object) {
+            TypeArguments type = object;
             expect(firstType.name, type.name);
           });
         });

@@ -4,13 +4,12 @@
 
 library dart2js.util;
 
-import 'package:front_end/src/fasta/scanner/characters.dart';
-import 'package:front_end/src/fasta/util/link.dart';
+import 'package:front_end/src/api_unstable/dart2js.dart'
+    show $BACKSLASH, $CR, $DEL, $DQ, $LF, $LS, $PS, $TAB, Link, LinkBuilder;
 
 export 'emptyset.dart';
 export 'maplet.dart';
 export 'setlet.dart';
-export 'package:front_end/src/fasta/util/link.dart';
 
 part 'indentation.dart';
 
@@ -43,8 +42,11 @@ class Hashing {
   }
 
   /// Mix the bits of `.hashCode` all non-null objects.
-  static int objectsHash(Object obj1, [Object obj2, Object obj3]) {
+  static int objectsHash(Object obj1,
+      [Object obj2, Object obj3, Object obj4, Object obj5]) {
     int hash = 0;
+    if (obj5 != null) hash = objectHash(obj5, hash);
+    if (obj4 != null) hash = objectHash(obj4, hash);
     if (obj3 != null) hash = objectHash(obj3, hash);
     if (obj2 != null) hash = objectHash(obj2, hash);
     return objectHash(obj1, hash);
@@ -53,21 +55,41 @@ class Hashing {
   /// Mix the bits of the element hash codes of [list] with [existing].
   static int listHash(List list, [int existing = 0]) {
     int h = existing;
-    int length = list.length;
-    for (int i = 0; i < length; i++) {
-      h = mixHashCodeBits(h, list[i].hashCode);
+    if (list != null) {
+      int length = list.length;
+      for (int i = 0; i < length; i++) {
+        h = mixHashCodeBits(h, list[i].hashCode);
+      }
     }
     return h;
+  }
+
+  /// Mix the bits of the element hash codes of [iterable] with [existing].
+  static int setHash<E>(Iterable<E> iterable, [int existing = 0]) {
+    int h = existing;
+    if (iterable != null) {
+      for (E e in iterable) {
+        h += objectsHash(e);
+      }
+    }
+    return h & SMI_MASK;
   }
 
   /// Mix the bits of the hash codes of the unordered key/value from [map] with
   /// [existing].
   static int unorderedMapHash(Map map, [int existing = 0]) {
-    int h = 0;
-    for (var key in map.keys) {
-      h ^= objectHash(key, objectHash(map[key]));
+    if (map.length == 0) return existing;
+    List<int> hashCodes = List(map.length);
+    int i = 0;
+    for (var entry in map.entries) {
+      hashCodes[i++] = objectHash(entry.key, objectHash(entry.value));
     }
-    return mixHashCodeBits(h, existing);
+    hashCodes.sort();
+    int h = existing;
+    for (int hashCode in hashCodes) {
+      h = mixHashCodeBits(h, hashCode);
+    }
+    return h;
   }
 
   /// Mix the bits of the key/value hash codes from [map] with [existing].
@@ -81,7 +103,21 @@ class Hashing {
   }
 }
 
-bool equalElements(List a, List b) {
+bool identicalElements<E>(List<E> a, List<E> b) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null) return false;
+  if (a.length != b.length) return false;
+  for (int index = 0; index < a.length; index++) {
+    if (!identical(a[index], b[index])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool equalElements<E>(List<E> a, List<E> b) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null) return false;
   if (a.length != b.length) return false;
   for (int index = 0; index < a.length; index++) {
     if (a[index] != b[index]) {
@@ -91,10 +127,24 @@ bool equalElements(List a, List b) {
   return true;
 }
 
-/**
- * File name prefix used to shorten the file name in stack traces printed by
- * [trace].
- */
+bool equalSets<E>(Set<E> a, Set<E> b) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null) return false;
+  return a.length == b.length && a.containsAll(b) && b.containsAll(a);
+}
+
+bool equalMaps<K, V>(Map<K, V> a, Map<K, V> b) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null) return false;
+  if (a.length != b.length) return false;
+  for (K key in a.keys) {
+    if (a[key] != b[key]) return false;
+  }
+  return true;
+}
+
+/// File name prefix used to shorten the file name in stack traces printed by
+/// [trace].
 String stackTraceFilePrefix = null;
 
 /// Writes the characters of [string] on [buffer].  The characters
@@ -203,7 +253,7 @@ String modifiersToString(
   if (isExternal) builder.addLast('external');
   if (isCovariant) builder.addLast('covariant');
   StringBuffer buffer = new StringBuffer();
-  builder.toLink().printOn(buffer, ', ');
+  builder.toLink(const Link<String>()).printOn(buffer, ', ');
   return buffer.toString();
 }
 
@@ -213,14 +263,17 @@ class Pair<A, B> {
 
   Pair(this.a, this.b);
 
+  @override
   int get hashCode => 13 * a.hashCode + 17 * b.hashCode;
 
+  @override
   bool operator ==(var other) {
     if (identical(this, other)) return true;
     if (other is! Pair) return false;
     return a == other.a && b == other.b;
   }
 
+  @override
   String toString() => '($a,$b)';
 }
 
@@ -238,13 +291,14 @@ int longestCommonPrefixLength(List a, List b) {
 /// the smallest number that makes it not appear in [usedNames].
 ///
 /// Adds the result to [usedNames].
-String makeUnique(String suggestedName, Set<String> usedNames) {
+String makeUnique(String suggestedName, Set<String> usedNames,
+    [String separator = '']) {
   String result = suggestedName;
   if (usedNames.contains(suggestedName)) {
     int counter = 0;
     while (usedNames.contains(result)) {
       counter++;
-      result = "$suggestedName$counter";
+      result = "$suggestedName$separator$counter";
     }
   }
   usedNames.add(result);

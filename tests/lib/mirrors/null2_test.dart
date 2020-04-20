@@ -4,7 +4,6 @@
 
 library test.null_test;
 
-@MirrorsUsed(targets: const ["test.null_test", Null])
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

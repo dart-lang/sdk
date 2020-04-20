@@ -5,8 +5,13 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_INLINER_H_
 #define RUNTIME_VM_COMPILER_BACKEND_INLINER_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
+#include "vm/token_position.h"
 
 namespace dart {
 
@@ -15,6 +20,8 @@ class Field;
 class FlowGraph;
 class ForwardInstructionIterator;
 class Function;
+class FunctionEntryInstr;
+class GraphEntryInstr;
 class ICData;
 class InstanceCallInstr;
 class Instruction;
@@ -66,7 +73,7 @@ class SpeculativeInliningPolicy {
  private:
   bool IsBlacklisted(intptr_t id) const {
     for (intptr_t i = 0; i < inlining_blacklist_.length(); ++i) {
-      if (inlining_blacklist_[i] != id) return true;
+      if (inlining_blacklist_[i] == id) return true;
     }
     return false;
   }
@@ -93,11 +100,27 @@ class FlowGraphInliner : ValueObject {
   // depth that we inlined.
   int Inline();
 
-  // Compute graph info if it was not already computed or if 'force' is true.
-  static void CollectGraphInfo(FlowGraph* flow_graph, bool force = false);
+  // Computes graph information (instruction and call site count).
+  // For the non-specialized cases (num_constants_args == 0), the
+  // method uses a cache to avoid recomputing the counts (the cached
+  // value may still be approximate but close). The 'force' flag is
+  // used to update the cached value at the end of running the full pipeline
+  // on non-specialized cases. Specialized cases (num_constants_args > 0)
+  // always recompute the counts without caching.
+  //
+  // TODO(ajcbik): cache for specific constant argument combinations too?
+  static void CollectGraphInfo(FlowGraph* flow_graph,
+                               intptr_t num_constant_args,
+                               bool force,
+                               intptr_t* instruction_count,
+                               intptr_t* call_site_count);
+
   static void SetInliningId(FlowGraph* flow_graph, intptr_t inlining_id);
 
   bool AlwaysInline(const Function& function);
+
+  static bool FunctionHasPreferInlinePragma(const Function& function);
+  static bool FunctionHasNeverInlinePragma(const Function& function);
 
   FlowGraph* flow_graph() const { return flow_graph_; }
   intptr_t NextInlineId(const Function& function,
@@ -109,6 +132,11 @@ class FlowGraphInliner : ValueObject {
   SpeculativeInliningPolicy* speculative_policy() {
     return speculative_policy_;
   }
+
+  struct ExactnessInfo {
+    const bool is_exact;
+    bool emit_exactness_guard;
+  };
 
   static bool TryReplaceInstanceCallWithInline(
       FlowGraph* flow_graph,
@@ -129,9 +157,12 @@ class FlowGraphInliner : ValueObject {
                                         Definition* receiver,
                                         TokenPosition token_pos,
                                         const ICData* ic_data,
-                                        TargetEntryInstr** entry,
-                                        Definition** last,
-                                        SpeculativeInliningPolicy* policy);
+                                        GraphEntryInstr* graph_entry,
+                                        FunctionEntryInstr** entry,
+                                        Instruction** last,
+                                        Definition** result,
+                                        SpeculativeInliningPolicy* policy,
+                                        ExactnessInfo* exactness = nullptr);
 
  private:
   friend class CallSiteInliner;

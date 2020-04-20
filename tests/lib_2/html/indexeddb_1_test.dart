@@ -1,7 +1,6 @@
 library IndexedDB1Test;
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
+import 'package:async_helper/async_minitest.dart';
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:math' as math;
@@ -46,15 +45,15 @@ testReadWrite(key, value, matcher,
         dbName = nextDatabaseName();
       }
       createObjectStore(e) {
-        var store = e.target.result.createObjectStore(storeName);
+        idb.ObjectStore store = e.target.result.createObjectStore(storeName);
         expect(store, isNotNull);
       }
 
-      var db;
+      idb.Database db;
       return html.window.indexedDB.deleteDatabase(dbName).then((_) {
         return html.window.indexedDB
             .open(dbName, version: version, onUpgradeNeeded: createObjectStore);
-      }).then((result) {
+      }).then((idb.Database result) {
         db = result;
         var transaction = db.transactionList([storeName], 'readwrite');
         transaction.objectStore(storeName).put(value, key);
@@ -154,8 +153,6 @@ void testTypes(testFunction) {
 }
 
 main() {
-  useHtmlIndividualConfiguration();
-
   // Test that indexed_db is properly flagged as supported or not.
   // Note that the rest of the indexed_db tests assume that this has been
   // checked.

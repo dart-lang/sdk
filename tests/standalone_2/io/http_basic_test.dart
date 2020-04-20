@@ -1,6 +1,9 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
 //
 // VMOptions=--trace_shutdown
 // VMOptions=--trace_shutdown --short_socket_read
@@ -91,7 +94,8 @@ class TestServerStatus {
   int _port;
 }
 
-void startTestServer(SendPort replyTo) {
+void startTestServer(Object replyToObj) {
+  SendPort replyTo = replyToObj;
   var server = new TestServer();
   server.init();
   replyTo.send(server.dispatchSendPort);
@@ -103,7 +107,7 @@ class TestServer {
     var response = request.response;
     Expect.equals("POST", request.method);
     response.contentLength = request.contentLength;
-    request.pipe(response);
+    request.cast<List<int>>().pipe(response);
   }
 
   // Echo the request content back to the response.
@@ -119,7 +123,7 @@ class TestServer {
   // Return a 404.
   void _notFoundHandler(HttpRequest request) {
     var response = request.response;
-    response.statusCode = HttpStatus.NOT_FOUND;
+    response.statusCode = HttpStatus.notFound;
     response.headers.set("Content-Type", "text/html; charset=UTF-8");
     response.write("Page not found");
     response.close();
@@ -128,7 +132,7 @@ class TestServer {
   // Return a 301 with a custom reason phrase.
   void _reasonForMovingHandler(HttpRequest request) {
     var response = request.response;
-    response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+    response.statusCode = HttpStatus.movedPermanently;
     response.reasonPhrase = "Don't come looking here any more";
     response.close();
   }
@@ -140,7 +144,7 @@ class TestServer {
     Expect.equals("www.dartlang.org:1234", request.headers["Host"][0]);
     Expect.equals("www.dartlang.org", request.headers.host);
     Expect.equals(1234, request.headers.port);
-    response.statusCode = HttpStatus.OK;
+    response.statusCode = HttpStatus.ok;
     response.close();
   }
 
@@ -210,7 +214,7 @@ void testGET() {
         .get("127.0.0.1", port, "/0123456789")
         .then((request) => request.close())
         .then((response) {
-      Expect.equals(HttpStatus.OK, response.statusCode);
+      Expect.equals(HttpStatus.ok, response.statusCode);
       StringBuffer body = new StringBuffer();
       response.listen((data) => body.write(new String.fromCharCodes(data)),
           onDone: () {
@@ -243,7 +247,7 @@ void testPOST(bool chunkedEncoding) {
         }
         return request.close();
       }).then((response) {
-        Expect.equals(HttpStatus.OK, response.statusCode);
+        Expect.equals(HttpStatus.ok, response.statusCode);
         StringBuffer body = new StringBuffer();
         response.listen((data) => body.write(new String.fromCharCodes(data)),
             onDone: () {
@@ -274,7 +278,7 @@ void test404() {
         .get("127.0.0.1", port, "/thisisnotfound")
         .then((request) => request.close())
         .then((response) {
-      Expect.equals(HttpStatus.NOT_FOUND, response.statusCode);
+      Expect.equals(HttpStatus.notFound, response.statusCode);
       var body = new StringBuffer();
       response.listen((data) => body.write(new String.fromCharCodes(data)),
           onDone: () {
@@ -295,7 +299,7 @@ void testReasonPhrase() {
       request.followRedirects = false;
       return request.close();
     }).then((response) {
-      Expect.equals(HttpStatus.MOVED_PERMANENTLY, response.statusCode);
+      Expect.equals(HttpStatus.movedPermanently, response.statusCode);
       Expect.equals("Don't come looking here any more", response.reasonPhrase);
       response.listen((data) => Expect.fail("No data expected"), onDone: () {
         httpClient.close();

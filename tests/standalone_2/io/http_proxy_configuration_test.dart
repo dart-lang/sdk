@@ -12,7 +12,7 @@ expect(expected, String uri, environment) {
           environment: environment));
 }
 
-expectDirect(String uri, environment) {
+expectDirect(String uri, Map<String, String> environment) {
   Expect.equals(
       "DIRECT",
       HttpClient.findProxyFromEnvironment(Uri.parse(uri),

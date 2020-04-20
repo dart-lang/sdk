@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.core;
 
 /**
@@ -90,16 +92,17 @@ abstract class num implements Comparable<num> {
    * // The following comparisons yield different results than the
    * // corresponding comparison operators.
    * print((-0.0).compareTo(0.0));  // => -1
-   * print(double.NAN.compareTo(double.NAN));  // => 0
-   * print(double.INFINITY.compareTo(double.NAN)); // => -1
+   * print(double.nan.compareTo(double.nan));  // => 0
+   * print(double.infinity.compareTo(double.nan)); // => -1
    *
    * // -0.0, and NaN comparison operators have rules imposed by the IEEE
    * // standard.
    * print(-0.0 == 0.0); // => true
-   * print(double.NAN == double.NAN);  // => false
-   * print(double.INFINITY < double.NAN);  // => false
-   * print(double.NAN < double.INFINITY);  // => false
-   * print(double.NAN == double.INFINITY);  // => false
+   * print(double.nan == double.nan);  // => false
+   * print(double.infinity < double.nan);  // => false
+   * print(double.nan < double.infinity);  // => false
+   * print(double.nan == double.infinity);  // => false
+   * ```
    */
   int compareTo(num other);
 
@@ -318,7 +321,7 @@ abstract class num implements Comparable<num> {
    * Returns this [num] clamped to be in the range [lowerLimit]-[upperLimit].
    *
    * The comparison is done using [compareTo] and therefore takes `-0.0` into
-   * account. This also implies that [double.NAN] is treated as the maximal
+   * account. This also implies that [double.nan] is treated as the maximal
    * double value.
    *
    * The arguments [lowerLimit] and [upperLimit] must form a valid range where
@@ -358,8 +361,8 @@ abstract class num implements Comparable<num> {
    *     1.toStringAsFixed(3);  // 1.000
    *     (4321.12345678).toStringAsFixed(3);  // 4321.123
    *     (4321.12345678).toStringAsFixed(5);  // 4321.12346
-   *     123456789012345678901.toStringAsFixed(3);  // 123456789012345683968.000
-   *     1000000000000000000000.toStringAsFixed(3); // 1e+21
+   *     123456789012345.toStringAsFixed(3);  // 123456789012345.000
+   *     10000000000000000.toStringAsFixed(4); // 10000000000000000.0000
    *     5.25.toStringAsFixed(0); // 5
    */
   String toStringAsFixed(int fractionDigits);
@@ -396,7 +399,7 @@ abstract class num implements Comparable<num> {
    * Examples:
    *
    *     1.toStringAsPrecision(2);       // 1.0
-   *     1e15.toStringAsPrecision(3);    // 1.00+15
+   *     1e15.toStringAsPrecision(3);    // 1.00e+15
    *     1234567.toStringAsPrecision(3); // 1.23e+6
    *     1234567.toStringAsPrecision(9); // 1234567.00
    *     12345678901234567890.toStringAsPrecision(20); // 12345678901234567168
@@ -415,8 +418,8 @@ abstract class num implements Comparable<num> {
    * except for special values like `NaN` or `Infinity`, this method returns an
    * exponential representation (see [toStringAsExponential]).
    *
-   * Returns `"NaN"` for [double.NAN], `"Infinity"` for [double.INFINITY], and
-   * `"-Infinity"` for [double.NEGATIVE_INFINITY].
+   * Returns `"NaN"` for [double.nan], `"Infinity"` for [double.infinity], and
+   * `"-Infinity"` for [double.negativeInfinity].
    *
    * An [int] is converted to a decimal representation with no decimal point.
    *
@@ -462,16 +465,28 @@ abstract class num implements Comparable<num> {
    * For any number `n`, this function satisfies
    * `identical(n, num.parse(n.toString()))` (except when `n` is a NaN `double`
    * with a payload).
+   *
+   * The [onError] parameter is deprecated and will be removed.
+   * Instead of `num.parse(string, (string) { ... })`,
+   * you should use `num.tryParse(string) ?? (...)`.
    */
-  static num parse(String input, [num onError(String input)]) {
+  static num parse(String input, [@deprecated num onError(String input)]) {
+    num result = tryParse(input);
+    if (result != null) return result;
+    if (onError == null) throw FormatException(input);
+    return onError(input);
+  }
+
+  /**
+   * Parses a string containing a number literal into a number.
+   *
+   * Like [parse] except that this function returns `null` for invalid inputs
+   * instead of throwing.
+   */
+  static num tryParse(String input) {
     String source = input.trim();
     // TODO(lrn): Optimize to detect format and result type in one check.
-    num result = int.parse(source, onError: _returnIntNull);
-    if (result != null) return result;
-    result = double.parse(source, _returnDoubleNull);
-    if (result != null) return result;
-    if (onError == null) throw new FormatException(input);
-    return onError(input);
+    return int.tryParse(source) ?? double.tryParse(source);
   }
 
   /** Helper functions for [parse]. */

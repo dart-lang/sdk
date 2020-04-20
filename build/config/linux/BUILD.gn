@@ -5,9 +5,17 @@
 import("//build/config/sysroot.gni")
 
 config("sdk") {
+  ldflags = []
+  cflags = []
+
+  if (is_clang) {
+    # Don't allow visible symbols from libc++ to be re-exported.
+    ldflags += [ "-Wl,--exclude-libs=libc++.a" ]
+  }
+
   if (sysroot != "") {
-    cflags = [ "--sysroot=" + sysroot ]
-    ldflags = [ "--sysroot=" + sysroot ]
+    cflags += [ "--sysroot=" + sysroot ]
+    ldflags += [ "--sysroot=" + sysroot ]
 
     # Need to get some linker flags out of the sysroot.
     ldflags += [ exec_script("sysroot_ld_path.py",
@@ -18,13 +26,28 @@ config("sdk") {
                              ],
                              "value") ]
 
-    # When using the pulled wheezy sysroot with gcc, we have to specify these
+    # When using the pulled Debian sysroot with gcc, we have to specify these
     # excplicitly.
-    if (dart_use_wheezy_sysroot && !is_clang) {
+    if (dart_use_debian_sysroot && !is_clang) {
       cflags += [
-        "-I=/usr/include/c++/4.6",
-        "-I=/usr/include/c++/4.6/i486-linux-gnu",
+        "-I=/usr/include/c++/4.8",
+        "-I=/usr/include/c++/4.8/i486-linux-gnu",
       ]
     }
+  }
+
+  if (is_qemu) {
+    cflags += [ "-DDART_RUN_IN_QEMU_ARMv7" ]
+  }
+}
+
+config("executable_config") {
+  # GDB cannot find the executable's mapping in QEMU when PIE is enabled.
+  if (is_qemu) {
+    cflags = [ "-fno-pie" ]
+    ldflags = [ "-no-pie" ]
+  } else if (current_cpu != "x86") {
+    cflags = [ "-fPIE" ]
+    ldflags = [ "-pie" ]
   }
 }

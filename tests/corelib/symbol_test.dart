@@ -7,7 +7,6 @@
 main() {
   var x;
   print(x = const Symbol('fisk'));
-
   try {
     print(const Symbol(0)); //# 01: compile-time error
   } on NoSuchMethodError {
@@ -26,16 +25,6 @@ main() {
     print(const Symbol('_')); //# 03: compile-time error
   } on ArgumentError catch (e) {
     print('Caught $e');
-  }
-
-  try {
-    var y = 0;
-    print(new Symbol(y));
-    throw 'Expected a NoSuchMethodError or a TypeError';
-  } on NoSuchMethodError {
-    print('Caught NoSuchMethodError');
-  } on TypeError {
-    print('Caught TypeError');
   }
 
   try {
@@ -84,7 +73,7 @@ main() {
     throw "non-const Symbol's hashCode not equal to its const equivalent";
   }
 
-  if (new Symbol('') != const Symbol('')) {
+  if (new Symbol('') != Symbol.empty) {
     throw 'empty Symbol not equals to itself';
   }
 }

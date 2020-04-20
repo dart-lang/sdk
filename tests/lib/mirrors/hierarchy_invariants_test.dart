@@ -24,9 +24,8 @@ checkClass(classMirror) {
   }
   Expect.isTrue(classMirror.superinterfaces is List);
   if (classMirror.superclass == null) {
-    Expect.isTrue(classMirror == reflectClass(Object) ||
-        // Type FutureOr is mapped to dynamic in the VM.
-        classMirror.toString() == "ClassMirror on 'FutureOr'");
+    Expect.isTrue((reflectClass(Object) == classMirror) ||
+        (classMirror.toString() == "ClassMirror on 'FutureOr'"));
   } else {
     checkClass(classMirror.superclass);
   }

@@ -1,6 +1,9 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
 //
 // VMOptions=
 // VMOptions=--short_socket_read
@@ -147,7 +150,7 @@ class SocketClose {
 
     receivePort.first.then((message) {
       this._sendPort = message;
-      sendReceive(_sendPort, _mode).then((int port) {
+      sendReceive(_sendPort, _mode).then((port) {
         this._port = port;
         proceed();
       });
@@ -204,7 +207,8 @@ class ConnectionData {
   int readBytes;
 }
 
-void startSocketCloseServer(SendPort replyTo) {
+void startSocketCloseServer(Object replyToObj) {
+  SendPort replyTo = replyToObj;
   var server = new SocketCloseServer();
   replyTo.send(server.dispatchSendPort);
 }

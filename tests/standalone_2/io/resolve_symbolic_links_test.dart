@@ -22,7 +22,7 @@ main() {
       'resolve_symbolic_links_test.dart')));
 
   asyncTest(() => testDir(join(testsDir, 'standalone_2', 'io')));
-  asyncTest(() => testDir(join(testsDir, 'lib', '..', 'standalone_2', 'io')));
+  asyncTest(() => testDir(join(testsDir, 'lib_2', '..', 'standalone_2', 'io')));
   // Test a relative path.
   if (Platform.isWindows) {
     asyncTest(() => testFile(join('\\\\?\\$testsDir', 'standalone_2', 'io',

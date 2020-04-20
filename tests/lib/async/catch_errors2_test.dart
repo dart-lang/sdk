@@ -10,7 +10,7 @@ import 'catch_errors.dart';
 main() {
   asyncStart();
   bool futureWasExecuted = false;
-  Future done;
+  late Future done;
 
   // Error streams never close.
   catchErrors(() {

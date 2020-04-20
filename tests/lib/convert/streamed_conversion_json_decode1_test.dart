@@ -80,21 +80,21 @@ bool isJsonEqual(o1, o2) {
   return false;
 }
 
-Stream<Object> createStream(List<String> chunks) {
+Stream<Object?> createStream(List<String> chunks) {
   var decoder = new JsonDecoder(null);
   var controller;
-  controller = new StreamController(onListen: () {
+  controller = new StreamController<String>(onListen: () {
     chunks.forEach(controller.add);
     controller.close();
   });
   return controller.stream.transform(decoder);
 }
 
-Stream<Object> decode(String str) {
+Stream<Object?> decode(String str) {
   return createStream([str]);
 }
 
-Stream<Object> decode2(String str) {
+Stream<Object?> decode2(String str) {
   return createStream(str.split(""));
 }
 
@@ -120,9 +120,9 @@ void main() {
       [object, longString]
     ];
   });
-  for (var test in TESTS) {
+  for (var test in tests) {
     var o = test[0];
-    var string = test[1];
+    var string = test[1] as String;
     checkIsJsonEqual(o, decode(string));
     checkIsJsonEqual(o, decode2(string));
   }

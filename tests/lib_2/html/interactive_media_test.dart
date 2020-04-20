@@ -6,14 +6,33 @@ library interactive_test;
 
 import 'dart:async';
 import 'dart:html';
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
-import 'utils.dart';
 
-main() {
-  useHtmlIndividualConfiguration();
+import 'package:async_helper/async_minitest.dart';
+import 'package:async_helper/async_helper.dart';
 
+// NOTE: To test enable chrome://flags/#enable-experimental-web-platform-features
+
+main() async {
   if (MediaStream.supported) {
+    test('getUserMedia audio', () async {
+      try {
+        var mediaStream = await window.navigator.getUserMedia(audio: true);
+        expect(mediaStream, isNotNull);
+        expect(mediaStream is MediaStream, true);
+        var devices = window.navigator.mediaDevices;
+        var enumDevices = await devices.enumerateDevices();
+        expect(enumDevices.length > 1, true);
+        for (var device in enumDevices) {
+          var goodDevLabel = device.label.endsWith('Built-in Output') ||
+              device.label.endsWith('Built-in Microphone');
+          expect(goodDevLabel, true);
+        }
+      } catch (e) {
+        // Could fail if bot machine doesn't support audio or video.
+        expect(e.name == DomException.NOT_FOUND, true);
+      }
+    });
+
     test('getUserMedia', () {
       return window.navigator.getUserMedia(video: true).then((stream) {
         expect(stream, isNotNull);
@@ -35,6 +54,9 @@ main() {
         video.src = url;
 
         return completer.future;
+      }).catchError((e) {
+        // Could fail if bot machine doesn't support audio or video.
+        expect(e.name == DomException.NOT_FOUND, true);
       });
     });
 
@@ -65,6 +87,9 @@ main() {
         video.src = url;
 
         return completer.future;
+      }).catchError((e) {
+        // Could fail if bot machine doesn't support audio or video.
+        expect(e.name == DomException.NOT_FOUND, true);
       });
     });
   }

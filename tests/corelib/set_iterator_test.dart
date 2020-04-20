@@ -23,7 +23,7 @@ class SetIteratorTest {
     testDifferentHashCodes();
   }
 
-  static int sum(int expected, Iterator<int> it) {
+  static void sum(int expected, Iterator<int> it) {
     int count = 0;
     while (it.moveNext()) {
       count += it.current;
@@ -40,7 +40,6 @@ class SetIteratorTest {
     Iterator<int> it = set.iterator;
     sum(6, it);
     Expect.isFalse(it.moveNext());
-    Expect.isNull(it.current);
   }
 
   static void testLargeSet() {
@@ -53,7 +52,6 @@ class SetIteratorTest {
     Iterator<int> it = set.iterator;
     sum(count, it);
     Expect.isFalse(it.moveNext());
-    Expect.isNull(it.current);
   }
 
   static void testEmptySet() {
@@ -61,7 +59,6 @@ class SetIteratorTest {
     Iterator<int> it = set.iterator;
     sum(0, it);
     Expect.isFalse(it.moveNext());
-    Expect.isNull(it.current);
   }
 
   static void testSetWithDeletedEntries() {
@@ -77,7 +74,6 @@ class SetIteratorTest {
     it = set.iterator;
     sum(0, it);
     Expect.isFalse(it.moveNext());
-    Expect.isNull(it.current);
 
     int count = 0;
     for (int i = 0; i < 100; i++) {
@@ -90,7 +86,6 @@ class SetIteratorTest {
     it = set.iterator;
     sum(count, it);
     Expect.isFalse(it.moveNext());
-    Expect.isNull(it.current);
   }
 
   static void testBug5116829() {

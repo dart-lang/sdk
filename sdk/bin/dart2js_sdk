@@ -40,12 +40,12 @@ unset EXTRA_VM_OPTIONS
 declare -a EXTRA_VM_OPTIONS
 
 if test -f "$SNAPSHOT"; then
-  EXTRA_OPTIONS+=("--library-root=$SDK_DIR")
+  EXTRA_OPTIONS+=("--libraries-spec=$SDK_DIR/lib/libraries.json")
 fi
 
 case $0 in
   *_developer)
-    EXTRA_VM_OPTIONS+=('--checked')
+    EXTRA_VM_OPTIONS+=('--enable-asserts')
     ;;
 esac
 

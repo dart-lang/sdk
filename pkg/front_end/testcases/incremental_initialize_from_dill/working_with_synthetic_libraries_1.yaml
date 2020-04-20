@@ -1,0 +1,30 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application that includes a non-existing file.
+# Make sure the output includes a synthetic library.
+# Loading from such a dill is ok too.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "b.dart";
+      b.dart: |
+        import "nonexisting.dart";
+    expectedLibraryCount: 2
+    expectedSyntheticLibraryCount: 1
+    errors: true
+  - entry: main.dart
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import "b.dart";
+      b.dart: |
+        import "nonexisting.dart";
+    expectedLibraryCount: 2
+    expectedSyntheticLibraryCount: 1
+    errors: true

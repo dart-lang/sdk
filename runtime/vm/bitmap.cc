@@ -70,11 +70,43 @@ void BitmapBuilder::SetRange(intptr_t min, intptr_t max, bool value) {
 void BitmapBuilder::Print() const {
   for (intptr_t i = 0; i < Length(); i++) {
     if (Get(i)) {
-      OS::Print("1");
+      OS::PrintErr("1");
     } else {
-      OS::Print("0");
+      OS::PrintErr("0");
     }
   }
+}
+
+void BitmapBuilder::AppendAsBytesTo(GrowableArray<uint8_t>* bytes) const {
+  // Early return if there are no bits in the payload to copy.
+  if (Length() == 0) return;
+
+  const intptr_t total_size =
+      Utils::RoundUp(Length(), kBitsPerByte) / kBitsPerByte;
+  intptr_t payload_size;
+  intptr_t extra_size;
+  if (total_size > data_size_in_bytes_) {
+    // A [BitmapBuilder] does not allocate storage for the trailing 0 bits in
+    // the backing store, so we need to add additional empty bytes here.
+    payload_size = data_size_in_bytes_;
+    extra_size = total_size - data_size_in_bytes_;
+  } else {
+    payload_size = total_size;
+    extra_size = 0;
+  }
+  for (intptr_t i = 0; i < payload_size; i++) {
+    bytes->Add(data_[i]);
+  }
+  for (intptr_t i = 0; i < extra_size; i++) {
+    bytes->Add(0U);
+  }
+  // Make sure any bits in the payload beyond the bit length are cleared to
+  // ensure deterministic snapshots.
+#if defined(DEBUG)
+  if (Length() % kBitsPerByte == 0) return;
+  const int8_t mask = (1 << (Length() % kBitsPerByte)) - 1;
+  ASSERT(bytes->Last() == (bytes->Last() & mask));
+#endif
 }
 
 bool BitmapBuilder::GetBit(intptr_t bit_offset) const {

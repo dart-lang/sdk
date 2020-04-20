@@ -95,7 +95,7 @@ class LocationManager {
         var newPath = ((_app.vm == null || _app.vm.isDisconnected)
             ? '/vm-connect'
             : '/isolate-reconnect');
-        var parameters = {};
+        var parameters = <String, dynamic>{};
         parameters.addAll(_uri.queryParameters);
         parameters['originalUri'] = _uri.toString();
         parameters['isolateId'] = parameters['isolateId'];
@@ -161,7 +161,7 @@ class LocationManager {
     event.preventDefault();
     // 'currentTarget' is the dom element that would process the event.
     // If we use 'target' we might get an <em> element or somesuch.
-    var target = event.currentTarget;
+    Element target = event.currentTarget;
     go(target.attributes['href']);
   }
 }

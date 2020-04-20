@@ -17,13 +17,11 @@ part of $LIBRARYNAME;
   * and prints its length:
   *
   *     var path = 'myData.json';
-  *     HttpRequest.getString(path)
-  *         .then((String fileContents) {
-  *           print(fileContents.length);
-  *         })
-  *         .catchError((Error error) {
-  *           print(error.toString());
-  *         });
+  *     HttpRequest.getString(path).then((String fileContents) {
+  *       print(fileContents.length);
+  *     }).catchError((error) {
+  *       print(error.toString());
+  *     });
   *
   * ## Fetching data from other servers
   *
@@ -56,9 +54,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   /**
    * Creates a GET request for the specified [url].
    *
-   * The server response must be a `text/` mime type for this request to
-   * succeed.
-   *
    * This is similar to [request] but specialized for HTTP GET requests which
    * return text content.
    *
@@ -69,7 +64,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    *     var name = Uri.encodeQueryComponent('John');
    *     var id = Uri.encodeQueryComponent('42');
    *     HttpRequest.getString('users.json?name=$name&id=$id')
-   *       .then((HttpRequest resp) {
+   *       .then((String resp) {
    *         // Do something with the response.
    *     });
    *
@@ -78,7 +73,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * * [request]
    */
   static Future<String> getString(String url,
-      {bool withCredentials, void onProgress(ProgressEvent e)}) {
+      {bool$NULLABLE withCredentials, void onProgress(ProgressEvent e)$NULLABLE}) {
     return request(url, withCredentials: withCredentials,
         onProgress: onProgress).then((HttpRequest xhr) => xhr.responseText);
   }
@@ -86,8 +81,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   /**
    * Makes a server POST request with the specified data encoded as form data.
    *
-   * This is roughly the POST equivalent of getString. This method is similar
-   * to sending a FormData object with broader browser support but limited to
+   * This is roughly the POST equivalent of [getString]. This method is similar
+   * to sending a [FormData] object with broader browser support but limited to
    * String values.
    *
    * If [data] is supplied, the key/value pairs are URI encoded with
@@ -109,9 +104,9 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * * [request]
    */
   static Future<HttpRequest> postFormData(String url, Map<String, String> data,
-      {bool withCredentials, String responseType,
-      Map<String, String> requestHeaders,
-      void onProgress(ProgressEvent e)}) {
+      {bool$NULLABLE withCredentials, String$NULLABLE responseType,
+      Map<String, String>$NULLABLE requestHeaders,
+      void onProgress(ProgressEvent e)$NULLABLE}) {
 
     var parts = [];
     data.forEach((key, value) {
@@ -137,7 +132,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    *
    * By default `request` will perform an HTTP GET request, but a different
    * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the
-   * [method] parameter. (See also [HttpRequest.postFormData] for `POST` 
+   * [method] parameter. (See also [HttpRequest.postFormData] for `POST`
    * requests only.
    *
    * The Future is completed when the response is available.
@@ -146,8 +141,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * [Blob], [Document], [String], or [FormData] along with the HttpRequest.
    *
    * If specified, [responseType] sets the desired response format for the
-   * request. By default it is [String], but can also be 'arraybuffer', 'blob', 
-   * 'document', 'json', or 'text'. See also [HttpRequest.responseType] 
+   * request. By default it is [String], but can also be 'arraybuffer', 'blob',
+   * 'document', 'json', or 'text'. See also [HttpRequest.responseType]
    * for more information.
    *
    * The [withCredentials] parameter specified that credentials such as a cookie
@@ -187,9 +182,10 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
   static Future<HttpRequest> request(String url,
-      {String method, bool withCredentials, String responseType,
-      String mimeType, Map<String, String> requestHeaders, sendData,
-      void onProgress(ProgressEvent e)}) {
+      {String$NULLABLE method, bool$NULLABLE withCredentials,
+      String$NULLABLE responseType, String$NULLABLE mimeType,
+      Map<String, String>$NULLABLE requestHeaders, sendData,
+      void onProgress(ProgressEvent e)$NULLABLE}) {
     var completer = new Completer<HttpRequest>();
 
     var xhr = new HttpRequest();
@@ -230,7 +226,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
       // redirect case will be handled by the browser before it gets to us,
       // so if we see it we should pass it through to the user.
       var unknownRedirect = xhr.status > 307 && xhr.status < 400;
-      
+
       if (accepted || fileUri || notModified || unknownRedirect) {
         completer.complete(xhr);
       } else {
@@ -292,9 +288,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * This API provides a subset of [request] which works on IE9. If IE9
    * cross-origin support is not required then [request] should be used instead.
    */
-  @Experimental()
   static Future<String> requestCrossOrigin(String url,
-      {String method, String sendData}) {
+      {String$NULLABLE method, String$NULLABLE sendData}) {
     if (supportsCrossOrigin) {
       return request(url, method: method, sendData: sendData).then((xhr) {
         return xhr.responseText;
@@ -308,7 +303,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     JS('', '#.open(#, #)', xhr, method, url);
     JS('', '#.onload = #', xhr, convertDartClosureToJS((e) {
       var response = JS('String', '#.responseText', xhr);
-      completer.complete(response);
+      completer.complete(response $#NULLSAFECAST(as FutureOr<String>$NULLABLE));
     }, 1));
     JS('', '#.onerror = #', xhr, convertDartClosureToJS((e) {
       completer.completeError(e);
@@ -370,20 +365,19 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * Specify the desired `url`, and `method` to use in making the request.
    *
    * By default the request is done asyncronously, with no user or password
-   * authentication information. If `async` is false, the request will be send
+   * authentication information. If `async` is false, the request will be sent
    * synchronously.
    *
    * Calling `open` again on a currently active request is equivalent to
-   * calling `abort`.
+   * calling [abort].
    *
    * Note: Most simple HTTP requests can be accomplished using the [getString],
    * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
    * `open` method is intended only for more complex HTTP requests where
    * finer-grained control is needed.
    */
-  @DomName('XMLHttpRequest.open')
-  @DocsEditable()
-  void open(String method, String url, {bool async, String user, String password}) native;
+  void open(String method, String url, {bool$NULLABLE async,
+      String$NULLABLE user, String$NULLABLE password}) native;
 
 $!MEMBERS
 }

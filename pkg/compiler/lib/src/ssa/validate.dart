@@ -20,6 +20,7 @@ class HValidator extends HInstructionVisitor {
 
   // Note that during construction of the Ssa graph the basic blocks are
   // not required to be valid yet.
+  @override
   void visitBasicBlock(HBasicBlock block) {
     currentBlock = block;
     if (!isValid) return; // Don't need to continue if we are already invalid.
@@ -132,22 +133,30 @@ class HValidator extends HInstructionVisitor {
     super.visitBasicBlock(block);
   }
 
-  /** Returns how often [instruction] is contained in [instructions]. */
-  static int countInstruction(
-      List<HInstruction> instructions, HInstruction instruction) {
+  // Limit for the size of `inputs` and `usedBy` lists. We assume lists longer
+  // than this are OK in order to avoid the O(N^2) validation getting out of
+  // hand.
+  //
+  // Poster child: corelib_2/regexp/pcre_test.dart, which has a 7KLOC main().
+  static const int kMaxValidatedInstructionListLength = 1000;
+
+  /// Verifies [instruction] is contained in [instructions] [count] times.
+  static bool checkInstructionCount(
+      List<HInstruction> instructions, HInstruction instruction, int count) {
+    if (instructions.length > kMaxValidatedInstructionListLength) return true;
     int result = 0;
     for (int i = 0; i < instructions.length; i++) {
       if (identical(instructions[i], instruction)) result++;
     }
-    return result;
+    return result == count;
   }
 
-  /**
-   * Returns true if the predicate returns true for every instruction in the
-   * list. The argument to [f] is an instruction with the count of how often
-   * it appeared in the list [instructions].
-   */
-  static bool everyInstruction(List<HInstruction> instructions, Function f) {
+  /// Returns true if the predicate returns true for every instruction in the
+  /// list. The argument to [f] is an instruction with the count of how often
+  /// it appeared in the list [instructions].
+  static bool everyInstruction(
+      List<HInstruction> instructions, bool Function(HInstruction, int) f) {
+    if (instructions.length > kMaxValidatedInstructionListLength) return true;
     var copy = new List<HInstruction>.from(instructions);
     // TODO(floitsch): there is currently no way to sort HInstructions before
     // we have assigned an ID. The loop is therefore O(n^2) for now.
@@ -166,6 +175,7 @@ class HValidator extends HInstructionVisitor {
     return true;
   }
 
+  @override
   void visitInstruction(HInstruction instruction) {
     // Verifies that we are in the use list of our inputs.
     bool hasCorrectInputs() {
@@ -173,9 +183,9 @@ class HValidator extends HInstructionVisitor {
       return everyInstruction(instruction.inputs, (input, count) {
         if (inBasicBlock) {
           return input.isInBasicBlock() &&
-              countInstruction(input.usedBy, instruction) == count;
+              checkInstructionCount(input.usedBy, instruction, count);
         } else {
-          return countInstruction(input.usedBy, instruction) == 0;
+          return checkInstructionCount(input.usedBy, instruction, 0);
         }
       });
     }
@@ -185,7 +195,7 @@ class HValidator extends HInstructionVisitor {
       if (!instruction.isInBasicBlock()) return true;
       return everyInstruction(instruction.usedBy, (use, count) {
         return use.isInBasicBlock() &&
-            countInstruction(use.inputs, instruction) == count;
+            checkInstructionCount(use.inputs, instruction, count);
       });
     }
 

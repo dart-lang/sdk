@@ -1,17 +1,16 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'dart:async';
 import 'dart:convert';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-var tests = [
+var tests = <VMTest>[
   (VM vm) async {
     // Create a new fs.
     var fsName = 'scratch';
@@ -102,7 +101,7 @@ main(args, msg) {
 
     // Write three scripts to the fs.
     for (int i = 0; i < 3; i++) {
-      var fileContents = BASE64.encode(UTF8.encode(scripts[i]));
+      var fileContents = base64Encode(utf8.encode(scripts[i]));
       result = await vm.invokeRpcNoUpgrade('_writeDevFSFile', {
         'fsName': fsName,
         'path': filePaths[i],
@@ -119,7 +118,7 @@ main(args, msg) {
       if (event.kind == ServiceEvent.kIsolateSpawn) {
         expect(event.spawnToken, equals('mySpawnToken0'));
         expect(event.isolate, isNotNull);
-        expect(event.isolate.name, equals('devfs_file0.dart:main()'));
+        expect(event.isolate.name, equals('main'));
         completer.complete(event.isolate);
         sub.cancel();
       }
@@ -136,10 +135,11 @@ main(args, msg) {
     await hasStoppedAtBreakpoint(spawnedIsolate);
 
     // Make sure that we are running code from the spawned isolate.
-    result = await spawnedIsolate.rootLibrary.evaluate('proofOfLife()');
-    expect(result.type, equals('Instance'));
-    expect(result.kind, equals(M.InstanceKind.string));
-    expect(result.valueAsString, equals('I live!'));
+    var instance = (await spawnedIsolate.rootLibrary.evaluate('proofOfLife()'))
+        as Instance;
+    expect(instance.type, equals('Instance'));
+    expect(instance.kind, equals(M.InstanceKind.string));
+    expect(instance.valueAsString, equals('I live!'));
 
     // Spawn the script with arguments.
     completer = new Completer();
@@ -147,7 +147,7 @@ main(args, msg) {
       if (event.kind == ServiceEvent.kIsolateSpawn) {
         expect(event.spawnToken, equals('mySpawnToken1'));
         expect(event.isolate, isNotNull);
-        expect(event.isolate.name, equals('devfs_file1.dart:main()'));
+        expect(event.isolate.name, equals('main'));
         completer.complete(event.isolate);
         sub.cancel();
       }
@@ -155,7 +155,7 @@ main(args, msg) {
     result = await vm.invokeRpcNoUpgrade('_spawnUri', {
       'token': 'mySpawnToken1',
       'uri': '${fsUri}${filePaths[1]}',
-      'args': ['one', 'two', 'three']
+      'args': <String>['one', 'two', 'three']
     });
     expect(result['type'], equals('Success'));
     spawnedIsolate = await completer.future;
@@ -165,10 +165,11 @@ main(args, msg) {
     await hasStoppedAtBreakpoint(spawnedIsolate);
 
     // Make sure that we are running code from the spawned isolate.
-    result = await spawnedIsolate.rootLibrary.evaluate('proofOfLife()');
-    expect(result.type, equals('Instance'));
-    expect(result.kind, equals(M.InstanceKind.string));
-    expect(result.valueAsString, equals('I live, [one, two, three]!'));
+    instance = (await spawnedIsolate.rootLibrary.evaluate('proofOfLife()'))
+        as Instance;
+    expect(instance.type, equals('Instance'));
+    expect(instance.kind, equals(M.InstanceKind.string));
+    expect(instance.valueAsString, equals('I live, [one, two, three]!'));
 
     // Spawn the script with arguments and message
     completer = new Completer();
@@ -176,7 +177,7 @@ main(args, msg) {
       if (event.kind == ServiceEvent.kIsolateSpawn) {
         expect(event.spawnToken, equals('mySpawnToken2'));
         expect(event.isolate, isNotNull);
-        expect(event.isolate.name, equals('devfs_file2.dart:main()'));
+        expect(event.isolate.name, equals('main'));
         completer.complete(event.isolate);
         sub.cancel();
       }
@@ -195,10 +196,11 @@ main(args, msg) {
     await hasStoppedAtBreakpoint(spawnedIsolate);
 
     // Make sure that we are running code from the spawned isolate.
-    result = await spawnedIsolate.rootLibrary.evaluate('proofOfLife()');
-    expect(result.type, equals('Instance'));
-    expect(result.kind, equals(M.InstanceKind.string));
-    expect(result.valueAsString, equals('I live, [A, B, C], test!'));
+    instance = (await spawnedIsolate.rootLibrary.evaluate('proofOfLife()'))
+        as Instance;
+    expect(instance.type, equals('Instance'));
+    expect(instance.kind, equals(M.InstanceKind.string));
+    expect(instance.valueAsString, equals('I live, [A, B, C], test!'));
 
     // Delete the fs.
     result = await vm.invokeRpcNoUpgrade('_deleteDevFS', {

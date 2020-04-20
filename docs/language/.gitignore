@@ -1,5 +1,10 @@
-dartLangSpec.aux
-dartLangSpec.log
-dartLangSpec.out
-dartLangSpec.pdf
-dartLangSpec.toc
+dartLangSpec*.aux
+dartLangSpec*.idx
+dartLangSpec*.ilg
+dartLangSpec*.ind
+dartLangSpec*.log
+dartLangSpec*.out
+dartLangSpec*.pdf
+dartLangSpec*.toc
+*-hash.tex
+*-list.txt

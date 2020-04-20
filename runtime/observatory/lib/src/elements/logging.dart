@@ -21,7 +21,7 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class LoggingPageElement extends HtmlElement implements Renderable {
+class LoggingPageElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<LoggingPageElement>('logging-page', dependencies: const [
     LoggingListElement.tag,
@@ -55,8 +55,8 @@ class LoggingPageElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(events != null);
     assert(notifications != null);
-    LoggingPageElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    LoggingPageElement e = new LoggingPageElement.created();
+    e._r = new RenderingScheduler<LoggingPageElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -64,7 +64,7 @@ class LoggingPageElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  LoggingPageElement.created() : super.created();
+  LoggingPageElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -76,7 +76,7 @@ class LoggingPageElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   LoggingListElement _logs;
@@ -84,28 +84,29 @@ class LoggingPageElement extends HtmlElement implements Renderable {
   void render() {
     _logs = _logs ?? new LoggingListElement(_isolate, _events);
     _logs.level = _level;
-    children = [
-      navBar([
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+    children = <Element>[
+      navBar(<Element>[
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
         navMenu('logging'),
-        new NavRefreshElement(label: 'clear', queue: _r.queue)
-          ..onRefresh.listen((e) async {
-            e.element.disabled = true;
-            _logs = null;
-            _r.dirty();
-          }),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        (new NavRefreshElement(label: 'clear', queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                _logs = null;
+                _r.dirty();
+              }))
+            .element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = 'Logging',
           new SpanElement()..text = 'Show messages with severity ',
           _createLevelSelector(),
           new HRElement(),
-          _logs
+          _logs.element
         ]
     ];
   }

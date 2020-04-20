@@ -1,8 +1,6 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.source.source_resource;
 
 import 'dart:collection';
 
@@ -10,12 +8,10 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-/**
- * A function that can translate the contents of files on disk as they are read.
- * This is now obsolete, but supported the ability of server to deal with
- * clients that convert all text to an internal format.
- */
-typedef String FileReadMode(String s);
+/// A function that can translate the contents of files on disk as they are
+/// read. This is now obsolete, but supported the ability of server to deal with
+/// clients that convert all text to an internal format.
+typedef FileReadMode = String Function(String s);
 
 /**
  * A source that represents a file.
@@ -33,7 +29,7 @@ class FileSource extends Source {
    * The URI and filepath are joined into a pair by separating them with an '@'
    * character.
    */
-  static final Map<String, int> _idTable = new HashMap<String, int>();
+  static final Map<String, int> _idTable = HashMap<String, int>();
 
   /**
    * The URI from which this source was originally derived.
@@ -90,7 +86,7 @@ class FileSource extends Source {
    * See [contents].
    */
   TimestampedData<String> get contentsFromFile {
-    return new TimestampedData<String>(
+    return TimestampedData<String>(
         modificationStamp, fileReadMode(file.readAsStringSync()));
   }
 

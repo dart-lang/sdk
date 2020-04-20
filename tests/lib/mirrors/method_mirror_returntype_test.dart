@@ -4,7 +4,6 @@
 
 library lib;
 
-@MirrorsUsed(targets: "lib")
 import "dart:mirrors";
 
 import "package:expect/expect.dart";
@@ -42,11 +41,11 @@ main() {
   Expect.equals(const Symbol("void"), mm.returnType.simpleName);
 
   ClassMirror cm = reflectClass(C);
-  mm = cm.declarations[#getE];
+  mm = cm.declarations[#getE] as MethodMirror;
   Expect.equals(true, mm.returnType is TypeMirror);
   // The spec for this is ambiguous and needs to be updated before it is clear
   // what has to be returned.
   //Expect.equals("E", _n(mm.returnType.simpleName));
   Expect.equals(true, mm.owner is ClassMirror);
-  Expect.equals(#C, mm.owner.simpleName);
+  Expect.equals(#C, mm.owner!.simpleName);
 }

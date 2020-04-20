@@ -12,7 +12,7 @@ class ObservatoryApplication {
   final TargetRepository targets = new TargetRepository(isConnectedVMTarget);
   final EventRepository events = new EventRepository();
   final NotificationRepository notifications = new NotificationRepository();
-  final _pageRegistry = new List<Page>();
+  final _pageRegistry = <Page>[];
   LocationManager _locationManager;
   LocationManager get locationManager => _locationManager;
   Page currentPage;
@@ -20,7 +20,7 @@ class ObservatoryApplication {
   VM _vm;
   VM get vm => _vm;
 
-  static bool isConnectedVMTarget(WebSocketVMTarget target) {
+  static bool isConnectedVMTarget(M.Target target) {
     if (app._vm is CommonWebSocketVM) {
       if ((app._vm as CommonWebSocketVM).target == target) {
         return app._vm.isConnected;
@@ -65,7 +65,7 @@ class ObservatoryApplication {
       // On disconnect:
       newVM.onDisconnect.then((String reason) {
         if (this.vm != newVM) {
-          // This disconnect event occured *after* a new VM was installed.
+          // This disconnect event occurred *after* a new VM was installed.
           return;
         }
         // Let anyone looking at the targets know that we have disconnected
@@ -173,7 +173,6 @@ class ObservatoryApplication {
     _pageRegistry.add(new PortsPage(this));
     _pageRegistry.add(new LoggingPage(this));
     _pageRegistry.add(new TimelinePage(this));
-    _pageRegistry.add(new MemoryDashboardPage(this));
     _pageRegistry.add(new TimelineDashboardPage(this));
     // Note that ErrorPage must be the last entry in the list as it is
     // the catch all.
@@ -200,7 +199,7 @@ class ObservatoryApplication {
         return;
       }
     }
-    throw new FallThroughError();
+    throw new ArgumentError.value(uri, 'uri');
   }
 
   /// Set the Observatory application page.
@@ -275,11 +274,6 @@ class ObservatoryApplication {
     events.onPauseException.listen(_addNotification);
     events.onInspect.listen(_addNotification);
     events.onConnectionClosed.listen(_addNotification);
-  }
-
-  loadCrashDump(Map crashDump) {
-    _switchVM(new FakeVM(crashDump['result']));
-    app.locationManager.go(Uris.vm());
   }
 
   void handleException(e, st) {

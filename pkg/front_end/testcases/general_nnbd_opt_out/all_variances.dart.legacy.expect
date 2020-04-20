@@ -1,0 +1,6 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef F<unrelated W extends core::Object = dynamic, X extends core::Object = dynamic, contravariant Y extends core::Object = dynamic, invariant Z extends core::Object = dynamic> = (Y, (Z) → Z) → X;
+static method main() → dynamic {}

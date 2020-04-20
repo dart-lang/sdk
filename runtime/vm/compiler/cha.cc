@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/cha.h"
 #include "vm/class_table.h"
 #include "vm/flags.h"
-#include "vm/freelist.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
 #include "vm/visitor.h"
@@ -40,7 +37,7 @@ bool CHA::HasSubclasses(const Class& cls) {
   // read-only.
   // TODO(fschneider): Enable tracking of CHA dependent code for VM heap
   // classes.
-  if (cls.InVMHeap()) return true;
+  if (cls.InVMIsolateHeap()) return true;
 
   if (cls.IsObjectClass()) {
     // Class Object has subclasses, although we do not keep track of them.
@@ -59,7 +56,7 @@ bool CHA::HasSubclasses(intptr_t cid) const {
 
 bool CHA::ConcreteSubclasses(const Class& cls,
                              GrowableArray<intptr_t>* class_ids) {
-  if (cls.InVMHeap()) return false;
+  if (cls.InVMIsolateHeap()) return false;
   if (cls.IsObjectClass()) return false;
 
   if (!cls.is_abstract()) {
@@ -88,7 +85,7 @@ bool CHA::IsImplemented(const Class& cls) {
   // read-only.
   // TODO(fschneider): Enable tracking of CHA dependent code for VM heap
   // classes.
-  if (cls.InVMHeap()) return true;
+  if (cls.InVMIsolateHeap()) return true;
 
   return cls.is_implemented();
 }
@@ -130,7 +127,7 @@ bool CHA::HasOverride(const Class& cls,
   // read-only.
   // TODO(fschneider): Enable tracking of CHA dependent code for VM heap
   // classes.
-  if (cls.InVMHeap()) return true;
+  if (cls.InVMIsolateHeap()) return true;
 
   // Subclasses of Object are not tracked by CHA. Safely assume that overrides
   // exist.
@@ -174,5 +171,3 @@ void CHA::RegisterDependencies(const Code& code) const {
 }
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

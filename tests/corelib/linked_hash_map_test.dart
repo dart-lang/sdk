@@ -17,10 +17,10 @@ class LinkedHashMapTest {
     map["d"] = 4;
     map["e"] = 5;
 
-    List<String> keys = new List<String>(5);
-    List<int> values = new List<int>(5);
+    List<String?> keys = new List<String?>.filled(5, null);
+    List<int?> values = new List<int?>.filled(5, null);
 
-    int index;
+    int index = 0;
 
     clear() {
       index = 0;
@@ -42,18 +42,18 @@ class LinkedHashMapTest {
       }
     }
 
-    testForEachMap(Object key, Object value) {
+    testForEachMap(dynamic key, dynamic value) {
       Expect.equals(map[key], value);
       keys[index] = key;
       values[index] = value;
       index++;
     }
 
-    testForEachValue(Object v) {
+    testForEachValue(dynamic v) {
       values[index++] = v;
     }
 
-    testForEachKey(Object v) {
+    testForEachKey(dynamic v) {
       keys[index++] = v;
     }
 

@@ -66,7 +66,7 @@ fuzzSyncRandomAccessMethods() {
   var temp = Directory.systemTemp.createTempSync('dart_file_fuzz');
   var file = new File('${temp.path}/x');
   file.createSync();
-  var modes = [FileMode.READ, FileMode.WRITE, FileMode.APPEND];
+  var modes = [FileMode.read, FileMode.write, FileMode.append];
   for (var m in modes) {
     var opened = file.openSync(mode: m);
     typeMapping.forEach((k, v) {
@@ -90,7 +90,7 @@ fuzzAsyncRandomAccessMethods() {
   var temp = Directory.systemTemp.createTempSync('dart_file_fuzz');
   var file = new File('${temp.path}/x');
   file.createSync();
-  var modes = [FileMode.READ, FileMode.WRITE, FileMode.APPEND];
+  var modes = [FileMode.read, FileMode.write, FileMode.append];
   var futures = <Future>[];
   var openedFiles = [];
   for (var m in modes) {

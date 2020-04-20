@@ -1,24 +1,24 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// @dart = 2.6
+
 part of dart.math;
 
-/**
- * This is the [Jenkins hash function][1] but using masking to keep
- * values in SMI range.
- *
- * [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
- *
- * Use:
- * Hash each value with the hash of the previous value, then get the final
- * hash by calling finish.
- *
- *     var hash = 0;
- *     for (var value in values) {
- *       hash = JenkinsSmiHash.combine(hash, value.hashCode);
- *     }
- *     hash = JenkinsSmiHash.finish(hash);
- */
+/// This is the [Jenkins hash function][1] but using masking to keep
+/// values in SMI range.
+///
+/// [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
+///
+/// Use:
+/// Hash each value with the hash of the previous value, then get the final
+/// hash by calling finish.
+///
+///     var hash = 0;
+///     for (var value in values) {
+///       hash = JenkinsSmiHash.combine(hash, value.hashCode);
+///     }
+///     hash = JenkinsSmiHash.finish(hash);
 class _JenkinsSmiHash {
   // TODO(11617): This class should be optimized and standardized elsewhere.
 

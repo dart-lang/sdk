@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 // Patch file for dart:math library.
 import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper' show patch, checkNum;
@@ -63,14 +65,14 @@ const int _POW2_32 = 0x100000000;
 
 @patch
 class Random {
-  static final _secureRandom = new _JSSecureRandom();
+  static Random _secureRandom;
 
   @patch
   factory Random([int seed]) =>
       (seed == null) ? const _JSRandom() : new _Random(seed);
 
   @patch
-  factory Random.secure() => _secureRandom;
+  factory Random.secure() => _secureRandom ??= _JSSecureRandom();
 }
 
 class _JSRandom implements Random {
@@ -84,15 +86,11 @@ class _JSRandom implements Random {
     return JS('int', '(Math.random() * #) >>> 0', max);
   }
 
-  /**
-   * Generates a positive random floating point value uniformly distributed on
-   * the range from 0.0, inclusive, to 1.0, exclusive.
-   */
+  /// Generates a positive random floating point value uniformly distributed on
+  /// the range from 0.0, inclusive, to 1.0, exclusive.
   double nextDouble() => JS('double', 'Math.random()');
 
-  /**
-   * Generates a random boolean value.
-   */
+  /// Generates a random boolean value.
   bool nextBool() => JS('bool', 'Math.random() < 0.5');
 }
 

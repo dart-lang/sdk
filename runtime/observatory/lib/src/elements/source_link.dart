@@ -8,14 +8,15 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart'
     show IsolateRef, SourceLocation, Script, ScriptRepository;
+import 'package:observatory/service.dart' as S;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class SourceLinkElement extends HtmlElement implements Renderable {
+class SourceLinkElement extends CustomElement implements Renderable {
   static const tag = const Tag<SourceLinkElement>('source-link');
 
-  RenderingScheduler _r;
+  RenderingScheduler<SourceLinkElement> _r;
 
   Stream<RenderedEvent<SourceLinkElement>> get onRendered => _r.onRendered;
 
@@ -32,15 +33,15 @@ class SourceLinkElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(location != null);
-    SourceLinkElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    SourceLinkElement e = new SourceLinkElement.created();
+    e._r = new RenderingScheduler<SourceLinkElement>(e, queue: queue);
     e._isolate = isolate;
     e._location = location;
     e._repository = repository;
     return e;
   }
 
-  SourceLinkElement.created() : super.created();
+  SourceLinkElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -48,6 +49,19 @@ class SourceLinkElement extends HtmlElement implements Renderable {
     _repository.get(_isolate, _location.script.id).then((script) {
       _script = script;
       _r.dirty();
+    }, onError: (e) {
+      // The script object has expired, likely due to a hot reload.
+      (_isolate as S.Isolate).getScripts().then((scripts) {
+        for (final script in scripts) {
+          if (script.uri == _location.script.uri) {
+            _script = script;
+            _r.dirty();
+            return;
+          }
+        }
+        // Rethrow the original exception if we can't find a match.
+        throw e;
+      });
     });
     _r.enable();
   }
@@ -55,19 +69,19 @@ class SourceLinkElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   Future render() async {
     if (_script == null) {
-      children = [new SpanElement()..text = '<LOADING>'];
+      children = <Element>[new SpanElement()..text = '<LOADING>'];
     } else {
       String label = _script.uri.split('/').last;
       int token = _location.tokenPos;
       int line = _script.tokenToLine(token);
       int column = _script.tokenToCol(token);
-      children = [
+      children = <Element>[
         new AnchorElement(
             href: Uris.inspect(isolate, object: _script, pos: token))
           ..title = _script.uri

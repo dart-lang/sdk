@@ -12,7 +12,7 @@ main() {
   Completer done = new Completer();
 
   var events = [];
-  StreamController controller;
+  late StreamController controller;
   // Test that errors do not cross zone boundaries.
   catchErrors(() {
     catchErrors(() {

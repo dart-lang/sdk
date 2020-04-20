@@ -5,23 +5,62 @@
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_ARM_H_
 #define RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_ARM_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_H_
 #error Do not include assembler_arm.h directly; use assembler.h instead.
 #endif
 
+#include <functional>
+
 #include "platform/assert.h"
 #include "platform/utils.h"
-#include "vm/constants_arm.h"
+#include "vm/code_entry_kind.h"
+#include "vm/compiler/assembler/assembler_base.h"
+#include "vm/compiler/runtime_api.h"
+#include "vm/constants.h"
 #include "vm/cpu.h"
 #include "vm/hash_map.h"
-#include "vm/object.h"
 #include "vm/simulator.h"
 
 namespace dart {
 
 // Forward declarations.
+class FlowGraphCompiler;
+class RegisterSet;
 class RuntimeEntry;
-class StubEntry;
+
+// TODO(vegorov) these enumerations are temporarily moved out of compiler
+// namespace to make refactoring easier.
+enum OperandSize {
+  kByte,
+  kUnsignedByte,
+  kHalfword,
+  kUnsignedHalfword,
+  kWord,
+  kUnsignedWord,
+  kWordPair,
+  kSWord,
+  kDWord,
+  kRegList,
+};
+
+// Load/store multiple addressing mode.
+enum BlockAddressMode {
+  // bit encoding P U W
+  DA = (0 | 0 | 0) << 21,    // decrement after
+  IA = (0 | 4 | 0) << 21,    // increment after
+  DB = (8 | 0 | 0) << 21,    // decrement before
+  IB = (8 | 4 | 0) << 21,    // increment before
+  DA_W = (0 | 0 | 1) << 21,  // decrement after with writeback to base
+  IA_W = (0 | 4 | 1) << 21,  // increment after with writeback to base
+  DB_W = (8 | 0 | 1) << 21,  // decrement before with writeback to base
+  IB_W = (8 | 4 | 1) << 21   // increment before with writeback to base
+};
+
+namespace compiler {
 
 // Instruction encoding bits.
 enum {
@@ -64,45 +103,27 @@ enum {
   B27 = 1 << 27,
 };
 
-class Label : public ValueObject {
+class ArmEncode : public AllStatic {
  public:
-  Label() : position_(0) {}
-
-  ~Label() {
-    // Assert if label is being destroyed with unresolved branches pending.
-    ASSERT(!IsLinked());
+  static inline uint32_t Rd(Register rd) {
+    ASSERT(rd < 16);
+    return static_cast<uint32_t>(rd) << kRdShift;
   }
 
-  // Returns the position for bound and linked labels. Cannot be used
-  // for unused labels.
-  intptr_t Position() const {
-    ASSERT(!IsUnused());
-    return IsBound() ? -position_ - kWordSize : position_ - kWordSize;
+  static inline uint32_t Rm(Register rm) {
+    ASSERT(rm < 16);
+    return static_cast<uint32_t>(rm) << kRmShift;
   }
 
-  bool IsBound() const { return position_ < 0; }
-  bool IsUnused() const { return position_ == 0; }
-  bool IsLinked() const { return position_ > 0; }
-
- private:
-  intptr_t position_;
-
-  void Reinitialize() { position_ = 0; }
-
-  void BindTo(intptr_t position) {
-    ASSERT(!IsBound());
-    position_ = -position - kWordSize;
-    ASSERT(IsBound());
+  static inline uint32_t Rn(Register rn) {
+    ASSERT(rn < 16);
+    return static_cast<uint32_t>(rn) << kRnShift;
   }
 
-  void LinkTo(intptr_t position) {
-    ASSERT(!IsBound());
-    position_ = position + kWordSize;
-    ASSERT(IsLinked());
+  static inline uint32_t Rs(Register rs) {
+    ASSERT(rs < 16);
+    return static_cast<uint32_t>(rs) << kRsShift;
   }
-
-  friend class Assembler;
-  DISALLOW_COPY_AND_ASSIGN(Label);
 };
 
 // Encodes Addressing Mode 1 - Data-processing operands.
@@ -198,32 +219,6 @@ class Operand : public ValueObject {
   friend class Address;
 };
 
-enum OperandSize {
-  kByte,
-  kUnsignedByte,
-  kHalfword,
-  kUnsignedHalfword,
-  kWord,
-  kUnsignedWord,
-  kWordPair,
-  kSWord,
-  kDWord,
-  kRegList,
-};
-
-// Load/store multiple addressing mode.
-enum BlockAddressMode {
-  // bit encoding P U W
-  DA = (0 | 0 | 0) << 21,    // decrement after
-  IA = (0 | 4 | 0) << 21,    // increment after
-  DB = (8 | 0 | 0) << 21,    // decrement before
-  IB = (8 | 4 | 0) << 21,    // increment before
-  DA_W = (0 | 0 | 1) << 21,  // decrement after with writeback to base
-  IA_W = (0 | 4 | 1) << 21,  // increment after with writeback to base
-  DB_W = (8 | 0 | 1) << 21,  // decrement before with writeback to base
-  IB_W = (8 | 4 | 1) << 21   // increment before with writeback to base
-};
-
 class Address : public ValueObject {
  public:
   enum OffsetKind {
@@ -265,7 +260,7 @@ class Address : public ValueObject {
     } else {
       encoding_ = am | offset;
     }
-    encoding_ |= static_cast<uint32_t>(rn) << kRnShift;
+    encoding_ |= ArmEncode::Rn(rn);
   }
 
   // There is no register offset mode unless Mode is Offset, in which case the
@@ -284,7 +279,7 @@ class Address : public ValueObject {
     } else {
       kind_ = ScaledIndexRegister;
     }
-    encoding_ = o.encoding() | am | (static_cast<uint32_t>(rn) << kRnShift);
+    encoding_ = o.encoding() | am | ArmEncode::Rn(rn);
   }
 
   // There is no shifted register mode with a register shift.
@@ -320,6 +315,24 @@ class Address : public ValueObject {
            (mode() == NegPreIndex) || (mode() == NegPostIndex);
   }
 
+  static bool has_writeback(BlockAddressMode am) {
+    switch (am) {
+      case DA:
+      case IA:
+      case DB:
+      case IB:
+        return false;
+      case DA_W:
+      case IA_W:
+      case DB_W:
+      case IB_W:
+        return true;
+      default:
+        UNREACHABLE();
+        return false;
+    }
+  }
+
   uint32_t encoding() const { return encoding_; }
 
   // Encoding for addressing mode 3.
@@ -353,44 +366,60 @@ class FieldAddress : public Address {
   }
 };
 
-class Assembler : public ValueObject {
+class Assembler : public AssemblerBase {
  public:
-  explicit Assembler(bool use_far_branches = false)
-      : buffer_(),
-        prologue_offset_(-1),
-        has_single_entry_point_(true),
-        use_far_branches_(use_far_branches),
-        comments_(),
-        constant_pool_allowed_(false) {}
-
+  explicit Assembler(ObjectPoolBuilder* object_pool_builder,
+                     bool use_far_branches = false);
   ~Assembler() {}
 
   void PushRegister(Register r) { Push(r); }
   void PopRegister(Register r) { Pop(r); }
 
+  // Push two registers to the stack; r0 to lower address location.
+  void PushRegisterPair(Register r0, Register r1) {
+    if ((r0 < r1) && (r0 != SP) && (r1 != SP)) {
+      RegList reg_list = (1 << r0) | (1 << r1);
+      PushList(reg_list);
+    } else {
+      PushRegister(r1);
+      PushRegister(r0);
+    }
+  }
+
+  // Pop two registers from the stack; r0 from lower address location.
+  void PopRegisterPair(Register r0, Register r1) {
+    if ((r0 < r1) && (r0 != SP) && (r1 != SP)) {
+      RegList reg_list = (1 << r0) | (1 << r1);
+      PopList(reg_list);
+    } else {
+      PopRegister(r0);
+      PopRegister(r1);
+    }
+  }
+
   void Bind(Label* label);
   void Jump(Label* label) { b(label); }
 
+  void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
+  void LoadMemoryValue(Register dst, Register base, int32_t offset) {
+    LoadFromOffset(kWord, dst, base, offset, AL);
+  }
+
+  void CompareWithFieldValue(Register value, FieldAddress address) {
+    CompareWithMemoryValue(value, address);
+  }
+
+  void CompareWithMemoryValue(Register value, Address address) {
+    ldr(TMP, address);
+    cmp(value, Operand(TMP));
+  }
+
+  void CompareTypeNullabilityWith(Register type, int8_t value) {
+    ldrb(TMP, FieldAddress(type, compiler::target::Type::nullability_offset()));
+    cmp(TMP, Operand(value));
+  }
+
   // Misc. functionality
-  intptr_t CodeSize() const { return buffer_.Size(); }
-  intptr_t prologue_offset() const { return prologue_offset_; }
-  bool has_single_entry_point() const { return has_single_entry_point_; }
-
-  // Count the fixups that produce a pointer offset, without processing
-  // the fixups.  On ARM there are no pointers in code.
-  intptr_t CountPointerOffsets() const { return 0; }
-
-  const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
-    ASSERT(buffer_.pointer_offsets().length() == 0);  // No pointers in code.
-    return buffer_.pointer_offsets();
-  }
-
-  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
-
-  RawObjectPool* MakeObjectPool() {
-    return object_pool_wrapper_.MakeObjectPool();
-  }
-
   bool use_far_branches() const {
     return FLAG_use_far_branches || use_far_branches_;
   }
@@ -401,30 +430,12 @@ class Assembler : public ValueObject {
   void set_use_far_branches(bool b) { use_far_branches_ = b; }
 #endif  // TESTING || DEBUG
 
-  void FinalizeInstructions(const MemoryRegion& region) {
-    buffer_.FinalizeInstructions(region);
-  }
-
   // Debugging and bringup support.
-  void Breakpoint() { bkpt(0); }
-  void Stop(const char* message);
-  void Unimplemented(const char* message);
-  void Untested(const char* message);
-  void Unreachable(const char* message);
-
-  static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
-
-  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
-  static bool EmittingComments();
-
-  const Code::Comments& GetCodeComments() const;
-
-  static const char* RegisterName(Register reg);
-
-  static const char* FpuRegisterName(FpuRegister reg);
+  void Breakpoint() override { bkpt(0); }
 
   // Data-processing instructions.
   void and_(Register rd, Register rn, Operand o, Condition cond = AL);
+  void ands(Register rd, Register rn, Operand o, Condition cond = AL);
 
   void eor(Register rd, Register rn, Operand o, Condition cond = AL);
 
@@ -470,6 +481,7 @@ class Assembler : public ValueObject {
 
   // Miscellaneous data-processing instructions.
   void clz(Register rd, Register rm, Condition cond = AL);
+  void rbit(Register rd, Register rm, Condition cond = AL);
 
   // Multiply instructions.
   void mul(Register rd, Register rn, Register rm, Condition cond = AL);
@@ -528,8 +540,7 @@ class Assembler : public ValueObject {
   void ldrsh(Register rd, Address ad, Condition cond = AL);
 
   // ldrd and strd actually support the full range of addressing modes, but
-  // we don't use them, and we need to split them up into two instructions for
-  // ARMv5TE, so we only support the base + offset mode.
+  // we don't use them, so we only support the base + offset mode.
   // rd must be an even register and rd2 must be rd + 1.
   void ldrd(Register rd,
             Register rd2,
@@ -554,6 +565,21 @@ class Assembler : public ValueObject {
   void ldrex(Register rd, Register rn, Condition cond = AL);
   void strex(Register rd, Register rt, Register rn, Condition cond = AL);
 
+  // Emit code to transition between generated and native modes.
+  //
+  // These require that CSP and SP are equal and aligned and require two scratch
+  // registers (in addition to TMP).
+  void TransitionGeneratedToNative(Register destination_address,
+                                   Register exit_frame_fp,
+                                   Register scratch0,
+                                   Register scratch1,
+                                   bool enter_safepoint);
+  void TransitionNativeToGenerated(Register scratch0,
+                                   Register scratch1,
+                                   bool exit_safepoint);
+  void EnterSafepoint(Register scratch0, Register scratch1);
+  void ExitSafepoint(Register scratch0, Register scratch1);
+
   // Miscellaneous instructions.
   void clrex();
   void nop(Condition cond = AL);
@@ -566,8 +592,6 @@ class Assembler : public ValueObject {
     return (AL << kConditionShift) | B24 | B21 | ((imm16 >> 4) << 8) | B6 | B5 |
            B4 | (imm16 & 0xf);
   }
-
-  static uword GetBreakInstructionFiller() { return BkptEncoding(0); }
 
   // Floating point instructions (VFPv3-D16 and VFPv3-D32 profiles).
   void vmovsr(SRegister sn, Register rt, Condition cond = AL);
@@ -699,24 +723,30 @@ class Assembler : public ValueObject {
   void bx(Register rm, Condition cond = AL);
   void blx(Register rm, Condition cond = AL);
 
-  void Branch(const StubEntry& stub_entry,
-              Patchability patchable = kNotPatchable,
+  void Branch(const Code& code,
+              ObjectPoolBuilderEntry::Patchability patchable =
+                  ObjectPoolBuilderEntry::kNotPatchable,
               Register pp = PP,
               Condition cond = AL);
 
-  void BranchLink(const StubEntry& stub_entry,
-                  Patchability patchable = kNotPatchable);
-  void BranchLink(const Code& code, Patchability patchable);
+  void Branch(const Address& address, Condition cond = AL);
+
+  void BranchLink(const Code& code,
+                  ObjectPoolBuilderEntry::Patchability patchable =
+                      ObjectPoolBuilderEntry::kNotPatchable,
+                  CodeEntryKind entry_kind = CodeEntryKind::kNormal);
   void BranchLinkToRuntime();
 
   // Branch and link to an entry address. Call sequence can be patched.
-  void BranchLinkPatchable(const StubEntry& stub_entry);
-  void BranchLinkPatchable(const Code& code);
+  void BranchLinkPatchable(const Code& code,
+                           CodeEntryKind entry_kind = CodeEntryKind::kNormal);
 
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
-  void BranchLinkWithEquivalence(const StubEntry& stub_entry,
-                                 const Object& equivalence);
+  void BranchLinkWithEquivalence(
+      const Code& code,
+      const Object& equivalence,
+      CodeEntryKind entry_kind = CodeEntryKind::kNormal);
 
   // Branch and link to [base + offset]. Call sequence is never patched.
   void BranchLinkOffset(Register base, int32_t offset);
@@ -735,6 +765,10 @@ class Assembler : public ValueObject {
                             Register rn,
                             int32_t value,
                             Condition cond = AL);
+  void SubImmediate(Register rd,
+                    Register rn,
+                    int32_t value,
+                    Condition cond = AL);
   void SubImmediateSetFlags(Register rd,
                             Register rn,
                             int32_t value,
@@ -775,29 +809,55 @@ class Assembler : public ValueObject {
 
   void RestoreCodePointer();
   void LoadPoolPointer(Register reg = PP);
+  void SetupGlobalPoolAndDispatchTable();
 
   void LoadIsolate(Register rd);
 
+  // Load word from pool from the given offset using encoding that
+  // InstructionPattern::DecodeLoadWordFromPool can decode.
+  void LoadWordFromPoolOffset(Register rd,
+                              int32_t offset,
+                              Register pp,
+                              Condition cond = AL);
+
   void LoadObject(Register rd, const Object& object, Condition cond = AL);
   void LoadUniqueObject(Register rd, const Object& object, Condition cond = AL);
-  void LoadFunctionFromCalleePool(Register dst,
-                                  const Function& function,
-                                  Register new_pp);
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
-                       Patchability patchable,
+                       ObjectPoolBuilderEntry::Patchability patchable,
                        Condition cond = AL);
   void PushObject(const Object& object);
+  void PushImmediate(int32_t immediate) {
+    LoadImmediate(TMP, immediate);
+    Push(TMP);
+  }
   void CompareObject(Register rn, const Object& object);
 
+  enum CanBeSmi {
+    kValueIsNotSmi,
+    kValueCanBeSmi,
+  };
+
+  // Store into a heap object and apply the generational and incremental write
+  // barriers. All stores into heap objects must pass through this function or,
+  // if the value can be proven either Smi or old-and-premarked, its NoBarrier
+  // variants.
+  // Preserves object and value registers.
   void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
-                       bool can_value_be_smi = true);
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                       bool lr_reserved = false);
+  void StoreIntoArray(Register object,
+                      Register slot,
+                      Register value,
+                      CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                      bool lr_reserved = false);
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
                              Register value,
-                             bool can_value_be_smi = true);
+                             CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                             bool lr_reserved = false);
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
@@ -811,6 +871,11 @@ class Assembler : public ValueObject {
   void StoreIntoObjectNoBarrierOffset(Register object,
                                       int32_t offset,
                                       const Object& value);
+
+  // Stores a non-tagged value into a heap object.
+  void StoreInternalPointer(Register object,
+                            const Address& dest,
+                            Register value);
 
   // Store value_even, value_odd, value_even, ... into the words in the address
   // range [begin, end), assumed to be uninitialized fields in object (tagged).
@@ -833,9 +898,11 @@ class Assembler : public ValueObject {
   // Stores a Smi value into a heap object field that always contains a Smi.
   void StoreIntoSmiField(const Address& dest, Register value);
 
+  void ExtractClassIdFromTags(Register result, Register tags);
+  void ExtractInstanceSizeFromTags(Register result, Register tags);
+
   void LoadClassId(Register result, Register object, Condition cond = AL);
   void LoadClassById(Register result, Register class_id);
-  void LoadClass(Register result, Register object, Register scratch);
   void CompareClassId(Register object, intptr_t class_id, Register scratch);
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
@@ -859,6 +926,13 @@ class Assembler : public ValueObject {
                      Register base,
                      int32_t offset,
                      Condition cond = AL);
+  void StoreFieldToOffset(OperandSize type,
+                          Register reg,
+                          Register base,
+                          int32_t offset,
+                          Condition cond = AL) {
+    StoreToOffset(type, reg, base, offset - kHeapObjectTag, cond);
+  }
   void LoadSFromOffset(SRegister reg,
                        Register base,
                        int32_t offset,
@@ -906,6 +980,15 @@ class Assembler : public ValueObject {
 
   void PushList(RegList regs, Condition cond = AL);
   void PopList(RegList regs, Condition cond = AL);
+
+  void PushRegisters(const RegisterSet& regs);
+  void PopRegisters(const RegisterSet& regs);
+
+  // Push all registers which are callee-saved according to the ARM ABI.
+  void PushNativeCalleeSavedRegisters();
+
+  // Pop all registers which are callee-saved according to the ARM ABI.
+  void PopNativeCalleeSavedRegisters();
 
   void CompareRegisters(Register rn, Register rm) { cmp(rn, Operand(rm)); }
   void BranchIf(Condition condition, Label* label) { b(label, condition); }
@@ -989,9 +1072,16 @@ class Assembler : public ValueObject {
 
   // Function frame setup and tear down.
   void EnterFrame(RegList regs, intptr_t frame_space);
-  void LeaveFrame(RegList regs);
+  void LeaveFrame(RegList regs, bool allow_pop_pc = false);
   void Ret();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
+
+  // In debug mode, this generates code to check that:
+  //   FP + kExitLinkSlotFromEntryFp == SP
+  // or triggers breakpoint otherwise.
+  //
+  // Requires a scratch register in addition to the assembler temporary.
+  void EmitEntryFrameVerification(Register scratch);
 
   // Create a frame for calling into runtime that preserves all volatile
   // registers.  Frame's SP is guaranteed to be correctly aligned and
@@ -1004,8 +1094,23 @@ class Assembler : public ValueObject {
   // Set up a Dart frame on entry with a frame pointer and PC information to
   // enable easy access to the RawInstruction object of code corresponding
   // to this frame.
-  void EnterDartFrame(intptr_t frame_size);
-  void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
+  void EnterDartFrame(intptr_t frame_size, bool load_pool_pointer = true);
+
+  void LeaveDartFrame();
+
+  // Leaves the frame and returns.
+  //
+  // The difference to "LeaveDartFrame(); Ret();" is that we return using
+  //
+  //   ldmia sp!, {fp, pc}
+  //
+  // instead of
+  //
+  //   ldmia sp!, {fp, lr}
+  //   blx lr
+  //
+  // This means that our return must go to ARM mode (and not thumb).
+  void LeaveDartFrameAndReturn();
 
   // Set up a Dart frame for a function compiled for on-stack replacement.
   // The frame layout is a normal Dart frame, but the frame is partially set
@@ -1017,7 +1122,9 @@ class Assembler : public ValueObject {
   void EnterStubFrame();
   void LeaveStubFrame();
 
-  void MonomorphicCheckedEntry();
+  void MonomorphicCheckedEntryJIT();
+  void MonomorphicCheckedEntryAOT();
+  void BranchOnMonomorphicCheckedEntryJIT(Label* label);
 
   // The register into which the allocation stats table is loaded with
   // LoadAllocationStatsAddress should be passed to MaybeTraceAllocation and
@@ -1025,12 +1132,6 @@ class Assembler : public ValueObject {
   // allocation stats. These are separate assembler macros so we can
   // avoid a dependent load too nearby the load of the table address.
   void LoadAllocationStatsAddress(Register dest, intptr_t cid);
-  void IncrementAllocationStats(Register stats_addr,
-                                intptr_t cid,
-                                Heap::Space space);
-  void IncrementAllocationStatsWithSize(Register stats_addr_reg,
-                                        Register size_reg,
-                                        Heap::Space space);
 
   Address ElementAddressForIntIndex(bool is_load,
                                     bool is_external,
@@ -1052,6 +1153,7 @@ class Assembler : public ValueObject {
                                     bool is_external,
                                     intptr_t cid,
                                     intptr_t index_scale,
+                                    bool index_unboxed,
                                     Register array,
                                     Register index);
 
@@ -1060,6 +1162,7 @@ class Assembler : public ValueObject {
                                      bool is_external,
                                      intptr_t cid,
                                      intptr_t index_scale,
+                                     bool index_unboxed,
                                      Register array,
                                      Register index);
 
@@ -1090,22 +1193,58 @@ class Assembler : public ValueObject {
                         Register temp1,
                         Register temp2);
 
+  // This emits an PC-relative call of the form "blr.<cond> <offset>".  The
+  // offset is not yet known and needs therefore relocation to the right place
+  // before the code can be used.
+  //
+  // The neccessary information for the "linker" (i.e. the relocation
+  // information) is stored in [RawCode::static_calls_target_table_]: an entry
+  // of the form
+  //
+  //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
+  //
+  // will be used during relocation to fix the offset.
+  //
+  // The provided [offset_into_target] will be added to calculate the final
+  // destination.  It can be used e.g. for calling into the middle of a
+  // function.
+  void GenerateUnRelocatedPcRelativeCall(Condition cond = AL,
+                                         intptr_t offset_into_target = 0);
+
+  // This emits an PC-relative tail call of the form "b.<cond> <offset>".
+  //
+  // See also above for the pc-relative call.
+  void GenerateUnRelocatedPcRelativeTailCall(Condition cond = AL,
+                                             intptr_t offset_into_target = 0);
+
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);
 
   // On some other platforms, we draw a distinction between safe and unsafe
   // smis.
   static bool IsSafe(const Object& object) { return true; }
-  static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
+  static bool IsSafeSmi(const Object& object) { return target::IsSmi(object); }
 
   bool constant_pool_allowed() const { return constant_pool_allowed_; }
   void set_constant_pool_allowed(bool b) { constant_pool_allowed_ = b; }
 
+  // Whether we can branch to a target which is [distance] bytes away from the
+  // beginning of the branch instruction.
+  //
+  // Use this function for testing whether [distance] can be encoded using the
+  // 24-bit offets in the branch instructions, which are multiples of 4.
+  static bool CanEncodeBranchDistance(int32_t distance) {
+    ASSERT(Utils::IsAligned(distance, 4));
+    // The distance is off by 8 due to the way the ARM CPUs read PC.
+    distance -= Instr::kPCReadOffset;
+    distance >>= 2;
+    return Utils::IsInt(24, distance);
+  }
+
+  static int32_t EncodeBranchOffset(int32_t offset, int32_t inst);
+  static int32_t DecodeBranchOffset(int32_t inst);
+
  private:
-  AssemblerBuffer buffer_;  // Contains position independent code.
-  ObjectPoolWrapper object_pool_wrapper_;
-  int32_t prologue_offset_;
-  bool has_single_entry_point_;
   bool use_far_branches_;
 
   // If you are thinking of using one or both of these instructions directly,
@@ -1116,29 +1255,7 @@ class Assembler : public ValueObject {
   void BindARMv6(Label* label);
   void BindARMv7(Label* label);
 
-  void LoadWordFromPoolOffset(Register rd,
-                              int32_t offset,
-                              Register pp,
-                              Condition cond);
-
   void BranchLink(const ExternalLabel* label);
-
-  class CodeComment : public ZoneAllocated {
-   public:
-    CodeComment(intptr_t pc_offset, const String& comment)
-        : pc_offset_(pc_offset), comment_(comment) {}
-
-    intptr_t pc_offset() const { return pc_offset_; }
-    const String& comment() const { return comment_; }
-
-   private:
-    intptr_t pc_offset_;
-    const String& comment_;
-
-    DISALLOW_COPY_AND_ASSIGN(CodeComment);
-  };
-
-  GrowableArray<CodeComment*> comments_;
 
   bool constant_pool_allowed_;
 
@@ -1240,22 +1357,41 @@ class Assembler : public ValueObject {
 
   void EmitFarBranch(Condition cond, int32_t offset, bool link);
   void EmitBranch(Condition cond, Label* label, bool link);
-  int32_t EncodeBranchOffset(int32_t offset, int32_t inst);
-  static int32_t DecodeBranchOffset(int32_t inst);
+  void BailoutIfInvalidBranchOffset(int32_t offset);
   int32_t EncodeTstOffset(int32_t offset, int32_t inst);
   int32_t DecodeTstOffset(int32_t inst);
 
-  void StoreIntoObjectFilter(Register object, Register value, Label* no_update);
+  enum BarrierFilterMode {
+    // Filter falls through into the barrier update code. Target label
+    // is a "after-store" label.
+    kJumpToNoUpdate,
 
-  // Shorter filtering sequence that assumes that value is not a smi.
-  void StoreIntoObjectFilterNoSmi(Register object,
-                                  Register value,
-                                  Label* no_update);
+    // Filter falls through to the "after-store" code. Target label
+    // is barrier update code label.
+    kJumpToBarrier,
+
+    // Filter falls through into the conditional barrier update code and does
+    // not jump. Target label is unused. The barrier should run if the NE
+    // condition is set.
+    kNoJump
+  };
+
+  void StoreIntoObjectFilter(Register object,
+                             Register value,
+                             Label* label,
+                             CanBeSmi can_be_smi,
+                             BarrierFilterMode barrier_filter_mode);
+
+  friend class dart::FlowGraphCompiler;
+  std::function<void(Condition, Register)>
+      generate_invoke_write_barrier_wrapper_;
+  std::function<void(Condition)> generate_invoke_array_write_barrier_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);
 };
 
+}  // namespace compiler
 }  // namespace dart
 
 #endif  // RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_ARM_H_

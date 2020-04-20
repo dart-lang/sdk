@@ -6,11 +6,11 @@
 library test;
 
 class A implements B {
-  var /*@topType=int*/ x;
+  var x;
 }
 
 abstract class B implements C {
-  get /*@topType=int*/ x;
+  get x;
 }
 
 abstract class C {

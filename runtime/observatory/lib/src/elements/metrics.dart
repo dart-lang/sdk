@@ -19,7 +19,7 @@ import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 
-class MetricsPageElement extends HtmlElement implements Renderable {
+class MetricsPageElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<MetricsPageElement>('metrics-page', dependencies: const [
     MetricDetailsElement.tag,
@@ -58,8 +58,8 @@ class MetricsPageElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(events != null);
     assert(notifications != null);
-    MetricsPageElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    MetricsPageElement e = new MetricsPageElement.created();
+    e._r = new RenderingScheduler<MetricsPageElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -68,7 +68,7 @@ class MetricsPageElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  MetricsPageElement.created() : super.created();
+  MetricsPageElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -81,34 +81,35 @@ class MetricsPageElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
-      navBar([
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+    children = <Element>[
+      navBar(<Element>[
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
         navMenu('metrics'),
-        new NavRefreshElement(queue: _r.queue)
-          ..onRefresh.listen((e) {
-            e.element.disabled = true;
-            _refresh();
-          }),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        (new NavRefreshElement(queue: _r.queue)
+              ..onRefresh.listen((e) {
+                e.element.disabled = true;
+                _refresh();
+              }))
+            .element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = 'Metrics',
           new HRElement(),
           new DivElement()
             ..classes = ['memberList']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'Metric',
@@ -125,7 +126,8 @@ class MetricsPageElement extends HtmlElement implements Renderable {
                 ? const []
                 : [
                     new MetricDetailsElement(_isolate, _selected, _metrics,
-                        queue: _r.queue)
+                            queue: _r.queue)
+                        .element
                   ],
           new HRElement(),
           new DivElement()
@@ -134,7 +136,8 @@ class MetricsPageElement extends HtmlElement implements Renderable {
                 ? const []
                 : [
                     new MetricGraphElement(_isolate, _selected, _metrics,
-                        queue: _r.queue)
+                            queue: _r.queue)
+                        .element
                   ]
         ],
     ];

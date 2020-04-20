@@ -16,16 +16,15 @@ main() {
 
 testWithConstMap() {
   var map = const {'b': 42, 'a': 43};
-  var otherMap = new Map.from(map);
+  var otherMap = new Map<String, int>.from(map);
   Expect.isTrue(otherMap is Map);
-  Expect.isTrue(otherMap is HashMap);
   Expect.isTrue(otherMap is LinkedHashMap);
 
   Expect.equals(2, otherMap.length);
   Expect.equals(2, otherMap.keys.length);
   Expect.equals(2, otherMap.values.length);
 
-  var count = (map) {
+  int count(Map<String, int> map) {
     int cnt = 0;
     map.forEach((a, b) {
       cnt += b;
@@ -39,16 +38,15 @@ testWithConstMap() {
 
 testWithNonConstMap() {
   var map = {'b': 42, 'a': 43};
-  var otherMap = new Map.from(map);
+  var otherMap = new Map<String, int>.from(map);
   Expect.isTrue(otherMap is Map);
-  Expect.isTrue(otherMap is HashMap);
   Expect.isTrue(otherMap is LinkedHashMap);
 
   Expect.equals(2, otherMap.length);
   Expect.equals(2, otherMap.keys.length);
   Expect.equals(2, otherMap.values.length);
 
-  int count(map) {
+  int count(Map<String, int> map) {
     int count = 0;
     map.forEach((a, b) {
       count += b;
@@ -81,7 +79,6 @@ testWithHashMap() {
   var otherMap = new HashMap.from(map);
   Expect.isTrue(otherMap is Map);
   Expect.isTrue(otherMap is HashMap);
-  Expect.isTrue(otherMap is! LinkedHashMap);
   var i = 1;
   for (var val in map.values) {
     Expect.equals(i++, val);
@@ -92,7 +89,6 @@ testWithLinkedMap() {
   var map = const {'b': 1, 'a': 2, 'c': 3};
   var otherMap = new LinkedHashMap.from(map);
   Expect.isTrue(otherMap is Map);
-  Expect.isTrue(otherMap is HashMap);
   Expect.isTrue(otherMap is LinkedHashMap);
   var i = 1;
   for (var val in map.values) {

@@ -28,11 +28,11 @@ void expect(condition) {
 const HOST_NAME = "localhost";
 
 Future runClients(int port) {
-  var testFutures = [];
+  var testFutures = <Future>[];
   for (int i = 0; i < 20; ++i) {
-    testFutures.add(SecureSocket
-        .connect(HOST_NAME, port, context: clientContext)
-        .then((SecureSocket socket) {
+    testFutures.add(
+        SecureSocket.connect(HOST_NAME, port, context: clientContext).then(
+            (SecureSocket socket) {
       expect(false);
     }, onError: (e) {
       expect(e is HandshakeException || e is SocketException);

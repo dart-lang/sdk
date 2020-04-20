@@ -1,0 +1,85 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with a number of modules.
+# Try out "trickery" in the module dependencies to force needing more or less
+# dill libraries.
+
+type: newworld
+modules:
+  moduleB:
+    moduleB/b.dart: |
+      import 'package:moduleC/c.dart';
+
+      var bVar = 42;
+      var bVarFromC = baz2;
+      var mya2 = new A2();
+
+      class A2 extends A3 {
+        int bar = 42;
+      }
+    moduleB/.packages: |
+      moduleB:.
+      moduleC:../moduleC
+      moduleD:../moduleD
+  moduleC:
+    moduleC/c.dart: |
+      import 'package:moduleD/d.dart';
+
+      String baz = "42";
+      String baz2 = baz3;
+
+      class A3 {
+        int foo = 42;
+      }
+    moduleC/.packages: |
+      moduleC:.
+      moduleD:../moduleD
+  moduleD:
+    moduleD/d.dart: |
+      String baz3 = "baz3";
+    moduleD/.packages: |
+      moduleD:.
+worlds:
+  - entry: a.dart
+    fromComponent: true
+    sources:
+      a.dart: |
+        import "package:moduleB/b.dart";
+
+        var foo = bVar;
+        var foo2 = bVarFromC;
+
+        class A1 extends A2 {
+          String fooMethod() => "42!";
+        }
+      .packages: |
+        moduleB:moduleB
+        moduleC:moduleC
+        moduleD:moduleD
+    modules:
+      - moduleB
+      - moduleC
+      - moduleD
+    expectedLibraryCount: 4
+    neededDillLibraries:
+      # A class in 'a.dart' has a super in 'c.dart'.
+      - package:moduleB/b.dart
+      - package:moduleC/c.dart
+    expectedContent:
+      org-dartlang-test:///a.dart:
+        - Field foo
+        - Field foo2
+        - Class A1
+      package:moduleB/b.dart:
+        - Class A2
+        - Field bVar
+        - Field bVarFromC
+        - Field mya2
+      package:moduleC/c.dart:
+        - Class A3
+        - Field baz
+        - Field baz2
+      package:moduleD/d.dart:
+        - Field baz3

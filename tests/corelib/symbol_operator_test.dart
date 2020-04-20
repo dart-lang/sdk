@@ -4,7 +4,7 @@
 
 // Test of Symbol class for operators..
 
-var $ = new Symbolize();
+dynamic $ = new Symbolize();
 
 main() {
   testSymbol(#+, $ + $, "+");
@@ -26,7 +26,7 @@ main() {
   testSymbol(#==, new Symbol("=="), "=="); // Can't hit noSuchMethod.
   testSymbol(#[], $[$], "[]");
   testSymbol(#[]=, ($[$] = $).lastMember, "[]=");
-  testSymbol(const Symbol("unary-"), -$, "unary-");
+  testSymbol(Symbol.unaryMinus, -$, "unary-");
 
   testSymbolThrows(">>>"); // //# 03: ok
   testSymbolThrows("!"); //   //# 03: continued
@@ -76,6 +76,6 @@ void testSymbolThrows(name) {
 }
 
 class Symbolize {
-  Symbol lastMember;
+  Symbol? lastMember;
   noSuchMethod(m) => lastMember = m.memberName;
 }

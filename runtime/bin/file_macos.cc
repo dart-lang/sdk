@@ -19,9 +19,9 @@
 
 #include "bin/builtin.h"
 #include "bin/fdutils.h"
-#include "bin/log.h"
 #include "bin/namespace.h"
 #include "platform/signal_blocker.h"
+#include "platform/syslog.h"
 #include "platform/utils.h"
 
 namespace dart {
@@ -55,14 +55,14 @@ void File::Close() {
     intptr_t null_fd = TEMP_FAILURE_RETRY(open("/dev/null", O_WRONLY));
     ASSERT(null_fd >= 0);
     VOID_TEMP_FAILURE_RETRY(dup2(null_fd, handle_->fd()));
-    VOID_TEMP_FAILURE_RETRY(close(null_fd));
+    close(null_fd);
   } else {
-    intptr_t err = TEMP_FAILURE_RETRY(close(handle_->fd()));
+    intptr_t err = close(handle_->fd());
     if (err != 0) {
       const int kBufferSize = 1024;
       char error_message[kBufferSize];
       Utils::StrError(errno, error_message, kBufferSize);
-      Log::PrintErr("%s\n", error_message);
+      Syslog::PrintErr("%s\n", error_message);
     }
   }
   handle_->set_fd(kClosedFd);
@@ -76,25 +76,76 @@ bool File::IsClosed() {
   return handle_->fd() == kClosedFd;
 }
 
-MappedMemory* File::Map(MapType type, int64_t position, int64_t length) {
+MappedMemory* File::Map(MapType type,
+                        int64_t position,
+                        int64_t length,
+                        void* start) {
   ASSERT(handle_->fd() >= 0);
   ASSERT(length > 0);
   int prot = PROT_NONE;
+  int map_flags = MAP_PRIVATE;
   switch (type) {
     case kReadOnly:
       prot = PROT_READ;
       break;
     case kReadExecute:
       prot = PROT_READ | PROT_EXEC;
+      if (IsAtLeastOS10_14()) {
+        map_flags |= (MAP_JIT | MAP_ANONYMOUS);
+      }
       break;
-    default:
-      return NULL;
+    case kReadWrite:
+      prot = PROT_READ | PROT_WRITE;
+      break;
   }
-  void* addr = mmap(NULL, length, prot, MAP_PRIVATE, handle_->fd(), position);
-  if (addr == MAP_FAILED) {
-    return NULL;
+  if (start != nullptr) {
+    map_flags |= MAP_FIXED;
   }
-  return new MappedMemory(addr, length);
+  void* addr = start;
+  if ((type == kReadExecute) && IsAtLeastOS10_14()) {
+    // Due to codesigning restrictions, we cannot map the file as executable
+    // directly. We must first copy it into an anonymous mapping and then mark
+    // the mapping as executable.
+    if (addr == nullptr) {
+      addr = mmap(nullptr, length, (PROT_READ | PROT_WRITE), map_flags, -1, 0);
+      if (addr == MAP_FAILED) {
+        Syslog::PrintErr("mmap failed %s\n", strerror(errno));
+        return nullptr;
+      }
+    }
+
+    const int64_t remaining_length = Length() - position;
+    SetPosition(position);
+    if (!ReadFully(addr, Utils::Minimum(length, remaining_length))) {
+      Syslog::PrintErr("ReadFully failed\n");
+      if (start == nullptr) {
+        munmap(addr, length);
+      }
+      return nullptr;
+    }
+
+    // If the requested mapping is larger than the file size, we should fill the
+    // extra memory with zeros.
+    if (length > remaining_length) {
+      memset(reinterpret_cast<uint8_t*>(addr) + remaining_length, 0,
+             length - remaining_length);
+    }
+
+    if (mprotect(addr, length, prot) != 0) {
+      Syslog::PrintErr("mprotect failed %s\n", strerror(errno));
+      if (start == nullptr) {
+        munmap(addr, length);
+      }
+      return nullptr;
+    }
+  } else {
+    addr = mmap(addr, length, prot, map_flags, handle_->fd(), position);
+    if (addr == MAP_FAILED) {
+      Syslog::PrintErr("mmap failed %s\n", strerror(errno));
+      return nullptr;
+    }
+  }
+  return new MappedMemory(addr, length, /*should_unmap=*/start == nullptr);
 }
 
 void MappedMemory::Unmap() {
@@ -110,7 +161,8 @@ int64_t File::Read(void* buffer, int64_t num_bytes) {
 }
 
 int64_t File::Write(const void* buffer, int64_t num_bytes) {
-  ASSERT(handle_->fd() >= 0);
+  // Invalid argument error will pop if num_bytes exceeds the limit.
+  ASSERT(handle_->fd() >= 0 && num_bytes <= kMaxInt32);
   return TEMP_FAILURE_RETRY(write(handle_->fd(), buffer, num_bytes));
 }
 
@@ -235,8 +287,27 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
   return new File(new FileHandle(fd));
 }
 
+static Utils::CStringUniquePtr DecodeUri(const char* uri) {
+  const char* path = (strlen(uri) >= 8 && strncmp(uri, "file:///", 8) == 0)
+      ? uri + 7 : uri;
+  UriDecoder uri_decoder(path);
+  if (uri_decoder.decoded() == nullptr) {
+    errno = EINVAL;
+    return Utils::CreateCStringUniquePtr(nullptr);
+  }
+  return Utils::CreateCStringUniquePtr(strdup(uri_decoder.decoded()));
+}
+
+File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
+  auto path = DecodeUri(uri);
+  if (path == nullptr) {
+    return nullptr;
+  }
+  return File::Open(namespc, path.get(), mode);
+}
+
 File* File::OpenStdio(int fd) {
-  return ((fd < 0) || (2 < fd)) ? NULL : new File(new FileHandle(fd));
+  return new File(new FileHandle(fd));
 }
 
 bool File::Exists(Namespace* namespc, const char* name) {
@@ -247,6 +318,14 @@ bool File::Exists(Namespace* namespc, const char* name) {
   } else {
     return false;
   }
+}
+
+bool File::ExistsUri(Namespace* namespc, const char* uri) {
+  auto path = DecodeUri(uri);
+  if (path == nullptr) {
+    return false;
+  }
+  return File::Exists(namespc, path.get());
 }
 
 bool File::Create(Namespace* namespc, const char* name) {
@@ -456,7 +535,10 @@ bool File::SetLastModified(Namespace* namespc,
   return utime(name, &times) == 0;
 }
 
-const char* File::LinkTarget(Namespace* namespc, const char* pathname) {
+const char* File::LinkTarget(Namespace* namespc,
+                             const char* pathname,
+                             char* dest,
+                             int dest_size) {
   struct stat link_stats;
   if (lstat(pathname, &link_stats) != 0) {
     return NULL;
@@ -474,11 +556,17 @@ const char* File::LinkTarget(Namespace* namespc, const char* pathname) {
   if (target_size <= 0) {
     return NULL;
   }
-  char* target_name = DartUtils::ScopedCString(target_size + 1);
-  ASSERT(target_name != NULL);
-  memmove(target_name, target, target_size);
-  target_name[target_size] = '\0';
-  return target_name;
+  if (dest == NULL) {
+    dest = DartUtils::ScopedCString(target_size + 1);
+  } else {
+    ASSERT(dest_size > 0);
+    if ((size_t)dest_size <= target_size) {
+      return NULL;
+    }
+  }
+  memmove(dest, target, target_size);
+  dest[target_size] = '\0';
+  return dest;
 }
 
 bool File::IsAbsolutePath(const char* pathname) {
@@ -511,11 +599,10 @@ const char* File::StringEscapedPathSeparator() {
 }
 
 File::StdioHandleType File::GetStdioHandleType(int fd) {
-  ASSERT((0 <= fd) && (fd <= 2));
   struct stat buf;
   int result = fstat(fd, &buf);
   if (result == -1) {
-    return kOther;
+    return kTypeError;
   }
   if (S_ISCHR(buf.st_mode)) {
     return kTerminal;
@@ -532,9 +619,12 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   return kOther;
 }
 
-File::Identical File::AreIdentical(Namespace* namespc,
+File::Identical File::AreIdentical(Namespace* namespc_1,
                                    const char* file_1,
+                                   Namespace* namespc_2,
                                    const char* file_2) {
+  USE(namespc_1);
+  USE(namespc_2);
   struct stat file_1_info;
   struct stat file_2_info;
   if ((NO_RETRY_EXPECTED(lstat(file_1, &file_1_info)) == -1) ||

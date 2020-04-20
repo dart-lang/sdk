@@ -2,10 +2,4 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-collection_runtime_sources = [
-  # collection_patch.dart needs to be the first dart file because it contains
-  # imports.
-  "collection_patch.dart",
-  "compact_hash.dart",
-  "linked_hash_map.cc",
-]
+collection_runtime_cc_files = [ "linked_hash_map.cc" ]

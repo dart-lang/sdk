@@ -5,7 +5,7 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=dynamic*/ x = /*@returnType=dynamic*/ () => /*error:TOP_LEVEL_CYCLE*/ y;
-var /*@topType=dynamic*/ y = /*@returnType=dynamic*/ () => /*error:TOP_LEVEL_CYCLE*/ x;
+var x = /*@ returnType=() ->* invalid-type */ () => y;
+var y = /*@ returnType=invalid-type */ () => x;
 
 main() {}

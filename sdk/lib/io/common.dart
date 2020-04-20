@@ -2,36 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.io;
 
 // Constants used when working with native ports.
 // These must match the constants in runtime/bin/dartutils.h class CObject.
-const int _SUCCESS_RESPONSE = 0;
-const int _ILLEGAL_ARGUMENT_RESPONSE = 1;
-const int _OSERROR_RESPONSE = 2;
-const int _FILE_CLOSED_RESPONSE = 3;
+const int _successResponse = 0;
+const int _illegalArgumentResponse = 1;
+const int _osErrorResponse = 2;
+const int _fileClosedResponse = 3;
 
-const int _ERROR_RESPONSE_ERROR_TYPE = 0;
-const int _OSERROR_RESPONSE_ERROR_CODE = 1;
-const int _OSERROR_RESPONSE_MESSAGE = 2;
+const int _errorResponseErrorType = 0;
+const int _osErrorResponseErrorCode = 1;
+const int _osErrorResponseMessage = 2;
 
 // Functions used to receive exceptions from native ports.
 bool _isErrorResponse(response) =>
-    response is List && response[0] != _SUCCESS_RESPONSE;
+    response is List && response[0] != _successResponse;
 
 /**
  * Returns an Exception or an Error
  */
 _exceptionFromResponse(response, String message, String path) {
   assert(_isErrorResponse(response));
-  switch (response[_ERROR_RESPONSE_ERROR_TYPE]) {
-    case _ILLEGAL_ARGUMENT_RESPONSE:
+  switch (response[_errorResponseErrorType]) {
+    case _illegalArgumentResponse:
       return new ArgumentError("$message: $path");
-    case _OSERROR_RESPONSE:
-      var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
-          response[_OSERROR_RESPONSE_ERROR_CODE]);
+    case _osErrorResponse:
+      var err = new OSError(response[_osErrorResponseMessage],
+          response[_osErrorResponseErrorCode]);
       return new FileSystemException(message, path, err);
-    case _FILE_CLOSED_RESPONSE:
+    case _fileClosedResponse:
       return new FileSystemException("File closed", path);
     default:
       return new Exception("Unknown error");
@@ -49,30 +51,30 @@ abstract class IOException implements Exception {
   * An [OSError] object holds information about an error from the
   * operating system.
   */
-class OSError {
+@pragma("vm:entry-point")
+class OSError implements Exception {
   /** Constant used to indicate that no OS error code is available. */
   static const int noErrorCode = -1;
 
-  /**
-    * Error message supplied by the operating system. null if no message is
-    * associated with the error.
-    */
+  /// Error message supplied by the operating system. This may be `null` or
+  /// empty if no message is associated with the error.
   final String message;
 
-  /**
-    * Error code supplied by the operating system. Will have the value
-    * [noErrorCode] if there is no error code associated with the error.
-    */
+  /// Error code supplied by the operating system.
+  ///
+  /// Will have the value [OSError.noErrorCode] if there is no error code
+  /// associated with the error.
   final int errorCode;
 
   /** Creates an OSError object from a message and an errorCode. */
+  @pragma("vm:entry-point")
   const OSError([this.message = "", this.errorCode = noErrorCode]);
 
   /** Converts an OSError object to a string representation. */
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write("OS Error");
-    if (!message.isEmpty) {
+    if (message.isNotEmpty) {
       sb..write(": ")..write(message);
       if (errorCode != noErrorCode) {
         sb..write(", errno = ")..write(errorCode.toString());
@@ -104,11 +106,7 @@ _BufferAndStart _ensureFastAndSerializableByteData(
   var newBuffer = new Uint8List(length);
   int j = start;
   for (int i = 0; i < length; i++) {
-    int value = buffer[j];
-    if (value is! int) {
-      throw new ArgumentError("List element is not an integer at index $j");
-    }
-    newBuffer[i] = value;
+    newBuffer[i] = buffer[j];
     j++;
   }
   return new _BufferAndStart(newBuffer, 0);

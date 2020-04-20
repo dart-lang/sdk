@@ -1,7 +1,6 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-#ifndef DART_PRECOMPILED_RUNTIME
 #include "vm/compiler/jit/jit_call_specializer.h"
 
 #include "vm/bit_vector.h"
@@ -50,14 +49,31 @@ bool JitCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
   return false;
 }
 
+void JitCallSpecializer::ReplaceWithStaticCall(InstanceCallInstr* instr,
+                                               const Function& target,
+                                               intptr_t call_count) {
+  StaticCallInstr* call =
+      StaticCallInstr::FromCall(Z, instr, target, call_count);
+  const CallTargets& targets = instr->Targets();
+  if (targets.IsMonomorphic() && targets.MonomorphicExactness().IsExact()) {
+    if (targets.MonomorphicExactness().IsTriviallyExact()) {
+      flow_graph()->AddExactnessGuard(instr, targets.MonomorphicReceiverCid());
+    }
+    call->set_entry_kind(Code::EntryKind::kUnchecked);
+  }
+  instr->ReplaceWith(call, current_iterator());
+}
+
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
 // TODO(dartbug.com/30635) Evaluate how much this can be shared with
 // AotCallSpecializer.
 void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
-  if (!instr->HasICData() || (instr->ic_data()->NumberOfUsedChecks() == 0)) {
-    return;
+  const CallTargets& targets = instr->Targets();
+  if (targets.is_empty()) {
+    return;  // No feedback.
   }
+
   const Token::Kind op_kind = instr->token_kind();
 
   // Type test is special as it always gets converted into inlined code.
@@ -66,20 +82,10 @@ void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
-  if (Token::IsTypeCastOperator(op_kind)) {
-    ReplaceWithTypeCast(instr);
+  if ((op_kind == Token::kASSIGN_INDEX) && TryReplaceWithIndexedOp(instr)) {
     return;
   }
-
-  const ICData& unary_checks =
-      ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
-
-  if ((op_kind == Token::kASSIGN_INDEX) &&
-      TryReplaceWithIndexedOp(instr, &unary_checks)) {
-    return;
-  }
-  if ((op_kind == Token::kINDEX) &&
-      TryReplaceWithIndexedOp(instr, &unary_checks)) {
+  if ((op_kind == Token::kINDEX) && TryReplaceWithIndexedOp(instr)) {
     return;
   }
 
@@ -103,39 +109,31 @@ void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
   if ((op_kind == Token::kGET) && TryInlineInstanceGetter(instr)) {
     return;
   }
-  if ((op_kind == Token::kSET) &&
-      TryInlineInstanceSetter(instr, unary_checks)) {
+  if ((op_kind == Token::kSET) && TryInlineInstanceSetter(instr)) {
     return;
   }
   if (TryInlineInstanceMethod(instr)) {
     return;
   }
 
-  const CallTargets& targets = *CallTargets::CreateAndExpand(Z, unary_checks);
-
   bool has_one_target = targets.HasSingleTarget();
-
   if (has_one_target) {
     // Check if the single target is a polymorphic target, if it is,
     // we don't have one target.
-    const Function& target = Function::Handle(Z, unary_checks.GetTargetAt(0));
+    const Function& target = targets.FirstTarget();
     if (target.recognized_kind() == MethodRecognizer::kObjectRuntimeType) {
       has_one_target = PolymorphicInstanceCallInstr::ComputeRuntimeType(
                            targets) != Type::null();
     } else {
-      const bool polymorphic_target =
-          MethodRecognizer::PolymorphicTarget(target);
-      has_one_target = !polymorphic_target;
+      has_one_target = !target.is_polymorphic_target();
     }
   }
 
   if (has_one_target) {
-    const Function& target =
-        Function::ZoneHandle(Z, unary_checks.GetTargetAt(0));
-    const RawFunction::Kind function_kind = target.kind();
-    if (!flow_graph()->InstanceCallNeedsClassCheck(instr, function_kind)) {
-      StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
-      instr->ReplaceWith(call, current_iterator());
+    const Function& target = targets.FirstTarget();
+    if (flow_graph()->CheckForInstanceCall(instr, target.kind()) ==
+        FlowGraph::ToCheck::kNoCheck) {
+      ReplaceWithStaticCall(instr, target, targets.AggregateCallCount());
       return;
     }
   }
@@ -152,20 +150,17 @@ void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
   // non-deopting megamorphic call stub when it sees new receiver classes.
   if (has_one_target && FLAG_polymorphic_with_deopt &&
       (!instr->ic_data()->HasDeoptReason(ICData::kDeoptCheckClass) ||
-       unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks)) {
+       targets.length() <= FLAG_max_polymorphic_checks)) {
     // Type propagation has not run yet, we cannot eliminate the check.
-    // TODO(erikcorry): The receiver check should use the off-heap targets
-    // array, not the IC array.
     AddReceiverCheck(instr);
+
     // Call can still deoptimize, do not detach environment from instr.
-    const Function& target =
-        Function::ZoneHandle(Z, unary_checks.GetTargetAt(0));
-    StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
-    instr->ReplaceWith(call, current_iterator());
+    const Function& target = targets.FirstTarget();
+    ReplaceWithStaticCall(instr, target, targets.AggregateCallCount());
   } else {
     PolymorphicInstanceCallInstr* call =
-        new (Z) PolymorphicInstanceCallInstr(instr, targets,
-                                             /* complete = */ false);
+        PolymorphicInstanceCallInstr::FromCall(Z, instr, targets,
+                                               /* complete = */ false);
     instr->ReplaceWith(call, current_iterator());
   }
 }
@@ -178,7 +173,7 @@ void JitCallSpecializer::VisitStoreInstanceField(
     // usage count of at least 1/kGetterSetterRatio of the getter usage count.
     // This is to avoid unboxing fields where the setter is never or rarely
     // executed.
-    const Field& field = instr->field();
+    const Field& field = instr->slot().field();
     const String& field_name = String::Handle(Z, field.name());
     const Class& owner = Class::Handle(Z, field.Owner());
     const Function& getter =
@@ -199,16 +194,16 @@ void JitCallSpecializer::VisitStoreInstanceField(
       if (Compiler::IsBackgroundCompilation()) {
         isolate()->AddDeoptimizingBoxedField(field);
         Compiler::AbortBackgroundCompilation(
-            Thread::kNoDeoptId, "Unboxing instance field while compiling");
+            DeoptId::kNone, "Unboxing instance field while compiling");
         UNREACHABLE();
       }
       if (FLAG_trace_optimization || FLAG_trace_field_guards) {
         THR_Print("Disabling unboxing of %s\n", field.ToCString());
         if (!setter.IsNull()) {
-          OS::Print("  setter usage count: %" Pd "\n", setter.usage_counter());
+          THR_Print("  setter usage count: %" Pd "\n", setter.usage_counter());
         }
         if (!getter.IsNull()) {
-          OS::Print("  getter usage count: %" Pd "\n", getter.usage_counter());
+          THR_Print("  getter usage count: %" Pd "\n", getter.usage_counter());
         }
       }
       ASSERT(field.IsOriginal());
@@ -224,23 +219,24 @@ void JitCallSpecializer::VisitStoreInstanceField(
 // allocation and explicit initializing stores.
 // If context_value is not NULL then newly allocated context is a populated
 // with values copied from it, otherwise it is initialized with null.
-void JitCallSpecializer::LowerContextAllocation(Definition* alloc,
-                                                intptr_t num_context_variables,
-                                                Value* context_value) {
+void JitCallSpecializer::LowerContextAllocation(
+    Definition* alloc,
+    const ZoneGrowableArray<const Slot*>& context_variables,
+    Value* context_value) {
   ASSERT(alloc->IsAllocateContext() || alloc->IsCloneContext());
 
   AllocateUninitializedContextInstr* replacement =
       new AllocateUninitializedContextInstr(alloc->token_pos(),
-                                            num_context_variables);
+                                            context_variables.length());
   alloc->ReplaceWith(replacement, current_iterator());
 
-  Definition* cursor = replacement;
+  Instruction* cursor = replacement;
 
   Value* initial_value;
   if (context_value != NULL) {
-    LoadFieldInstr* load = new (Z)
-        LoadFieldInstr(context_value->CopyWithType(Z), Context::parent_offset(),
-                       AbstractType::ZoneHandle(Z), alloc->token_pos());
+    LoadFieldInstr* load =
+        new (Z) LoadFieldInstr(context_value->CopyWithType(Z),
+                               Slot::Context_parent(), alloc->token_pos());
     flow_graph()->InsertAfter(cursor, load, NULL, FlowGraph::kValue);
     cursor = load;
     initial_value = new (Z) Value(load);
@@ -248,20 +244,17 @@ void JitCallSpecializer::LowerContextAllocation(Definition* alloc,
     initial_value = new (Z) Value(flow_graph()->constant_null());
   }
   StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
-      Context::parent_offset(), new (Z) Value(replacement), initial_value,
-      kNoStoreBarrier, alloc->token_pos());
-  // Storing into uninitialized memory; remember to prevent dead store
-  // elimination and ensure proper GC barrier.
-  store->set_is_initialization(true);
-  flow_graph()->InsertAfter(cursor, store, NULL, FlowGraph::kEffect);
+      Slot::Context_parent(), new (Z) Value(replacement), initial_value,
+      kNoStoreBarrier, alloc->token_pos(),
+      StoreInstanceFieldInstr::Kind::kInitializing);
+  flow_graph()->InsertAfter(cursor, store, nullptr, FlowGraph::kEffect);
   cursor = replacement;
 
-  for (intptr_t i = 0; i < num_context_variables; ++i) {
-    if (context_value != NULL) {
+  for (auto& slot : context_variables) {
+    if (context_value != nullptr) {
       LoadFieldInstr* load = new (Z) LoadFieldInstr(
-          context_value->CopyWithType(Z), Context::variable_offset(i),
-          AbstractType::ZoneHandle(Z), alloc->token_pos());
-      flow_graph()->InsertAfter(cursor, load, NULL, FlowGraph::kValue);
+          context_value->CopyWithType(Z), *slot, alloc->token_pos());
+      flow_graph()->InsertAfter(cursor, load, nullptr, FlowGraph::kValue);
       cursor = load;
       initial_value = new (Z) Value(load);
     } else {
@@ -269,29 +262,19 @@ void JitCallSpecializer::LowerContextAllocation(Definition* alloc,
     }
 
     store = new (Z) StoreInstanceFieldInstr(
-        Context::variable_offset(i), new (Z) Value(replacement), initial_value,
-        kNoStoreBarrier, alloc->token_pos());
-    // Storing into uninitialized memory; remember to prevent dead store
-    // elimination and ensure proper GC barrier.
-    store->set_is_initialization(true);
-    flow_graph()->InsertAfter(cursor, store, NULL, FlowGraph::kEffect);
+        *slot, new (Z) Value(replacement), initial_value, kNoStoreBarrier,
+        alloc->token_pos(), StoreInstanceFieldInstr::Kind::kInitializing);
+    flow_graph()->InsertAfter(cursor, store, nullptr, FlowGraph::kEffect);
     cursor = store;
   }
 }
 
 void JitCallSpecializer::VisitAllocateContext(AllocateContextInstr* instr) {
-  LowerContextAllocation(instr, instr->num_context_variables(), NULL);
+  LowerContextAllocation(instr, instr->context_slots(), nullptr);
 }
 
 void JitCallSpecializer::VisitCloneContext(CloneContextInstr* instr) {
-  if (instr->num_context_variables() ==
-      CloneContextInstr::kUnknownContextSize) {
-    return;
-  }
-
-  LowerContextAllocation(instr, instr->num_context_variables(),
-                         instr->context_value());
+  LowerContextAllocation(instr, instr->context_slots(), instr->context_value());
 }
 
 }  // namespace dart
-#endif  // DART_PRECOMPILED_RUNTIME

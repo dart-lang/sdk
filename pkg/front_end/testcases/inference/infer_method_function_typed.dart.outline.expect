@@ -2,20 +2,20 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef F = () → core::int;
+typedef F = () →* core::int*;
 abstract class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::A*
     ;
-  abstract method x(() → core::int value) → void;
+  abstract method x(() →* core::int* value) → void;
 }
 abstract class B extends self::A {
-  default constructor •() → void
+  synthetic constructor •() → self::B*
     ;
-  abstract method x(() → dynamic value) → void;
+  abstract method x(() →* dynamic value) → void;
 }
-static method f<T extends core::Object>() → self::f::T
+static method f<T extends core::Object* = dynamic>() → self::f::T*
   ;
-static method g(self::B b) → dynamic
+static method g(self::B* b) → dynamic
   ;
 static method main() → dynamic
   ;

@@ -19,7 +19,7 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class ICDataViewElement extends HtmlElement implements Renderable {
+class ICDataViewElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<ICDataViewElement>('icdata-view', dependencies: const [
     CurlyBlockElement.tag,
@@ -77,8 +77,8 @@ class ICDataViewElement extends HtmlElement implements Renderable {
     assert(references != null);
     assert(retainingPaths != null);
     assert(objects != null);
-    ICDataViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    ICDataViewElement e = new ICDataViewElement.created();
+    e._r = new RenderingScheduler<ICDataViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -93,7 +93,7 @@ class ICDataViewElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  ICDataViewElement.created() : super.created();
+  ICDataViewElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -105,38 +105,40 @@ class ICDataViewElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
-      navBar([
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+    children = <Element>[
+      navBar(<Element>[
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
         navMenu('icdata'),
-        new NavRefreshElement(queue: _r.queue)
-          ..onRefresh.listen((e) async {
-            e.element.disabled = true;
-            _icdata = await _icdatas.get(_isolate, _icdata.id);
-            _r.dirty();
-          }),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        (new NavRefreshElement(queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                _icdata = await _icdatas.get(_isolate, _icdata.id);
+                _r.dirty();
+              }))
+            .element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = 'ICData',
           new HRElement(),
           new ObjectCommonElement(_isolate, _icdata, _retainedSizes,
-              _reachableSizes, _references, _retainingPaths, _objects,
-              queue: _r.queue),
+                  _reachableSizes, _references, _retainingPaths, _objects,
+                  queue: _r.queue)
+              .element,
           new DivElement()
             ..classes = ['memberList']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'selector',
@@ -146,13 +148,13 @@ class ICDataViewElement extends HtmlElement implements Renderable {
                 ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'owner',
                   new DivElement()
                     ..classes = ['memberName']
-                    ..children = [
+                    ..children = <Element>[
                       _icdata.dartOwner == null
                           ? (new SpanElement()..text = '<none>')
                           : anyRef(_isolate, _icdata.dartOwner, _objects,
@@ -161,13 +163,13 @@ class ICDataViewElement extends HtmlElement implements Renderable {
                 ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'argumentsDescriptor',
                   new DivElement()
                     ..classes = ['memberName']
-                    ..children = [
+                    ..children = <Element>[
                       _icdata.argumentsDescriptor == null
                           ? (new SpanElement()..text = '<none>')
                           : anyRef(
@@ -177,13 +179,13 @@ class ICDataViewElement extends HtmlElement implements Renderable {
                 ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'entries',
                   new DivElement()
                     ..classes = ['memberName']
-                    ..children = [
+                    ..children = <Element>[
                       _icdata.entries == null
                           ? (new SpanElement()..text = '<none>')
                           : anyRef(_isolate, _icdata.entries, _objects,
@@ -192,7 +194,7 @@ class ICDataViewElement extends HtmlElement implements Renderable {
                 ]
             ],
           new HRElement(),
-          new ViewFooterElement(queue: _r.queue)
+          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }

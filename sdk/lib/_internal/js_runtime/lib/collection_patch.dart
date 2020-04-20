@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 // Patch file for dart:collection classes.
 import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper'
     show
         fillLiteralMap,
+        fillLiteralSet,
         InternalMap,
         NoInline,
         NoSideEffects,
@@ -17,7 +20,11 @@ import 'dart:_js_helper'
         LinkedHashMapKeyIterable,
         LinkedHashMapKeyIterator;
 
+import 'dart:_internal' hide Symbol;
+
 const _USE_ES6_MAPS = const bool.fromEnvironment("dart2js.use.es6.maps");
+
+const int _mask30 = 0x3fffffff; // Low 30 bits.
 
 @patch
 class HashMap<K, V> {
@@ -56,7 +63,7 @@ class HashMap<K, V> {
   factory HashMap.identity() = _IdentityHashMap<K, V>;
 }
 
-class _HashMap<K, V> implements HashMap<K, V> {
+class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
   int _length = 0;
 
   // The hash map contents are divided into three parts: one part for
@@ -123,10 +130,10 @@ class _HashMap<K, V> implements HashMap<K, V> {
   V operator [](Object key) {
     if (_isStringKey(key)) {
       var strings = _strings;
-      return (strings == null) ? null : _getTableEntry(strings, key);
+      return JS('', '#', strings == null ? null : _getTableEntry(strings, key));
     } else if (_isNumericKey(key)) {
       var nums = _nums;
-      return (nums == null) ? null : _getTableEntry(nums, key);
+      return JS('', '#', nums == null ? null : _getTableEntry(nums, key));
     } else {
       return _get(key);
     }
@@ -137,7 +144,7 @@ class _HashMap<K, V> implements HashMap<K, V> {
     if (rest == null) return null;
     var bucket = _getBucket(rest, key);
     int index = _findBucketIndex(bucket, key);
-    return (index < 0) ? null : JS('var', '#[#]', bucket, index + 1);
+    return (index < 0) ? null : JS('', '#[#]', bucket, index + 1);
   }
 
   void operator []=(K key, V value) {
@@ -195,16 +202,19 @@ class _HashMap<K, V> implements HashMap<K, V> {
   V _remove(Object key) {
     var rest = _rest;
     if (rest == null) return null;
-    var bucket = _getBucket(rest, key);
+    var hash = _computeHashCode(key);
+    var bucket = JS('var', '#[#]', rest, hash);
     int index = _findBucketIndex(bucket, key);
     if (index < 0) return null;
-    // TODO(kasperl): Consider getting rid of the bucket list when
-    // the length reaches zero.
     _length--;
     _keys = null;
-    // Use splice to remove the two [key, value] elements at the
-    // index and return the value.
-    return JS('var', '#.splice(#, 2)[1]', bucket, index);
+    // Use splice to remove the two [key, value] elements at the index and
+    // return the value.
+    V result = JS('', '#.splice(#, 2)[1]', bucket, index);
+    if (0 == JS('int', '#.length', bucket)) {
+      _deleteTableEntry(rest, hash);
+    }
+    return result;
   }
 
   void clear() {
@@ -304,14 +314,14 @@ class _HashMap<K, V> implements HashMap<K, V> {
     // Only treat unsigned 30-bit integers as numeric keys. This way,
     // we avoid converting them to strings when we use them as keys in
     // the JavaScript hash table object.
-    return key is num && JS('bool', '(# & 0x3ffffff) === #', key, key);
+    return key is num && JS('bool', '(# & #) === #', key, _mask30, key);
   }
 
   int _computeHashCode(var key) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
-    return JS('int', '# & 0x3ffffff', key.hashCode);
+    return JS('int', '# & #', key.hashCode, _mask30);
   }
 
   static bool _hasTableEntry(var table, var key) {
@@ -380,7 +390,7 @@ class _IdentityHashMap<K, V> extends _HashMap<K, V> {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
-    return JS('int', '# & 0x3ffffff', identityHashCode(key));
+    return JS('int', '# & #', identityHashCode(key), _mask30);
   }
 
   int _findBucketIndex(var bucket, var key) {
@@ -424,7 +434,7 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
-    return JS('int', '# & 0x3ffffff', _hashCode(key));
+    return JS('int', '# & #', _hashCode(key), _mask30);
   }
 
   int _findBucketIndex(var bucket, var key) {
@@ -435,8 +445,6 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
     }
     return -1;
   }
-
-  String toString() => Maps.mapToString(this);
 }
 
 class _HashMapKeyIterable<E> extends EfficientLengthIterable<E> {
@@ -531,29 +539,29 @@ class LinkedHashMap<K, V> {
   factory LinkedHashMap.identity() = _LinkedIdentityHashMap<K, V>.es6;
 
   // Private factory constructor called by generated code for map literals.
-  @NoInline()
+  @pragma('dart2js:noInline')
   factory LinkedHashMap._literal(List keyValuePairs) {
     return fillLiteralMap(keyValuePairs, new JsLinkedHashMap<K, V>.es6());
   }
 
   // Private factory constructor called by generated code for map literals.
-  @NoThrows()
-  @NoInline()
-  @NoSideEffects()
+  @pragma('dart2js:noThrows')
+  @pragma('dart2js:noInline')
+  @pragma('dart2js:noSideEffects')
   factory LinkedHashMap._empty() {
     return new JsLinkedHashMap<K, V>.es6();
   }
 
   // Private factory static function called by generated code for map literals.
   // This version is for map literals without type parameters.
-  @NoThrows()
-  @NoInline()
-  @NoSideEffects()
+  @pragma('dart2js:noThrows')
+  @pragma('dart2js:noInline')
+  @pragma('dart2js:noSideEffects')
   static _makeEmpty() => new JsLinkedHashMap();
 
   // Private factory static function called by generated code for map literals.
   // This version is for map literals without type parameters.
-  @NoInline()
+  @pragma('dart2js:noInline')
   static _makeLiteral(keyValuePairs) =>
       fillLiteralMap(keyValuePairs, new JsLinkedHashMap());
 }
@@ -576,7 +584,7 @@ class _LinkedIdentityHashMap<K, V> extends JsLinkedHashMap<K, V> {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
-    return JS('int', '# & 0x3ffffff', identityHashCode(key));
+    return JS('int', '# & #', identityHashCode(key), _mask30);
   }
 
   int internalFindBucketIndex(var bucket, var key) {
@@ -669,10 +677,8 @@ class _Es6LinkedIdentityHashMap<K, V> extends _LinkedIdentityHashMap<K, V>
     // always unboxed (Smi) values. Modification detection will be missed if you
     // make exactly some multiple of 2^30 modifications between advances of an
     // iterator.
-    _modifications = (_modifications + 1) & 0x3ffffff;
+    _modifications = _mask30 & (_modifications + 1);
   }
-
-  String toString() => Maps.mapToString(this);
 }
 
 class _Es6MapIterable<E> extends EfficientLengthIterable<E> {
@@ -781,7 +787,7 @@ class _LinkedCustomHashMap<K, V> extends JsLinkedHashMap<K, V> {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
-    return JS('int', '# & 0x3ffffff', _hashCode(key));
+    return JS('int', '# & #', _hashCode(key), _mask30);
   }
 
   int internalFindBucketIndex(var bucket, var key) {
@@ -832,7 +838,7 @@ class HashSet<E> {
   factory HashSet.identity() = _IdentityHashSet<E>;
 }
 
-class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
+class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
   int _length = 0;
 
   // The hash set contents are divided into three parts: one part for
@@ -857,6 +863,7 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
   _HashSet();
 
   Set<E> _newSet() => new _HashSet<E>();
+  Set<R> _newSimilarSet<R>() => new _HashSet<R>();
 
   // Iterable.
   Iterator<E> get iterator {
@@ -953,16 +960,20 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
   bool _remove(Object object) {
     var rest = _rest;
     if (rest == null) return false;
-    var bucket = _getBucket(rest, object);
+    var hash = _computeHashCode(object);
+    var bucket = JS('var', '#[#]', rest, hash);
     int index = _findBucketIndex(bucket, object);
     if (index < 0) return false;
     // TODO(kasperl): Consider getting rid of the bucket list when
     // the length reaches zero.
     _length--;
     _elements = null;
-    // TODO(kasperl): It would probably be faster to move the
-    // element to the end and reduce the length of the bucket list.
+    // TODO(kasperl): It would probably be faster to move the element to the end
+    // and reduce the length of the bucket list.
     JS('void', '#.splice(#, 1)', bucket, index);
+    if (0 == JS('int', '#.length', bucket)) {
+      _deleteTableEntry(rest, hash);
+    }
     return true;
   }
 
@@ -1051,7 +1062,7 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
     // way, we avoid converting them to strings when we use them as
     // keys in the JavaScript hash table object.
     return element is num &&
-        JS('bool', '(# & 0x3ffffff) === #', element, element);
+        JS('bool', '(# & #) === #', element, _mask30, element);
   }
 
   int _computeHashCode(var element) {
@@ -1059,7 +1070,7 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
     // issues with problematic elements like '__proto__'. Another
     // option would be to throw an exception if the hash code isn't a
     // number.
-    return JS('int', '# & 0x3ffffff', element.hashCode);
+    return JS('int', '# & #', element.hashCode, _mask30);
   }
 
   static bool _hasTableEntry(var table, var key) {
@@ -1109,12 +1120,13 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
 
 class _IdentityHashSet<E> extends _HashSet<E> {
   Set<E> _newSet() => new _IdentityHashSet<E>();
+  Set<R> _newSimilarSet<R>() => new _IdentityHashSet<R>();
 
   int _computeHashCode(var key) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
-    return JS('int', '# & 0x3ffffff', identityHashCode(key));
+    return JS('int', '# & #', identityHashCode(key), _mask30);
   }
 
   int _findBucketIndex(var bucket, var element) {
@@ -1135,6 +1147,7 @@ class _CustomHashSet<E> extends _HashSet<E> {
       : _validKey = (validKey != null) ? validKey : ((x) => x is E);
 
   Set<E> _newSet() => new _CustomHashSet<E>(_equality, _hasher, _validKey);
+  Set<R> _newSimilarSet<R>() => new _HashSet<R>();
 
   int _findBucketIndex(var bucket, var element) {
     if (bucket == null) return -1;
@@ -1150,7 +1163,7 @@ class _CustomHashSet<E> extends _HashSet<E> {
     // issues with problematic elements like '__proto__'. Another
     // option would be to throw an exception if the hash code isn't a
     // number.
-    return JS('int', '# & 0x3ffffff', _hasher(element));
+    return JS('int', '# & #', _hasher(element), _mask30);
   }
 
   bool add(E object) => super._add(object);
@@ -1236,9 +1249,33 @@ class LinkedHashSet<E> {
 
   @patch
   factory LinkedHashSet.identity() = _LinkedIdentityHashSet<E>;
+
+  // Private factory constructor called by generated code for set literals.
+  @pragma('dart2js:noThrows')
+  @pragma('dart2js:noInline')
+  @pragma('dart2js:noSideEffects')
+  factory LinkedHashSet._empty() => new _LinkedHashSet<E>();
+
+  // Private factory constructor called by generated code for set literals.
+  @pragma('dart2js:noInline')
+  factory LinkedHashSet._literal(List values) =>
+      fillLiteralSet(values, new _LinkedHashSet<E>());
+
+  // Private factory static function called by generated code for set literals.
+  // This version is for set literals without type parameters.
+  @pragma('dart2js:noThrows')
+  @pragma('dart2js:noInline')
+  @pragma('dart2js:noSideEffects')
+  static _makeEmpty() => new _LinkedHashSet();
+
+  // Private factory static function called by generated code for set literals.
+  // This version is for set literals without type parameters.
+  @pragma('dart2js:noInline')
+  static _makeLiteral(List values) =>
+      fillLiteralSet(values, new _LinkedHashSet());
 }
 
-class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
+class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
   int _length = 0;
 
   // The hash set contents are divided into three parts: one part for
@@ -1267,6 +1304,7 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
   _LinkedHashSet();
 
   Set<E> _newSet() => new _LinkedHashSet<E>();
+  Set<R> _newSimilarSet<R>() => new _LinkedHashSet<R>();
 
   void _unsupported(String operation) {
     throw 'LinkedHashSet: unsupported $operation';
@@ -1388,12 +1426,15 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
   bool _remove(Object object) {
     var rest = _rest;
     if (rest == null) return false;
-    var bucket = _getBucket(rest, object);
+    var hash = _computeHashCode(object);
+    var bucket = JS('var', '#[#]', rest, hash);
     int index = _findBucketIndex(bucket, object);
     if (index < 0) return false;
-    // Use splice to remove the [cell] element at the index and
-    // unlink it.
+    // Use splice to remove the [cell] element at the index and unlink it.
     _LinkedHashSetCell cell = JS('var', '#.splice(#, 1)[0]', bucket, index);
+    if (0 == JS('int', '#.length', bucket)) {
+      _deleteTableEntry(rest, hash);
+    }
     _unlinkCell(cell);
     return true;
   }
@@ -1449,7 +1490,7 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
     // Value cycles after 2^30 modifications. If you keep hold of an
     // iterator for that long, you might miss a modification
     // detection, and iteration can go sour. Don't do that.
-    _modifications = (_modifications + 1) & 0x3ffffff;
+    _modifications = _mask30 & (_modifications + 1);
   }
 
   // Create a new cell and link it in as the last one in the list.
@@ -1496,7 +1537,7 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
     // way, we avoid converting them to strings when we use them as
     // keys in the JavaScript hash table object.
     return element is num &&
-        JS('bool', '(# & 0x3ffffff) === #', element, element);
+        JS('bool', '(# & #) === #', element, _mask30, element);
   }
 
   int _computeHashCode(var element) {
@@ -1504,7 +1545,7 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
     // issues with problematic elements like '__proto__'. Another
     // option would be to throw an exception if the hash code isn't a
     // number.
-    return JS('int', '# & 0x3ffffff', element.hashCode);
+    return JS('int', '# & #', element.hashCode, _mask30);
   }
 
   static _getTableEntry(var table, var key) {
@@ -1551,12 +1592,13 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
 
 class _LinkedIdentityHashSet<E> extends _LinkedHashSet<E> {
   Set<E> _newSet() => new _LinkedIdentityHashSet<E>();
+  Set<R> _newSimilarSet<R>() => new _LinkedIdentityHashSet<R>();
 
   int _computeHashCode(var key) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
-    return JS('int', '# & 0x3ffffff', identityHashCode(key));
+    return JS('int', '# & #', identityHashCode(key), _mask30);
   }
 
   int _findBucketIndex(var bucket, var element) {
@@ -1580,6 +1622,7 @@ class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
 
   Set<E> _newSet() =>
       new _LinkedCustomHashSet<E>(_equality, _hasher, _validKey);
+  Set<R> _newSimilarSet<R>() => new _LinkedHashSet<R>();
 
   int _findBucketIndex(var bucket, var element) {
     if (bucket == null) return -1;
@@ -1596,7 +1639,7 @@ class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
     // issues with problematic elements like '__proto__'. Another
     // option would be to throw an exception if the hash code isn't a
     // number.
-    return JS('int', '# & 0x3ffffff', _hasher(element));
+    return JS('int', '# & #', _hasher(element), _mask30);
   }
 
   bool add(E element) => super._add(element);
@@ -1665,5 +1708,32 @@ class _LinkedHashSetIterator<E> implements Iterator<E> {
       _cell = _cell._next;
       return true;
     }
+  }
+}
+
+@patch
+abstract class _SplayTree<K, Node extends _SplayTreeNode<K>> {
+  @patch
+  Node _splayMin(Node node) {
+    Node current = node;
+    while (current.left != null) {
+      Node left = current.left;
+      current.left = left.right;
+      left.right = current;
+      current = left;
+    }
+    return current;
+  }
+
+  @patch
+  Node _splayMax(Node node) {
+    Node current = node;
+    while (current.right != null) {
+      Node right = current.right;
+      current.right = right.left;
+      right.left = current;
+      current = right;
+    }
+    return current;
   }
 }

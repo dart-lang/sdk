@@ -4,7 +4,6 @@
 
 library test.mixin;
 
-@MirrorsUsed(targets: "test.mixin")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -26,27 +25,27 @@ class MultipleMixins extends Super with Mixin, Mixin2, Mixin3 {}
 main() {
   Expect.equals(reflectClass(Mixin), reflectClass(MixinApplication).mixin);
   Expect.equals(
-      reflectClass(Super), reflectClass(MixinApplication).superclass.mixin);
+      reflectClass(Super), reflectClass(MixinApplication).superclass!.mixin);
 
   Expect.equals(reflectClass(Class), reflectClass(Class).mixin);
-  Expect.equals(reflectClass(Mixin), reflectClass(Class).superclass.mixin);
+  Expect.equals(reflectClass(Mixin), reflectClass(Class).superclass!.mixin);
   Expect.equals(
-      reflectClass(Super), reflectClass(Class).superclass.superclass.mixin);
+      reflectClass(Super), reflectClass(Class).superclass!.superclass!.mixin);
 
   Expect.equals(
       reflectClass(MultipleMixins), reflectClass(MultipleMixins).mixin);
   Expect.equals(
-      reflectClass(Mixin3), reflectClass(MultipleMixins).superclass.mixin);
+      reflectClass(Mixin3), reflectClass(MultipleMixins).superclass!.mixin);
   Expect.equals(reflectClass(Mixin2),
-      reflectClass(MultipleMixins).superclass.superclass.mixin);
+      reflectClass(MultipleMixins).superclass!.superclass!.mixin);
   Expect.equals(reflectClass(Mixin),
-      reflectClass(MultipleMixins).superclass.superclass.superclass.mixin);
+      reflectClass(MultipleMixins).superclass!.superclass!.superclass!.mixin);
   Expect.equals(
       reflectClass(Super),
       reflectClass(MultipleMixins)
-          .superclass
-          .superclass
-          .superclass
-          .superclass
+          .superclass!
+          .superclass!
+          .superclass!
+          .superclass!
           .mixin);
 }

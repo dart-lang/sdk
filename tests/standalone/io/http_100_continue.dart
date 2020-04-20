@@ -37,8 +37,8 @@ void test(responseBytes, bodyLength) async {
       await client.getUrl(Uri.parse('http://127.0.0.1:${server.port}/'));
   var response = await request.close();
   Expect.equals(response.statusCode, 200);
-  Expect.equals(
-      bodyLength, (await response.fold([], (p, e) => p..addAll(e))).length);
+  Expect.equals(bodyLength,
+      (await response.fold<List<int>>(<int>[], (p, e) => p..addAll(e))).length);
   server.close();
 }
 
@@ -67,7 +67,7 @@ Content-Length: 2\r
 \r
 AB''';
 
-  test(ASCII.encode(r1), 0);
-  test(ASCII.encode(r2), 0);
-  test(ASCII.encode(r3), 2);
+  test(ascii.encode(r1), 0);
+  test(ascii.encode(r2), 0);
+  test(ascii.encode(r3), 2);
 }

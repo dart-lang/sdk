@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 import "dart:collection";
 
-test(List list, int start, int end, Iterable iterable) {
+test(List<int> list, int start, int end, Iterable<int> iterable) {
   List copy = list.toList();
   list.replaceRange(start, end, iterable);
   List iterableList = iterable.toList();
@@ -22,7 +22,7 @@ test(List list, int start, int end, Iterable iterable) {
   }
 }
 
-class MyList extends ListBase {
+class MyList<T> extends ListBase<T> {
   List list;
   MyList(this.list);
   get length => list.length;
@@ -33,6 +33,10 @@ class MyList extends ListBase {
   operator [](index) => list[index];
   operator []=(index, val) {
     list[index] = val;
+  }
+
+  void add(T element) {
+    list.add(element);
   }
 
   toString() => list.toString();
@@ -93,31 +97,33 @@ main() {
   test(new MyList([1, 2, 3]), 3, 3, new Iterable.generate(2, (x) => x + 4));
   test(new MyList([1, 2, 3]), 0, 3, new Iterable.generate(2, (x) => x + 4));
   test(new MyList([1, 2, 3]), 2, 3, new Iterable.generate(2, (x) => x + 4));
+  test(new MyList([]), 0, 0, []);
+  test(new MyList([]), 0, 0, [4]);
+  test(new MyList([]), 0, 0, [4, 5]);
+  test(new MyList([1]), 0, 1, [4, 5]);
+  test(new MyList([1]), 1, 1, [4, 5]);
 
-  expectRE(() => test([1, 2, 3], -1, 0, []));
-  expectRE(() => test([1, 2, 3], 2, 1, []));
-  expectRE(() => test([1, 2, 3], 0, -1, []));
-  expectRE(() => test([1, 2, 3], 1, 4, []));
-  expectRE(() => test(new MyList([1, 2, 3]), -1, 0, []));
-  expectRE(() => test(new MyList([1, 2, 3]), 2, 1, []));
-  expectRE(() => test(new MyList([1, 2, 3]), 0, -1, []));
-  expectRE(() => test(new MyList([1, 2, 3]), 1, 4, []));
-  expectUE(() => test([1, 2, 3].toList(growable: false), 2, 3, []));
-  expectUE(() => test([1, 2, 3].toList(growable: false), -1, 0, []));
-  expectUE(() => test([1, 2, 3].toList(growable: false), 2, 1, []));
-  expectUE(() => test([1, 2, 3].toList(growable: false), 0, -1, []));
-  expectUE(() => test([1, 2, 3].toList(growable: false), 1, 4, []));
-  expectUE(() => test(const [1, 2, 3], 2, 3, []));
-  expectUE(() => test(const [1, 2, 3], -1, 0, []));
-  expectUE(() => test(const [1, 2, 3], 2, 1, []));
-  expectUE(() => test(const [1, 2, 3], 0, -1, []));
-  expectUE(() => test(const [1, 2, 3], 1, 4, []));
-}
-
-void expectRE(Function f) {
-  Expect.throws(f, (e) => e is RangeError);
-}
-
-void expectUE(Function f) {
-  Expect.throws(f, (e) => e is UnsupportedError);
+  Expect.throwsRangeError(() => test([1, 2, 3], -1, 0, []));
+  Expect.throwsRangeError(() => test([1, 2, 3], 2, 1, []));
+  Expect.throwsRangeError(() => test([1, 2, 3], 0, -1, []));
+  Expect.throwsRangeError(() => test([1, 2, 3], 1, 4, []));
+  Expect.throwsRangeError(() => test(new MyList([1, 2, 3]), -1, 0, []));
+  Expect.throwsRangeError(() => test(new MyList([1, 2, 3]), 2, 1, []));
+  Expect.throwsRangeError(() => test(new MyList([1, 2, 3]), 0, -1, []));
+  Expect.throwsRangeError(() => test(new MyList([1, 2, 3]), 1, 4, []));
+  Expect.throwsUnsupportedError(
+      () => test([1, 2, 3].toList(growable: false), 2, 3, []));
+  Expect.throwsUnsupportedError(
+      () => test([1, 2, 3].toList(growable: false), -1, 0, []));
+  Expect.throwsUnsupportedError(
+      () => test([1, 2, 3].toList(growable: false), 2, 1, []));
+  Expect.throwsUnsupportedError(
+      () => test([1, 2, 3].toList(growable: false), 0, -1, []));
+  Expect.throwsUnsupportedError(
+      () => test([1, 2, 3].toList(growable: false), 1, 4, []));
+  Expect.throwsUnsupportedError(() => test(const [1, 2, 3], 2, 3, []));
+  Expect.throwsUnsupportedError(() => test(const [1, 2, 3], -1, 0, []));
+  Expect.throwsUnsupportedError(() => test(const [1, 2, 3], 2, 1, []));
+  Expect.throwsUnsupportedError(() => test(const [1, 2, 3], 0, -1, []));
+  Expect.throwsUnsupportedError(() => test(const [1, 2, 3], 1, 4, []));
 }

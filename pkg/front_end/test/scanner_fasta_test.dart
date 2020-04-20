@@ -1,18 +1,21 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 import 'dart:convert';
 
-import 'package:analyzer/src/fasta/token_utils.dart';
+import 'package:_fe_analyzer_shared/src/scanner/error_token.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
+    as usedForFuzzTesting;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
+import 'package:_fe_analyzer_shared/src/scanner/string_scanner.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
+    as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:front_end/src/fasta/scanner.dart' as usedForFuzzTesting;
-import 'package:front_end/src/fasta/scanner/error_token.dart' as fasta;
-import 'package:front_end/src/fasta/scanner/string_scanner.dart' as fasta;
-import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
-import 'package:front_end/src/fasta/scanner/token_constants.dart' as fasta;
-import 'package:front_end/src/fasta/scanner/utf8_bytes_scanner.dart' as fasta;
-import 'package:front_end/src/scanner/errors.dart';
-import 'package:front_end/src/scanner/token.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -40,7 +43,7 @@ class ScannerTest_Fasta_FuzzTestAPI {
     expect(result.tokens?.type, same(Keyword.CLASS));
 
     // UTF8 encode source with trailing zero
-    List<int> bytes = UTF8.encode(source).toList();
+    List<int> bytes = utf8.encode(source).toList();
     bytes.add(0);
 
     result = usedForFuzzTesting.scan(bytes);
@@ -52,35 +55,83 @@ class ScannerTest_Fasta_FuzzTestAPI {
 @reflectiveTest
 class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
   @override
-  createScanner(String source, {bool genericMethodComments: false}) {
-    List<int> encoded = UTF8.encode(source).toList(growable: true);
-    encoded.add(0); // Ensure 0 terminted bytes for UTF8 scanner
-    return new fasta.Utf8BytesScanner(encoded,
-        includeComments: true,
-        scanGenericMethodComments: genericMethodComments);
+  Token scanWithListener(String source, ErrorListener listener,
+      {ScannerConfiguration configuration}) {
+    var bytes = utf8.encode(source).toList()..add(0);
+    var result =
+        scan(bytes, configuration: configuration, includeComments: true);
+    var token = result.tokens;
+
+    // Translate error tokens
+    if (result.hasErrors) {
+      while (token is ErrorToken) {
+        translateErrorToken(token,
+            (ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+          listener.errors.add(new TestError(offset, errorCode, arguments));
+        });
+        token = token.next;
+      }
+    }
+
+    new Token.eof(-1)..setNext(token);
+    return token;
+  }
+
+  test_invalid_utf8() {
+    printBytes(List<int> bytes) {
+      var hex = bytes.map((b) => '0x${b.toRadixString(16).toUpperCase()}');
+      print('$bytes\n[${hex.join(', ')}]');
+      try {
+        utf8.decode(bytes);
+      } catch (e) {
+        // Bad UTF-8 encoding
+        print('  This is invalid UTF-8, but scanner should not crash.');
+      }
+    }
+
+    scanBytes(List<int> bytes) {
+      try {
+        return usedForFuzzTesting.scan(bytes);
+      } catch (e) {
+        print('Failed scanning bytes:');
+        printBytes(bytes);
+        rethrow;
+      }
+    }
+
+    for (int byte0 = 1; byte0 <= 0xFF; ++byte0) {
+      List<int> bytes = [byte0, 0];
+      scanBytes(bytes);
+      for (int byte1 = 1; byte1 <= 0xFF; ++byte1) {
+        List<int> bytes = [byte0, byte1, 0];
+        scanBytes(bytes);
+      }
+    }
   }
 }
 
 @reflectiveTest
 class ScannerTest_Fasta extends ScannerTestBase {
-  ScannerTest_Fasta() {
-    usingFasta = true;
-  }
-
-  createScanner(String source, {bool genericMethodComments: false}) =>
-      new fasta.StringScanner(source,
-          includeComments: true,
-          scanGenericMethodComments: genericMethodComments);
-
   @override
   Token scanWithListener(String source, ErrorListener listener,
-      {bool genericMethodComments: false,
-      bool lazyAssignmentOperators: false}) {
-    var scanner =
-        createScanner(source, genericMethodComments: genericMethodComments);
-    var token = scanner.tokenize();
-    return new ToAnalyzerTokenStreamConverter_WithListener(listener)
-        .convertTokens(token);
+      {ScannerConfiguration configuration}) {
+    var result =
+        scanString(source, configuration: configuration, includeComments: true);
+    var token = result.tokens;
+
+    // Translate error tokens
+    if (result.hasErrors) {
+      while (token is ErrorToken) {
+        translateErrorToken(token,
+            (ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+          listener.errors.add(new TestError(offset, errorCode, arguments));
+        });
+        token = token.next;
+      }
+    }
+
+    new Token.eof(-1)..setNext(token);
+    return token;
   }
 
   void test_comments() {
@@ -102,8 +153,7 @@ class ScannerTest_Fasta extends ScannerTestBase {
     ''';
 
     Token scanSource({bool includeComments}) {
-      return new fasta.StringScanner(source, includeComments: includeComments)
-          .tokenize();
+      return scanString(source, includeComments: includeComments).tokens;
     }
 
     int tokenCount = 0;
@@ -179,7 +229,7 @@ main() {}
     fasta.CommentToken c3;
 
     void prepareTokens() {
-      token = new fasta.StringScanner(code, includeComments: true).tokenize();
+      token = scanString(code, includeComments: true).tokens;
 
       expect(token.type.kind, fasta.IDENTIFIER_TOKEN);
 
@@ -269,15 +319,14 @@ main() {}
     expect(openBrace.endToken, same(closeBrace));
     expect(openParen2.endToken, same(closeParen2));
     listener.assertErrors([
-      new TestError(3, ScannerErrorCode.EXPECTED_TOKEN, [')']),
-      new TestError(5, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(6, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(7, ScannerErrorCode.EXPECTED_TOKEN, [')']),
     ]);
   }
 
   void test_next_previous() {
     const source = 'int a; /*1*/ /*2*/ /*3*/ B f(){if (a < 2) {}}';
-    Token token =
-        new fasta.StringScanner(source, includeComments: true).tokenize();
+    Token token = scanString(source, includeComments: true).tokens;
     while (!token.isEof) {
       expect(token.next.previous, token);
       fasta.CommentToken commentToken = token.precedingComments;
@@ -289,6 +338,15 @@ main() {}
       }
       token = token.next;
     }
+  }
+
+  void test_spread_operators() {
+    ErrorListener listener = new ErrorListener();
+    Token openBracket = scanWithListener('[ 1, ...[2], ...?[3], ]', listener);
+    Token spreadToken = openBracket.next.next.next;
+    expect(spreadToken.lexeme, '...');
+    Token spreadQToken = spreadToken.next.next.next.next.next;
+    expect(spreadQToken.lexeme, '...?');
   }
 
   @override
@@ -305,9 +363,9 @@ main() {}
     expect(openBracket.endToken, same(closeBracket));
     expect(openParen.endToken, same(closeParen));
     listener.assertErrors([
-      new TestError(0, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
-      new TestError(1, ScannerErrorCode.EXPECTED_TOKEN, [']']),
-      new TestError(2, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(3, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
+      new TestError(3, ScannerErrorCode.EXPECTED_TOKEN, [']']),
+      new TestError(3, ScannerErrorCode.EXPECTED_TOKEN, [')']),
     ]);
   }
 }
@@ -330,6 +388,10 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_simple_interpolation_missingIdentifier() {
     Token token = scan("'\$x\$'");
+    expect((token as fasta.ErrorToken).errorCode,
+        same(codeUnexpectedDollarInString));
+
+    token = token.next;
     expectToken(token, TokenType.STRING, 0, 1, lexeme: "'");
 
     token = token.next;
@@ -349,20 +411,25 @@ abstract class ScannerTest_Fasta_Base {
         lexeme: '', isSynthetic: true);
 
     token = token.next;
-    expect((token as fasta.ErrorToken).errorCode,
-        same(codeUnexpectedDollarInString));
-
-    token = token.next;
     expectToken(token, TokenType.STRING, 4, 1, lexeme: "'");
   }
 
   void test_string_simple_unterminated_interpolation_block() {
     Token token = scan(r'"foo ${bar');
+    expect((token as fasta.ErrorToken).errorCode, same(codeUnmatchedToken));
+    var interpolationStartErrorToken = token as fasta.UnmatchedToken;
+
+    token = token.next;
+    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as fasta.UnterminatedString).start, '"');
+
+    token = token.next;
     expectToken(token, TokenType.STRING, 0, 5, lexeme: '"foo ');
 
     token = token.next;
     expectToken(token, TokenType.STRING_INTERPOLATION_EXPRESSION, 5, 2);
     BeginToken interpolationStart = token;
+    expect(interpolationStartErrorToken.begin, same(interpolationStart));
 
     token = token.next;
     expectToken(token, TokenType.IDENTIFIER, 7, 3, lexeme: 'bar');
@@ -374,24 +441,33 @@ abstract class ScannerTest_Fasta_Base {
     expect(interpolationStart.endToken, same(token));
 
     token = token.next;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnmatchedToken));
-    expect((token as fasta.UnmatchedToken).begin, same(interpolationStart));
-
-    token = token.next;
     expectToken(token, TokenType.STRING, 10, 0, isSynthetic: true, lexeme: '"');
-
-    token = token.next;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, '"');
   }
 
   void test_string_simple_unterminated_interpolation_block2() {
     Token token = scan(r'"foo ${bar(baz[');
+    expect((token as fasta.ErrorToken).errorCode, same(codeUnmatchedToken));
+    var openSquareBracketErrorToken = token as fasta.UnmatchedToken;
+
+    token = token.next;
+    expect((token as fasta.ErrorToken).errorCode, same(codeUnmatchedToken));
+    var openParenErrorToken = token as fasta.UnmatchedToken;
+
+    token = token.next;
+    expect((token as fasta.ErrorToken).errorCode, same(codeUnmatchedToken));
+    var interpolationStartErrorToken = token as fasta.UnmatchedToken;
+
+    token = token.next;
+    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as fasta.UnterminatedString).start, '"');
+
+    token = token.next;
     expectToken(token, TokenType.STRING, 0, 5, lexeme: '"foo ');
 
     token = token.next;
     expectToken(token, TokenType.STRING_INTERPOLATION_EXPRESSION, 5, 2);
     BeginToken interpolationStart = token;
+    expect(interpolationStartErrorToken.begin, same(interpolationStart));
 
     token = token.next;
     expectToken(token, TokenType.IDENTIFIER, 7, 3, lexeme: 'bar');
@@ -399,6 +475,7 @@ abstract class ScannerTest_Fasta_Base {
     token = token.next;
     expectToken(token, TokenType.OPEN_PAREN, 10, 1);
     BeginToken openParen = token;
+    expect(openParenErrorToken.begin, same(openParen));
 
     token = token.next;
     expectToken(token, TokenType.IDENTIFIER, 11, 3, lexeme: 'baz');
@@ -406,6 +483,7 @@ abstract class ScannerTest_Fasta_Base {
     token = token.next;
     expectToken(token, TokenType.OPEN_SQUARE_BRACKET, 14, 1);
     BeginToken openSquareBracket = token;
+    expect(openSquareBracketErrorToken.begin, same(openSquareBracket));
 
     token = token.next;
     expectToken(token, TokenType.CLOSE_SQUARE_BRACKET, 15, 0,
@@ -413,17 +491,9 @@ abstract class ScannerTest_Fasta_Base {
     expect(openSquareBracket.endToken, same(token));
 
     token = token.next;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnmatchedToken));
-    expect((token as fasta.UnmatchedToken).begin, same(openSquareBracket));
-
-    token = token.next;
     expectToken(token, TokenType.CLOSE_PAREN, 15, 0,
         isSynthetic: true, lexeme: ')');
     expect(openParen.endToken, same(token));
-
-    token = token.next;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnmatchedToken));
-    expect((token as fasta.UnmatchedToken).begin, same(openParen));
 
     token = token.next;
     expectToken(token, TokenType.CLOSE_CURLY_BRACKET, 15, 0,
@@ -431,19 +501,19 @@ abstract class ScannerTest_Fasta_Base {
     expect(interpolationStart.endToken, same(token));
 
     token = token.next;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnmatchedToken));
-    expect((token as fasta.UnmatchedToken).begin, same(interpolationStart));
-
-    token = token.next;
     expectToken(token, TokenType.STRING, 15, 0, isSynthetic: true, lexeme: '"');
-
-    token = token.next;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, '"');
   }
 
   void test_string_simple_missing_interpolation_identifier() {
     Token token = scan(r'"foo $');
+    expect((token as fasta.ErrorToken).errorCode,
+        same(codeUnexpectedDollarInString));
+
+    token = token.next;
+    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as fasta.UnterminatedString).start, '"');
+
+    token = token.next;
     expectToken(token, TokenType.STRING, 0, 5, lexeme: '"foo ');
 
     token = token.next;
@@ -454,75 +524,67 @@ abstract class ScannerTest_Fasta_Base {
         isSynthetic: true, lexeme: '');
 
     token = token.next;
-    expect((token as fasta.ErrorToken).errorCode,
-        same(codeUnexpectedDollarInString));
-
-    token = token.next;
     expectToken(token, TokenType.STRING, 6, 0, isSynthetic: true, lexeme: '"');
-
-    token = token.next;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, '"');
   }
 
   void test_string_multi_unterminated() {
     Token token = scan("'''string");
-    expectToken(token, TokenType.STRING, 0, 9,
-        lexeme: "'''string'''", isSynthetic: true);
-
-    token = token.next;
     expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
     expect((token as fasta.UnterminatedString).start, "'''");
+
+    token = token.next;
+    expectToken(token, TokenType.STRING, 0, 9,
+        lexeme: "'''string'''", isSynthetic: true);
   }
 
   void test_string_raw_multi_unterminated() {
     Token token = scan("r'''string");
-    expectToken(token, TokenType.STRING, 0, 10,
-        lexeme: "r'''string'''", isSynthetic: true);
-
-    token = token.next;
     expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
     expect((token as fasta.UnterminatedString).start, "r'''");
+
+    token = token.next;
+    expectToken(token, TokenType.STRING, 0, 10,
+        lexeme: "r'''string'''", isSynthetic: true);
   }
 
   void test_string_raw_simple_unterminated_eof() {
     Token token = scan("r'string");
-    expectToken(token, TokenType.STRING, 0, 8,
-        lexeme: "r'string'", isSynthetic: true);
-
-    token = token.next;
     expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
     expect((token as fasta.UnterminatedString).start, "r'");
+
+    token = token.next;
+    expectToken(token, TokenType.STRING, 0, 8,
+        lexeme: "r'string'", isSynthetic: true);
   }
 
   void test_string_raw_simple_unterminated_eol() {
     Token token = scan("r'string\n");
-    expectToken(token, TokenType.STRING, 0, 8,
-        lexeme: "r'string'", isSynthetic: true);
-
-    token = token.next;
     expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
     expect((token as fasta.UnterminatedString).start, "r'");
+
+    token = token.next;
+    expectToken(token, TokenType.STRING, 0, 8,
+        lexeme: "r'string'", isSynthetic: true);
   }
 
   void test_string_simple_unterminated_eof() {
     Token token = scan("'string");
-    expectToken(token, TokenType.STRING, 0, 7,
-        lexeme: "'string'", isSynthetic: true);
-
-    token = token.next;
     expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
     expect((token as fasta.UnterminatedString).start, "'");
+
+    token = token.next;
+    expectToken(token, TokenType.STRING, 0, 7,
+        lexeme: "'string'", isSynthetic: true);
   }
 
   void test_string_simple_unterminated_eol() {
     Token token = scan("'string\n");
-    expectToken(token, TokenType.STRING, 0, 7,
-        lexeme: "'string'", isSynthetic: true);
-
-    token = token.next;
     expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
     expect((token as fasta.UnterminatedString).start, "'");
+
+    token = token.next;
+    expectToken(token, TokenType.STRING, 0, 7,
+        lexeme: "'string'", isSynthetic: true);
   }
 
   void test_match_angle_brackets() {
@@ -681,97 +743,255 @@ abstract class ScannerTest_Fasta_Base {
 /// Scanner tests that exercise the Fasta scanner directly.
 @reflectiveTest
 class ScannerTest_Fasta_Direct_UTF8 extends ScannerTest_Fasta_Direct {
-  createScanner(String source, {bool includeComments}) {
-    List<int> encoded = UTF8.encode(source).toList(growable: true);
-    encoded.add(0); // Ensure 0 terminted bytes for UTF8 scanner
-    return new fasta.Utf8BytesScanner(encoded,
-        includeComments: includeComments);
+  ScannerResult scanSource(source, {includeComments: true}) {
+    List<int> encoded = utf8.encode(source).toList(growable: true);
+    encoded.add(0); // Ensure 0 terminated bytes for UTF8 scanner
+    return usedForFuzzTesting.scan(encoded,
+        includeComments: includeComments,
+        languageVersionChanged: languageVersionChanged);
   }
 }
 
 /// Scanner tests that exercise the Fasta scanner directly.
 @reflectiveTest
 class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
-  createScanner(String source, {bool includeComments}) =>
-      new fasta.StringScanner(source, includeComments: includeComments);
+  fasta.LanguageVersionToken languageVersion;
+
+  void languageVersionChanged(
+      Scanner scanner, fasta.LanguageVersionToken languageVersion) {
+    this.languageVersion = languageVersion;
+  }
+
+  ScannerResult scanSource(source, {includeComments: true}) =>
+      scanString(source,
+          includeComments: includeComments,
+          languageVersionChanged: languageVersionChanged);
 
   @override
   Token scan(String source) {
-    return createScanner(source, includeComments: true).tokenize();
+    var result = scanSource(source, includeComments: true);
+    final Token first = result.tokens;
+    Token token = first;
+    while (!token.isEof) {
+      Token next = token.next;
+      expect(token.next, next);
+      expect(next.previous, token);
+      if (next.isSynthetic && [')', ']', '}'].contains(next.lexeme)) {
+        expect(next.beforeSynthetic, token);
+      }
+      token = next;
+    }
+    return first;
+  }
+
+  void test_languageVersion_afterImport() {
+    var result = scanSource('''
+import 'foo.dart';
+// @dart = 2.3
+main() {}
+''');
+    expect(languageVersion, isNull);
+    expectComments(result.tokens, [], -1);
+  }
+
+  void test_languageVersion_beforeComment() {
+    var result = scanSource('''
+// some other comment
+// @dart = 2.3
+// yet another comment
+import 'foo.dart';
+main() {}
+''');
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
+    expectComments(
+        result.tokens,
+        [
+          '// some other comment',
+          '// @dart = 2.3',
+          '// yet another comment',
+        ],
+        1);
+  }
+
+  void test_languageVersion_beforeFunction() {
+    var result = scanSource('''
+// @dart = 2.3
+main() {}
+''');
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
+    expectComments(result.tokens, ['// @dart = 2.3'], 0);
+  }
+
+  void test_languageVersion_beforeFunction_trailingX() {
+    var result = scanSource('''
+// @dart = 2.3 x
+main() {}
+''');
+    expect(languageVersion, isNull);
+    expectComments(result.tokens, ['// @dart = 2.3 x'], -1);
+  }
+
+  void test_languageVersion_beforeFunction_noComments() {
+    var result = scanSource('''
+// @dart = 2.3
+main() {}
+''', includeComments: false);
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
+    expectComments(result.tokens, [], -1);
+  }
+
+  void test_languageVersion_beforeImport() {
+    var result = scanSource('''
+// @dart = 2.3
+import 'foo.dart';
+main() {}
+''');
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
+    expectComments(result.tokens, ['// @dart = 2.3'], 0);
+  }
+
+  void test_languageVersion_beforeImport_afterScript() {
+    var result = scanSource('''
+#!/bin/dart
+// @dart = 2.3
+import 'foo.dart';
+main() {}
+''');
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
+    expectComments(result.tokens.next, ['// @dart = 2.3'], 0);
+  }
+
+  void test_languageVersion_beforeLibrary() {
+    var result = scanSource('''
+// @dart = 2.3
+library foo;
+main() {}
+''');
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
+    expectComments(result.tokens, ['// @dart = 2.3'], 0);
+  }
+
+  void test_languageVersion_beforeLibrary_noSpaces() {
+    var result = scanSource('''
+// @dart=2.3
+library foo;
+main() {}
+''');
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
+    expectComments(result.tokens, ['// @dart=2.3'], 0);
+  }
+
+  void test_languageVersion_incomplete_version() {
+    var result = scanSource('''
+// @dart = 2.
+library foo;
+main() {}
+''');
+    expect(languageVersion, isNull);
+    expectComments(result.tokens, ['// @dart = 2.'], -1);
+  }
+
+  void test_languageVersion_invalid_identifier() {
+    var result = scanSource('''
+// @dart = blat
+library foo;
+main() {}
+''');
+    expect(languageVersion, isNull);
+    expectComments(result.tokens, ['// @dart = blat'], -1);
+  }
+
+  void test_languageVersion_invalid_version() {
+    var result = scanSource('''
+// @dart = 2.x
+library foo;
+main() {}
+''');
+    expect(languageVersion, isNull);
+    expectComments(result.tokens, ['// @dart = 2.x'], -1);
   }
 
   void test_linestarts() {
-    var scanner = createScanner("var\r\ni\n=\n1;\n");
-    var token = scanner.tokenize();
+    var result = scanSource("var\r\ni\n=\n1;\n");
+    var token = result.tokens;
     expect(token.lexeme, 'var');
-    var lineStarts = scanner.lineStarts;
+    var lineStarts = result.lineStarts;
     expect(lineStarts, orderedEquals([0, 5, 7, 9, 12, 13]));
   }
 
   void test_linestarts_synthetic_string() {
-    var scanner = createScanner("var\r\ns\n=\n'eh'\n'eh\n;\n");
-    Token firstToken = scanner.tokenize();
-    expect(firstToken.lexeme, 'var');
-    var lineStarts = scanner.lineStarts;
+    var result = scanSource("var\r\ns\n=\n'eh'\n'eh\n;\n");
+    var lineStarts = result.lineStarts;
     expect(lineStarts, orderedEquals([0, 5, 7, 9, 14, 18, 20, 21]));
-    var token = firstToken;
+
+    Token token = result.tokens;
+    expect(token.charOffset, 14, reason: 'error token : $token, ${token.type}');
+    expect(token.charCount, 3, reason: 'error token : $token, ${token.type}');
+
+    token = token.next;
+    expect(token.lexeme, 'var');
     int index = 0;
     while (!token.isEof) {
-      if (token is fasta.ErrorToken) {
-        expect(token.charOffset, 14,
-            reason: 'error token : $token, ${token.type}');
-        expect(token.charCount, 3,
-            reason: 'error token : $token, ${token.type}');
-      } else {
-        expect(token.charOffset, lineStarts[index],
-            reason: 'token # $index : $token, ${token.type}');
-        ++index;
-      }
+      expect(token.charOffset, lineStarts[index],
+          reason: 'token # $index : $token, ${token.type}');
+      ++index;
       token = token.next;
     }
   }
 
   void test_linestarts_synthetic_string_utf8() {
-    var scanner = createScanner("var\r\ns\n=\n'éh'\n'éh\n;\n");
-    Token firstToken = scanner.tokenize();
-    expect(firstToken.lexeme, 'var');
-    var lineStarts = scanner.lineStarts;
+    var result = scanSource("var\r\ns\n=\n'éh'\n'éh\n;\n");
+    var lineStarts = result.lineStarts;
     expect(lineStarts, orderedEquals([0, 5, 7, 9, 14, 18, 20, 21]));
-    var token = firstToken;
+
+    Token token = result.tokens;
+    expect(token, const TypeMatcher<ErrorToken>());
+    expect(token.charOffset, 14, reason: 'token # 0 : $token, ${token.type}');
+
+    token = token.next;
+    expect(token.lexeme, 'var');
     int index = 0;
     while (!token.isEof) {
-      if (token is! fasta.ErrorToken) {
-        expect(token.charOffset, lineStarts[index],
-            reason: 'token # $index : $token, ${token.type}');
-        ++index;
-      }
+      expect(token.charOffset, lineStarts[index],
+          reason: 'token # $index : $token, ${token.type}');
+      ++index;
       token = token.next;
     }
   }
-}
 
-/// Override of [ToAnalyzerTokenStreamConverter] that verifies that there are no
-/// errors.
-class ToAnalyzerTokenStreamConverter_NoErrors
-    extends ToAnalyzerTokenStreamConverter {
-  @override
-  void reportError(
-      ScannerErrorCode errorCode, int offset, List<Object> arguments) {
-    fail('Unexpected error: $errorCode, $offset, $arguments');
-  }
-}
-
-/// Override of [ToAnalyzerTokenStreamConverter] that records errors in an
-/// [ErrorListener].
-class ToAnalyzerTokenStreamConverter_WithListener
-    extends ToAnalyzerTokenStreamConverter {
-  final ErrorListener _listener;
-
-  ToAnalyzerTokenStreamConverter_WithListener(this._listener);
-
-  @override
-  void reportError(
-      ScannerErrorCode errorCode, int offset, List<Object> arguments) {
-    _listener.errors.add(new TestError(offset, errorCode, arguments));
+  void expectComments(
+      Token token, List<String> expectedComments, int versionIndex) {
+    int index = 0;
+    token = token.precedingComments;
+    while (token != null) {
+      if (index == versionIndex) {
+        if (token is! fasta.LanguageVersionToken) {
+          fail('Expected version comment at index $index');
+        }
+      } else {
+        if (token is fasta.LanguageVersionToken) {
+          fail('Did not expect version comment at index $index');
+        }
+      }
+      if (index >= expectedComments.length) {
+        fail('Unexpected comment at index $index');
+      }
+      if (token is CommentToken) {
+        expect(token.lexeme, expectedComments[index],
+            reason: 'comment at $index');
+      } else {
+        fail('Expected comment token at index $index');
+      }
+      ++index;
+      token = token.next;
+    }
+    expect(index, expectedComments.length, reason: 'unexpected comments');
   }
 }

@@ -1,0 +1,51 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    : super self::A::•()
+    ;
+}
+static method f<T extends core::Object* = dynamic>() → self::f::T*
+  return null;
+static method test() → dynamic async {
+  core::Iterable<self::A*>* iterable;
+  asy::Stream<self::A*>* stream;
+  self::A* a;
+  self::B* b;
+  core::int* i;
+  for (final dynamic #t1 in iterable) {
+    a = #t1;
+  }
+  await for (final dynamic #t2 in stream) {
+    a = #t2;
+  }
+  for (final dynamic #t3 in iterable) {
+    b = #t3;
+  }
+  await for (final dynamic #t4 in stream) {
+    b = #t4;
+  }
+  for (final dynamic #t5 in iterable) {
+    i = #t5;
+  }
+  await for (final dynamic #t6 in stream) {
+    i = #t6;
+  }
+  for (final dynamic #t7 in self::f<dynamic>()) {
+    a = #t7;
+  }
+  await for (final dynamic #t8 in self::f<dynamic>()) {
+    a = #t8;
+  }
+}
+static method main() → dynamic {}

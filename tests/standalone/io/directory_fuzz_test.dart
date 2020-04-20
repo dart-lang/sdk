@@ -16,39 +16,39 @@ import 'fuzz_support.dart';
 fuzzSyncMethods() {
   typeMapping.forEach((k, v) {
     doItSync(() {
-      doItSync(() {
-        Directory.systemTemp.createTempSync(v).deleteSync();
-      });
-      var d = new Directory(v);
-      doItSync(d.existsSync);
-      doItSync(d.createSync);
-      doItSync(d.deleteSync);
-      doItSync(d.listSync);
-      doItSync(() {
-        d.createTempSync('tempdir').deleteSync();
-      });
-      doItSync(() {
-        // Let's be a little careful. If the directory exists we don't
-        // want to delete it and all its contents.
-        if (!d.existsSync()) d.deleteSync(recursive: true);
-      });
-      typeMapping.forEach((k2, v2) {
-        doItSync(() => d.renameSync(v2));
-        doItSync(() => d.listSync(recursive: v2));
-      });
+      Directory.systemTemp.createTempSync(v as String?).deleteSync();
+    });
+    Directory? directory;
+    doItSync(() => directory = new Directory(v as String));
+    if (directory == null) return;
+    final d = directory!;
+    doItSync(d.existsSync);
+    doItSync(d.createSync);
+    doItSync(d.deleteSync);
+    doItSync(d.listSync);
+    doItSync(() {
+      d.createTempSync('tempdir').deleteSync();
+    });
+    doItSync(() {
+      // Let's be a little careful. If the directory exists we don't
+      // want to delete it and all its contents.
+      if (!d.existsSync()) d.deleteSync(recursive: true);
+    });
+    typeMapping.forEach((k2, v2) {
+      doItSync(() => d.renameSync(v2 as String));
+      doItSync(() => d.listSync(recursive: v2 as bool));
     });
   });
 }
 
 fuzzAsyncMethods() {
   asyncStart();
-  var futures = [];
+  var futures = <Future>[];
   typeMapping.forEach((k, v) {
     futures.add(doItAsync(() {
-      Directory.systemTemp.createTempSync(v).deleteSync();
+      Directory.systemTemp.createTempSync(v as String?).deleteSync();
     }));
     if (v is! String) {
-      Expect.throws(() => new Directory(v), (e) => e is ArgumentError);
       return;
     }
     var d = new Directory(v);
@@ -67,9 +67,9 @@ fuzzAsyncMethods() {
       });
     }));
     typeMapping.forEach((k2, v2) {
-      futures.add(doItAsync(() => d.rename(v2)));
+      futures.add(doItAsync(() => d.rename(v2 as String)));
       futures.add(doItAsync(() {
-        d.list(recursive: v2).listen((_) {}, onError: (e) => null);
+        d.list(recursive: v2 as bool).listen((_) {}, onError: (e) => null);
       }));
     });
   });

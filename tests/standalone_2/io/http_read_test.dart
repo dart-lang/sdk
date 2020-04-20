@@ -1,6 +1,9 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
 //
 // VMOptions=
 // VMOptions=--short_socket_read
@@ -94,7 +97,8 @@ class IsolatedHttpServerStatus {
   int _port;
 }
 
-void startIsolatedHttpServer(SendPort replyTo) {
+void startIsolatedHttpServer(Object replyToObj) {
+  SendPort replyTo = replyToObj;
   var server = new TestServer();
   server.init();
   replyTo.send(server.dispatchSendPort);
@@ -106,13 +110,13 @@ class TestServer {
     var response = request.response;
     Expect.equals("POST", request.method);
     response.contentLength = request.contentLength;
-    request.pipe(response);
+    request.cast<List<int>>().pipe(response);
   }
 
   // Return a 404.
   void _notFoundHandler(HttpRequest request) {
     var response = request.response;
-    response.statusCode = HttpStatus.NOT_FOUND;
+    response.statusCode = HttpStatus.notFound;
     response.headers.set("Content-Type", "text/html; charset=UTF-8");
     response.write("Page not found");
     response.close();
@@ -185,7 +189,7 @@ void testRead(bool chunkedEncoding) {
         }
         return request.close();
       }).then((response) {
-        Expect.equals(HttpStatus.OK, response.statusCode);
+        Expect.equals(HttpStatus.ok, response.statusCode);
         List<int> body = new List<int>();
         response.listen(body.addAll, onDone: () {
           Expect.equals(data, new String.fromCharCodes(body));

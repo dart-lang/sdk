@@ -13,13 +13,13 @@
 #include "vm/flags.h"
 #include "vm/growable_array.h"
 #include "vm/handles.h"
+#include "vm/heap/weak_table.h"
 #include "vm/object.h"
 #include "vm/os.h"
 #include "vm/os_thread.h"
 #include "vm/raw_object.h"
 #include "vm/thread_pool.h"
 #include "vm/visitor.h"
-#include "vm/weak_table.h"
 
 #include "vm/handles_impl.h"
 
@@ -211,35 +211,35 @@ class FinalizablePersistentHandle {
     return ExternalSizeInWordsBits::decode(external_data_) * kWordSize;
   }
 
-  void SetExternalSize(intptr_t size, Isolate* isolate) {
+  void SetExternalSize(intptr_t size, IsolateGroup* isolate_group) {
     ASSERT(size >= 0);
     set_external_size(size);
     if (SpaceForExternal() == Heap::kNew) {
       SetExternalNewSpaceBit();
     }
-    isolate->heap()->AllocateExternal(raw()->GetClassIdMayBeSmi(),
-                                      external_size(), SpaceForExternal());
+    isolate_group->heap()->AllocateExternal(
+        raw()->GetClassIdMayBeSmi(), external_size(), SpaceForExternal());
   }
 
   // Called when the referent becomes unreachable.
-  void UpdateUnreachable(Isolate* isolate) {
-    EnsureFreeExternal(isolate);
-    Finalize(isolate, this);
+  void UpdateUnreachable(IsolateGroup* isolate_group) {
+    EnsureFreeExternal(isolate_group);
+    Finalize(isolate_group, this);
   }
 
   // Called when the referent has moved, potentially between generations.
-  void UpdateRelocated(Isolate* isolate) {
+  void UpdateRelocated(IsolateGroup* isolate_group) {
     if (IsSetNewSpaceBit() && (SpaceForExternal() == Heap::kOld)) {
-      isolate->heap()->PromoteExternal(raw()->GetClassIdMayBeSmi(),
-                                       external_size());
+      isolate_group->heap()->PromoteExternal(raw()->GetClassIdMayBeSmi(),
+                                             external_size());
       ClearExternalNewSpaceBit();
     }
   }
 
   // Idempotent. Called when the handle is explicitly deleted or the
   // referent becomes unreachable.
-  void EnsureFreeExternal(Isolate* isolate) {
-    isolate->heap()->FreeExternal(external_size(), SpaceForExternal());
+  void EnsureFreeExternal(IsolateGroup* isolate_group) {
+    isolate_group->heap()->FreeExternal(external_size(), SpaceForExternal());
     set_external_size(0);
   }
 
@@ -268,7 +268,8 @@ class FinalizablePersistentHandle {
       : raw_(NULL), peer_(NULL), external_data_(0), callback_(NULL) {}
   ~FinalizablePersistentHandle() {}
 
-  static void Finalize(Isolate* isolate, FinalizablePersistentHandle* handle);
+  static void Finalize(IsolateGroup* isolate_group,
+                       FinalizablePersistentHandle* handle);
 
   // Overload the raw_ field as a next pointer when adding freed
   // handles to the free list.
@@ -363,8 +364,10 @@ class LocalHandles : Handles<kLocalHandleSizeInWords,
 
   // Visit all object pointers stored in the various handles.
   void VisitObjectPointers(ObjectPointerVisitor* visitor) {
+    visitor->set_gc_root_type("local handle");
     Handles<kLocalHandleSizeInWords, kLocalHandlesPerChunk,
             kOffsetOfRawPtrInLocalHandle>::VisitObjectPointers(visitor);
+    visitor->clear_gc_root_type();
   }
 
   // Reset the local handles block for reuse.
@@ -427,8 +430,10 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
 
   // Visit all object pointers stored in the various handles.
   void VisitObjectPointers(ObjectPointerVisitor* visitor) {
+    visitor->set_gc_root_type("persistent handle");
     Handles<kPersistentHandleSizeInWords, kPersistentHandlesPerChunk,
             kOffsetOfRawPtrInPersistentHandle>::VisitObjectPointers(visitor);
+    visitor->clear_gc_root_type();
   }
 
   // Visit all the handles.
@@ -510,10 +515,12 @@ class FinalizablePersistentHandles
 
   // Visit all object pointers stored in the various handles.
   void VisitObjectPointers(ObjectPointerVisitor* visitor) {
+    visitor->set_gc_root_type("weak persistent handle");
     Handles<kFinalizablePersistentHandleSizeInWords,
             kFinalizablePersistentHandlesPerChunk,
             kOffsetOfRawPtrInFinalizablePersistentHandle>::
         VisitObjectPointers(visitor);
+    visitor->clear_gc_root_type();
   }
 
   // Allocates a persistent handle, these have to be destroyed explicitly
@@ -630,11 +637,11 @@ class ApiNativeScope {
   static uintptr_t current_memory_usage() { return current_memory_usage_; }
 
   static void IncrementNativeScopeMemoryCapacity(intptr_t size) {
-    AtomicOperations::IncrementBy(&current_memory_usage_, size);
+    current_memory_usage_.fetch_add(size);
   }
 
   static void DecrementNativeScopeMemoryCapacity(intptr_t size) {
-    AtomicOperations::DecrementBy(&current_memory_usage_, size);
+    current_memory_usage_.fetch_sub(size);
   }
 
   Zone* zone() {
@@ -646,7 +653,7 @@ class ApiNativeScope {
 
  private:
   // The current total memory usage within ApiNativeScopes.
-  static intptr_t current_memory_usage_;
+  static RelaxedAtomic<intptr_t> current_memory_usage_;
 
   ApiZone zone_;
 };
@@ -671,7 +678,7 @@ class ApiGrowableArray : public BaseGrowableArray<T, ValueObject, Zone> {
 
 // Implementation of the API State used in dart api for maintaining
 // local scopes, persistent handles etc. These are setup on a per isolate
-// basis and destroyed when the isolate is shutdown.
+// group basis and destroyed when the isolate group is shutdown.
 class ApiState {
  public:
   ApiState()
@@ -683,89 +690,117 @@ class ApiState {
         acquired_error_(NULL) {}
   ~ApiState() {
     if (null_ != NULL) {
-      persistent_handles().FreeHandle(null_);
+      persistent_handles_.FreeHandle(null_);
       null_ = NULL;
     }
     if (true_ != NULL) {
-      persistent_handles().FreeHandle(true_);
+      persistent_handles_.FreeHandle(true_);
       true_ = NULL;
     }
     if (false_ != NULL) {
-      persistent_handles().FreeHandle(false_);
+      persistent_handles_.FreeHandle(false_);
       false_ = NULL;
     }
     if (acquired_error_ != NULL) {
-      persistent_handles().FreeHandle(acquired_error_);
+      persistent_handles_.FreeHandle(acquired_error_);
       acquired_error_ = NULL;
     }
   }
 
-  // Accessors.
-  PersistentHandles& persistent_handles() { return persistent_handles_; }
+  void MergeOtherApiState(ApiState* api_state);
 
-  FinalizablePersistentHandles& weak_persistent_handles() {
-    return weak_persistent_handles_;
+  void VisitObjectPointersUnlocked(ObjectPointerVisitor* visitor) {
+    persistent_handles_.VisitObjectPointers(visitor);
+    if (visitor->visit_weak_persistent_handles()) {
+      weak_persistent_handles_.VisitObjectPointers(visitor);
+    }
   }
 
-  void VisitObjectPointers(ObjectPointerVisitor* visitor) {
-    persistent_handles().VisitObjectPointers(visitor);
+  void VisitWeakHandlesUnlocked(HandleVisitor* visitor) {
+    weak_persistent_handles_.VisitHandles(visitor);
   }
 
-  void VisitWeakHandles(HandleVisitor* visitor) {
-    weak_persistent_handles().VisitHandles(visitor);
+  PersistentHandle* AllocatePersistentHandle() {
+    MutexLocker ml(&mutex_);
+    return persistent_handles_.AllocateHandle();
+  }
+  void FreePersistentHandle(PersistentHandle* ref) {
+    MutexLocker ml(&mutex_);
+    persistent_handles_.FreeHandle(ref);
   }
 
-  bool IsValidPersistentHandle(Dart_PersistentHandle object) const {
+  FinalizablePersistentHandle* AllocateWeakPersistentHandle() {
+    MutexLocker ml(&mutex_);
+    return weak_persistent_handles_.AllocateHandle();
+  }
+  void FreeWeakPersistentHandle(FinalizablePersistentHandle* weak_ref) {
+    MutexLocker ml(&mutex_);
+    weak_persistent_handles_.FreeHandle(weak_ref);
+  }
+
+  bool IsValidPersistentHandle(Dart_PersistentHandle object) {
+    MutexLocker ml(&mutex_);
     return persistent_handles_.IsValidHandle(object);
   }
 
-  bool IsFreePersistentHandle(Dart_PersistentHandle object) const {
-    return persistent_handles_.IsFreeHandle(object);
+  bool IsActivePersistentHandle(Dart_PersistentHandle object) {
+    MutexLocker ml(&mutex_);
+    return persistent_handles_.IsValidHandle(object) &&
+           !persistent_handles_.IsFreeHandle(object);
   }
 
-  bool IsActivePersistentHandle(Dart_PersistentHandle object) const {
-    return IsValidPersistentHandle(object) && !IsFreePersistentHandle(object);
-  }
-
-  bool IsValidWeakPersistentHandle(Dart_WeakPersistentHandle object) const {
+  bool IsValidWeakPersistentHandle(Dart_WeakPersistentHandle object) {
+    MutexLocker ml(&mutex_);
     return weak_persistent_handles_.IsValidHandle(object);
   }
 
-  bool IsFreeWeakPersistentHandle(Dart_WeakPersistentHandle object) const {
-    return weak_persistent_handles_.IsFreeHandle(object);
+  bool IsActiveWeakPersistentHandle(Dart_WeakPersistentHandle object) {
+    MutexLocker ml(&mutex_);
+    return weak_persistent_handles_.IsValidHandle(object) &&
+           !weak_persistent_handles_.IsFreeHandle(object);
   }
 
-  bool IsActiveWeakPersistentHandle(Dart_WeakPersistentHandle object) const {
-    return IsValidWeakPersistentHandle(object) &&
-           !IsFreeWeakPersistentHandle(object);
-  }
-
-  bool IsProtectedHandle(PersistentHandle* object) const {
+  bool IsProtectedHandle(PersistentHandle* object) {
+    MutexLocker ml(&mutex_);
     if (object == NULL) return false;
     return object == null_ || object == true_ || object == false_;
   }
 
-  int CountPersistentHandles() const {
+  int CountPersistentHandles() {
+    MutexLocker ml(&mutex_);
     return persistent_handles_.CountHandles();
   }
 
-  void SetupAcquiredError() {
-    ASSERT(acquired_error_ == NULL);
-    const String& msg = String::Handle(
-        String::New("Internal Dart data pointers have been acquired, "
-                    "please release them using Dart_TypedDataReleaseData."));
-    acquired_error_ = persistent_handles().AllocateHandle();
-    acquired_error_->set_raw(ApiError::New(msg));
+  PersistentHandle* AcquiredError() {
+    // The ApiError pre-allocated in the "vm-isolate" since we will not be able
+    // to allocate it when the error actually occurs.
+    // When the error occurs there will be outstanding acquires to internal
+    // data pointers making it unsafe to allocate objects on the dart heap.
+    MutexLocker ml(&mutex_);
+    if (acquired_error_ == nullptr) {
+      acquired_error_ = persistent_handles_.AllocateHandle();
+      acquired_error_->set_raw(ApiError::typed_data_acquire_error());
+    }
+    return acquired_error_;
   }
 
-  PersistentHandle* AcquiredError() const {
-    ASSERT(acquired_error_ != NULL);
-    return acquired_error_;
+  void RunWithLockedPersistentHandles(
+      std::function<void(PersistentHandles&)> fun) {
+    MutexLocker ml(&mutex_);
+    fun(persistent_handles_);
+  }
+
+  void RunWithLockedWeakPersistentHandles(
+      std::function<void(FinalizablePersistentHandles&)> fun) {
+    MutexLocker ml(&mutex_);
+    fun(weak_persistent_handles_);
   }
 
   WeakTable* acquired_table() { return &acquired_table_; }
 
  private:
+  Mutex mutex_;
+
   PersistentHandles persistent_handles_;
   FinalizablePersistentHandles weak_persistent_handles_;
   WeakTable acquired_table_;
@@ -785,15 +820,14 @@ inline FinalizablePersistentHandle* FinalizablePersistentHandle::New(
     void* peer,
     Dart_WeakPersistentHandleFinalizer callback,
     intptr_t external_size) {
-  ApiState* state = isolate->api_state();
+  ApiState* state = isolate->group()->api_state();
   ASSERT(state != NULL);
-  FinalizablePersistentHandle* ref =
-      state->weak_persistent_handles().AllocateHandle();
+  FinalizablePersistentHandle* ref = state->AllocateWeakPersistentHandle();
   ref->set_raw(object);
   ref->set_peer(peer);
   ref->set_callback(callback);
   // This may trigger GC, so it must be called last.
-  ref->SetExternalSize(external_size, isolate);
+  ref->SetExternalSize(external_size, isolate->group());
   return ref;
 }
 

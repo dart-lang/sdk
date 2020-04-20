@@ -1,0 +1,1166 @@
+main = #lib::main;
+ [@vm.bytecode=
+BytecodeMetadata {
+Bytecode (version: stable)
+Main library: #lib
+Library '#lib'
+    name '#lib'
+    script '#lib'
+
+Class '', script = '#lib'
+
+
+Function 'testTryCatch1', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                4
+  CheckStack           0
+Try #0 start:
+  PushConstant         CP#0
+  DirectCall           CP#1, 1
+  Drop1
+  Jump                 L1
+Try #0 end:
+Try #0 handler:
+  SetFrame             4
+  MoveSpecial          exception, r0
+  MoveSpecial          stackTrace, r1
+  Push                 r0
+  PopLocal             r2
+  PushNull
+  PushInt              2
+  CreateArrayTOS
+  StoreLocal           r3
+  Push                 r3
+  PushInt              0
+  PushConstant         CP#4
+  StoreIndexedTOS
+  Push                 r3
+  PushInt              1
+  Push                 r2
+  StoreIndexedTOS
+  DirectCall           CP#5, 1
+  DirectCall           CP#1, 1
+  Drop1
+  Jump                 L1
+L1:
+  PushNull
+  ReturnTOS
+}
+ExceptionsTable {
+  try-index 0, outer -1, start 4, end 14, handler 14, types [CP#3]
+}
+ConstantPool {
+  [0] = ObjectRef 'danger!'
+  [1] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
+  [3] = Type dynamic
+  [4] = ObjectRef 'caught '
+  [5] = DirectCall 'dart:core::_StringBase::_interpolate', ArgDesc num-args 1, num-type-args 0, names []
+  [6] = Reserved
+}
+
+
+Function 'testTryCatch2', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                5
+  CheckStack           0
+Try #0 start:
+  PushConstant         CP#0
+  DirectCall           CP#1, 1
+  Drop1
+  Jump                 L1
+Try #0 end:
+Try #0 handler:
+  SetFrame             5
+  MoveSpecial          exception, r0
+  MoveSpecial          stackTrace, r1
+  Push                 r0
+  PushConstant         CP#3
+  InterfaceCall        CP#4, 2
+  JumpIfFalse          L2
+  PushConstant         CP#6
+  DirectCall           CP#1, 1
+  Drop1
+  Jump                 L1
+L2:
+  Push                 r0
+  PushConstant         CP#7
+  InterfaceCall        CP#4, 2
+  JumpIfFalse          L3
+  Push                 r0
+  PopLocal             r2
+  PushNull
+  PushInt              2
+  CreateArrayTOS
+  StoreLocal           r3
+  Push                 r3
+  PushInt              0
+  PushConstant         CP#8
+  StoreIndexedTOS
+  Push                 r3
+  PushInt              1
+  Push                 r2
+  StoreIndexedTOS
+  DirectCall           CP#9, 1
+  DirectCall           CP#1, 1
+  Drop1
+  Jump                 L1
+L3:
+  Push                 r0
+  PushConstant         CP#11
+  InterfaceCall        CP#4, 2
+  JumpIfFalse          L4
+  Push                 r0
+  PopLocal             r2
+  Push                 r1
+  PopLocal             r3
+  PushNull
+  PushInt              4
+  CreateArrayTOS
+  StoreLocal           r4
+  Push                 r4
+  PushInt              0
+  PushConstant         CP#12
+  StoreIndexedTOS
+  Push                 r4
+  PushInt              1
+  Push                 r2
+  StoreIndexedTOS
+  Push                 r4
+  PushInt              2
+  PushConstant         CP#13
+  StoreIndexedTOS
+  Push                 r4
+  PushInt              3
+  Push                 r3
+  StoreIndexedTOS
+  DirectCall           CP#9, 1
+  DirectCall           CP#1, 1
+  Drop1
+  Jump                 L1
+L4:
+  Push                 r0
+  PopLocal             r2
+  Push                 r1
+  PopLocal             r3
+  PushNull
+  PushInt              4
+  CreateArrayTOS
+  StoreLocal           r4
+  Push                 r4
+  PushInt              0
+  PushConstant         CP#15
+  StoreIndexedTOS
+  Push                 r4
+  PushInt              1
+  Push                 r2
+  StoreIndexedTOS
+  Push                 r4
+  PushInt              2
+  PushConstant         CP#13
+  StoreIndexedTOS
+  Push                 r4
+  PushInt              3
+  Push                 r3
+  StoreIndexedTOS
+  DirectCall           CP#9, 1
+  DirectCall           CP#1, 1
+  Drop1
+  Jump                 L1
+L1:
+  PushNull
+  ReturnTOS
+}
+ExceptionsTable {
+  try-index 0, outer -1, start 4, end 14, handler 14, needs-stack-trace, types [CP#3, CP#7, CP#11, CP#14]
+}
+ConstantPool {
+  [0] = ObjectRef 'danger!'
+  [1] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
+  [3] = Type dart:core::TypeError
+  [4] = InterfaceCall 'dart:core::Object::_simpleInstanceOf', ArgDesc num-args 2, num-type-args 0, names []
+  [5] = Reserved
+  [6] = ObjectRef 'caught type error'
+  [7] = Type dart:core::AssertionError
+  [8] = ObjectRef 'caught assertion error '
+  [9] = DirectCall 'dart:core::_StringBase::_interpolate', ArgDesc num-args 1, num-type-args 0, names []
+  [10] = Reserved
+  [11] = Type dart:core::Error
+  [12] = ObjectRef 'caught error '
+  [13] = ObjectRef ' '
+  [14] = Type dynamic
+  [15] = ObjectRef 'caught something '
+}
+
+
+Function 'testTryCatch3', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                7
+  CheckStack           0
+  AllocateContext      0, 3
+  PopLocal             r0
+  Push                 r0
+  PushInt              1
+  StoreContextVar      0, 0
+  Push                 r0
+  PopLocal             r2
+Try #0 start:
+  Push                 r0
+  PushInt              2
+  StoreContextVar      0, 1
+  AllocateClosure      CP#0
+  StoreLocal           r5
+  Push                 r5
+  PushNull
+  StoreFieldTOS        CP#8
+  Push                 r5
+  PushNull
+  StoreFieldTOS        CP#10
+  Push                 r5
+  PushConstant         CP#0
+  StoreFieldTOS        CP#12
+  Push                 r5
+  Push                 r0
+  StoreFieldTOS        CP#1
+  PopLocal             r4
+  Push                 r4
+  StoreLocal           r5
+  Push                 r5
+  UncheckedClosureCall CP#14, 1
+  Drop1
+  Push                 r0
+  LoadContextVar       0, 1
+  DirectCall           CP#4, 1
+  Drop1
+  Jump                 L1
+Try #0 end:
+Try #0 handler:
+  SetFrame             7
+  Push                 r2
+  PopLocal             r0
+  MoveSpecial          exception, r2
+  MoveSpecial          stackTrace, r3
+  Push                 r2
+  PopLocal             r4
+  Push                 r0
+  Push                 r3
+  StoreContextVar      0, 2
+  PushNull
+  PushInt              4
+  CreateArrayTOS
+  StoreLocal           r5
+  Push                 r5
+  PushInt              0
+  PushConstant         CP#15
+  StoreIndexedTOS
+  Push                 r5
+  PushInt              1
+  Push                 r4
+  StoreIndexedTOS
+  Push                 r5
+  PushInt              2
+  PushConstant         CP#16
+  StoreIndexedTOS
+  Push                 r5
+  PushInt              3
+  Push                 r0
+  LoadContextVar       0, 2
+  StoreIndexedTOS
+  DirectCall           CP#17, 1
+  DirectCall           CP#4, 1
+  Drop1
+  AllocateClosure      CP#19
+  StoreLocal           r5
+  Push                 r5
+  PushNull
+  StoreFieldTOS        CP#8
+  Push                 r5
+  PushNull
+  StoreFieldTOS        CP#10
+  Push                 r5
+  PushConstant         CP#19
+  StoreFieldTOS        CP#12
+  Push                 r5
+  Push                 r0
+  StoreFieldTOS        CP#1
+  PopLocal             r6
+  Push                 r6
+  ReturnTOS
+L1:
+  Push                 r0
+  LoadContextParent
+  PopLocal             r0
+  PushNull
+  ReturnTOS
+}
+ExceptionsTable {
+  try-index 0, outer -1, start 20, end 78, handler 78, needs-stack-trace, types [CP#6]
+}
+ConstantPool {
+  [0] = ClosureFunction 0
+  [1] = InstanceField dart:core::_Closure::_context (field)
+  [2] = Reserved
+  [3] = ObjectRef 'danger foo'
+  [4] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [5] = Reserved
+  [6] = Type dynamic
+  [7] = EndClosureFunctionScope
+  [8] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
+  [9] = Reserved
+  [10] = InstanceField dart:core::_Closure::_function_type_arguments (field)
+  [11] = Reserved
+  [12] = InstanceField dart:core::_Closure::_function (field)
+  [13] = Reserved
+  [14] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [15] = ObjectRef 'caught '
+  [16] = ObjectRef ' '
+  [17] = DirectCall 'dart:core::_StringBase::_interpolate', ArgDesc num-args 1, num-type-args 0, names []
+  [18] = Reserved
+  [19] = ClosureFunction 1
+  [20] = ObjectRef 'danger bar'
+  [21] = Type dart:core::Error
+  [22] = InterfaceCall 'dart:core::Object::_simpleInstanceOf', ArgDesc num-args 2, num-type-args 0, names []
+  [23] = Reserved
+  [24] = ObjectRef 'error '
+  [25] = ObjectRef ', captured stack trace: '
+  [26] = EndClosureFunctionScope
+}
+Closure #lib::testTryCatch3::'foo' () -> void
+ClosureCode {
+  EntryFixed           1, 6
+  Push                 FP[-5]
+  LoadFieldTOS         CP#1
+  PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
+  CheckStack           0
+  Push                 r0
+  PopLocal             r2
+Try #0 start:
+  PushConstant         CP#3
+  DirectCall           CP#4, 1
+  Drop1
+  Jump                 L1
+Try #0 end:
+Try #0 handler:
+  SetFrame             6
+  Push                 r2
+  PopLocal             r0
+  MoveSpecial          exception, r2
+  MoveSpecial          stackTrace, r3
+  Push                 r2
+  PopLocal             r4
+  Push                 r0
+  LoadContextVar       0, 0
+  DirectCall           CP#4, 1
+  Drop1
+  Push                 r0
+  PushInt              3
+  StoreContextVar      0, 1
+  Jump                 L1
+L1:
+  PushNull
+  ReturnTOS
+}
+
+Closure #lib::testTryCatch3::'bar' () -> void
+ClosureCode {
+  EntryFixed           1, 6
+  Push                 FP[-5]
+  LoadFieldTOS         CP#1
+  PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
+  CheckStack           0
+  Push                 r0
+  PopLocal             r2
+Try #0 start:
+  PushConstant         CP#20
+  DirectCall           CP#4, 1
+  Drop1
+  Jump                 L1
+Try #0 end:
+Try #0 handler:
+  SetFrame             6
+  Push                 r2
+  PopLocal             r0
+  MoveSpecial          exception, r2
+  MoveSpecial          stackTrace, r3
+  Push                 r2
+  PushConstant         CP#21
+  InterfaceCall        CP#22, 2
+  JumpIfFalse          L2
+  Push                 r2
+  PopLocal             r4
+  PushNull
+  PushInt              4
+  CreateArrayTOS
+  StoreLocal           r5
+  Push                 r5
+  PushInt              0
+  PushConstant         CP#24
+  StoreIndexedTOS
+  Push                 r5
+  PushInt              1
+  Push                 r4
+  StoreIndexedTOS
+  Push                 r5
+  PushInt              2
+  PushConstant         CP#25
+  StoreIndexedTOS
+  Push                 r5
+  PushInt              3
+  Push                 r0
+  LoadContextVar       0, 2
+  StoreIndexedTOS
+  DirectCall           CP#17, 1
+  DirectCall           CP#4, 1
+  Drop1
+  Jump                 L1
+L2:
+  Push                 r2
+  Push                 r3
+  Throw                1
+L1:
+  PushNull
+  ReturnTOS
+}
+
+
+Function 'testRethrow', static, reflectable, debuggable
+    parameters [dart:core::bool 'cond'] (required: 1)
+    return-type dynamic
+
+Bytecode {
+  Entry                8
+  CheckStack           0
+Try #0 start:
+Try #1 start:
+  PushConstant         CP#0
+  DirectCall           CP#1, 1
+  Drop1
+  Jump                 L1
+Try #1 end:
+Try #1 handler:
+  SetFrame             8
+  MoveSpecial          exception, r2
+  MoveSpecial          stackTrace, r3
+  Push                 r2
+  PopLocal             r4
+Try #2 start:
+  PushConstant         CP#4
+  DirectCall           CP#1, 1
+  Drop1
+  Push                 FP[-5]
+  AssertBoolean        0
+  JumpIfFalse          L2
+  Push                 r2
+  Push                 r3
+  Throw                1
+L2:
+  Jump                 L3
+Try #2 end:
+Try #2 handler:
+  SetFrame             8
+  MoveSpecial          exception, r5
+  MoveSpecial          stackTrace, r6
+  Push                 r5
+  PopLocal             r7
+  PushConstant         CP#5
+  DirectCall           CP#1, 1
+  Drop1
+  Jump                 L3
+L3:
+  Jump                 L1
+L1:
+  Jump                 L4
+Try #0 end:
+Try #0 handler:
+  SetFrame             8
+  MoveSpecial          exception, r0
+  MoveSpecial          stackTrace, r1
+  Push                 r0
+  PopLocal             r2
+  Push                 r1
+  PopLocal             r3
+  PushConstant         CP#6
+  DirectCall           CP#1, 1
+  Drop1
+  Push                 r3
+  DirectCall           CP#1, 1
+  Drop1
+  Jump                 L4
+L4:
+  PushNull
+  ReturnTOS
+}
+ExceptionsTable {
+  try-index 0, outer -1, start 4, end 80, handler 80, needs-stack-trace, types [CP#3]
+  try-index 1, outer 0, start 4, end 14, handler 14, needs-stack-trace, types [CP#3]
+  try-index 2, outer 0, start 26, end 50, handler 50, types [CP#3]
+}
+ConstantPool {
+  [0] = ObjectRef 'try 1 > try 2'
+  [1] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
+  [3] = Type dynamic
+  [4] = ObjectRef 'try 1 > catch 2 > try 3'
+  [5] = ObjectRef 'try 1 > catch 2 > catch 3'
+  [6] = ObjectRef 'catch 1'
+}
+
+
+Function 'testTryFinally1', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                3
+  CheckStack           0
+  PushInt              0
+  PopLocal             r0
+L5:
+  CheckStack           1
+  Push                 r0
+  PushInt              10
+  CompareIntLt
+  JumpIfFalse          L1
+Try #0 start:
+  Push                 r0
+  PushInt              5
+  CompareIntGt
+  JumpIfFalse          L2
+  Jump                 L3
+L2:
+  Jump                 L4
+Try #0 end:
+Try #0 handler:
+  SetFrame             3
+  MoveSpecial          exception, r1
+  MoveSpecial          stackTrace, r2
+  Push                 r0
+  DirectCall           CP#1, 1
+  Drop1
+  Push                 r1
+  Push                 r2
+  Throw                1
+L3:
+  Push                 r0
+  DirectCall           CP#1, 1
+  Drop1
+  Jump                 L1
+L4:
+  Push                 r0
+  DirectCall           CP#1, 1
+  Drop1
+  Push                 r0
+  PushInt              1
+  AddInt
+  StoreLocal           r0
+  Drop1
+  Jump                 L5
+L1:
+  PushNull
+  ReturnTOS
+}
+ExceptionsTable {
+  try-index 0, outer -1, start 19, end 36, handler 36, needs-stack-trace, synthetic, types [CP#0]
+}
+ConstantPool {
+  [0] = Type dynamic
+  [1] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
+}
+
+
+Function 'testTryFinally2', static, reflectable, debuggable
+    parameters [dart:core::int 'x'] (required: 1)
+    return-type dynamic
+
+Bytecode {
+  Entry                9
+  CheckStack           0
+  AllocateContext      0, 2
+  PopLocal             r0
+  Push                 r0
+  Push                 FP[-5]
+  StoreContextVar      0, 0
+  Push                 r0
+  LoadContextVar       0, 0
+  PopLocal             r2
+  PushInt              1
+  Push                 r2
+  InterfaceCall        CP#0, 2
+  JumpIfTrue           L1
+  PushInt              2
+  Push                 r2
+  InterfaceCall        CP#0, 2
+  JumpIfTrue           L2
+  Jump                 L3
+L1:
+  Push                 r0
+  PopLocal             r3
+Try #0 start:
+  PushConstant         CP#2
+  DirectCall           CP#3, 1
+  Drop1
+  Push                 r0
+  PushInt              3
+  StoreContextVar      0, 1
+  Push                 r0
+  PopLocal             r5
+Try #1 start:
+  PushConstant         CP#5
+  DirectCall           CP#3, 1
+  Drop1
+  AllocateClosure      CP#6
+  StoreLocal           r8
+  Push                 r8
+  PushNull
+  StoreFieldTOS        CP#10
+  Push                 r8
+  PushNull
+  StoreFieldTOS        CP#12
+  Push                 r8
+  PushConstant         CP#6
+  StoreFieldTOS        CP#14
+  Push                 r8
+  Push                 r0
+  StoreFieldTOS        CP#7
+  PopLocal             r7
+  Push                 r7
+  StoreLocal           r8
+  Push                 r8
+  UncheckedClosureCall CP#16, 1
+  Drop1
+  Jump                 L4
+Try #1 end:
+Try #1 handler:
+  SetFrame             9
+  Push                 r5
+  PopLocal             r0
+  MoveSpecial          exception, r5
+  MoveSpecial          stackTrace, r6
+  PushConstant         CP#18
+  DirectCall           CP#3, 1
+  Drop1
+  Push                 r5
+  Push                 r6
+  Throw                1
+L4:
+  Push                 r5
+  PopLocal             r0
+  PushConstant         CP#18
+  DirectCall           CP#3, 1
+  Drop1
+  Jump                 L5
+Try #0 end:
+Try #0 handler:
+  SetFrame             9
+  Push                 r3
+  PopLocal             r0
+  MoveSpecial          exception, r3
+  MoveSpecial          stackTrace, r4
+  PushConstant         CP#20
+  DirectCall           CP#3, 1
+  Drop1
+  Push                 r3
+  Push                 r4
+  Throw                1
+L5:
+  Push                 r3
+  PopLocal             r0
+  PushConstant         CP#20
+  DirectCall           CP#3, 1
+  Drop1
+  Jump                 L2
+L2:
+  PushConstant         CP#21
+  DirectCall           CP#3, 1
+  Drop1
+  Jump                 L3
+L3:
+  PushNull
+  ReturnTOS
+}
+ExceptionsTable {
+  try-index 0, outer -1, start 53, end 156, handler 156, needs-stack-trace, synthetic, types [CP#17]
+  try-index 1, outer 0, start 70, end 118, handler 118, needs-stack-trace, synthetic, types [CP#17]
+}
+ConstantPool {
+  [0] = InterfaceCall 'dart:core::Object::==', ArgDesc num-args 2, num-type-args 0, names []
+  [1] = Reserved
+  [2] = ObjectRef 'before try 1'
+  [3] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [4] = Reserved
+  [5] = ObjectRef 'try'
+  [6] = ClosureFunction 0
+  [7] = InstanceField dart:core::_Closure::_context (field)
+  [8] = Reserved
+  [9] = EndClosureFunctionScope
+  [10] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
+  [11] = Reserved
+  [12] = InstanceField dart:core::_Closure::_function_type_arguments (field)
+  [13] = Reserved
+  [14] = InstanceField dart:core::_Closure::_function (field)
+  [15] = Reserved
+  [16] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [17] = Type dynamic
+  [18] = ObjectRef 'finally 1'
+  [19] = ObjectRef 'after try 1'
+  [20] = ObjectRef 'finally 2'
+  [21] = ObjectRef 'case 2'
+}
+Closure #lib::testTryFinally2::'foo' () -> void
+ClosureCode {
+  EntryFixed           1, 2
+  Push                 FP[-5]
+  LoadFieldTOS         CP#7
+  PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
+  CheckStack           0
+  Push                 r0
+  LoadContextVar       0, 0
+  DirectCall           CP#3, 1
+  Drop1
+  Push                 r0
+  LoadContextVar       0, 1
+  DirectCall           CP#3, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+
+
+Function 'testTryFinally3', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                6
+  CheckStack           0
+  AllocateContext      0, 1
+  PopLocal             r0
+  Push                 r0
+  PushInt              11
+  StoreContextVar      0, 0
+  PushNull
+  PopLocal             r2
+  Push                 r0
+  PopLocal             r3
+Try #0 start:
+  AllocateClosure      CP#0
+  StoreLocal           r5
+  Push                 r5
+  PushNull
+  StoreFieldTOS        CP#9
+  Push                 r5
+  PushNull
+  StoreFieldTOS        CP#11
+  Push                 r5
+  PushConstant         CP#0
+  StoreFieldTOS        CP#13
+  Push                 r5
+  Push                 r0
+  StoreFieldTOS        CP#1
+  PopLocal             r2
+  Jump                 L1
+Try #0 end:
+Try #0 handler:
+  SetFrame             6
+  Push                 r3
+  PopLocal             r0
+  MoveSpecial          exception, r3
+  MoveSpecial          stackTrace, r4
+  Push                 r0
+  LoadContextVar       0, 0
+  DirectCall           CP#3, 1
+  Drop1
+  Push                 r2
+  DynamicCall          CP#15, 1
+  Drop1
+  Push                 r3
+  Push                 r4
+  Throw                1
+L1:
+  Push                 r3
+  PopLocal             r0
+  Push                 r0
+  LoadContextVar       0, 0
+  DirectCall           CP#3, 1
+  Drop1
+  Push                 r2
+  DynamicCall          CP#15, 1
+  Drop1
+  Push                 r0
+  LoadContextParent
+  PopLocal             r0
+  PushNull
+  ReturnTOS
+}
+ExceptionsTable {
+  try-index 0, outer -1, start 23, end 55, handler 55, needs-stack-trace, synthetic, types [CP#6]
+}
+ConstantPool {
+  [0] = ClosureFunction 0
+  [1] = InstanceField dart:core::_Closure::_context (field)
+  [2] = Reserved
+  [3] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [4] = Reserved
+  [5] = ObjectRef 'try 1'
+  [6] = Type dynamic
+  [7] = ObjectRef 'try 2'
+  [8] = EndClosureFunctionScope
+  [9] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
+  [10] = Reserved
+  [11] = InstanceField dart:core::_Closure::_function_type_arguments (field)
+  [12] = Reserved
+  [13] = InstanceField dart:core::_Closure::_function (field)
+  [14] = Reserved
+  [15] = DynamicCall 'call', ArgDesc num-args 1, num-type-args 0, names []
+  [16] = Reserved
+}
+Closure #lib::testTryFinally3::'<anonymous closure>' () -> dart:core::int
+ClosureCode {
+  EntryFixed           1, 6
+  Push                 FP[-5]
+  LoadFieldTOS         CP#1
+  PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
+  CheckStack           0
+  Push                 r0
+  LoadContextVar       0, 0
+  DirectCall           CP#3, 1
+  Drop1
+  Push                 r0
+  PopLocal             r2
+Try #0 start:
+  PushConstant         CP#5
+  DirectCall           CP#3, 1
+  Drop1
+  Jump                 L1
+Try #0 end:
+Try #0 handler:
+  SetFrame             6
+  Push                 r2
+  PopLocal             r0
+  MoveSpecial          exception, r2
+  MoveSpecial          stackTrace, r3
+  Push                 r0
+  PopLocal             r4
+Try #1 start:
+  PushConstant         CP#7
+  DirectCall           CP#3, 1
+  Drop1
+  Jump                 L2
+Try #1 end:
+Try #1 handler:
+  SetFrame             6
+  Push                 r4
+  PopLocal             r0
+  MoveSpecial          exception, r4
+  MoveSpecial          stackTrace, r5
+  Push                 r0
+  LoadContextVar       0, 0
+  DirectCall           CP#3, 1
+  Drop1
+  Push                 r4
+  Push                 r5
+  Throw                1
+L2:
+  Push                 r4
+  PopLocal             r0
+  Push                 r0
+  LoadContextVar       0, 0
+  DirectCall           CP#3, 1
+  Drop1
+  PushInt              43
+  ReturnTOS
+L1:
+  Push                 r2
+  PopLocal             r0
+  Push                 r0
+  PopLocal             r4
+Try #2 start:
+  PushConstant         CP#7
+  DirectCall           CP#3, 1
+  Drop1
+  Jump                 L3
+Try #2 end:
+Try #2 handler:
+  SetFrame             6
+  Push                 r4
+  PopLocal             r0
+  MoveSpecial          exception, r4
+  MoveSpecial          stackTrace, r5
+  Push                 r0
+  LoadContextVar       0, 0
+  DirectCall           CP#3, 1
+  Drop1
+  Push                 r4
+  Push                 r5
+  Throw                1
+L3:
+  Push                 r4
+  PopLocal             r0
+  Push                 r0
+  LoadContextVar       0, 0
+  DirectCall           CP#3, 1
+  Drop1
+  PushInt              43
+  ReturnTOS
+}
+
+
+Function 'testTryCatchFinally', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                5
+  CheckStack           0
+Try #0 start:
+Try #1 start:
+  PushConstant         CP#0
+  DirectCall           CP#1, 1
+  Drop1
+  Jump                 L1
+Try #1 end:
+Try #1 handler:
+  SetFrame             5
+  MoveSpecial          exception, r2
+  MoveSpecial          stackTrace, r3
+  Push                 r2
+  PopLocal             r4
+  PushConstant         CP#4
+  DirectCall           CP#1, 1
+  Drop1
+  Jump                 L1
+L1:
+  Jump                 L2
+Try #0 end:
+Try #0 handler:
+  SetFrame             5
+  MoveSpecial          exception, r0
+  MoveSpecial          stackTrace, r1
+  PushConstant         CP#5
+  DirectCall           CP#1, 1
+  Drop1
+  Push                 r0
+  Push                 r1
+  Throw                1
+L2:
+  PushConstant         CP#5
+  DirectCall           CP#1, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ExceptionsTable {
+  try-index 0, outer -1, start 4, end 40, handler 40, needs-stack-trace, synthetic, types [CP#3]
+  try-index 1, outer 0, start 4, end 14, handler 14, types [CP#3]
+}
+ConstantPool {
+  [0] = ObjectRef 'try'
+  [1] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
+  [3] = Type dynamic
+  [4] = ObjectRef 'catch'
+  [5] = ObjectRef 'finally'
+}
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+}
+
+
+}
+]library #lib from "#lib" as #lib {
+
+  static method testTryCatch1() → dynamic {
+    try {
+      dart.core::print("danger!");
+    }
+    on dynamic catch(final dynamic e) {
+      dart.core::print("caught ${e}");
+    }
+  }
+  static method testTryCatch2() → dynamic {
+    try {
+      dart.core::print("danger!");
+    }
+    on dart.core::TypeError* catch(no-exception-var) {
+      dart.core::print("caught type error");
+    }
+    on dart.core::AssertionError* catch(final dart.core::AssertionError* e) {
+      dart.core::print("caught assertion error ${e}");
+    }
+    on dart.core::Error* catch(final dart.core::Error* e, final dart.core::StackTrace* st) {
+      dart.core::print("caught error ${e} ${st}");
+    }
+    on dynamic catch(final dynamic e, final dart.core::StackTrace* st) {
+      dart.core::print("caught something ${e} ${st}");
+    }
+  }
+  static method testTryCatch3() → dynamic {
+    dart.core::int* x = 1;
+    try {
+      dart.core::int* y = 2;
+      function foo() → void {
+        try {
+          dart.core::print("danger foo");
+        }
+        on dynamic catch(final dynamic e) {
+          dart.core::print(x);
+          y = 3;
+        }
+      }
+      [@vm.call-site-attributes.metadata=receiverType:FunctionType(void Function()*)] foo.call();
+      dart.core::print(y);
+    }
+    on dynamic catch(final dynamic e, final dart.core::StackTrace* st) {
+      dart.core::print("caught ${e} ${st}");
+      function bar() → void {
+        try {
+          dart.core::print("danger bar");
+        }
+        on dart.core::Error* catch(final dart.core::Error* e) {
+          dart.core::print("error ${e}, captured stack trace: ${st}");
+        }
+      }
+      return bar;
+    }
+  }
+  static method testRethrow(dart.core::bool* cond) → dynamic {
+    try {
+      try {
+        dart.core::print("try 1 > try 2");
+      }
+      on dynamic catch(final dynamic e) {
+        try {
+          dart.core::print("try 1 > catch 2 > try 3");
+          if(cond) {
+            rethrow;
+          }
+        }
+        on dynamic catch(final dynamic e) {
+          dart.core::print("try 1 > catch 2 > catch 3");
+        }
+      }
+    }
+    on dynamic catch(final dynamic e, final dart.core::StackTrace* st) {
+      dart.core::print("catch 1");
+      dart.core::print(st);
+    }
+  }
+  static method testTryFinally1() → dynamic {
+    #L1:
+    for (dart.core::int* i = 0; i.{dart.core::num::<}(10); i = i.{dart.core::num::+}(1)) {
+      try {
+        if(i.{dart.core::num::>}(5)) {
+          break #L1;
+        }
+      }
+      finally {
+        dart.core::print(i);
+      }
+    }
+  }
+  static method testTryFinally2(dart.core::int* x) → dynamic {
+    #L2:
+    switch(x) {
+      #L3:
+      case #C1:
+        {
+          try {
+            dart.core::print("before try 1");
+            dart.core::int* y = 3;
+            try {
+              dart.core::print("try");
+              function foo() → void {
+                dart.core::print(x);
+                dart.core::print(y);
+              }
+              [@vm.call-site-attributes.metadata=receiverType:FunctionType(void Function()*)] foo.call();
+              continue #L4;
+            }
+            finally {
+              dart.core::print("finally 1");
+            }
+            dart.core::print("after try 1");
+          }
+          finally {
+            dart.core::print("finally 2");
+          }
+          break #L2;
+        }
+      #L4:
+      case #C2:
+        {
+          dart.core::print("case 2");
+          break #L2;
+        }
+    }
+  }
+  static method testTryFinally3() → dynamic {
+    dart.core::int* x = 11;
+    dynamic y;
+    try {
+      y = () → dart.core::int* {
+        dart.core::print(x);
+        try {
+          dart.core::print("try 1");
+          return 42;
+        }
+        finally {
+          try {
+            dart.core::print("try 2");
+            return 43;
+          }
+          finally {
+            dart.core::print(x);
+          }
+        }
+      };
+    }
+    finally {
+      dart.core::print(x);
+      [@vm.call-site-attributes.metadata=receiverType:DynamicType(dynamic)] y.call();
+    }
+  }
+  static method testTryCatchFinally() → dynamic {
+    try
+      try {
+        dart.core::print("try");
+      }
+      on dynamic catch(final dynamic e) {
+        dart.core::print("catch");
+      }
+    finally {
+      dart.core::print("finally");
+    }
+  }
+  static method main() → dynamic {}
+}
+constants  {
+  #C1 = 1
+  #C2 = 2
+}

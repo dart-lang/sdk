@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_js_helper' as js;
+// @dart = 2.7
 
 import 'dart:_foreign_helper' show JS;
 
@@ -15,8 +15,8 @@ foo(c) {
   c.c_field = x;
 }
 
-@js.NoSideEffects()
-@js.NoInline()
+@pragma('dart2js:noSideEffects')
+@pragma('dart2js:noInline')
 bar(d) {
   x = "in bar function";
   d.d_field = x;
@@ -32,14 +32,14 @@ class D {
   m() => d_field;
 }
 
-@js.NoSideEffects()
-@js.NoInline()
-@js.NoThrows()
+@pragma('dart2js:noSideEffects')
+@pragma('dart2js:noInline')
+@pragma('dart2js:noThrows')
 baz() {
   throw 'in baz function';
 }
 
-@js.NoInline()
+@pragma('dart2js:noInline')
 geeNoInline() {
   // Use `gee` several times, so `gee` isn't used only once (and thus inlinable
   // independently of its size).
@@ -85,7 +85,7 @@ geeNoInline() {
   gee();
 }
 
-@js.ForceInline()
+@pragma('dart2js:tryInline')
 // Big function that would normally not be inlinable.
 gee([c]) {
   if (c != null) {
@@ -191,7 +191,7 @@ main() {
   check(JS('', 'arguments.callee'));
 }
 
-@js.NoInline()
+@pragma('dart2js:noInline')
 check(func) {
   JS('', 'String("in check function")');
   var source = JS('String', 'String(#)', func);
@@ -217,7 +217,7 @@ simple() {
   JS('', 'String("in simple function")');
 }
 
-@js.NoInline()
+@pragma('dart2js:noInline')
 noinline() {
   JS('', 'String("in noinline function")');
 }

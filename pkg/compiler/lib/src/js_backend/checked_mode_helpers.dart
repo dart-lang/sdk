@@ -4,9 +4,7 @@
 
 import '../common.dart';
 import '../common_elements.dart';
-import '../elements/elements.dart' show ErroneousElement;
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart' show MalformedType;
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
@@ -14,7 +12,7 @@ import '../ssa/codegen.dart' show SsaCodeGenerator;
 import '../ssa/nodes.dart' show HTypeConversion;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse;
-import 'namer.dart' show Namer;
+import 'namer.dart' show ModularNamer;
 
 class CheckedModeHelper {
   final String name;
@@ -30,32 +28,20 @@ class CheckedModeHelper {
 
   CallStructure get callStructure => CallStructure.ONE_ARG;
 
-  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
+  void generateAdditionalArguments(SsaCodeGenerator codegen, ModularNamer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     // No additional arguments needed.
-  }
-}
-
-class MalformedCheckedModeHelper extends CheckedModeHelper {
-  const MalformedCheckedModeHelper(String name) : super(name);
-
-  CallStructure get callStructure => CallStructure.TWO_ARGS;
-
-  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
-      HTypeConversion node, List<jsAst.Expression> arguments) {
-    // TODO(redemption): Support malformed types in [types.dart].
-    MalformedType type = node.typeExpression;
-    ErroneousElement element = type.element;
-    arguments.add(js.escapedString(element.message));
   }
 }
 
 class PropertyCheckedModeHelper extends CheckedModeHelper {
   const PropertyCheckedModeHelper(String name) : super(name);
 
+  @override
   CallStructure get callStructure => CallStructure.TWO_ARGS;
 
-  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
+  @override
+  void generateAdditionalArguments(SsaCodeGenerator codegen, ModularNamer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     DartType type = node.typeExpression;
     jsAst.Name additionalArgument = namer.operatorIsType(type);
@@ -66,11 +52,13 @@ class PropertyCheckedModeHelper extends CheckedModeHelper {
 class TypeVariableCheckedModeHelper extends CheckedModeHelper {
   const TypeVariableCheckedModeHelper(String name) : super(name);
 
+  @override
   CallStructure get callStructure => CallStructure.TWO_ARGS;
 
-  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
+  @override
+  void generateAdditionalArguments(SsaCodeGenerator codegen, ModularNamer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
-    assert(node.typeExpression.isTypeVariable);
+    assert(node.typeExpression is TypeVariableType);
     codegen.use(node.typeRepresentation);
     arguments.add(codegen.pop());
   }
@@ -79,11 +67,28 @@ class TypeVariableCheckedModeHelper extends CheckedModeHelper {
 class FunctionTypeRepresentationCheckedModeHelper extends CheckedModeHelper {
   const FunctionTypeRepresentationCheckedModeHelper(String name) : super(name);
 
+  @override
   CallStructure get callStructure => CallStructure.TWO_ARGS;
 
-  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
+  @override
+  void generateAdditionalArguments(SsaCodeGenerator codegen, ModularNamer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
-    assert(node.typeExpression.isFunctionType);
+    assert(node.typeExpression is FunctionType);
+    codegen.use(node.typeRepresentation);
+    arguments.add(codegen.pop());
+  }
+}
+
+class FutureOrRepresentationCheckedModeHelper extends CheckedModeHelper {
+  const FutureOrRepresentationCheckedModeHelper(String name) : super(name);
+
+  @override
+  CallStructure get callStructure => CallStructure.TWO_ARGS;
+
+  @override
+  void generateAdditionalArguments(SsaCodeGenerator codegen, ModularNamer namer,
+      HTypeConversion node, List<jsAst.Expression> arguments) {
+    assert(node.typeExpression is FutureOrType);
     codegen.use(node.typeRepresentation);
     arguments.add(codegen.pop());
   }
@@ -92,9 +97,11 @@ class FunctionTypeRepresentationCheckedModeHelper extends CheckedModeHelper {
 class SubtypeCheckedModeHelper extends CheckedModeHelper {
   const SubtypeCheckedModeHelper(String name) : super(name);
 
+  @override
   CallStructure get callStructure => const CallStructure.unnamed(4);
 
-  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
+  @override
+  void generateAdditionalArguments(SsaCodeGenerator codegen, ModularNamer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     // TODO(sra): Move these calls into the SSA graph so that the arguments can
     // be optimized, e,g, GVNed.
@@ -114,13 +121,13 @@ class CheckedModeHelpers {
 
   /// All the checked mode helpers.
   static const List<CheckedModeHelper> helpers = const <CheckedModeHelper>[
-    const MalformedCheckedModeHelper('checkMalformedType'),
     const CheckedModeHelper('stringTypeCast'),
     const CheckedModeHelper('stringTypeCheck'),
     const CheckedModeHelper('doubleTypeCast'),
     const CheckedModeHelper('doubleTypeCheck'),
     const CheckedModeHelper('numTypeCast'),
     const CheckedModeHelper('numTypeCheck'),
+    const CheckedModeHelper('boolConversionCheck'),
     const CheckedModeHelper('boolTypeCast'),
     const CheckedModeHelper('boolTypeCheck'),
     const CheckedModeHelper('intTypeCast'),
@@ -149,6 +156,8 @@ class CheckedModeHelpers {
     const PropertyCheckedModeHelper('propertyTypeCheck'),
     const FunctionTypeRepresentationCheckedModeHelper('functionTypeCast'),
     const FunctionTypeRepresentationCheckedModeHelper('functionTypeCheck'),
+    const FutureOrRepresentationCheckedModeHelper('futureOrCast'),
+    const FutureOrRepresentationCheckedModeHelper('futureOrCheck'),
   ];
 
   // Checked mode helpers indexed by name.
@@ -156,12 +165,10 @@ class CheckedModeHelpers {
       new Map<String, CheckedModeHelper>.fromIterable(helpers,
           key: (helper) => helper.name);
 
-  /**
-   * Returns the checked mode helper that will be needed to do a type check/type
-   * cast on [type] at runtime. Note that this method is being called both by
-   * the resolver with interface types (int, String, ...), and by the SSA
-   * backend with implementation types (JSInt, JSString, ...).
-   */
+  /// Returns the checked mode helper that will be needed to do a type
+  /// check/type cast on [type] at runtime. Note that this method is being
+  /// called both by the resolver with interface types (int, String, ...), and
+  /// by the SSA backend with implementation types (JSInt, JSString, ...).
   CheckedModeHelper getCheckedModeHelper(
       DartType type, CommonElements commonElements,
       {bool typeCast}) {
@@ -169,11 +176,9 @@ class CheckedModeHelpers {
         typeCast: typeCast, nativeCheckOnly: false);
   }
 
-  /**
-   * Returns the native checked mode helper that will be needed to do a type
-   * check/type cast on [type] at runtime. If no native helper exists for
-   * [type], [:null:] is returned.
-   */
+  /// Returns the native checked mode helper that will be needed to do a type
+  /// check/type cast on [type] at runtime. If no native helper exists for
+  /// [type], [:null:] is returned.
   CheckedModeHelper getNativeCheckedModeHelper(
       DartType type, CommonElements commonElements,
       {bool typeCast}) {
@@ -181,10 +186,9 @@ class CheckedModeHelpers {
         typeCast: typeCast, nativeCheckOnly: true);
   }
 
-  /**
-   * Returns the checked mode helper for the type check/type cast for [type]. If
-   * [nativeCheckOnly] is [:true:], only names for native helpers are returned.
-   */
+  /// Returns the checked mode helper for the type check/type cast for
+  /// [type]. If [nativeCheckOnly] is [:true:], only names for native helpers
+  /// are returned.
   CheckedModeHelper getCheckedModeHelperInternal(
       DartType type, CommonElements commonElements,
       {bool typeCast, bool nativeCheckOnly}) {
@@ -199,24 +203,23 @@ class CheckedModeHelpers {
   String getCheckedModeHelperNameInternal(
       DartType type, CommonElements commonElements,
       {bool typeCast, bool nativeCheckOnly}) {
-    assert(!type.isTypedef);
-    if (type.isMalformed) {
-      // The same error is thrown for type test and type cast of a malformed
-      // type so we only need one check method.
-      return 'checkMalformedType';
-    }
+    DartTypes dartTypes = commonElements.dartTypes;
 
-    if (type.isTypeVariable) {
+    if (type is TypeVariableType) {
       return typeCast
           ? 'subtypeOfRuntimeTypeCast'
           : 'assertSubtypeOfRuntimeType';
     }
 
-    if (type.isFunctionType) {
+    if (type is FunctionType) {
       return typeCast ? 'functionTypeCast' : 'functionTypeCheck';
     }
 
-    assert(type.isInterfaceType,
+    if (type is FutureOrType) {
+      return typeCast ? 'futureOrCast' : 'futureOrCheck';
+    }
+
+    assert(type is InterfaceType,
         failedAt(NO_LOCATION_SPANNABLE, "Unexpected type: $type"));
     InterfaceType interfaceType = type;
     ClassEntity element = interfaceType.element;
@@ -272,16 +275,17 @@ class CheckedModeHelpers {
 
     if ((element == commonElements.listClass ||
             element == commonElements.jsArrayClass) &&
-        type.treatAsRaw) {
+        dartTypes.treatAsRawType(type)) {
       if (nativeCheckOnly) return null;
       return 'list$suffix';
     }
 
-    if (commonElements.isListSupertype(element)) {
+    if (commonElements.isListSupertype(element) &&
+        dartTypes.treatAsRawType(type)) {
       return nativeCheck ? 'listSuperNative$suffix' : 'listSuper$suffix';
     }
 
-    if (type.isInterfaceType && !type.treatAsRaw) {
+    if (type is InterfaceType && !dartTypes.treatAsRawType(type)) {
       return typeCast ? 'subtypeCast' : 'assertSubtype';
     }
 

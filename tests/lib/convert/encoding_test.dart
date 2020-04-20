@@ -9,15 +9,15 @@ import 'unicode_tests.dart';
 import "package:async_helper/async_helper.dart";
 
 void runTest(List<int> bytes, expected) {
-  var controller = new StreamController();
+  var controller = new StreamController<List<int>>();
   asyncStart();
-  UTF8.decodeStream(controller.stream).then((decoded) {
+  utf8.decodeStream(controller.stream).then((decoded) {
     Expect.equals(expected, decoded);
     asyncEnd();
   });
   int i = 0;
   while (i < bytes.length) {
-    List nextChunk = [];
+    var nextChunk = <int>[];
     for (int j = 0; j < 3; j++) {
       if (i < bytes.length) {
         nextChunk.add(bytes[i]);

@@ -9,14 +9,14 @@ import "package:expect/expect.dart";
 import 'sort_helper.dart';
 
 main() {
-  var compare = (a, b) => a.compareTo(b);
-  var sort = (list) => list.sort(compare);
+  var compare = (num a, num b) => a.compareTo(b);
+  var sort = (List<num> list) => list.sort(compare);
   new SortHelper(sort, compare).run();
 
-  compare = (a, b) => -a.compareTo(b);
+  compare = (num a, num b) => -a.compareTo(b);
   new SortHelper(sort, compare).run();
 
-  compare = (a, b) => a.compareTo(b);
+  var intCompare = (int a, int b) => a.compareTo(b);
 
   // Pivot-candidate indices: 7, 15, 22, 29, 37
   // Test Dutch flag partitioning (candidates 2 and 4 are the same).
@@ -67,8 +67,8 @@ main() {
     2,
     2
   ];
-  list.sort(compare);
-  Expect.listEquals(list, [
+  list.sort(intCompare);
+  Expect.listEquals(list, <int>[
     0,
     0,
     0,
@@ -163,8 +163,8 @@ main() {
     2,
     2
   ];
-  list.sort(compare);
-  Expect.listEquals(list, [
+  list.sort(intCompare);
+  Expect.listEquals(list, <int>[
     0,
     0,
     0,
@@ -262,8 +262,8 @@ main() {
     6,
     8
   ];
-  list.sort(compare);
-  Expect.listEquals(list, [
+  list.sort(intCompare);
+  Expect.listEquals(list, <int>[
     0,
     0,
     0,

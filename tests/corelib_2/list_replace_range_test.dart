@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 import "dart:collection";
 
-test(List list, int start, int end, Iterable iterable) {
+test(List<int> list, int start, int end, Iterable<int> iterable) {
   List copy = list.toList();
   list.replaceRange(start, end, iterable);
   List iterableList = iterable.toList();
@@ -22,7 +22,7 @@ test(List list, int start, int end, Iterable iterable) {
   }
 }
 
-class MyList extends ListBase {
+class MyList<T> extends ListBase<T> {
   List list;
   MyList(this.list);
   get length => list.length;

@@ -1,15 +1,40 @@
+## 1.1.8
+
+* Introduce `@nonVirtual` to annotate instance members that should not be
+  overridden in subclasses or when mixed in.
+
+## 1.1.7
+
+* Introduce `@sealed` to declare that a class or mixin is not allowed as a
+  super-type.
+
+  Only classes in the same package as a class or mixin annotated with `@sealed`
+  may extend, implement or mix-in the annotated class or mixin. (SDK issue
+  [27372](https://github.com/dart-lang/sdk/issues/27372)).
+
+## 1.1.6
+
+* Set max SDK version to <3.0.0.
+
+## 1.1.5
+
+* Introduce @isTest and @isTestGroup to declare a function that is a
+  test, or a test group.
+
 ## 1.1.4
 
-* Add `@dart2js.noInline` and `@dart2js.tryInline` annotations.
+* Added dart2js.dart.
 
 ## 1.1.2
 
 * Rollback SDK constraint update for 2.0.0. No longer needed.
 
 ## 1.1.1
+
 * Update SDK constraint to be 2.0.0 dev friendly.
 
 ## 1.1.0
+
 * Introduce `@alwaysThrows` to declare that a function always throws
     (SDK issue [17999](https://github.com/dart-lang/sdk/issues/17999)). This
     is first available in Dart SDK 1.25.0-dev.1.0.
@@ -32,7 +57,17 @@
     }
     ```
 
+## 1.0.5
+
+* Introduce `@experimental` to annotate a library, or any declaration that is
+  part of the public interface of a library (such as top-level members, class
+  members, and function parameters) to indicate that the annotated API is
+  experimental and may be removed or changed at any-time without updating the
+  version of the containing package, despite the fact that it would otherwise
+  be a breaking change.
+
 ## 1.0.4
+
 * Introduce `@virtual` to allow field overrides in strong mode
     (SDK issue [27384](https://github.com/dart-lang/sdk/issues/27384)).
 
@@ -51,6 +86,7 @@
     ```
 
 ## 1.0.3
+
 * Introduce `@checked` to override a method and tighten a parameter
     type (SDK issue [25578](https://github.com/dart-lang/sdk/issues/25578)).
 
@@ -71,34 +107,42 @@
     ```
 
 ## 1.0.2
+
 * Introduce `@visibleForTesting` annotation for declarations that may be referenced only in the library or in a test.
 
 ## 1.0.1
+
 * Updated `@factory` to allow statics and methods returning `null`.
 
 ## 1.0.0
+
 * First stable API release.
 
 ## 0.12.2
+
 * Updated `@protected` to include implemented interfaces (linter#252).
 
 ## 0.12.1
+
 * Fixed markdown in dartdocs.
 
 ## 0.12.0
+
 * Introduce `@optionalTypeArgs` annotation for classes whose type arguments are to be treated as optional.
 
 ## 0.11.0
+
 * Added new `Required` constructor with a means to specify a reason to explain why a parameter is required.
 
 ## 0.10.0
-* Introduce `@factory` annotation for methods that must either be abstract or
-must return a newly allocated object.
+
+* Introduce `@factory` annotation for methods that must either be abstract or must return a newly allocated object.
 * Introduce `@literal` annotation that indicates that any invocation of a
 constructor must use the keyword `const` unless one or more of the
 arguments to the constructor is not a compile-time constant.
 
 ## 0.9.0
+
 * Introduce `@protected` annotation for members that must only be called from
 instance members of subclasses.
 * Introduce `@required` annotation for optional parameters that should be treated

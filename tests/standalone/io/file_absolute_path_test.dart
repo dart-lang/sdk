@@ -48,7 +48,6 @@ testWindows() {
 
 testPosix() {
   String current = Directory.current.path;
-  print(Directory.current.path);
   for (String relative in ['abd', '..', '.', 'efg/hij', 'abc/']) {
     if (current.endsWith('/')) {
       Expect.equals(new File(relative).absolute.path, '$current$relative');

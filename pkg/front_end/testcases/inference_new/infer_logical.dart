@@ -7,12 +7,12 @@ library test;
 
 T f<T>() => null;
 
-var /*@topType=bool*/ x = /*@typeArgs=bool*/ f() || /*@typeArgs=bool*/ f();
-var /*@topType=bool*/ y = /*@typeArgs=bool*/ f() && /*@typeArgs=bool*/ f();
+var x = /*@ typeArgs=bool* */ f() || /*@ typeArgs=bool* */ f();
+var y = /*@ typeArgs=bool* */ f() && /*@ typeArgs=bool* */ f();
 
 void test() {
-  var /*@type=bool*/ x = /*@typeArgs=bool*/ f() || /*@typeArgs=bool*/ f();
-  var /*@type=bool*/ y = /*@typeArgs=bool*/ f() && /*@typeArgs=bool*/ f();
+  var /*@ type=bool* */ x = /*@ typeArgs=bool* */ f() || /*@ typeArgs=bool* */ f();
+  var /*@ type=bool* */ y = /*@ typeArgs=bool* */ f() && /*@ typeArgs=bool* */ f();
 }
 
 main() {}

@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method add<A extends core::num* = core::num*, B extends core::num* = core::num*>(self::add::A* a, self::add::B* b) → core::num*
+  ;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

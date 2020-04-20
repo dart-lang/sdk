@@ -13,13 +13,15 @@ import '../io/code_output.dart' show CodeBuffer;
 import 'js_source_mapping.dart';
 
 export 'package:js_ast/js_ast.dart';
+export 'js_debug.dart';
 
-String prettyPrint(Node node, CompilerOptions compilerOptions,
-    {bool allowVariableMinification: true,
+String prettyPrint(Node node,
+    {bool enableMinification: false,
+    bool allowVariableMinification: true,
     Renamer renamerForNames: JavaScriptPrintingOptions.identityRenamer}) {
   // TODO(johnniwinther): Do we need all the options here?
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions(
-      shouldCompressOutput: compilerOptions.enableMinification,
+      shouldCompressOutput: enableMinification,
       minifyLocalVariables: allowVariableMinification,
       renamerForNames: renamerForNames);
   SimpleJavaScriptPrintingContext context =
@@ -67,20 +69,20 @@ class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
 
   @override
   void emit(String string) {
+    monitor?.emit(string);
     outBuffer.add(string);
   }
 
   @override
   void enterNode(Node node, int startPosition) {
+    monitor?.enterNode(node, startPosition);
     codePositionListener.onStartPosition(node, startPosition);
   }
 
   @override
   void exitNode(
       Node node, int startPosition, int endPosition, int closingPosition) {
-    if (monitor != null) {
-      monitor.recordAstSize(node, endPosition - startPosition);
-    }
+    monitor?.exitNode(node, startPosition, endPosition, closingPosition);
     codePositionListener.onPositions(
         node, startPosition, endPosition, closingPosition);
   }
@@ -113,12 +115,11 @@ class TokenCounter extends BaseVisitor {
     }
   }
 
-  // TODO(28763): Remove `<dynamic>` when issue 28763 is fixed.
-  void countTokens(Node node) => node.accept<dynamic>(this);
+  void countTokens(Node node) => node.accept(this);
 }
 
 abstract class ReferenceCountedAstNode implements Node {
-  markSeen(TokenCounter visitor);
+  void markSeen(TokenCounter visitor);
 }
 
 /// Represents the LiteralString resulting from unparsing [expression]. The
@@ -129,10 +130,11 @@ abstract class ReferenceCountedAstNode implements Node {
 /// for example by the lazy emitter or when generating code generators.
 class UnparsedNode extends DeferredString implements AstContainer {
   final Node tree;
-  final CompilerOptions _compilerOptions;
+  final bool _enableMinification;
   final bool _protectForEval;
   LiteralString _cachedLiteral;
 
+  @override
   Iterable<Node> get containedNodes => [tree];
 
   /// A [js.Literal] that represents the string result of unparsing [ast].
@@ -140,11 +142,11 @@ class UnparsedNode extends DeferredString implements AstContainer {
   /// When its string [value] is requested, the node pretty-prints the given
   /// [ast] and, if [protectForEval] is true, wraps the resulting string in
   /// parenthesis. The result is also escaped.
-  UnparsedNode(this.tree, this._compilerOptions, this._protectForEval);
+  UnparsedNode(this.tree, this._enableMinification, this._protectForEval);
 
   LiteralString get _literal {
     if (_cachedLiteral == null) {
-      String text = prettyPrint(tree, _compilerOptions);
+      String text = prettyPrint(tree, enableMinification: _enableMinification);
       if (_protectForEval) {
         if (tree is Fun) text = '($text)';
         if (tree is LiteralExpression) {

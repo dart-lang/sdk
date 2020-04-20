@@ -21,18 +21,6 @@
 namespace dart {
 
 DECLARE_FLAG(bool, trace_service);
-DECLARE_FLAG(bool, show_kernel_isolate);
-
-static uint8_t* malloc_allocator(uint8_t* ptr,
-                                 intptr_t old_size,
-                                 intptr_t new_size) {
-  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
-  return reinterpret_cast<uint8_t*>(new_ptr);
-}
-
-static void malloc_deallocator(uint8_t* ptr) {
-  free(reinterpret_cast<void*>(ptr));
-}
 
 #ifndef PRODUCT
 class RegisterRunningIsolatesVisitor : public IsolateVisitor {
@@ -58,12 +46,7 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
 
   virtual void VisitIsolate(Isolate* isolate) {
     ASSERT(ServiceIsolate::IsServiceIsolate(Isolate::Current()));
-    bool is_kernel_isolate = false;
-#ifndef DART_PRECOMPILED_RUNTIME
-    is_kernel_isolate =
-        KernelIsolate::IsKernelIsolate(isolate) && !FLAG_show_kernel_isolate;
-#endif
-    if (IsVMInternalIsolate(isolate) || is_kernel_isolate) {
+    if (!FLAG_show_invisible_isolates && IsVMInternalIsolate(isolate)) {
       // We do not register the service (and descendants), the vm-isolate, or
       // the kernel isolate.
       return;
@@ -95,10 +78,8 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
 };
 #endif  // !PRODUCT
 
-DEFINE_NATIVE_ENTRY(VMService_SendIsolateServiceMessage, 2) {
-  if (!FLAG_support_service) {
-    return Bool::Get(false).raw();
-  }
+DEFINE_NATIVE_ENTRY(VMService_SendIsolateServiceMessage, 0, 2) {
+#ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, sp, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(1));
 
@@ -107,42 +88,39 @@ DEFINE_NATIVE_ENTRY(VMService_SendIsolateServiceMessage, 2) {
                 Smi::Handle(thread->zone(), Smi::New(Message::kServiceOOBMsg)));
 
   // Serialize message.
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
-  writer.WriteMessage(message);
-
+  MessageWriter writer(false);
   // TODO(turnidge): Throw an exception when the return value is false?
   bool result = PortMap::PostMessage(
-      new Message(sp.Id(), data, writer.BytesWritten(), Message::kOOBPriority));
+      writer.WriteMessage(message, sp.Id(), Message::kOOBPriority));
   return Bool::Get(result).raw();
+#else
+  return Object::null();
+#endif
 }
 
-DEFINE_NATIVE_ENTRY(VMService_SendRootServiceMessage, 1) {
+DEFINE_NATIVE_ENTRY(VMService_SendRootServiceMessage, 0, 1) {
+#ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(0));
-  if (FLAG_support_service) {
-    return Service::HandleRootMessage(message);
-  }
+  return Service::HandleRootMessage(message);
+#endif
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(VMService_SendObjectRootServiceMessage, 1) {
+DEFINE_NATIVE_ENTRY(VMService_SendObjectRootServiceMessage, 0, 1) {
+#ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(0));
-  if (FLAG_support_service) {
     return Service::HandleObjectRootMessage(message);
-  }
+#endif
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(VMService_OnStart, 0) {
+DEFINE_NATIVE_ENTRY(VMService_OnStart, 0, 0) {
+#ifndef PRODUCT
   if (FLAG_trace_service) {
     OS::PrintErr("vm-service: Booting dart:vmservice library.\n");
   }
   // Boot the dart:vmservice library.
   ServiceIsolate::BootVmServiceLibrary();
-  if (!FLAG_support_service) {
-    return Object::null();
-  }
-#ifndef PRODUCT
   // Register running isolates with service.
   RegisterRunningIsolatesVisitor register_isolates(thread);
   if (FLAG_trace_service) {
@@ -153,51 +131,54 @@ DEFINE_NATIVE_ENTRY(VMService_OnStart, 0) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(VMService_OnExit, 0) {
+DEFINE_NATIVE_ENTRY(VMService_OnExit, 0, 0) {
+#ifndef PRODUCT
   if (FLAG_trace_service) {
     OS::PrintErr("vm-service: processed exit message.\n");
     MessageHandler* message_handler = isolate->message_handler();
     OS::PrintErr("vm-service: live ports = %" Pd "\n",
                  message_handler->live_ports());
   }
+#endif
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(VMService_OnServerAddressChange, 1) {
-  if (!FLAG_support_service) {
-    return Object::null();
-  }
+DEFINE_NATIVE_ENTRY(VMService_OnServerAddressChange, 0, 1) {
+#ifndef PRODUCT
   GET_NATIVE_ARGUMENT(String, address, arguments->NativeArgAt(0));
   if (address.IsNull()) {
     ServiceIsolate::SetServerAddress(NULL);
   } else {
     ServiceIsolate::SetServerAddress(address.ToCString());
   }
+#endif
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(VMService_ListenStream, 1) {
+DEFINE_NATIVE_ENTRY(VMService_ListenStream, 0, 1) {
+#ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
-  bool result = false;
-  if (FLAG_support_service) {
-    result = Service::ListenStream(stream_id.ToCString());
-  }
+  bool result = Service::ListenStream(stream_id.ToCString());
   return Bool::Get(result).raw();
+#else
+  return Object::null();
+#endif
 }
 
-DEFINE_NATIVE_ENTRY(VMService_CancelStream, 1) {
+DEFINE_NATIVE_ENTRY(VMService_CancelStream, 0, 1) {
+#ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
-  if (FLAG_support_service) {
-    Service::CancelStream(stream_id.ToCString());
-  }
+  Service::CancelStream(stream_id.ToCString());
+#endif
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(VMService_RequestAssets, 0) {
-  if (!FLAG_support_service) {
-    return Object::null();
-  }
+DEFINE_NATIVE_ENTRY(VMService_RequestAssets, 0, 0) {
+#ifndef PRODUCT
   return Service::RequestAssets();
+#else
+  return Object::null();
+#endif
 }
 
 #ifndef PRODUCT
@@ -370,62 +351,63 @@ static void ContentsFinalizer(void* isolate_callback_data,
   delete[] data;
 }
 
-static void FilenameFinalizer(void* peer) {
+static void FilenameFinalizer(void* isolate_callback_data,
+                              Dart_WeakPersistentHandle handle,
+                              void* peer) {
   char* filename = reinterpret_cast<char*>(peer);
   delete[] filename;
 }
 
 #endif
 
-DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
+DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 0, 1) {
 #ifndef PRODUCT
-  if (!FLAG_support_service) {
-    return Object::null();
-  }
   GET_NON_NULL_NATIVE_ARGUMENT(TypedData, data, arguments->NativeArgAt(0));
-  TransitionVMToNative transition(thread);
   Api::Scope scope(thread);
-
   Dart_Handle data_handle = Api::NewHandle(thread, data.raw());
+  Dart_Handle result_list;
+  {
+    TransitionVMToNative transition(thread);
 
-  Dart_TypedData_Type typ;
-  void* bytes;
-  intptr_t length;
-  Dart_Handle err =
-      Dart_TypedDataAcquireData(data_handle, &typ, &bytes, &length);
-  ASSERT(!Dart_IsError(err));
+    Dart_TypedData_Type typ;
+    void* bytes;
+    intptr_t length;
+    Dart_Handle err =
+        Dart_TypedDataAcquireData(data_handle, &typ, &bytes, &length);
+    ASSERT(!Dart_IsError(err));
 
-  TarArchive archive(reinterpret_cast<uint8_t*>(bytes), length);
-  archive.Read();
+    TarArchive archive(reinterpret_cast<uint8_t*>(bytes), length);
+    archive.Read();
 
-  err = Dart_TypedDataReleaseData(data_handle);
-  ASSERT(!Dart_IsError(err));
+    err = Dart_TypedDataReleaseData(data_handle);
+    ASSERT(!Dart_IsError(err));
 
-  intptr_t archive_size = archive.Length();
+    intptr_t archive_size = archive.Length();
 
-  Dart_Handle result_list = Dart_NewList(2 * archive_size);
-  ASSERT(!Dart_IsError(result_list));
+    result_list = Dart_NewList(2 * archive_size);
+    ASSERT(!Dart_IsError(result_list));
 
-  intptr_t idx = 0;
-  while (archive.HasMore()) {
-    char* filename = archive.NextFilename();
-    uint8_t* contents = archive.NextContent();
-    intptr_t contents_length = archive.NextContentLength();
+    intptr_t idx = 0;
+    while (archive.HasMore()) {
+      char* filename = archive.NextFilename();
+      intptr_t filename_length = strlen(filename);
+      uint8_t* contents = archive.NextContent();
+      intptr_t contents_length = archive.NextContentLength();
 
-    Dart_Handle dart_filename = Dart_NewExternalLatin1String(
-        reinterpret_cast<uint8_t*>(filename), strlen(filename), filename,
-        FilenameFinalizer);
-    ASSERT(!Dart_IsError(dart_filename));
+      Dart_Handle dart_filename = Dart_NewExternalLatin1String(
+          reinterpret_cast<uint8_t*>(filename), filename_length, filename,
+          filename_length, FilenameFinalizer);
+      ASSERT(!Dart_IsError(dart_filename));
 
-    Dart_Handle dart_contents = Dart_NewExternalTypedData(
-        Dart_TypedData_kUint8, contents, contents_length);
-    ASSERT(!Dart_IsError(dart_contents));
-    Dart_NewWeakPersistentHandle(dart_contents, contents, contents_length,
-                                 ContentsFinalizer);
+      Dart_Handle dart_contents = Dart_NewExternalTypedDataWithFinalizer(
+          Dart_TypedData_kUint8, contents, contents_length, contents,
+          contents_length, ContentsFinalizer);
+      ASSERT(!Dart_IsError(dart_contents));
 
-    Dart_ListSetAt(result_list, idx, dart_filename);
-    Dart_ListSetAt(result_list, (idx + 1), dart_contents);
-    idx += 2;
+      Dart_ListSetAt(result_list, idx, dart_filename);
+      Dart_ListSetAt(result_list, (idx + 1), dart_contents);
+      idx += 2;
+    }
   }
   return Api::UnwrapArrayHandle(thread->zone(), result_list).raw();
 #else
@@ -433,11 +415,8 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
 #endif
 }
 
-DEFINE_NATIVE_ENTRY(VMService_spawnUriNotify, 2) {
+DEFINE_NATIVE_ENTRY(VMService_spawnUriNotify, 0, 2) {
 #ifndef PRODUCT
-  if (!FLAG_support_service) {
-    return Object::null();
-  }
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, result, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, token, arguments->NativeArgAt(1));
 

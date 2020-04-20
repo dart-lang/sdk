@@ -1,0 +1,18 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+import "dart:math" as math;
+
+class Trace extends core::Object {
+  field core::List<self::Frame*>* frames;
+  synthetic constructor •() → self::Trace*
+    ;
+}
+class Frame extends core::Object {
+  field core::String* location;
+  synthetic constructor •() → self::Frame*
+    ;
+}
+static method main() → dynamic
+  ;

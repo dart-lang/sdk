@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.io;
 
 // Each Isolate may run in a different "namespace", which provides the scope in
@@ -19,5 +21,6 @@ abstract class _Namespace {
   // If it is not set up by the embedder, relative paths will be resolved
   // relative to the process's current working directory and absolute paths will
   // be left relative to the file system root.
+  @pragma("vm:entry-point")
   external static void _setupNamespace(var namespace);
 }

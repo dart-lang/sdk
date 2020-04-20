@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,34 +6,27 @@ import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol_server.dart' as proto;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 
-/**
- * Return the elements that the given [element] overrides.
- */
+/// Return the elements that the given [element] overrides.
 OverriddenElements findOverriddenElements(Element element) {
   if (element?.enclosingElement is ClassElement) {
-    return new _OverriddenElementsFinder(element).find();
+    return _OverriddenElementsFinder(element).find();
   }
-  return new OverriddenElements(element, <Element>[], <Element>[]);
+  return OverriddenElements(element, <Element>[], <Element>[]);
 }
 
-/**
- * A computer for class member overrides in a Dart [CompilationUnit].
- */
+/// A computer for class member overrides in a Dart [CompilationUnit].
 class DartUnitOverridesComputer {
   final CompilationUnit _unit;
   final List<proto.Override> _overrides = <proto.Override>[];
 
   DartUnitOverridesComputer(this._unit);
 
-  /**
-   * Returns the computed occurrences, not `null`.
-   */
+  /// Returns the computed occurrences, not `null`.
   List<proto.Override> compute() {
-    for (CompilationUnitMember unitMember in _unit.declarations) {
-      if (unitMember is ClassDeclaration) {
-        for (ClassMember classMember in unitMember.members) {
+    for (var unitMember in _unit.declarations) {
+      if (unitMember is ClassOrMixinDeclaration) {
+        for (var classMember in unitMember.members) {
           if (classMember is MethodDeclaration) {
             if (classMember.isStatic) {
               continue;
@@ -45,7 +38,7 @@ class DartUnitOverridesComputer {
               continue;
             }
             List<VariableDeclaration> fields = classMember.fields.variables;
-            for (VariableDeclaration field in fields) {
+            for (var field in fields) {
               _addOverride(field.name);
             }
           }
@@ -55,70 +48,59 @@ class DartUnitOverridesComputer {
     return _overrides;
   }
 
-  /**
-   * Add a new [Override] for the declaration with the given name [node].
-   */
+  /// Add a new [Override] for the declaration with the given name [node].
   void _addOverride(SimpleIdentifier node) {
-    Element element = node.staticElement;
-    OverriddenElements overridesResult =
-        new _OverriddenElementsFinder(element).find();
-    List<Element> superElements = overridesResult.superElements;
-    List<Element> interfaceElements = overridesResult.interfaceElements;
+    var element = node.staticElement;
+    var overridesResult = _OverriddenElementsFinder(element).find();
+    var superElements = overridesResult.superElements;
+    var interfaceElements = overridesResult.interfaceElements;
     if (superElements.isNotEmpty || interfaceElements.isNotEmpty) {
-      proto.OverriddenMember superMember = superElements.isNotEmpty
+      var superMember = superElements.isNotEmpty
           ? proto.newOverriddenMember_fromEngine(superElements.first)
           : null;
-      List<proto.OverriddenMember> interfaceMembers = interfaceElements
+      var interfaceMembers = interfaceElements
           .map((member) => proto.newOverriddenMember_fromEngine(member))
           .toList();
-      _overrides.add(new proto.Override(node.offset, node.length,
+      _overrides.add(proto.Override(node.offset, node.length,
           superclassMember: superMember,
           interfaceMembers: nullIfEmpty(interfaceMembers)));
     }
   }
 }
 
-/**
- * The container with elements that a class member overrides.
- */
+/// The container with elements that a class member overrides.
 class OverriddenElements {
-  /**
-   * The element that overrides other class members.
-   */
+  /// The element that overrides other class members.
   final Element element;
 
-  /**
-   * The elements that [element] overrides and which is defined in a class that
-   * is a superclass of the class that defines [element].
-   */
+  /// The elements that [element] overrides and which is defined in a class that
+  /// is a superclass of the class that defines [element].
   final List<Element> superElements;
 
-  /**
-   * The elements that [element] overrides and which is defined in a class that
-   * which is implemented by the class that defines [element].
-   */
+  /// The elements that [element] overrides and which is defined in a class that
+  /// which is implemented by the class that defines [element].
   final List<Element> interfaceElements;
 
   OverriddenElements(this.element, this.superElements, this.interfaceElements);
 }
 
 class _OverriddenElementsFinder {
-  static const List<ElementKind> FIELD_KINDS = const <ElementKind>[
+  static const List<ElementKind> FIELD_KINDS = <ElementKind>[
     ElementKind.FIELD,
     ElementKind.GETTER,
     ElementKind.SETTER
   ];
 
-  static const List<ElementKind> GETTER_KINDS = const <ElementKind>[
+  static const List<ElementKind> GETTER_KINDS = <ElementKind>[
     ElementKind.FIELD,
     ElementKind.GETTER
   ];
 
-  static const List<ElementKind> METHOD_KINDS = const <ElementKind>[
+  static const List<ElementKind> METHOD_KINDS = <ElementKind>[
     ElementKind.METHOD
   ];
 
-  static const List<ElementKind> SETTER_KINDS = const <ElementKind>[
+  static const List<ElementKind> SETTER_KINDS = <ElementKind>[
     ElementKind.FIELD,
     ElementKind.SETTER
   ];
@@ -129,21 +111,13 @@ class _OverriddenElementsFinder {
   String _name;
   List<ElementKind> _kinds;
 
-  List<Element> _superElements = <Element>[];
-  List<Element> _interfaceElements = <Element>[];
-  Set<InterfaceType> _visited = new Set<InterfaceType>();
+  final List<Element> _superElements = <Element>[];
+  final List<Element> _interfaceElements = <Element>[];
+  final Set<ClassElement> _visited = <ClassElement>{};
 
   _OverriddenElementsFinder(Element seed) {
     _seed = seed;
     _class = seed.enclosingElement;
-    if (_class == null) {
-      // TODO(brianwilkerson) Remove this code when the issue has been fixed
-      // (https://github.com/dart-lang/sdk/issues/25884)
-      Type type = seed.runtimeType;
-      String name = seed.name;
-      throw new ArgumentError(
-          'The $type named $name does not have an enclosing element');
-    }
     _library = _class.library;
     _name = seed.displayName;
     if (seed is MethodElement) {
@@ -155,54 +129,60 @@ class _OverriddenElementsFinder {
     }
   }
 
-  /**
-   * Add the [OverriddenElements] for this element.
-   */
+  /// Add the [OverriddenElements] for this element.
   OverriddenElements find() {
     _visited.clear();
-    _addSuperOverrides(_class.supertype);
+    _addSuperOverrides(_class, withThisType: false);
     _visited.clear();
-    _addInterfaceOverrides(_class.type, false);
+    _addInterfaceOverrides(_class, false);
     _superElements.forEach(_interfaceElements.remove);
-    return new OverriddenElements(_seed, _superElements, _interfaceElements);
+    return OverriddenElements(_seed, _superElements, _interfaceElements);
   }
 
-  void _addInterfaceOverrides(InterfaceType type, bool checkType) {
-    if (type == null) {
+  void _addInterfaceOverrides(ClassElement class_, bool checkType) {
+    if (class_ == null) {
       return;
     }
-    if (!_visited.add(type)) {
+    if (!_visited.add(class_)) {
       return;
     }
     // this type
     if (checkType) {
-      Element element = _lookupMember(type.element);
+      var element = _lookupMember(class_);
       if (element != null && !_interfaceElements.contains(element)) {
         _interfaceElements.add(element);
       }
     }
     // interfaces
-    for (InterfaceType interfaceType in type.interfaces) {
-      _addInterfaceOverrides(interfaceType, true);
+    for (var interfaceType in class_.interfaces) {
+      _addInterfaceOverrides(interfaceType.element, true);
     }
     // super
-    _addInterfaceOverrides(type.superclass, checkType);
+    _addInterfaceOverrides(class_.supertype?.element, checkType);
   }
 
-  void _addSuperOverrides(InterfaceType type) {
-    if (type == null) {
+  void _addSuperOverrides(ClassElement class_, {bool withThisType = true}) {
+    if (class_ == null) {
       return;
     }
-    if (!_visited.add(type)) {
+    if (!_visited.add(class_)) {
       return;
     }
-    // this type
-    Element element = _lookupMember(type.element);
-    if (element != null && !_superElements.contains(element)) {
-      _superElements.add(element);
+
+    if (withThisType) {
+      var element = _lookupMember(class_);
+      if (element != null && !_superElements.contains(element)) {
+        _superElements.add(element);
+      }
     }
-    // super
-    _addSuperOverrides(type.superclass);
+
+    _addSuperOverrides(class_.supertype?.element);
+    for (var mixin_ in class_.mixins) {
+      _addSuperOverrides(mixin_.element);
+    }
+    for (var constraint in class_.superclassConstraints) {
+      _addSuperOverrides(constraint.element);
+    }
   }
 
   Element _lookupMember(ClassElement classElement) {

@@ -7,11 +7,11 @@ library test.superclass;
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
-checkSuperclassChain(ClassMirror cm) {
-  ClassMirror last;
+checkSuperclassChain(ClassMirror? cm) {
+  ClassMirror? last;
   do {
     last = cm;
-    cm = cm.superclass;
+    cm = cm!.superclass;
   } while (cm != null);
   Expect.equals(reflectClass(Object), last);
 }

@@ -38,10 +38,11 @@ main() {
         var canvas = new CanvasElement();
         var context =
             canvas.getContext('experimental-webgl') as gl.RenderingContext;
-        var shader = context.createShader(gl.VERTEX_SHADER);
+        var shader = context.createShader(gl.WebGL.VERTEX_SHADER);
         context.shaderSource(shader, 'void main() { }');
         context.compileShader(shader);
-        var success = context.getShaderParameter(shader, gl.COMPILE_STATUS);
+        var success =
+            context.getShaderParameter(shader, gl.WebGL.COMPILE_STATUS);
         expect(success, isTrue);
       });
 

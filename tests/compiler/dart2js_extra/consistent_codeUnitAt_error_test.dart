@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import "package:expect/expect.dart";
 
 // Test that optimized codeUnitAt and slow path codeUnitAt produce the same
 // error.
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 confuse(x) => x;
 
 void check2(String name, name1, f1, name2, f2) {
@@ -116,7 +118,7 @@ class BadType {
 
   static f3() {
     var a = confuse(true) ? 'AB' : 'ABCDE'; // String with unknown length.
-    return a.codeUnitAt('a');
+    return a.codeUnitAt(('a' as dynamic));
   }
 
   static test() {

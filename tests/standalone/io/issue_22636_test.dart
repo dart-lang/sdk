@@ -6,21 +6,21 @@
 // closed for read (the other end has closed for write) does not send
 // an additional READ_CLOSED event.
 
-import "dart:io";
 import "dart:async";
+import "dart:io";
 import "package:expect/expect.dart";
 
 final Duration delay = new Duration(milliseconds: 100);
-final List data = new List.generate(100, (i) => i % 20 + 65);
-RawServerSocket server;
-RawSocket client;
+final List<int> data = new List.generate(100, (i) => i % 20 + 65);
+late RawServerSocket server;
+late RawSocket client;
 bool serverReadClosedReceived = false;
 bool serverFirstWrite = true;
 
 void serverListen(RawSocket serverSide) {
   void serveData(RawSocketEvent event) {
     switch (event) {
-      case RawSocketEvent.WRITE:
+      case RawSocketEvent.write:
         serverSide.write(data);
         if (serverFirstWrite) {
           serverFirstWrite = false;
@@ -30,12 +30,12 @@ void serverListen(RawSocket serverSide) {
         } else {
           new Future.delayed(delay, () {
             Expect.isTrue(serverReadClosedReceived);
-            serverSide.shutdown(SocketDirection.SEND);
+            serverSide.shutdown(SocketDirection.send);
             server.close();
           });
         }
         break;
-      case RawSocketEvent.READ_CLOSED:
+      case RawSocketEvent.readClosed:
         Expect.isFalse(serverReadClosedReceived);
         serverReadClosedReceived = true;
         break;
@@ -46,12 +46,12 @@ void serverListen(RawSocket serverSide) {
 }
 
 test() async {
-  server = await RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0);
+  server = await RawServerSocket.bind(InternetAddress.loopbackIPv4, 0);
   server.listen(serverListen);
-  client = await RawSocket.connect(InternetAddress.LOOPBACK_IP_V4, server.port);
-  client.shutdown(SocketDirection.SEND);
+  client = await RawSocket.connect(InternetAddress.loopbackIPv4, server.port);
+  client.shutdown(SocketDirection.send);
   client.listen((RawSocketEvent event) {
-    if (event == RawSocketEvent.READ) {
+    if (event == RawSocketEvent.read) {
       client.read();
     }
   });

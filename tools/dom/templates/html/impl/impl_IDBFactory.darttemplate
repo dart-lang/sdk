@@ -15,10 +15,10 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
         'window.mozIndexedDB)');
   }
 
-  @DomName('IDBFactory.open')
   Future<Database> open(String name,
-      {int version, void onUpgradeNeeded(VersionChangeEvent),
-      void onBlocked(Event)}) {
+      {int$NULLABLE version,
+      void onUpgradeNeeded(VersionChangeEvent event)$NULLABLE,
+      void onBlocked(Event event)$NULLABLE}) {
     if ((version == null) != (onUpgradeNeeded == null)) {
       return new Future.error(new ArgumentError(
           'version and onUpgradeNeeded must be specified together'));
@@ -43,9 +43,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  @DomName('IDBFactory.deleteDatabase')
   Future<IdbFactory> deleteDatabase(String name,
-      {void onBlocked(Event e)}) {
+      {void onBlocked(Event e)$NULLABLE}) {
     try {
       var request = _deleteDatabase(name);
 
@@ -63,21 +62,9 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  @DomName('IDBFactory.getDatabaseNames')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
-  Future<List<String>> getDatabaseNames() {
-    try {
-      var request = _webkitGetDatabaseNames();
-
-      return _completeRequest(request);
-    } catch (e, stacktrace) {
-      return new Future.error(e, stacktrace);
-    }
-  }
-
   /**
    * Checks to see if getDatabaseNames is supported by the current platform.
+   * TODO(terry): Should be able to always return false?
    */
   bool get supportsDatabaseNames {
     return supported && JS('bool',
@@ -92,12 +79,12 @@ $!MEMBERS
  * Ties a request to a completer, so the completer is completed when it succeeds
  * and errors out when the request errors.
  */
-Future/*<T>*/ _completeRequest/*<T>*/(Request request) {
-  var completer = new Completer/*<T>*/.sync();
+Future<T> _completeRequest<T>(Request request) {
+  var completer = new Completer<T>.sync();
   // TODO: make sure that completer.complete is synchronous as transactions
   // may be committed if the result is not processed immediately.
   request.onSuccess.listen((e) {
-    var result = _cast/*<T>*/(request.result);
+    T result = request.result;
     completer.complete(result);
   });
   request.onError.listen(completer.completeError);

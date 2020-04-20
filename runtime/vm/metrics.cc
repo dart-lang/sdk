@@ -22,48 +22,41 @@ DEFINE_FLAG(bool,
 
 Metric* Metric::vm_list_head_ = NULL;
 
-Metric::Metric()
-    : isolate_(NULL),
-      name_(NULL),
-      description_(NULL),
-      unit_(kCounter),
-      value_(0),
-      next_(NULL) {}
+Metric::Metric() : unit_(kCounter), value_(0) {}
+Metric::~Metric() {}
 
-void Metric::Init(Isolate* isolate,
-                  const char* name,
-                  const char* description,
-                  Unit unit) {
+void Metric::InitInstance(IsolateGroup* isolate_group,
+                          const char* name,
+                          const char* description,
+                          Unit unit) {
   // Only called once.
-  ASSERT(next_ == NULL);
+  ASSERT(name != NULL);
+  isolate_group_ = isolate_group;
+  name_ = name;
+  description_ = description;
+  unit_ = unit;
+}
+
+void Metric::InitInstance(Isolate* isolate,
+                          const char* name,
+                          const char* description,
+                          Unit unit) {
+  // Only called once.
   ASSERT(name != NULL);
   isolate_ = isolate;
   name_ = name;
   description_ = description;
   unit_ = unit;
-  RegisterWithIsolate();
 }
 
-void Metric::Init(const char* name, const char* description, Unit unit) {
+void Metric::InitInstance(const char* name,
+                          const char* description,
+                          Unit unit) {
   // Only called once.
-  ASSERT(next_ == NULL);
   ASSERT(name != NULL);
   name_ = name;
   description_ = description;
   unit_ = unit;
-  RegisterWithVM();
-}
-
-Metric::~Metric() {
-  // Only deregister metrics which had been registered. Metrics without a name
-  // are from shallow copy isolates.
-  if (name_ != NULL) {
-    if (isolate_ == NULL) {
-      DeregisterWithVM();
-    } else {
-      DeregisterWithIsolate();
-    }
-  }
 }
 
 #ifndef PRODUCT
@@ -83,15 +76,12 @@ static const char* UnitString(intptr_t unit) {
 }
 
 void Metric::PrintJSON(JSONStream* stream) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONObject obj(stream);
   obj.AddProperty("type", "Counter");
   obj.AddProperty("name", name_);
   obj.AddProperty("description", description_);
   obj.AddProperty("unit", UnitString(unit()));
-  if (isolate_ == NULL) {
+  if (isolate_ == nullptr && isolate_group_ == nullptr) {
     obj.AddFixedServiceId("vm/metrics/%s", name_);
   } else {
     obj.AddFixedServiceId("metrics/native/%s", name_);
@@ -153,136 +143,40 @@ char* Metric::ToString() {
   return zone->PrintToString("%s %s", name(), ValueToString(Value(), unit()));
 }
 
-bool Metric::NameExists(Metric* head, const char* name) {
-  ASSERT(name != NULL);
-  while (head != NULL) {
-    const char* metric_name = head->name();
-    ASSERT(metric_name != NULL);
-    if (strcmp(metric_name, name) == 0) {
-      return true;
-    }
-    head = head->next();
-  }
-  return false;
-}
-
-void Metric::RegisterWithIsolate() {
-  ASSERT(isolate_ != NULL);
-  ASSERT(next_ == NULL);
-  // No duplicate names allowed.
-  ASSERT(!NameExists(isolate_->metrics_list_head(), name()));
-  Metric* head = isolate_->metrics_list_head();
-  if (head != NULL) {
-    set_next(head);
-  }
-  isolate_->set_metrics_list_head(this);
-}
-
-void Metric::DeregisterWithIsolate() {
-  Metric* head = isolate_->metrics_list_head();
-  ASSERT(head != NULL);
-  // Handle head of list case.
-  if (head == this) {
-    isolate_->set_metrics_list_head(next());
-    set_next(NULL);
-    return;
-  }
-  Metric* previous = NULL;
-  while (true) {
-    previous = head;
-    ASSERT(previous != NULL);
-    head = head->next();
-    if (head == NULL) {
-      break;
-    }
-    if (head == this) {
-      // Remove this from list.
-      previous->set_next(head->next());
-      set_next(NULL);
-      return;
-    }
-    ASSERT(head != NULL);
-  }
-  UNREACHABLE();
-}
-
-void Metric::RegisterWithVM() {
-  ASSERT(isolate_ == NULL);
-  ASSERT(next_ == NULL);
-  // No duplicate names allowed.
-  ASSERT(!NameExists(vm_list_head_, name()));
-  Metric* head = vm_list_head_;
-  if (head != NULL) {
-    set_next(head);
-  }
-  vm_list_head_ = this;
-}
-
-void Metric::DeregisterWithVM() {
-  ASSERT(isolate_ == NULL);
-  Metric* head = vm_list_head_;
-  if (head == NULL) {
-    return;
-  }
-  // Handle head of list case.
-  if (head == this) {
-    vm_list_head_ = next();
-    set_next(NULL);
-    return;
-  }
-  Metric* previous = NULL;
-  while (true) {
-    previous = head;
-    ASSERT(previous != NULL);
-    head = head->next();
-    if (head == NULL) {
-      break;
-    }
-    if (head == this) {
-      // Remove this from list.
-      previous->set_next(head->next());
-      set_next(NULL);
-      return;
-    }
-    ASSERT(head != NULL);
-  }
-  UNREACHABLE();
-}
-
 int64_t MetricHeapOldUsed::Value() const {
-  ASSERT(isolate() == Isolate::Current());
-  return isolate()->heap()->UsedInWords(Heap::kOld) * kWordSize;
+  ASSERT(isolate_group() == IsolateGroup::Current());
+  return isolate_group()->heap()->UsedInWords(Heap::kOld) * kWordSize;
 }
 
 int64_t MetricHeapOldCapacity::Value() const {
-  ASSERT(isolate() == Isolate::Current());
-  return isolate()->heap()->CapacityInWords(Heap::kOld) * kWordSize;
+  ASSERT(isolate_group() == IsolateGroup::Current());
+  return isolate_group()->heap()->CapacityInWords(Heap::kOld) * kWordSize;
 }
 
 int64_t MetricHeapOldExternal::Value() const {
-  ASSERT(isolate() == Isolate::Current());
-  return isolate()->heap()->ExternalInWords(Heap::kOld) * kWordSize;
+  ASSERT(isolate_group() == IsolateGroup::Current());
+  return isolate_group()->heap()->ExternalInWords(Heap::kOld) * kWordSize;
 }
 
 int64_t MetricHeapNewUsed::Value() const {
-  ASSERT(isolate() == Isolate::Current());
-  return isolate()->heap()->UsedInWords(Heap::kNew) * kWordSize;
+  ASSERT(isolate_group() == IsolateGroup::Current());
+  return isolate_group()->heap()->UsedInWords(Heap::kNew) * kWordSize;
 }
 
 int64_t MetricHeapNewCapacity::Value() const {
-  ASSERT(isolate() == Isolate::Current());
-  return isolate()->heap()->CapacityInWords(Heap::kNew) * kWordSize;
+  ASSERT(isolate_group() == IsolateGroup::Current());
+  return isolate_group()->heap()->CapacityInWords(Heap::kNew) * kWordSize;
 }
 
 int64_t MetricHeapNewExternal::Value() const {
-  ASSERT(isolate() == Isolate::Current());
-  return isolate()->heap()->ExternalInWords(Heap::kNew) * kWordSize;
+  ASSERT(isolate_group() == IsolateGroup::Current());
+  return isolate_group()->heap()->ExternalInWords(Heap::kNew) * kWordSize;
 }
 
 int64_t MetricHeapUsed::Value() const {
-  ASSERT(isolate() == Isolate::Current());
-  return isolate()->heap()->UsedInWords(Heap::kNew) * kWordSize +
-         isolate()->heap()->UsedInWords(Heap::kOld) * kWordSize;
+  ASSERT(isolate_group() == IsolateGroup::Current());
+  return isolate_group()->heap()->UsedInWords(Heap::kNew) * kWordSize +
+         isolate_group()->heap()->UsedInWords(Heap::kOld) * kWordSize;
 }
 
 int64_t MetricIsolateCount::Value() const {
@@ -298,13 +192,13 @@ int64_t MetricPeakRSS::Value() const {
 }
 
 #define VM_METRIC_VARIABLE(type, variable, name, unit)                         \
-  static type vm_metric_##variable##_;
+  type vm_metric_##variable;
 VM_METRIC_LIST(VM_METRIC_VARIABLE);
 #undef VM_METRIC_VARIABLE
 
-void Metric::InitOnce() {
+void Metric::Init() {
 #define VM_METRIC_INIT(type, variable, name, unit)                             \
-  vm_metric_##variable##_.Init(name, NULL, Metric::unit);
+  vm_metric_##variable.InitInstance(name, NULL, Metric::unit);
   VM_METRIC_LIST(VM_METRIC_INIT);
 #undef VM_METRIC_INIT
 }
@@ -314,11 +208,11 @@ void Metric::Cleanup() {
     // Create a zone to allocate temporary strings in.
     StackZone sz(Thread::Current());
     OS::PrintErr("Printing metrics for VM\n");
-    Metric* current = Metric::vm_head();
-    while (current != NULL) {
-      OS::PrintErr("%s\n", current->ToString());
-      current = current->next();
-    }
+
+#define VM_METRIC_INIT(type, variable, name, unit)                             \
+  OS::PrintErr("%s\n", vm_metric_##variable.ToString());
+    VM_METRIC_LIST(VM_METRIC_INIT);
+#undef VM_METRIC_INIT
     OS::PrintErr("\n");
   }
 }

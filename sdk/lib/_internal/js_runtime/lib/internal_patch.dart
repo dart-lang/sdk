@@ -2,10 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
+import 'dart:core' hide Symbol;
+import 'dart:core' as core;
 import 'dart:_js_primitives' show printString;
-import 'dart:_js_helper' show patch;
+import 'dart:_js_helper' show patch, NoInline;
 import 'dart:_interceptors' show JSArray;
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
 
 @patch
 class Symbol implements core.Symbol {
@@ -44,4 +48,14 @@ List<T> makeListFixedLength<T>(List<T> growableList) {
 @patch
 List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList) {
   return JSArray.markUnmodifiableList(fixedLengthList);
+}
+
+@patch
+@pragma('dart2js:noInline')
+Object extractTypeArguments<T>(T instance, Function extract) {
+  // This function is recognized and replaced with calls to js_runtime.
+
+  // This call to [extract] is required to model that the function is called and
+  // the returned value flows to the result of extractTypeArguments.
+  return extract();
 }

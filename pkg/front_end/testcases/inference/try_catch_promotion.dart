@@ -15,13 +15,13 @@ void test(void f()) {
   try {
     f();
   } on C catch (x, y) {
-    var /*@type=C*/ x1 = x;
-    var /*@type=StackTrace*/ y1 = y;
+    var /*@ type=C* */ x1 = x;
+    var /*@ type=StackTrace* */ y1 = y;
     if (x is D) {
-      var /*@type=D*/ x2 = /*@promotedType=D*/ x;
+      var /*@ type=D* */ x2 = /*@ promotedType=D* */ x;
     }
     if (y is E) {
-      var /*@type=E*/ y2 = /*@promotedType=E*/ y;
+      var /*@ type=E* */ y2 = /*@ promotedType=E* */ y;
     }
   }
 }

@@ -2,22 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.io;
 
 /**
  * [Link] objects are references to filesystem links.
  *
  */
+@pragma("vm:entry-point")
 abstract class Link implements FileSystemEntity {
   /**
    * Creates a Link object.
    */
+  @pragma("vm:entry-point")
   factory Link(String path) {
     final IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
       return new _Link(path);
     }
     return overrides.createLink(path);
+  }
+
+  @pragma("vm:entry-point")
+  factory Link.fromRawPath(Uint8List rawPath) {
+    // TODO(bkonyi): handle overrides
+    return new _Link.fromRawPath(rawPath);
   }
 
   /**
@@ -42,11 +52,11 @@ abstract class Link implements FileSystemEntity {
    * components are created. The directories in the path of [target] are
    * not affected, unless they are also in [path].
    *
-   * On the Windows platform, this will only work with directories, and the
-   * target directory must exist. The link will be created as a Junction.
-   * Only absolute links will be created, and relative paths to the target
-   * will be converted to absolute paths by joining them with the path of the
-   * directory the link is contained in.
+   * On the Windows platform, this call will create a true symbolic link
+   * instead of a Junction. In order to create a symbolic link on Windows, Dart
+   * must be run in Administrator mode or the system must have Developer Mode
+   * enabled, otherwise a [FileSystemException] will be raised with 
+   * `ERROR_PRIVILEGE_NOT_HELD` set as the errno when this call is made.
    *
    * On other platforms, the posix symlink() call is used to make a symbolic
    * link containing the string [target].  If [target] is a relative path,
@@ -63,10 +73,11 @@ abstract class Link implements FileSystemEntity {
    * non-existing path components are created. The directories in
    * the path of [target] are not affected, unless they are also in [path].
    *
-   * On the Windows platform, this will only work with directories, and the
-   * target directory must exist. The link will be created as a Junction.
-   * Only absolute links will be created, and relative paths to the target
-   * will be converted to absolute paths.
+   * On the Windows platform, this call will create a true symbolic link
+   * instead of a Junction. In order to create a symbolic link on Windows, Dart
+   * must be run in Administrator mode or the system must have Developer Mode
+   * enabled, otherwise a [FileSystemException] will be raised with 
+   * `ERROR_PRIVILEGE_NOT_HELD` set as the errno when this call is made.
    *
    * On other platforms, the posix symlink() call is used to make a symbolic
    * link containing the string [target].  If [target] is a relative path,
@@ -77,9 +88,6 @@ abstract class Link implements FileSystemEntity {
   /**
    * Synchronously updates the link. Calling [updateSync] on a non-existing link
    * will throw an exception.
-   *
-   * On the Windows platform, this will only work with directories, and the
-   * target directory must exist.
    */
   void updateSync(String target);
 
@@ -87,9 +95,6 @@ abstract class Link implements FileSystemEntity {
    * Updates the link. Returns a [:Future<Link>:] that completes with the
    * link when it has been updated.  Calling [update] on a non-existing link
    * will complete its returned future with an exception.
-   *
-   * On the Windows platform, this will only work with directories, and the
-   * target directory must exist.
    */
   Future<Link> update(String target);
 
@@ -150,32 +155,36 @@ abstract class Link implements FileSystemEntity {
 }
 
 class _Link extends FileSystemEntity implements Link {
-  final String path;
+  String _path;
+  Uint8List _rawPath;
 
-  _Link(this.path) {
-    if (path is! String) {
-      throw new ArgumentError('${Error.safeToString(path)} '
-          'is not a String');
-    }
+  _Link(String path) {
+    ArgumentError.checkNotNull(path, 'path');
+    _path = path;
+    _rawPath = FileSystemEntity._toUtf8Array(path);
   }
+
+  _Link.fromRawPath(Uint8List rawPath) {
+    _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(rawPath);
+    _path = FileSystemEntity._toStringFromUtf8Array(rawPath);
+  }
+
+  String get path => _path;
 
   String toString() => "Link: '$path'";
 
-  Future<bool> exists() => FileSystemEntity.isLink(path);
+  Future<bool> exists() => FileSystemEntity._isLinkRaw(_rawPath);
 
-  bool existsSync() => FileSystemEntity.isLinkSync(path);
+  bool existsSync() => FileSystemEntity._isLinkRawSync(_rawPath);
 
-  Link get absolute => new Link(_absolutePath);
+  Link get absolute => new Link.fromRawPath(_rawAbsolutePath);
 
   Future<Link> create(String target, {bool recursive: false}) {
-    if (Platform.isWindows) {
-      target = _makeWindowsLinkTarget(target);
-    }
     var result =
         recursive ? parent.create(recursive: true) : new Future.value(null);
     return result
-        .then((_) => _File
-            ._dispatchWithNamespace(_FILE_CREATE_LINK, [null, path, target]))
+        .then((_) => _File._dispatchWithNamespace(
+            _IOService.fileCreateLink, [null, _rawPath, target]))
         .then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
@@ -189,26 +198,8 @@ class _Link extends FileSystemEntity implements Link {
     if (recursive) {
       parent.createSync(recursive: true);
     }
-    if (Platform.isWindows) {
-      target = _makeWindowsLinkTarget(target);
-    }
-    var result = _File._createLink(_Namespace._namespace, path, target);
+    var result = _File._createLink(_Namespace._namespace, _rawPath, target);
     throwIfError(result, "Cannot create link", path);
-  }
-
-  // Put target into the form "\??\C:\my\target\dir".
-  String _makeWindowsLinkTarget(String target) {
-    Uri base = new Uri.file('${Directory.current.path}\\');
-    Uri link = new Uri.file(path);
-    Uri destination = new Uri.file(target);
-    String result = base.resolveUri(link).resolveUri(destination).toFilePath();
-    if (result.length > 3 && result[1] == ':' && result[2] == '\\') {
-      return '\\??\\$result';
-    } else {
-      throw new FileSystemException(
-          'Target $result of Link.create on Windows cannot be converted' +
-              ' to start with a drive letter.  Unexpected error.');
-    }
   }
 
   void updateSync(String target) {
@@ -230,10 +221,12 @@ class _Link extends FileSystemEntity implements Link {
 
   Future<Link> _delete({bool recursive: false}) {
     if (recursive) {
-      return new Directory(path).delete(recursive: true).then((_) => this);
+      return new Directory.fromRawPath(_rawPath)
+          .delete(recursive: true)
+          .then((_) => this);
     }
-    return _File._dispatchWithNamespace(_FILE_DELETE_LINK, [null, path]).then(
-        (response) {
+    return _File._dispatchWithNamespace(
+        _IOService.fileDeleteLink, [null, _rawPath]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot delete link", path);
       }
@@ -243,15 +236,15 @@ class _Link extends FileSystemEntity implements Link {
 
   void _deleteSync({bool recursive: false}) {
     if (recursive) {
-      return new Directory(path).deleteSync(recursive: true);
+      return new Directory.fromRawPath(_rawPath).deleteSync(recursive: true);
     }
-    var result = _File._deleteLinkNative(_Namespace._namespace, path);
+    var result = _File._deleteLinkNative(_Namespace._namespace, _rawPath);
     throwIfError(result, "Cannot delete link", path);
   }
 
   Future<Link> rename(String newPath) {
     return _File._dispatchWithNamespace(
-        _FILE_RENAME_LINK, [null, path, newPath]).then((response) {
+        _IOService.fileRenameLink, [null, _rawPath, newPath]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
             response, "Cannot rename link to '$newPath'", path);
@@ -261,14 +254,14 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   Link renameSync(String newPath) {
-    var result = _File._renameLink(_Namespace._namespace, path, newPath);
+    var result = _File._renameLink(_Namespace._namespace, _rawPath, newPath);
     throwIfError(result, "Cannot rename link '$path' to '$newPath'");
     return new Link(newPath);
   }
 
   Future<String> target() {
-    return _File._dispatchWithNamespace(_FILE_LINK_TARGET, [null, path]).then(
-        (response) {
+    return _File._dispatchWithNamespace(
+        _IOService.fileLinkTarget, [null, _rawPath]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
             response, "Cannot get target of link", path);
@@ -278,7 +271,7 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   String targetSync() {
-    var result = _File._linkTarget(_Namespace._namespace, path);
+    var result = _File._linkTarget(_Namespace._namespace, _rawPath);
     throwIfError(result, "Cannot read link", path);
     return result;
   }
@@ -290,17 +283,17 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   bool _isErrorResponse(response) {
-    return response is List && response[0] != _SUCCESS_RESPONSE;
+    return response is List && response[0] != _successResponse;
   }
 
   _exceptionFromResponse(response, String message, String path) {
     assert(_isErrorResponse(response));
-    switch (response[_ERROR_RESPONSE_ERROR_TYPE]) {
-      case _ILLEGAL_ARGUMENT_RESPONSE:
+    switch (response[_errorResponseErrorType]) {
+      case _illegalArgumentResponse:
         return new ArgumentError();
-      case _OSERROR_RESPONSE:
-        var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
-            response[_OSERROR_RESPONSE_ERROR_CODE]);
+      case _osErrorResponse:
+        var err = new OSError(response[_osErrorResponseMessage],
+            response[_osErrorResponseErrorCode]);
         return new FileSystemException(message, path, err);
       default:
         return new Exception("Unknown error");

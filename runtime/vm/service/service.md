@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.5
+# Dart VM Service Protocol 3.30
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.5_ of the Dart VM Service Protocol. This
+This document describes of _version 3.30_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -10,6 +10,10 @@ The VM will start a webserver which services protocol requests via WebSocket.
 It is possible to make HTTP (non-WebSocket) requests,
 but this does not allow access to VM _events_ and is not documented
 here.
+
+[Service Protocol Extension](service_extension.md) provides similar ways to
+communicate with the VM except these may be only accessible through some
+libraries.
 
 The Service Protocol uses [JSON-RPC 2.0][].
 
@@ -24,73 +28,112 @@ The Service Protocol uses [JSON-RPC 2.0][].
 - [Versioning](#versioning)
 - [Private RPCs, Types, and Properties](#private-rpcs-types-and-properties)
 - [Public RPCs](#public-rpcs)
-	- [addBreakpoint](#addbreakpoint)
-	- [addBreakpointWithScriptUri](#addbreakpointwithscripturi)
-	- [addBreakpointAtEntry](#addbreakpointatentry)
-	- [evaluate](#evaluate)
-	- [evaluateInFrame](#evaluateinframe)
-	- [getFlagList](#getflaglist)
-	- [getIsolate](#getisolate)
-	- [getObject](#getobject)
-	- [getSourceReport](#getsourcereport)
-	- [getStack](#getstack)
-	- [getVersion](#getversion)
-	- [getVM](#getvm)
-	- [pause](#pause)
-	- [reloadSources](#reloadsources)
-	- [removeBreakpoint](#removebreakpoint)
-	- [resume](#resume)
-	- [setExceptionPauseMode](#setexceptionpausemode)
-	- [setLibraryDebuggable](#setlibrarydebuggable)
-	- [setName](#setname)
-	- [setVMName](#setvmname)
-	- [streamCancel](#streamcancel)
-	- [streamListen](#streamlisten)
+  - [addBreakpoint](#addbreakpoint)
+  - [addBreakpointWithScriptUri](#addbreakpointwithscripturi)
+  - [addBreakpointAtEntry](#addbreakpointatentry)
+  - [clearCpuSamples](#clearcpusamples)
+  - [clearVMTimeline](#clearvmtimeline)
+  - [evaluate](#evaluate)
+  - [evaluateInFrame](#evaluateinframe)
+  - [getAllocationProfile](#getallocationprofile)
+  - [getClientName](#getclientname)
+  - [getCpuSamples](#getcpusamples)
+  - [getFlagList](#getflaglist)
+  - [getInstances](#getinstances)
+  - [getInboundReferences](#getinboundreferences)
+  - [getIsolate](#getisolate)
+  - [getIsolateGroup](#getisolategroup)
+  - [getMemoryUsage](#getmemoryusage)
+  - [getObject](#getobject)
+  - [getRetainingPath](#getretainingpath)
+  - [getScripts](#getscripts)
+  - [getSourceReport](#getsourcereport)
+  - [getStack](#getstack)
+  - [getVersion](#getversion)
+  - [getVM](#getvm)
+  - [getVMTimeline](#getvmtimeline)
+  - [getVMTimelineFlags](#getvmtimelineflags)
+  - [getVMTimelineMicros](#getvmtimelinemicros)
+  - [invoke](#invoke)
+  - [pause](#pause)
+  - [kill](#kill)
+  - [registerService](#registerService)
+  - [reloadSources](#reloadsources)
+  - [removeBreakpoint](#removebreakpoint)
+  - [requirePermissionToResume](#requirepermissiontoresume)
+  - [resume](#resume)
+  - [setClientName](#setclientname)
+  - [setExceptionPauseMode](#setexceptionpausemode)
+  - [setFlag](#setflag)
+  - [setLibraryDebuggable](#setlibrarydebuggable)
+  - [setName](#setname)
+  - [setVMName](#setvmname)
+  - [setVMTimelineFlags](#setvmtimelineflags)
+  - [streamCancel](#streamcancel)
+  - [streamListen](#streamlisten)
 - [Public Types](#public-types)
-	- [BoundField](#boundfield)
-	- [BoundVariable](#boundvariable)
-	- [Breakpoint](#breakpoint)
-	- [Class](#class)
-	- [ClassList](#classlist)
-	- [Code](#code)
-	- [CodeKind](#codekind)
-	- [Context](#context)
-	- [ContextElement](#contextelement)
-	- [Error](#error)
-	- [ErrorKind](#errorkind)
-	- [Event](#event)
-	- [EventKind](#eventkind)
-	- [ExtensionData](#extensiondata)
-	- [Field](#field)
-	- [Flag](#flag)
-	- [FlagList](#flaglist)
-	- [Frame](#frame)
-	- [Function](#function)
-	- [Instance](#instance)
-	- [Isolate](#isolate)
-	- [Library](#library)
-	- [LibraryDependency](#librarydependency)
-	- [MapAssociation](#mapassociation)
-	- [Message](#message)
-	- [Null](#null)
-	- [Object](#object)
-	- [ReloadReport](#reloadreport)
-	- [Response](#response)
-	- [Sentinel](#sentinel)
-	- [SentinelKind](#sentinelkind)
-	- [Script](#script)
-	- [SourceLocation](#sourcelocation)
-	- [SourceReport](#sourcereport)
-	- [SourceReportCoverage](#sourcereportcoverage)
-	- [SourceReportKind](#sourcereportkind)
-	- [SourceReportRange](#sourcereportrange)
-	- [Stack](#stack)
-	- [StepOption](#stepoption)
-	- [Success](#success)
-	- [TypeArguments](#typearguments)
-	- [UresolvedSourceLocation](#unresolvedsourcelocation)
-	- [Version](#version)
-	- [VM](#vm)
+  - [AllocationProfile](#allocationprofile)
+  - [BoundField](#boundfield)
+  - [BoundVariable](#boundvariable)
+  - [Breakpoint](#breakpoint)
+  - [Class](#class)
+  - [ClassHeapStats](#classheapstats)
+  - [ClassList](#classlist)
+  - [Code](#code)
+  - [CodeKind](#codekind)
+  - [Context](#context)
+  - [ContextElement](#contextelement)
+  - [CpuSamples](#cpusamples)
+  - [CpuSample](#cpusample)
+  - [Error](#error)
+  - [ErrorKind](#errorkind)
+  - [Event](#event)
+  - [EventKind](#eventkind)
+  - [ExtensionData](#extensiondata)
+  - [Field](#field)
+  - [Flag](#flag)
+  - [FlagList](#flaglist)
+  - [Frame](#frame)
+  - [Function](#function)
+  - [InboundReferences](#inboundreferences)
+  - [InboundReference](#inboundreference)
+  - [Instance](#instance)
+  - [InstanceSet](#instanceset)
+  - [Isolate](#isolate)
+  - [IsolateGroup](#isolategroup)
+  - [Library](#library)
+  - [LibraryDependency](#librarydependency)
+  - [LogRecord](#logrecord)
+  - [MapAssociation](#mapassociation)
+  - [MemoryUsage](#memoryusage)
+  - [Message](#message)
+  - [NativeFunction](#nativefunction)
+  - [Null](#null)
+  - [Object](#object)
+  - [ReloadReport](#reloadreport)
+  - [Response](#response)
+  - [RetainingObject](#retainingobject)
+  - [RetainingPath](#retainingpath)
+  - [Sentinel](#sentinel)
+  - [SentinelKind](#sentinelkind)
+  - [Script](#script)
+  - [ScriptList](#scriptlist)
+  - [SourceLocation](#sourcelocation)
+  - [SourceReport](#sourcereport)
+  - [SourceReportCoverage](#sourcereportcoverage)
+  - [SourceReportKind](#sourcereportkind)
+  - [SourceReportRange](#sourcereportrange)
+  - [Stack](#stack)
+  - [StepOption](#stepoption)
+  - [Success](#success)
+  - [Timeline](#timeline)
+  - [TimelineEvent](#timelineevent)
+  - [TimelineFlags](#timelineflags)
+  - [Timestamp](#timestamp)
+  - [TypeArguments](#typearguments)
+  - [UresolvedSourceLocation](#unresolvedsourcelocation)
+  - [Version](#version)
+  - [VM](#vm)
 - [Revision History](#revision-history)
 
 ## RPCs, Requests, and Responses
@@ -145,7 +188,7 @@ a parameter:
   "jsonrpc": "2.0",
   "method": "streamListen",
   "params": {
-    "streamId": "GC",
+    "streamId": "GC"
   },
   "id": "2"
 }
@@ -188,8 +231,11 @@ code | message | meaning
 107 | Cannot resume execution | The isolate could not be resumed
 108 | Isolate is reloading | The isolate is currently processing another reload request
 109 | Isolate cannot be reloaded | The isolate has an unhandled exception and can no longer be reloaded
-
-
+110 | Isolate must have reloaded | Failed to find differences in last hot reload request
+111 | Service already registered | Service with such name has already been registered by this client
+112 | Service disappeared | Failed to fulfill service request, likely service handler is no longer available
+113 | Expression compilation error | Request to compile expression failed
+114 | Invalid timeline request | The timeline related request could not be completed due to the current configuration
 
 ## Events
 
@@ -229,7 +275,20 @@ _streamNotify_, and the _params_ will have _streamId_ and _event_ properties:
 It is considered a _backwards compatible_ change to add a new type of event to an existing stream.
 Clients should be written to handle this gracefully.
 
+## Binary Events
 
+Some events are associated with bulk binary data. These events are delivered as
+WebSocket binary frames instead of text frames. A binary event's metadata
+should be interpreted as UTF-8 encoded JSON, with the same properties as
+described above for ordinary events.
+
+```
+type BinaryEvent {
+  dataOffset : uint32,
+  metadata : uint8[dataOffset-4],
+  data : uint8[],
+}
+```
 
 ## Types
 
@@ -240,7 +299,7 @@ information about a Dart function is returned using the [Function](#function) ty
 
 If the type of a response begins with the _@_ character, then that
 response is a _reference_. If the type name of a response does not
-begin with the _@_ character, it is the an _object_. A reference is
+begin with the _@_ character, it is an _object_. A reference is
 intended to be a subset of an object which provides enough information
 to generate a reasonable looking reference to the object.
 
@@ -354,7 +413,7 @@ An RPC is described using the following format:
 
 ```
 ReturnType methodName(parameterType1 parameterName1,
-                      parameterType2, parameterName2,
+                      parameterType2 parameterName2,
                       ...)
 ```
 
@@ -370,13 +429,13 @@ with the vertical bar:
 ReturnType1|ReturnType2
 ```
 
-Any RPC may return an _error_ response as [described above](#rpc-error).
+Any RPC may return an [RPC error](#rpc-error) response.
 
 Some parameters are optional. This is indicated by the text
 _[optional]_ following the parameter name:
 
 ```
-ReturnType methodName(parameterType parameterName [optional)
+ReturnType methodName(parameterType parameterName [optional])
 ```
 
 A description of the return types and parameter types is provided
@@ -385,10 +444,10 @@ in the section on [public types](#public-types).
 ### addBreakpoint
 
 ```
-Breakpoint addBreakpoint(string isolateId,
-                         string scriptId,
-                         int line,
-                         int column [optional])
+Breakpoint|Sentinel addBreakpoint(string isolateId,
+                                  string scriptId,
+                                  int line,
+                                  int column [optional])
 ```
 
 The _addBreakpoint_ RPC is used to add a breakpoint at a specific line
@@ -408,19 +467,22 @@ for targeting a specific breakpoint on a line with multiple possible
 breakpoints.
 
 If no breakpoint is possible at that line, the _102_ (Cannot add
-breakpoint) error code is returned.
+breakpoint) [RPC error](#rpc-error) code is returned.
 
 Note that breakpoints are added and removed on a per-isolate basis.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [Breakpoint](#breakpoint).
 
 ### addBreakpointWithScriptUri
 
 ```
-Breakpoint addBreakpointWithScriptUri(string isolateId,
-                                      string scriptUri,
-                                      int line,
-                                      int column [optional])
+Breakpoint|Sentinel addBreakpointWithScriptUri(string isolateId,
+                                               string scriptUri,
+                                               int line,
+                                               int column [optional])
 ```
 
 The _addBreakpoint_ RPC is used to add a breakpoint at a specific line
@@ -442,34 +504,107 @@ for targeting a specific breakpoint on a line with multiple possible
 breakpoints.
 
 If no breakpoint is possible at that line, the _102_ (Cannot add
-breakpoint) error code is returned.
+breakpoint) [RPC error](#rpc-error) code is returned.
 
 Note that breakpoints are added and removed on a per-isolate basis.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [Breakpoint](#breakpoint).
 
 ### addBreakpointAtEntry
 
 ```
-Breakpoint addBreakpointAtEntry(string isolateId,
-                                string functionId)
+Breakpoint|Sentinel addBreakpointAtEntry(string isolateId,
+                                         string functionId)
 ```
 The _addBreakpointAtEntry_ RPC is used to add a breakpoint at the
 entrypoint of some function.
 
 If no breakpoint is possible at the function entry, the _102_ (Cannot add
-breakpoint) error code is returned.
+breakpoint) [RPC error](#rpc-error) code is returned.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [Breakpoint](#breakpoint).
 
 Note that breakpoints are added and removed on a per-isolate basis.
+
+### clearCpuSamples
+
+```
+Success|Sentinel clearCpuSamples(string isolateId)
+```
+
+Clears all CPU profiling samples.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+See [Success](#success).
+
+### clearVMTimeline
+
+```
+Success clearVMTimeline()
+```
+
+Clears all VM timeline events.
+
+See [Success](#success).
+
+### invoke
+
+```
+@Instance|@Error|Sentinel invoke(string isolateId,
+                                 string targetId,
+                                 string selector,
+                                 string[] argumentIds,
+                                 bool disableBreakpoints [optional])
+```
+
+The _invoke_ RPC is used to perform regular method invocation on some receiver,
+as if by dart:mirror's ObjectMirror.invoke. Note this does not provide a way to
+perform getter, setter or constructor invocation.
+
+_targetId_ may refer to a [Library](#library), [Class](#class), or
+[Instance](#instance).
+
+Each elements of _argumentId_ may refer to an [Instance](#instance).
+
+If _disableBreakpoints_ is provided and set to true, any breakpoints hit as a
+result of this invocation are ignored, including pauses resulting from a call
+to `debugger()` from `dart:developer`. Defaults to false if not provided.
+
+If _targetId_ or any element of _argumentIds_ is a temporary id which has
+expired, then the _Expired_ [Sentinel](#sentinel) is returned.
+
+If _targetId_ or any element of _argumentIds_ refers to an object which has been
+collected by the VM's garbage collector, then the _Collected_
+[Sentinel](#sentinel) is returned.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+If invocation triggers a failed compilation then [RPC error](#rpc-error) 113
+"Expression compilation error" is returned.
+
+If a runtime error occurs while evaluating the invocation, an [@Error](#error)
+reference will be returned.
+
+If the invocation is evaluated successfully, an [@Instance](#instance)
+reference will be returned.
 
 ### evaluate
 
 ```
 @Instance|@Error|Sentinel evaluate(string isolateId,
                                    string targetId,
-                                   string expression)
+                                   string expression,
+                                   map<string,string> scope [optional],
+                                   bool disableBreakpoints [optional])
 ```
 
 The _evaluate_ RPC is used to evaluate an expression in the context of
@@ -485,6 +620,21 @@ If _targetId_ refers to an object which has been collected by the VM's
 garbage collector, then the _Collected_ [Sentinel](#sentinel) is
 returned.
 
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+If _scope_ is provided, it should be a map from identifiers to object ids.
+These bindings will be added to the scope in which the expression is evaluated,
+which is a child scope of the class or library for instance/class or library
+targets respectively. This means bindings provided in _scope_ may shadow
+instance members, class members and top-level members.
+
+If _disableBreakpoints_ is provided and set to true, any breakpoints hit as a
+result of this evaluation are ignored. Defaults to false if not provided.
+
+If the expression fails to parse and compile, then [RPC error](#rpc-error) 113
+"Expression compilation error" is returned.
+
 If an error occurs while evaluating the expression, an [@Error](#error)
 reference will be returned.
 
@@ -496,7 +646,9 @@ reference will be returned.
 ```
 @Instance|@Error|Sentinel evaluateInFrame(string isolateId,
                                           int frameIndex,
-                                          string expression)
+                                          string expression,
+                                          map<string,string> scope [optional],
+                                          bool disableBreakpoints [optional])
 ```
 
 The _evaluateInFrame_ RPC is used to evaluate an expression in the
@@ -504,11 +656,78 @@ context of a particular stack frame. _frameIndex_ is the index of the
 desired [Frame](#frame), with an index of _0_ indicating the top (most
 recent) frame.
 
+If _scope_ is provided, it should be a map from identifiers to object ids.
+These bindings will be added to the scope in which the expression is evaluated,
+which is a child scope of the frame's current scope. This means bindings
+provided in _scope_ may shadow instance members, class members, top-level
+members, parameters and locals.
+
+If _disableBreakpoints_ is provided and set to true, any breakpoints hit as a
+result of this evaluation are ignored. Defaults to false if not provided.
+
+If the expression fails to parse and compile, then [RPC error](#rpc-error) 113
+"Expression compilation error" is returned.
+
 If an error occurs while evaluating the expression, an [@Error](#error)
 reference will be returned.
 
 If the expression is evaluated successfully, an [@Instance](#instance)
 reference will be returned.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+### getAllocationProfile
+
+```
+AllocationProfile|Sentinel getAllocationProfile(string isolateId,
+                                                bool reset [optional],
+                                                bool gc [optional])
+```
+
+The _getAllocationProfile_ RPC is used to retrieve allocation information for a
+given isolate.
+
+If _reset_ is provided and is set to true, the allocation accumulators will be reset
+before collecting allocation information.
+
+If _gc_ is provided and is set to true, a garbage collection will be attempted
+before collecting allocation information. There is no guarantee that a garbage
+collection will be actually be performed.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+### getClientName
+
+```
+ClientName getClientName()
+```
+
+The _getClientName_ RPC is used to retrieve the name associated with the currently
+connected VM service client. If no name was previously set through the
+[setClientName](#setclientname) RPC, a default name will be returned.
+
+See [ClientName](#clientname).
+
+### getCpuSamples
+
+```
+CpuSamples|Sentinel getCpuSamples(string isolateId,
+                                  int timeOriginMicros,
+                                  int timeExtentMicros)
+```
+
+The _getCpuSamples_ RPC is used to retrieve samples collected by the CPU
+profiler. Only samples collected in the time range `[timeOriginMicros,
+timeOriginMicros + timeExtentMicros]` will be reported.
+
+If the profiler is disabled, an [RPC error](#rpc-error) response will be returned.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+See [CpuSamples](#cpusamples).
 
 ### getFlagList
 
@@ -520,6 +739,67 @@ The _getFlagList_ RPC returns a list of all command line flags in the
 VM along with their current values.
 
 See [FlagList](#flaglist).
+
+### getInboundReferences
+
+```
+InboundReferences|Sentinel getInboundReferences(string isolateId,
+                                                string targetId,
+                                                int limit)
+```
+
+Returns a set of inbound references to the object specified by _targetId_. Up to
+_limit_ references will be returned.
+
+The order of the references is undefined (i.e., not related to allocation order)
+and unstable (i.e., multiple invocations of this method against the same object
+can give different answers even if no Dart code has executed between the invocations).
+
+The references may include multiple `objectId`s that designate the same object.
+
+The references may include objects that are unreachable but have not yet been garbage collected.
+
+If _targetId_ is a temporary id which has expired, then the _Expired_
+[Sentinel](#sentinel) is returned.
+
+If _targetId_ refers to an object which has been collected by the VM's
+garbage collector, then the _Collected_ [Sentinel](#sentinel) is
+returned.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+See [InboundReferences](#inboundreferences).
+
+### getInstances
+
+```
+InstanceSet|Sentinel getInstances(string isolateId,
+                                  string objectId,
+                                  int limit)
+```
+
+The _getInstances_ RPC is used to retrieve a set of instances which are of a
+specific class. This does not include instances of subclasses of the given
+class.
+
+The order of the instances is undefined (i.e., not related to allocation order)
+and unstable (i.e., multiple invocations of this method against the same class
+can give different answers even if no Dart code has executed between the
+invocations).
+
+The set of instances may include objects that are unreachable but have not yet
+been garbage collected.
+
+_objectId_ is the ID of the `Class` to retrieve instances for. _objectId_ must
+be the ID of a `Class`, otherwise an [RPC error](#rpc-error) is returned.
+
+_limit_ is the maximum number of instances to be returned.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+See [InstanceSet](#instanceset).
 
 ### getIsolate
 
@@ -533,6 +813,63 @@ If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
 
 See [Isolate](#isolate).
+
+### getIsolateGroup
+
+```
+IsolateGroup|Sentinel getIsolateGroup(string isolateGroupId)
+```
+
+The _getIsolateGroup_ RPC is used to lookup an _IsolateGroup_ object by its _id_.
+
+If _isolateGroupId_ refers to an isolate group which has exited, then the
+_Expired_ [Sentinel](#sentinel) is returned.
+
+_IsolateGroup_ _id_ is an opaque identifier that can be fetched from an
+ _IsolateGroup_. List of active _IsolateGroup_'s, for example, is available on _VM_ object.
+
+See [IsolateGroup](#isolategroup), [VM](#vm).
+
+### getMemoryUsage
+
+```
+MemoryUsage|Sentinel getMemoryUsage(string isolateId)
+```
+
+The _getMemoryUsage_ RPC is used to lookup an isolate's memory usage
+statistics by its _id_.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+See [Isolate](#isolate).
+
+### getIsolateGroupMemoryUsage
+
+```
+MemoryUsage|Sentinel getIsolateGroupMemoryUsage(string isolateGroupId)
+```
+
+The _getIsolateGroupMemoryUsage_ RPC is used to lookup an isolate
+group's memory usage statistics by its _id_.
+
+If _isolateGroupId_ refers to an isolate group which has exited, then the _Expired_ [Sentinel](#sentinel) is returned.
+
+See [IsolateGroup](#isolategroup).
+
+### getScripts
+
+```
+ScriptList|Sentinel getScripts(string isolateId)
+```
+
+The _getScripts_ RPC is used to retrieve a _ScriptList_ containing all
+scripts for an isolate based on the isolate's _isolateId_.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+See [ScriptList](#scriptlist).
 
 ### getObject
 
@@ -548,6 +885,9 @@ its _id_.
 
 If _objectId_ is a temporary id which has expired, then the _Expired_
 [Sentinel](#sentinel) is returned.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 If _objectId_ refers to a heap object which has been collected by the VM's
 garbage collector, then the _Collected_ [Sentinel](#sentinel) is
@@ -566,26 +906,59 @@ Int32List, Int64List, Flooat32List, Float64List, Inst32x3List,
 Float32x4List, and Float64x2List.  These parameters are otherwise
 ignored.
 
+### getRetainingPath
+
+```
+RetainingPath|Sentinel getRetainingPath(string isolateId,
+                                        string targetId,
+                                        int limit)
+```
+
+The _getRetainingPath_ RPC is used to lookup a path from an object specified by
+_targetId_ to a GC root (i.e., the object which is preventing this object from
+being garbage collected).
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+If _targetId_ refers to a heap object which has been collected by the VM's
+garbage collector, then the _Collected_ [Sentinel](#sentinel) is returned.
+
+If _targetId_ refers to a non-heap object which has been deleted, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+If the object handle has not expired and the object has not been collected, then
+an [RetainingPath](#retainingpath) will be returned.
+
+The _limit_ parameter specifies the maximum path length to be reported as part
+of the retaining path. If a path is longer than _limit_, it will be truncated at
+the root end of the path.
+
+See [RetainingPath](#retainingpath).
+
 ### getStack
 
 ```
-Stack getStack(string isolateId)
+Stack|Sentinel getStack(string isolateId)
 ```
 
 The _getStack_ RPC is used to retrieve the current execution stack and
 message queue for an isolate. The isolate does not need to be paused.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [Stack](#stack).
 
 ### getSourceReport
 
 ```
-SourceReport getSourceReport(string isolateId,
-                             SourceReportKind[] reports,
-                             string scriptId [optional],
-                             int tokenPos [optional],
-                             int endTokenPos [optional],
-                             bool forceCompile [optional])
+SourceReport|Sentinel getSourceReport(string isolateId,
+                                      SourceReportKind[] reports,
+                                      string scriptId [optional],
+                                      int tokenPos [optional],
+                                      int endTokenPos [optional],
+                                      bool forceCompile [optional])
 ```
 
 The _getSourceReport_ RPC is used to generate a set of reports tied to
@@ -621,6 +994,9 @@ cause a compilation error, which could terminate the running Dart
 program.  If this parameter is not provided, it is considered to have
 the value _false_.
 
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
 See [SourceReport](#sourcereport).
 
 ### getVersion
@@ -643,27 +1019,108 @@ The _getVM_ RPC returns global information about a Dart virtual machine.
 
 See [VM](#vm).
 
+
+### getVMTimeline
+
+```
+Timeline getVMTimeline(int timeOriginMicros [optional],
+                       int timeExtentMicros [optional])
+```
+
+The _getVMTimeline_ RPC is used to retrieve an object which contains VM timeline
+events.
+
+The _timeOriginMicros_ parameter is the beginning of the time range used to filter
+timeline events. It uses the same monotonic clock as dart:developer's `Timeline.now`
+and the VM embedding API's `Dart_TimelineGetMicros`. See [getVMTimelineMicros](#getvmtimelinemicros)
+for access to this clock through the service protocol.
+
+The _timeExtentMicros_ parameter specifies how large the time range used to filter
+timeline events should be.
+
+For example, given _timeOriginMicros_ and _timeExtentMicros_, only timeline events
+from the following time range will be returned: `(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
+
+If _getVMTimeline_ is invoked while the current recorder is one of Fuchsia or Macos or
+Systrace, an [RPC error](#rpc-error) with error code _114_, `invalid timeline request`, will be returned as
+timeline events are handled by the OS in these modes.
+
+### getVMTimelineFlags
+
+```
+TimelineFlags getVMTimelineFlags()
+```
+
+The _getVMTimelineFlags_ RPC returns information about the current VM timeline configuration.
+
+To change which timeline streams are currently enabled, see [setVMTimelineFlags](#setvmtimelineflags).
+
+See [TimelineFlags](#timelineflags).
+
+### getVMTimelineMicros
+
+```
+Timestamp getVMTimelineMicros()
+```
+
+The _getVMTimelineMicros_ RPC returns the current time stamp from the clock used by the timeline,
+similar to `Timeline.now` in `dart:developer` and `Dart_TimelineGetMicros` in the VM embedding API.
+
+See [Timestamp](#timestamp) and [getVMTimeline](#getvmtimeline).
+
 ### pause
 
 ```
-Success pause(string isolateId)
+Success|Sentinel pause(string isolateId)
 ```
 
 The _pause_ RPC is used to interrupt a running isolate. The RPC enqueues the interrupt request and potentially returns before the isolate is paused.
 
 When the isolate is paused an event will be sent on the _Debug_ stream.
 
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+See [Success](#success).
+
+### kill
+
+```
+Success|Sentinel kill(string isolateId)
+```
+
+The _kill_ RPC is used to kill an isolate as if by dart:isolate's `Isolate.kill(IMMEDIATE)`.
+
+The isolate is killed regardless of whether it is paused or running.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+See [Success](#success).
+
+### registerService
+
+```
+Success registerService(string service, string alias)
+```
+
+Registers a service that can be invoked by other VM service clients, where
+`service` is the name of the service to advertise and `alias` is an alternative
+name for the registered service.
+
+Requests made to the new service will be forwarded to the client which originally
+registered the service.
+
 See [Success](#success).
 
 ### reloadSources
 
-
 ```
-ReloadReport reloadSources(string isolateId,
-                           bool force [optional],
-                           bool pause [optional],
-                           string rootLibUri [optional],
-                           string packagesUri [optional])
+ReloadReport|Sentinel reloadSources(string isolateId,
+                                    bool force [optional],
+                                    bool pause [optional],
+                                    string rootLibUri [optional],
+                                    string packagesUri [optional])
 ```
 
 The _reloadSources_ RPC is used to perform a hot reload of an Isolate's sources.
@@ -680,25 +1137,84 @@ Isolate's root library.
 if the _packagesUri_ parameter is provided, it indicates the new uri to the
 Isolate's package map (.packages) file.
 
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
 ### removeBreakpoint
 
 ```
-Success removeBreakpoint(string isolateId,
-                         string breakpointId)
+Success|Sentinel removeBreakpoint(string isolateId,
+                                  string breakpointId)
 ```
 
 The _removeBreakpoint_ RPC is used to remove a breakpoint by its _id_.
 
 Note that breakpoints are added and removed on a per-isolate basis.
 
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
 See [Success](#success).
+
+### requestHeapSnapshot
+
+```
+Success|Sentinel requestHeapSnapshot(string isolateId)
+```
+
+Requests a dump of the Dart heap of the given isolate.
+
+This method immediately returns success. The VM will then begin delivering
+binary events on the `HeapSnapshot` event stream. The binary data in these
+events, when concatenated together, conforms to the [SnapshotGraph](heap_snapshot.md)
+type. The splitting of the SnapshotGraph into events can happen at any byte
+offset.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+### requirePermissionToResume
+
+```
+Success requirePermissionToResume(bool onPauseStart [optional],
+                                  bool onPauseReload[optional],
+                                  bool onPauseExit [optional])
+```
+
+The _requirePermissionToResume_ RPC is used to change the pause/resume behavior
+of isolates by providing a way for the VM service to wait for approval to resume
+from some set of clients. This is useful for clients which want to perform some
+operation on an isolate after a pause without it being resumed by another client.
+
+If the _onPauseStart_ parameter is `true`, isolates will not resume after pausing
+on start until the client sends a `resume` request and all other clients which
+need to provide resume approval for this pause type have done so.
+
+If the _onPauseReload_ parameter is `true`, isolates will not resume after pausing
+after a reload until the client sends a `resume` request and all other clients
+which need to provide resume approval for this pause type have done so.
+
+If the _onPauseExit_ parameter is `true`, isolates will not resume after pausing
+on exit until the client sends a `resume` request and all other clients which
+need to provide resume approval for this pause type have done so.
+
+**Important Notes:**
+
+- All clients with the same client name share resume permissions. Only a
+  single client of a given name is required to provide resume approval.
+- When a client requiring approval disconnects from the service, a paused
+  isolate may resume if all other clients requiring resume approval have
+  already given approval. In the case that no other client requires resume
+  approval for the current pause event, the isolate will be resumed if at
+  least one other client has attempted to [resume](#resume) the isolate.
+
 
 ### resume
 
 ```
-Success resume(string isolateId,
-               StepOption step [optional],
-               int frameIndex [optional])
+Success|Sentinel resume(string isolateId,
+                        StepOption step [optional],
+                        int frameIndex [optional])
 ```
 
 The _resume_ RPC is used to resume execution of a paused isolate.
@@ -722,13 +1238,29 @@ function, so _frameIndex_ must be at least 1.
 
 If the _frameIndex_ parameter is not provided, it defaults to 1.
 
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
 See [Success](#success), [StepOption](#StepOption).
+
+### setClientName
+
+```
+Success setClientName(string name)
+```
+
+The _setClientName_ RPC is used to set a name to be associated with the currently
+connected VM service client. If the _name_ parameter is a non-empty string, _name_
+will become the new name associated with the client. If _name_ is an empty string,
+the client's name will be reset to its default name.
+
+See [Success](#success).
 
 ### setExceptionPauseMode
 
 ```
-Success setExceptionPauseMode(string isolateId,
-                              ExceptionPauseMode mode)
+Success|Sentinel setExceptionPauseMode(string isolateId,
+                                       ExceptionPauseMode mode)
 ```
 
 The _setExceptionPauseMode_ RPC is used to control if an isolate pauses when
@@ -740,28 +1272,65 @@ None | Do not pause isolate on thrown exceptions
 Unhandled | Pause isolate on unhandled exceptions
 All  | Pause isolate on all thrown exceptions
 
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+### setFlag
+
+```
+Success|Error setFlag(string name,
+                      string value)
+```
+
+The _setFlag_ RPC is used to set a VM flag at runtime. Returns an error if the
+named flag does not exist, the flag may not be set at runtime, or the value is
+of the wrong type for the flag.
+
+The following flags may be set at runtime:
+
+ * pause_isolates_on_start
+ * pause_isolates_on_exit
+ * pause_isolates_on_unhandled_exceptions
+ * profile_period
+ * profiler
+
+Notes:
+ * `profile_period` can be set to a minimum value of 50. Attempting to set
+   `profile_period` to a lower value will result in a value of 50 being set.
+ * Setting `profiler` will enable or disable the profiler depending on the
+   provided value. If set to false when the profiler is already running, the
+   profiler will be stopped but may not free its sample buffer depending on
+   platform limitations.
+
+See [Success](#success).
 
 ### setLibraryDebuggable
 
 ```
-Success setLibraryDebuggable(string isolateId,
-                             string libraryId,
-                             bool isDebuggable)
+Success|Sentinel setLibraryDebuggable(string isolateId,
+                                      string libraryId,
+                                      bool isDebuggable)
 ```
 
 The _setLibraryDebuggable_ RPC is used to enable or disable whether
 breakpoints and stepping work for a given library.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [Success](#success).
 
 ### setName
 
 ```
-Success setName(string isolateId,
-                string name)
+Success|Sentinel setName(string isolateId,
+                         string name)
 ```
 
 The _setName_ RPC is used to change the debugging name for an isolate.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [Success](#success).
 
@@ -775,6 +1344,22 @@ The _setVMName_ RPC is used to change the debugging name for the vm.
 
 See [Success](#success).
 
+### setVMTimelineFlags
+
+```
+Success setVMTimelineFlags(string[] recordedStreams)
+```
+
+The _setVMTimelineFlags_ RPC is used to set which timeline streams are enabled.
+
+The _recordedStreams_ parameter is the list of all timeline streams which are
+to be enabled. Streams not explicitly specified will be disabled. Invalid stream
+names are ignored.
+
+To get the list of currently enabled timeline streams, see [getVMTimelineFlags](#getvmtimelineflags).
+
+See [Success](#success).
+
 ### streamCancel
 
 ```
@@ -784,7 +1369,7 @@ Success streamCancel(string streamId)
 The _streamCancel_ RPC cancels a stream subscription in the VM.
 
 If the client is not subscribed to the stream, the _104_ (Stream not
-subscribed) error code is returned.
+subscribed) [RPC error](#rpc-error) code is returned.
 
 See [Success](#success).
 
@@ -797,19 +1382,22 @@ Success streamListen(string streamId)
 The _streamListen_ RPC subscribes to a stream in the VM. Once
 subscribed, the client will begin receiving events from the stream.
 
-If the client is not subscribed to the stream, the _103_ (Stream already
-subscribed) error code is returned.
+If the client is already subscribed to the stream, the _103_ (Stream already
+subscribed) [RPC error](#rpc-error) code is returned.
 
 The _streamId_ parameter may have the following published values:
 
 streamId | event types provided
 -------- | -----------
-VM | VMUpdate
+VM | VMUpdate, VMFlagUpdate
 Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, IsolateReload, ServiceExtensionAdded
 Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect, None
 GC | GC
 Extension | Extension
 Timeline | TimelineEvents
+Logging | Logging
+Service | ServiceRegistered, ServiceUnregistered
+HeapSnapshot | HeapSnapshot
 
 Additionally, some embedders provide the _Stdout_ and _Stderr_
 streams.  These streams allow the client to subscribe to writes to
@@ -908,6 +1496,28 @@ enum PermittedValues {
 This means that _PermittedValues_ is a _string_ with two potential values,
 _Value1_ and _Value2_.
 
+### AllocationProfile
+
+```
+class AllocationProfile extends Response {
+  // Allocation information for all class types.
+  ClassHeapStats[] members;
+
+  // Information about memory usage for the isolate.
+  MemoryUsage memoryUsage;
+
+  // The timestamp of the last accumulator reset.
+  //
+  // If the accumulators have not been reset, this field is not present.
+  int dateLastAccumulatorReset [optional];
+
+  // The timestamp of the last manually triggered GC.
+  //
+  // If a GC has not been triggered manually, this field is not present.
+  int dateLastServiceGC [optional];
+}
+```
+
 ### BoundField
 
 ```
@@ -929,9 +1539,9 @@ _BeingInitialized_ [Sentinel](#sentinel).
 ### BoundVariable
 
 ```
-class BoundVariable {
+class BoundVariable extends Response {
   string name;
-  @Instance|Sentinel value;
+  @Instance|@TypeArguments|Sentinel value;
 
   // The token position where this variable was declared.
   int declarationTokenPos;
@@ -1047,6 +1657,29 @@ class Class extends Object {
 
 A _Class_ provides information about a Dart language class.
 
+### ClassHeapStats
+
+```
+class ClassHeapStats extends Response {
+  // The class for which this memory information is associated.
+  @Class class;
+
+  // The number of bytes allocated for instances of class since the
+  // accumulator was last reset.
+  int accumulatedSize;
+
+  // The number of bytes currently allocated for instances of class.
+  int bytesCurrent;
+
+  // The number of instances of class which have been allocated since
+  // the accumulator was last reset.
+  int instancesAccumulated;
+
+  // The number of instances of class which are currently alive.
+  int instancesCurrent;
+}
+```
+
 ### ClassList
 
 ```
@@ -1054,6 +1687,17 @@ class ClassList extends Response {
   @Class[] classes;
 }
 ```
+
+### ClientName
+
+```
+class ClientName extends Response {
+  // The name of the currently connected VM service client.
+  string name;
+}
+```
+
+See [getClientName](#getclientname) and [setClientName](#setclientname).
 
 ### Code
 
@@ -1126,6 +1770,83 @@ class ContextElement {
 }
 ```
 
+### CpuSamples
+
+```
+class CpuSamples extends Response {
+  // The sampling rate for the profiler in microseconds.
+  int samplePeriod;
+
+  // The maximum possible stack depth for samples.
+  int maxStackDepth;
+
+  // The number of samples returned.
+  int sampleCount;
+
+  // The timespan the set of returned samples covers, in microseconds.
+  int timeSpan;
+
+  // The start of the period of time in which the returned samples were
+  // collected.
+  int timeOriginMicros;
+
+  // The duration of time covered by the returned samples.
+  int timeExtentMicros;
+
+  // The process ID for the VM.
+  int pid;
+
+  // A list of functions seen in the relevant samples. These references can be
+  // looked up using the indicies provided in a `CpuSample` `stack` to determine
+  // which function was on the stack.
+  ProfileFunction[] functions;
+
+  // A list of samples collected in the range
+  // `[timeOriginMicros, timeOriginMicros + timeExtentMicros]`
+  CpuSample[] samples;
+}
+```
+
+See [getCpuSamples](#getcpusamples) and [CpuSample](#cpusample).
+
+### CpuSample
+
+```
+class CpuSample {
+  // The thread ID representing the thread on which this sample was collected.
+  int tid;
+
+  // The time this sample was collected in microseconds.
+  int timestamp;
+
+  // The name of VM tag set when this sample was collected. Omitted if the VM
+  // tag for the sample is not considered valid.
+  string vmTag [optional];
+
+  // The name of the User tag set when this sample was collected. Omitted if no
+  // User tag was set when this sample was collected.
+  string userTag [optional];
+
+  // Provided and set to true if the sample's stack was truncated. This can
+  // happen if the stack is deeper than the `stackDepth` in the `CpuSamples`
+  // response.
+  bool truncated [optional];
+
+  // The call stack at the time this sample was collected. The stack is to be
+  // interpreted as top to bottom. Each element in this array is a key into the
+  // `functions` array in `CpuSamples`.
+  //
+  // Example:
+  //
+  // `functions[stack[0]] = @Function(bar())`
+  // `functions[stack[1]] = @Function(foo())`
+  // `functions[stack[2]] = @Function(main())`
+  int[] stack;
+}
+```
+
+See [getCpuSamples](#getcpusamples) and [CpuSamples](#cpusamples).
+
 ### Error
 
 ```
@@ -1159,7 +1880,7 @@ class Error extends Object {
 ```
 
 An _Error_ represents a Dart language level error. This is distinct from an
-[rpc error](#rpc-error).
+[RPC error](#rpc-error).
 
 ### ErrorKind
 
@@ -1171,7 +1892,7 @@ enum ErrorKind {
   // The isolate has encountered a Dart language error in the program.
   LanguageError,
 
-  // The isolate has encounted an internal error. These errors should be
+  // The isolate has encountered an internal error. These errors should be
   // reported as bugs.
   InternalError,
 
@@ -1190,13 +1911,13 @@ class Event extends Response {
   // The isolate with which this event is associated.
   //
   // This is provided for all event kinds except for:
-  //   VMUpdate
+  //   VMUpdate, VMFlagUpdate
   @Isolate isolate [optional];
 
   // The vm with which this event is associated.
   //
   // This is provided for the event kind:
-  //   VMUpdate
+  //   VMUpdate, VMFlagUpdate
   @VM vm [optional];
 
   // The timestamp (in milliseconds since the epoch) associated with this event.
@@ -1287,6 +2008,49 @@ class Event extends Response {
   //   IsolateReloaded
   //   IsolateSpawn
   string status [optional];
+
+  // LogRecord data.
+  //
+  // This is provided for the Logging event.
+  LogRecord logRecord [optional];
+
+  // The service identifier.
+  //
+  // This is provided for the event kinds:
+  //   ServiceRegistered
+  //   ServiceUnregistered
+  String service [optional];
+
+  // The RPC method that should be used to invoke the service.
+  //
+  // This is provided for the event kinds:
+  //   ServiceRegistered
+  //   ServiceUnregistered
+  String method [optional];
+
+  // The alias of the registered service.
+  //
+  // This is provided for the event kinds:
+  //   ServiceRegistered
+  String alias [optional];
+
+  // The name of the changed flag.
+  //
+  // This is provided for the event kinds:
+  //   VMFlagUpdate
+  String flag [optional];
+
+  // The new value of the changed flag.
+  //
+  // This is provided for the event kinds:
+  //   VMFlagUpdate
+  String newValue [optional];
+
+  // Specifies whether this event is the last of a group of events.
+  //
+  // This is provided for the event kinds:
+  //   HeapSnapshot
+  bool last [optional];
 }
 ```
 
@@ -1303,6 +2067,9 @@ enum EventKind {
   // Notification that VM identifying information has changed. Currently used
   // to notify of changes to the VM debugging name via setVMName.
   VMUpdate,
+
+  // Notification that a VM flag has been changed via the service protocol.
+  VMFlagUpdate,
 
   // Notification that a new isolate has started.
   IsolateStart,
@@ -1369,6 +2136,17 @@ enum EventKind {
 
   // Event from dart:developer.postEvent.
   Extension
+
+  // Event from dart:developer.log.
+  Logging
+
+   // Notification that a Service has been registered into the Service Protocol
+  // from another client.
+  ServiceRegistered,
+
+  // Notification that a Service has been removed from the Service Protocol
+  // from another client.
+  ServiceUnregistered
 }
 ```
 
@@ -1488,10 +2266,11 @@ A _FlagList_ represents the complete set of VM command line flags.
 ```
 class Frame extends Response {
   int index;
-  @Function function;
-  @Code code;
-  SourceLocation location;
-  BoundVariable[] vars;
+  @Function function [optional];
+  @Code code [optional];
+  SourceLocation location [optional];
+  BoundVariable[] vars [optional];
+  FrameKind kind [optional];
 }
 ```
 
@@ -1523,6 +2302,12 @@ class Function extends Object {
 
   // The owner of this function, which can be a Library, Class, or a Function.
   @Library|@Class|@Function owner;
+
+  // Is this function static?
+  bool static;
+
+  // Is this function const?
+  bool const;
 
   // The location of this function in the source code.
   SourceLocation location [optional];
@@ -1613,6 +2398,18 @@ class @Instance extends @Object {
   // Provided for instance kinds:
   //   RegExp
   @Instance pattern [optional];
+
+  // The function associated with a Closure instance.
+  //
+  // Provided for instance kinds:
+  //   Closure
+  @Function closureFunction [optional];
+
+  // The context associated with a Closure instance.
+  //
+  // Provided for instance kinds:
+  //   Closure
+  @Context closureContext [optional];
 }
 ```
 
@@ -1764,18 +2561,6 @@ class Instance extends Object {
   //   Float64x2List
   string bytes [optional];
 
-  // The function associated with a Closure instance.
-  //
-  // Provided for instance kinds:
-  //   Closure
-  @Function closureFunction [optional];
-
-  // The context associated with a Closure instance.
-  //
-  // Provided for instance kinds:
-  //   Closure
-  @Context closureContext [optional];
-
   // The referent of a MirrorReference instance.
   //
   // Provided for instance kinds:
@@ -1786,7 +2571,19 @@ class Instance extends Object {
   //
   // Provided for instance kinds:
   //   RegExp
-  String pattern [optional];
+  @Instance pattern [optional];
+
+// The function associated with a Closure instance.
+  //
+  // Provided for instance kinds:
+  //   Closure
+  @Function closureFunction [optional];
+
+  // The context associated with a Closure instance.
+  //
+  // Provided for instance kinds:
+  //   Closure
+  @Context closureContext [optional];
 
   // Whether this regular expression is case sensitive.
   //
@@ -1883,7 +2680,7 @@ enum InstanceKind {
   // Vector instance kinds.
   Float32x4,
   Float64x2,
-  Int32x4
+  Int32x4,
 
   // An instance of the built-in VM TypedData implementations. User-defined
   // TypedDatas will be PlainInstance.
@@ -2010,6 +2807,85 @@ class Isolate extends Response {
 
 An _Isolate_ object provides information about one isolate in the VM.
 
+### IsolateGroup
+
+```
+class @IsolateGroup extends Response {
+  // The id which is passed to the getIsolateGroup RPC to load this isolate group.
+  string id;
+
+  // A numeric id for this isolate group, represented as a string. Unique.
+  string number;
+
+  // A name identifying this isolate group. Not guaranteed to be unique.
+  string name;
+}
+```
+
+_@IsolateGroup_ is a reference to an _IsolateGroup_ object.
+
+```
+class IsolateGroup extends Response {
+  // The id which is passed to the getIsolate RPC to reload this
+  // isolate.
+  string id;
+
+  // A numeric id for this isolate, represented as a string. Unique.
+  string number;
+
+  // A name identifying this isolate. Not guaranteed to be unique.
+  string name;
+
+  // A list of all isolates in this isolate group.
+  @Isolate[] isolates;
+}
+```
+
+An _Isolate_ object provides information about one isolate in the VM.
+
+### InboundReferences
+
+```
+class InboundReferences extends Response {
+  // An array of inbound references to an object.
+  InboundReference[] references;
+}
+```
+
+See [getInboundReferences](#getinboundreferences).
+
+### InboundReference
+
+```
+class InboundReference {
+  // The object holding the inbound reference.
+  @Object source;
+
+  // If source is a List, parentListIndex is the index of the inbound reference.
+  int parentListIndex [optional];
+
+  // If source is a field of an object, parentField is the field containing the
+  // inbound reference.
+  @Field parentField [optional];
+}
+```
+
+See [getInboundReferences](#getinboundreferences).
+
+### InstanceSet
+
+```
+class InstanceSet extends Response {
+  // The number of instances of the requested type currently allocated.
+  int totalCount;
+
+  // An array of instances of the requested type.
+  @Object[] instances;
+}
+```
+
+See [getInstances](#getinstances).
+
 ### Library
 
 ```
@@ -2076,6 +2952,39 @@ class LibraryDependency {
 
 A _LibraryDependency_ provides information about an import or export.
 
+### LogRecord
+
+```
+class LogRecord extends Response {
+  // The log message.
+  @Instance message;
+
+  // The timestamp.
+  int time;
+
+  // The severity level (a value between 0 and 2000).
+  //
+  // See the package:logging `Level` class for an overview of the possible
+  // values.
+  int level;
+
+  // A monotonically increasing sequence number.
+  int sequenceNumber;
+
+  // The name of the source of the log message.
+  @Instance loggerName;
+
+  // The zone where the log was emitted.
+  @Instance zone;
+
+  // An error object associated with this log event.
+  @Instance error;
+
+  // A stack trace associated with this log event.
+  @Instance stackTrace;
+}
+```
+
 ### MapAssociation
 
 ```
@@ -2084,6 +2993,31 @@ class MapAssociation {
   @Instance|Sentinel value;
 }
 ```
+
+### MemoryUsage
+
+```
+class MemoryUsage extends Response {
+  // The amount of non-Dart memory that is retained by Dart objects. For
+  // example, memory associated with Dart objects through APIs such as
+  // Dart_NewWeakPersistentHandle and Dart_NewExternalTypedData.  This usage is
+  // only as accurate as the values supplied to these APIs from the VM embedder or
+  // native extensions. This external memory applies GC pressure, but is separate
+  // from heapUsage and heapCapacity.
+  int externalUsage;
+
+  // The total capacity of the heap in bytes. This is the amount of memory used
+  // by the Dart heap from the perspective of the operating system.
+  int heapCapacity;
+
+  // The current heap memory usage in bytes. Heap usage is always less than or
+  // equal to the heap capacity.
+  int heapUsage;
+}
+```
+
+A _MemoryUsage_ object provides heap usage information for a specific
+isolate at a given point in time.
 
 ### Message
 
@@ -2114,6 +3048,17 @@ class Message extends Response {
 A _Message_ provides information about a pending isolate message and the
 function that will be invoked to handle it.
 
+### NativeFunction
+
+```
+class NativeFunction {
+  // The name of the native function this object represents.
+  string name;
+}
+```
+
+A _NativeFunction_ object is used to represent native functions in profiler
+samples. See [CpuSamples](#cpusamples);
 
 ### Null
 
@@ -2142,6 +3087,11 @@ class @Object extends Response {
   // A unique identifier for an Object. Passed to the
   // getObject RPC to load this Object.
   string id;
+
+  // Provided and set to true if the id of an Object is fixed. If true, the id
+  // of an Object is guaranteed not to change or expire. The object may, however,
+  // still be _Collected_.
+  bool fixedId [optional];
 }
 ```
 
@@ -2154,6 +3104,11 @@ class Object extends Response {
   //
   // Some objects may get a new id when they are reloaded.
   string id;
+
+  // Provided and set to true if the id of an Object is fixed. If true, the id
+  // of an Object is guaranteed not to change or expire. The object may, however,
+  // still be _Collected_.
+  bool fixedId [optional];
 
   // If an object is allocated in the Dart heap, it will have
   // a corresponding class object.
@@ -2178,6 +3133,33 @@ class Object extends Response {
 
 An _Object_ is a  persistent object that is owned by some isolate.
 
+### ProfileFunction
+
+```
+class ProfileFunction {
+  // The kind of function this object represents.
+  string kind;
+
+  // The number of times function appeared on the stack during sampling events.
+  int inclusiveTicks;
+
+  // The number of times function appeared on the top of the stack during
+  // sampling events.
+  int exclusiveTicks;
+
+  // The resolved URL for the script containing function.
+  string resolvedUrl;
+
+  // The function captured during profiling.
+  (@Function|NativeFunction) function;
+}
+```
+
+A _ProfileFunction_ contains profiling information about a Dart or native
+function.
+
+See [CpuSamples](#cpusamples).
+
 ### ReloadReport
 
 ```
@@ -2186,6 +3168,51 @@ class ReloadReport extends Response {
   bool success;
 }
 ```
+
+### RetainingObject
+
+```
+class RetainingObject {
+  // An object that is part of a retaining path.
+  @Object value;
+
+  // The offset of the retaining object in a containing list.
+  int parentListIndex [optional];
+
+  // The key mapping to the retaining object in a containing map.
+  @Object parentMapKey [optional];
+
+  // The name of the field containing the retaining object within an object.
+  string parentField [optional];
+}
+```
+
+See [RetainingPath](#retainingpath).
+
+### RetainingPath
+
+```
+class RetainingPath extends Response {
+  // The length of the retaining path.
+  int length;
+
+  // The type of GC root which is holding a reference to the specified object.
+  // Possible values include:
+  //  * class table
+  //  * local handle
+  //  * persistent handle
+  //  * stack
+  //  * user global
+  //  * weak persistent handle
+  //  * unknown
+  string gcRootType;
+
+  // The chain of objects which make up the retaining path.
+  RetainingObject[] elements;
+}
+```
+
+See [getRetainingPath](#getretainingpath).
 
 ### Response
 
@@ -2248,6 +3275,19 @@ A _SentinelKind_ is used to distinguish different kinds of _Sentinel_ objects.
 Adding new values to _SentinelKind_ is considered a backwards
 compatible change. Clients must handle this gracefully.
 
+
+### FrameKind
+```
+enum FrameKind {
+  Regular,
+  AsyncCausal,
+  AsyncSuspensionMarker,
+  AsyncActivation
+}
+```
+
+A _FrameKind_ is used to distinguish different kinds of _Frame_ objects.
+
 ### Script
 
 ```
@@ -2267,12 +3307,17 @@ class Script extends Object {
   // The library which owns this script.
   @Library library;
 
-  // The source code for this script. For certain built-in scripts,
-  // this may be reconstructed without source comments.
-  string source;
+  int lineOffset [optional];
 
-  // A table encoding a mapping from token position to line and column.
-  int[][] tokenPosTable;
+  int columnOffset [optional];
+
+  // The source code for this script. This can be null for certain built-in
+  // scripts.
+  string source [optional];
+
+  // A table encoding a mapping from token position to line and column. This
+  // field is null if sources aren't available.
+  int[][] tokenPosTable [optional];
 }
 ```
 
@@ -2298,6 +3343,14 @@ tokenPos | line | column
 100 | 1 | 5
 101 | 1 | 8
 102 | 2 | 7
+
+### ScriptList
+
+```
+class ScriptList extends Response {
+  @Script[] scripts;
+}
+```
 
 ### SourceLocation
 
@@ -2417,6 +3470,8 @@ and therefore will not contain a _type_ property.
 ```
 class Stack extends Response {
   Frame[] frames;
+  Frame[] asyncCausalFrames [optional];
+  Frame[] awaiterFrames [optional];
   Message[] messages;
 }
 ```
@@ -2457,6 +3512,21 @@ class Success extends Response {
 
 The _Success_ type is used to indicate that an operation completed successfully.
 
+### Timeline
+
+```
+class Timeline extends Response {
+  // A list of timeline events. No order is guarenteed for these events; in particular, these events may be unordered with respect to their timestamps.
+  TimelineEvent[] traceEvents;
+
+  // The start of the period of time in which traceEvents were collected.
+  int timeOriginMicros;
+
+  // The duration of time covered by the timeline.
+  int timeExtentMicros;
+}
+```
+
 ### TimelineEvent
 
 ```
@@ -2465,6 +3535,33 @@ class TimelineEvent {
 ```
 
 An _TimelineEvent_ is an arbitrary map that contains a [Trace Event Format](https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview) event.
+
+### TimelineFlags
+
+```
+class TimelineFlags extends Response {
+  // The name of the recorder currently in use. Recorder types include, but are
+  // not limited to: Callback, Endless, Fuchsia, Macos, Ring, Startup, and
+  // Systrace.
+  // Set to "null" if no recorder is currently set.
+  string recorderName;
+
+  // The list of all available timeline streams.
+  string[] availableStreams;
+
+  // The list of timeline streams that are currently enabled.
+  string[] recordedStreams;
+}
+```
+
+### Timestamp
+
+```
+class Timestamp extends Response {
+  // A timestamp in microseconds since epoch.
+  int timestamp;
+}
+```
 
 ### TypeArguments
 
@@ -2559,14 +3656,20 @@ _@VM_ is a reference to a _VM_ object.
 
 ```
 class VM extends Response {
+  // A name identifying this vm. Not guaranteed to be unique.
+  string name;
+
   // Word length on target architecture (e.g. 32, 64).
   int architectureBits;
 
-  // The CPU we are generating code for.
-  string targetCPU;
-
   // The CPU we are actually running on.
   string hostCPU;
+
+  // The operating system we are running on.
+  string operatingSystem;
+
+  // The CPU we are generating code for.
+  string targetCPU;
 
   // The Dart VM version string.
   string version;
@@ -2581,6 +3684,9 @@ class VM extends Response {
 
   // A list of isolates running in the VM.
   @Isolate[] isolates;
+
+  // A list of isolate groups running in the VM.
+  @IsolateGroup[] isolateGroups;
 }
 ```
 
@@ -2588,14 +3694,38 @@ class VM extends Response {
 
 version | comments
 ------- | --------
-1.0 | initial revision
+1.0 | Initial revision
 2.0 | Describe protocol version 2.0.
-3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.  Added VMUpdate events.  Add offset and count parameters to getObject() and offset and count fields to Instance. Added ServiceExtensionAdded event.
-3.1 | Add the getSourceReport RPC.  The getObject RPC now accepts offset and count for string objects.  String objects now contain length, offset, and count properties.
-3.2 | Isolate objects now include the runnable bit and many debugger related RPCs will return an error if executed on an isolate before it is runnable.
-3.3 | Pause event now indicates if the isolate is paused at an await, yield, or yield* suspension point via the 'atAsyncSuspension' field. Resume command now supports the step parameter 'OverAsyncSuspension'. A Breakpoint added synthetically by an 'OverAsyncSuspension' resume command identifies itself as such via the 'isSyntheticAsyncContinuation' field.
-3.4 | Add the superType and mixin fields to Class. Added new pause event 'None'.
-3.5 | Add the error field to SourceReportRange.  Clarify definition of token position.  Add "Isolate must be paused" error code.
-3.6 (unreleased) | Add 'scopeStartTokenPos', 'scopeEndTokenPos', and 'declarationTokenPos' to BoundVariable. Add 'PausePostRequest' event kind. Add 'Rewind' StepOption. Add error code 107 (isolate cannot resume). Add 'reloadSources' RPC and related error codes.
+3.0 | Describe protocol version 3.0.  Added `UnresolvedSourceLocation`.  Added `Sentinel` return to `getIsolate`.  Add `AddedBreakpointWithScriptUri`.  Removed `Isolate.entry`. The type of `VM.pid` was changed from `string` to `int`.  Added `VMUpdate` events.  Add offset and count parameters to `getObject` and `offset` and `count` fields to `Instance`. Added `ServiceExtensionAdded` event.
+3.1 | Add the `getSourceReport` RPC.  The `getObject` RPC now accepts `offset` and `count` for string objects.  `String` objects now contain `length`, `offset`, and `count` properties.
+3.2 | `Isolate` objects now include the runnable bit and many debugger related RPCs will return an error if executed on an isolate before it is runnable.
+3.3 | Pause event now indicates if the isolate is paused at an `await`, `yield`, or `yield*` suspension point via the `atAsyncSuspension` field. Resume command now supports the step parameter `OverAsyncSuspension`. A Breakpoint added synthetically by an `OverAsyncSuspension` resume command identifies itself as such via the `isSyntheticAsyncContinuation` field.
+3.4 | Add the `superType` and `mixin` fields to `Class`. Added new pause event `None`.
+3.5 | Add the error field to `SourceReportRange.  Clarify definition of token position.  Add "Isolate must be paused" error code.
+3.6 | Add `scopeStartTokenPos`, `scopeEndTokenPos`, and `declarationTokenPos` to `BoundVariable`. Add `PausePostRequest` event kind. Add `Rewind` `StepOption`. Add error code 107 (isolate cannot resume). Add `reloadSources` RPC and related error codes. Add optional parameter `scope` to `evaluate` and `evaluateInFrame`.
+3.7 | Add `setFlag`.
+3.8 | Add `kill`.
+3.9 | Changed numbers for errors related to service extensions.
+3.10 | Add `invoke`.
+3.11 | Rename `invoke` parameter `receiverId` to `targetId`.
+3.12 | Add `getScripts` RPC and `ScriptList` object.
+3.13 | Class `mixin` field now properly set for kernel transformed mixin applications.
+3.14 | Flag `profile_period` can now be set at runtime, allowing for the profiler sample rate to be changed while the program is running.
+3.15 | Added `disableBreakpoints` parameter to `invoke`, `evaluate`, and `evaluateInFrame`.
+3.16 | Add `getMemoryUsage` RPC and `MemoryUsage` object.
+3.17 | Add `Logging` event kind and the `LogRecord` class.
+3.18 | Add `getAllocationProfile` RPC and `AllocationProfile` and `ClassHeapStats` objects.
+3.19 | Add `clearVMTimeline`, `getVMTimeline`, `getVMTimelineFlags`, `setVMTimelineFlags`, `Timeline`, and `TimelineFlags`.
+3.20 | Add `getInstances` RPC and `InstanceSet` object.
+3.21 | Add `getVMTimelineMicros` RPC and `Timestamp` object.
+3.22 | Add `registerService` RPC, `Service` stream, and `ServiceRegistered` and `ServiceUnregistered` event kinds.
+3.23 | Add `VMFlagUpdate` event kind to the `VM` stream.
+3.24 | Add `operatingSystem` property to `VM` object.
+3.25 | Add `getInboundReferences`, `getRetainingPath` RPCs, and `InboundReferences`, `InboundReference`, `RetainingPath`, and `RetainingObject` objects.
+3.26 | Add `requestHeapSnapshot`.
+3.27 | Add `clearCpuSamples`, `getCpuSamples` RPCs and `CpuSamples`, `CpuSample` objects.
+3.28 | TODO(aam): document changes from 3.28
+3.29 | Add `getClientName`, `setClientName`, `requireResumeApproval`
+3.30 | Updated return types of RPCs which require an `isolateId` to allow for `Sentinel` results if the target isolate has shutdown.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

@@ -5,12 +5,12 @@
 #include "bin/error_exit.h"
 
 #include "bin/eventhandler.h"
-#include "bin/log.h"
 #include "bin/platform.h"
 #include "bin/process.h"
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/syslog.h"
 
 namespace dart {
 namespace bin {
@@ -18,10 +18,9 @@ namespace bin {
 void ErrorExit(int exit_code, const char* format, ...) {
   va_list arguments;
   va_start(arguments, format);
-  Log::VPrintErr(format, arguments);
+  Syslog::VPrintErr(format, arguments);
   va_end(arguments);
 
-  Dart_ExitScope();
   Dart_ShutdownIsolate();
 
   // Terminate process exit-code handler.
@@ -29,7 +28,7 @@ void ErrorExit(int exit_code, const char* format, ...) {
 
   char* error = Dart_Cleanup();
   if (error != NULL) {
-    Log::PrintErr("VM cleanup failed: %s\n", error);
+    Syslog::PrintErr("VM cleanup failed: %s\n", error);
     free(error);
   }
 

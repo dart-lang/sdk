@@ -52,11 +52,11 @@ testDoubleClampInt() {
 }
 
 testDoubleClampExtremes() {
-  Expect.equals(2.0, 2.0.clamp(-double.INFINITY, double.INFINITY));
-  Expect.equals(2.0, 2.0.clamp(-double.INFINITY, double.NAN));
-  Expect.equals(double.INFINITY, 2.0.clamp(double.INFINITY, double.NAN));
-  Expect.isTrue(2.0.clamp(double.NAN, double.NAN).isNaN);
-  Expect.throwsArgumentError(() => 0.0.clamp(double.NAN, double.INFINITY));
+  Expect.equals(2.0, 2.0.clamp(-double.infinity, double.infinity));
+  Expect.equals(2.0, 2.0.clamp(-double.infinity, double.nan));
+  Expect.equals(double.infinity, 2.0.clamp(double.infinity, double.nan));
+  Expect.isTrue(2.0.clamp(double.nan, double.nan).isNaN);
+  Expect.throwsArgumentError(() => 0.0.clamp(double.nan, double.infinity));
 }
 
 main() {

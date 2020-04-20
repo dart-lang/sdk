@@ -1,0 +1,483 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object* = dynamic> extends core::Object {
+  generic-covariant-impl field self::C::T* field1;
+  generic-covariant-impl field () →* self::C::T* field2;
+  field (self::C::T*) →* void field3;
+  generic-covariant-impl field (self::C::T*) →* self::C::T* field4;
+  generic-covariant-impl field () →* () →* self::C::T* field5;
+  field (() →* self::C::T*) →* void field6;
+  generic-covariant-impl field (() →* self::C::T*) →* self::C::T* field7;
+  generic-covariant-impl field ((self::C::T*) →* void) →* void field8;
+  generic-covariant-impl field ((self::C::T*) →* void) →* self::C::T* field9;
+  generic-covariant-impl field ((self::C::T*) →* self::C::T*) →* void field10;
+  generic-covariant-impl field ((self::C::T*) →* self::C::T*) →* self::C::T* field11;
+  generic-covariant-impl field <S extends self::C::T* = dynamic>() →* S* field12;
+  generic-covariant-impl field <S extends self::C::T* = dynamic>(S*) →* void field13;
+  generic-covariant-impl field <S extends self::C::T* = dynamic>(S*) →* S* field14;
+  generic-covariant-impl field (<S extends self::C::T* = dynamic>() →* S*) →* void field15;
+  constructor •(self::C::T* field1) → self::C<self::C::T*>*
+    : self::C::field1 = field1, self::C::field2 = () → self::C::T* => field1, self::C::field3 = (self::C::T* t) → core::Null? {}, self::C::field4 = (self::C::T* t) → self::C::T* => t, self::C::field5 = () → () →* self::C::T* => () → self::C::T* => field1, self::C::field6 = (() →* self::C::T* f) → core::Null? {}, self::C::field7 = (() →* self::C::T* f) → self::C::T* => field1, self::C::field8 = ((self::C::T*) →* void f) → core::Null? {}, self::C::field9 = ((self::C::T*) →* void f) → self::C::T* => field1, self::C::field10 = ((self::C::T*) →* self::C::T* f) → core::Null? {}, self::C::field11 = ((self::C::T*) →* self::C::T* f) → self::C::T* => field1, self::C::field12 = <S extends self::C::T* = self::C::T*>() → core::Null? => null, self::C::field13 = <S extends self::C::T* = self::C::T*>(S* s) → core::Null? {}, self::C::field14 = <S extends self::C::T* = self::C::T*>(S* s) → S* => s, self::C::field15 = (<S extends self::C::T* = self::C::T*>() →* S* f) → core::Null? {}, super core::Object::•()
+    ;
+  get getter1() → self::C::T*
+    return this.{self::C::field1};
+  get getter2() → () →* self::C::T*
+    return this.{self::C::field2};
+  get getter3() → (self::C::T*) →* void
+    return this.{self::C::field3};
+  get getter4() → (self::C::T*) →* self::C::T*
+    return this.{self::C::field4};
+  get getter5() → () →* () →* self::C::T*
+    return this.{self::C::field5};
+  get getter6() → (() →* self::C::T*) →* void
+    return this.{self::C::field6};
+  get getter7() → (() →* self::C::T*) →* self::C::T*
+    return this.{self::C::field7};
+  get getter8() → ((self::C::T*) →* void) →* void
+    return this.{self::C::field8};
+  get getter9() → ((self::C::T*) →* void) →* self::C::T*
+    return this.{self::C::field9};
+  get getter10() → ((self::C::T*) →* self::C::T*) →* void
+    return this.{self::C::field10};
+  get getter11() → ((self::C::T*) →* self::C::T*) →* self::C::T*
+    return this.{self::C::field11};
+  get getter12() → <S extends self::C::T* = dynamic>() →* S*
+    return this.{self::C::field12};
+  get getter13() → <S extends self::C::T* = dynamic>(S*) →* void
+    return this.{self::C::field13};
+  get getter14() → <S extends self::C::T* = dynamic>(S*) →* S*
+    return this.{self::C::field14};
+  get getter15() → (<S extends self::C::T* = dynamic>() →* S*) →* void
+    return this.{self::C::field15};
+  set setter1(generic-covariant-impl self::C::T* value) → void {
+    this.{self::C::field1} = value;
+  }
+  set setter2(generic-covariant-impl () →* self::C::T* value) → void {
+    this.{self::C::field2} = value;
+  }
+  set setter3((self::C::T*) →* void value) → void {
+    this.{self::C::field3} = value;
+  }
+  set setter4(generic-covariant-impl (self::C::T*) →* self::C::T* value) → void {
+    this.{self::C::field4} = value;
+  }
+  set setter5(generic-covariant-impl () →* () →* self::C::T* value) → void {
+    this.{self::C::field5} = value;
+  }
+  set setter6((() →* self::C::T*) →* void value) → void {
+    this.{self::C::field6} = value;
+  }
+  set setter7(generic-covariant-impl (() →* self::C::T*) →* self::C::T* value) → void {
+    this.{self::C::field7} = value;
+  }
+  set setter8(generic-covariant-impl ((self::C::T*) →* void) →* void value) → void {
+    this.{self::C::field8} = value;
+  }
+  set setter9(generic-covariant-impl ((self::C::T*) →* void) →* self::C::T* value) → void {
+    this.{self::C::field9} = value;
+  }
+  set setter10(generic-covariant-impl ((self::C::T*) →* self::C::T*) →* void value) → void {
+    this.{self::C::field10} = value;
+  }
+  set setter11(generic-covariant-impl ((self::C::T*) →* self::C::T*) →* self::C::T* value) → void {
+    this.{self::C::field11} = value;
+  }
+  set setter12(generic-covariant-impl <S extends self::C::T* = dynamic>() →* S* value) → void {
+    this.{self::C::field12} = value;
+  }
+  set setter13(generic-covariant-impl <S extends self::C::T* = dynamic>(S*) →* void value) → void {
+    this.{self::C::field13} = value;
+  }
+  set setter14(generic-covariant-impl <S extends self::C::T* = dynamic>(S*) →* S* value) → void {
+    this.{self::C::field14} = value;
+  }
+  set setter15(generic-covariant-impl (<S extends self::C::T* = dynamic>() →* S*) →* void value) → void {
+    this.{self::C::field15} = value;
+  }
+  method method1(generic-covariant-impl self::C::T* value) → void {
+    this.{self::C::field1} = value;
+  }
+  method method2(generic-covariant-impl () →* self::C::T* value) → void {
+    this.{self::C::field2} = value;
+  }
+  method method3((self::C::T*) →* void value) → void {
+    this.{self::C::field3} = value;
+  }
+  method method4(generic-covariant-impl (self::C::T*) →* self::C::T* value) → void {
+    this.{self::C::field4} = value;
+  }
+  method method5(generic-covariant-impl () →* () →* self::C::T* value) → void {
+    this.{self::C::field5} = value;
+  }
+  method method6((() →* self::C::T*) →* void value) → void {
+    this.{self::C::field6} = value;
+  }
+  method method7(generic-covariant-impl (() →* self::C::T*) →* self::C::T* value) → void {
+    this.{self::C::field7} = value;
+  }
+  method method8(generic-covariant-impl ((self::C::T*) →* void) →* void value) → void {
+    this.{self::C::field8} = value;
+  }
+  method method9(generic-covariant-impl ((self::C::T*) →* void) →* self::C::T* value) → void {
+    this.{self::C::field9} = value;
+  }
+  method method10(generic-covariant-impl ((self::C::T*) →* self::C::T*) →* void value) → void {
+    this.{self::C::field10} = value;
+  }
+  method method11(generic-covariant-impl ((self::C::T*) →* self::C::T*) →* self::C::T* value) → void {
+    this.{self::C::field11} = value;
+  }
+  method method12(generic-covariant-impl <S extends self::C::T* = dynamic>() →* S* value) → void {
+    this.{self::C::field12} = value;
+  }
+  method method13(generic-covariant-impl <S extends self::C::T* = dynamic>(S*) →* void value) → void {
+    this.{self::C::field13} = value;
+  }
+  method method14(generic-covariant-impl <S extends self::C::T* = dynamic>(S*) →* S* value) → void {
+    this.{self::C::field14} = value;
+  }
+  method method15(generic-covariant-impl (<S extends self::C::T* = dynamic>() →* S*) →* void value) → void {
+    this.{self::C::field15} = value;
+  }
+}
+static method main() → dynamic {
+  self::C<core::num*>* c = new self::C::•<core::int*>(0);
+  c.{self::C::field1};
+  c.{self::C::field2};
+  try {
+    c.{self::C::field3} as{TypeError,CovarianceCheck} (core::num*) →* void;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::field4} as{TypeError,CovarianceCheck} (core::num*) →* core::num*;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  c.{self::C::field5};
+  try {
+    c.{self::C::field6} as{TypeError,CovarianceCheck} (() →* core::num*) →* void;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::field7} as{TypeError,CovarianceCheck} (() →* core::num*) →* core::num*;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  c.{self::C::field8};
+  c.{self::C::field9};
+  try {
+    c.{self::C::field10} as{TypeError,CovarianceCheck} ((core::num*) →* core::num*) →* void;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::field11} as{TypeError,CovarianceCheck} ((core::num*) →* core::num*) →* core::num*;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::field12} as{TypeError,CovarianceCheck} <S extends core::num* = dynamic>() →* S*;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::field13} as{TypeError,CovarianceCheck} <S extends core::num* = dynamic>(S*) →* void;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::field14} as{TypeError,CovarianceCheck} <S extends core::num* = dynamic>(S*) →* S*;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::field15} as{TypeError,CovarianceCheck} (<S extends core::num* = dynamic>() →* S*) →* void;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  c.{self::C::getter1};
+  c.{self::C::getter2};
+  try {
+    c.{self::C::getter3} as{TypeError,CovarianceCheck} (core::num*) →* void;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::getter4} as{TypeError,CovarianceCheck} (core::num*) →* core::num*;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  c.{self::C::getter5};
+  try {
+    c.{self::C::getter6} as{TypeError,CovarianceCheck} (() →* core::num*) →* void;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::getter7} as{TypeError,CovarianceCheck} (() →* core::num*) →* core::num*;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  c.{self::C::getter8};
+  c.{self::C::getter9};
+  try {
+    c.{self::C::getter10} as{TypeError,CovarianceCheck} ((core::num*) →* core::num*) →* void;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::getter11} as{TypeError,CovarianceCheck} ((core::num*) →* core::num*) →* core::num*;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::getter12} as{TypeError,CovarianceCheck} <S extends core::num* = dynamic>() →* S*;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::getter13} as{TypeError,CovarianceCheck} <S extends core::num* = dynamic>(S*) →* void;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::getter14} as{TypeError,CovarianceCheck} <S extends core::num* = dynamic>(S*) →* S*;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::getter15} as{TypeError,CovarianceCheck} (<S extends core::num* = dynamic>() →* S*) →* void;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::setter1} = 0.5;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::setter2} = () → core::double* => 0.5;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  c.{self::C::setter3} = (core::num* n) → core::Null? {};
+  try {
+    c.{self::C::setter4} = (core::num* n) → core::double* => 0.5;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::setter5} = () → () →* core::double* => () → core::double* => 0.5;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  c.{self::C::setter6} = (() →* core::num* f) → core::Null? {};
+  try {
+    c.{self::C::setter7} = (() →* core::num* f) → core::double* => 0.5;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::setter8} = ((core::double*) →* void f) → core::Null? {};
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::setter9} = ((core::double*) →* void f) → core::double* => 0.5;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::setter10} = ((core::double*) →* core::num* f) → core::Null? {};
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::setter11} = ((core::double*) →* core::num* f) → core::double* => 0.5;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::setter12} = <S extends core::num* = core::num*>() → core::Null? => null;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::setter13} = <S extends core::num* = core::num*>(S* s) → core::Null? {};
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::setter14} = <S extends core::num* = core::num*>(S* s) → S* => s;
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::setter15} = (<S extends core::num* = core::num*>() →* S* f) → core::Null? {};
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::method1}(0.5);
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::method2}(() → core::double* => 0.5);
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  c.{self::C::method3}((core::num* n) → core::Null? {});
+  try {
+    c.{self::C::method4}((core::num* n) → core::double* => 0.5);
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::method5}(() → () →* core::double* => () → core::double* => 0.5);
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  c.{self::C::method6}((() →* core::num* f) → core::Null? {});
+  try {
+    c.{self::C::method7}((() →* core::num* f) → core::double* => 0.5);
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::method8}(((core::double*) →* void f) → core::Null? {});
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::method9}(((core::double*) →* void f) → core::double* => 0.5);
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::method10}(((core::double*) →* core::num* f) → core::Null? {});
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::method11}(((core::double*) →* core::num* f) → core::double* => 0.5);
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::method12}(<S extends core::num* = core::num*>() → core::Null? => null);
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::method13}(<S extends core::num* = core::num*>(S* s) → core::Null? {});
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::method14}(<S extends core::num* = core::num*>(S* s) → S* => s);
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    c.{self::C::method15}((<S extends core::num* = core::num*>() →* S* f) → core::Null? {});
+    throw "TypeError expected";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+}

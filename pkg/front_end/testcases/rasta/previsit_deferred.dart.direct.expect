@@ -1,7 +1,0 @@
-library;
-import self as self;
-import "./deferred_lib.dart" as def;
-
-static method main() → dynamic {
-  def::foo();
-}

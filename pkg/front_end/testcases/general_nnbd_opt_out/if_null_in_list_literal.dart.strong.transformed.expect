@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::Object* a;
+  core::Object* b;
+  return <core::Object*>[let final core::Object* #t1 = a in #t1.{core::Object::==}(null) ?{core::Object*} b : #t1];
+}

@@ -1,0 +1,5 @@
+NOTICE: Stream was rewritten by parser!
+
+n<S e()>(){}
+
+[UnmatchedToken][UnmatchedToken]n[StringToken]<[BeginToken]S[StringToken] e[StringToken]([BeginToken])[SyntheticToken]>[SyntheticToken][SyntheticStringToken]([SyntheticBeginToken])[SyntheticToken]{[SyntheticBeginToken]}[SyntheticToken][SimpleToken]

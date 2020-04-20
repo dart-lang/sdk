@@ -5,11 +5,13 @@
 /*@testedFeatures=inference*/
 library test;
 
-main() {
-  var /*@type=() -> Iterable<num>*/ f = /*@returnType=Iterable<num>*/ () sync* {
+test() {
+  var /*@ type=() ->* Iterable<num*>* */ f = /*@ returnType=Iterable<num*>* */ () sync* {
     yield 1;
-    yield* /*@typeArgs=num*/ [3, 4.0];
+    yield* /*@ typeArgs=num* */ [3, 4.0];
   };
   Iterable<num> g = f();
   Iterable<int> h = /*info:ASSIGNMENT_CAST*/ f();
 }
+
+main() {}

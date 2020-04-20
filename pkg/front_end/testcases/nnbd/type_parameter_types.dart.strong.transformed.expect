@@ -1,0 +1,55 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object = core::Object, Y extends core::Object? = core::Object?> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X, self::A::Y%>
+    : super core::Object::•()
+    ;
+  method foo() → self::A::X
+    return self::never();
+  method bar() → self::A::X?
+    return null;
+  method baz() → self::A::Y%
+    return self::never();
+}
+class B<X extends core::List<self::B::Y%> = core::List<core::Object?>, Y extends core::Object? = core::Object?> extends core::Object {
+  synthetic constructor •() → self::B<self::B::X, self::B::Y%>
+    : super core::Object::•()
+    ;
+  method foo(generic-covariant-impl self::B::X x, generic-covariant-impl self::B::Y% y) → dynamic {}
+}
+class C<X extends core::List<self::C::Y%>? = core::List<dynamic>?, Y extends core::List<self::C::X%>? = core::List<dynamic>?> extends core::Object {
+  synthetic constructor •() → self::C<self::C::X%, self::C::Y%>
+    : super core::Object::•()
+    ;
+  method foo(generic-covariant-impl self::C::X% x, generic-covariant-impl self::C::Y% y) → dynamic {}
+}
+class D<X extends self::D::Y% = dynamic, Y extends self::D::Z% = dynamic, Z extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::D<self::D::X%, self::D::Y%, self::D::Z%>
+    : super core::Object::•()
+    ;
+  method foo(generic-covariant-impl self::D::X% x, generic-covariant-impl self::D::Y% y, generic-covariant-impl self::D::Z% z) → dynamic {}
+}
+static method never() → Never
+  return throw "Never";
+static method main() → dynamic {
+  function fun1<X extends core::Object = core::Object, Y extends core::Object? = core::Object?>() → X
+    return self::never();
+  function fun2<X extends core::Object = core::Object, Y extends core::Object? = core::Object?>() → Y%
+    return self::never();
+  function fun3<X extends core::List<Y%> = core::List<core::Object?>, Y extends core::Object? = core::Object?>() → X
+    return self::never();
+  function fun4<X extends core::List<Y%> = core::List<core::Object?>, Y extends core::Object? = core::Object?>() → Y%
+    return self::never();
+  function fun5<X extends core::List<Y%>? = core::List<dynamic>?, Y extends core::List<X%>? = core::List<dynamic>?>() → X%
+    return self::never();
+  function fun6<X extends core::List<Y%>? = core::List<dynamic>?, Y extends core::List<X%>? = core::List<dynamic>?>() → Y%
+    return self::never();
+  function fun7<X extends Y% = dynamic, Y extends Z% = dynamic, Z extends core::Object? = dynamic>() → X%
+    return self::never();
+  function fun8<X extends Y% = dynamic, Y extends Z% = dynamic, Z extends core::Object? = dynamic>() → Y%
+    return self::never();
+  function fun9<X extends Y% = dynamic, Y extends Z% = dynamic, Z extends core::Object? = dynamic>() → Z%
+    return self::never();
+}

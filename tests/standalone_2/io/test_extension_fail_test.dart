@@ -24,7 +24,7 @@ Future copyFileToDirectory(String file, String directory) {
 String getExtensionPath(String buildDirectory) {
   switch (Platform.operatingSystem) {
     case 'linux':
-      return join(buildDirectory, 'lib.target', 'libtest_extension.so');
+      return join(buildDirectory, 'libtest_extension.so');
     case 'macos':
       return join(buildDirectory, 'libtest_extension.dylib');
     case 'windows':
@@ -36,7 +36,7 @@ String getExtensionPath(String buildDirectory) {
 }
 
 bool checkExitCode(int code) {
-  return ((code == 255) || (code == 253));
+  return ((code == 255) || (code == 254) || (code == 253));
 }
 
 bool checkStdError(String err) {
@@ -46,7 +46,7 @@ bool checkStdError(String err) {
 }
 
 // name is either "extension" or "relative_extension"
-Future test(String name, bool checkForBall) {
+Future test(String name, bool checkForBall) async {
   String scriptDirectory = dirname(Platform.script.toFilePath());
   String buildDirectory = dirname(Platform.executable);
   Directory tempDirectory =
@@ -55,18 +55,25 @@ Future test(String name, bool checkForBall) {
 
   // Copy test_extension shared library, test_extension.dart and
   // test_extension_fail_tester.dart to the temporary test directory.
-  copyFileToDirectory(getExtensionPath(buildDirectory), testDirectory)
-      .then((_) {
+  try {
+    if (name == "extension") {
+      print(getExtensionPath(buildDirectory));
+      await copyFileToDirectory(
+          getExtensionPath(buildDirectory), testDirectory);
+    } else {
+      var extensionDir = testDirectory + "/extension";
+      Directory dir = await (new Directory(extensionDir).create());
+      await copyFileToDirectory(getExtensionPath(buildDirectory), extensionDir);
+    }
     var extensionDartFile = join(scriptDirectory, 'test_${name}.dart');
-    return copyFileToDirectory(extensionDartFile, testDirectory);
-  }).then((_) {
+    await copyFileToDirectory(extensionDartFile, testDirectory);
     var testExtensionTesterFile =
         join(scriptDirectory, 'test_${name}_fail_tester.dart');
-    return copyFileToDirectory(testExtensionTesterFile, testDirectory);
-  }).then((_) {
-    var script = join(testDirectory, 'test_${name}_fail_tester.dart');
-    return Process.run(Platform.executable, ['--trace-loading', script]);
-  }).then((ProcessResult result) {
+    await copyFileToDirectory(testExtensionTesterFile, testDirectory);
+    var args = new List<String>.from(Platform.executableArguments)
+      ..add('--trace-loading')
+      ..add(join(testDirectory, 'test_${name}_fail_tester.dart'));
+    var result = await Process.run(Platform.executable, args);
     print("ERR: ${result.stderr}\n\n");
     print("OUT: ${result.stdout}\n\n");
     if (!checkExitCode(result.exitCode)) {
@@ -80,7 +87,9 @@ Future test(String name, bool checkForBall) {
         throw new StateError("stderr doesn't contain 'ball'.");
       }
     }
-  }).whenComplete(() => tempDirectory.deleteSync(recursive: true));
+  } finally {
+    tempDirectory.deleteSync(recursive: true);
+  }
 }
 
 main() async {

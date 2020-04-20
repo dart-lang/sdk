@@ -100,8 +100,7 @@ class TimelineTestHelper : public AllStatic {
 
 TEST_CASE(TimelineEventIsValid) {
   // Create a test stream.
-  TimelineStream stream;
-  stream.Init("testStream", true);
+  TimelineStream stream("testStream", "testStream", true);
 
   TimelineEvent event;
   TimelineTestHelper::SetStream(&event, &stream);
@@ -120,8 +119,7 @@ TEST_CASE(TimelineEventIsValid) {
 
 TEST_CASE(TimelineEventDuration) {
   // Create a test stream.
-  TimelineStream stream;
-  stream.Init("testStream", true);
+  TimelineStream stream("testStream", "testStream", true);
 
   // Create a test event.
   TimelineEvent event;
@@ -136,8 +134,7 @@ TEST_CASE(TimelineEventDuration) {
 
 TEST_CASE(TimelineEventDurationPrintJSON) {
   // Create a test stream.
-  TimelineStream stream;
-  stream.Init("testStream", true);
+  TimelineStream stream("testStream", "testStream", true);
 
   // Create a test event.
   TimelineEvent event;
@@ -167,8 +164,7 @@ TEST_CASE(TimelineEventPrintSystrace) {
   char buffer[kBufferLength];
 
   // Create a test stream.
-  TimelineStream stream;
-  stream.Init("testStream", true);
+  TimelineStream stream("testStream", "testStream", true);
 
   // Create a test event.
   TimelineEvent event;
@@ -212,8 +208,7 @@ TEST_CASE(TimelineEventPrintSystrace) {
 
 TEST_CASE(TimelineEventArguments) {
   // Create a test stream.
-  TimelineStream stream;
-  stream.Init("testStream", true);
+  TimelineStream stream("testStream", "testStream", true);
 
   // Create a test event.
   TimelineEvent event;
@@ -233,8 +228,7 @@ TEST_CASE(TimelineEventArguments) {
 
 TEST_CASE(TimelineEventArgumentsPrintJSON) {
   // Create a test stream.
-  TimelineStream stream;
-  stream.Init("testStream", true);
+  TimelineStream stream("testStream", "testStream", true);
 
   // Create a test event.
   TimelineEvent event;
@@ -262,8 +256,8 @@ TEST_CASE(TimelineEventBufferPrintJSON) {
   JSONStream js;
   TimelineEventFilter filter;
   recorder->PrintJSON(&js, &filter);
-  // Check the type. This test will fail if we ever make Timeline public.
-  EXPECT_SUBSTRING("\"type\":\"_Timeline\"", js.ToCString());
+  // Check the type.
+  EXPECT_SUBSTRING("\"type\":\"Timeline\"", js.ToCString());
   // Check that there is a traceEvents array.
   EXPECT_SUBSTRING("\"traceEvents\":[", js.ToCString());
 }
@@ -281,6 +275,8 @@ class EventCounterRecorder : public TimelineEventCallbackRecorder {
 
   intptr_t CountFor(TimelineEvent::EventType type) { return counts_[type]; }
 
+  intptr_t Size() { return -1; }
+
  private:
   intptr_t counts_[TimelineEvent::kNumEventTypes];
 };
@@ -296,8 +292,7 @@ TEST_CASE(TimelineEventCallbackRecorderBasic) {
   }
 
   // Create a test stream.
-  TimelineStream stream;
-  stream.Init("testStream", true);
+  TimelineStream stream("testStream", "testStream", true);
 
   TimelineEvent* event = NULL;
 
@@ -468,8 +463,7 @@ TEST_CASE(TimelineAnalysis_ThreadBlockCount) {
 }
 
 TEST_CASE(TimelineRingRecorderJSONOrder) {
-  TimelineStream stream;
-  stream.Init("testStream", true);
+  TimelineStream stream("testStream", "testStream", true);
 
   TimelineEventRingRecorder* recorder =
       new TimelineEventRingRecorder(TimelineEventBlock::kBlockSize * 2);

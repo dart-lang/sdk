@@ -1,19 +1,17 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/plugin/folding_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/utilities/folding/folding.dart';
 import 'package:analyzer_plugin/utilities/folding/folding.dart';
-import 'package:path/src/context.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,9 +22,7 @@ void main() {
 }
 
 @reflectiveTest
-class FoldingMixinTest {
-  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-
+class FoldingMixinTest with ResourceProviderMixin {
   String packagePath1;
   String filePath1;
   ContextRoot contextRoot1;
@@ -35,29 +31,26 @@ class FoldingMixinTest {
   _TestServerPlugin plugin;
 
   void setUp() {
-    Context pathContext = resourceProvider.pathContext;
+    packagePath1 = convertPath('/package1');
+    filePath1 = join(packagePath1, 'lib', 'test.dart');
+    newFile(filePath1);
+    contextRoot1 = ContextRoot(packagePath1, <String>[]);
 
-    packagePath1 = resourceProvider.convertPath('/package1');
-    filePath1 = pathContext.join(packagePath1, 'lib', 'test.dart');
-    resourceProvider.newFile(filePath1, '');
-    contextRoot1 = new ContextRoot(packagePath1, <String>[]);
-
-    channel = new MockChannel();
-    plugin = new _TestServerPlugin(resourceProvider);
+    channel = MockChannel();
+    plugin = _TestServerPlugin(resourceProvider);
     plugin.start(channel);
   }
 
-  test_sendFoldingNotification() async {
+  Future<void> test_sendFoldingNotification() async {
     await plugin.handleAnalysisSetContextRoots(
-        new AnalysisSetContextRootsParams([contextRoot1]));
+        AnalysisSetContextRootsParams([contextRoot1]));
 
-    Completer<Null> notificationReceived = new Completer<Null>();
+    var notificationReceived = Completer<void>();
     channel.listen(null, onNotification: (Notification notification) {
       expect(notification, isNotNull);
-      AnalysisFoldingParams params =
-          new AnalysisFoldingParams.fromNotification(notification);
+      var params = AnalysisFoldingParams.fromNotification(notification);
       expect(params.file, filePath1);
-      List<FoldingRegion> regions = params.regions;
+      var regions = params.regions;
       expect(regions, hasLength(7));
       notificationReceived.complete();
     });
@@ -73,8 +66,8 @@ class _TestFoldingContributor implements FoldingContributor {
 
   @override
   void computeFolding(FoldingRequest request, FoldingCollector collector) {
-    for (int i = 0; i < regionCount; i++) {
-      collector.addRegion(i * 20, 10, FoldingKind.COMMENT);
+    for (var i = 0; i < regionCount; i++) {
+      collector.addRegion(i * 20, 10, FoldingKind.FILE_HEADER);
     }
   }
 }
@@ -86,15 +79,14 @@ class _TestServerPlugin extends MockServerPlugin with FoldingMixin {
   @override
   List<FoldingContributor> getFoldingContributors(String path) {
     return <FoldingContributor>[
-      new _TestFoldingContributor(3),
-      new _TestFoldingContributor(4)
+      _TestFoldingContributor(3),
+      _TestFoldingContributor(4)
     ];
   }
 
   @override
   Future<FoldingRequest> getFoldingRequest(String path) async {
-    AnalysisResult result = new AnalysisResult(
-        null, null, path, null, null, null, null, null, null, null, null);
-    return new DartFoldingRequestImpl(resourceProvider, result);
+    var result = MockResolvedUnitResult(path: path);
+    return DartFoldingRequestImpl(resourceProvider, result);
   }
 }

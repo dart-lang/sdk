@@ -1,8 +1,6 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library analyzer.src.generated.sdk;
 
 import 'dart:collection';
 
@@ -114,7 +112,7 @@ class DartSdkManager {
    * A table mapping (an encoding of) analysis options and SDK locations to the
    * DartSdk from that location that has been configured with those options.
    */
-  Map<SdkDescription, DartSdk> sdkMap = new HashMap<SdkDescription, DartSdk>();
+  Map<SdkDescription, DartSdk> sdkMap = HashMap<SdkDescription, DartSdk>();
 
   /**
    * Initialize a newly created manager.
@@ -139,12 +137,10 @@ class DartSdkManager {
    */
   List<SdkDescription> get sdkDescriptors => sdkMap.keys.toList();
 
-  /**
-   * Return the Dart SDK that is appropriate for the given SDK [description].
-   * If such an SDK has not yet been created, then the [ifAbsent] function will
-   * be invoked to create it.
-   */
-  DartSdk getSdk(SdkDescription description, DartSdk ifAbsent()) {
+  /// Return the Dart SDK that is appropriate for the given SDK [description].
+  /// If such an SDK has not yet been created, then the [ifAbsent] function will
+  /// be invoked to create it.
+  DartSdk getSdk(SdkDescription description, DartSdk Function() ifAbsent) {
     return sdkMap.putIfAbsent(description, ifAbsent);
   }
 }
@@ -154,21 +150,33 @@ class DartSdkManager {
  * library.
  */
 class LibraryMap {
-  /**
-   * A table mapping Dart library URI's to the library.
-   */
-  LinkedHashMap<String, SdkLibraryImpl> _libraryMap =
-      new LinkedHashMap<String, SdkLibraryImpl>();
+  /// A table mapping Dart library URI's to the library.
+  final Map<String, SdkLibraryImpl> _libraryMap = <String, SdkLibraryImpl>{};
 
   /**
    * Return a list containing all of the sdk libraries in this mapping.
    */
-  List<SdkLibrary> get sdkLibraries => new List.from(_libraryMap.values);
+  List<SdkLibrary> get sdkLibraries => List.from(_libraryMap.values);
 
   /**
    * Return a list containing the library URI's for which a mapping is available.
    */
   List<String> get uris => _libraryMap.keys.toList();
+
+  /**
+   * Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
+   */
+  Map<String, Object> debugInfo() {
+    var map = <String, Object>{};
+    for (var uri in _libraryMap.keys) {
+      var lib = _libraryMap[uri];
+      map[uri] = <String, Object>{
+        'path': lib.path,
+        'shortName': lib.shortName,
+      };
+    }
+    return map;
+  }
 
   /**
    * Return the library with the given 'dart:' [uri], or `null` if the URI does
@@ -245,7 +253,7 @@ class SdkDescription {
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     bool needsSeparator = false;
     void add(String optionName) {
       if (needsSeparator) {
@@ -268,66 +276,38 @@ class SdkDescription {
   }
 }
 
-class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
-  /**
-   * The prefix added to the name of a library to form the URI used in code to
-   * reference the library.
-   */
-  static String _LIBRARY_PREFIX = "dart:";
+class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
+  /// The prefix added to the name of a library to form the URI used in code to
+  /// reference the library.
+  static const String _LIBRARY_PREFIX = "dart:";
 
-  /**
-   * The name of the optional parameter used to indicate whether the library is
-   * an implementation library.
-   */
-  static String _IMPLEMENTATION = "implementation";
+  /// The name of the optional parameter used to indicate whether the library is
+  /// an implementation library.
+  static const String _IMPLEMENTATION = "implementation";
 
-  /**
-   * The name of the optional parameter used to specify the path used when
-   * compiling for dart2js.
-   */
-  static String _DART2JS_PATH = "dart2jsPath";
+  /// The name of the optional parameter used to specify the path used when
+  /// compiling for dart2js.
+  static const String _DART2JS_PATH = "dart2jsPath";
 
-  /**
-   * The name of the optional parameter used to indicate whether the library is
-   * documented.
-   */
-  static String _DOCUMENTED = "documented";
+  /// The name of the optional parameter used to indicate whether the library is
+  /// documented.
+  static const String _DOCUMENTED = "documented";
 
-  /**
-   * The name of the optional parameter used to specify the category of the
-   * library.
-   */
-  static String _CATEGORIES = "categories";
+  /// The name of the optional parameter used to specify the category of the
+  /// library.
+  static const String _CATEGORIES = "categories";
 
-  /**
-   * The name of the optional parameter used to specify the platforms on which
-   * the library can be used.
-   */
-  static String _PLATFORMS = "platforms";
+  /// The name of the optional parameter used to specify the platforms on which
+  /// the library can be used.
+  static const String _PLATFORMS = "platforms";
 
-  /**
-   * The value of the [PLATFORMS] parameter used to specify that the library can
-   * be used on the VM.
-   */
-  static String _VM_PLATFORM = "VM_PLATFORM";
+  /// The value of the [PLATFORMS] parameter used to specify that the library can
+  /// be used on the VM.
+  static const String _VM_PLATFORM = "VM_PLATFORM";
 
-  /**
-   * A flag indicating whether the dart2js path should be used when it is
-   * available.
-   */
-  final bool _useDart2jsPaths;
-
-  /**
-   * The library map that is populated by visiting the AST structure parsed from
-   * the contents of the libraries file.
-   */
-  LibraryMap _librariesMap = new LibraryMap();
-
-  /**
-   * Initialize a newly created library builder to use the dart2js path if
-   * [_useDart2jsPaths] is `true`.
-   */
-  SdkLibrariesReader_LibraryBuilder(this._useDart2jsPaths);
+  /// The library map that is populated by visiting the AST structure parsed from
+  /// the contents of the libraries file.
+  final LibraryMap _librariesMap = LibraryMap();
 
   /**
    * Return the library map that was populated by visiting the AST structure
@@ -354,15 +334,15 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitMapLiteralEntry(MapLiteralEntry node) {
-    String libraryName = null;
+  void visitMapLiteralEntry(MapLiteralEntry node) {
+    String libraryName;
     Expression key = node.key;
     if (key is SimpleStringLiteral) {
       libraryName = "$_LIBRARY_PREFIX${key.value}";
     }
     Expression value = node.value;
     if (value is InstanceCreationExpression) {
-      SdkLibraryImpl library = new SdkLibraryImpl(libraryName);
+      SdkLibraryImpl library = SdkLibraryImpl(libraryName);
       List<Expression> arguments = value.argumentList.arguments;
       for (Expression argument in arguments) {
         if (argument is SimpleStringLiteral) {
@@ -386,7 +366,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
                 library.setDart2JsLibrary();
               }
             }
-          } else if (_useDart2jsPaths && name == _DART2JS_PATH) {
+          } else if (name == _DART2JS_PATH) {
             if (expression is SimpleStringLiteral) {
               library.path = expression.value;
             }
@@ -395,7 +375,6 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
       }
       _librariesMap.setLibrary(libraryName, library);
     }
-    return null;
   }
 }
 
@@ -475,7 +454,7 @@ class SdkLibraryImpl implements SdkLibrary {
    * 'lib' directory within the SDK.
    */
   @override
-  String path = null;
+  String path;
 
   /**
    * The name of the category containing the library. Unless otherwise specified
@@ -509,7 +488,7 @@ class SdkLibraryImpl implements SdkLibrary {
   /**
    * Set whether the library is documented.
    */
-  void set documented(bool documented) {
+  set documented(bool documented) {
     this._documented = documented;
   }
 

@@ -11,9 +11,9 @@
 
 #include "bin/builtin.h"
 #include "bin/eventhandler.h"
-#include "bin/log.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
+#include "platform/syslog.h"
 
 namespace dart {
 namespace bin {

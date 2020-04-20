@@ -11,20 +11,10 @@ The configurations are described below.
 
 The source of truth for these configurations is the file [pkg/front_end/testing.json](../testing.json).
 
-## ast_builder
-
-* Status file: [ast_builder.status](ast_builder.status)
-* Standalone test: [pkg/front_end/test/fasta/ast_builder_test.dart](../test/fasta/ast_builder_test.dart)
-* Expectation prefix: N/A
-* How to update expectations: N/A
-
-This configuration doesn't have expectations as it doesn't produce Kernel AST nodes.
-
-
 ## Dart 1.0 Compilation
 
-* Status file: [compile.status](compile.status)
-* Standalone test: [pkg/front_end/test/fasta/compile_test.dart](../test/fasta/compile_test.dart)
+* Status file: [legacy.status](legacy.status)
+* Standalone test: [pkg/front_end/test/fasta/legacy_test.dart](../test/fasta/legacy_test.dart)
 * Expectation prefix: `.direct.expect`
 * How to update expectations:
 
@@ -42,17 +32,6 @@ This configuration doesn't have expectations as it doesn't produce Kernel AST no
 
 ```
 ./pkg/front_end/tool/fasta testing -DupdateExpectations=true outline/test1 outline/test2 ...
-```
-
-## Tree Shaking
-
-* Status file: [shaker.status](shaker.status)
-* Standalone test: [pkg/front_end/test/fasta/shaker_test.dart](../test/fasta/shaker_test.dart)
-* Expectation prefix: `.shaker.expect`
-* How to update expectations:
-
-```
-./pkg/front_end/tool/fasta testing -DupdateExpectations=true shaker/test1 shaker/test2 ...
 ```
 
 ## Dart 2.0 (strong mode)

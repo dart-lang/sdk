@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.async;
 
 /** Runs user code and takes actions depending on success or failure. */
@@ -26,7 +28,7 @@ _runUserCode<T>(
 void _cancelAndError(StreamSubscription subscription, _Future future, error,
     StackTrace stackTrace) {
   var cancelFuture = subscription.cancel();
-  if (cancelFuture is Future && !identical(cancelFuture, Future._nullFuture)) {
+  if (cancelFuture != null && !identical(cancelFuture, Future._nullFuture)) {
     cancelFuture.whenComplete(() => future._completeError(error, stackTrace));
   } else {
     future._completeError(error, stackTrace);
@@ -57,7 +59,7 @@ _ErrorCallback _cancelAndErrorClosure(
   before completing with a value. */
 void _cancelAndValue(StreamSubscription subscription, _Future future, value) {
   var cancelFuture = subscription.cancel();
-  if (cancelFuture is Future && !identical(cancelFuture, Future._nullFuture)) {
+  if (cancelFuture != null && !identical(cancelFuture, Future._nullFuture)) {
     cancelFuture.whenComplete(() => future._complete(value));
   } else {
     future._complete(value);
@@ -95,7 +97,7 @@ abstract class _ForwardingStream<S, T> extends Stream<T> {
   // Override the following methods in subclasses to change the behavior.
 
   void _handleData(S data, _EventSink<T> sink) {
-    sink._add(data as Object/*=T*/);
+    sink._add(data as Object);
   }
 
   void _handleError(error, StackTrace stackTrace, _EventSink<T> sink) {
@@ -179,7 +181,7 @@ class _ForwardingStreamSubscription<S, T>
 
 typedef bool _Predicate<T>(T value);
 
-void _addErrorWithReplacement(_EventSink sink, error, stackTrace) {
+void _addErrorWithReplacement(_EventSink sink, error, StackTrace stackTrace) {
   AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
   if (replacement != null) {
     error = _nonNullError(replacement.error);
@@ -306,7 +308,7 @@ class _TakeStream<T> extends _ForwardingStream<T, T> {
         super(source) {
     // This test is done early to avoid handling an async error
     // in the _handleData method.
-    if (count is! int) throw new ArgumentError(count);
+    ArgumentError.checkNotNull(count, "count");
   }
 
   StreamSubscription<T> _createSubscription(void onData(T data),
@@ -397,7 +399,8 @@ class _SkipStream<T> extends _ForwardingStream<T, T> {
         super(source) {
     // This test is done early to avoid handling an async error
     // in the _handleData method.
-    if (count is! int || count < 0) throw new ArgumentError(count);
+    ArgumentError.checkNotNull(count, "count");
+    RangeError.checkNotNegative(count, "count");
   }
 
   StreamSubscription<T> _createSubscription(void onData(T data),
@@ -456,7 +459,7 @@ class _SkipWhileStream<T> extends _ForwardingStream<T, T> {
 typedef bool _Equality<T>(T a, T b);
 
 class _DistinctStream<T> extends _ForwardingStream<T, T> {
-  static var _SENTINEL = new Object();
+  static final _SENTINEL = new Object();
 
   final _Equality<T> _equals;
 

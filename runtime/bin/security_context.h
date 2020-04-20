@@ -102,6 +102,9 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
 
 class X509Helper : public AllStatic {
  public:
+  static Dart_Handle GetDer(Dart_NativeArguments args);
+  static Dart_Handle GetPem(Dart_NativeArguments args);
+  static Dart_Handle GetSha1(Dart_NativeArguments args);
   static Dart_Handle GetSubject(Dart_NativeArguments args);
   static Dart_Handle GetIssuer(Dart_NativeArguments args);
   static Dart_Handle GetStartValidity(Dart_NativeArguments args);

@@ -12,16 +12,16 @@ import utils
 
 
 def Main():
-  args = sys.argv[1:]
-  tools_dir = os.path.dirname(os.path.realpath(__file__))
-  dart_script_name = os.path.join(
-    tools_dir, 'testing', 'dart', 'reset_safari.dart');
-  command = [utils.CheckedInSdkExecutable(),
-             '--checked', dart_script_name] + args
-  exit_code = subprocess.call(command)
-  utils.DiagnoseExitCode(exit_code, command)
-  return exit_code
+    args = sys.argv[1:]
+    tools_dir = os.path.dirname(os.path.realpath(__file__))
+    dart_script_name = os.path.join(tools_dir, 'testing', 'dart',
+                                    'reset_safari.dart')
+    command = [utils.CheckedInSdkExecutable(), '--checked', dart_script_name
+              ] + args
+    exit_code = subprocess.call(command)
+    utils.DiagnoseExitCode(exit_code, command)
+    return exit_code
 
 
 if __name__ == '__main__':
-  sys.exit(Main())
+    sys.exit(Main())

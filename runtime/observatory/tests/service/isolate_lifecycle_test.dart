@@ -1,14 +1,14 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'dart:async';
 import 'dart:developer';
 import 'dart:isolate' as I;
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:observatory/models.dart' as M;
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
@@ -31,14 +31,14 @@ Future during() async {
 int numPaused(vm) {
   int paused = 0;
   for (var isolate in vm.isolates) {
-    if (isolate.paused) {
+    if (isolate.paused && isolate.pauseEvent is M.PauseExitEvent) {
       paused++;
     }
   }
   return paused;
 }
 
-var tests = [
+var tests = <VMTest>[
   (VM vm) async {
     expect(vm.isolates.length, 1);
     await hasStoppedAtBreakpoint(vm.isolates[0]);

@@ -5,20 +5,20 @@
 /*@testedFeatures=inference*/
 library test;
 
-class Clonable<T> {}
+class Cloneable<T> {}
 
-class Pair<T extends Clonable<T>, U extends Clonable<U>> {
+class Pair<T extends Cloneable<T>, U extends Cloneable<U>> {
   T t;
   U u;
   Pair(this.t, this.u);
   Pair._();
-  Pair<U, T> get reversed => new /*@typeArgs=Pair::U, Pair::T*/ Pair(
+  Pair<U, T> get reversed => new /*@ typeArgs=Pair::U*, Pair::T* */ Pair(
       /*@target=Pair::u*/ u,
       /*@target=Pair::t*/ t);
 }
 
 main() {
-  final /*@type=Pair<Clonable<dynamic>, Clonable<dynamic>>*/ x =
-      new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ /*@typeArgs=Clonable<dynamic>, Clonable<dynamic>*/ Pair
+  final /*@ type=Pair<Cloneable<dynamic>*, Cloneable<dynamic>*>* */ x =
+      new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ /*@ typeArgs=Cloneable<dynamic>*, Cloneable<dynamic>* */ Pair
           ._();
 }

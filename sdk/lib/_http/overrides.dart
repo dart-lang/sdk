@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart._http;
 
 final _httpOverridesToken = new Object();
@@ -30,35 +32,39 @@ const _asyncRunZoned = runZoned;
 /// }
 /// ```
 abstract class HttpOverrides {
+  static HttpOverrides _global;
+
   static HttpOverrides get current {
-    return Zone.current[_httpOverridesToken];
+    return Zone.current[_httpOverridesToken] ?? _global;
+  }
+
+  /// The [HttpOverrides] to use in the root [Zone].
+  ///
+  /// These are the [HttpOverrides] that will be used in the root Zone, and in
+  /// Zone's that do not set [HttpOverrides] and whose ancestors up to the root
+  /// Zone do not set [HttpOverrides].
+  static set global(HttpOverrides overrides) {
+    _global = overrides;
   }
 
   /// Runs [body] in a fresh [Zone] using the provided overrides.
   static R runZoned<R>(R body(),
       {HttpClient Function(SecurityContext) createHttpClient,
       String Function(Uri uri, Map<String, String> environment)
-          findProxyFromEnvironment,
-      ZoneSpecification zoneSpecification,
-      Function onError}) {
+          findProxyFromEnvironment}) {
     HttpOverrides overrides =
         new _HttpOverridesScope(createHttpClient, findProxyFromEnvironment);
     return _asyncRunZoned<R>(body,
-        zoneValues: {_httpOverridesToken: overrides},
-        zoneSpecification: zoneSpecification,
-        onError: onError);
+        zoneValues: {_httpOverridesToken: overrides});
   }
 
   /// Runs [body] in a fresh [Zone] using the overrides found in [overrides].
   ///
   /// Note that [overrides] should be an instance of a class that extends
   /// [HttpOverrides].
-  static R runWithHttpOverrides<R>(R body(), HttpOverrides overrides,
-      {ZoneSpecification zoneSpecification, Function onError}) {
+  static R runWithHttpOverrides<R>(R body(), HttpOverrides overrides) {
     return _asyncRunZoned<R>(body,
-        zoneValues: {_httpOverridesToken: overrides},
-        zoneSpecification: zoneSpecification,
-        onError: onError);
+        zoneValues: {_httpOverridesToken: overrides});
   }
 
   /// Returns a new [HttpClient] using the given [context].

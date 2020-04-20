@@ -18,8 +18,8 @@ testEmptyProtocol() {
         websocket.close();
       });
     });
-    WebSocket.connect("ws://127.0.0.1:${server.port}/", protocols: []).then(
-        (client) {
+    WebSocket.connect("ws://127.0.0.1:${server.port}/", protocols: [])
+        .then((client) {
       Expect.isNull(client.protocol);
       client.close();
       server.close();
@@ -35,15 +35,13 @@ testProtocol(List<String> protocols, String used) {
 
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
-      WebSocketTransformer
-          .upgrade(request, protocolSelector: selector)
+      WebSocketTransformer.upgrade(request, protocolSelector: selector)
           .then((websocket) {
         Expect.equals(used, websocket.protocol);
         websocket.close();
       });
     });
-    WebSocket
-        .connect("ws://127.0.0.1:${server.port}/", protocols: protocols)
+    WebSocket.connect("ws://127.0.0.1:${server.port}/", protocols: protocols)
         .then((client) {
       Expect.equals(used, client.protocol);
       client.close();

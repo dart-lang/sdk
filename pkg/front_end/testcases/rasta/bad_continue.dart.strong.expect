@@ -1,0 +1,29 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/bad_continue.dart:6:3: Error: A continue statement can't be used outside of a loop or switch statement.
+// Try removing the continue statement.
+//   continue here;
+//   ^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/bad_continue.dart:6:12: Error: Can't find label 'here'.
+// Try defining the label, or correcting the name to match an existing label.
+//   continue here;
+//            ^
+//
+// pkg/front_end/testcases/rasta/bad_continue.dart:7:10: Error: A continue statement can't be used outside of a loop or switch statement.
+// Try removing the continue statement.
+//   label: continue label;
+//          ^^^^^^^^
+//
+import self as self;
+
+static method main() → dynamic {
+  invalid-expression "pkg/front_end/testcases/rasta/bad_continue.dart:6:12: Error: Can't find label 'here'.
+Try defining the label, or correcting the name to match an existing label.
+  continue here;
+           ^";
+  #L1:
+  break #L1;
+}

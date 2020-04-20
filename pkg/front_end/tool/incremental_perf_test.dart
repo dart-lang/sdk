@@ -4,24 +4,65 @@
 
 /// Test to ensure that incremental_perf.dart is running without errors.
 
-import 'dart:async';
 import 'dart:io';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-import 'incremental_perf.dart' as m;
+import 'incremental_perf.dart' as m show main;
 
 main() async {
-  var sdkOutline = computePlatformBinariesLocation().resolve(
+  var sdkOutline = computePlatformBinariesLocation(forceBuildDir: true).resolve(
       // TODO(sigmund): switch to `vm_outline.dill` (issue #29881).
-      "vm_platform.dill");
+      "vm_platform_strong.dill");
 
   final ikgBenchmarks = Platform.script.resolve('../benchmarks/ikg/');
-  await runExample(sdkOutline, ikgBenchmarks.resolve('hello.dart'),
-      ikgBenchmarks.resolve('hello.edits.json'));
-  await runExample(sdkOutline, ikgBenchmarks.resolve('dart2js.dart'),
-      ikgBenchmarks.resolve('dart2js.edits.json'));
-}
+  final helloEntry = ikgBenchmarks.resolve('hello.dart');
+  final helloEdits = ikgBenchmarks.resolve('hello.edits.json');
+  await m.main([
+    '--no-loop',
+    '--sdk-summary',
+    '$sdkOutline',
+    '$helloEntry',
+    '$helloEdits'
+  ]);
+  await m.main([
+    '--no-loop',
+    '--sdk-summary',
+    '$sdkOutline',
+    '$helloEntry',
+    '$helloEdits'
+  ]);
+  await m.main([
+    '--no-loop',
+    '--sdk-summary',
+    '$sdkOutline',
+    '--implementation=minimal',
+    '$helloEntry',
+    '$helloEdits'
+  ]);
 
-Future runExample(Uri sdkOutline, Uri entryUri, Uri jsonUri) async {
-  await m.main(['--sdk-summary', '$sdkOutline', '$entryUri', '$jsonUri']);
+  final dart2jsEntry = ikgBenchmarks.resolve('dart2js.dart');
+  final dart2jsEdits = ikgBenchmarks.resolve('dart2js.edits.json');
+  await m.main([
+    '--no-loop',
+    '--sdk-summary',
+    '$sdkOutline',
+    '$dart2jsEntry',
+    '$dart2jsEdits'
+  ]);
+  await m.main([
+    '--no-loop',
+    '--sdk-summary',
+    '$sdkOutline',
+    '--implementation=default',
+    '$dart2jsEntry',
+    '$dart2jsEdits'
+  ]);
+  await m.main([
+    '--no-loop',
+    '--sdk-summary',
+    '$sdkOutline',
+    '--implementation=minimal',
+    '$dart2jsEntry',
+    '$dart2jsEdits'
+  ]);
 }

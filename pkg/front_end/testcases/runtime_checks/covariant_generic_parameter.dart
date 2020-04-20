@@ -6,7 +6,7 @@
 library test;
 
 class C<T> {
-  void f(T /*@covariance=genericInterface, genericImpl*/ x) {}
+  void f(T x) {}
 }
 
 void g1(C<num> c) {

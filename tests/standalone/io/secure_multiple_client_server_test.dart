@@ -16,8 +16,8 @@ import "dart:io";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-InternetAddress HOST;
-SecureServerSocket SERVER;
+late InternetAddress HOST;
+late SecureServerSocket SERVER;
 
 String localFile(path) => Platform.script.resolve(path).toFilePath();
 
@@ -33,8 +33,8 @@ Future startServer() {
   return SecureServerSocket.bind(HOST, 0, serverContext).then((server) {
     SERVER = server;
     SERVER.listen((SecureSocket client) {
-      client.fold(<int>[], (message, data) => message..addAll(data)).then(
-          (message) {
+      client.fold<List<int>>(
+          <int>[], (message, data) => message..addAll(data)).then((message) {
         String received = new String.fromCharCodes(message);
         Expect.isTrue(received.contains("Hello from client "));
         String name = received.substring(received.indexOf("client ") + 7);
@@ -46,13 +46,12 @@ Future startServer() {
 }
 
 Future testClient(name) {
-  return SecureSocket
-      .connect(HOST, SERVER.port, context: clientContext)
+  return SecureSocket.connect(HOST, SERVER.port, context: clientContext)
       .then((socket) {
     socket.add("Hello from client $name".codeUnits);
     socket.close();
-    return socket.fold(<int>[], (message, data) => message..addAll(data)).then(
-        (message) {
+    return socket.fold<List<int>>(
+        <int>[], (message, data) => message..addAll(data)).then((message) {
       Expect.listEquals("Welcome, client $name".codeUnits, message);
     });
   });
@@ -60,8 +59,7 @@ Future testClient(name) {
 
 void main() {
   asyncStart();
-  InternetAddress
-      .lookup("localhost")
+  InternetAddress.lookup("localhost")
       .then((hosts) => HOST = hosts.first)
       .then((_) => startServer())
       .then((_) => ['ale', 'bar', 'che', 'den', 'els'].map(testClient))

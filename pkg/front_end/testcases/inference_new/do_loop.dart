@@ -9,8 +9,8 @@ T f<T>() => null;
 
 void test() {
   do {
-    var /*@type=int*/ x = 0;
-  } while (/*@typeArgs=bool*/ f());
+    var /*@ type=int* */ x = 0;
+  } while (/*@ typeArgs=bool* */ f());
 }
 
 main() {}

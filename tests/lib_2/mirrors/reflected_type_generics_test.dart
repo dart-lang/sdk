@@ -4,7 +4,6 @@
 
 library test.reflected_type_generics_test;
 
-@MirrorsUsed(targets: "test.reflected_type_generics_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -44,7 +43,7 @@ main() {
   expectReflectedType(reflectType(D, [P]), new D<P>().runtimeType);
   expectReflectedType(reflectType(E, [P]), new E<P>().runtimeType);
   expectReflectedType(
-      reflectType(FBounded, [new FBounded<Null>().runtimeType]), new FBounded<FBounded<Null>>().runtimeType);
+      reflectType(FBounded, [new FBounded<Never>().runtimeType]), new FBounded<FBounded<Never>>().runtimeType);
 
   var predicateHelper = new Helper<Predicate<P>>();
   expectReflectedType(reflectType(Predicate, [P]), predicateHelper.param); //# 01: ok
@@ -95,6 +94,6 @@ main() {
 
   // Instantiation of a generic class preserves type information:
   ClassMirror m = reflectType(A, [P]) as ClassMirror;
-  var instance = m.newInstance(const Symbol(""), []).reflectee;
+  var instance = m.newInstance(Symbol.empty, []).reflectee;
   Expect.equals(new A<P>().runtimeType, instance.runtimeType);
 }

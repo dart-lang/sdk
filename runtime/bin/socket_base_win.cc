@@ -11,16 +11,19 @@
 #include "bin/eventhandler.h"
 #include "bin/file.h"
 #include "bin/lockers.h"
-#include "bin/log.h"
 #include "bin/socket_base_win.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
+#include "platform/syslog.h"
 
 namespace dart {
 namespace bin {
 
-SocketAddress::SocketAddress(struct sockaddr* sockaddr) {
+SocketAddress::SocketAddress(struct sockaddr* sockaddr,
+                             bool unnamed_unix_socket) {
+  // Unix domain sockets not supported on Win. Remove this assert if enabled.
+  ASSERT(!unnamed_unix_socket);
   ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
   RawAddr* raw = reinterpret_cast<RawAddr*>(sockaddr);
 
@@ -51,7 +54,7 @@ bool SocketBase::Initialize() {
   if (err == 0) {
     socket_initialized = true;
   } else {
-    Log::PrintErr("Unable to initialize Winsock: %d\n", WSAGetLastError());
+    Syslog::PrintErr("Unable to initialize Winsock: %d\n", WSAGetLastError());
   }
   return (err == 0);
 }
@@ -86,6 +89,13 @@ intptr_t SocketBase::RecvFrom(intptr_t fd,
   Handle* handle = reinterpret_cast<Handle*>(fd);
   socklen_t addr_len = sizeof(addr->ss);
   return handle->RecvFrom(buffer, num_bytes, &addr->addr, addr_len);
+}
+
+bool SocketBase::AvailableDatagram(intptr_t fd,
+                                   void* buffer,
+                                   intptr_t num_bytes) {
+  ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(fd);
+  return client_socket->DataReady();
 }
 
 intptr_t SocketBase::Write(intptr_t fd,
@@ -153,7 +163,7 @@ int SocketBase::GetType(intptr_t fd) {
     case FILE_TYPE_DISK:
       return File::kFile;
     default:
-      return GetLastError == NO_ERROR ? File::kOther : -1;
+      return GetLastError() == NO_ERROR ? File::kOther : -1;
   }
 }
 
@@ -244,6 +254,31 @@ bool SocketBase::ParseAddress(int type, const char* address, RawAddr* addr) {
     result = InetPton(AF_INET6, system_address.wide(), &addr->in6.sin6_addr);
   }
   return result == 1;
+}
+
+bool SocketBase::RawAddrToString(RawAddr* addr, char* str) {
+  // According to InetNtopW(), buffer should be large enough for at least 46
+  // characters for IPv6 and 16 for IPv4.
+  COMPILE_ASSERT(INET6_ADDRSTRLEN >= 46);
+  wchar_t tmp_buffer[INET6_ADDRSTRLEN];
+  if (addr->addr.sa_family == AF_INET) {
+    if (InetNtop(AF_INET, &addr->in.sin_addr, tmp_buffer, INET_ADDRSTRLEN) ==
+        NULL) {
+      return false;
+    }
+  } else {
+    ASSERT(addr->addr.sa_family == AF_INET6);
+    if (InetNtop(AF_INET6, &addr->in6.sin6_addr, tmp_buffer,
+                 INET6_ADDRSTRLEN) == NULL) {
+      return false;
+    }
+  }
+  WideToUtf8Scope wide_to_utf8_scope(tmp_buffer);
+  if (wide_to_utf8_scope.length() <= INET6_ADDRSTRLEN) {
+    strncpy(str, wide_to_utf8_scope.utf8(), INET6_ADDRSTRLEN);
+    return true;
+  }
+  return false;
 }
 
 bool SocketBase::ListInterfacesSupported() {
@@ -394,6 +429,27 @@ bool SocketBase::SetBroadcast(intptr_t fd, bool enabled) {
   int on = enabled ? 1 : 0;
   return setsockopt(handle->socket(), SOL_SOCKET, SO_BROADCAST,
                     reinterpret_cast<char*>(&on), sizeof(on)) == 0;
+}
+
+bool SocketBase::SetOption(intptr_t fd,
+                           int level,
+                           int option,
+                           const char* data,
+                           int length) {
+  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
+  return setsockopt(handle->socket(), level, option, data, length) == 0;
+}
+
+bool SocketBase::GetOption(intptr_t fd,
+                           int level,
+                           int option,
+                           char* data,
+                           unsigned int* length) {
+  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
+  int optlen = static_cast<int>(*length);
+  auto result = getsockopt(handle->socket(), level, option, data, &optlen);
+  *length = static_cast<unsigned int>(optlen);
+  return result == 0;
 }
 
 bool SocketBase::JoinMulticast(intptr_t fd,

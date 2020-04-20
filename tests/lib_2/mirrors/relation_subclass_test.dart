@@ -26,11 +26,11 @@ test(MirrorSystem mirrors) {
   LibraryMirror coreLibrary = mirrors.findLibrary(#dart.core);
   LibraryMirror thisLibrary = mirrors.findLibrary(#test.relation_subclass);
 
-  ClassMirror Super = thisLibrary.declarations[#Superclass];
-  ClassMirror Sub1 = thisLibrary.declarations[#Subclass1];
-  ClassMirror Sub2 = thisLibrary.declarations[#Subclass2];
-  ClassMirror Obj = coreLibrary.declarations[#Object];
-  ClassMirror Nul = coreLibrary.declarations[#Null];
+  ClassMirror Super = thisLibrary.declarations[#Superclass] as ClassMirror;
+  ClassMirror Sub1 = thisLibrary.declarations[#Subclass1] as ClassMirror;
+  ClassMirror Sub2 = thisLibrary.declarations[#Subclass2] as ClassMirror;
+  ClassMirror Obj = coreLibrary.declarations[#Object] as ClassMirror;
+  ClassMirror Nul = coreLibrary.declarations[#Null] as ClassMirror;
 
   Expect.isTrue(Obj.isSubclassOf(Obj));
   Expect.isTrue(Super.isSubclassOf(Super));
@@ -61,17 +61,17 @@ test(MirrorSystem mirrors) {
   Expect.isFalse(Nul.isSubclassOf(Super));
   Expect.isFalse(Super.isSubclassOf(Nul));
 
-  ClassMirror Func = coreLibrary.declarations[#Function];
+  ClassMirror Func = coreLibrary.declarations[#Function] as ClassMirror;
   Expect.isTrue(Func.isSubclassOf(Obj));
   Expect.isFalse(Obj.isSubclassOf(Func));
 
   // Function typedef.
-  var NumPred = thisLibrary.declarations[#NumberPredicate];
-  var IntPred = thisLibrary.declarations[#IntegerPredicate];
-  var DubPred = thisLibrary.declarations[#DoublePredicate];
-  var NumGen = thisLibrary.declarations[#NumberGenerator];
-  var IntGen = thisLibrary.declarations[#IntegerGenerator];
-  var DubGen = thisLibrary.declarations[#DoubleGenerator];
+  dynamic NumPred = thisLibrary.declarations[#NumberPredicate];
+  dynamic IntPred = thisLibrary.declarations[#IntegerPredicate];
+  dynamic DubPred = thisLibrary.declarations[#DoublePredicate];
+  dynamic NumGen = thisLibrary.declarations[#NumberGenerator];
+  dynamic IntGen = thisLibrary.declarations[#IntegerGenerator];
+  dynamic DubGen = thisLibrary.declarations[#DoubleGenerator];
 
   isArgumentOrTypeError(e) => e is ArgumentError || e is TypeError;
   Expect.throws(() => Func.isSubclassOf(NumPred), isArgumentOrTypeError);

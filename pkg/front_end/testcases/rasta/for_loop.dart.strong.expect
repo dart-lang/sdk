@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::int* c = new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch};
+  for (core::int* i = 0; i.{core::num::<}(100); i = i.{core::num::+}(1)) {
+    core::print(let final core::int* #t1 = i in let final core::int* #t2 = i = #t1.{core::num::+}(1) in #t1);
+  }
+  for (core::int* i = 0; i.{core::num::<}(100); c.{core::num::<}(42) ?{core::int*} throw "fisk" : let final core::int* #t3 = i in let final core::int* #t4 = i = #t3.{core::num::+}(1) in #t3) {
+    core::print(let final core::int* #t5 = i in let final core::int* #t6 = i = #t5.{core::num::+}(1) in #t5);
+  }
+}

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// This test checks that a shutdown(SocketDirection.SEND) of a socket,
+// This test checks that a shutdown(SocketDirection.send) of a socket,
 // when the other end is already closed, does not discard unread data
 // that remains in the connection.
 
@@ -10,15 +10,15 @@ import "dart:io";
 import "dart:async";
 import "package:expect/expect.dart";
 
-RawServerSocket server;
-RawSocket client;
+late RawServerSocket server;
+late RawSocket client;
 Duration delay = new Duration(milliseconds: 100);
 
 void serverListen(RawSocket serverSide) {
   var data = new List.generate(200, (i) => i % 20 + 65);
   var offset = 0;
   void serveData(RawSocketEvent event) {
-    if (event == RawSocketEvent.WRITE) {
+    if (event == RawSocketEvent.write) {
       while (offset < data.length) {
         var written = serverSide.write(data, offset);
         offset += written;
@@ -36,7 +36,7 @@ void serverListen(RawSocket serverSide) {
 }
 
 void clientListen(RawSocketEvent event) {
-  if (event == RawSocketEvent.READ) {
+  if (event == RawSocketEvent.read) {
     client.readEventsEnabled = false;
     new Future.delayed(delay, () {
       var data = client.read(100);
@@ -46,7 +46,7 @@ void clientListen(RawSocketEvent event) {
         client.readEventsEnabled = true;
         return;
       }
-      client.shutdown(SocketDirection.SEND);
+      client.shutdown(SocketDirection.send);
       data = client.read(100);
       Expect.isNotNull(data);
       client.close();
@@ -55,9 +55,9 @@ void clientListen(RawSocketEvent event) {
 }
 
 test() async {
-  server = await RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0);
+  server = await RawServerSocket.bind(InternetAddress.loopbackIPv4, 0);
   server.listen(serverListen);
-  client = await RawSocket.connect(InternetAddress.LOOPBACK_IP_V4, server.port);
+  client = await RawSocket.connect(InternetAddress.loopbackIPv4, server.port);
   client.listen(clientListen);
 }
 

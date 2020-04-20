@@ -66,8 +66,7 @@ void _checkExtendsNativeClassOrTemplate(
   }
 }
 
-void _registerCustomElement(
-    context, document, String tag, Type type, String extendsTagName) {
+Function _registerCustomElement(context, document, String tag, [Map options]) {
   // Function follows the same pattern as the following JavaScript code for
   // registering a custom element.
   //
@@ -81,6 +80,13 @@ void _registerCustomElement(
   //    document.registerElement('x-foo', { prototype: proto });
   //    ...
   //    var e = document.createElement('x-foo');
+
+  var extendsTagName = '';
+  Type type;
+  if (options != null) {
+    extendsTagName = options['extends'];
+    type = options['prototype'];
+  }
 
   var interceptorClass = findInterceptorConstructorForType(type);
   if (interceptorClass == null) {
@@ -135,13 +141,14 @@ void _registerCustomElement(
 
   setNativeSubclassDispatchRecord(proto, interceptor);
 
-  var options = JS('=Object', '{prototype: #}', proto);
+  var opts = JS('=Object', '{prototype: #}', proto);
 
   if (extendsTagName != null) {
-    JS('=Object', '#.extends = #', options, extendsTagName);
+    JS('=Object', '#.extends = #', opts, extendsTagName);
   }
 
-  JS('void', '#.registerElement(#, #)', document, tag, options);
+  return JS(
+      'JavaScriptFunction', '#.registerElement(#, #)', document, tag, opts);
 }
 
 //// Called by Element.created to do validation & initialization.
@@ -193,7 +200,11 @@ class _JSElementUpgrader implements ElementUpgrader {
   Element upgrade(Element element) {
     // Only exact type matches are supported- cannot be a subclass.
     if (element.runtimeType != _nativeType) {
-      throw new ArgumentError('element is not subclass of $_nativeType');
+      // Some browsers may represent non-upgraded elements <x-foo> as
+      // UnknownElement and not a plain HtmlElement.
+      if (_nativeType != HtmlElement || element.runtimeType != UnknownElement) {
+        throw new ArgumentError('element is not subclass of $_nativeType');
+      }
     }
 
     setNativeSubclassDispatchRecord(element, _interceptor);

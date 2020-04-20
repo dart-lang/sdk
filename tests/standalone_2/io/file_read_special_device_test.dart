@@ -12,7 +12,10 @@ void openAndWriteScript(String script) {
   script = Platform.script.resolve(script).toFilePath();
   var executable = Platform.executable;
   var file = script; // Use script as file.
-  Process.start("bash", ["-c", "$executable $script < $file"]).then((process) {
+  Process.start("bash", [
+    "-c",
+    "$executable ${Platform.executableArguments.join(' ')} $script < $file"
+  ]).then((process) {
     process.exitCode.then((exitCode) {
       Expect.equals(0, exitCode);
     });

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Test to see if a Dart class name is confused with dispatch tag.  Both class A
 // and class Z have a JavaScript constructor named "A".  The dynamic native
 // class dispatch hook on Object.prototype should avoid patching the Dart class
@@ -32,7 +34,7 @@ main() {
   nativeTesting();
   setup();
 
-  var a = new A();
+  dynamic a = new A();
   var z = makeZ();
 
   Expect.equals(100, z.foo());

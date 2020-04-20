@@ -1,17 +1,16 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
 import 'dart:async';
 
-const int LINE_A = 24;
-const int LINE_B = 26;
+const int LINE_A = 23;
+const int LINE_B = 25;
 
 int value = 0;
 
@@ -26,7 +25,7 @@ Future testMain() async {
   incValue(incValue(1)); // line B.
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasPausedAtStart,
 
   // Test future breakpoints.
@@ -62,13 +61,15 @@ var tests = [
     expect(await futureBpt2.location.getColumn(), equals(3));
 
     // The first breakpoint hits before value is modified.
-    expect((await rootLib.evaluate('value')).valueAsString, equals('0'));
+    Instance result = await rootLib.evaluate('value');
+    expect(result.valueAsString, equals('0'));
 
     isolate.resume();
     await hasStoppedAtBreakpoint(isolate);
 
     // The second breakpoint hits after value has been modified once.
-    expect((await rootLib.evaluate('value')).valueAsString, equals('1'));
+    result = await rootLib.evaluate('value');
+    expect(result.valueAsString, equals('1'));
 
     // Remove the breakpoints.
     expect(
@@ -87,10 +88,10 @@ var tests = [
       int resolvedLine = await bpt.location.getLine();
       int resolvedCol = await bpt.location.getColumn();
       print('$LINE_A:${col} -> ${resolvedLine}:${resolvedCol}');
-      if (col <= 10) {
+      if (col <= 12) {
         expect(resolvedLine, equals(LINE_A));
         expect(resolvedCol, equals(3));
-      } else if (col <= 19) {
+      } else if (col <= 36) {
         expect(resolvedLine, equals(LINE_A));
         expect(resolvedCol, equals(12));
       } else {

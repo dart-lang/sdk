@@ -2,25 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.convert;
 
 // Character constants.
 const int _LF = 10;
 const int _CR = 13;
 
-/**
- * A [StreamTransformer] that splits a [String] into individual lines.
- *
- * A line is terminated by either a CR (U+000D), a LF (U+000A), a
- * CR+LF sequence (DOS line ending),
- * and a final non-empty line can be ended by the end of the string.
- *
- * The returned lines do not contain the line terminators.
- */
+/// A [StreamTransformer] that splits a [String] into individual lines.
+///
+/// A line is terminated by either a CR (U+000D), a LF (U+000A), a
+/// CR+LF sequence (DOS line ending),
+/// and a final non-empty line can be ended by the end of the string.
+///
+/// The returned lines do not contain the line terminators.
 
-class LineSplitter extends Converter<String, List<String>> /*=Object*/
-    implements
-        Object/*=StreamTransformer<String, String>*/ {
+class LineSplitter extends StreamTransformerBase<String, String> {
   const LineSplitter();
 
   /// Split [lines] into individual lines.
@@ -31,10 +29,10 @@ class LineSplitter extends Converter<String, List<String>> /*=Object*/
   /// (`0 <= start <= end <= lines.length`).
   static Iterable<String> split(String lines, [int start = 0, int end]) sync* {
     end = RangeError.checkValidRange(start, end, lines.length);
-    int sliceStart = start;
-    int char = 0;
-    for (int i = start; i < end; i++) {
-      int previousChar = char;
+    var sliceStart = start;
+    var char = 0;
+    for (var i = start; i < end; i++) {
+      var previousChar = char;
       char = lines.codeUnitAt(i);
       if (char != _CR) {
         if (char != _LF) continue;
@@ -52,12 +50,12 @@ class LineSplitter extends Converter<String, List<String>> /*=Object*/
   }
 
   List<String> convert(String data) {
-    List<String> lines = <String>[];
-    int end = data.length;
-    int sliceStart = 0;
-    int char = 0;
-    for (int i = 0; i < end; i++) {
-      int previousChar = char;
+    var lines = <String>[];
+    var end = data.length;
+    var sliceStart = 0;
+    var char = 0;
+    for (var i = 0; i < end; i++) {
+      var previousChar = char;
       char = data.codeUnitAt(i);
       if (char != _CR) {
         if (char != _LF) continue;
@@ -76,15 +74,13 @@ class LineSplitter extends Converter<String, List<String>> /*=Object*/
   }
 
   StringConversionSink startChunkedConversion(Sink<String> sink) {
-    if (sink is! StringConversionSink) {
-      sink = new StringConversionSink.from(sink);
-    }
-    return new _LineSplitterSink(sink);
+    return _LineSplitterSink(
+        sink is StringConversionSink ? sink : StringConversionSink.from(sink));
   }
 
-  Stream/*<String>*/ bind(Stream<String> stream) {
-    return new Stream<String>.eventTransformed(
-        stream, (EventSink<String> sink) => new _LineSplitterEventSink(sink));
+  Stream<String> bind(Stream<String> stream) {
+    return Stream<String>.eventTransformed(
+        stream, (EventSink<String> sink) => _LineSplitterEventSink(sink));
   }
 }
 
@@ -141,10 +137,10 @@ class _LineSplitterSink extends StringConversionSinkBase {
   }
 
   void _addLines(String lines, int start, int end) {
-    int sliceStart = start;
-    int char = 0;
-    for (int i = start; i < end; i++) {
-      int previousChar = char;
+    var sliceStart = start;
+    var char = 0;
+    for (var i = start; i < end; i++) {
+      var previousChar = char;
       char = lines.codeUnitAt(i);
       if (char != _CR) {
         if (char != _LF) continue;
@@ -170,7 +166,7 @@ class _LineSplitterEventSink extends _LineSplitterSink
 
   _LineSplitterEventSink(EventSink<String> eventSink)
       : _eventSink = eventSink,
-        super(new StringConversionSink.from(eventSink));
+        super(StringConversionSink.from(eventSink));
 
   void addError(Object o, [StackTrace stackTrace]) {
     _eventSink.addError(o, stackTrace);

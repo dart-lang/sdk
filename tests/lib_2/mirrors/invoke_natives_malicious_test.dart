@@ -14,7 +14,7 @@ test(name, action) {
 }
 
 main() {
-  LibraryMirror dartcore = reflectClass(Object).owner;
+  LibraryMirror dartcore = reflectClass(Object).owner as LibraryMirror;
 
   test('List_copyFromObjectArray', () {
     var receiver = new List(3);

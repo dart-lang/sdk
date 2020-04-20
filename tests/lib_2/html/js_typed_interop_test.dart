@@ -78,6 +78,8 @@ _injectJs() {
 
   function confuse(obj) { return obj; }
 
+  function isUndefined(obj) { return obj === void 0; }
+
   function StringWrapper(str) {
     this.str = str;
   }
@@ -192,6 +194,9 @@ class StringWrapper {
 external confuse(obj);
 
 @JS()
+external isUndefined(obj);
+
+@JS()
 external CanvasRenderingContext2D getCanvasContext();
 
 @JS('window.window.document.documentProperty')
@@ -199,6 +204,10 @@ external num get propertyOnDocument;
 
 @JS('window.self.window.window.windowProperty')
 external num get propertyOnWindow;
+
+class DartClassWithNullField {
+  int x;
+}
 
 main() {
   _injectJs();
@@ -210,6 +219,9 @@ main() {
       expect(l.y, equals("foo"));
       expect(l.z, isNull);
       expect(stringify(l), equals('{"x":3,"y":"foo"}'));
+      var l2 = new ExampleLiteral(y: "foo", x: 3);
+      expect(l2.x, equals(l.x));
+      expect(l2.y, equals(l.y));
       l = new ExampleLiteral(z: 100);
       expect(l.x, isNull);
       expect(l.y, isNull);
@@ -295,7 +307,7 @@ main() {
       // Calling a JavaScript method with too few arguments is also fine and
       // defaults to JavaScript behavior of setting all unspecified arguments
       // to undefined resulting in multiplying undefined by 2 == NAN.
-      expect(untypedFunction().toString(), equals(double.NAN.toString()));
+      expect(untypedFunction().toString(), equals(double.nan.toString()));
     });
   });
 
@@ -430,6 +442,7 @@ main() {
       expect(selection is List, isTrue);
     });
   });
+
   group('html', () {
     test('return html type', () {
       expect(getCanvasContext() is CanvasRenderingContext2D, isTrue);
@@ -438,5 +451,9 @@ main() {
       expect(propertyOnWindow, equals(42));
       expect(propertyOnDocument, equals(45));
     });
+  });
+
+  test('Dart field is null instead of undefined', () {
+    expect(isUndefined(new DartClassWithNullField().x), false);
   });
 }

@@ -6,5 +6,8 @@
 library test;
 
 List<T> f<T>(T g()) => <T>[g()];
-var /*@topType=dynamic*/v = (f<int>)(() { return 1; });
+var v = (f<int>)(/*@returnType=int**/() {
+  return 1;
+});
 
+main() {}

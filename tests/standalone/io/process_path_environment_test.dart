@@ -5,20 +5,20 @@
 // Test that the executable is looked up on the user's PATH when spawning a
 // process and environment variables are passed in.
 
-import "package:expect/expect.dart";
 import "dart:io";
+import "package:expect/expect.dart";
 
 main() {
   // Pick an app that we expect to be on the PATH that returns 0 when run with
   // no arguments.
   var executable = 'true';
-  var args = [];
+  var args = <String>[];
   if (Platform.operatingSystem == 'windows') {
     executable = 'cmd.exe';
     args = ['/C', 'echo', '"ok"'];
   }
 
-  var environment = new Map.from(Platform.environment);
+  var environment = new Map<String, String>.from(Platform.environment);
   environment['whatever'] = 'something';
 
   Process.run(executable, args, environment: environment).then((result) {

@@ -1,0 +1,10 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  core::List<core::List<core::String*>*>* l = <core::List<core::String*>*>[<core::String*>["hi", "world"]];
+  core::Iterable<core::List<core::String*>*>* i1 = l.{core::Iterable::map}<core::List<core::String*>*>((core::List<core::String*>* ll) → core::List<core::String*>* => let final core::List<core::String*>* #t1 = ll in #t1.{core::List::==}(null) ?{core::List<core::String*>*} <core::String*>[] : #t1);
+  core::Iterable<core::int*>* i2 = i1.{core::Iterable::map}<core::int*>((core::List<core::String*>* l) → core::int* => l.{core::List::length});
+  core::print(i2);
+}

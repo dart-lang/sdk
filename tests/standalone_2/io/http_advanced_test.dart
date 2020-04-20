@@ -1,6 +1,9 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
 //
 // VMOptions=
 // VMOptions=--short_socket_read
@@ -95,7 +98,8 @@ class IsolatedHttpServerStatus {
   int _port;
 }
 
-void startIsolatedHttpServer(SendPort replyTo) {
+void startIsolatedHttpServer(Object replyToObj) {
+  SendPort replyTo = replyToObj;
   var server = new TestServer();
   server.init();
   replyTo.send(server.dispatchSendPort);
@@ -105,7 +109,7 @@ class TestServer {
   // Return a 404.
   void _notFoundHandler(HttpRequest request) {
     var response = request.response;
-    response.statusCode = HttpStatus.NOT_FOUND;
+    response.statusCode = HttpStatus.notFound;
     response.headers.set("Content-Type", "text/html; charset=UTF-8");
     response.write("Page not found");
     response.close();
@@ -118,14 +122,14 @@ class TestServer {
     Expect.equals("www.dartlang.org:1234", request.headers["Host"][0]);
     Expect.equals("www.dartlang.org", request.headers.host);
     Expect.equals(1234, request.headers.port);
-    response.statusCode = HttpStatus.OK;
+    response.statusCode = HttpStatus.ok;
     response.close();
   }
 
   // Set the "Expires" header using the expires property.
   void _expires1Handler(HttpRequest request) {
     var response = request.response;
-    DateTime date = new DateTime.utc(1999, DateTime.JUNE, 11, 18, 46, 53, 0);
+    DateTime date = new DateTime.utc(1999, DateTime.june, 11, 18, 46, 53, 0);
     response.headers.expires = date;
     Expect.equals(date, response.headers.expires);
     response.close();
@@ -135,7 +139,7 @@ class TestServer {
   void _expires2Handler(HttpRequest request) {
     var response = request.response;
     response.headers.set("Expires", "Fri, 11 Jun 1999 18:46:53 GMT");
-    DateTime date = new DateTime.utc(1999, DateTime.JUNE, 11, 18, 46, 53, 0);
+    DateTime date = new DateTime.utc(1999, DateTime.june, 11, 18, 46, 53, 0);
     Expect.equals(date, response.headers.expires);
     response.close();
   }
@@ -160,7 +164,7 @@ class TestServer {
     Expect.equals("utf-8", request.headers.contentType.parameters["charset"]);
 
     response.headers
-        .set(HttpHeaders.CONTENT_TYPE, "text/html;  charset = utf-8");
+        .set(HttpHeaders.contentTypeHeader, "text/html;  charset = utf-8");
     response.close();
   }
 
@@ -171,7 +175,7 @@ class TestServer {
     Expect.equals(0, request.cookies.length);
 
     Cookie cookie1 = new Cookie("name1", "value1");
-    DateTime date = new DateTime.utc(2014, DateTime.JANUARY, 5, 23, 59, 59, 0);
+    DateTime date = new DateTime.utc(2014, DateTime.january, 5, 23, 59, 59, 0);
     cookie1.expires = date;
     cookie1.domain = "www.example.com";
     cookie1.httpOnly = true;
@@ -259,21 +263,21 @@ Future testHost() {
       request.headers.port = 1234;
       Expect.equals("www.dartlang.com:1234", request.headers["host"][0]);
       Expect.equals(1234, request.headers.port);
-      request.headers.port = HttpClient.DEFAULT_HTTP_PORT;
-      Expect.equals(HttpClient.DEFAULT_HTTP_PORT, request.headers.port);
+      request.headers.port = HttpClient.defaultHttpPort;
+      Expect.equals(HttpClient.defaultHttpPort, request.headers.port);
       Expect.equals("www.dartlang.com", request.headers["host"][0]);
       request.headers.set("Host", "www.dartlang.org");
       Expect.equals("www.dartlang.org", request.headers.host);
-      Expect.equals(HttpClient.DEFAULT_HTTP_PORT, request.headers.port);
+      Expect.equals(HttpClient.defaultHttpPort, request.headers.port);
       request.headers.set("Host", "www.dartlang.org:");
       Expect.equals("www.dartlang.org", request.headers.host);
-      Expect.equals(HttpClient.DEFAULT_HTTP_PORT, request.headers.port);
+      Expect.equals(HttpClient.defaultHttpPort, request.headers.port);
       request.headers.set("Host", "www.dartlang.org:1234");
       Expect.equals("www.dartlang.org", request.headers.host);
       Expect.equals(1234, request.headers.port);
       return request.close();
     }).then((response) {
-      Expect.equals(HttpStatus.OK, response.statusCode);
+      Expect.equals(HttpStatus.ok, response.statusCode);
       response.listen((_) {}, onDone: () {
         httpClient.close();
         server.shutdown();
@@ -293,10 +297,10 @@ Future testExpires() {
     HttpClient httpClient = new HttpClient();
 
     void processResponse(HttpClientResponse response) {
-      Expect.equals(HttpStatus.OK, response.statusCode);
+      Expect.equals(HttpStatus.ok, response.statusCode);
       Expect.equals(
           "Fri, 11 Jun 1999 18:46:53 GMT", response.headers["expires"][0]);
-      Expect.equals(new DateTime.utc(1999, DateTime.JUNE, 11, 18, 46, 53, 0),
+      Expect.equals(new DateTime.utc(1999, DateTime.june, 11, 18, 46, 53, 0),
           response.headers.expires);
       response.listen((_) {}, onDone: () {
         responses++;
@@ -329,7 +333,7 @@ Future testContentType() {
     HttpClient httpClient = new HttpClient();
 
     void processResponse(HttpClientResponse response) {
-      Expect.equals(HttpStatus.OK, response.statusCode);
+      Expect.equals(HttpStatus.ok, response.statusCode);
       Expect.equals(
           "text/html; charset=utf-8", response.headers.contentType.toString());
       Expect.equals("text/html", response.headers.contentType.value);
@@ -355,7 +359,7 @@ Future testContentType() {
 
     httpClient.get("127.0.0.1", port, "/contenttype2").then((request) {
       request.headers
-          .set(HttpHeaders.CONTENT_TYPE, "text/html;  charset = utf-8");
+          .set(HttpHeaders.contentTypeHeader, "text/html;  charset = utf-8");
       return request.close();
     }).then(processResponse);
   });
@@ -379,7 +383,7 @@ Future testCookies() {
         if (cookie.name == "name1") {
           Expect.equals("value1", cookie.value);
           DateTime date =
-              new DateTime.utc(2014, DateTime.JANUARY, 5, 23, 59, 59, 0);
+              new DateTime.utc(2014, DateTime.january, 5, 23, 59, 59, 0);
           Expect.equals(date, cookie.expires);
           Expect.equals("www.example.com", cookie.domain);
           Expect.isTrue(cookie.httpOnly);

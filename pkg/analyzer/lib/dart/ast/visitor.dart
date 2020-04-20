@@ -1,84 +1,70 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Defines AST visitors that support useful patterns for visiting the nodes in
- * an [AST structure](ast.dart).
- *
- * Dart is an evolving language, and the AST structure must evolved with it.
- * When the AST structure changes, the visitor interface will sometimes change
- * as well. If it is desirable to get a compilation error when the structure of
- * the AST has been modified, then you should consider implementing the
- * interface [AstVisitor] directly. Doing so will ensure that changes that
- * introduce new classes of nodes will be flagged. (Of course, not all changes
- * to the AST structure require the addition of a new class of node, and hence
- * cannot be caught this way.)
- *
- * But if automatic detection of these kinds of changes is not necessary then
- * you will probably want to extend one of the classes in this library because
- * doing so will simplify the task of writing your visitor and guard against
- * future changes to the AST structure. For example, the [RecursiveAstVisitor]
- * automates the process of visiting all of the descendants of a node.
- */
-library analyzer.dart.ast.visitor;
-
+/// Defines AST visitors that support useful patterns for visiting the nodes in
+/// an [AST structure](ast.dart).
+///
+/// Dart is an evolving language, and the AST structure must evolved with it.
+/// When the AST structure changes, the visitor interface will sometimes change
+/// as well. If it is desirable to get a compilation error when the structure of
+/// the AST has been modified, then you should consider implementing the
+/// interface [AstVisitor] directly. Doing so will ensure that changes that
+/// introduce new classes of nodes will be flagged. (Of course, not all changes
+/// to the AST structure require the addition of a new class of node, and hence
+/// cannot be caught this way.)
+///
+/// But if automatic detection of these kinds of changes is not necessary then
+/// you will probably want to extend one of the classes in this library because
+/// doing so will simplify the task of writing your visitor and guard against
+/// future changes to the AST structure. For example, the [RecursiveAstVisitor]
+/// automates the process of visiting all of the descendants of a node.
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 
-/**
- * An AST visitor that will recursively visit all of the nodes in an AST
- * structure, similar to [GeneralizingAstVisitor]. This visitor uses a
- * breadth-first ordering rather than the depth-first ordering of
- * [GeneralizingAstVisitor].
- *
- * Subclasses that override a visit method must either invoke the overridden
- * visit method or explicitly invoke the more general visit method. Failure to
- * do so will cause the visit methods for superclasses of the node to not be
- * invoked and will cause the children of the visited node to not be visited.
- *
- * In addition, subclasses should <b>not</b> explicitly visit the children of a
- * node, but should ensure that the method [visitNode] is used to visit the
- * children (either directly or indirectly). Failure to do will break the order
- * in which nodes are visited.
- *
- * Note that, unlike other visitors that begin to visit a structure of nodes by
- * asking the root node in the structure to accept the visitor, this visitor
- * requires that clients start the visit by invoking the method [visitAllNodes]
- * defined on the visitor with the root node as the argument:
- *
- *     visitor.visitAllNodes(rootNode);
- *
- * Clients may extend this class.
- */
+/// An AST visitor that will recursively visit all of the nodes in an AST
+/// structure, similar to [GeneralizingAstVisitor]. This visitor uses a
+/// breadth-first ordering rather than the depth-first ordering of
+/// [GeneralizingAstVisitor].
+///
+/// Subclasses that override a visit method must either invoke the overridden
+/// visit method or explicitly invoke the more general visit method. Failure to
+/// do so will cause the visit methods for superclasses of the node to not be
+/// invoked and will cause the children of the visited node to not be visited.
+///
+/// In addition, subclasses should <b>not</b> explicitly visit the children of a
+/// node, but should ensure that the method [visitNode] is used to visit the
+/// children (either directly or indirectly). Failure to do will break the order
+/// in which nodes are visited.
+///
+/// Note that, unlike other visitors that begin to visit a structure of nodes by
+/// asking the root node in the structure to accept the visitor, this visitor
+/// requires that clients start the visit by invoking the method [visitAllNodes]
+/// defined on the visitor with the root node as the argument:
+///
+///     visitor.visitAllNodes(rootNode);
+///
+/// Clients may extend this class.
 class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {
-  /**
-   * A queue holding the nodes that have not yet been visited in the order in
-   * which they ought to be visited.
-   */
-  Queue<AstNode> _queue = new Queue<AstNode>();
+  /// A queue holding the nodes that have not yet been visited in the order in
+  /// which they ought to be visited.
+  final Queue<AstNode> _queue = Queue<AstNode>();
 
-  /**
-   * A visitor, used to visit the children of the current node, that will add
-   * the nodes it visits to the [_queue].
-   */
+  /// A visitor, used to visit the children of the current node, that will add
+  /// the nodes it visits to the [_queue].
   _BreadthFirstChildVisitor _childVisitor;
 
-  /**
-   * Initialize a newly created visitor.
-   */
+  /// Initialize a newly created visitor.
   BreadthFirstVisitor() {
-    _childVisitor = new _BreadthFirstChildVisitor(this);
+    _childVisitor = _BreadthFirstChildVisitor(this);
   }
 
-  /**
-   * Visit all nodes in the tree starting at the given [root] node, in
-   * breadth-first order.
-   */
+  /// Visit all nodes in the tree starting at the given [root] node, in
+  /// breadth-first order.
   void visitAllNodes(AstNode root) {
     _queue.add(root);
-    while (!_queue.isEmpty) {
+    while (_queue.isNotEmpty) {
       AstNode next = _queue.removeFirst();
       next.accept(this);
     }
@@ -91,33 +77,27 @@ class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {
   }
 }
 
-/**
- * An AST visitor that will recursively visit all of the nodes in an AST
- * structure. For each node that is visited, the corresponding visit method on
- * one or more other visitors (the 'delegates') will be invoked.
- *
- * For example, if an instance of this class is created with two delegates V1
- * and V2, and that instance is used to visit the expression 'x + 1', then the
- * following visit methods will be invoked:
- * 1. V1.visitBinaryExpression
- * 2. V2.visitBinaryExpression
- * 3. V1.visitSimpleIdentifier
- * 4. V2.visitSimpleIdentifier
- * 5. V1.visitIntegerLiteral
- * 6. V2.visitIntegerLiteral
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// An AST visitor that will recursively visit all of the nodes in an AST
+/// structure. For each node that is visited, the corresponding visit method on
+/// one or more other visitors (the 'delegates') will be invoked.
+///
+/// For example, if an instance of this class is created with two delegates V1
+/// and V2, and that instance is used to visit the expression 'x + 1', then the
+/// following visit methods will be invoked:
+/// 1. V1.visitBinaryExpression
+/// 2. V2.visitBinaryExpression
+/// 3. V1.visitSimpleIdentifier
+/// 4. V2.visitSimpleIdentifier
+/// 5. V1.visitIntegerLiteral
+/// 6. V2.visitIntegerLiteral
+///
+/// Clients may not extend, implement or mix-in this class.
 class DelegatingAstVisitor<T> extends UnifyingAstVisitor<T> {
-  /**
-   * The delegates whose visit methods will be invoked.
-   */
+  /// The delegates whose visit methods will be invoked.
   final Iterable<AstVisitor<T>> delegates;
 
-  /**
-   * Initialize a newly created visitor to use each of the given delegate
-   * visitors to visit the nodes of an AST structure.
-   */
+  /// Initialize a newly created visitor to use each of the given delegate
+  /// visitors to visit the nodes of an AST structure.
   DelegatingAstVisitor(this.delegates);
 
   @override
@@ -130,25 +110,23 @@ class DelegatingAstVisitor<T> extends UnifyingAstVisitor<T> {
   }
 }
 
-/**
- * An AST visitor that will recursively visit all of the nodes in an AST
- * structure (like instances of the class [RecursiveAstVisitor]). In addition,
- * when a node of a specific type is visited not only will the visit method for
- * that specific type of node be invoked, but additional methods for the
- * superclasses of that node will also be invoked. For example, using an
- * instance of this class to visit a [Block] will cause the method [visitBlock]
- * to be invoked but will also cause the methods [visitStatement] and
- * [visitNode] to be subsequently invoked. This allows visitors to be written
- * that visit all statements without needing to override the visit method for
- * each of the specific subclasses of [Statement].
- *
- * Subclasses that override a visit method must either invoke the overridden
- * visit method or explicitly invoke the more general visit method. Failure to
- * do so will cause the visit methods for superclasses of the node to not be
- * invoked and will cause the children of the visited node to not be visited.
- *
- * Clients may extend this class.
- */
+/// An AST visitor that will recursively visit all of the nodes in an AST
+/// structure (like instances of the class [RecursiveAstVisitor]). In addition,
+/// when a node of a specific type is visited not only will the visit method for
+/// that specific type of node be invoked, but additional methods for the
+/// superclasses of that node will also be invoked. For example, using an
+/// instance of this class to visit a [Block] will cause the method [visitBlock]
+/// to be invoked but will also cause the methods [visitStatement] and
+/// [visitNode] to be subsequently invoked. This allows visitors to be written
+/// that visit all statements without needing to override the visit method for
+/// each of the specific subclasses of [Statement].
+///
+/// Subclasses that override a visit method must either invoke the overridden
+/// visit method or explicitly invoke the more general visit method. Failure to
+/// do so will cause the visit methods for superclasses of the node to not be
+/// invoked and will cause the children of the visited node to not be visited.
+///
+/// Clients may extend this class.
 class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitAdjacentStrings(AdjacentStrings node) => visitStringLiteral(node);
@@ -206,6 +184,8 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitClassTypeAlias(ClassTypeAlias node) => visitTypeAlias(node);
+
+  R visitCollectionElement(CollectionElement node) => visitNode(node);
 
   R visitCombinator(Combinator node) => visitNode(node);
 
@@ -281,7 +261,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitExportDirective(ExportDirective node) => visitNamespaceDirective(node);
 
-  R visitExpression(Expression node) => visitNode(node);
+  R visitExpression(Expression node) => visitCollectionElement(node);
 
   @override
   R visitExpressionFunctionBody(ExpressionFunctionBody node) =>
@@ -294,19 +274,46 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitExtendsClause(ExtendsClause node) => visitNode(node);
 
   @override
+  R visitExtensionDeclaration(ExtensionDeclaration node) =>
+      visitCompilationUnitMember(node);
+
+  @override
+  R visitExtensionOverride(ExtensionOverride node) => visitExpression(node);
+
+  @override
   R visitFieldDeclaration(FieldDeclaration node) => visitClassMember(node);
 
   @override
   R visitFieldFormalParameter(FieldFormalParameter node) =>
       visitNormalFormalParameter(node);
 
+  R visitForEachParts(ForEachParts node) => visitNode(node);
+
   @override
-  R visitForEachStatement(ForEachStatement node) => visitStatement(node);
+  R visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) =>
+      visitForEachParts(node);
+
+  @override
+  R visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) =>
+      visitForEachParts(node);
+
+  @override
+  R visitForElement(ForElement node) => visitCollectionElement(node);
 
   R visitFormalParameter(FormalParameter node) => visitNode(node);
 
   @override
   R visitFormalParameterList(FormalParameterList node) => visitNode(node);
+
+  R visitForParts(ForParts node) => visitNode(node);
+
+  @override
+  R visitForPartsWithDeclarations(ForPartsWithDeclarations node) =>
+      visitForParts(node);
+
+  @override
+  R visitForPartsWithExpression(ForPartsWithExpression node) =>
+      visitForParts(node);
 
   @override
   R visitForStatement(ForStatement node) => visitStatement(node);
@@ -346,6 +353,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitHideCombinator(HideCombinator node) => visitCombinator(node);
 
   R visitIdentifier(Identifier node) => visitExpression(node);
+
+  @override
+  R visitIfElement(IfElement node) => visitCollectionElement(node);
 
   @override
   R visitIfStatement(IfStatement node) => visitStatement(node);
@@ -400,10 +410,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitLiteral(Literal node) => visitExpression(node);
 
   @override
-  R visitMapLiteral(MapLiteral node) => visitTypedLiteral(node);
-
-  @override
-  R visitMapLiteralEntry(MapLiteralEntry node) => visitNode(node);
+  R visitMapLiteralEntry(MapLiteralEntry node) => visitCollectionElement(node);
 
   @override
   R visitMethodDeclaration(MethodDeclaration node) => visitClassMember(node);
@@ -411,6 +418,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitMethodInvocation(MethodInvocation node) =>
       visitInvocationExpression(node);
+
+  @override
+  R visitMixinDeclaration(MixinDeclaration node) =>
+      visitNamedCompilationUnitMember(node);
 
   R visitNamedCompilationUnitMember(NamedCompilationUnitMember node) =>
       visitCompilationUnitMember(node);
@@ -437,6 +448,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitNullLiteral(NullLiteral node) => visitLiteral(node);
+
+  @override
+  R visitOnClause(OnClause node) => visitNode(node);
 
   @override
   R visitParenthesizedExpression(ParenthesizedExpression node) =>
@@ -475,6 +489,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitScriptTag(ScriptTag scriptTag) => visitNode(scriptTag);
 
   @override
+  R visitSetOrMapLiteral(SetOrMapLiteral node) => visitTypedLiteral(node);
+
+  @override
   R visitShowCombinator(ShowCombinator node) => visitCombinator(node);
 
   @override
@@ -490,6 +507,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   R visitSingleStringLiteral(SingleStringLiteral node) =>
       visitStringLiteral(node);
+
+  @override
+  R visitSpreadElement(SpreadElement node) => visitCollectionElement(node);
 
   R visitStatement(Statement node) => visitNode(node);
 
@@ -575,18 +595,16 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitYieldStatement(YieldStatement node) => visitStatement(node);
 }
 
-/**
- * An AST visitor that will recursively visit all of the nodes in an AST
- * structure. For example, using an instance of this class to visit a [Block]
- * will also cause all of the statements in the block to be visited.
- *
- * Subclasses that override a visit method must either invoke the overridden
- * visit method or must explicitly ask the visited node to visit its children.
- * Failure to do so will cause the children of the visited node to not be
- * visited.
- *
- * Clients may extend this class.
- */
+/// An AST visitor that will recursively visit all of the nodes in an AST
+/// structure. For example, using an instance of this class to visit a [Block]
+/// will also cause all of the statements in the block to be visited.
+///
+/// Subclasses that override a visit method must either invoke the overridden
+/// visit method or must explicitly ask the visited node to visit its children.
+/// Failure to do so will cause the children of the visited node to not be
+/// visited.
+///
+/// Clients may extend this class.
 class RecursiveAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitAdjacentStrings(AdjacentStrings node) {
@@ -823,6 +841,18 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R visitExtensionDeclaration(ExtensionDeclaration node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitExtensionOverride(ExtensionOverride node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R visitFieldDeclaration(FieldDeclaration node) {
     node.visitChildren(this);
     return null;
@@ -835,13 +865,37 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
-  R visitForEachStatement(ForEachStatement node) {
+  R visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitForElement(ForElement node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
   R visitFormalParameterList(FormalParameterList node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitForPartsWithExpression(ForPartsWithExpression node) {
     node.visitChildren(this);
     return null;
   }
@@ -902,6 +956,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitHideCombinator(HideCombinator node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitIfElement(IfElement node) {
     node.visitChildren(this);
     return null;
   }
@@ -991,12 +1051,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
-  R visitMapLiteral(MapLiteral node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
   R visitMapLiteralEntry(MapLiteralEntry node) {
     node.visitChildren(this);
     return null;
@@ -1010,6 +1064,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitMethodInvocation(MethodInvocation node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitMixinDeclaration(MixinDeclaration node) {
     node.visitChildren(this);
     return null;
   }
@@ -1034,6 +1094,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitNullLiteral(NullLiteral node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitOnClause(OnClause node) {
     node.visitChildren(this);
     return null;
   }
@@ -1106,6 +1172,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R visitSetOrMapLiteral(SetOrMapLiteral node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R visitShowCombinator(ShowCombinator node) {
     node.visitChildren(this);
     return null;
@@ -1125,6 +1197,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitSimpleStringLiteral(SimpleStringLiteral node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitSpreadElement(SpreadElement node) {
     node.visitChildren(this);
     return null;
   }
@@ -1256,14 +1334,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 }
 
-/**
- * An AST visitor that will do nothing when visiting an AST node. It is intended
- * to be a superclass for classes that use the visitor pattern primarily as a
- * dispatch mechanism (and hence don't need to recursively visit a whole
- * structure) and that only need to visit a small number of node types.
- *
- * Clients may extend this class.
- */
+/// An AST visitor that will do nothing when visiting an AST node. It is
+/// intended to be a superclass for classes that use the visitor pattern
+/// primarily as a dispatch mechanism (and hence don't need to recursively visit
+/// a whole structure) and that only need to visit a small number of node types.
+///
+/// Clients may extend this class.
 class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitAdjacentStrings(AdjacentStrings node) => null;
@@ -1383,16 +1459,34 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R visitExtendsClause(ExtendsClause node) => null;
 
   @override
+  R visitExtensionDeclaration(ExtensionDeclaration node) => null;
+
+  @override
+  R visitExtensionOverride(ExtensionOverride node) => null;
+
+  @override
   R visitFieldDeclaration(FieldDeclaration node) => null;
 
   @override
   R visitFieldFormalParameter(FieldFormalParameter node) => null;
 
   @override
-  R visitForEachStatement(ForEachStatement node) => null;
+  R visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) => null;
+
+  @override
+  R visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) => null;
+
+  @override
+  R visitForElement(ForElement node) => null;
 
   @override
   R visitFormalParameterList(FormalParameterList node) => null;
+
+  @override
+  R visitForPartsWithDeclarations(ForPartsWithDeclarations node) => null;
+
+  @override
+  R visitForPartsWithExpression(ForPartsWithExpression node) => null;
 
   @override
   R visitForStatement(ForStatement node) => null;
@@ -1426,6 +1520,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitHideCombinator(HideCombinator node) => null;
+
+  @override
+  R visitIfElement(IfElement node) => null;
 
   @override
   R visitIfStatement(IfStatement node) => null;
@@ -1470,9 +1567,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R visitListLiteral(ListLiteral node) => null;
 
   @override
-  R visitMapLiteral(MapLiteral node) => null;
-
-  @override
   R visitMapLiteralEntry(MapLiteralEntry node) => null;
 
   @override
@@ -1480,6 +1574,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitMethodInvocation(MethodInvocation node) => null;
+
+  @override
+  R visitMixinDeclaration(MixinDeclaration node) => null;
 
   @override
   R visitNamedExpression(NamedExpression node) => null;
@@ -1492,6 +1589,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitNullLiteral(NullLiteral node) => null;
+
+  @override
+  R visitOnClause(OnClause node) => null;
 
   @override
   R visitParenthesizedExpression(ParenthesizedExpression node) => null;
@@ -1529,6 +1629,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R visitScriptTag(ScriptTag node) => null;
 
   @override
+  R visitSetOrMapLiteral(SetOrMapLiteral node) => null;
+
+  @override
   R visitShowCombinator(ShowCombinator node) => null;
 
   @override
@@ -1539,6 +1642,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitSimpleStringLiteral(SimpleStringLiteral node) => null;
+
+  @override
+  R visitSpreadElement(SpreadElement node) => null;
 
   @override
   R visitStringInterpolation(StringInterpolation node) => null;
@@ -1605,15 +1711,13 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R visitYieldStatement(YieldStatement node) => null;
 }
 
-/**
- * An AST visitor that will throw an exception if any of the visit methods that
- * are invoked have not been overridden. It is intended to be a superclass for
- * classes that implement the visitor pattern and need to (a) override all of
- * the visit methods or (b) need to override a subset of the visit method and
- * want to catch when any other visit methods have been invoked.
- *
- * Clients may extend this class.
- */
+/// An AST visitor that will throw an exception if any of the visit methods that
+/// are invoked have not been overridden. It is intended to be a superclass for
+/// classes that implement the visitor pattern and need to (a) override all of
+/// the visit methods or (b) need to override a subset of the visit method and
+/// want to catch when any other visit methods have been invoked.
+///
+/// Clients may extend this class.
 class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitAdjacentStrings(AdjacentStrings node) => _throw(node);
@@ -1734,16 +1838,37 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R visitExtendsClause(ExtendsClause node) => _throw(node);
 
   @override
+  R visitExtensionDeclaration(ExtensionDeclaration node) => _throw(node);
+
+  @override
+  R visitExtensionOverride(ExtensionOverride node) => _throw(node);
+
+  @override
   R visitFieldDeclaration(FieldDeclaration node) => _throw(node);
 
   @override
   R visitFieldFormalParameter(FieldFormalParameter node) => _throw(node);
 
   @override
-  R visitForEachStatement(ForEachStatement node) => _throw(node);
+  R visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) =>
+      _throw(node);
+
+  @override
+  R visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) =>
+      _throw(node);
+
+  @override
+  R visitForElement(ForElement node) => _throw(node);
 
   @override
   R visitFormalParameterList(FormalParameterList node) => _throw(node);
+
+  @override
+  R visitForPartsWithDeclarations(ForPartsWithDeclarations node) =>
+      _throw(node);
+
+  @override
+  R visitForPartsWithExpression(ForPartsWithExpression node) => _throw(node);
 
   @override
   R visitForStatement(ForStatement node) => _throw(node);
@@ -1777,6 +1902,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitHideCombinator(HideCombinator node) => _throw(node);
+
+  @override
+  R visitIfElement(IfElement node) => _throw(node);
 
   @override
   R visitIfStatement(IfStatement node) => _throw(node);
@@ -1822,9 +1950,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R visitListLiteral(ListLiteral node) => _throw(node);
 
   @override
-  R visitMapLiteral(MapLiteral node) => _throw(node);
-
-  @override
   R visitMapLiteralEntry(MapLiteralEntry node) => _throw(node);
 
   @override
@@ -1832,6 +1957,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitMethodInvocation(MethodInvocation node) => _throw(node);
+
+  @override
+  R visitMixinDeclaration(MixinDeclaration node) => _throw(node);
 
   @override
   R visitNamedExpression(NamedExpression node) => _throw(node);
@@ -1844,6 +1972,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitNullLiteral(NullLiteral node) => _throw(node);
+
+  @override
+  R visitOnClause(OnClause node) => _throw(node);
 
   @override
   R visitParenthesizedExpression(ParenthesizedExpression node) => _throw(node);
@@ -1881,6 +2012,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R visitScriptTag(ScriptTag node) => _throw(node);
 
   @override
+  R visitSetOrMapLiteral(SetOrMapLiteral node) => _throw(node);
+
+  @override
   R visitShowCombinator(ShowCombinator node) => _throw(node);
 
   @override
@@ -1891,6 +2025,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitSimpleStringLiteral(SimpleStringLiteral node) => _throw(node);
+
+  @override
+  R visitSpreadElement(SpreadElement node) => _throw(node);
 
   @override
   R visitStringInterpolation(StringInterpolation node) => _throw(node);
@@ -1954,36 +2091,29 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitWithClause(WithClause node) => _throw(node);
+
   @override
   R visitYieldStatement(YieldStatement node) => _throw(node);
 
   R _throw(AstNode node) {
-    throw new Exception('Missing implementation of visit${node.runtimeType}');
+    throw Exception('Missing implementation of visit${node.runtimeType}');
   }
 }
 
-/**
- * An AST visitor that captures visit call timings.
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// An AST visitor that captures visit call timings.
+///
+/// Clients may not extend, implement or mix-in this class.
 class TimedAstVisitor<T> implements AstVisitor<T> {
-  /**
-   * The base visitor whose visit methods will be timed.
-   */
+  /// The base visitor whose visit methods will be timed.
   final AstVisitor<T> _baseVisitor;
 
-  /**
-   * Collects elapsed time for visit calls.
-   */
+  /// Collects elapsed time for visit calls.
   final Stopwatch stopwatch;
 
-  /**
-   * Initialize a newly created visitor to time calls to the given base
-   * visitor's visits.
-   */
+  /// Initialize a newly created visitor to time calls to the given base
+  /// visitor's visits.
   TimedAstVisitor(this._baseVisitor, [Stopwatch watch])
-      : stopwatch = watch ?? new Stopwatch();
+      : stopwatch = watch ?? Stopwatch();
 
   @override
   T visitAdjacentStrings(AdjacentStrings node) {
@@ -2298,6 +2428,22 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T visitExtensionDeclaration(ExtensionDeclaration node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitExtensionDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitExtensionOverride(ExtensionOverride node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitExtensionOverride(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T visitFieldDeclaration(FieldDeclaration node) {
     stopwatch.start();
     T result = _baseVisitor.visitFieldDeclaration(node);
@@ -2314,9 +2460,25 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
-  T visitForEachStatement(ForEachStatement node) {
+  T visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     stopwatch.start();
-    T result = _baseVisitor.visitForEachStatement(node);
+    T result = _baseVisitor.visitForEachPartsWithDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitForEachPartsWithIdentifier(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitForElement(ForElement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitForElement(node);
     stopwatch.stop();
     return result;
   }
@@ -2325,6 +2487,22 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T visitFormalParameterList(FormalParameterList node) {
     stopwatch.start();
     T result = _baseVisitor.visitFormalParameterList(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitForPartsWithDeclarations(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitForPartsWithExpression(ForPartsWithExpression node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitForPartsWithExpression(node);
     stopwatch.stop();
     return result;
   }
@@ -2405,6 +2583,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T visitHideCombinator(HideCombinator node) {
     stopwatch.start();
     T result = _baseVisitor.visitHideCombinator(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitIfElement(IfElement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitIfElement(node);
     stopwatch.stop();
     return result;
   }
@@ -2522,14 +2708,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
-  T visitMapLiteral(MapLiteral node) {
-    stopwatch.start();
-    T result = _baseVisitor.visitMapLiteral(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
   T visitMapLiteralEntry(MapLiteralEntry node) {
     stopwatch.start();
     T result = _baseVisitor.visitMapLiteralEntry(node);
@@ -2549,6 +2727,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T visitMethodInvocation(MethodInvocation node) {
     stopwatch.start();
     T result = _baseVisitor.visitMethodInvocation(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitMixinDeclaration(MixinDeclaration node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitMixinDeclaration(node);
     stopwatch.stop();
     return result;
   }
@@ -2581,6 +2767,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T visitNullLiteral(NullLiteral node) {
     stopwatch.start();
     T result = _baseVisitor.visitNullLiteral(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitOnClause(OnClause node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitOnClause(node);
     stopwatch.stop();
     return result;
   }
@@ -2675,6 +2869,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T visitSetOrMapLiteral(SetOrMapLiteral node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitSetOrMapLiteral(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T visitShowCombinator(ShowCombinator node) {
     stopwatch.start();
     T result = _baseVisitor.visitShowCombinator(node);
@@ -2702,6 +2904,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T visitSimpleStringLiteral(SimpleStringLiteral node) {
     stopwatch.start();
     T result = _baseVisitor.visitSimpleStringLiteral(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitSpreadElement(SpreadElement node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitSpreadElement(node);
     stopwatch.stop();
     return result;
   }
@@ -2875,18 +3085,17 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 }
 
-/**
- * An AST visitor that will recursively visit all of the nodes in an AST
- * structure (like instances of the class [RecursiveAstVisitor]). In addition,
- * every node will also be visited by using a single unified [visitNode] method.
- *
- * Subclasses that override a visit method must either invoke the overridden
- * visit method or explicitly invoke the more general [visitNode] method.
- * Failure to do so will cause the children of the visited node to not be
- * visited.
- *
- * Clients may extend this class.
- */
+/// An AST visitor that will recursively visit all of the nodes in an AST
+/// structure (like instances of the class [RecursiveAstVisitor]). In addition,
+/// every node will also be visited by using a single unified [visitNode]
+/// method.
+///
+/// Subclasses that override a visit method must either invoke the overridden
+/// visit method or explicitly invoke the more general [visitNode] method.
+/// Failure to do so will cause the children of the visited node to not be
+/// visited.
+///
+/// Clients may extend this class.
 class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitAdjacentStrings(AdjacentStrings node) => visitNode(node);
@@ -3008,16 +3217,37 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R visitExtendsClause(ExtendsClause node) => visitNode(node);
 
   @override
+  R visitExtensionDeclaration(ExtensionDeclaration node) => visitNode(node);
+
+  @override
+  R visitExtensionOverride(ExtensionOverride node) => visitNode(node);
+
+  @override
   R visitFieldDeclaration(FieldDeclaration node) => visitNode(node);
 
   @override
   R visitFieldFormalParameter(FieldFormalParameter node) => visitNode(node);
 
   @override
-  R visitForEachStatement(ForEachStatement node) => visitNode(node);
+  R visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) =>
+      visitNode(node);
+
+  @override
+  R visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) =>
+      visitNode(node);
+
+  @override
+  R visitForElement(ForElement node) => visitNode(node);
 
   @override
   R visitFormalParameterList(FormalParameterList node) => visitNode(node);
+
+  @override
+  R visitForPartsWithDeclarations(ForPartsWithDeclarations node) =>
+      visitNode(node);
+
+  @override
+  R visitForPartsWithExpression(ForPartsWithExpression node) => visitNode(node);
 
   @override
   R visitForStatement(ForStatement node) => visitNode(node);
@@ -3051,6 +3281,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitHideCombinator(HideCombinator node) => visitNode(node);
+
+  @override
+  R visitIfElement(IfElement node) => visitNode(node);
 
   @override
   R visitIfStatement(IfStatement node) => visitNode(node);
@@ -3097,9 +3330,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R visitListLiteral(ListLiteral node) => visitNode(node);
 
   @override
-  R visitMapLiteral(MapLiteral node) => visitNode(node);
-
-  @override
   R visitMapLiteralEntry(MapLiteralEntry node) => visitNode(node);
 
   @override
@@ -3107,6 +3337,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitMethodInvocation(MethodInvocation node) => visitNode(node);
+
+  @override
+  R visitMixinDeclaration(MixinDeclaration node) => visitNode(node);
 
   @override
   R visitNamedExpression(NamedExpression node) => visitNode(node);
@@ -3124,6 +3357,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitNullLiteral(NullLiteral node) => visitNode(node);
+
+  @override
+  R visitOnClause(OnClause node) => visitNode(node);
 
   @override
   R visitParenthesizedExpression(ParenthesizedExpression node) =>
@@ -3162,6 +3398,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R visitScriptTag(ScriptTag scriptTag) => visitNode(scriptTag);
 
   @override
+  R visitSetOrMapLiteral(SetOrMapLiteral node) => visitNode(node);
+
+  @override
   R visitShowCombinator(ShowCombinator node) => visitNode(node);
 
   @override
@@ -3172,6 +3411,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitSimpleStringLiteral(SimpleStringLiteral node) => visitNode(node);
+
+  @override
+  R visitSpreadElement(SpreadElement node) => visitNode(node);
 
   @override
   R visitStringInterpolation(StringInterpolation node) => visitNode(node);
@@ -3241,24 +3483,17 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R visitYieldStatement(YieldStatement node) => visitNode(node);
 }
 
-/**
- * A helper class used to implement the correct order of visits for a
- * [BreadthFirstVisitor].
- */
-class _BreadthFirstChildVisitor extends UnifyingAstVisitor<Object> {
-  /**
-   * The [BreadthFirstVisitor] being helped by this visitor.
-   */
+/// A helper class used to implement the correct order of visits for a
+/// [BreadthFirstVisitor].
+class _BreadthFirstChildVisitor extends UnifyingAstVisitor<void> {
+  /// The [BreadthFirstVisitor] being helped by this visitor.
   final BreadthFirstVisitor outerVisitor;
 
-  /**
-   * Initialize a newly created visitor to help the [outerVisitor].
-   */
+  /// Initialize a newly created visitor to help the [outerVisitor].
   _BreadthFirstChildVisitor(this.outerVisitor);
 
   @override
-  Object visitNode(AstNode node) {
+  void visitNode(AstNode node) {
     outerVisitor._queue.add(node);
-    return null;
   }
 }

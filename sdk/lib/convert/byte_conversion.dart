@@ -2,45 +2,41 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.convert;
 
-/**
- * The [ByteConversionSink] provides an interface for converters to
- * efficiently transmit byte data.
- *
- * Instead of limiting the interface to one non-chunked list of bytes it
- * accepts its input in chunks (themselves being lists of bytes).
- *
- * This abstract class will likely get more methods over time. Implementers are
- * urged to extend or mix in [ByteConversionSinkBase] to ensure that their
- * class covers the newly added methods.
- */
+/// The [ByteConversionSink] provides an interface for converters to
+/// efficiently transmit byte data.
+///
+/// Instead of limiting the interface to one non-chunked list of bytes it
+/// accepts its input in chunks (themselves being lists of bytes).
+///
+/// This abstract class will likely get more methods over time. Implementers are
+/// urged to extend or mix in [ByteConversionSinkBase] to ensure that their
+/// class covers the newly added methods.
 abstract class ByteConversionSink extends ChunkedConversionSink<List<int>> {
   ByteConversionSink();
   factory ByteConversionSink.withCallback(
       void callback(List<int> accumulated)) = _ByteCallbackSink;
   factory ByteConversionSink.from(Sink<List<int>> sink) = _ByteAdapterSink;
 
-  /**
-   * Adds the next [chunk] to `this`.
-   *
-   * Adds the bytes defined by [start] and [end]-exclusive to `this`.
-   *
-   * If [isLast] is `true` closes `this`.
-   *
-   * Contrary to `add` the given [chunk] must not be held onto. Once the method
-   * returns, it is safe to overwrite the data in it.
-   */
+  /// Adds the next [chunk] to `this`.
+  ///
+  /// Adds the bytes defined by [start] and [end]-exclusive to `this`.
+  ///
+  /// If [isLast] is `true` closes `this`.
+  ///
+  /// Contrary to `add` the given [chunk] must not be held onto. Once the method
+  /// returns, it is safe to overwrite the data in it.
   void addSlice(List<int> chunk, int start, int end, bool isLast);
 
   // TODO(floitsch): add more methods:
   // - iterateBytes.
 }
 
-/**
- * This class provides a base-class for converters that need to accept byte
- * inputs.
- */
+/// This class provides a base-class for converters that need to accept byte
+/// inputs.
 abstract class ByteConversionSinkBase extends ByteConversionSink {
   void add(List<int> chunk);
   void close();
@@ -51,12 +47,10 @@ abstract class ByteConversionSinkBase extends ByteConversionSink {
   }
 }
 
-/**
- * This class adapts a simple [Sink] to a [ByteConversionSink].
- *
- * All additional methods of the [ByteConversionSink] (compared to the
- * ChunkedConversionSink) are redirected to the `add` method.
- */
+/// This class adapts a simple [Sink] to a [ByteConversionSink].
+///
+/// All additional methods of the [ByteConversionSink] (compared to the
+/// ChunkedConversionSink) are redirected to the `add` method.
 class _ByteAdapterSink extends ByteConversionSinkBase {
   final Sink<List<int>> _sink;
 
@@ -71,29 +65,27 @@ class _ByteAdapterSink extends ByteConversionSinkBase {
   }
 }
 
-/**
- * This class accumulates all chunks into one list of bytes
- * and invokes a callback when the sink is closed.
- *
- * This class can be used to terminate a chunked conversion.
- */
+/// This class accumulates all chunks into one list of bytes
+/// and invokes a callback when the sink is closed.
+///
+/// This class can be used to terminate a chunked conversion.
 class _ByteCallbackSink extends ByteConversionSinkBase {
   static const _INITIAL_BUFFER_SIZE = 1024;
 
-  final _ChunkedConversionCallback<List<int>> _callback;
-  List<int> _buffer = new Uint8List(_INITIAL_BUFFER_SIZE);
+  final void Function(List<int>) _callback;
+  List<int> _buffer = Uint8List(_INITIAL_BUFFER_SIZE);
   int _bufferIndex = 0;
 
   _ByteCallbackSink(void callback(List<int> accumulated))
-      : this._callback = callback;
+      : _callback = callback;
 
   void add(Iterable<int> chunk) {
-    int freeCount = _buffer.length - _bufferIndex;
+    var freeCount = _buffer.length - _bufferIndex;
     if (chunk.length > freeCount) {
       // Grow the buffer.
-      int oldLength = _buffer.length;
-      int newLength = _roundToPowerOf2(chunk.length + oldLength) * 2;
-      List<int> grown = new Uint8List(newLength);
+      var oldLength = _buffer.length;
+      var newLength = _roundToPowerOf2(chunk.length + oldLength) * 2;
+      var grown = Uint8List(newLength);
       grown.setRange(0, _buffer.length, _buffer);
       _buffer = grown;
     }

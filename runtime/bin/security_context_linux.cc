@@ -15,9 +15,9 @@
 
 #include "bin/directory.h"
 #include "bin/file.h"
-#include "bin/log.h"
 #include "bin/secure_socket_filter.h"
 #include "bin/secure_socket_utils.h"
+#include "platform/syslog.h"
 
 namespace dart {
 namespace bin {
@@ -60,7 +60,7 @@ void SSLCertContext::TrustBuiltinRoots() {
   // Fall back on the compiled-in certs if the standard locations don't exist,
   // or we aren't on Linux.
   if (SSL_LOG_STATUS) {
-    Log::Print("Trusting compiled-in roots\n");
+    Syslog::Print("Trusting compiled-in roots\n");
   }
   AddCompiledInCerts();
 }

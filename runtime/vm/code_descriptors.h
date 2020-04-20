@@ -5,7 +5,6 @@
 #ifndef RUNTIME_VM_CODE_DESCRIPTORS_H_
 #define RUNTIME_VM_CODE_DESCRIPTORS_H_
 
-#include "vm/ast.h"
 #include "vm/datastream.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
@@ -14,6 +13,8 @@
 #include "vm/runtime_entry.h"
 
 namespace dart {
+
+static const intptr_t kInvalidTryIndex = -1;
 
 class DescriptorList : public ZoneAllocated {
  public:
@@ -29,7 +30,8 @@ class DescriptorList : public ZoneAllocated {
                      intptr_t pc_offset,
                      intptr_t deopt_id,
                      TokenPosition token_pos,
-                     intptr_t try_index);
+                     intptr_t try_index,
+                     intptr_t yield_index);
 
   RawPcDescriptors* FinalizePcDescriptors(uword entry_point);
 
@@ -43,29 +45,93 @@ class DescriptorList : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(DescriptorList);
 };
 
-class StackMapTableBuilder : public ZoneAllocated {
+class CompressedStackMapsBuilder : public ZoneAllocated {
  public:
-  StackMapTableBuilder()
-      : stack_map_(StackMap::ZoneHandle()),
-        list_(GrowableObjectArray::ZoneHandle(
-            GrowableObjectArray::New(Heap::kOld))) {}
-  ~StackMapTableBuilder() {}
+  CompressedStackMapsBuilder() : encoded_bytes_() {}
+
+  static void EncodeLEB128(GrowableArray<uint8_t>* data, uintptr_t value);
 
   void AddEntry(intptr_t pc_offset,
                 BitmapBuilder* bitmap,
-                intptr_t register_bit_count);
+                intptr_t spill_slot_bit_count);
 
-  bool Verify();
-
-  RawArray* FinalizeStackMaps(const Code& code);
+  RawCompressedStackMaps* Finalize() const;
 
  private:
-  intptr_t Length() const { return list_.Length(); }
-  RawStackMap* MapAt(intptr_t index) const;
+  intptr_t last_pc_offset_ = 0;
+  GrowableArray<uint8_t> encoded_bytes_;
+  DISALLOW_COPY_AND_ASSIGN(CompressedStackMapsBuilder);
+};
 
-  StackMap& stack_map_;
-  GrowableObjectArray& list_;
-  DISALLOW_COPY_AND_ASSIGN(StackMapTableBuilder);
+class CompressedStackMapsIterator : public ValueObject {
+ public:
+  // We use the null value to represent CompressedStackMaps with no
+  // entries, so any CompressedStackMaps arguments to constructors can be null.
+  CompressedStackMapsIterator(const CompressedStackMaps& maps,
+                              const CompressedStackMaps& global_table);
+  explicit CompressedStackMapsIterator(const CompressedStackMaps& maps);
+
+  explicit CompressedStackMapsIterator(const CompressedStackMapsIterator& it);
+
+  // Loads the next entry from [maps_], if any. If [maps_] is the null
+  // value, this always returns false.
+  bool MoveNext();
+
+  // Finds the entry with the given PC offset starting at the current
+  // position of the iterator. If [maps_] is the null value, this always
+  // returns false.
+  bool Find(uint32_t pc_offset) {
+    // We should never have an entry with a PC offset of 0 inside an
+    // non-empty CSM, so fail.
+    if (pc_offset == 0) return false;
+    do {
+      if (current_pc_offset_ >= pc_offset) break;
+    } while (MoveNext());
+    return current_pc_offset_ == pc_offset;
+  }
+
+  // Methods for accessing parts of an entry should not be called until
+  // a successful MoveNext() or Find() call has been made.
+
+  uint32_t pc_offset() const {
+    ASSERT(HasLoadedEntry());
+    return current_pc_offset_;
+  }
+  // We lazily load and cache information from the global table if the
+  // CSM uses it, so these methods cannot be const.
+  intptr_t Length();
+  intptr_t SpillSlotBitCount();
+  bool IsObject(intptr_t bit_offset);
+
+  void EnsureFullyLoadedEntry() {
+    ASSERT(HasLoadedEntry());
+    if (current_spill_slot_bit_count_ < 0) {
+      LazyLoadGlobalTableEntry();
+    }
+    ASSERT(current_spill_slot_bit_count_ >= 0);
+  }
+
+  const char* ToCString(Zone* zone) const;
+  const char* ToCString() const;
+
+ private:
+  static uintptr_t DecodeLEB128(const CompressedStackMaps& data,
+                                uintptr_t* byte_index);
+  bool HasLoadedEntry() const { return next_offset_ > 0; }
+  void LazyLoadGlobalTableEntry();
+
+  const CompressedStackMaps& maps_;
+  const CompressedStackMaps& bits_container_;
+
+  uintptr_t next_offset_ = 0;
+  uint32_t current_pc_offset_ = 0;
+  // Only used when looking up non-PC information in the global table.
+  uintptr_t current_global_table_offset_ = 0;
+  intptr_t current_spill_slot_bit_count_ = -1;
+  intptr_t current_non_spill_slot_bit_count_ = -1;
+  intptr_t current_bits_offset_ = -1;
+
+  friend class StackMapEntry;
 };
 
 class ExceptionHandlerList : public ZoneAllocated {
@@ -73,7 +139,6 @@ class ExceptionHandlerList : public ZoneAllocated {
   struct HandlerDesc {
     intptr_t outer_try_index;    // Try block in which this try block is nested.
     intptr_t pc_offset;          // Handler PC offset value.
-    TokenPosition token_pos;     // Token position of handler.
     bool is_generated;           // False if this is directly from Dart code.
     const Array* handler_types;  // Catch clause guards.
     bool needs_stacktrace;
@@ -87,7 +152,6 @@ class ExceptionHandlerList : public ZoneAllocated {
     struct HandlerDesc data;
     data.outer_try_index = -1;
     data.pc_offset = ExceptionHandlers::kInvalidPcOffset;
-    data.token_pos = TokenPosition::kNoSource;
     data.is_generated = true;
     data.handler_types = NULL;
     data.needs_stacktrace = false;
@@ -97,7 +161,6 @@ class ExceptionHandlerList : public ZoneAllocated {
   void AddHandler(intptr_t try_index,
                   intptr_t outer_try_index,
                   intptr_t pc_offset,
-                  TokenPosition token_pos,
                   bool is_generated,
                   const Array& handler_types,
                   bool needs_stacktrace) {
@@ -108,7 +171,6 @@ class ExceptionHandlerList : public ZoneAllocated {
     list_[try_index].outer_try_index = outer_try_index;
     ASSERT(list_[try_index].pc_offset == ExceptionHandlers::kInvalidPcOffset);
     list_[try_index].pc_offset = pc_offset;
-    list_[try_index].token_pos = token_pos;
     list_[try_index].is_generated = is_generated;
     ASSERT(handler_types.IsZoneHandle());
     list_[try_index].handler_types = &handler_types;
@@ -118,7 +180,7 @@ class ExceptionHandlerList : public ZoneAllocated {
   // Called by rethrows, to mark their enclosing handlers.
   void SetNeedsStackTrace(intptr_t try_index) {
     // Rethrows can be generated outside a try by the compiler.
-    if (try_index == CatchClauseNode::kInvalidTryIndex) {
+    if (try_index == kInvalidTryIndex) {
       return;
     }
     ASSERT(try_index >= 0);
@@ -144,43 +206,16 @@ class ExceptionHandlerList : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(ExceptionHandlerList);
 };
 
-// An encoded move from stack/constant to stack performed
-struct CatchEntryStatePair {
-  enum { kCatchEntryStateIsMove = 1, kCatchEntryStateDestShift = 1 };
-
-  intptr_t src, dest;
-
-  static CatchEntryStatePair FromConstant(intptr_t pool_id,
-                                          intptr_t dest_slot) {
-    CatchEntryStatePair pair;
-    pair.src = pool_id;
-    pair.dest = (dest_slot << kCatchEntryStateDestShift);
-    return pair;
-  }
-
-  static CatchEntryStatePair FromMove(intptr_t src_slot, intptr_t dest_slot) {
-    CatchEntryStatePair pair;
-    pair.src = src_slot;
-    pair.dest =
-        (dest_slot << kCatchEntryStateDestShift) | kCatchEntryStateIsMove;
-    return pair;
-  }
-
-  bool operator==(const CatchEntryStatePair& rhs) {
-    return src == rhs.src && dest == rhs.dest;
-  }
-};
-
-// Used to construct CatchEntryState metadata for AoT mode of compilation.
-class CatchEntryStateMapBuilder : public ZoneAllocated {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+// Used to construct CatchEntryMoves for the AOT mode of compilation.
+class CatchEntryMovesMapBuilder : public ZoneAllocated {
  public:
-  CatchEntryStateMapBuilder();
+  CatchEntryMovesMapBuilder();
 
   void NewMapping(intptr_t pc_offset);
-  void AppendMove(intptr_t src_slot, intptr_t dest_slot);
-  void AppendConstant(intptr_t pool_id, intptr_t dest_slot);
+  void Append(const CatchEntryMove& move);
   void EndMapping();
-  RawTypedData* FinalizeCatchEntryStateMap();
+  RawTypedData* FinalizeCatchEntryMovesMap();
 
  private:
   class TrieNode;
@@ -188,12 +223,13 @@ class CatchEntryStateMapBuilder : public ZoneAllocated {
   Zone* zone_;
   TrieNode* root_;
   intptr_t current_pc_offset_;
-  GrowableArray<CatchEntryStatePair> moves_;
+  GrowableArray<CatchEntryMove> moves_;
   uint8_t* buffer_;
   WriteStream stream_;
 
-  DISALLOW_COPY_AND_ASSIGN(CatchEntryStateMapBuilder);
+  DISALLOW_COPY_AND_ASSIGN(CatchEntryMovesMapBuilder);
 };
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 // A CodeSourceMap maps from pc offsets to a stack of inlined functions and
 // their positions. This is encoded as a little bytecode that pushes and pops
@@ -222,6 +258,7 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   static const uint8_t kAdvancePC = 1;
   static const uint8_t kPushFunction = 2;
   static const uint8_t kPopFunction = 3;
+  static const uint8_t kNullCheck = 4;
 
   void StartInliningInterval(int32_t pc_offset, intptr_t inline_id);
   void BeginCodeSourceRange(int32_t pc_offset);
@@ -229,6 +266,7 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   void NoteDescriptor(RawPcDescriptors::Kind kind,
                       int32_t pc_offset,
                       TokenPosition pos);
+  void NoteNullCheck(int32_t pc_offset, TokenPosition pos, intptr_t name_index);
 
   RawArray* InliningIdToFunction();
   RawCodeSourceMap* Finalize();
@@ -264,6 +302,10 @@ class CodeSourceMapBuilder : public ZoneAllocated {
     stream_.Write<uint8_t>(kPopFunction);
     written_inline_id_stack_.RemoveLast();
     written_token_pos_stack_.RemoveLast();
+  }
+  void WriteNullCheck(int32_t name_index) {
+    stream_.Write<uint8_t>(kNullCheck);
+    stream_.Write<int32_t>(name_index);
   }
 
   void FlushBuffer();
@@ -313,6 +355,8 @@ class CodeSourceMapReader : public ValueObject {
   NOT_IN_PRODUCT(void PrintJSONInlineIntervals(JSONObject* jsobj));
   void DumpInlineIntervals(uword start);
   void DumpSourcePositions(uword start);
+
+  intptr_t GetNullCheckNameIndexAt(int32_t pc_offset);
 
  private:
   const CodeSourceMap& map_;

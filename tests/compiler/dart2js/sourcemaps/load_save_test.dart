@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:convert';
+import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
-import 'package:unittest/unittest.dart';
-import 'load.dart';
-import 'save.dart';
+import 'tools/load.dart';
+import 'tools/save.dart';
 
 const String SOURCEMAP = '''
 {
@@ -45,32 +47,33 @@ const String HUMAN_READABLE_SOURCE_MAP = '''
 }''';
 
 void main() {
-  test('read/write', () {
-    SingleMapping sourceMap =
-        new SingleMapping.fromJson(JSON.decode(SOURCEMAP));
-    String humanReadable = convertToHumanReadableSourceMap(sourceMap);
-    SingleMapping sourceMap2 = convertFromHumanReadableSourceMap(humanReadable);
-    String humanReadable2 = convertToHumanReadableSourceMap(sourceMap2);
-    SingleMapping sourceMap3 =
-        convertFromHumanReadableSourceMap(humanReadable2);
-    String humanReadable3 = convertToHumanReadableSourceMap(sourceMap3);
+  testReadWrite();
+  testWriteRead();
+}
 
-    // Target line entries without sourceUrl are removed.
-    //expect(sourceMap.toJson(), equals(sourceMap2.toJson()));
-    expect(sourceMap2.toJson(), equals(sourceMap3.toJson()));
-    expect(JSON.decode(humanReadable), equals(JSON.decode(humanReadable2)));
-    expect(JSON.decode(humanReadable2), equals(JSON.decode(humanReadable3)));
-  });
+void testReadWrite() {
+  SingleMapping sourceMap = new SingleMapping.fromJson(json.decode(SOURCEMAP));
+  String humanReadable = convertToHumanReadableSourceMap(sourceMap);
+  SingleMapping sourceMap2 = convertFromHumanReadableSourceMap(humanReadable);
+  String humanReadable2 = convertToHumanReadableSourceMap(sourceMap2);
+  SingleMapping sourceMap3 = convertFromHumanReadableSourceMap(humanReadable2);
+  String humanReadable3 = convertToHumanReadableSourceMap(sourceMap3);
 
-  test('write/read', () {
-    SingleMapping sourceMap =
-        convertFromHumanReadableSourceMap(HUMAN_READABLE_SOURCE_MAP);
-    print(sourceMap);
-    String humanReadable = convertToHumanReadableSourceMap(sourceMap);
-    print(humanReadable);
-    SingleMapping sourceMap2 = convertFromHumanReadableSourceMap(humanReadable);
-    expect(JSON.decode(HUMAN_READABLE_SOURCE_MAP),
-        equals(JSON.decode(humanReadable)));
-    expect(sourceMap.toJson(), equals(sourceMap2.toJson()));
-  });
+  // Target line entries without sourceUrl are removed.
+  //Expect.deepEquals(sourceMap.toJson(), sourceMap2.toJson());
+  Expect.deepEquals(sourceMap2.toJson(), sourceMap3.toJson());
+  Expect.deepEquals(json.decode(humanReadable), json.decode(humanReadable2));
+  Expect.deepEquals(json.decode(humanReadable2), json.decode(humanReadable3));
+}
+
+void testWriteRead() {
+  SingleMapping sourceMap =
+      convertFromHumanReadableSourceMap(HUMAN_READABLE_SOURCE_MAP);
+  print(sourceMap);
+  String humanReadable = convertToHumanReadableSourceMap(sourceMap);
+  print(humanReadable);
+  SingleMapping sourceMap2 = convertFromHumanReadableSourceMap(humanReadable);
+  Expect.deepEquals(
+      json.decode(HUMAN_READABLE_SOURCE_MAP), json.decode(humanReadable));
+  Expect.deepEquals(sourceMap.toJson(), sourceMap2.toJson());
 }

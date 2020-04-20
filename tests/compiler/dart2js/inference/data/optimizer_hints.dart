@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:expect/expect.dart';
+// @dart = 2.7
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   assumeDynamic();
   notAssumeDynamic();
   trustReturnTypeString();
-  notTrustReturnTypeString();
   trustParameterTypeString();
-  notTrustParameterTypeString();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -22,11 +20,11 @@ main() {
 // the 'dynamic' type.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _assumeDynamic:[null|subclass=Object]*/
-@AssumeDynamic()
+/*member: _assumeDynamic:[null|subclass=Object]*/
+@pragma('dart2js:assumeDynamic')
 _assumeDynamic(/*[null|subclass=Object]*/ o) => o;
 
-/*element: assumeDynamic:[null]*/
+/*member: assumeDynamic:[null]*/
 assumeDynamic() {
   _assumeDynamic(0);
 }
@@ -35,54 +33,31 @@ assumeDynamic() {
 // As above but without the annotation.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _notAssumeDynamic:[exact=JSUInt31]*/
+/*member: _notAssumeDynamic:[exact=JSUInt31]*/
 _notAssumeDynamic(/*[exact=JSUInt31]*/ o) => o;
 
-/*element: notAssumeDynamic:[null]*/
+/*member: notAssumeDynamic:[null]*/
 notAssumeDynamic() {
   _notAssumeDynamic(0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Use annotation to trust return type annotation.
+// No annotation is needed to trust return type annotation.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: trustReturnTypeString:[null|exact=JSString]*/
-@TrustTypeAnnotations()
+/*member: trustReturnTypeString:[null|exact=JSString]*/
 String trustReturnTypeString() {
   return _assumeDynamic(0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// As above but without the annotation.
+// No annotation is needed to trust parameter type annotation.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: notTrustReturnTypeString:[null|subclass=Object]*/
-String notTrustReturnTypeString() {
-  return _assumeDynamic(0);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Use annotation to trust parameter type annotation.
-////////////////////////////////////////////////////////////////////////////////
-
-/*element: _trustParameterTypeString:[null]*/
-@TrustTypeAnnotations()
+/*member: _trustParameterTypeString:[null]*/
 _trustParameterTypeString(String /*[null|exact=JSString]*/ o) {}
 
-/*element: trustParameterTypeString:[null]*/
+/*member: trustParameterTypeString:[null]*/
 trustParameterTypeString() {
   _trustParameterTypeString(_assumeDynamic(0));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// As above but without the annotation.
-////////////////////////////////////////////////////////////////////////////////
-
-/*element: _notTrustParameterTypeString:[null]*/
-_notTrustParameterTypeString(String /*[null|subclass=Object]*/ o) {}
-
-/*element: notTrustParameterTypeString:[null]*/
-notTrustParameterTypeString() {
-  _notTrustParameterTypeString(_assumeDynamic(0));
 }

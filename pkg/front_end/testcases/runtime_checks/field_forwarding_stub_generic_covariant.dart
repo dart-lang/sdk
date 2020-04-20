@@ -6,14 +6,13 @@
 library test;
 
 class B<T> {
-  T /*@covariance=genericInterface, genericImpl*/ x;
+  T x;
 }
 
 class C {
   num x;
 }
 
-class /*@forwardingStub=void set x(covariance=(genericImpl) num _)*/ D extends C
-    implements B<num> {}
+class D extends C implements B<num> {}
 
 void main() {}

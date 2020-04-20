@@ -29,7 +29,33 @@ class BaseGrowableArray : public B {
     }
   }
 
+  BaseGrowableArray(BaseGrowableArray&& other)
+      : length_(other.length_),
+        capacity_(other.capacity_),
+        data_(other.data_),
+        allocator_(other.allocator_) {
+    other.length_ = 0;
+    other.capacity_ = 0;
+    other.data_ = NULL;
+  }
+
   ~BaseGrowableArray() { allocator_->template Free<T>(data_, capacity_); }
+
+  BaseGrowableArray& operator=(BaseGrowableArray&& other) {
+    intptr_t temp = other.length_;
+    other.length_ = length_;
+    length_ = temp;
+    temp = other.capacity_;
+    other.capacity_ = capacity_;
+    capacity_ = temp;
+    T* temp_data = other.data_;
+    other.data_ = data_;
+    data_ = temp_data;
+    Allocator* temp_allocator = other.allocator_;
+    other.allocator_ = allocator_;
+    allocator_ = temp_allocator;
+    return *this;
+  }
 
   intptr_t length() const { return length_; }
   T* data() const { return data_; }
@@ -57,6 +83,27 @@ class BaseGrowableArray : public B {
     ASSERT(index < length_);
     ASSERT(length_ <= capacity_);
     return data_[index];
+  }
+
+  void FillWith(const T& value, intptr_t start, intptr_t length) {
+    ASSERT(start >= 0);
+    ASSERT(length >= 0);
+    ASSERT(start <= length_);
+
+    Resize(start + length);
+    for (intptr_t i = 0; i < length; ++i) {
+      data_[start + i] = value;
+    }
+  }
+
+  void EnsureLength(intptr_t new_length, const T& default_value) {
+    const intptr_t old_length = length_;
+    if (old_length < new_length) {
+      Resize(new_length);
+      for (intptr_t i = old_length; i < new_length; ++i) {
+        (*this)[i] = default_value;
+      }
+    }
   }
 
   const T& At(intptr_t index) const { return operator[](index); }
@@ -113,11 +160,35 @@ class BaseGrowableArray : public B {
     RemoveLast();
   }
 
+  // Preserves array order.
+  void EraseAt(intptr_t idx) {
+    ASSERT(idx >= 0);
+    ASSERT(idx < length_);
+    for (intptr_t i = idx; i < length_ - 1; i++) {
+      data_[i] = data_[i + 1];
+    }
+    RemoveLast();
+  }
+
   // The content is uninitialized after calling it.
   void SetLength(intptr_t new_length);
 
   // Sort the array in place.
   inline void Sort(int compare(const T*, const T*));
+
+  void StealBuffer(T** buffer, intptr_t* length) {
+    *buffer = data_;
+    *length = length_;
+    data_ = NULL;
+    length_ = 0;
+    capacity_ = 0;
+  }
+
+  T* begin() { return &data_[0]; }
+  const T* begin() const { return &data_[0]; }
+
+  T* end() { return &data_[length_]; }
+  const T* end() const { return &data_[length_]; }
 
  private:
   intptr_t length_;

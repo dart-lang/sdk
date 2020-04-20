@@ -6,47 +6,47 @@ import "package:expect/expect.dart";
 import 'dart:convert';
 
 String decode(List<int> inputBytes) {
-  List<int> bytes;
-  ChunkedConversionSink byteSink =
+  late List<int> bytes;
+  var byteSink =
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(false);
   inputByteSink.add(inputBytes);
   inputByteSink.close();
-  return UTF8.decode(bytes);
+  return utf8.decode(bytes);
 }
 
 String decode2(List<int> inputBytes) {
-  List<int> bytes;
-  ChunkedConversionSink byteSink =
+  late List<int> bytes;
+  var byteSink =
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(false);
   inputBytes.forEach((b) => inputByteSink.addSlice([0, b, 1], 1, 2, false));
   inputByteSink.close();
-  return UTF8.decode(bytes);
+  return utf8.decode(bytes);
 }
 
 String decodeAllowMalformed(List<int> inputBytes) {
-  List<int> bytes;
-  ChunkedConversionSink byteSink =
+  late List<int> bytes;
+  var byteSink =
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(true);
   inputByteSink.add(inputBytes);
   inputByteSink.close();
-  return UTF8.decode(bytes);
+  return utf8.decode(bytes);
 }
 
 String decodeAllowMalformed2(List<int> inputBytes) {
-  List<int> bytes;
-  ChunkedConversionSink byteSink =
+  late List<int> bytes;
+  var byteSink =
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(true);
   inputBytes.forEach((b) => inputByteSink.addSlice([0, b, 1], 1, 2, false));
   inputByteSink.close();
-  return UTF8.decode(bytes);
+  return utf8.decode(bytes);
 }
 
 final TESTS = [
@@ -229,37 +229,37 @@ main() {
     return [
       [test, "\u{FFFD}"],
       [
-        new List.from([0x61])..addAll(test),
+        new List<int>.from([0x61])..addAll(test),
         "a\u{FFFD}"
       ],
       [
-        new List.from([0x61])
+        new List<int>.from([0x61])
           ..addAll(test)
           ..add(0x61),
         "a\u{FFFD}a"
       ],
-      [new List.from(test)..add(0x61), "\u{FFFD}a"],
-      [new List.from(test)..addAll(test), "\u{FFFD}\u{FFFD}"],
+      [new List<int>.from(test)..add(0x61), "\u{FFFD}a"],
+      [new List<int>.from(test)..addAll(test), "\u{FFFD}\u{FFFD}"],
       [
-        new List.from(test)
+        new List<int>.from(test)
           ..add(0x61)
           ..addAll(test),
         "\u{FFFD}a\u{FFFD}"
       ],
       [
-        new List.from([0xc3, 0xa5])..addAll(test),
+        new List<int>.from([0xc3, 0xa5])..addAll(test),
         "å\u{FFFD}"
       ],
       [
-        new List.from([0xc3, 0xa5])..addAll(test)..addAll([0xc3, 0xa5]),
+        new List<int>.from([0xc3, 0xa5])..addAll(test)..addAll([0xc3, 0xa5]),
         "å\u{FFFD}å"
       ],
       [
-        new List.from(test)..addAll([0xc3, 0xa5]),
+        new List<int>.from(test)..addAll([0xc3, 0xa5]),
         "\u{FFFD}å"
       ],
       [
-        new List.from(test)..addAll([0xc3, 0xa5])..addAll(test),
+        new List<int>.from(test)..addAll([0xc3, 0xa5])..addAll(test),
         "\u{FFFD}å\u{FFFD}"
       ]
     ];
@@ -268,14 +268,14 @@ main() {
   var allTests2 = TESTS2.map((test) {
     // Pairs of test and expected string output when malformed strings are
     // allowed. Replacement character: U+FFFD
-    String expected = test[1].replaceAll("X", "\u{FFFD}");
+    String expected = (test[1] as String).replaceAll("X", "\u{FFFD}");
     return [test[0], expected];
   });
 
   for (var test in []..addAll(allTests)..addAll(allTests2)) {
     List<int> bytes = test[0];
-    Expect.throws(() => decode(bytes), (e) => e is FormatException);
-    Expect.throws(() => decode2(bytes), (e) => e is FormatException);
+    Expect.throwsFormatException(() => decode(bytes));
+    Expect.throwsFormatException(() => decode2(bytes));
 
     String expected = test[1];
     Expect.equals(expected, decodeAllowMalformed(bytes));

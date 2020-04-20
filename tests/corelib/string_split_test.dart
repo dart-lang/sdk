@@ -10,7 +10,7 @@ main() {
   testSplitPattern();
 }
 
-testSplit(List expect, String string, Pattern pattern) {
+testSplit(List<String> expect, String string, Pattern pattern) {
   String patternString;
   if (pattern is String) {
     patternString = '"$pattern"';
@@ -19,8 +19,17 @@ testSplit(List expect, String string, Pattern pattern) {
   } else {
     patternString = pattern.toString();
   }
-  Expect.listEquals(
-      expect, string.split(pattern), '"$string".split($patternString)');
+  List actual = string.split(pattern);
+
+  // Ensure that the correct type is reified.
+  actual = actual as List<String>;
+
+  // Check that store of the wrong type throws. Some platforms don't do this,
+  // so it's protected by multitest syntax.
+  Expect.throwsTypeError(() => actual.add(42), //      //# checkedstore: ok
+      'List<String>.add should not accept an int'); // //# checkedstore: ok
+
+  Expect.listEquals(expect, actual, '"$string".split($patternString)');
 }
 
 /** String patterns. */

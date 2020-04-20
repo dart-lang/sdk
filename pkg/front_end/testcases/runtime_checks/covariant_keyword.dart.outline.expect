@@ -2,28 +2,28 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef F<T extends core::Object> = (T) → dynamic;
+typedef F<contravariant T extends core::Object* = dynamic> = (T*) →* dynamic;
 class C extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::C*
     ;
-  method f(core::num x) → void
+  method f(core::num* x) → void
     ;
 }
 class D extends self::C {
-  default constructor •() → void
+  synthetic constructor •() → self::D*
     ;
-  method f(covariant core::int x) → void
+  method f(covariant core::int* x) → void
     ;
 }
 class E extends self::D {
-  default constructor •() → void
+  synthetic constructor •() → self::E*
     ;
-  method f(core::int x) → void
+  method f(covariant core::int* x) → void
     ;
 }
-static method g1(self::C c) → void
+static method g1(self::C* c) → void
   ;
-static method g2(self::C c) → (core::num) → dynamic
+static method g2(self::C* c) → (core::num*) →* dynamic
   ;
 static method test() → dynamic
   ;

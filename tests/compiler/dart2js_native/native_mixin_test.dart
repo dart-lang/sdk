@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import "native_testing.dart";
 
 // Test that native classes can use ordinary Dart classes as mixins.
@@ -43,7 +45,8 @@ main() {
   setup();
   A a = makeA();
   Expect.equals("A-foo", a.foo());
-  Expect.throws(() => a.bar(), (error) => error is NoSuchMethodError);
+  Expect.throws(
+      () => (a as dynamic).bar(), (error) => error is NoSuchMethodError);
   Expect.equals("A-baz", a.baz());
   Expect.isTrue(a is A);
   Expect.isFalse(a is B);
@@ -60,7 +63,8 @@ main() {
   M m = new M();
   Expect.equals("M-foo", m.foo());
   Expect.equals("M-bar", m.bar());
-  Expect.throws(() => m.baz(), (error) => error is NoSuchMethodError);
+  Expect.throws(
+      () => (m as dynamic).baz(), (error) => error is NoSuchMethodError);
   Expect.isFalse(m is A);
   Expect.isFalse(m is B);
   Expect.isTrue(m is M);

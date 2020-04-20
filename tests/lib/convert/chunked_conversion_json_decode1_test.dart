@@ -78,8 +78,8 @@ bool isJsonEqual(o1, o2) {
   return false;
 }
 
-Object decode(String str) {
-  Object result;
+Object? decode(String str) {
+  Object? result;
   var decoder = new JsonDecoder(null);
   ChunkedConversionSink objectSink =
       new ChunkedConversionSink.withCallback((x) => result = x.single);
@@ -89,8 +89,8 @@ Object decode(String str) {
   return result;
 }
 
-Object decode2(String str) {
-  Object result;
+Object? decode2(String str) {
+  Object? result;
   var decoder = new JsonDecoder(null);
   ChunkedConversionSink objectSink =
       new ChunkedConversionSink.withCallback((x) => result = x.single);
@@ -101,8 +101,8 @@ Object decode2(String str) {
   return result;
 }
 
-Object decode3(String str) {
-  Object result;
+Object? decode3(String str) {
+  Object? result;
   var decoder = new JsonDecoder(null);
   ChunkedConversionSink objectSink =
       new ChunkedConversionSink.withCallback((x) => result = x.single);
@@ -113,8 +113,8 @@ Object decode3(String str) {
   return result;
 }
 
-Object decode4(String str) {
-  Object result;
+Object? decode4(String str) {
+  Object? result;
   var decoder = new JsonDecoder(null);
   ChunkedConversionSink objectSink =
       new ChunkedConversionSink.withCallback((x) => result = x.single);
@@ -125,34 +125,34 @@ Object decode4(String str) {
   return result;
 }
 
-Object decode5(String str) {
-  Object result;
+Object? decode5(String str) {
+  Object? result;
   var decoder = new JsonDecoder(null);
   ChunkedConversionSink objectSink =
       new ChunkedConversionSink.withCallback((x) => result = x.single);
   var stringConversionSink = decoder.startChunkedConversion(objectSink);
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(false);
-  Object tmpBytes = UTF8.encode(str);
+  var tmpBytes = utf8.encode(str);
   inputByteSink.add(tmpBytes);
   inputByteSink.close();
   return result;
 }
 
-Object decode6(String str) {
-  Object result;
+Object? decode6(String str) {
+  Object? result;
   var decoder = new JsonDecoder(null);
   ChunkedConversionSink objectSink =
       new ChunkedConversionSink.withCallback((x) => result = x.single);
   var stringConversionSink = decoder.startChunkedConversion(objectSink);
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(false);
-  var tmpBytes = UTF8.encode(str);
+  var tmpBytes = utf8.encode(str);
   tmpBytes.forEach((b) => inputByteSink.addSlice([0, b, 1], 1, 2, false));
   inputByteSink.close();
   return result;
 }
 
-Object decode7(String str) {
-  Object result;
+Object? decode7(String str) {
+  Object? result;
   var decoder = new JsonDecoder(null);
   ChunkedConversionSink objectSink =
       new ChunkedConversionSink.withCallback((x) => result = x.single);
@@ -176,9 +176,9 @@ main() {
       [object, longString]
     ];
   });
-  for (var test in TESTS) {
+  for (var test in tests) {
     var o = test[0];
-    var string = test[1];
+    var string = test[1] as String;
     Expect.isTrue(isJsonEqual(o, decode(string)));
     Expect.isTrue(isJsonEqual(o, decode2(string)));
     Expect.isTrue(isJsonEqual(o, decode3(string)));

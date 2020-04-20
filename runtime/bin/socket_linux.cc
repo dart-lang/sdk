@@ -11,6 +11,8 @@
 
 #include "bin/fdutils.h"
 #include "platform/signal_blocker.h"
+#include "platform/syslog.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -18,8 +20,13 @@ namespace bin {
 Socket::Socket(intptr_t fd)
     : ReferenceCounted(),
       fd_(fd),
+      isolate_port_(Dart_GetMainPortId()),
       port_(ILLEGAL_PORT),
       udp_receive_buffer_(NULL) {}
+
+void Socket::CloseFd() {
+  SetClosedFd();
+}
 
 void Socket::SetClosedFd() {
   fd_ = kClosedFd;
@@ -41,7 +48,7 @@ static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
   if ((result == 0) || (errno == EINPROGRESS)) {
     return fd;
   }
-  FDUtils::FDUtils::SaveErrorAndClose(fd);
+  FDUtils::SaveErrorAndClose(fd);
   return -1;
 }
 
@@ -53,6 +60,20 @@ intptr_t Socket::CreateConnect(const RawAddr& addr) {
   return Connect(fd, addr);
 }
 
+intptr_t Socket::CreateUnixDomainConnect(const RawAddr& addr) {
+  intptr_t fd = Create(addr);
+  if (fd < 0) {
+    return fd;
+  }
+  intptr_t result = TEMP_FAILURE_RETRY(connect(
+      fd, (struct sockaddr*)&addr.un, SocketAddress::GetAddrLength(addr)));
+  if (result == 0 || errno == EAGAIN) {
+    return fd;
+  }
+  FDUtils::SaveErrorAndClose(fd);
+  return -1;
+}
+
 intptr_t Socket::CreateBindConnect(const RawAddr& addr,
                                    const RawAddr& source_addr) {
   intptr_t fd = Create(addr);
@@ -62,7 +83,7 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
 
   intptr_t result = TEMP_FAILURE_RETRY(
       bind(fd, &source_addr.addr, SocketAddress::GetAddrLength(source_addr)));
-  if ((result != 0) && (errno != EINPROGRESS)) {
+  if (result != 0) {
     FDUtils::SaveErrorAndClose(fd);
     return -1;
   }
@@ -70,7 +91,33 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
   return Connect(fd, addr);
 }
 
-intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
+intptr_t Socket::CreateUnixDomainBindConnect(const RawAddr& addr,
+                                             const RawAddr& source_addr) {
+  intptr_t fd = Create(addr);
+  if (fd < 0) {
+    return fd;
+  }
+
+  intptr_t result = TEMP_FAILURE_RETRY(
+      bind(fd, &source_addr.addr, SocketAddress::GetAddrLength(source_addr)));
+  if (result != 0) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
+  }
+
+  result = TEMP_FAILURE_RETRY(connect(fd, (struct sockaddr*)&addr.un,
+                                      SocketAddress::GetAddrLength(addr)));
+  if (result == 0 || errno == EAGAIN) {
+    return fd;
+  }
+  FDUtils::SaveErrorAndClose(fd);
+  return -1;
+}
+
+intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
+                                    bool reuseAddress,
+                                    bool reusePort,
+                                    int ttl) {
   intptr_t fd;
 
   fd = NO_RETRY_EXPECTED(socket(addr.addr.sa_family,
@@ -84,6 +131,39 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
     int optval = 1;
     VOID_NO_RETRY_EXPECTED(
         setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)));
+  }
+
+  if (reusePort) {
+#ifdef SO_REUSEPORT  // Not all Linux versions support this.
+    int optval = 1;
+    int reuse_port_success =
+        setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
+    // Even if it's defined, we might be running on a kernel
+    // that doesn't support it at runtime.
+    if (reuse_port_success != 0) {
+      if (errno == EINTR) {
+        FATAL("Unexpected EINTR errno");
+      }
+      const int kBufferSize = 1024;
+      char error_buf[kBufferSize];
+      Syslog::PrintErr("Dart Socket ERROR: %s:%d: %s.", __FILE__, __LINE__,
+                       Utils::StrError(errno, error_buf, kBufferSize));
+    }
+#else   // !defined SO_REUSEPORT
+    Syslog::PrintErr(
+        "Dart Socket ERROR: %s:%d: `reusePort` not available on this Linux "
+        "version.",
+        __FILE__, __LINE__);
+#endif  // SO_REUSEPORT
+  }
+
+  if (!SocketBase::SetMulticastHops(fd,
+                                    addr.addr.sa_family == AF_INET
+                                        ? SocketAddress::TYPE_IPV4
+                                        : SocketAddress::TYPE_IPV6,
+                                    ttl)) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
   }
 
   if (NO_RETRY_EXPECTED(
@@ -136,6 +216,21 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
     return -1;
   }
 
+  return fd;
+}
+
+intptr_t ServerSocket::CreateUnixDomainBindListen(const RawAddr& addr,
+                                                  intptr_t backlog) {
+  intptr_t fd = Create(addr);
+  if (NO_RETRY_EXPECTED(bind(fd, (struct sockaddr*)&addr.un,
+                             sizeof(struct sockaddr_un))) < 0) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
+  }
+  if (NO_RETRY_EXPECTED(listen(fd, backlog > 0 ? backlog : SOMAXCONN)) != 0) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
+  }
   return fd;
 }
 

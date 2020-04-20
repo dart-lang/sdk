@@ -1,14 +1,13 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'dart:convert';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
-var tests = [
+var tests = <VMTest>[
   (VM vm) async {
     var result = await vm.invokeRpcNoUpgrade('_listDevFS', {});
     expect(result['type'], equals('FileSystemList'));
@@ -56,7 +55,7 @@ var tests = [
   (VM vm) async {
     var fsId = 'banana';
     var filePath = '/foo/bar.dat';
-    var fileContents = BASE64.encode(UTF8.encode('fileContents'));
+    var fileContents = base64Encode(utf8.encode('fileContents'));
 
     var result;
     // Create DevFS.
@@ -119,8 +118,8 @@ var tests = [
     result = await vm.invokeRpcNoUpgrade('_writeDevFSFiles', {
       'fsName': fsId,
       'files': [
-        ['/a', BASE64.encode(UTF8.encode('a_contents'))],
-        ['/b', BASE64.encode(UTF8.encode('b_contents'))]
+        ['/a', base64Encode(utf8.encode('a_contents'))],
+        ['/b', base64Encode(utf8.encode('b_contents'))]
       ]
     });
     expect(result['type'], equals('Success'));
@@ -132,7 +131,7 @@ var tests = [
     });
     expect(result['type'], equals('FSFile'));
     expect(result['fileContents'],
-        equals(BASE64.encode(UTF8.encode('b_contents'))));
+        equals(base64Encode(utf8.encode('b_contents'))));
 
     // List all the files in the file system.
     result = await vm.invokeRpcNoUpgrade('_listDevFSFiles', {

@@ -10,9 +10,9 @@ class A {
 }
 
 A a = new A();
-var /*@topType=int*/ b = (a. /*@target=A::f*/ f = 1);
-var /*@topType=int*/ c = 0;
-var /*@topType=int*/ d = (c = 1);
+var b = (a. /*@target=A::f*/ f = 1);
+var c = 0;
+var d = (c = 1);
 
 main() {
   a;

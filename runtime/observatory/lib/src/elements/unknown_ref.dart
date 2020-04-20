@@ -9,7 +9,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class UnknownObjectRefElement extends HtmlElement implements Renderable {
+class UnknownObjectRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<UnknownObjectRefElement>('unknown-ref');
 
   RenderingScheduler<UnknownObjectRefElement> _r;
@@ -27,14 +27,14 @@ class UnknownObjectRefElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(obj != null);
-    UnknownObjectRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    UnknownObjectRefElement e = new UnknownObjectRefElement.created();
+    e._r = new RenderingScheduler<UnknownObjectRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._obj = obj;
     return e;
   }
 
-  UnknownObjectRefElement.created() : super.created();
+  UnknownObjectRefElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -46,11 +46,11 @@ class UnknownObjectRefElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new AnchorElement(href: Uris.inspect(_isolate, object: _obj))
         ..classes = ['emphasize']
         ..text = _obj.vmType

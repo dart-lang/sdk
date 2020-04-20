@@ -10,7 +10,7 @@ class A {
 }
 
 A a = new A();
-var /*@topType=int*/ c = 0;
+var c = 0;
 
 main() {
   a;

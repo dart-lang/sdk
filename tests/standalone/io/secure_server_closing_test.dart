@@ -16,7 +16,7 @@ import "dart:io";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-InternetAddress HOST;
+late InternetAddress HOST;
 
 String localFile(path) => Platform.script.resolve(path).toFilePath();
 
@@ -33,11 +33,8 @@ void testCloseOneEnd(String toClose) {
   Completer serverDone = new Completer();
   Completer serverEndDone = new Completer();
   Completer clientEndDone = new Completer();
-  Future.wait([
-    serverDone.future,
-    serverEndDone.future,
-    clientEndDone.future
-  ]).then((_) {
+  Future.wait([serverDone.future, serverEndDone.future, clientEndDone.future])
+      .then((_) {
     asyncEnd();
   });
   SecureServerSocket.bind(HOST, 0, serverContext).then((server) {
@@ -55,8 +52,7 @@ void testCloseOneEnd(String toClose) {
     }, onDone: () {
       serverDone.complete(null);
     });
-    SecureSocket
-        .connect(HOST, server.port, context: clientContext)
+    SecureSocket.connect(HOST, server.port, context: clientContext)
         .then((clientConnection) {
       clientConnection.listen((data) {
         Expect.fail("No data should be received by client");
@@ -94,8 +90,7 @@ testPauseServerSocket() {
 
   asyncStart();
 
-  SecureServerSocket
-      .bind(HOST, 0, serverContext, backlog: 2 * socketCount)
+  SecureServerSocket.bind(HOST, 0, serverContext, backlog: 2 * socketCount)
       .then((server) {
     Expect.isTrue(server.port > 0);
     var subscription;
@@ -113,8 +108,7 @@ testPauseServerSocket() {
     subscription.pause();
     var connectCount = 0;
     for (int i = 0; i < socketCount; i++) {
-      SecureSocket
-          .connect(HOST, server.port, context: clientContext)
+      SecureSocket.connect(HOST, server.port, context: clientContext)
           .then((connection) {
         connection.close();
       });
@@ -123,8 +117,7 @@ testPauseServerSocket() {
       subscription.resume();
       resumed = true;
       for (int i = 0; i < socketCount; i++) {
-        SecureSocket
-            .connect(HOST, server.port, context: clientContext)
+        SecureSocket.connect(HOST, server.port, context: clientContext)
             .then((connection) {
           connection.close();
         });
@@ -156,8 +149,7 @@ testCloseServer() {
     });
 
     for (int i = 0; i < socketCount; i++) {
-      SecureSocket
-          .connect(HOST, server.port, context: clientContext)
+      SecureSocket.connect(HOST, server.port, context: clientContext)
           .then((connection) {
         ends.add(connection);
         checkDone();

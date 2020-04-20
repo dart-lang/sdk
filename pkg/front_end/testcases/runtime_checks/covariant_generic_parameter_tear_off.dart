@@ -10,8 +10,8 @@ typedef void F<T>(T x);
 typedef U G<T, U>(T x);
 
 class C<T> {
-  void f1(T /*@covariance=genericInterface, genericImpl*/ x) {}
-  T f2(List<T> /*@covariance=genericInterface, genericImpl*/ x) => x.first;
+  void f1(T x) {}
+  T f2(List<T> x) => x.first;
 }
 
 F<num> g1(C<num> c) {
@@ -20,7 +20,7 @@ F<num> g1(C<num> c) {
 
 void g2(C<int> c, Object x) {
   F<Object> f = g1(c) as F<Object>;
-  f /*@callKind=closure*/ (x);
+  f(x);
 }
 
 G<List<num>, num> g3(C<num> c) {
@@ -29,7 +29,7 @@ G<List<num>, num> g3(C<num> c) {
 
 void test() {
   var x = g1(new C<int>());
-  x /*@callKind=closure*/ (1.5);
+  x(1.5);
   g3(new C<int>());
 }
 

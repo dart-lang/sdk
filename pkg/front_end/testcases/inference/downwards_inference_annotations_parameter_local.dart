@@ -10,8 +10,8 @@ class Foo {
 }
 
 void test() {
-  void f(@Foo(/*@typeArgs=String*/ const []) /*@type=dynamic*/ x) {}
-  var /*@type=(dynamic) -> Null*/ x = /*@returnType=Null*/ (/*@type=dynamic*/ @Foo(/*@typeArgs=String*/ const [])
+  void f(@Foo(/*@ typeArgs=String* */ const []) /*@ type=dynamic */ x) {}
+  var /*@ type=(dynamic) ->* Null? */ x = /*@ returnType=Null? */ (@Foo(/*@ typeArgs=String* */ const []) /*@ type=dynamic */
       x) {};
 }
 

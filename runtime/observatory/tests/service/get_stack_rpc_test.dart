@@ -1,11 +1,10 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 import 'dart:async';
@@ -13,7 +12,7 @@ import 'dart:isolate' as isolate;
 import 'dart:developer' as developer;
 
 int counter = 0;
-const stoppedAtLine = 25;
+const stoppedAtLine = 24;
 var port = new isolate.RawReceivePort(msgHandler);
 
 // This name is used in a test below.
@@ -32,7 +31,7 @@ void startTimer() {
   new Timer.periodic(const Duration(milliseconds: 10), periodicTask);
 }
 
-var tests = [
+var tests = <IsolateTest>[
 // Initial data fetch and verify we've hit the breakpoint.
   (Isolate isolate) async {
     await isolate.rootLibrary.load();
@@ -85,7 +84,7 @@ var tests = [
     expect(msgHandlerObjectId, isNotNull);
 
     // Get object.
-    var object = await isolate.getObject(msgHandlerObjectId);
+    Instance object = await isolate.getObject(msgHandlerObjectId);
     expect(object.valueAsString, equals('34'));
   }
 ];

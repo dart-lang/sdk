@@ -4,7 +4,6 @@
 
 library foo;
 
-@MirrorsUsed(targets: const ["foo", "bar"])
 import 'dart:mirrors';
 import 'typedef_library.dart' deferred as def;
 
@@ -15,7 +14,7 @@ main() {
   asyncStart();
   def.loadLibrary().then((_) {
     var barLibrary = currentMirrorSystem().findLibrary(new Symbol("bar"));
-    var gTypedef = barLibrary.declarations[new Symbol("G")];
+    var gTypedef = barLibrary.declarations[new Symbol("G")]!;
     Expect.equals("G", MirrorSystem.getName(gTypedef.simpleName));
     asyncEnd();
   });

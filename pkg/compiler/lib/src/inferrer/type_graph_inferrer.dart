@@ -6,24 +6,22 @@ library type_graph_inferrer;
 
 import 'dart:collection' show Queue;
 
-import '../compiler.dart' show Compiler;
+import 'package:kernel/ast.dart' as ir;
+import '../closure.dart';
+import '../compiler.dart';
 import '../elements/entities.dart';
-import '../tree/tree.dart' as ast show Node;
-import '../types/masks.dart'
-    show CommonMasks, ContainerTypeMask, MapTypeMask, TypeMask;
-import '../types/types.dart';
-import '../universe/selector.dart' show Selector;
-import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
-import 'ast_inferrer_engine.dart';
+import '../js_backend/inferred_data.dart';
+import '../js_model/elements.dart' show JClosureCallMethod;
+import '../world.dart';
+import 'abstract_value_domain.dart';
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
+import 'types.dart';
 
-/**
- * A work queue for the inferrer. It filters out nodes that are tagged as
- * [TypeInformation.doNotEnqueue], as well as ensures through
- * [TypeInformation.inQueue] that a node is in the queue only once at
- * a time.
- */
+/// A work queue for the inferrer. It filters out nodes that are tagged as
+/// [TypeInformation.doNotEnqueue], as well as ensures through
+/// [TypeInformation.inQueue] that a node is in the queue only once at
+/// a time.
 class WorkQueue {
   final Queue<TypeInformation> queue = new Queue<TypeInformation>();
 
@@ -49,134 +47,131 @@ class WorkQueue {
   int get length => queue.length;
 }
 
-abstract class TypeGraphInferrer<T> implements TypesInferrer<T> {
-  InferrerEngine<T> inferrer;
-  final bool _disableTypeInference;
-  final ClosedWorld closedWorld;
-  final ClosedWorldRefiner closedWorldRefiner;
+class TypeGraphInferrer implements TypesInferrer {
+  InferrerEngine inferrer;
+  final JClosedWorld closedWorld;
 
-  TypeGraphInferrer(this.closedWorld, this.closedWorldRefiner,
-      {bool disableTypeInference: false})
-      : this._disableTypeInference = disableTypeInference;
+  final Compiler _compiler;
+  final InferredDataBuilder _inferredDataBuilder;
+
+  TypeGraphInferrer(
+      this._compiler, this.closedWorld, this._inferredDataBuilder);
 
   String get name => 'Graph inferrer';
 
-  CommonMasks get commonMasks => closedWorld.commonMasks;
+  AbstractValueDomain get abstractValueDomain =>
+      closedWorld.abstractValueDomain;
 
-  TypeMask get _dynamicType => commonMasks.dynamicType;
-
-  void analyzeMain(FunctionEntity main) {
+  @override
+  GlobalTypeInferenceResults analyzeMain(FunctionEntity main) {
     inferrer = createInferrerEngineFor(main);
-    if (_disableTypeInference) return;
     inferrer.runOverAllElements();
+    return buildResults();
   }
 
-  InferrerEngine<T> createInferrerEngineFor(FunctionEntity main);
-
-  TypeMask getReturnTypeOfMember(MemberEntity element) {
-    if (_disableTypeInference) return _dynamicType;
-    // Currently, closure calls return dynamic.
-    if (element is! FunctionEntity) return _dynamicType;
-    return inferrer.types.getInferredTypeOfMember(element).type;
+  InferrerEngine createInferrerEngineFor(FunctionEntity main) {
+    return InferrerEngine(
+        _compiler.options,
+        _compiler.progress,
+        _compiler.reporter,
+        _compiler.outputProvider,
+        closedWorld,
+        main,
+        _inferredDataBuilder);
   }
 
-  TypeMask getReturnTypeOfParameter(Local element) {
-    if (_disableTypeInference) return _dynamicType;
-    return _dynamicType;
+  Iterable<MemberEntity> getCallersOfForTesting(MemberEntity element) {
+    return inferrer.getCallersOfForTesting(element);
   }
 
-  TypeMask getTypeOfMember(MemberEntity element) {
-    if (_disableTypeInference) return _dynamicType;
-    // The inferrer stores the return type for a function, so we have to
-    // be careful to not return it here.
-    if (element is FunctionEntity) return commonMasks.functionType;
-    return inferrer.types.getInferredTypeOfMember(element).type;
-  }
+  GlobalTypeInferenceResults buildResults() {
+    inferrer.close();
 
-  TypeMask getTypeOfParameter(Local element) {
-    if (_disableTypeInference) return _dynamicType;
-    // The inferrer stores the return type for a function, so we have to
-    // be careful to not return it here.
-    return inferrer.types.getInferredTypeOfParameter(element).type;
-  }
+    Map<MemberEntity, GlobalTypeInferenceMemberResult> memberResults =
+        <MemberEntity, GlobalTypeInferenceMemberResult>{};
+    Map<Local, AbstractValue> parameterResults = <Local, AbstractValue>{};
 
-  TypeMask getTypeForNewList(T node) {
-    if (_disableTypeInference) return _dynamicType;
-    return inferrer.types.allocatedLists[node].type;
-  }
+    void createMemberResults(
+        MemberEntity member, MemberTypeInformation typeInformation) {
+      GlobalTypeInferenceElementData data =
+          inferrer.dataOfMember(member).compress();
+      bool isJsInterop = closedWorld.nativeData.isJsInteropMember(member);
 
-  bool isFixedArrayCheckedForGrowable(T node) {
-    if (_disableTypeInference) return true;
-    ListTypeInformation info = inferrer.types.allocatedLists[node];
-    return info.checksGrowable;
-  }
+      AbstractValue returnType;
+      AbstractValue type;
 
-  TypeMask getTypeOfSelector(Selector selector, TypeMask mask) {
-    if (_disableTypeInference) return _dynamicType;
-    // Bailout for closure calls. We're not tracking types of
-    // closures.
-    if (selector.isClosureCall) return _dynamicType;
-    if (selector.isSetter || selector.isIndexSet) {
-      return _dynamicType;
-    }
-    if (inferrer.returnsListElementType(selector, mask)) {
-      ContainerTypeMask containerTypeMask = mask;
-      TypeMask elementType = containerTypeMask.elementType;
-      return elementType == null ? _dynamicType : elementType;
-    }
-    if (inferrer.returnsMapValueType(selector, mask)) {
-      MapTypeMask mapTypeMask = mask;
-      TypeMask valueType = mapTypeMask.valueType;
-      return valueType == null ? _dynamicType : valueType;
+      if (isJsInterop) {
+        returnType = type = abstractValueDomain.dynamicType;
+      } else if (member is FunctionEntity) {
+        returnType = typeInformation.type;
+        type = abstractValueDomain.functionType;
+      } else {
+        returnType = abstractValueDomain.dynamicType;
+        type = typeInformation.type;
+      }
+
+      bool throwsAlways =
+          // Always throws if the return type was inferred to be non-null empty.
+          returnType != null &&
+              abstractValueDomain.isEmpty(returnType).isDefinitelyTrue;
+
+      bool isCalledOnce = typeInformation.isCalledOnce();
+
+      memberResults[member] = new GlobalTypeInferenceMemberResultImpl(
+          data, returnType, type,
+          throwsAlways: throwsAlways, isCalledOnce: isCalledOnce);
     }
 
-    TypeMask result = const TypeMask.nonNullEmpty();
-    Iterable<MemberEntity> elements =
-        inferrer.closedWorld.locateMembers(selector, mask);
-    for (MemberEntity element in elements) {
-      TypeMask type = inferrer.typeOfMemberWithSelector(element, selector).type;
-      result = result.union(type, inferrer.closedWorld);
+    Set<FieldEntity> freeVariables = new Set<FieldEntity>();
+    inferrer.types.forEachMemberType(
+        (MemberEntity member, MemberTypeInformation typeInformation) {
+      createMemberResults(member, typeInformation);
+      if (member is JClosureCallMethod) {
+        ClosureRepresentationInfo info =
+            closedWorld.closureDataLookup.getScopeInfo(member);
+        info.forEachFreeVariable((Local from, FieldEntity to) {
+          freeVariables.add(to);
+        });
+      }
+    });
+    for (FieldEntity field in freeVariables) {
+      if (!memberResults.containsKey(field)) {
+        MemberTypeInformation typeInformation =
+            inferrer.types.getInferredTypeOfMember(field);
+        typeInformation.computeIsCalledOnce();
+        createMemberResults(field, typeInformation);
+      }
     }
-    return result;
-  }
 
-  Iterable<MemberEntity> getCallersOf(MemberEntity element) {
-    if (_disableTypeInference) {
-      throw new UnsupportedError(
-          "Cannot query the type inferrer when type inference is disabled.");
-    }
-    return inferrer.getCallersOf(element);
-  }
+    inferrer.types.forEachParameterType(
+        (Local parameter, ParameterTypeInformation typeInformation) {
+      AbstractValue type = typeInformation.type;
+      parameterResults[parameter] = type;
+    });
 
-  bool isMemberCalledOnce(MemberEntity element) {
-    if (_disableTypeInference) return false;
-    MemberTypeInformation info =
-        inferrer.types.getInferredTypeOfMember(element);
-    return info.isCalledOnce();
-  }
+    Map<ir.TreeNode, AbstractValue> allocatedLists =
+        <ir.TreeNode, AbstractValue>{};
+    Set<ir.TreeNode> checkedForGrowableLists = new Set<ir.TreeNode>();
+    inferrer.types.allocatedLists
+        .forEach((ir.TreeNode node, ListTypeInformation typeInformation) {
+      ListTypeInformation info = inferrer.types.allocatedLists[node];
+      if (info.checksGrowable) {
+        checkedForGrowableLists.add(node);
+      }
+      allocatedLists[node] = typeInformation.type;
+    });
 
-  void clear() {
+    GlobalTypeInferenceResults results = new GlobalTypeInferenceResultsImpl(
+        closedWorld,
+        _inferredDataBuilder.close(closedWorld),
+        memberResults,
+        parameterResults,
+        checkedForGrowableLists,
+        inferrer.returnsListElementTypeSet,
+        allocatedLists);
+
     inferrer.clear();
-  }
-}
 
-class AstTypeGraphInferrer extends TypeGraphInferrer<ast.Node> {
-  final Compiler _compiler;
-
-  AstTypeGraphInferrer(
-      this._compiler, ClosedWorld closedWorld, closedWorldRefiner,
-      {bool disableTypeInference: false})
-      : super(closedWorld, closedWorldRefiner,
-            disableTypeInference: disableTypeInference);
-
-  @override
-  InferrerEngine<ast.Node> createInferrerEngineFor(FunctionEntity main) {
-    return new AstInferrerEngine(
-        _compiler, closedWorld, closedWorldRefiner, main);
-  }
-
-  @override
-  GlobalTypeInferenceResults createResults() {
-    return new AstGlobalTypeInferenceResults(this, closedWorld);
+    return results;
   }
 }

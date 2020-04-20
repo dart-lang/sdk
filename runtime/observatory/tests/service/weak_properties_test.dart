@@ -1,13 +1,12 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 library vm_references_test;
 
 import 'dart:mirrors';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 class Foo {}
@@ -35,9 +34,9 @@ void script() {
   print(weak_property);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
-    var lib = await isolate.rootLibrary.load();
+    Library lib = await isolate.rootLibrary.load();
     Field keyField = lib.variables.singleWhere((v) => v.name == 'key');
     await keyField.load();
     Instance key = keyField.staticValue;

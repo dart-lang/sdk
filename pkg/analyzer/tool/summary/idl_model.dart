@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,7 +7,7 @@
  * semantic model of the IDL used to code generate summary serialization and
  * deserialization code.
  */
-library analyzer.tool.summary.idl_model;
+import 'package:meta/meta.dart';
 
 /**
  * Information about a single class defined in the IDL.
@@ -29,9 +29,21 @@ class ClassDeclaration extends Declaration {
    */
   final String fileIdentifier;
 
-  ClassDeclaration(
-      String documentation, String name, this.isTopLevel, this.fileIdentifier)
-      : super(documentation, name);
+  /**
+   * Indicates whether the class has the `deprecated` annotation.
+   */
+  final bool isDeprecated;
+
+  final String variantField;
+
+  ClassDeclaration({
+    @required String documentation,
+    @required this.fileIdentifier,
+    @required String name,
+    @required this.isDeprecated,
+    @required this.isTopLevel,
+    @required this.variantField,
+  }) : super(documentation, name);
 
   /**
    * Get the non-deprecated fields defined in the class.
@@ -102,9 +114,20 @@ class FieldDeclaration extends Declaration {
    */
   final bool isInformative;
 
-  FieldDeclaration(String documentation, String name, this.type, this.id,
-      this.isDeprecated, this.isInformative)
-      : super(documentation, name);
+  /**
+   * Maps logical property names to logical property.
+   */
+  final Map<String, LogicalProperty> logicalProperties;
+
+  FieldDeclaration({
+    @required String documentation,
+    @required String name,
+    @required this.type,
+    @required this.id,
+    @required this.isDeprecated,
+    @required this.isInformative,
+    @required this.logicalProperties,
+  }) : super(documentation, name);
 }
 
 /**
@@ -125,6 +148,21 @@ class FieldType {
   FieldType(this.typeName, this.isList);
 
   @override
+  int get hashCode {
+    var hash = 0x3fffffff & typeName.hashCode;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ isList.hashCode));
+    return hash;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is FieldType) {
+      return other.typeName == typeName && other.isList == isList;
+    }
+    return false;
+  }
+
+  @override
   String toString() => isList ? 'List<$typeName>' : typeName;
 }
 
@@ -141,4 +179,30 @@ class Idl {
    * Enums defined in the IDL.
    */
   final Map<String, EnumDeclaration> enums = <String, EnumDeclaration>{};
+}
+
+/**
+ * Information about a logical property mapped to a single data fields.
+ */
+class LogicalProperty {
+  /**
+   * Indicates whether the property is deprecated.
+   */
+  final bool isDeprecated;
+
+  /**
+   * Indicates whether the property is informative.
+   */
+  final bool isInformative;
+
+  /**
+   * Names of variants in which this property is available.
+   */
+  final List<String> variants;
+
+  LogicalProperty({
+    @required this.isDeprecated,
+    @required this.isInformative,
+    @required this.variants,
+  });
 }

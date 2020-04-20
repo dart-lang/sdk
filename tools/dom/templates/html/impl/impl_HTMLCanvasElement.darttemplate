@@ -21,7 +21,6 @@ $!MEMBERS
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @Experimental()
   gl.RenderingContext getContext3d({alpha: true, depth: true, stencil: false,
     antialias: true, premultipliedAlpha: true, preserveDrawingBuffer: false}) {
 
@@ -37,7 +36,7 @@ $!MEMBERS
     if (context == null) {
       context = getContext('experimental-webgl', options);
     }
-    return context;
+    return context $#NULLSAFECAST(as gl.RenderingContext);
   }
 
   /**
@@ -81,6 +80,18 @@ $!MEMBERS
    *
    * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.
    */
-  String toDataUrl([String type = 'image/png', num quality]) =>
+  String toDataUrl([String type = 'image/png', num$NULLABLE quality]) =>
       _toDataUrl(type, quality);
+
+  @JSName('toBlob')
+  void _toBlob(BlobCallback callback, [String$NULLABLE type,
+      Object$NULLABLE arguments]) native;
+
+  Future<Blob> toBlob([String$NULLABLE type, Object$NULLABLE arguments]) {
+    var completer = new Completer<Blob>();
+      _toBlob((value) {
+        completer.complete(value);
+      }, type, arguments);
+    return completer.future;
+  }
 }

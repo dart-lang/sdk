@@ -7,6 +7,8 @@
 
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
+#include "vm/object.h"
+#include "vm/raw_object.h"
 
 namespace dart {
 
@@ -25,10 +27,11 @@ class RawString;
 class String;
 
 // An arguments descriptor array consists of the type argument vector length (0
-// if none); total argument count (not counting type argument vector); the
-// positional argument count; a sequence of (name, position) pairs, sorted
-// by name, for each named optional argument; and a terminating null to
-// simplify iterating in generated code.
+// if none); total argument count (not counting type argument vector); total
+// arguments size (not counting type argument vector); the positional argument
+// count; a sequence of (name, position) pairs, sorted by name, for each named
+// optional argument; and a terminating null to simplify iterating in generated
+// code.
 class ArgumentsDescriptor : public ValueObject {
  public:
   explicit ArgumentsDescriptor(const Array& array);
@@ -38,20 +41,50 @@ class ArgumentsDescriptor : public ValueObject {
   intptr_t FirstArgIndex() const { return TypeArgsLen() > 0 ? 1 : 0; }
   intptr_t CountWithTypeArgs() const { return FirstArgIndex() + Count(); }
   intptr_t Count() const;            // Excluding type arguments vector.
+  intptr_t Size() const;             // Excluding type arguments vector.
+  intptr_t SizeWithTypeArgs() const { return FirstArgIndex() + Size(); }
   intptr_t PositionalCount() const;  // Excluding type arguments vector.
   intptr_t NamedCount() const { return Count() - PositionalCount(); }
   RawString* NameAt(intptr_t i) const;
   intptr_t PositionAt(intptr_t i) const;
   bool MatchesNameAt(intptr_t i, const String& other) const;
+  // Returns array of argument names in the arguments order.
+  RawArray* GetArgumentNames() const;
 
   // Generated code support.
-  static intptr_t type_args_len_offset();
-  static intptr_t count_offset();
-  static intptr_t positional_count_offset();
-  static intptr_t first_named_entry_offset();
+  static intptr_t type_args_len_offset() {
+    return Array::element_offset(kTypeArgsLenIndex);
+  }
+
+  static intptr_t count_offset() { return Array::element_offset(kCountIndex); }
+
+  static intptr_t size_offset() { return Array::element_offset(kSizeIndex); }
+
+  static intptr_t positional_count_offset() {
+    return Array::element_offset(kPositionalCountIndex);
+  }
+
+  static intptr_t first_named_entry_offset() {
+    return Array::element_offset(kFirstNamedEntryIndex);
+  }
+
   static intptr_t name_offset() { return kNameOffset * kWordSize; }
   static intptr_t position_offset() { return kPositionOffset * kWordSize; }
   static intptr_t named_entry_size() { return kNamedEntrySize * kWordSize; }
+
+  // Constructs an argument descriptor where all arguments are boxed and
+  // therefore number of parameters equals parameter size.
+  //
+  // Right now this is for example the case for all closure functions.
+  // Functions marked as entry-points may also be created by NewUnboxed because
+  // we rely that TFA will mark the arguments as nullable for such cases.
+  static RawArray* NewBoxed(intptr_t type_args_len,
+                            intptr_t num_arguments,
+                            const Array& optional_arguments_names,
+                            Heap::Space space = Heap::kOld) {
+    return New(type_args_len, num_arguments, num_arguments,
+               optional_arguments_names, space);
+  }
 
   // Allocate and return an arguments descriptor.  The first
   // (num_arguments - optional_arguments_names.Length()) arguments are
@@ -60,36 +93,60 @@ class ArgumentsDescriptor : public ValueObject {
   // num_arguments) is indicated by a non-zero type_args_len.
   static RawArray* New(intptr_t type_args_len,
                        intptr_t num_arguments,
-                       const Array& optional_arguments_names);
+                       intptr_t size_arguments,
+                       const Array& optional_arguments_names,
+                       Heap::Space space = Heap::kOld);
+
+  // Constructs an argument descriptor where all arguments are boxed and
+  // therefore number of parameters equals parameter size.
+  //
+  // Right now this is for example the case for all closure functions.
+  static RawArray* NewBoxed(intptr_t type_args_len,
+                            intptr_t num_arguments,
+                            Heap::Space space = Heap::kOld) {
+    return New(type_args_len, num_arguments, num_arguments, space);
+  }
 
   // Allocate and return an arguments descriptor that has no optional
   // arguments. All arguments are positional. The presence of a type argument
   // vector as first argument (not counted in num_arguments) is indicated
   // by a non-zero type_args_len.
-  static RawArray* New(intptr_t type_args_len, intptr_t num_arguments);
+  static RawArray* New(intptr_t type_args_len,
+                       intptr_t num_arguments,
+                       intptr_t size_arguments,
+                       Heap::Space space = Heap::kOld);
 
   // Initialize the preallocated fixed length arguments descriptors cache.
-  static void InitOnce();
+  static void Init();
+
+  // Clear the preallocated fixed length arguments descriptors cache.
+  static void Cleanup();
 
   enum { kCachedDescriptorCount = 32 };
 
  private:
-  // Absolute indexes into the array.
+  // Absolute indices into the array.
   // Keep these in sync with the constants in invocation_mirror_patch.dart.
   enum {
     kTypeArgsLenIndex,
     kCountIndex,
+    kSizeIndex,
     kPositionalCountIndex,
     kFirstNamedEntryIndex,
   };
 
+ private:
   // Relative indexes into each named argument entry.
   enum {
     kNameOffset,
+    // The least significant bit of the entry in 'kPositionOffset' (second
+    // least-significant after Smi-encoding) holds the strong-mode checking bit
+    // for the named argument.
     kPositionOffset,
     kNamedEntrySize,
   };
 
+ public:
   static intptr_t LengthFor(intptr_t num_named_arguments) {
     // Add 1 for the terminating null.
     return kFirstNamedEntryIndex + (kNamedEntrySize * num_named_arguments) + 1;
@@ -97,7 +154,9 @@ class ArgumentsDescriptor : public ValueObject {
 
   static RawArray* NewNonCached(intptr_t type_args_len,
                                 intptr_t num_arguments,
-                                bool canonicalize = true);
+                                intptr_t size_arguments,
+                                bool canonicalize,
+                                Heap::Space space);
 
   // Used by Simulator to parse argument descriptors.
   static intptr_t name_index(intptr_t index) {
@@ -117,6 +176,8 @@ class ArgumentsDescriptor : public ValueObject {
   friend class SnapshotWriter;
   friend class Serializer;
   friend class Deserializer;
+  friend class Interpreter;
+  friend class InterpreterHelpers;
   friend class Simulator;
   friend class SimulatorHelpers;
   DISALLOW_COPY_AND_ASSIGN(ArgumentsDescriptor);
@@ -140,13 +201,20 @@ class DartEntry : public AllStatic {
   static RawObject* InvokeFunction(const Function& function,
                                    const Array& arguments);
 
+  // Invokes the specified code as if it was a Dart function.
+  // On success, returns a RawInstance.  On failure, a RawError.
+  static RawObject* InvokeCode(const Code& code,
+                               const Array& arguments_descriptor,
+                               const Array& arguments,
+                               Thread* thread);
+
   // Invokes the specified instance, static, or closure function.
   // On success, returns a RawInstance.  On failure, a RawError.
   static RawObject* InvokeFunction(
       const Function& function,
       const Array& arguments,
       const Array& arguments_descriptor,
-      uword current_sp = Thread::GetCurrentStackPointer());
+      uword current_sp = OSThread::GetCurrentStackPointer());
 
   // Invokes the closure object given as the first argument.
   // On success, returns a RawInstance.  On failure, a RawError.
@@ -198,6 +266,11 @@ class DartLibraryCalls : public AllStatic {
 
   // Returns null on success, a RawError on failure.
   static RawObject* DrainMicrotaskQueue();
+
+  // Ensures that the isolate's _pendingImmediateCallback is set to
+  // _startMicrotaskLoop from dart:async.
+  // Returns null on success, a RawError on failure.
+  static RawObject* EnsureScheduleImmediate();
 
   // map[key] = value;
   //

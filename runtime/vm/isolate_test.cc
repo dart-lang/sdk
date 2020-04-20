@@ -14,9 +14,7 @@
 namespace dart {
 
 VM_UNIT_TEST_CASE(IsolateCurrent) {
-  Dart_Isolate isolate = Dart_CreateIsolate(
-      NULL, NULL, bin::core_isolate_snapshot_data,
-      bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
+  Dart_Isolate isolate = TestCase::CreateTestIsolate();
   EXPECT_EQ(isolate, Dart_CurrentIsolate());
   Dart_ShutdownIsolate();
   EXPECT_EQ(reinterpret_cast<Dart_Isolate>(NULL), Dart_CurrentIsolate());
@@ -45,30 +43,30 @@ TEST_CASE(IsolateSpawn) {
   // Necessary because asynchronous errors use "print" to print their
   // stack trace.
   Dart_Handle url = NewString("dart:_internal");
-  DART_CHECK_VALID(url);
+  EXPECT_VALID(url);
   Dart_Handle internal_lib = Dart_LookupLibrary(url);
-  DART_CHECK_VALID(internal_lib);
+  EXPECT_VALID(internal_lib);
   Dart_Handle print = Dart_GetField(test_lib, NewString("_nullPrintClosure"));
   Dart_Handle result =
       Dart_SetField(internal_lib, NewString("_printClosure"), print);
 
-  DART_CHECK_VALID(result);
+  EXPECT_VALID(result);
 
   // Setup the 'scheduleImmediate' closure.
   url = NewString("dart:isolate");
-  DART_CHECK_VALID(url);
+  EXPECT_VALID(url);
   Dart_Handle isolate_lib = Dart_LookupLibrary(url);
-  DART_CHECK_VALID(isolate_lib);
+  EXPECT_VALID(isolate_lib);
   Dart_Handle schedule_immediate_closure = Dart_Invoke(
       isolate_lib, NewString("_getIsolateScheduleImmediateClosure"), 0, NULL);
   Dart_Handle args[1];
   args[0] = schedule_immediate_closure;
   url = NewString("dart:async");
-  DART_CHECK_VALID(url);
+  EXPECT_VALID(url);
   Dart_Handle async_lib = Dart_LookupLibrary(url);
-  DART_CHECK_VALID(async_lib);
-  DART_CHECK_VALID(Dart_Invoke(
-      async_lib, NewString("_setScheduleImmediateClosure"), 1, args));
+  EXPECT_VALID(async_lib);
+  EXPECT_VALID(Dart_Invoke(async_lib, NewString("_setScheduleImmediateClosure"),
+                           1, args));
 
   result = Dart_Invoke(test_lib, NewString("testMain"), 0, NULL);
   EXPECT_VALID(result);
@@ -96,8 +94,9 @@ class InterruptChecker : public ThreadPool::Task {
       // Busy wait for interrupts.
       uword limit = 0;
       do {
-        limit = AtomicOperations::LoadRelaxed(
-            reinterpret_cast<uword*>(thread_->stack_limit_address()));
+        limit = reinterpret_cast<RelaxedAtomic<uword>*>(
+                    thread_->stack_limit_address())
+                    ->load();
       } while (
           (limit == thread_->saved_stack_limit_) ||
           (((limit & Thread::kInterruptsMask) & Thread::kVMInterrupt) == 0));
@@ -132,7 +131,7 @@ TEST_CASE(StackLimitInterrupts) {
                         isolate->heap()->barrier_done());
   // Start all tasks. They will busy-wait until interrupted in the first round.
   for (intptr_t task = 0; task < InterruptChecker::kTaskCount; task++) {
-    Dart::thread_pool()->Run(new InterruptChecker(thread, &barrier));
+    Dart::thread_pool()->Run<InterruptChecker>(thread, &barrier);
   }
   // Wait for all tasks to get ready for the first round.
   barrier.Sync();
@@ -162,6 +161,14 @@ class IsolateTestHelper {
 };
 
 TEST_CASE(NoOOBMessageScope) {
+  // Finish any GC in progress so that no kVMInterrupt is added for GC reasons.
+  {
+    TransitionNativeToVM transition(thread);
+    GCTestHelper::CollectAllGarbage();
+    const Error& error = Error::Handle(thread->HandleInterrupts());
+    RELEASE_ASSERT(error.IsNull());
+  }
+
   // EXPECT_EQ is picky about type agreement for its arguments.
   const uword kZero = 0;
   const uword kMessageInterrupt = Thread::kMessageInterrupt;

@@ -4,7 +4,6 @@
 
 library test.hot_set_field;
 
-@MirrorsUsed(targets: "test.hot_set_field")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
@@ -38,11 +37,11 @@ testPrivate() {
 testPrivateWrongLibrary() {
   var c = new C();
   var im = reflect(c);
-  var selector = MirrorSystem.getSymbol('_field', reflectClass(Mirror).owner);
+  var selector = MirrorSystem.getSymbol(
+      '_field', reflectClass(Mirror).owner as LibraryMirror);
 
   for (int i = 0; i < (2 * optimizationThreshold); i++) {
-    Expect.throws(
-        () => im.setField(selector, i), (e) => e is NoSuchMethodError);
+    Expect.throwsNoSuchMethodError(() => im.setField(selector, i));
   }
 }
 

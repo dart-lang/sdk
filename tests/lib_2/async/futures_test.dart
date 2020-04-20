@@ -56,7 +56,7 @@ Future testWaitWithSingleError() {
     throw 'incorrect error';
   }).catchError((error, stackTrace) {
     Expect.equals('correct error', error);
-    Expect.isNull(stackTrace);
+    Expect.isNotNull(stackTrace);
   });
 }
 
@@ -73,7 +73,7 @@ Future testWaitWithMultipleErrors() {
     throw 'incorrect error 2';
   }).catchError((error, stackTrace) {
     Expect.equals('correct error', error);
-    Expect.isNull(stackTrace);
+    Expect.isNotNull(stackTrace);
   });
 }
 
@@ -90,7 +90,7 @@ Future testWaitWithMultipleErrorsEager() {
     throw 'incorrect error 2';
   }).catchError((error, stackTrace) {
     Expect.equals('correct error', error);
-    Expect.isNull(stackTrace);
+    Expect.isNotNull(stackTrace);
   });
 }
 
@@ -100,7 +100,7 @@ StackTrace get currentStackTrace {
   } catch (e, st) {
     return st;
   }
-  return null;
+  throw "unreachable";
 }
 
 Future testWaitWithSingleErrorWithStackTrace() {
@@ -170,7 +170,8 @@ Future testEagerWait() {
   }, onError: (e, s) {
     Expect.equals(e, 42);
     Expect.identical(st, s);
-    return true;
+  }).whenComplete(() {
+    return new Future(() => true);
   });
   c1.completeError(42, st);
   return result;
@@ -192,8 +193,8 @@ Future testForEach() {
 
 Future testForEachSync() {
   final seen = <int>[];
-  return Future.forEach([1, 2, 3, 4, 5], seen.add).then(
-      (_) => Expect.listEquals([1, 2, 3, 4, 5], seen));
+  return Future.forEach([1, 2, 3, 4, 5], seen.add)
+      .then((_) => Expect.listEquals([1, 2, 3, 4, 5], seen));
 }
 
 Future testForEachWithException() {
@@ -235,6 +236,8 @@ Future testDoWhileWithException() {
     throw 'incorrect exception';
   }).catchError((error) {
     Expect.equals('correct exception', error);
+  }).whenComplete(() {
+    return new Future(() => false);
   });
 }
 

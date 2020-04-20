@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
+
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
@@ -10,16 +13,13 @@ import "dart:math";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-const String LOOPBACK_IP_V4_STRING = "127.0.0.1";
+const String loopbackIPv4String = "127.0.0.1";
 
 void testArguments() {
   Expect.throws(() => RawSynchronousSocket.connectSync(null, 0));
   Expect.throws(
-      () => RawSynchronousSocket.connectSync(LOOPBACK_IP_V4_STRING, null));
-  Expect.throws(
-      () => RawSynchronousSocket.connectSync(LOOPBACK_IP_V4_STRING, 65536));
-  Expect.throws(
-      () => RawSynchronousSocket.connectSync(LOOPBACK_IP_V4_STRING, -1));
+      () => RawSynchronousSocket.connectSync(loopbackIPv4String, 65536));
+  Expect.throws(() => RawSynchronousSocket.connectSync(loopbackIPv4String, -1));
 }
 
 // The connection attempt happens on the main Dart thread and the OS timeout can
@@ -48,9 +48,9 @@ void testInvalidConnect() {
 
 void testSimpleConnect() {
   asyncStart();
-  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+  RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     var socket =
-        RawSynchronousSocket.connectSync(LOOPBACK_IP_V4_STRING, server.port);
+        RawSynchronousSocket.connectSync(loopbackIPv4String, server.port);
     server.listen((serverSocket) {
       Expect.equals(socket.address, serverSocket.remoteAddress);
       Expect.equals(socket.port, serverSocket.remotePort);
@@ -65,10 +65,10 @@ void testSimpleConnect() {
 
 void testServerListenAfterConnect() {
   asyncStart();
-  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+  RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     Expect.isTrue(server.port > 0);
     var client =
-        RawSynchronousSocket.connectSync(LOOPBACK_IP_V4_STRING, server.port);
+        RawSynchronousSocket.connectSync(loopbackIPv4String, server.port);
     server.listen((socket) {
       client.closeSync();
       server.close();
@@ -101,7 +101,7 @@ List<int> createTestData() {
 // data. The optional fields, start and end, are used to compare against
 // segments of the original test data list. In other words, data.length == (end
 // - start).
-void verifyTestData(List<int> data, [int start = 0, int end]) {
+void verifyTestData(List<int> data, [int start = 0, int? end]) {
   assert(data != null);
   List<int> expected = createTestData();
   if (end == null) {
@@ -119,7 +119,7 @@ void verifyTestData(List<int> data, [int start = 0, int end]) {
 // sender. The server should shutdown automatically after a specified number of
 // socket disconnections (default: 1).
 Future echoServer(var sendPort) async {
-  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) async {
+  RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) async {
     ReceivePort receivePort = new ReceivePort();
     Map response = {
       EchoServerTypes.ISOLATE_SEND_PORT: receivePort.sendPort,
@@ -137,14 +137,14 @@ Future echoServer(var sendPort) async {
       int bytesRead = 0;
       int bytesWritten = 0;
       bool closedEventReceived = false;
-      List<int> data = new List<int>(length);
+      List<int> data = new List<int>.filled(length, 0);
       client.writeEventsEnabled = false;
       client.listen((event) {
         switch (event) {
-          case RawSocketEvent.READ:
+          case RawSocketEvent.read:
             Expect.isTrue(bytesWritten == 0);
             Expect.isTrue(client.available() > 0);
-            var buffer = client.read(client.available());
+            var buffer = client.read(client.available())!;
             data.setRange(bytesRead, bytesRead + buffer.length, buffer);
             bytesRead += buffer.length;
             // Once we've read all the data, we can echo it back. Otherwise,
@@ -154,7 +154,7 @@ Future echoServer(var sendPort) async {
               client.writeEventsEnabled = true;
             }
             break;
-          case RawSocketEvent.WRITE:
+          case RawSocketEvent.write:
             Expect.isFalse(client.writeEventsEnabled);
             bytesWritten +=
                 client.write(data, bytesWritten, data.length - bytesWritten);
@@ -164,13 +164,13 @@ Future echoServer(var sendPort) async {
               // Close the socket for writing from the server since we're done
               // writing to this socket. The connection is closed completely
               // after the client closes the socket for reading from the server.
-              client.shutdown(SocketDirection.SEND);
+              client.shutdown(SocketDirection.send);
             }
             break;
-          case RawSocketEvent.READ_CLOSED:
+          case RawSocketEvent.readClosed:
             client.close();
             break;
-          case RawSocketEvent.CLOSED:
+          case RawSocketEvent.closed:
             Expect.isFalse(closedEventReceived);
             closedEventReceived = true;
             break;
@@ -192,7 +192,7 @@ Future echoServer(var sendPort) async {
   });
 }
 
-Future testSimpleReadWrite({bool dropReads}) async {
+Future testSimpleReadWrite({bool? dropReads}) async {
   asyncStart();
   // This test creates a server and a client connects. The client writes data
   // to the socket and the server echos it back. The client confirms the data it
@@ -221,12 +221,12 @@ Future testSimpleReadWrite({bool dropReads}) async {
 
   try {
     var socket = RawSynchronousSocket.connectSync(
-        LOOPBACK_IP_V4_STRING, serverInternetPort);
+        loopbackIPv4String, serverInternetPort);
     List<int> data = createTestData();
     socket.writeFromSync(data);
-    List<int> result = socket.readSync(data.length);
+    List<int> result = socket.readSync(data.length)!;
     verifyTestData(result);
-    socket.shutdown(SocketDirection.SEND);
+    socket.shutdown(SocketDirection.send);
     socket.closeSync();
   } catch (e, stack) {
     print("Echo test failed in the client");
@@ -265,12 +265,12 @@ Future testPartialRead() async {
 
   try {
     var socket = RawSynchronousSocket.connectSync(
-        LOOPBACK_IP_V4_STRING, serverInternetPort);
+        loopbackIPv4String, serverInternetPort);
     int half_length = (data.length / 2).toInt();
 
     // Send the full data list to the server.
     socket.writeFromSync(data);
-    List<int> result = new List<int>(data.length);
+    List<int> result = new List<int>.filled(data.length, 0);
 
     // Read half at a time and check that there's still more bytes available.
     socket.readIntoSync(result, 0, half_length);
@@ -322,14 +322,14 @@ Future testPartialWrite() async {
   sendPort.send(limits);
   try {
     var socket = RawSynchronousSocket.connectSync(
-        LOOPBACK_IP_V4_STRING, serverInternetPort);
+        loopbackIPv4String, serverInternetPort);
     List<int> data = createTestData();
 
     // Write a subset of data to the server.
     socket.writeFromSync(data, startOffset, endOffset);
 
     // Grab the response and verify it's correct.
-    List<int> result = new List<int>(endOffset - startOffset);
+    List<int> result = new List<int>.filled(endOffset - startOffset, 0);
     socket.readIntoSync(result);
 
     Expect.equals(result.length, endOffset - startOffset);
@@ -377,11 +377,11 @@ Future testShutdown() async {
 
   try {
     var socket = RawSynchronousSocket.connectSync(
-        LOOPBACK_IP_V4_STRING, serverInternetPort);
+        loopbackIPv4String, serverInternetPort);
 
     // Close from both directions. Shouldn't be able to read/write to the
     // socket.
-    socket.shutdown(SocketDirection.BOTH);
+    socket.shutdown(SocketDirection.both);
     Expect.throws(
         () => socket.writeFromSync(data), (e) => e is SocketException);
     Expect.throws(
@@ -391,8 +391,8 @@ Future testShutdown() async {
     // Close the socket for reading then try and perform a read. This should
     // cause a SocketException.
     socket = RawSynchronousSocket.connectSync(
-        LOOPBACK_IP_V4_STRING, serverInternetPort);
-    socket.shutdown(SocketDirection.RECEIVE);
+        loopbackIPv4String, serverInternetPort);
+    socket.shutdown(SocketDirection.receive);
     // Throws exception when the socket is closed for RECEIVE.
     Expect.throws(
         () => socket.readSync(data.length), (e) => e is SocketException);
@@ -401,8 +401,8 @@ Future testShutdown() async {
     // Close the socket for writing and try to do a write. This should cause an
     // OSError to be throw as the pipe is closed for writing.
     socket = RawSynchronousSocket.connectSync(
-        LOOPBACK_IP_V4_STRING, serverInternetPort);
-    socket.shutdown(SocketDirection.SEND);
+        loopbackIPv4String, serverInternetPort);
+    socket.shutdown(SocketDirection.send);
     Expect.throws(
         () => socket.writeFromSync(data), (e) => e is SocketException);
     socket.closeSync();
@@ -419,37 +419,30 @@ Future testShutdown() async {
   asyncEnd();
 }
 
-Future testInvalidReadWriteOperations() {
+void testInvalidReadWriteOperations() {
   asyncStart();
-  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+  RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     server.listen((socket) {});
     List<int> data = createTestData();
     var socket =
-        RawSynchronousSocket.connectSync(LOOPBACK_IP_V4_STRING, server.port);
+        RawSynchronousSocket.connectSync(loopbackIPv4String, server.port);
 
     // Invalid writeFromSync invocations
-    Expect.throws(() => socket.writeFromSync(data, data.length + 1),
-        (e) => e is RangeError);
-    Expect.throws(() => socket.writeFromSync(data, 0, data.length + 1),
-        (e) => e is RangeError);
-    Expect.throws(
-        () => socket.writeFromSync(data, 1, 0), (e) => e is RangeError);
-    Expect.throws(
-        () => socket.writeFromSync(data, null), (e) => e is ArgumentError);
+    Expect.throwsRangeError(() => socket.writeFromSync(data, data.length + 1));
+    Expect.throwsRangeError(
+        () => socket.writeFromSync(data, 0, data.length + 1));
+    Expect.throwsRangeError(() => socket.writeFromSync(data, 1, 0));
 
     // Invalid readIntoSync invocations
-    List<int> buffer = new List<int>(10);
-    Expect.throws(() => socket.readIntoSync(buffer, buffer.length + 1),
-        (e) => e is RangeError);
-    Expect.throws(() => socket.readIntoSync(buffer, 0, buffer.length + 1),
-        (e) => e is RangeError);
-    Expect.throws(
-        () => socket.readIntoSync(buffer, 1, 0), (e) => e is RangeError);
-    Expect.throws(
-        () => socket.readIntoSync(buffer, null), (e) => e is ArgumentError);
+    List<int> buffer = new List<int>.filled(10, 0);
+    Expect.throwsRangeError(
+        () => socket.readIntoSync(buffer, buffer.length + 1));
+    Expect.throwsRangeError(
+        () => socket.readIntoSync(buffer, 0, buffer.length + 1));
+    Expect.throwsRangeError(() => socket.readIntoSync(buffer, 1, 0));
 
     // Invalid readSync invocation
-    Expect.throws(() => socket.readSync(-1), (e) => e is ArgumentError);
+    Expect.throwsArgumentError(() => socket.readSync(-1));
 
     server.close();
     socket.closeSync();
@@ -459,12 +452,12 @@ Future testInvalidReadWriteOperations() {
 
 void testClosedError() {
   asyncStart();
-  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+  RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     server.listen((socket) {
       socket.close();
     });
     var socket =
-        RawSynchronousSocket.connectSync(LOOPBACK_IP_V4_STRING, server.port);
+        RawSynchronousSocket.connectSync(loopbackIPv4String, server.port);
     server.close();
     socket.closeSync();
     Expect.throws(() => socket.remotePort, (e) => e is SocketException);

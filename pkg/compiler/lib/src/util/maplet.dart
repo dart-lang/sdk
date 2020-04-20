@@ -34,6 +34,7 @@ class Maplet<K, V> extends MapBase<K, V> {
     });
   }
 
+  @override
   bool get isEmpty {
     if (_extra == null) {
       return _MARKER == _key;
@@ -44,6 +45,7 @@ class Maplet<K, V> extends MapBase<K, V> {
     }
   }
 
+  @override
   int get length {
     if (_extra == null) {
       return (_MARKER == _key) ? 0 : 1;
@@ -54,6 +56,7 @@ class Maplet<K, V> extends MapBase<K, V> {
     }
   }
 
+  @override
   bool containsKey(Object key) {
     if (_extra == null) {
       return _key == key;
@@ -70,6 +73,7 @@ class Maplet<K, V> extends MapBase<K, V> {
     }
   }
 
+  @override
   V operator [](Object key) {
     if (_extra == null) {
       return (_key == key) ? _value : null;
@@ -86,6 +90,7 @@ class Maplet<K, V> extends MapBase<K, V> {
     }
   }
 
+  @override
   void operator []=(K key, V value) {
     if (_extra == null) {
       if (_MARKER == _key) {
@@ -157,7 +162,7 @@ class Maplet<K, V> extends MapBase<K, V> {
           copyTo++;
         }
       } else {
-        Map map = new Map();
+        var map = new Map<K, V>();
         forEach((eachKey, eachValue) => map[eachKey] = eachValue);
         map[key] = value;
         _key = map;
@@ -166,6 +171,7 @@ class Maplet<K, V> extends MapBase<K, V> {
     }
   }
 
+  @override
   V remove(Object key) {
     if (_extra == null) {
       if (_key != key) return null;
@@ -193,6 +199,7 @@ class Maplet<K, V> extends MapBase<K, V> {
     }
   }
 
+  @override
   void forEach(void action(K key, V value)) {
     if (_extra == null) {
       if (_MARKER != _key) action(_key, _value);
@@ -208,11 +215,13 @@ class Maplet<K, V> extends MapBase<K, V> {
     }
   }
 
+  @override
   void clear() {
     _key = _MARKER;
     _value = _extra = null;
   }
 
+  @override
   Iterable<K> get keys => new _MapletKeyIterable<K>(this);
 }
 
@@ -225,6 +234,7 @@ class _MapletKeyIterable<K> extends IterableBase<K> {
 
   _MapletKeyIterable(this.maplet);
 
+  @override
   Iterator<K> get iterator {
     if (maplet._extra == null) {
       return new _MapletSingleIterator<K>(maplet._key);
@@ -242,8 +252,10 @@ class _MapletSingleIterator<K> implements Iterator<K> {
 
   _MapletSingleIterator(this._element);
 
+  @override
   K get current => _current;
 
+  @override
   bool moveNext() {
     if (Maplet._MARKER == _element) {
       _current = null;
@@ -263,8 +275,10 @@ class _MapletListIterator<K> implements Iterator<K> {
 
   _MapletListIterator(this._list, this._remaining);
 
+  @override
   K get current => _current;
 
+  @override
   bool moveNext() {
     while (_remaining > 0) {
       var candidate = _list[_index++];

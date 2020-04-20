@@ -4,20 +4,19 @@
 
 library observatory_application_element;
 
-import 'dart:html';
 import 'package:observatory/app.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 
 /// Main application tag. Responsible for instantiating an instance of
 /// [ObservatoryApplication] which is passed declaratively to all child
 /// elements.
-class ObservatoryApplicationElement extends HtmlElement {
+class ObservatoryApplicationElement extends CustomElement {
   static const tag =
       const Tag<ObservatoryApplicationElement>('observatory-application');
 
   ObservatoryApplication app;
 
-  ObservatoryApplicationElement.created() : super.created();
+  ObservatoryApplicationElement.created() : super.created(tag);
 
   @override
   void attached() {

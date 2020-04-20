@@ -1,7 +1,7 @@
 library IndexedDB1Test;
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:async_helper/async_helper.dart';
+import 'package:async_helper/async_minitest.dart';
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:indexed_db' as idb;
@@ -15,35 +15,34 @@ const String STORE_NAME = 'TEST';
 const int VERSION = 1;
 
 testReadWrite(key, value, check,
-    [dbName = DB_NAME, storeName = STORE_NAME, version = VERSION]) {
-  createObjectStore(e) {
-    var store = e.target.result.createObjectStore(storeName);
+    [dbName = DB_NAME, storeName = STORE_NAME, version = VERSION]) async {
+  void createObjectStore(e) {
+    idb.ObjectStore store = e.target.result.createObjectStore(storeName);
     expect(store, isNotNull);
   }
 
-  var db;
+  idb.Database db;
   // Delete any existing DBs.
-  return html.window.indexedDB.deleteDatabase(dbName).then(expectAsync((_) {
-    return html.window.indexedDB
+  try {
+    await html.window.indexedDB.deleteDatabase(dbName);
+    idb.Database db = await html.window.indexedDB
         .open(dbName, version: version, onUpgradeNeeded: createObjectStore);
-  })).then(expectAsync((result) {
-    db = result;
-    var transaction = db.transactionList([storeName], 'readwrite');
+
+    idb.Transaction transaction = db.transactionList([storeName], 'readwrite');
     transaction.objectStore(storeName).put(value, key);
 
-    return transaction.completed;
-  })).then(expectAsync((db) {
-    var transaction = db.transaction(storeName, 'readonly');
-    return transaction.objectStore(storeName).getObject(key);
-  })).then(expectAsync((object) {
+    db = await transaction.completed;
+    transaction = db.transaction(storeName, 'readonly');
+    var object = await transaction.objectStore(storeName).getObject(key);
+
     db.close();
     check(value, object);
-  })).catchError((e) {
+  } catch (error) {
     if (db != null) {
       db.close();
     }
-    throw e;
-  });
+    throw error;
+  }
 }
 
 List<String> get nonNativeListData {
@@ -56,8 +55,6 @@ List<String> get nonNativeListData {
 }
 
 main() {
-  useHtmlConfiguration();
-
   var obj1 = {'a': 100, 'b': 's'};
   var obj2 = {'x': obj1, 'y': obj1}; // DAG.
 
@@ -72,7 +69,7 @@ main() {
   var cyclic_list = <Object>[1, 2, 3];
   cyclic_list[1] = cyclic_list;
 
-  go(name, data) => test(name, () => testReadWrite(123, data, verifyGraph));
+  go(name, data) => testReadWrite(123, data, verifyGraph);
 
   test('test_verifyGraph', () {
     // Nice to know verifyGraph is working before we rely on it.
@@ -86,12 +83,17 @@ main() {
       const [1, 2, 3]
     ];
     verifyGraph([l1, l1], l2);
-    expect(
-        () => verifyGraph([
-              [1, 2, 3],
-              [1, 2, 3]
-            ], l2),
-        throws);
+    // Use a try-catch block, since failure can be an expect exception.
+    // package:expect does not allow catching test exceptions.
+    try {
+      verifyGraph([
+        [1, 2, 3],
+        [1, 2, 3]
+      ], l2);
+      fail("Expected failure in verifying the graph.");
+    } catch (_) {
+      // Expected failure. Continue.
+    }
 
     verifyGraph(cyclic_list, cyclic_list);
   });
@@ -99,27 +101,29 @@ main() {
   // Don't bother with these tests if it's unsupported.
   // Support is tested in indexeddb_1_test
   if (idb.IdbFactory.supported) {
-    go('test_simple', obj1);
-    go('test_DAG', obj2);
-    go('test_cycle', obj3);
-    go('test_simple_splay', obj4);
-    go('const_array_1', const [
-      const [1],
-      const [2]
-    ]);
-    go('const_array_dag', const [
-      const [1],
-      const [1]
-    ]);
-    go('array_deferred_copy', [1, 2, 3, obj3, obj3, 6]);
-    go('array_deferred_copy_2', [
-      1,
-      2,
-      3,
-      [4, 5, obj3],
-      [obj3, 6]
-    ]);
-    go('cyclic_list', cyclic_list);
-    go('non-native lists', nonNativeListData);
+    asyncTest(() async {
+      await go('test_simple', obj1);
+      await go('test_DAG', obj2);
+      await go('test_cycle', obj3);
+      await go('test_simple_splay', obj4);
+      await go('const_array_1', const [
+        const [1],
+        const [2]
+      ]);
+      await go('const_array_dag', const [
+        const [1],
+        const [1]
+      ]);
+      await go('array_deferred_copy', [1, 2, 3, obj3, obj3, 6]);
+      await go('array_deferred_copy_2', [
+        1,
+        2,
+        3,
+        [4, 5, obj3],
+        [obj3, 6]
+      ]);
+      await go('cyclic_list', cyclic_list);
+      await go('non-native lists', nonNativeListData);
+    });
   }
 }

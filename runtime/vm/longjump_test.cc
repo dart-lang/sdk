@@ -15,7 +15,7 @@ static void LongJumpHelper(LongJumpScope* jump) {
   UNREACHABLE();
 }
 
-TEST_CASE(LongJump) {
+ISOLATE_UNIT_TEST_CASE(LongJump) {
   LongJumpScope* base = Thread::Current()->long_jump_base();
   {
     LongJumpScope jump;

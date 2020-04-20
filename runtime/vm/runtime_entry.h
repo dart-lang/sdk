@@ -6,48 +6,44 @@
 #define RUNTIME_VM_RUNTIME_ENTRY_H_
 
 #include "vm/allocation.h"
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/runtime_api.h"
+#endif
 #include "vm/flags.h"
+#include "vm/heap/safepoint.h"
+#include "vm/log.h"
 #include "vm/native_arguments.h"
 #include "vm/runtime_entry_list.h"
-#include "vm/safepoint.h"
-#include "vm/tags.h"
 
 namespace dart {
 
-class Assembler;
-
-DECLARE_FLAG(bool, trace_runtime_calls);
-
 typedef void (*RuntimeFunction)(NativeArguments arguments);
 
-enum RuntimeFunctionId {
-  kNoRuntimeFunctionId = -1,
-#define DECLARE_ENUM_VALUE(name) k##name##Id,
-  RUNTIME_ENTRY_LIST(DECLARE_ENUM_VALUE)
-#undef DECLARE_ENUM_VALUE
-
-#define DECLARE_LEAF_ENUM_VALUE(type, name, ...) k##name##Id,
-      LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_ENUM_VALUE)
-#undef DECLARE_LEAF_ENUM_VALUE
-};
+#if !defined(DART_PRECOMPILED_RUNTIME)
+using BaseRuntimeEntry = compiler::RuntimeEntry;
+#else
+using BaseRuntimeEntry = ValueObject;
+#endif
 
 // Class RuntimeEntry is used to encapsulate runtime functions, it includes
 // the entry point for the runtime function and the number of arguments expected
 // by the function.
-class RuntimeEntry : public ValueObject {
+class RuntimeEntry : public BaseRuntimeEntry {
  public:
   RuntimeEntry(const char* name,
                RuntimeFunction function,
                intptr_t argument_count,
                bool is_leaf,
                bool is_float)
-      : name_(name),
+      :
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        compiler::RuntimeEntry(this, &CallInternal),
+#endif
+        name_(name),
         function_(function),
         argument_count_(argument_count),
         is_leaf_(is_leaf),
-        is_float_(is_float),
-        next_(NULL) {
-    VMTag::RegisterRuntimeEntry(this);
+        is_float_(is_float) {
   }
 
   const char* name() const { return name_; }
@@ -58,27 +54,32 @@ class RuntimeEntry : public ValueObject {
   uword GetEntryPoint() const;
 
   // Generate code to call the runtime entry.
-  NOT_IN_PRECOMPILED(void Call(Assembler* assembler, intptr_t argument_count)
-                         const);
+  NOT_IN_PRECOMPILED(void Call(compiler::Assembler* assembler,
+                               intptr_t argument_count) const);
 
-  void set_next(const RuntimeEntry* next) { next_ = next; }
-  const RuntimeEntry* next() const { return next_; }
+  static uword InterpretCallEntry();
+  static RawObject* InterpretCall(RawFunction* function,
+                                  RawArray* argdesc,
+                                  intptr_t argc,
+                                  RawObject** argv,
+                                  Thread* thread);
 
-  static inline uword AddressFromId(RuntimeFunctionId id);
-  static inline RuntimeFunctionId RuntimeFunctionIdFromAddress(uword address);
+ protected:
+  NOT_IN_PRECOMPILED(static void CallInternal(const RuntimeEntry* runtime_entry,
+                                              compiler::Assembler* assembler,
+                                              intptr_t argument_count));
 
  private:
-  const char* name_;
+  const char* const name_;
   const RuntimeFunction function_;
   const intptr_t argument_count_;
   const bool is_leaf_;
   const bool is_float_;
-  const RuntimeEntry* next_;
 
   DISALLOW_COPY_AND_ASSIGN(RuntimeEntry);
 };
 
-#ifndef PRODUCT
+#ifdef DEBUG
 #define TRACE_RUNTIME_CALL(format, name)                                       \
   if (FLAG_trace_runtime_calls) {                                              \
     THR_Print("Runtime call: " format "\n", name);                             \
@@ -99,7 +100,8 @@ class RuntimeEntry : public ValueObject {
                                NativeArguments arguments);                     \
   void DRT_##name(NativeArguments arguments) {                                 \
     CHECK_STACK_ALIGNMENT;                                                     \
-    VERIFY_ON_TRANSITION;                                                      \
+    /* Tell MemorySanitizer 'arguments' is initialized by generated code. */   \
+    MSAN_UNPOISON(&arguments, sizeof(arguments));                              \
     ASSERT(arguments.ArgCount() == argument_count);                            \
     TRACE_RUNTIME_CALL("%s", "" #name);                                        \
     {                                                                          \
@@ -111,7 +113,6 @@ class RuntimeEntry : public ValueObject {
       HANDLESCOPE(thread);                                                     \
       DRT_Helper##name(isolate, thread, zone.GetZone(), arguments);            \
     }                                                                          \
-    VERIFY_ON_TRANSITION;                                                      \
   }                                                                            \
   static void DRT_Helper##name(Isolate* isolate, Thread* thread, Zone* zone,   \
                                NativeArguments arguments)
@@ -145,37 +146,9 @@ class RuntimeEntry : public ValueObject {
 RUNTIME_ENTRY_LIST(DECLARE_RUNTIME_ENTRY)
 LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_RUNTIME_ENTRY)
 
-uword RuntimeEntry::AddressFromId(RuntimeFunctionId id) {
-  switch (id) {
-#define DEFINE_RUNTIME_CASE(name)                                              \
-  case k##name##Id:                                                            \
-    return k##name##RuntimeEntry.GetEntryPoint();
-    RUNTIME_ENTRY_LIST(DEFINE_RUNTIME_CASE)
-#undef DEFINE_RUNTIME_CASE
-
-#define DEFINE_LEAF_RUNTIME_CASE(type, name, ...)                              \
-  case k##name##Id:                                                            \
-    return k##name##RuntimeEntry.GetEntryPoint();
-    LEAF_RUNTIME_ENTRY_LIST(DEFINE_LEAF_RUNTIME_CASE)
-#undef DEFINE_LEAF_RUNTIME_CASE
-    default:
-      break;
-  }
-  return 0;
-}
-
-RuntimeFunctionId RuntimeEntry::RuntimeFunctionIdFromAddress(uword address) {
-#define CHECK_RUNTIME_ADDRESS(name)                                            \
-  if (address == k##name##RuntimeEntry.GetEntryPoint()) return k##name##Id;
-  RUNTIME_ENTRY_LIST(CHECK_RUNTIME_ADDRESS)
-#undef CHECK_RUNTIME_ADDRESS
-
-#define CHECK_LEAF_RUNTIME_ADDRESS(type, name, ...)                            \
-  if (address == k##name##RuntimeEntry.GetEntryPoint()) return k##name##Id;
-  LEAF_RUNTIME_ENTRY_LIST(CHECK_LEAF_RUNTIME_ADDRESS)
-#undef CHECK_LEAF_RUNTIME_ADDRESS
-  return kNoRuntimeFunctionId;
-}
+// Expected to be called inside a safepoint.
+extern "C" Thread* DLRT_GetThreadForNativeCallback(uword callback_id);
+extern "C" Thread* DLRT_GetThreadForNativeCallbackTrampoline(uword callback_id);
 
 const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason);
 

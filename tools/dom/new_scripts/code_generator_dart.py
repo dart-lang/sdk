@@ -25,7 +25,6 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 """Generate Blink C++ bindings (.h and .cpp files) for use by Dart:HTML.
 
 If run itself, caches Jinja templates (and creates dummy file for build,
@@ -48,7 +47,6 @@ import cPickle as pickle
 import re
 import sys
 
-
 # Path handling for libraries and templates
 # Paths have to be normalized because Jinja uses the exact template path to
 # determine the hash used in the cache filename, and we need a pre-caching step
@@ -58,8 +56,9 @@ import sys
 # is regenerated, which causes a race condition and breaks concurrent build,
 # since some compile processes will try to read the partially written cache.
 module_path, module_filename = os.path.split(os.path.realpath(__file__))
-third_party_dir = os.path.normpath(os.path.join(
-    module_path, os.pardir, os.pardir, os.pardir, os.pardir, os.pardir))
+third_party_dir = os.path.normpath(
+    os.path.join(module_path, os.pardir, os.pardir, os.pardir, os.pardir,
+                 os.pardir))
 templates_dir = os.path.normpath(os.path.join(module_path, 'templates'))
 
 # Make sure extension is .py, not .pyc or .pyo, so doesn't depend on caching
@@ -72,8 +71,8 @@ sys.path.insert(1, third_party_dir)
 
 # Add the base compiler scripts to the path here as in compiler.py
 dart_script_path = os.path.dirname(os.path.abspath(__file__))
-script_path = os.path.join(os.path.dirname(os.path.dirname(dart_script_path)),
-                          'scripts')
+script_path = os.path.join(
+    os.path.dirname(os.path.dirname(dart_script_path)), 'scripts')
 sys.path.extend([script_path])
 
 import jinja2
@@ -81,51 +80,44 @@ import jinja2
 import idl_types
 from idl_types import IdlType
 from utilities import write_pickle_file
-from v8_globals import includes, interfaces
+from v8_globals import includes
 from dart_utilities import DartUtilities
-
 
 # TODO(jacobr): remove this hacked together list.
 INTERFACES_WITHOUT_RESOLVERS = frozenset([
-    'TypeConversions',
-    'GCObservation',
-    'InternalProfilers',
-    'InternalRuntimeFlags',
-    'InternalSettings',
-    'InternalSettingsGenerated',
-    'Internals',
-    'LayerRect',
-    'LayerRectList',
-    'MallocStatistics',
-    'TypeConversions'])
+    'TypeConversions', 'GCObservation', 'InternalProfilers',
+    'InternalRuntimeFlags', 'InternalSettings', 'InternalSettingsGenerated',
+    'Internals', 'LayerRect', 'LayerRectList', 'MallocStatistics',
+    'TypeConversions'
+])
+
 
 class CodeGeneratorDart(object):
+
     def __init__(self, interfaces_info, cache_dir):
         interfaces_info = interfaces_info or {}
         self.interfaces_info = interfaces_info
         self.jinja_env = initialize_jinja_env(cache_dir)
 
         # Set global type info
-        idl_types.set_ancestors(dict(
-            (interface_name, interface_info['ancestors'])
-            for interface_name, interface_info in interfaces_info.iteritems()
-            if interface_info['ancestors']))
-        IdlType.set_callback_interfaces(set(
-            interface_name
-            for interface_name, interface_info in interfaces_info.iteritems()
-            if interface_info['is_callback_interface']))
-        IdlType.set_implemented_as_interfaces(dict(
-            (interface_name, interface_info['implemented_as'])
-            for interface_name, interface_info in interfaces_info.iteritems()
-            if interface_info['implemented_as']))
-        IdlType.set_garbage_collected_types(set(
-            interface_name
-            for interface_name, interface_info in interfaces_info.iteritems()
-            if 'GarbageCollected' in interface_info['inherited_extended_attributes']))
-        IdlType.set_will_be_garbage_collected_types(set(
-            interface_name
-            for interface_name, interface_info in interfaces_info.iteritems()
-            if 'WillBeGarbageCollected' in interface_info['inherited_extended_attributes']))
+        idl_types.set_ancestors(
+            dict((interface_name, interface_info['ancestors'])
+                 for interface_name, interface_info in interfaces_info.
+                 iteritems()
+                 if interface_info['ancestors']))
+        IdlType.set_callback_interfaces(
+            set(interface_name for interface_name, interface_info in
+                interfaces_info.iteritems()
+                if interface_info['is_callback_interface']))
+        IdlType.set_implemented_as_interfaces(
+            dict((interface_name, interface_info['implemented_as'])
+                 for interface_name, interface_info in interfaces_info.
+                 iteritems()
+                 if interface_info['implemented_as']))
+        IdlType.set_garbage_collected_types(
+            set(interface_name for interface_name, interface_info in
+                interfaces_info.iteritems() if 'GarbageCollected' in
+                interface_info['inherited_extended_attributes']))
 
     def generate_code(self, definitions, interface_name, idl_pickle_filename,
                       only_if_changed):
@@ -162,7 +154,8 @@ class CodeGeneratorDart(object):
         # Add includes for interface itself and any dependencies
         interface_info = self.interfaces_info[interface_name]
         template_contents['header_includes'].add(interface_info['include_path'])
-        template_contents['header_includes'] = sorted(template_contents['header_includes'])
+        template_contents['header_includes'] = sorted(
+            template_contents['header_includes'])
         includes.update(interface_info.get('dependencies_include_paths', []))
 
         # Remove includes that are not needed for Dart and trigger fatal
@@ -185,20 +178,29 @@ class CodeGeneratorDart(object):
             idl_world['callback'] = idl_global_data['callback']
 
         if 'interface_name' in template_contents:
-            interface_global = {'name': template_contents['interface_name'],
-                                'parent_interface': template_contents['parent_interface'],
-                                'is_active_dom_object': template_contents['is_active_dom_object'],
-                                'is_event_target': template_contents['is_event_target'],
-                                'has_resolver': template_contents['interface_name'] not in INTERFACES_WITHOUT_RESOLVERS,
-                                'is_node': template_contents['is_node'],
-                                'conditional_string': template_contents['conditional_string'],
-                               }
+            interface_global = {
+                'name':
+                template_contents['interface_name'],
+                'parent_interface':
+                template_contents['parent_interface'],
+                'is_active_dom_object':
+                template_contents['is_active_dom_object'],
+                'is_event_target':
+                template_contents['is_event_target'],
+                'has_resolver':
+                template_contents['interface_name'] not in
+                INTERFACES_WITHOUT_RESOLVERS,
+                'is_node':
+                template_contents['is_node'],
+                'conditional_string':
+                template_contents['conditional_string'],
+            }
             idl_world['interface'] = interface_global
         else:
             callback_global = {'name': template_contents['cpp_class']}
             idl_world['callback'] = callback_global
 
-        write_pickle_file(idl_pickle_filename,  idl_world, only_if_changed)
+        write_pickle_file(idl_pickle_filename, idl_world, only_if_changed)
 
         # Render Jinja templates
         header_text = header_template.render(template_contents)
@@ -236,8 +238,10 @@ class CodeGeneratorDart(object):
                             world['callbacks'].append(idl_world['callback'])
                     idl_pickle_file.close()
 
-        world['interfaces'] = sorted(world['interfaces'], key=lambda (x): x['name'])
-        world['callbacks'] = sorted(world['callbacks'], key=lambda (x): x['name'])
+        world['interfaces'] = sorted(
+            world['interfaces'], key=lambda (x): x['name'])
+        world['callbacks'] = sorted(
+            world['callbacks'], key=lambda (x): x['name'])
 
         template_contents = world
         template_contents['code_generator'] = module_pyname
@@ -263,7 +267,7 @@ def initialize_jinja_env(cache_dir):
         'blink_capitalize': DartUtilities.capitalize,
         'conditional': conditional_if_endif,
         'runtime_enabled': runtime_enabled_if,
-        })
+    })
     return jinja_env
 
 
@@ -272,8 +276,7 @@ def conditional_if_endif(code, conditional_string):
     # Jinja2 filter to generate if/endif directive blocks
     if not conditional_string:
         return code
-    return ('#if %s\n' % conditional_string +
-            code +
+    return ('#if %s\n' % conditional_string + code +
             '#endif // %s\n' % conditional_string)
 
 
@@ -289,6 +292,7 @@ def runtime_enabled_if(code, runtime_enabled_function_name):
 
 ################################################################################
 
+
 def main(argv):
     # If file itself executed, cache templates
     try:
@@ -300,9 +304,11 @@ def main(argv):
 
     # Cache templates
     jinja_env = initialize_jinja_env(cache_dir)
-    template_filenames = [filename for filename in os.listdir(templates_dir)
-                          # Skip .svn, directories, etc.
-                          if filename.endswith(('.cpp', '.h', '.template'))]
+    template_filenames = [
+        filename for filename in os.listdir(templates_dir)
+        # Skip .svn, directories, etc.
+        if filename.endswith(('.cpp', '.h', '.template'))
+    ]
     for template_filename in template_filenames:
         jinja_env.get_template(template_filename)
 

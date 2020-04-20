@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.core;
 
 // Exceptions are thrown either by the VM or from Dart code.
@@ -13,12 +15,13 @@ part of dart.core;
  * so that the error can be addressed programmatically. It is intended to be
  * caught, and it should contain useful data fields.
  *
- * Creating instances of [Exception] directly with [:new Exception("message"):]
- * is discouraged, and only included as a temporary measure during development,
- * until the actual exceptions used by a library are done.
+ * Creating instances of [Exception] directly with `Exception("message")`
+ * is discouraged in library code since it doesn't give users a precise
+ * type they can catch. It may be reasonable to use instances of this
+ * class in tests or during development.
  */
 abstract class Exception {
-  factory Exception([var message]) => new _Exception(message);
+  factory Exception([var message]) => _Exception(message);
 }
 
 /** Default implementation of [Exception] which carries a message. */
@@ -74,6 +77,7 @@ class FormatException implements Exception {
    * Optionally also supply the actual [source] with the incorrect format,
    * and the [offset] in the format where a problem was detected.
    */
+  @pragma("vm:entry-point")
   const FormatException([this.message = "", this.source, this.offset]);
 
   /**
@@ -97,83 +101,87 @@ class FormatException implements Exception {
       report = "$report: $message";
     }
     int offset = this.offset;
-    if (source is! String) {
+    Object objectSource = this.source;
+    if (objectSource is String) {
+      String source = objectSource;
+      if (offset != null && (offset < 0 || offset > source.length)) {
+        offset = null;
+      }
+      // Source is string and offset is null or valid.
+      if (offset == null) {
+        if (source.length > 78) {
+          source = source.substring(0, 75) + "...";
+        }
+        return "$report\n$source";
+      }
+      int lineNum = 1;
+      int lineStart = 0;
+      bool previousCharWasCR = false;
+      for (int i = 0; i < offset; i++) {
+        int char = source.codeUnitAt(i);
+        if (char == 0x0a) {
+          if (lineStart != i || !previousCharWasCR) {
+            lineNum++;
+          }
+          lineStart = i + 1;
+          previousCharWasCR = false;
+        } else if (char == 0x0d) {
+          lineNum++;
+          lineStart = i + 1;
+          previousCharWasCR = true;
+        }
+      }
+      if (lineNum > 1) {
+        report += " (at line $lineNum, character ${offset - lineStart + 1})\n";
+      } else {
+        report += " (at character ${offset + 1})\n";
+      }
+      int lineEnd = source.length;
+      for (int i = offset; i < source.length; i++) {
+        int char = source.codeUnitAt(i);
+        if (char == 0x0a || char == 0x0d) {
+          lineEnd = i;
+          break;
+        }
+      }
+      int length = lineEnd - lineStart;
+      int start = lineStart;
+      int end = lineEnd;
+      String prefix = "";
+      String postfix = "";
+      if (length > 78) {
+        // Can't show entire line. Try to anchor at the nearest end, if
+        // one is within reach.
+        int index = offset - lineStart;
+        if (index < 75) {
+          end = start + 75;
+          postfix = "...";
+        } else if (end - offset < 75) {
+          start = end - 75;
+          prefix = "...";
+        } else {
+          // Neither end is near, just pick an area around the offset.
+          start = offset - 36;
+          end = offset + 36;
+          prefix = postfix = "...";
+        }
+      }
+      String slice = source.substring(start, end);
+      int markOffset = offset - start + prefix.length;
+      return "$report$prefix$slice$postfix\n${" " * markOffset}^\n";
+    } else {
+      // The source is not a string.
       if (offset != null) {
         report += " (at offset $offset)";
       }
       return report;
     }
-    if (offset != null && (offset < 0 || offset > source.length)) {
-      offset = null;
-    }
-    // Source is string and offset is null or valid.
-    if (offset == null) {
-      String source = this.source;
-      if (source.length > 78) {
-        source = source.substring(0, 75) + "...";
-      }
-      return "$report\n$source";
-    }
-    int lineNum = 1;
-    int lineStart = 0;
-    bool previousCharWasCR = false;
-    for (int i = 0; i < offset; i++) {
-      int char = source.codeUnitAt(i);
-      if (char == 0x0a) {
-        if (lineStart != i || !previousCharWasCR) {
-          lineNum++;
-        }
-        lineStart = i + 1;
-        previousCharWasCR = false;
-      } else if (char == 0x0d) {
-        lineNum++;
-        lineStart = i + 1;
-        previousCharWasCR = true;
-      }
-    }
-    if (lineNum > 1) {
-      report += " (at line $lineNum, character ${offset - lineStart + 1})\n";
-    } else {
-      report += " (at character ${offset + 1})\n";
-    }
-    int lineEnd = source.length;
-    for (int i = offset; i < source.length; i++) {
-      int char = source.codeUnitAt(i);
-      if (char == 0x0a || char == 0x0d) {
-        lineEnd = i;
-        break;
-      }
-    }
-    int length = lineEnd - lineStart;
-    int start = lineStart;
-    int end = lineEnd;
-    String prefix = "";
-    String postfix = "";
-    if (length > 78) {
-      // Can't show entire line. Try to anchor at the nearest end, if
-      // one is within reach.
-      int index = offset - lineStart;
-      if (index < 75) {
-        end = start + 75;
-        postfix = "...";
-      } else if (end - offset < 75) {
-        start = end - 75;
-        prefix = "...";
-      } else {
-        // Neither end is near, just pick an area around the offset.
-        start = offset - 36;
-        end = offset + 36;
-        prefix = postfix = "...";
-      }
-    }
-    String slice = source.substring(start, end);
-    int markOffset = offset - start + prefix.length;
-    return "$report$prefix$slice$postfix\n${" " * markOffset}^\n";
   }
 }
 
 // Exception thrown when doing integer division with a zero divisor.
 class IntegerDivisionByZeroException implements Exception {
+  @pragma("vm:entry-point")
   const IntegerDivisionByZeroException();
   String toString() => "IntegerDivisionByZeroException";
 }

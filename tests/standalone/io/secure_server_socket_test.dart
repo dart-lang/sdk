@@ -16,7 +16,7 @@ import "dart:io";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-InternetAddress HOST;
+late InternetAddress HOST;
 
 String localFile(path) => Platform.script.resolve(path).toFilePath();
 
@@ -78,7 +78,7 @@ void testSimpleConnect() {
         SecureSocket.connect(HOST, server.port, context: clientContext);
     server.listen((serverEnd) {
       clientEndFuture.then((clientEnd) {
-        var x5 = clientEnd.peerCertificate;
+        var x5 = clientEnd.peerCertificate!;
         print(x5.subject);
         print(x5.issuer);
         print(x5.startValidity);
@@ -92,14 +92,14 @@ void testSimpleConnect() {
   });
 }
 
-void testSimpleConnectFail(SecurityContext serverContext,
-    SecurityContext clientContext, bool cancelOnError) {
+void testSimpleConnectFail(SecurityContext? serverContext,
+    SecurityContext? clientContext, bool cancelOnError) {
   print('$serverContext $clientContext $cancelOnError');
   asyncStart();
   SecureServerSocket.bind(HOST, 0, serverContext).then((server) {
-    var clientEndFuture = SecureSocket
-        .connect(HOST, server.port, context: clientContext)
-        .then((clientEnd) {
+    Future<void> clientEndFuture =
+        SecureSocket.connect(HOST, server.port, context: clientContext)
+            .then((clientEnd) {
       Expect.fail("No client connection expected.");
     }).catchError((error) {
       // TODO(whesse): When null context is supported, disallow
@@ -153,7 +153,7 @@ void testSimpleReadWrite() {
   const messageSize = 1000;
 
   List<int> createTestData() {
-    List<int> data = new List<int>(messageSize);
+    List<int> data = new List<int>.filled(messageSize, 0);
     for (int i = 0; i < messageSize; i++) {
       data[i] = i & 0xff;
     }
@@ -172,7 +172,7 @@ void testSimpleReadWrite() {
     server.listen((client) {
       int bytesRead = 0;
       int bytesWritten = 0;
-      List<int> data = new List<int>(messageSize);
+      List<int> data = new List<int>.filled(messageSize, 0);
 
       client.listen((buffer) {
         Expect.isTrue(bytesWritten == 0);
@@ -188,13 +188,12 @@ void testSimpleReadWrite() {
       });
     });
 
-    SecureSocket
-        .connect(HOST, server.port, context: clientContext)
+    SecureSocket.connect(HOST, server.port, context: clientContext)
         .then((socket) {
       int bytesRead = 0;
       int bytesWritten = 0;
       List<int> dataSent = createTestData();
-      List<int> dataReceived = new List<int>(dataSent.length);
+      List<int> dataReceived = new List<int>.filled(dataSent.length, 0);
       socket.add(dataSent);
       socket.close(); // Can also be delayed.
       socket.listen((List<int> buffer) {

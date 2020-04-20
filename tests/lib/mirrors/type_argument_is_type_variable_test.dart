@@ -4,7 +4,6 @@
 
 library test.type_argument_is_type_variable;
 
-@MirrorsUsed(targets: "test.type_argument_is_type_variable")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -20,8 +19,8 @@ class Generic<G> extends Super<G> {}
 main() {
   // Declarations.
   ClassMirror generic = reflectClass(Generic);
-  ClassMirror superOfGeneric = generic.superclass;
-  ClassMirror superOfSuperOfGeneric = superOfGeneric.superclass;
+  ClassMirror superOfGeneric = generic.superclass!;
+  ClassMirror superOfSuperOfGeneric = superOfGeneric.superclass!;
 
   TypeVariableMirror gFromGeneric = generic.typeVariables.single;
   TypeVariableMirror sFromSuper = superOfGeneric.typeVariables.single;
@@ -42,8 +41,8 @@ main() {
 
   // Instantiations.
   ClassMirror genericWithInt = reflect(new Generic<int>()).type;
-  ClassMirror superOfGenericWithInt = genericWithInt.superclass;
-  ClassMirror superOfSuperOfGenericWithInt = superOfGenericWithInt.superclass;
+  ClassMirror superOfGenericWithInt = genericWithInt.superclass!;
+  ClassMirror superOfSuperOfGenericWithInt = superOfGenericWithInt.superclass!;
 
   typeParameters(genericWithInt, [#G]);
   typeParameters(superOfGenericWithInt, [#S]);

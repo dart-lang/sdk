@@ -2,10 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.core;
 
 /**
- * A sequence of characters.
+ * A sequence of UTF-16 code units.
+ *
+ * Strings are mainly used to represent text. A character may be represented by
+ * multiple code points, each code point consisting of one or two code
+ * units. For example the Papua New Guinea flag character requires four code
+ * units to represent two code points, but should be treated like a single
+ * character: "🇵🇬". Platforms that do not support the flag character may show
+ * the letters "PG" instead. If the code points are swapped, it instead becomes
+ * the Guadeloupe flag "🇬🇵" ("GP").
  *
  * A string can be either single or multiline. Single line strings are
  * written using matching single or double quotes, and multiline strings are
@@ -84,7 +94,7 @@ part of dart.core;
  * [RegExp] to work with regular expressions.
  *
  * Also see:
-
+ *
  * * [Dart Cookbook](https://www.dartlang.org/docs/cookbook/#strings)
  *   for String examples and recipes.
  * * [Dart Up and Running](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#strings-and-regular-expressions)
@@ -136,12 +146,16 @@ abstract class String implements Comparable<String>, Pattern {
    * [defaultValue].
    *
    * Example of getting a value:
-   *
-   *     const String.fromEnvironment("defaultFloo", defaultValue: "no floo")
-   *
-   * Example of checking whether a declaration is there at all:
-   *
-   *     var isDeclared = const String.fromEnvironment("maybeDeclared") != null;
+   * ```
+   * const String.fromEnvironment("defaultFloo", defaultValue: "no floo")
+   * ```
+   * In order to check whether a declaration is there at all, use
+   * [bool.hasEnvironment]. Example:
+   * ```
+   * const maybeDeclared = bool.hasEnvironment("maybeDeclared")
+   *     ? String.fromEnvironment("maybeDeclared")
+   *     : null;
+   * ```
    */
   // The .fromEnvironment() constructors are special in that we do not want
   // users to call them using "new". We prohibit that by giving them bodies
@@ -150,7 +164,7 @@ abstract class String implements Comparable<String>, Pattern {
   //ignore: const_constructor_with_body
   //ignore: const_factory
   external const factory String.fromEnvironment(String name,
-      {String defaultValue});
+      {String defaultValue = ""});
 
   /**
    * Gets the character (as a single-code-unit [String]) at the given [index].
@@ -193,7 +207,7 @@ abstract class String implements Comparable<String>, Pattern {
   /**
    * Returns a hash code derived from the code units of the string.
    *
-   * This is compatible with [==]. Strings with the same sequence
+   * This is compatible with [operator ==]. Strings with the same sequence
    * of code units have the same hash code.
    */
   int get hashCode;
@@ -213,6 +227,24 @@ abstract class String implements Comparable<String>, Pattern {
    * combining accent character '◌́'.
    */
   bool operator ==(Object other);
+
+  /**
+   * Compares this string to [other].
+   *
+   * Returns a negative value if `this` is ordered before `other`,
+   * a positive value if `this` is ordered after `other`,
+   * or zero if `this` and `other` are equivalent.
+   *
+   * The ordering is the same as the ordering of the code points at the first
+   * position where the two strings differ.
+   * If one string is a prefix of the other,
+   * then the shorter string is ordered before the longer string.
+   * If the strings have exactly the same content, they are equivalent with
+   * regard to the ordering.
+   * Ordering does not check for Unicode equivalence.
+   * The comparison is case sensitive.
+   */
+  int compareTo(String other);
 
   /**
    * Returns true if this string ends with [other]. For example:
@@ -309,26 +341,25 @@ abstract class String implements Comparable<String>, Pattern {
    *
    * If the string contains leading or trailing whitespace, a new string with no
    * leading and no trailing whitespace is returned:
-   *
-   *     '\tDart is fun\n'.trim(); // 'Dart is fun'
-   *
+   * ```dart
+   * '\tDart is fun\n'.trim(); // 'Dart is fun'
+   * ```
    * Otherwise, the original string itself is returned:
-   *
-   *     var str1 = 'Dart';
-   *     var str2 = str1.trim();
-   *     identical(str1, str2);    // true
-   *
+   * ```dart
+   * var str1 = 'Dart';
+   * var str2 = str1.trim();
+   * identical(str1, str2);    // true
+   * ```
    * Whitespace is defined by the Unicode White_Space property (as defined in
    * version 6.2 or later) and the BOM character, 0xFEFF.
    *
-   * Here is the list of trimmed characters (following version 6.2):
-   *
+   * Here is the list of trimmed characters according to Unicode version 6.3:
+   * ```
    *     0009..000D    ; White_Space # Cc   <control-0009>..<control-000D>
    *     0020          ; White_Space # Zs   SPACE
    *     0085          ; White_Space # Cc   <control-0085>
    *     00A0          ; White_Space # Zs   NO-BREAK SPACE
    *     1680          ; White_Space # Zs   OGHAM SPACE MARK
-   *     180E          ; White_Space # Zs   MONGOLIAN VOWEL SEPARATOR
    *     2000..200A    ; White_Space # Zs   EN QUAD..HAIR SPACE
    *     2028          ; White_Space # Zl   LINE SEPARATOR
    *     2029          ; White_Space # Zp   PARAGRAPH SEPARATOR
@@ -337,6 +368,10 @@ abstract class String implements Comparable<String>, Pattern {
    *     3000          ; White_Space # Zs   IDEOGRAPHIC SPACE
    *
    *     FEFF          ; BOM                ZERO WIDTH NO_BREAK SPACE
+   * ```
+   * Some later versions of Unicode do not include U+0085 as a whitespace
+   * character. Whether it is trimmed depends on the Unicode version
+   * used by the system.
    */
   String trim();
 
@@ -610,11 +645,11 @@ class Runes extends Iterable<int> {
   final String string;
   Runes(this.string);
 
-  RuneIterator get iterator => new RuneIterator(string);
+  RuneIterator get iterator => RuneIterator(string);
 
   int get last {
     if (string.length == 0) {
-      throw new StateError('No elements.');
+      throw StateError('No elements.');
     }
     int length = string.length;
     int code = string.codeUnitAt(length - 1);
@@ -639,9 +674,10 @@ int _combineSurrogatePair(int start, int end) {
   return 0x10000 + ((start & 0x3FF) << 10) + (end & 0x3FF);
 }
 
-/** [Iterator] for reading runes (integer Unicode code points) out of a Dart
-  * string.
-  */
+/**
+ * [Iterator] for reading runes (integer Unicode code points) out of a Dart
+ * string.
+ */
 class RuneIterator implements BidirectionalIterator<int> {
   /** String being iterated. */
   final String string;
@@ -652,10 +688,10 @@ class RuneIterator implements BidirectionalIterator<int> {
   /**
    * Current code point.
    *
-   * If the iterator has hit either end, the [_currentCodePoint] is null
+   * If the iterator has hit either end, the [_currentCodePoint] is -1
    * and [: _position == _nextPosition :].
    */
-  int _currentCodePoint;
+  int _currentCodePoint = -1;
 
   /** Create an iterator positioned at the beginning of the string. */
   RuneIterator(String string)
@@ -687,16 +723,16 @@ class RuneIterator implements BidirectionalIterator<int> {
         index < string.length &&
         _isLeadSurrogate(string.codeUnitAt(index - 1)) &&
         _isTrailSurrogate(string.codeUnitAt(index))) {
-      throw new ArgumentError('Index inside surrogate pair: $index');
+      throw ArgumentError('Index inside surrogate pair: $index');
     }
   }
 
   /**
    * Returns the starting position of the current rune in the string.
    *
-   * Returns null if the [current] rune is null.
+   * Returns -1 if there is no current rune ([current] is -1).
    */
-  int get rawIndex => (_position != _nextPosition) ? _position : null;
+  int get rawIndex => (_position != _nextPosition) ? _position : -1;
 
   /**
    * Resets the iterator to the rune at the specified index of the string.
@@ -727,18 +763,21 @@ class RuneIterator implements BidirectionalIterator<int> {
     RangeError.checkValueInInterval(rawIndex, 0, string.length, "rawIndex");
     _checkSplitSurrogate(rawIndex);
     _position = _nextPosition = rawIndex;
-    _currentCodePoint = null;
+    _currentCodePoint = -1;
   }
 
-  /** The rune (integer Unicode code point) starting at the current position in
-   *  the string.
+  /**
+   * The rune (integer Unicode code point) starting at the current position in
+   * the string.
+   *
+   * If there is no current rune, the value -1 is used instead.
    */
   int get current => _currentCodePoint;
 
   /**
    * The number of code units comprising the current rune.
    *
-   * Returns zero if there is no current rune ([current] is null).
+   * Returns zero if there is no current rune ([current] is -1).
    */
   int get currentSize => _nextPosition - _position;
 
@@ -746,12 +785,12 @@ class RuneIterator implements BidirectionalIterator<int> {
    * A string containing the current rune.
    *
    * For runes outside the basic multilingual plane, this will be
-   * a String of length 2, containing two code units.
+   * a [String] of length 2, containing two code units.
    *
-   * Returns null if [current] is null.
+   * Returns an empty string if there is no current rune ([current] is -1).
    */
   String get currentAsString {
-    if (_position == _nextPosition) return null;
+    if (_position == _nextPosition) return "";
     if (_position + 1 == _nextPosition) return string[_position];
     return string.substring(_position, _nextPosition);
   }
@@ -759,7 +798,7 @@ class RuneIterator implements BidirectionalIterator<int> {
   bool moveNext() {
     _position = _nextPosition;
     if (_position == string.length) {
-      _currentCodePoint = null;
+      _currentCodePoint = -1;
       return false;
     }
     int codeUnit = string.codeUnitAt(_position);
@@ -780,7 +819,7 @@ class RuneIterator implements BidirectionalIterator<int> {
   bool movePrevious() {
     _nextPosition = _position;
     if (_position == 0) {
-      _currentCodePoint = null;
+      _currentCodePoint = -1;
       return false;
     }
     int position = _position - 1;

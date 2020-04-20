@@ -73,10 +73,9 @@ class MyStringConversionSink extends StringConversionSinkBase {
   }
 }
 
-String encode(Object o) {
+String encode(Object? o) {
   var result;
-  var encoder = new JsonEncoder();
-  ChunkedConversionSink stringSink =
+  ChunkedConversionSink<String> stringSink =
       new MyStringConversionSink((x) => result = x);
   var objectSink = new JsonEncoder().startChunkedConversion(stringSink);
   objectSink.add(o);
@@ -84,10 +83,10 @@ String encode(Object o) {
   return result;
 }
 
-String encode2(Object o) {
+String encode2(Object? o) {
   var result;
   var encoder = new JsonEncoder();
-  ChunkedConversionSink stringSink =
+  ChunkedConversionSink<String> stringSink =
       new StringConversionSink.withCallback((x) => result = x);
   var objectSink = encoder.startChunkedConversion(stringSink);
   objectSink.add(o);

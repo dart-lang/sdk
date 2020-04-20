@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method f(core::List<dynamic>* x) → core::bool* {
+  return x.{core::Iterable::expand}<dynamic>((dynamic y) → core::Iterable<dynamic>* {
+    return y.split(",") as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+  }).{core::Iterable::any}((dynamic y) → core::bool* => y.{core::Object::==}("z"));
+}
+static method main() → dynamic {}

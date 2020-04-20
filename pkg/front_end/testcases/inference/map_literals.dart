@@ -6,7 +6,7 @@
 library test;
 
 test1() {
-  var /*@type=Map<int, String>*/ x = /*@typeArgs=int, String*/ {1: 'x', 2: 'y'};
+  var /*@ type=Map<int*, String*>* */ x = /*@ typeArgs=int*, String* */ {1: 'x', 2: 'y'};
   x /*@target=Map::[]=*/ [3] = 'z';
   x /*@target=Map::[]=*/ [
       /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
@@ -17,7 +17,7 @@ test1() {
 }
 
 test2() {
-  var /*@type=Map<num, Pattern>*/ x = /*@typeArgs=num, Pattern*/ {
+  var /*@ type=Map<num*, Pattern*>* */ x = /*@ typeArgs=num*, Pattern* */ {
     1: 'x',
     2: 'y',
     3.0: new RegExp('.')

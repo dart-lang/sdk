@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/base/libraries_specification.dart';
-import 'package:front_end/src/fasta/uri_translator_impl.dart';
-import 'package:package_config/packages.dart';
+import 'package:front_end/src/fasta/uri_translator.dart';
+import 'package:package_config/package_config.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,14 +16,14 @@ main() {
 
 @reflectiveTest
 class UriTranslatorImplTest {
-  UriTranslatorImpl translator = new UriTranslatorImpl(
+  UriTranslator translator = new UriTranslator(
       new TargetLibrariesSpecification('vm', {
         'core': new LibraryInfo('core',
             Uri.parse('org-dartlang-test:///sdk/core/core.dart'), const []),
         'math': new LibraryInfo('core',
             Uri.parse('org-dartlang-test:///sdk/math/math.dart'), const []),
       }),
-      Packages.noPackages);
+      PackageConfig.empty);
 
   void test_isPlatformImplementation() {
     bool isPlatform(String uriStr) {
@@ -40,8 +40,7 @@ class UriTranslatorImplTest {
   void test_translate_dart() {
     expect(translator.translate(Uri.parse('dart:core')),
         Uri.parse('org-dartlang-test:///sdk/core/core.dart'));
-    expect(translator.translate(Uri.parse('dart:core/string.dart')),
-        Uri.parse('org-dartlang-test:///sdk/core/string.dart'));
+    expect(translator.translate(Uri.parse('dart:core/string.dart')), null);
 
     expect(translator.translate(Uri.parse('dart:math')),
         Uri.parse('org-dartlang-test:///sdk/math/math.dart'));

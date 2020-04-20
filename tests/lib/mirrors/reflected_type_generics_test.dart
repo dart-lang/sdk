@@ -4,7 +4,6 @@
 
 library test.reflected_type_generics_test;
 
-@MirrorsUsed(targets: "test.reflected_type_generics_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -27,7 +26,7 @@ class F<G> {}
 
 typedef bool Predicate<T>(T arg);
 
-class FBounded<S extends FBounded> {}
+class FBounded<S extends FBounded<S>> {}
 
 class Helper<T> {
   Type get param => T;
@@ -44,7 +43,7 @@ main() {
   expectReflectedType(reflectType(D, [P]), new D<P>().runtimeType);
   expectReflectedType(reflectType(E, [P]), new E<P>().runtimeType);
   expectReflectedType(
-      reflectType(FBounded, [FBounded]), new FBounded<FBounded>().runtimeType);
+      reflectType(FBounded, [new FBounded<Never>().runtimeType]), new FBounded<FBounded<Never>>().runtimeType);
 
   var predicateHelper = new Helper<Predicate<P>>();
   expectReflectedType(reflectType(Predicate, [P]), predicateHelper.param); //# 01: ok
@@ -75,10 +74,11 @@ main() {
   Expect.throws(() => reflectType(B, [P]), (e) => e is Error, //            //# 05: ok
       "Should throw an ArgumentError for non-generic class extending " //   //# 05: continued
       "generic one"); //                                                    //# 05: continued
-  Expect.throws(
+/*  Expect.throws(
       () => reflectType(A, ["non-type"]),
       (e) => e is ArgumentError && e.invalidValue is List,
-      "Should throw an ArgumentError when any of type arguments is not a Type");
+      "Should throw an ArgumentError when any of type arguments is not a
+      Type");*/
   Expect.throws( //                                                                //# 06: ok
       () => reflectType(A, [P, B]), //                                              //# 06: continued
       (e) => e is ArgumentError && e.invalidValue is List, //                       //# 06: continued
@@ -94,6 +94,6 @@ main() {
 
   // Instantiation of a generic class preserves type information:
   ClassMirror m = reflectType(A, [P]) as ClassMirror;
-  var instance = m.newInstance(const Symbol(""), []).reflectee;
+  var instance = m.newInstance(Symbol.empty, []).reflectee;
   Expect.equals(new A<P>().runtimeType, instance.runtimeType);
 }

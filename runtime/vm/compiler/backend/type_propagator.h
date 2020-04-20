@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_TYPE_PROPAGATOR_H_
 #define RUNTIME_VM_COMPILER_BACKEND_TYPE_PROPAGATOR_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
 
@@ -33,6 +37,8 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   virtual void VisitCheckNull(CheckNullInstr* instr);
   virtual void VisitGuardFieldClass(GuardFieldClassInstr* instr);
   virtual void VisitAssertAssignable(AssertAssignableInstr* instr);
+  virtual void VisitAssertBoolean(AssertBooleanInstr* instr);
+  virtual void VisitAssertSubtype(AssertSubtypeInstr* instr);
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
   virtual void VisitPolymorphicInstanceCall(
       PolymorphicInstanceCallInstr* instr);
@@ -51,6 +57,9 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
 
   // Mark definition as having given class id in all dominated instructions.
   void SetCid(Definition* value, intptr_t cid);
+
+  // Grow type array up to new index.
+  void GrowTypes(intptr_t up_to);
 
   // Ensures that redefinition with more accurate type is inserted after given
   // instruction.

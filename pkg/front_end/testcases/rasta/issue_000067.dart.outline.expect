@@ -2,28 +2,30 @@ library;
 import self as self;
 import "dart:core" as core;
 
+import "package:expect/expect.dart";
+
 class A extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::A::foo];
-  constructor •() → void
+  constructor •() → self::A*
     ;
-  static factory foo() → self::A
+  static factory foo() → self::A*
     let dynamic #redirecting_factory = self::C::bar in invalid-expression;
-  method m() → core::int
+  method m() → core::int*
     ;
 }
 class C extends self::A {
   static field dynamic _redirecting# = <dynamic>[self::C::bar];
-  constructor •() → void
+  constructor •() → self::C*
     ;
-  static factory bar() → self::C
+  static factory bar() → self::C*
     let dynamic #redirecting_factory = self::D::• in invalid-expression;
-  method m() → core::int
+  method m() → core::int*
     ;
 }
 class D extends self::C {
-  default constructor •() → void
+  synthetic constructor •() → self::D*
     ;
-  method m() → core::int
+  method m() → core::int*
     ;
 }
 static method main() → dynamic

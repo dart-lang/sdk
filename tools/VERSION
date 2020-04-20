@@ -23,9 +23,17 @@
 #  * Making cherry-picks to stable channel
 #     - increase PATCH by 1
 #
+#  * Making a change to the ABI:
+#     - increase ABI_VERSION by 1
+#
+#  * Deprecating an old ABI version:
+#     - increase OLDEST_SUPPORTED_ABI_VERSION to the version that is supported.
+#
 CHANNEL be
 MAJOR 2
-MINOR 0
+MINOR 9
 PATCH 0
 PRERELEASE 0
 PRERELEASE_PATCH 0
+ABI_VERSION 32
+OLDEST_SUPPORTED_ABI_VERSION 32

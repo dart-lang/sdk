@@ -33,7 +33,7 @@ main() {
 testAll(List values) {
   var uri =
       new Uri(scheme: "foo", path: "bar", queryParameters: {"baz": values});
-  var list = uri.queryParametersAll["baz"];
+  var list = uri.queryParametersAll["baz"]!;
   Expect.listEquals(values, list);
 }
 
@@ -41,11 +41,11 @@ testParse(query, results) {
   var uri = new Uri(scheme: "foo", path: "bar", query: query);
   var params = uri.queryParametersAll;
   for (var k in results.keys) {
-    Expect.listEquals(results[k], params[k]);
+    Expect.listEquals(results[k], params[k]!);
   }
   uri = new Uri(scheme: "foo", path: "bar", queryParameters: results);
   params = uri.queryParametersAll;
   for (var k in results.keys) {
-    Expect.listEquals(results[k], params[k]);
+    Expect.listEquals(results[k], params[k]!);
   }
 }

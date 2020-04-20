@@ -2,30 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
+
 library MandelIsolateTest;
 
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:math';
-import 'package:unittest/unittest.dart';
-import "remote_unittest_helper.dart";
+
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
 
 const TERMINATION_MESSAGE = -1;
 const N = 100;
 const ISOLATES = 20;
 
 void main([args, port]) {
-  if (testRemote(main, port)) return;
-  // Test is really slow in debug builds of the VM.
-  var configuration = unittestConfiguration;
-  configuration.timeout = const Duration(seconds: 480);
-  test("Render Mandelbrot in parallel", () {
-    final state = new MandelbrotState();
-    state._validated.future.then(expectAsync((result) {
-      expect(result, isTrue);
-    }));
-    for (int i = 0; i < min(ISOLATES, N); i++) state.startClient(i);
+  final state = new MandelbrotState();
+  asyncStart();
+  state._validated.future.then((result) {
+    Expect.isTrue(result);
+    asyncEnd();
   });
+  for (int i = 0; i < min(ISOLATES, N); i++) state.startClient(i);
 }
 
 class MandelbrotState {
@@ -107,8 +107,8 @@ class LineProcessorClient {
   void processLine(int y) {
     ReceivePort reply = new ReceivePort();
     _port.send([y, reply.sendPort]);
-    reply.first.then((List<int> message) {
-      _state.notifyProcessedLine(this, y, message);
+    reply.first.then((message) {
+      _state.notifyProcessedLine(this, y, message as List<int>);
     });
   }
 

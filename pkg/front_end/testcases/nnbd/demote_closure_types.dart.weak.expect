@@ -1,0 +1,20 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/demote_closure_types.dart:8:17: Error: A value of type 'T' can't be assigned to a variable of type 'String'.
+//     String s = f();
+//                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method method<T extends core::Object? = dynamic>(self::method::T% a, self::method::T% b) → dynamic {
+  if(a is{ForNonNullableByDefault} core::String) {
+    () → self::method::T% f = () → self::method::T% => a{self::method::T% & core::String /* '%' & '!' = '!' */};
+    core::String s = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/demote_closure_types.dart:8:17: Error: A value of type 'T' can't be assigned to a variable of type 'String'.
+    String s = f();
+                ^" in f.call() as{TypeError,ForNonNullableByDefault} core::String;
+  }
+}
+static method main() → dynamic {}

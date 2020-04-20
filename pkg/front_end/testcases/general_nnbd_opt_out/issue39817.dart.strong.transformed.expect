@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → dynamic {
+  core::Null? _null;
+  {
+    core::Iterator<core::Null?>* :sync-for-iterator = _null.{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      dynamic i = :sync-for-iterator.{core::Iterator::current};
+      {}
+    }
+  }
+  ;
+}
+static method main() → dynamic {}

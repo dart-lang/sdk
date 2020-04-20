@@ -1,0 +1,38 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $compiler == dart2js ]
+Language/Expressions/Null/instance_of_class_null_t01: Skip # dart:mirrors not supported https://github.com/dart-lang/co19/issues/522.
+Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign
+Language/Metadata/before*: Skip # dart:mirrors not supported https://github.com/dart-lang/co19/issues/523.
+LayoutTests/*: Skip # These tests are going to be removed.
+LibTest/io/*: SkipByDesign # dart:io not supported.
+LibTest/isolate/*: SkipByDesign # dart:isolate not supported.
+WebPlatformTest/*: Skip # These tests are going to be removed.
+
+[ $compiler == dart2js && $runtime == d8 ]
+LayoutTests/*: SkipByDesign # d8 is not a browser
+LibTest/html/*: SkipByDesign # d8 is not a browser
+WebPlatformTest/*: SkipByDesign # d8 is not a browser
+
+[ $compiler == dart2js && $runtime == d8 && $host_checked ]
+LibTest/collection/ListBase/ListBase_class_A01_t04: Slow, Pass
+LibTest/collection/ListBase/ListBase_class_A01_t05: Slow, Pass
+LibTest/collection/ListBase/ListBase_class_A01_t06: Slow, Pass
+LibTest/collection/ListMixin/ListMixin_class_A01_t04: Slow, Pass
+LibTest/collection/ListMixin/ListMixin_class_A01_t05: Slow, Pass
+LibTest/collection/ListMixin/ListMixin_class_A01_t06: Slow, Pass
+LibTest/core/List/List_class_A01_t05: Slow, Pass
+LibTest/core/List/List_class_A01_t06: Slow, Pass
+
+[ $compiler == dart2js && $runtime == ie11 ]
+LibTest/collection/ListBase/ListBase_class_A01_t04: SkipSlow # slow babeljs transformation
+LibTest/collection/ListBase/ListBase_class_A01_t05: SkipSlow # slow babeljs transformation
+LibTest/collection/ListBase/ListBase_class_A01_t06: SkipSlow # slow babeljs transformation
+LibTest/collection/ListMixin/ListMixin_class_A01_t04: SkipSlow # slow babeljs transformation
+LibTest/collection/ListMixin/ListMixin_class_A01_t05: SkipSlow # slow babeljs transformation
+LibTest/collection/ListMixin/ListMixin_class_A01_t06: SkipSlow # slow babeljs transformation
+LibTest/core/List/List_class_A01_t04: SkipSlow # slow babeljs transformation
+LibTest/core/List/List_class_A01_t05: SkipSlow # slow babeljs transformation
+LibTest/core/List/List_class_A01_t06: SkipSlow # slow babeljs transformation

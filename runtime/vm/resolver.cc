@@ -69,32 +69,65 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(Zone* zone,
     THR_Print("ResolveDynamic '%s' for class %s\n", function_name.ToCString(),
               String::Handle(zone, cls.Name()).ToCString());
   }
+  Function& function = Function::Handle(zone);
+
+  String& demangled = String::Handle(zone);
 
   const bool is_getter = Field::IsGetterName(function_name);
-  String& field_name = String::Handle(zone);
   if (is_getter) {
-    field_name ^= Field::NameFromGetter(function_name);
+    demangled = Field::NameFromGetter(function_name);
+  }
+
+  if (Function::IsDynamicInvocationForwarderName(function_name)) {
+    demangled = Function::DemangleDynamicInvocationForwarderName(function_name);
+#ifdef DART_PRECOMPILED_RUNTIME
+    // In precompiled mode, the non-dynamic version of the function may be
+    // tree-shaken away, so can't necessarily resolve the demanged name.
+    while (!cls.IsNull()) {
+      function = cls.GetInvocationDispatcher(
+          function_name, Array::null_array(),
+          RawFunction::kDynamicInvocationForwarder, /*create_if_absent=*/false);
+      if (!function.IsNull()) break;
+      cls = cls.SuperClass();
+    }
+    // Some functions don't require dynamic invocation forwarders, for example
+    // if there are no parameters or all the parameters are marked
+    // `generic-covariant` (meaning there's no work for the dynamic invocation
+    // forwarder to do, see `kernel::DynamicInvocationForwarder`). For these
+    // functions, we won't have built a `dyn:` version, but it's safe to just
+    // return the original version directly.
+    return !function.IsNull() ? function.raw()
+                              : ResolveDynamicAnyArgs(zone, receiver_class,
+                                                      demangled, allow_add);
+#else
+    function =
+        ResolveDynamicAnyArgs(zone, receiver_class, demangled, allow_add);
+    return function.IsNull() ? function.raw()
+                             : function.GetDynamicInvocationForwarder(
+                                   function_name, allow_add);
+#endif
   }
 
   // Now look for an instance function whose name matches function_name
   // in the class.
-  Function& function = Function::Handle(zone);
   while (!cls.IsNull()) {
-    function ^= cls.LookupDynamicFunction(function_name);
+    function = cls.LookupDynamicFunction(function_name);
     if (!function.IsNull()) {
       return function.raw();
     }
     // Getter invocation might actually be a method extraction.
-    if (FLAG_lazy_dispatchers) {
-      if (is_getter && function.IsNull()) {
-        function ^= cls.LookupDynamicFunction(field_name);
-        if (!function.IsNull() && allow_add) {
+    if (is_getter && function.IsNull()) {
+      function = cls.LookupDynamicFunction(demangled);
+      if (!function.IsNull()) {
+        if (allow_add && FLAG_lazy_dispatchers) {
           // We were looking for the getter but found a method with the same
           // name. Create a method extractor and return it.
           // The extractor does not exist yet, so using GetMethodExtractor is
           // not necessary here.
-          function ^= function.CreateMethodExtractor(function_name);
+          function = function.CreateMethodExtractor(function_name);
           return function.raw();
+        } else {
+          return Function::null();
         }
       }
     }
@@ -176,37 +209,6 @@ RawFunction* Resolver::ResolveStatic(const Class& cls,
       }
       THR_Print("ResolveStatic error '%s': %s.\n", function_name.ToCString(),
                 error_message.ToCString());
-    }
-    return Function::null();
-  }
-  return function.raw();
-}
-
-RawFunction* Resolver::ResolveStaticAllowPrivate(const Class& cls,
-                                                 const String& function_name,
-                                                 intptr_t type_args_len,
-                                                 intptr_t num_arguments,
-                                                 const Array& argument_names) {
-  ASSERT(!cls.IsNull());
-  if (FLAG_trace_resolving) {
-    THR_Print("ResolveStaticAllowPrivate '%s'\n", function_name.ToCString());
-  }
-  const Function& function =
-      Function::Handle(cls.LookupStaticFunctionAllowPrivate(function_name));
-  if (function.IsNull() ||
-      !function.AreValidArguments(type_args_len, num_arguments, argument_names,
-                                  NULL)) {
-    // Return a null function to signal to the upper levels to throw a
-    // resolution error or maybe throw the error right here.
-    if (FLAG_trace_resolving) {
-      String& error_message = String::Handle(String::New("function not found"));
-      if (!function.IsNull()) {
-        // Obtain more detailed error message.
-        function.AreValidArguments(type_args_len, num_arguments, argument_names,
-                                   &error_message);
-      }
-      THR_Print("ResolveStaticAllowPrivate error '%s': %s.\n",
-                function_name.ToCString(), error_message.ToCString());
     }
     return Function::null();
   }

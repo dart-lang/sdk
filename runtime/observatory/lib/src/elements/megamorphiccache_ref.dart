@@ -10,7 +10,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class MegamorphicCacheRefElement extends HtmlElement implements Renderable {
+class MegamorphicCacheRefElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<MegamorphicCacheRefElement>('megamorphic-cache-ref');
 
@@ -30,14 +30,14 @@ class MegamorphicCacheRefElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(cache != null);
-    MegamorphicCacheRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    MegamorphicCacheRefElement e = new MegamorphicCacheRefElement.created();
+    e._r = new RenderingScheduler<MegamorphicCacheRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._cache = cache;
     return e;
   }
 
-  MegamorphicCacheRefElement.created() : super.created();
+  MegamorphicCacheRefElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -49,13 +49,13 @@ class MegamorphicCacheRefElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new AnchorElement(href: Uris.inspect(_isolate, object: _cache))
-        ..children = [
+        ..children = <Element>[
           new SpanElement()
             ..classes = ['emphasize']
             ..text = 'MegarmorphicCache',

@@ -2,5 +2,7 @@
 win_toolchain.json
 
 # Pulled Debian wheezy sysroots
-linux/debian_wheezy_amd64-sysroot
-linux/debian_wheezy_i386-sysroot
+linux/debian_jessie_arm-sysroot
+linux/debian_jessie_arm64-sysroot
+linux/debian_jessie_amd64-sysroot
+linux/debian_jessie_i386-sysroot

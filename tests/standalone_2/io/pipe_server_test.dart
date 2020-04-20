@@ -1,6 +1,9 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
 //
 // OtherResources=readline_test1.dat
 //
@@ -45,13 +48,13 @@ class PipeServerGame {
     void connectHandler() {
       String srcFileName = getDataFilename("readline_test1.dat");
       Stream fileInput = new File(srcFileName).openRead();
-      fileInput.pipe(_socket).then((_) {
+      fileInput.cast<List<int>>().pipe(_socket).then((_) {
         var tempDir = Directory.systemTemp.createTempSync('dart_pipe_server');
         var dstFileName = tempDir.path + "/readline_test1.dat";
         var dstFile = new File(dstFileName);
         dstFile.createSync();
         var fileOutput = dstFile.openWrite();
-        _socket.pipe(fileOutput).then((_) {
+        _socket.cast<List<int>>().pipe(fileOutput).then((_) {
           // Check that the resulting file is equal to the initial
           // file.
           bool result = compareFileContent(srcFileName, dstFileName);
@@ -97,7 +100,8 @@ class PipeServerGame {
   int _messages;
 }
 
-void startPipeServer(SendPort replyPort) {
+void startPipeServer(Object replyPortObj) {
+  SendPort replyPort = replyPortObj;
   var server = new PipeServer();
   server.init().then((port) {
     replyPort.send([port, server.closeSendPort]);
@@ -108,7 +112,7 @@ void startPipeServer(SendPort replyPort) {
 // stream to its output stream.
 class PipeServer extends TestingServer {
   void onConnection(Socket connection) {
-    connection.pipe(connection);
+    connection.cast<List<int>>().pipe(connection);
   }
 }
 

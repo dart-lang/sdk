@@ -32,15 +32,12 @@ void testFromUri() {
 }
 
 void testFromUriUnsupported() {
-  Expect.throws(
-      () =>
-          new Directory.fromUri(Uri.parse('http://localhost:8080/index.html')),
-      (e) => e is UnsupportedError);
-  Expect.throws(
-      () => new Directory.fromUri(Uri.parse('ftp://localhost/tmp/xxx')),
-      (e) => e is UnsupportedError);
-  Expect.throws(() => new Directory.fromUri(Uri.parse('name#fragment')),
-      (e) => e is UnsupportedError);
+  Expect.throwsUnsupportedError(() =>
+      new Directory.fromUri(Uri.parse('http://localhost:8080/index.html')));
+  Expect.throwsUnsupportedError(
+      () => new Directory.fromUri(Uri.parse('ftp://localhost/tmp/xxx')));
+  Expect.throwsUnsupportedError(
+      () => new Directory.fromUri(Uri.parse('name#fragment')));
 }
 
 void main() {

@@ -1,9 +1,12 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// Test write barrier verification mode.
-// VMOptions=--verify_before_gc --verify_after_gc --old_gen_growth_rate=1 --no-background-compilation
+
 // VMOptions=
+// VMOptions=--verify_before_gc
+// VMOptions=--verify_after_gc
+// VMOptions=--verify_before_gc --verify_after_gc
+// VMOptions=--verify_store_buffer
 
 import "package:expect/expect.dart";
 import 'dart:async';
@@ -11,7 +14,7 @@ import 'dart:convert';
 import 'json_unicode_tests.dart';
 import "package:async_helper/async_helper.dart";
 
-final JSON_UTF8 = JSON.fuse<List<int>>(UTF8);
+final jsonUtf8 = json.fuse<List<int>>(utf8);
 
 void expectJsonEquals(o1, o2, [path = "result"]) {
   if (o1 == o2) return;
@@ -40,7 +43,7 @@ Stream<Object> createStream(List<List<int>> chunks) {
     chunks.forEach(controller.add);
     controller.close();
   });
-  return controller.stream.transform(JSON_UTF8.decoder);
+  return controller.stream.transform(jsonUtf8.decoder);
 }
 
 Stream<Object> decode(List<int> bytes) {

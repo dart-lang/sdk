@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,35 +7,27 @@ import 'dart:convert';
 import '../log/log.dart';
 import '../server.dart';
 
-typedef void Writer(StringSink sink);
+typedef Writer = void Function(StringSink sink);
 
-/**
- * A class used to write an HTML page.
- */
+/// A class used to write an HTML page.
 abstract class PageWriter {
-  /**
-   * The object used to escape special HTML characters.
-   */
-  static final HtmlEscape htmlEscape = new HtmlEscape();
+  /// The object used to escape special HTML characters.
+  static final HtmlEscape htmlEscape = HtmlEscape();
 
-  /**
-   * Initialize a newly create page writer.
-   */
+  /// Initialize a newly create page writer.
   PageWriter();
 
-  /**
-   * Return the length of the common prefix for time stamps associated with the
-   * given log [entries].
-   */
+  /// Return the length of the common prefix for time stamps associated with the
+  /// given log [entries].
   int computePrefixLength(List<LogEntry> entries) {
-    int length = entries.length;
+    var length = entries.length;
     if (length < 2) {
       return 0;
     }
-    String firstTime = entries[0].timeStamp.toString();
-    String lastTime = entries[length - 1].timeStamp.toString();
-    int prefixLength = 0;
-    int timeLength = firstTime.length;
+    var firstTime = entries[0].timeStamp.toString();
+    var lastTime = entries[length - 1].timeStamp.toString();
+    var prefixLength = 0;
+    var timeLength = firstTime.length;
     while (prefixLength < timeLength &&
         firstTime.codeUnitAt(prefixLength) ==
             lastTime.codeUnitAt(prefixLength)) {
@@ -44,9 +36,7 @@ abstract class PageWriter {
     return prefixLength;
   }
 
-  /**
-   * Return an escaped version of the given [unsafe] text.
-   */
+  /// Return an escaped version of the given [unsafe] text.
   String escape(String unsafe) {
     // We double escape single quotes because the escaped characters are
     // processed as part of reading the HTML, which means that single quotes
@@ -55,27 +45,21 @@ abstract class PageWriter {
     return htmlEscape.convert(unsafe).replaceAll('&#39;', '&amp;#39;');
   }
 
-  /**
-   * Write the body of the page (without the 'body' tag) to the given [sink].
-   */
+  /// Write the body of the page (without the 'body' tag) to the given [sink].
   void writeBody(StringSink sink);
 
-  /**
-   * Write the given [date] to the given [sink].
-   */
+  /// Write the given [date] to the given [sink].
   void writeDate(StringSink sink, DateTime date) {
-    String isoString = date.toIso8601String();
-    int index = isoString.indexOf('T');
-    String dateString = isoString.substring(0, index);
-    String timeString = isoString.substring(index + 1);
+    var isoString = date.toIso8601String();
+    var index = isoString.indexOf('T');
+    var dateString = isoString.substring(0, index);
+    var timeString = isoString.substring(index + 1);
     sink.write(dateString);
     sink.write(' at ');
     sink.write(timeString);
   }
 
-  /**
-   * Write the body of the page (without the 'body' tag) to the given [sink].
-   */
+  /// Write the body of the page (without the 'body' tag) to the given [sink].
   void writeMenu(StringSink sink) {
     sink.writeln('<div class="menu">');
     sink.write('<a href="${WebServer.logPath}" class="menuItem">Log</a>');
@@ -84,9 +68,7 @@ abstract class PageWriter {
     sink.writeln('</div>');
   }
 
-  /**
-   * Write the contents of the instrumentation log to the given [sink].
-   */
+  /// Write the contents of the instrumentation log to the given [sink].
   void writePage(StringSink sink) {
     sink.writeln('<!DOCTYPE html>');
     sink.writeln('<html lang="en-US">');
@@ -108,18 +90,14 @@ abstract class PageWriter {
     sink.writeln('</html>');
   }
 
-  /**
-   * Write the scripts for the page (without the 'script' tag) to the given
-   * [sink].
-   */
+  /// Write the scripts for the page (without the 'script' tag) to the given
+  /// [sink].
   void writeScripts(StringSink sink) {
     // No common scripts.
   }
 
-  /**
-   * Write the content of the style sheet (without the 'script' tag) for the
-   * page to the given [sink].
-   */
+  /// Write the content of the style sheet (without the 'script' tag) for the
+  /// page to the given [sink].
   void writeStyleSheet(StringSink sink) {
     sink.writeln(r'''
 a {
@@ -205,13 +183,11 @@ th.narrow {
 ''');
   }
 
-  /**
-   * Write to the given [sink] the HTML required to display content in two
-   * columns. The content of the columns will be written by the functions
-   * [writeLeftColumn], [writeCenterColumn] and [writeRightColumn] and will be
-   * contained in 'div' elements with the id's [leftColumnId], [centerColumnId]
-   * and [rightColumnId].
-   */
+  /// Write to the given [sink] the HTML required to display content in two
+  /// columns. The content of the columns will be written by the functions
+  /// [writeLeftColumn], [writeCenterColumn] and [writeRightColumn] and will be
+  /// contained in 'div' elements with the id's [leftColumnId], [centerColumnId]
+  /// and [rightColumnId].
   void writeThreeColumns(
       StringSink sink,
       String leftColumnId,
@@ -241,11 +217,9 @@ th.narrow {
     sink.writeln('</div>');
   }
 
-  /**
-   * Writeto the given [sink] the styles needed by a three column section where
-   * the columns have the ids [leftColumnId], [centerColumnId] and
-   * [rightColumnId].
-   */
+  /// Writeto the given [sink] the styles needed by a three column section where
+  /// the columns have the ids [leftColumnId], [centerColumnId] and
+  /// [rightColumnId].
   void writeThreeColumnStyles(StringSink sink, String leftColumnId,
       String centerColumnId, String rightColumnId) {
     sink.writeln('''
@@ -269,12 +243,10 @@ th.narrow {
 ''');
   }
 
-  /**
-   * Write to the given [sink] the HTML required to display content in two
-   * columns. The content of the columns will be written by the functions
-   * [writeLeftColumn] and [writeRightColumn] and will be contained in 'div'
-   * elements with the id's [leftColumnId] and [rightColumnId].
-   */
+  /// Write to the given [sink] the HTML required to display content in two
+  /// columns. The content of the columns will be written by the functions
+  /// [writeLeftColumn] and [writeRightColumn] and will be contained in 'div'
+  /// elements with the id's [leftColumnId] and [rightColumnId].
   void writeTwoColumns(StringSink sink, String leftColumnId,
       Writer writeLeftColumn, String rightColumnId, Writer writeRightColumn) {
     sink.writeln('<div id="container">');
@@ -293,10 +265,8 @@ th.narrow {
     sink.writeln('</div>');
   }
 
-  /**
-   * Writeto the given [sink] the styles needed by a two column section where
-   * the columns have the ids [leftColumnId] and [rightColumnId].
-   */
+  /// Writeto the given [sink] the styles needed by a two column section where
+  /// the columns have the ids [leftColumnId] and [rightColumnId].
   void writeTwoColumnStyles(
       StringSink sink, String leftColumnId, String rightColumnId) {
     sink.writeln('''

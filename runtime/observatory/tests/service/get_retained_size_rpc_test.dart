@@ -1,35 +1,43 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'test_helper.dart';
 
 class _TestClass {
   _TestClass(this.x, this.y);
+  // Make sure these fields are not removed by the tree shaker.
+  @pragma("vm:entry-point")
   var x;
+  @pragma("vm:entry-point")
   var y;
 }
 
+@pragma("vm:entry-point")
 var myVar;
 
-eval(Isolate isolate, String expression) async {
-  // Silence analyzer.
-  new _TestClass(null, null);
+@pragma("vm:entry-point")
+invoke1() => myVar = new _TestClass(null, null);
+
+@pragma("vm:entry-point")
+invoke2() => myVar = new _TestClass(new _TestClass(null, null), null);
+
+invoke(Isolate isolate, String selector) async {
   Map params = {
     'targetId': isolate.rootLibrary.id,
-    'expression': expression,
+    'selector': selector,
+    'argumentIds': <String>[],
   };
-  return await isolate.invokeRpcNoUpgrade('evaluate', params);
+  return await isolate.invokeRpcNoUpgrade('invoke', params);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     // One instance of _TestClass retained.
-    var evalResult = await eval(isolate, 'myVar = new _TestClass(null, null)');
+    var evalResult = await invoke(isolate, 'invoke1');
     var params = {
       'targetId': evalResult['id'],
     };
@@ -40,8 +48,7 @@ var tests = [
     expect(value1, isPositive);
 
     // Two instances of _TestClass retained.
-    evalResult = await eval(
-        isolate, 'myVar = new _TestClass(new _TestClass(null, null), null)');
+    evalResult = await invoke(isolate, 'invoke2');
     params = {
       'targetId': evalResult['id'],
     };

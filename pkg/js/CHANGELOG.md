@@ -1,3 +1,15 @@
+## 0.6.3
+
+* Added promiseToFuture function.
+
+## 0.6.2
+
+* Improved documentation.
+
+## 0.6.1+1
+
+* Support Dart 2 final release.
+
 ## 0.6.1
 * Add js_util library of utility methods to efficiently manipulate typed
   JavaScript interop objects in cases where the member name is not known

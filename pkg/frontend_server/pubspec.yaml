@@ -1,0 +1,19 @@
+# This package is not intended to be published.
+name: frontend_server
+# version: do-not-upload
+description: A resident kernel compiler
+
+dependencies:
+  build_integration:
+    path: ../build_integration
+  vm:
+    path: ../vm
+  dev_compiler:
+    path: ../dev_compiler
+  front_end: ^0.1.6
+  kernel: ^0.3.6
+  args: ^1.4.4
+  package_config: ^1.9.0
+
+dev_dependencies:
+  test: any

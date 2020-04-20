@@ -4,8 +4,8 @@
 
 // TODO(jmesserly): import from its own package
 import '../js_ast/js_ast.dart';
-
 import 'js_names.dart' show TemporaryId;
+import 'shared_compiler.dart' show YieldFinder;
 
 /// A synthetic `let*` node, similar to that found in Scheme.
 ///
@@ -49,22 +49,23 @@ class MetaLet extends Expression {
   /// This happens multiple times, so ensure the expression form is cached.
   Expression _expression;
 
-  MetaLet(this.variables, this.body, {this.statelessResult: false});
+  MetaLet(this.variables, this.body, {this.statelessResult = false});
 
   /// Returns an expression that ignores the result. This is a cross between
   /// [toExpression] and [toStatement]. Used for C-style for-loop updaters,
   /// which is an expression syntactically, but functions more like a statement.
+  @override
   Expression toVoidExpression() {
     var block = toStatement();
     var s = block.statements;
     if (s.length == 1 && s.first is ExpressionStatement) {
-      ExpressionStatement es = s.first;
-      return es.expression;
+      return (s.first as ExpressionStatement).expression;
     }
 
     return _toInvokedFunction(block);
   }
 
+  @override
   Expression toAssignExpression(Expression left, [String op]) {
     if (left is Identifier) {
       return _simplifyAssignment(left, op: op) ?? _toAssign(left, op);
@@ -79,12 +80,15 @@ class MetaLet extends Expression {
   Expression _toAssign(Expression left, [String op]) {
     var exprs = body.toList();
     exprs.add(exprs.removeLast().toAssignExpression(left, op));
-    return new MetaLet(variables, exprs);
+    return MetaLet(variables, exprs);
   }
 
-  Statement toVariableDeclaration(Identifier name) {
-    var simple = _simplifyAssignment(name, isDeclaration: true);
-    if (simple != null) return simple.toStatement();
+  @override
+  Statement toVariableDeclaration(VariableBinding name) {
+    if (name is Identifier) {
+      var simple = _simplifyAssignment(name, isDeclaration: true);
+      if (simple != null) return simple.toStatement();
+    }
 
     // We can still optimize something like:
     //
@@ -109,13 +113,13 @@ class MetaLet extends Expression {
     var block = toReturn();
     var s = block.statements;
     if (s.length == 1 && s.first is Return) {
-      Return es = s.first;
-      return _expression = es.value;
+      return _expression = (s.first as Return).value;
     }
     // Wrap it in an immediately called function to get in expression context.
     return _expression = _toInvokedFunction(block);
   }
 
+  @override
   Block toStatement() {
     // Skip return value if not used.
     var statements = body.map((e) => e.toStatement()).toList();
@@ -123,6 +127,7 @@ class MetaLet extends Expression {
     return _finishStatement(statements);
   }
 
+  @override
   Block toReturn() {
     var statements = body
         .map((e) => e == body.last ? e.toReturn() : e.toStatement())
@@ -130,7 +135,8 @@ class MetaLet extends Expression {
     return _finishStatement(statements);
   }
 
-  Block toYieldStatement({bool star: false}) {
+  @override
+  Block toYieldStatement({bool star = false}) {
     var statements = body
         .map((e) =>
             e == body.last ? e.toYieldStatement(star: star) : e.toStatement())
@@ -138,18 +144,21 @@ class MetaLet extends Expression {
     return _finishStatement(statements);
   }
 
-  accept(NodeVisitor visitor) {
+  @override
+  T accept<T>(NodeVisitor<T> visitor) {
     // TODO(jmesserly): we special case vistors from js_ast.Template, because it
     // doesn't know about MetaLet. Should we integrate directly?
-    if (visitor is InstantiatorGeneratorVisitor) {
-      return _templateVisitMetaLet(visitor);
-    } else if (visitor is InterpolatedNodeAnalysis) {
-      return visitor.visitNode(this);
+    NodeVisitor v = visitor;
+    if (v is InstantiatorGeneratorVisitor) {
+      return _templateVisitMetaLet(v) as T;
+    } else if (v is InterpolatedNodeAnalysis) {
+      return v.visitNode(this) as T;
     } else {
       return toExpression().accept(visitor);
     }
   }
 
+  @override
   void visitChildren(NodeVisitor visitor) {
     // TODO(jmesserly): we special case vistors from js_ast.Template, because it
     // doesn't know about MetaLet. Should we integrate directly?
@@ -163,6 +172,7 @@ class MetaLet extends Expression {
   }
 
   /// This generates as either a comma expression or a call.
+  @override
   int get precedenceLevel => toExpression().precedenceLevel;
 
   /// Patch to pretend [Template] supports visitMetaLet.
@@ -170,33 +180,35 @@ class MetaLet extends Expression {
     var valueInstantiators = variables.values.map(visitor.visit);
     var bodyInstantiators = body.map(visitor.visit);
 
-    return (args) => new MetaLet(
-        new Map.fromIterables(
-            variables.keys, valueInstantiators.map((i) => i(args))),
+    return (args) => MetaLet(
+        Map.fromIterables(variables.keys,
+            valueInstantiators.map((i) => i(args) as Expression)),
         bodyInstantiators.map((i) => i(args) as Expression).toList(),
         statelessResult: statelessResult);
   }
 
-  Expression _toInvokedFunction(Statement block) {
-    var finder = new _YieldFinder();
+  Expression _toInvokedFunction(Block block) {
+    var finder = YieldFinder();
     block.accept(finder);
     if (!finder.hasYield) {
-      return new Call(new ArrowFun([], block), []);
+      return Call(ArrowFun([], block), []);
     }
     // If we have a yield, it's more tricky. We'll create a `function*`, which
     // we `yield*` to immediately invoke. We also may need to bind this:
-    Expression fn = new Fun([], block, isGenerator: true);
+    Expression fn = Fun([], block, isGenerator: true);
     if (finder.hasThis) fn = js.call('#.bind(this)', fn);
-    return new Yield(new Call(fn, []), star: true);
+    return Yield(Call(fn, []), star: true);
   }
 
   Block _finishStatement(List<Statement> statements) {
     // Visit the tree and count how many times each temp was used.
-    var counter = new _VariableUseCounter();
-    var node = new Block(statements);
+    var counter = _VariableUseCounter();
+    var node = Block(statements);
     node.accept(counter);
     // Also count the init expressions.
-    for (var init in variables.values) init.accept(counter);
+    for (var init in variables.values) {
+      init.accept(counter);
+    }
 
     var initializers = <VariableInitialization>[];
     var substitutions = <MetaLetVariable, Expression>{};
@@ -204,15 +216,15 @@ class MetaLet extends Expression {
       // Since this is let*, subsequent variables can refer to previous ones,
       // so we need to substitute here.
       init = _substitute(init, substitutions);
-      int n = counter.counts[variable];
+      var n = counter.counts[variable];
       if (n == 1) {
         // Replace interpolated exprs with their value, if it only occurs once.
         substitutions[variable] = init;
       } else {
         // Otherwise replace it with a temp, which will be assigned once.
-        var temp = new TemporaryId(variable.displayName);
+        var temp = TemporaryId(variable.displayName);
         substitutions[variable] = temp;
-        initializers.add(new VariableInitialization(temp, init));
+        initializers.add(VariableInitialization(temp, init));
       }
     });
 
@@ -220,10 +232,10 @@ class MetaLet extends Expression {
     node = _substitute(node, substitutions);
     if (initializers.isNotEmpty) {
       var first = initializers[0];
-      node = new Block([
+      node = Block([
         initializers.length == 1
             ? first.value.toVariableDeclaration(first.declaration)
-            : new VariableDeclarationList('let', initializers).toStatement(),
+            : VariableDeclarationList('let', initializers).toStatement(),
         node
       ]);
     }
@@ -244,7 +256,7 @@ class MetaLet extends Expression {
   ///     result = ((_) => _.addAll(result), _.add(2), _)([])
   ///
   MetaLet _simplifyAssignment(Identifier left,
-      {String op, bool isDeclaration: false}) {
+      {String op, bool isDeclaration = false}) {
     // See if the result value is a let* temporary variable.
     var result = body.last;
     if (result is MetaLetVariable && variables.containsKey(result)) {
@@ -252,23 +264,23 @@ class MetaLet extends Expression {
       // would change the assignment order and be an invalid optimization.
       if (!isDeclaration && _IdentFinder.foundIn(left.name, body)) return null;
 
-      var vars = new Map<MetaLetVariable, Expression>.from(variables);
+      var vars = Map<MetaLetVariable, Expression>.from(variables);
       var value = vars.remove(result);
       Expression assign;
       if (isDeclaration) {
         // Technically, putting one of these in a comma expression is not
         // legal. However when isDeclaration is true, toStatement will be
         // called immediately on the MetaLet, which results in legal JS.
-        assign = new VariableDeclarationList(
-            'let', [new VariableInitialization(left, value)]);
+        assign = VariableDeclarationList(
+            'let', [VariableInitialization(left, value)]);
       } else {
         assign = value.toAssignExpression(left, op);
       }
 
       assert(body.isNotEmpty);
-      Binary newBody = new Expression.binary([assign]..addAll(body), ',');
+      var newBody = Expression.binary([assign, ...body], ',') as Binary;
       newBody = _substitute(newBody, {result: left});
-      return new MetaLet(vars, newBody.commaToExpressionList(),
+      return MetaLet(vars, newBody.commaToExpressionList(),
           statelessResult: statelessResult);
     }
     return null;
@@ -276,17 +288,16 @@ class MetaLet extends Expression {
 }
 
 /// Similar to [Template.instantiate] but works with free variables.
-Node _substitute(Node tree, Map<MetaLetVariable, Expression> substitutions) {
-  var generator = new InstantiatorGeneratorVisitor(/*forceCopy:*/ false);
+T _substitute<T extends Node>(
+    T tree, Map<MetaLetVariable, Expression> substitutions) {
+  var generator = InstantiatorGeneratorVisitor(/*forceCopy:*/ false);
   var instantiator = generator.compile(tree);
-  var nodes = new List<MetaLetVariable>.from(generator
-      .analysis.containsInterpolatedNode
-      .where((n) => n is MetaLetVariable));
+  var nodes = List<MetaLetVariable>.from(
+      generator.analysis.containsInterpolatedNode.whereType<MetaLetVariable>());
   if (nodes.isEmpty) return tree;
 
-  return instantiator(new Map.fromIterable(nodes,
-      key: (v) => (v as MetaLetVariable).nameOrPosition,
-      value: (v) => substitutions[v] ?? v));
+  return instantiator(
+      {for (var v in nodes) v.nameOrPosition: substitutions[v] ?? v}) as T;
 }
 
 /// A temporary variable used in a [MetaLet].
@@ -314,24 +325,24 @@ class MetaLetVariable extends InterpolatedExpression {
         super(displayName + '@${++_uniqueId}');
 }
 
-class _VariableUseCounter extends BaseVisitor {
+class _VariableUseCounter extends BaseVisitor<void> {
   final counts = <MetaLetVariable, int>{};
   @override
-  visitInterpolatedExpression(InterpolatedExpression node) {
+  void visitInterpolatedExpression(InterpolatedExpression node) {
     if (node is MetaLetVariable) {
-      int n = counts[node];
+      var n = counts[node];
       counts[node] = n == null ? 1 : n + 1;
     }
   }
 }
 
-class _IdentFinder extends BaseVisitor {
+class _IdentFinder extends BaseVisitor<void> {
   final String name;
   bool found = false;
   _IdentFinder(this.name);
 
   static bool foundIn(String name, List<Node> body) {
-    var finder = new _IdentFinder(name);
+    var finder = _IdentFinder(name);
     for (var expr in body) {
       expr.accept(finder);
       if (finder.found) return true;
@@ -340,43 +351,12 @@ class _IdentFinder extends BaseVisitor {
   }
 
   @override
-  visitIdentifier(Identifier node) {
+  void visitIdentifier(Identifier node) {
     if (node.name == name) found = true;
   }
 
   @override
-  visitNode(Node node) {
+  void visitNode(Node node) {
     if (!found) super.visitNode(node);
-  }
-}
-
-class _YieldFinder extends BaseVisitor {
-  bool hasYield = false;
-  bool hasThis = false;
-  bool _nestedFunction = false;
-
-  @override
-  visitThis(This node) {
-    hasThis = true;
-  }
-
-  @override
-  visitFunctionExpression(FunctionExpression node) {
-    var savedNested = _nestedFunction;
-    _nestedFunction = true;
-    super.visitFunctionExpression(node);
-    _nestedFunction = savedNested;
-  }
-
-  @override
-  visitYield(Yield node) {
-    if (!_nestedFunction) hasYield = true;
-    super.visitYield(node);
-  }
-
-  @override
-  visitNode(Node node) {
-    if (hasYield && hasThis) return; // found both, nothing more to do.
-    super.visitNode(node);
   }
 }

@@ -5,15 +5,16 @@
 library timer_test;
 
 import 'dart:async';
-import 'package:unittest/unittest.dart';
+
+import 'package:async_helper/async_minitest.dart';
 
 const int STARTTIMEOUT = 1050;
 const int DECREASE = 200;
 const int ITERATIONS = 5;
 
 Stopwatch stopwatch = new Stopwatch();
-int timeout;
-int iteration;
+int timeout = STARTTIMEOUT;
+int iteration = 0;
 
 // Some browsers (Firefox and IE so far) can trigger too early. Add a safety
 // margin. We use identical(1, 1.0) as an easy way to know if the test is
@@ -34,8 +35,6 @@ void timeoutHandler() {
 
 main() {
   test("timeout test", () {
-    iteration = 0;
-    timeout = STARTTIMEOUT;
     Duration duration = new Duration(milliseconds: timeout);
     stopwatch.start();
     new Timer(duration, expectAsync(timeoutHandler));

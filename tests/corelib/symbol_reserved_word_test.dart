@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 void checkBadSymbol(String s) {
-  Expect.throws(() => new Symbol(s), (e) => e is ArgumentError);
+  Expect.throwsArgumentError(() => new Symbol(s));
 }
 
 main() {
@@ -18,7 +18,7 @@ main() {
 
   // However, it is not allowed as a part of a symbol name.
   x = const Symbol('void.foo'); // //# 04: compile-time error
-  Expect.throws(() { x = #void.foo; }, (e) => e is NoSuchMethodError); //# 05: static type warning
+  x = #void.foo; //                //# 05: compile-time error
   checkBadSymbol('void.foo'); //   //# 06: ok
   x = const Symbol('foo.void'); // //# 07: compile-time error
   x = #foo.void; //                //# 08: compile-time error
@@ -37,6 +37,7 @@ main() {
   x = const Symbol('else'); //     //# 10: continued
   x = const Symbol('enum'); //     //# 10: continued
   x = const Symbol('extends'); //  //# 10: continued
+  x = #assert; //                  //# 11: compile-time error
   x = const Symbol('false'); //    //# 10: continued
   x = const Symbol('final'); //    //# 10: continued
   x = const Symbol('finally'); //  //# 10: continued
@@ -57,7 +58,6 @@ main() {
   x = const Symbol('var'); //      //# 10: continued
   x = const Symbol('while'); //    //# 10: continued
   x = const Symbol('with'); //     //# 10: continued
-  x = #assert; //                  //# 11: compile-time error
   x = #break; //                   //# 11: continued
   x = #case; //                    //# 11: continued
   x = #catch; //                   //# 11: continued

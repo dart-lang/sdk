@@ -34,7 +34,7 @@ main() {
   var stackTrace = currentStackTrace;
   var events = [];
   var controller;
-  controller = new StreamController(onListen: () {
+  controller = new StreamController<int>(onListen: () {
     controller.add(499);
     controller.addError(42, stackTrace);
     controller.close();

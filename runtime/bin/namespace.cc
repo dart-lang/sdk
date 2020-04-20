@@ -119,7 +119,7 @@ Dart_Handle Namespace::GetNativeNamespaceArgument(Dart_NativeArguments args,
                                                   Namespace** namespc) {
   Dart_Handle namespc_obj = Dart_GetNativeArgument(args, index);
   if (Dart_IsError(namespc_obj)) {
-    Dart_PropagateError(namespc_obj);
+    return namespc_obj;
   }
   DEBUG_ASSERT(IsNamespace(namespc_obj));
 
@@ -128,6 +128,10 @@ Dart_Handle Namespace::GetNativeNamespaceArgument(Dart_NativeArguments args,
                                   reinterpret_cast<intptr_t*>(namespc));
   if (Dart_IsError(result)) {
     return result;
+  }
+  if (*namespc == NULL) {
+    return Dart_NewUnhandledExceptionError(
+        DartUtils::NewInternalError("No native peer"));
   }
   return Dart_Null();
 }

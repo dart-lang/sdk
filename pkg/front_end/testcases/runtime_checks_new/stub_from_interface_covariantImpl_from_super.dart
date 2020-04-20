@@ -6,15 +6,13 @@
 library test;
 
 class B<T> {
-  void f(T /*@covariance=genericInterface, genericImpl*/ x, int y) {}
+  void f(T x, int y) {}
 }
 
 abstract class I {
   void f(int x, Object y);
 }
 
-class
-/*@forwardingStub=abstract void f(covariance=(genericImpl) int x, covariance=() Object y)*/
-    C extends B<int> implements I {}
+abstract class C extends B<int> implements I {}
 
 void main() {}

@@ -12,16 +12,14 @@ import 'package:observatory/src/elements/inbound_references.dart';
 import 'package:observatory/src/elements/retaining_path.dart';
 import 'package:observatory/src/elements/sentinel_value.dart';
 import 'package:observatory/src/elements/strongly_reachable_instances.dart';
-import 'package:observatory/src/elements/top_retaining_instances.dart';
 import 'package:observatory/utils.dart';
 
-class ClassInstancesElement extends HtmlElement implements Renderable {
+class ClassInstancesElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<ClassInstancesElement>('class-instances', dependencies: const [
     ClassRefElement.tag,
     InboundReferencesElement.tag,
     RetainingPathElement.tag,
-    TopRetainingInstancesElement.tag
   ]);
 
   RenderingScheduler<ClassInstancesElement> _r;
@@ -33,7 +31,6 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
   M.RetainedSizeRepository _retainedSizes;
   M.ReachableSizeRepository _reachableSizes;
   M.StronglyReachableInstancesRepository _stronglyReachableInstances;
-  M.TopRetainingInstancesRepository _topRetainingInstances;
   M.ObjectRepository _objects;
   M.Guarded<M.Instance> _retainedSize = null;
   bool _loadingRetainedBytes = false;
@@ -49,7 +46,6 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
       M.RetainedSizeRepository retainedSizes,
       M.ReachableSizeRepository reachableSizes,
       M.StronglyReachableInstancesRepository stronglyReachableInstances,
-      M.TopRetainingInstancesRepository topRetainingInstances,
       M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(isolate != null);
@@ -57,21 +53,19 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
     assert(retainedSizes != null);
     assert(reachableSizes != null);
     assert(stronglyReachableInstances != null);
-    assert(topRetainingInstances != null);
     assert(objects != null);
-    ClassInstancesElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    ClassInstancesElement e = new ClassInstancesElement.created();
+    e._r = new RenderingScheduler<ClassInstancesElement>(e, queue: queue);
     e._isolate = isolate;
     e._cls = cls;
     e._retainedSizes = retainedSizes;
     e._reachableSizes = reachableSizes;
     e._stronglyReachableInstances = stronglyReachableInstances;
-    e._topRetainingInstances = topRetainingInstances;
     e._objects = objects;
     return e;
   }
 
-  ClassInstancesElement.created() : super.created();
+  ClassInstancesElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -83,32 +77,25 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   StronglyReachableInstancesElement _strong;
-  TopRetainingInstancesElement _topRetainig;
 
   void render() {
     _strong = _strong ??
         new StronglyReachableInstancesElement(
             _isolate, _cls, _stronglyReachableInstances, _objects,
             queue: _r.queue);
-    _topRetainig = _topRetainig ??
-        new TopRetainingInstancesElement(
-            _isolate, _cls, _topRetainingInstances, _objects,
-            queue: _r.queue);
-    final instanceCount =
-        _cls.newSpace.current.instances + _cls.oldSpace.current.instances;
-    final size = Utils
-        .formatSize(_cls.newSpace.current.bytes + _cls.oldSpace.current.bytes);
-    children = [
+    final instanceCount = _cls.newSpace.instances + _cls.oldSpace.instances;
+    final size = Utils.formatSize(_cls.newSpace.size + _cls.oldSpace.size);
+    children = <Element>[
       new DivElement()
         ..classes = ['memberList']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = const ['memberItem']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = const ['memberName']
                 ..text = 'currently allocated',
@@ -118,19 +105,19 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
             ],
           new DivElement()
             ..classes = ['memberItem']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'strongly reachable ',
               new DivElement()
                 ..classes = ['memberValue']
-                ..children = [_strong]
+                ..children = <Element>[_strong.element]
             ],
           new DivElement()
             ..classes = ['memberItem']
             ..title = 'Space reachable from this object, '
                 'excluding class references'
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'Reachable size ',
@@ -142,7 +129,7 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
             ..classes = ['memberItem']
             ..title = 'Space that would be reclaimed if references to this '
                 'object were replaced with null'
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'Retained size ',
@@ -150,16 +137,6 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
                 ..classes = ['memberValue']
                 ..children = _createRetainedSizeValue()
             ],
-          new DivElement()
-            ..classes = ['memberItem']
-            ..children = [
-              new DivElement()
-                ..classes = ['memberName']
-                ..text = 'toplist by retained memory ',
-              new DivElement()
-                ..classes = ['memberValue']
-                ..children = [_topRetainig]
-            ]
         ]
     ];
   }
@@ -168,12 +145,13 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
     final content = <Element>[];
     if (_reachableSize != null) {
       if (_reachableSize.isSentinel) {
-        content.add(new SentinelValueElement(_reachableSize.asSentinel,
-            queue: _r.queue));
+        content.add(
+            new SentinelValueElement(_reachableSize.asSentinel, queue: _r.queue)
+                .element);
       } else {
         content.add(new SpanElement()
-          ..text = Utils
-              .formatSize(int.parse(_reachableSize.asValue.valueAsString)));
+          ..text = Utils.formatSize(
+              int.parse(_reachableSize.asValue.valueAsString)));
       }
     } else {
       content.add(new SpanElement()..text = '...');
@@ -196,8 +174,9 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
     final content = <Element>[];
     if (_retainedSize != null) {
       if (_retainedSize.isSentinel) {
-        content.add(new SentinelValueElement(_retainedSize.asSentinel,
-            queue: _r.queue));
+        content.add(
+            new SentinelValueElement(_retainedSize.asSentinel, queue: _r.queue)
+                .element);
       } else {
         content.add(new SpanElement()
           ..text =

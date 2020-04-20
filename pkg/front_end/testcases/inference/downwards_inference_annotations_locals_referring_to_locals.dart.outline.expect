@@ -2,8 +2,9 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-class Foo extends core::Object {
-  const constructor •(dynamic l) → void
+class Foo extends core::Object /*hasConstConstructor*/  {
+  const constructor •(dynamic l) → self::Foo*
+    : super core::Object::•()
     ;
 }
 static method test() → void

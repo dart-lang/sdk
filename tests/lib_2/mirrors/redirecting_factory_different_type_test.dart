@@ -4,7 +4,6 @@
 
 library mirror_test;
 
-@MirrorsUsed(targets: "mirror_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -12,6 +11,8 @@ import 'package:expect/expect.dart';
 class A {
   factory A(
     String //# 01: compile-time error
+    var    //# 02: compile-time error
+    int    //# none: ok
       x) = B;
   A._();
 }
@@ -26,7 +27,7 @@ class B extends A {
 main() {
   var cm = reflectClass(A);
   // The type-annotation in A's constructor must be ignored.
-  var b = cm.newInstance(const Symbol(''), [499]).reflectee;
+  var b = cm.newInstance(Symbol.empty, [499]).reflectee;
   Expect.equals(499, b.x);
-  cm.newInstance(const Symbol(''), ["str"]); //# 02: ok
+  Expect.throwsTypeError(() => cm.newInstance(Symbol.empty, ["str"]));
 }

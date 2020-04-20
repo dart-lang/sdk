@@ -12,7 +12,7 @@ class A {
   A(this.x);
 }
 
-toEncodable(A a) => {"A": a.x};
+Object? toEncodable(dynamic a) => {"A": (a as A).x};
 reviver(key, value) {
   if (value is Map && value.length == 1 && value["A"] != null) {
     return new A(value["A"]);

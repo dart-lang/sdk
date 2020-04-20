@@ -17,10 +17,10 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/lockers.h"
-#include "bin/log.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
+#include "platform/syslog.h"
 
 #include "platform/utils.h"
 
@@ -116,10 +116,9 @@ Handle::Handle(intptr_t handle)
       read_thread_handle_(NULL),
       read_thread_starting_(false),
       read_thread_finished_(false),
-      monitor_(new Monitor()) {}
+      monitor_() {}
 
 Handle::~Handle() {
-  delete monitor_;
 }
 
 bool Handle::CreateCompletionPort(HANDLE completion_port) {
@@ -133,7 +132,7 @@ bool Handle::CreateCompletionPort(HANDLE completion_port) {
 }
 
 void Handle::Close() {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   if (!SupportsOverlappedIO()) {
     // If the handle uses synchronous I/O (e.g. stdin), cancel any pending
     // operation before closing the handle, so the read thread is not blocked.
@@ -166,17 +165,15 @@ void Handle::DoClose() {
 }
 
 bool Handle::HasPendingRead() {
-  MonitorLocker ml(monitor_);
-  return pending_read_ != NULL;
+  return pending_read_ != nullptr;
 }
 
 bool Handle::HasPendingWrite() {
-  MonitorLocker ml(monitor_);
-  return pending_write_ != NULL;
+  return pending_write_ != nullptr;
 }
 
 void Handle::WaitForReadThreadStarted() {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   while (read_thread_starting_) {
     ml.Wait();
   }
@@ -185,7 +182,7 @@ void Handle::WaitForReadThreadStarted() {
 void Handle::WaitForReadThreadFinished() {
   HANDLE to_join = NULL;
   {
-    MonitorLocker ml(monitor_);
+    MonitorLocker ml(&monitor_);
     if (read_thread_id_ != Thread::kInvalidThreadId) {
       while (!read_thread_finished_) {
         ml.Wait();
@@ -207,11 +204,11 @@ void Handle::WaitForReadThreadFinished() {
 void Handle::ReadComplete(OverlappedBuffer* buffer) {
   WaitForReadThreadStarted();
   {
-    MonitorLocker ml(monitor_);
+    MonitorLocker ml(&monitor_);
     // Currently only one outstanding read at the time.
     ASSERT(pending_read_ == buffer);
     ASSERT(data_ready_ == NULL);
-    if (!IsClosing() && !buffer->IsEmpty()) {
+    if (!IsClosing()) {
       data_ready_ = pending_read_;
     } else {
       OverlappedBuffer::DisposeBuffer(buffer);
@@ -226,7 +223,7 @@ void Handle::RecvFromComplete(OverlappedBuffer* buffer) {
 }
 
 void Handle::WriteComplete(OverlappedBuffer* buffer) {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   // Currently only one outstanding write at the time.
   ASSERT(pending_write_ == buffer);
   OverlappedBuffer::DisposeBuffer(buffer);
@@ -239,7 +236,7 @@ static void ReadFileThread(uword args) {
 }
 
 void Handle::NotifyReadThreadStarted() {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   ASSERT(read_thread_starting_);
   ASSERT(read_thread_id_ == Thread::kInvalidThreadId);
   read_thread_id_ = Thread::GetCurrentThreadId();
@@ -249,7 +246,7 @@ void Handle::NotifyReadThreadStarted() {
 }
 
 void Handle::NotifyReadThreadFinished() {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   ASSERT(!read_thread_finished_);
   ASSERT(read_thread_id_ != Thread::kInvalidThreadId);
   read_thread_finished_ = true;
@@ -258,7 +255,7 @@ void Handle::NotifyReadThreadFinished() {
 
 void Handle::ReadSyncCompleteAsync() {
   NotifyReadThreadStarted();
-  ASSERT(pending_read_ != NULL);
+  ASSERT(HasPendingRead());
   ASSERT(pending_read_->GetBufferSize() >= kStdOverlappedBufferSize);
 
   DWORD buffer_size = pending_read_->GetBufferSize();
@@ -283,7 +280,7 @@ void Handle::ReadSyncCompleteAsync() {
 
 bool Handle::IssueRead() {
   ASSERT(type_ != kListenSocket);
-  ASSERT(pending_read_ == NULL);
+  ASSERT(!HasPendingRead());
   OverlappedBuffer* buffer = OverlappedBuffer::AllocateReadBuffer(kBufferSize);
   if (SupportsOverlappedIO()) {
     ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
@@ -303,7 +300,8 @@ bool Handle::IssueRead() {
     // Completing asynchronously through thread.
     pending_read_ = buffer;
     read_thread_starting_ = true;
-    int result = Thread::Start(ReadFileThread, reinterpret_cast<uword>(this));
+    int result = Thread::Start("dart:io ReadFile", ReadFileThread,
+                               reinterpret_cast<uword>(this));
     if (result != 0) {
       FATAL1("Failed to start read file thread %d", result);
     }
@@ -316,10 +314,10 @@ bool Handle::IssueRecvFrom() {
 }
 
 bool Handle::IssueWrite() {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   ASSERT(type_ != kListenSocket);
   ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
-  ASSERT(pending_write_ != NULL);
+  ASSERT(HasPendingWrite());
   ASSERT(pending_write_->operation() == OverlappedBuffer::kWrite);
 
   OverlappedBuffer* buffer = pending_write_;
@@ -366,7 +364,7 @@ void Handle::HandleIssueError() {
 }
 
 void FileHandle::EnsureInitialized(EventHandlerImplementation* event_handler) {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   event_handler_ = event_handler;
   if (completion_port_ == INVALID_HANDLE_VALUE) {
     if (SupportsOverlappedIO()) {
@@ -387,7 +385,7 @@ bool FileHandle::IsClosed() {
 
 void DirectoryWatchHandle::EnsureInitialized(
     EventHandlerImplementation* event_handler) {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   event_handler_ = event_handler;
   if (completion_port_ == INVALID_HANDLE_VALUE) {
     CreateCompletionPort(event_handler_->completion_port());
@@ -395,34 +393,38 @@ void DirectoryWatchHandle::EnsureInitialized(
 }
 
 bool DirectoryWatchHandle::IsClosed() {
-  return IsClosing() && (pending_read_ == NULL);
+  return IsClosing() && !HasPendingRead();
 }
 
 bool DirectoryWatchHandle::IssueRead() {
   // It may have been started before, as we start the directory-handler when
   // we create it.
-  if ((pending_read_ != NULL) || (data_ready_ != NULL)) {
+  if (HasPendingRead() || (data_ready_ != NULL)) {
     return true;
   }
   OverlappedBuffer* buffer = OverlappedBuffer::AllocateReadBuffer(kBufferSize);
+  // Set up pending_read_ before ReadDirectoryChangesW because it might be
+  // needed in ReadComplete invoked on event loop thread right away if data is
+  // also ready right away.
+  pending_read_ = buffer;
   ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
   BOOL ok = ReadDirectoryChangesW(handle_, buffer->GetBufferStart(),
                                   buffer->GetBufferSize(), recursive_, events_,
                                   NULL, buffer->GetCleanOverlapped(), NULL);
   if (ok || (GetLastError() == ERROR_IO_PENDING)) {
     // Completing asynchronously.
-    pending_read_ = buffer;
     return true;
   }
+  pending_read_ = nullptr;
   OverlappedBuffer::DisposeBuffer(buffer);
   return false;
 }
 
 void DirectoryWatchHandle::Stop() {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   // Stop the outstanding read, so we can close the handle.
 
-  if (pending_read_ != NULL) {
+  if (HasPendingRead()) {
     CancelIoEx(handle(), pending_read_->GetCleanOverlapped());
     // Don't dispose of the buffer, as it will still complete (with length 0).
   }
@@ -451,7 +453,7 @@ bool ListenSocket::LoadAcceptEx() {
 }
 
 bool ListenSocket::IssueAccept() {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
 
   // For AcceptEx there needs to be buffer storage for address
   // information for two addresses (local and remote address). The
@@ -486,7 +488,7 @@ bool ListenSocket::IssueAccept() {
 
 void ListenSocket::AcceptComplete(OverlappedBuffer* buffer,
                                   HANDLE completion_port) {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   if (!IsClosing()) {
     // Update the accepted socket to support the full range of API calls.
     SOCKET s = socket();
@@ -557,12 +559,12 @@ void ListenSocket::DoClose() {
 }
 
 bool ListenSocket::CanAccept() {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   return accepted_head_ != NULL;
 }
 
 ClientSocket* ListenSocket::Accept() {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
 
   ClientSocket* result = NULL;
 
@@ -590,7 +592,7 @@ ClientSocket* ListenSocket::Accept() {
 
 void ListenSocket::EnsureInitialized(
     EventHandlerImplementation* event_handler) {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   if (AcceptEx_ == NULL) {
     ASSERT(completion_port_ == INVALID_HANDLE_VALUE);
     ASSERT(event_handler_ == NULL);
@@ -605,16 +607,19 @@ bool ListenSocket::IsClosed() {
 }
 
 intptr_t Handle::Available() {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   if (data_ready_ == NULL) {
     return 0;
   }
-  ASSERT(!data_ready_->IsEmpty());
   return data_ready_->GetRemainingLength();
 }
 
+bool Handle::DataReady() {
+  return data_ready_ != NULL;
+}
+
 intptr_t Handle::Read(void* buffer, intptr_t num_bytes) {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   if (data_ready_ == NULL) {
     return 0;
   }
@@ -634,7 +639,7 @@ intptr_t Handle::RecvFrom(void* buffer,
                           intptr_t num_bytes,
                           struct sockaddr* sa,
                           socklen_t sa_len) {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   if (data_ready_ == NULL) {
     return 0;
   }
@@ -659,8 +664,8 @@ intptr_t Handle::RecvFrom(void* buffer,
 }
 
 intptr_t Handle::Write(const void* buffer, intptr_t num_bytes) {
-  MonitorLocker ml(monitor_);
-  if (pending_write_ != NULL) {
+  MonitorLocker ml(&monitor_);
+  if (HasPendingWrite()) {
     return 0;
   }
   if (num_bytes > kBufferSize) {
@@ -683,8 +688,8 @@ intptr_t Handle::SendTo(const void* buffer,
                         intptr_t num_bytes,
                         struct sockaddr* sa,
                         socklen_t sa_len) {
-  MonitorLocker ml(monitor_);
-  if (pending_write_ != NULL) {
+  MonitorLocker ml(&monitor_);
+  if (HasPendingWrite()) {
     return 0;
   }
   if (num_bytes > kBufferSize) {
@@ -719,7 +724,7 @@ static void WriteFileThread(uword args) {
 }
 
 void StdHandle::RunWriteLoop() {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   write_thread_running_ = true;
   thread_id_ = Thread::GetCurrentThreadId();
   thread_handle_ = OpenThread(SYNCHRONIZE, false, thread_id_);
@@ -728,7 +733,7 @@ void StdHandle::RunWriteLoop() {
 
   while (write_thread_running_) {
     ml.Wait(Monitor::kNoTimeout);
-    if (pending_write_ != NULL) {
+    if (HasPendingWrite()) {
       // We woke up and had a pending write. Execute it.
       WriteSyncCompleteAsync();
     }
@@ -739,7 +744,7 @@ void StdHandle::RunWriteLoop() {
 }
 
 void StdHandle::WriteSyncCompleteAsync() {
-  ASSERT(pending_write_ != NULL);
+  ASSERT(HasPendingWrite());
 
   DWORD bytes_written = -1;
   BOOL ok = WriteFile(handle_, pending_write_->GetBufferStart(),
@@ -758,8 +763,8 @@ void StdHandle::WriteSyncCompleteAsync() {
 }
 
 intptr_t StdHandle::Write(const void* buffer, intptr_t num_bytes) {
-  MonitorLocker ml(monitor_);
-  if (pending_write_ != NULL) {
+  MonitorLocker ml(&monitor_);
+  if (HasPendingWrite()) {
     return 0;
   }
   if (num_bytes > kBufferSize) {
@@ -783,7 +788,8 @@ intptr_t StdHandle::Write(const void* buffer, intptr_t num_bytes) {
     // the events it puts on the IO completion port. The reference is
     // Released by DeleteIfClosed.
     Retain();
-    int result = Thread::Start(WriteFileThread, reinterpret_cast<uword>(this));
+    int result = Thread::Start("dart:io WriteFile", WriteFileThread,
+                               reinterpret_cast<uword>(this));
     if (result != 0) {
       FATAL1("Failed to start write file thread %d", result);
     }
@@ -803,7 +809,7 @@ intptr_t StdHandle::Write(const void* buffer, intptr_t num_bytes) {
 
 void StdHandle::DoClose() {
   {
-    MonitorLocker ml(monitor_);
+    MonitorLocker ml(&monitor_);
     if (write_thread_exists_) {
       write_thread_running_ = false;
       ml.Notify();
@@ -859,9 +865,9 @@ void ClientSocket::DoClose() {
 }
 
 bool ClientSocket::IssueRead() {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
-  ASSERT(pending_read_ == NULL);
+  ASSERT(!HasPendingRead());
 
   // TODO(sgjesse): Use a MTU value here. Only the loopback adapter can
   // handle 64k datagrams.
@@ -882,9 +888,9 @@ bool ClientSocket::IssueRead() {
 }
 
 bool ClientSocket::IssueWrite() {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
-  ASSERT(pending_write_ != NULL);
+  ASSERT(HasPendingWrite());
   ASSERT(pending_write_->operation() == OverlappedBuffer::kWrite);
 
   int rc = WSASend(socket(), pending_write_->GetWASBUF(), 1, NULL, 0,
@@ -950,7 +956,7 @@ void ClientSocket::ConnectComplete(OverlappedBuffer* buffer) {
 
 void ClientSocket::EnsureInitialized(
     EventHandlerImplementation* event_handler) {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   if (completion_port_ == INVALID_HANDLE_VALUE) {
     ASSERT(event_handler_ == NULL);
     event_handler_ = event_handler;
@@ -959,13 +965,13 @@ void ClientSocket::EnsureInitialized(
 }
 
 bool ClientSocket::IsClosed() {
-  return connected_ && closed_;
+  return connected_ && closed_ && !HasPendingRead() && !HasPendingWrite();
 }
 
 bool DatagramSocket::IssueSendTo(struct sockaddr* sa, socklen_t sa_len) {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
-  ASSERT(pending_write_ != NULL);
+  ASSERT(HasPendingWrite());
   ASSERT(pending_write_->operation() == OverlappedBuffer::kSendTo);
 
   int rc = WSASendTo(socket(), pending_write_->GetWASBUF(), 1, NULL, 0, sa,
@@ -980,9 +986,9 @@ bool DatagramSocket::IssueSendTo(struct sockaddr* sa, socklen_t sa_len) {
 }
 
 bool DatagramSocket::IssueRecvFrom() {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
-  ASSERT(pending_read_ == NULL);
+  ASSERT(!HasPendingRead());
 
   OverlappedBuffer* buffer =
       OverlappedBuffer::AllocateRecvFromBuffer(kMaxUDPPackageLength);
@@ -1004,7 +1010,7 @@ bool DatagramSocket::IssueRecvFrom() {
 
 void DatagramSocket::EnsureInitialized(
     EventHandlerImplementation* event_handler) {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   if (completion_port_ == INVALID_HANDLE_VALUE) {
     ASSERT(event_handler_ == NULL);
     event_handler_ = event_handler;
@@ -1045,7 +1051,7 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
       ListenSocket* listen_socket = reinterpret_cast<ListenSocket*>(handle);
       listen_socket->EnsureInitialized(this);
 
-      MonitorLocker ml(listen_socket->monitor_);
+      MonitorLocker ml(&listen_socket->monitor_);
 
       if (IS_COMMAND(msg->data, kReturnTokenCommand)) {
         listen_socket->ReturnTokens(msg->dart_port, TOKEN_COUNT(msg->data));
@@ -1056,7 +1062,9 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
         listen_socket->SetPortAndMask(msg->dart_port, events);
         TryDispatchingPendingAccepts(listen_socket);
       } else if (IS_COMMAND(msg->data, kCloseCommand)) {
-        listen_socket->RemovePort(msg->dart_port);
+        if (msg->dart_port != ILLEGAL_PORT) {
+          listen_socket->RemovePort(msg->dart_port);
+        }
 
         // We only close the socket file descriptor from the operating
         // system if there are no other dart socket objects which
@@ -1066,16 +1074,16 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
         if (registry->CloseSafe(socket)) {
           ASSERT(listen_socket->Mask() == 0);
           listen_socket->Close();
-          socket->SetClosedFd();
+          socket->CloseFd();
         }
-
+        socket->SetClosedFd();
         DartUtils::PostInt32(msg->dart_port, 1 << kDestroyedEvent);
       } else {
         UNREACHABLE();
       }
     } else {
       handle->EnsureInitialized(this);
-      MonitorLocker ml(handle->monitor_);
+      MonitorLocker ml(&handle->monitor_);
 
       if (IS_COMMAND(msg->data, kReturnTokenCommand)) {
         handle->ReturnTokens(msg->dart_port, TOKEN_COUNT(msg->data));
@@ -1102,7 +1110,8 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
         // If out events (can write events) have been requested, and there
         // are no pending writes, meaning any writes are already complete,
         // post an out event immediately.
-        if ((events & (1 << kOutEvent)) != 0) {
+        intptr_t out_event_mask = 1 << kOutEvent;
+        if ((events & out_event_mask) != 0) {
           if (!handle->HasPendingWrite()) {
             if (handle->is_client_socket()) {
               if (reinterpret_cast<ClientSocket*>(handle)->is_connected()) {
@@ -1113,11 +1122,22 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
                 }
               }
             } else {
-              intptr_t event_mask = 1 << kOutEvent;
-              if ((handle->Mask() & event_mask) != 0) {
-                Dart_Port port = handle->NextNotifyDartPort(event_mask);
-                DartUtils::PostInt32(port, event_mask);
+              if ((handle->Mask() & out_event_mask) != 0) {
+                Dart_Port port = handle->NextNotifyDartPort(out_event_mask);
+                DartUtils::PostInt32(port, out_event_mask);
               }
+            }
+          }
+        }
+        // Similarly, if in events (can read events) have been requested, and
+        // there is pending data available, post an in event immediately.
+        intptr_t in_event_mask = 1 << kInEvent;
+        if ((events & in_event_mask) != 0) {
+          if (handle->data_ready_ != nullptr &&
+              !handle->data_ready_->IsEmpty()) {
+            if ((handle->Mask() & in_event_mask) != 0) {
+              Dart_Port port = handle->NextNotifyDartPort(in_event_mask);
+              DartUtils::PostInt32(port, in_event_mask);
             }
           }
         }
@@ -1134,7 +1154,7 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
       } else if (IS_COMMAND(msg->data, kCloseCommand)) {
         handle->SetPortAndMask(msg->dart_port, 0);
         handle->Close();
-        socket->SetClosedFd();
+        socket->CloseFd();
       } else {
         UNREACHABLE();
       }
@@ -1149,7 +1169,7 @@ void EventHandlerImplementation::HandleAccept(ListenSocket* listen_socket,
   listen_socket->AcceptComplete(buffer, completion_port_);
 
   {
-    MonitorLocker ml(listen_socket->monitor_);
+    MonitorLocker ml(&listen_socket->monitor_);
     TryDispatchingPendingAccepts(listen_socket);
   }
 
@@ -1344,7 +1364,6 @@ void EventHandlerImplementation::HandleCompletionOrInterrupt(
 }
 
 EventHandlerImplementation::EventHandlerImplementation() {
-  startup_monitor_ = new Monitor();
   handler_thread_id_ = Thread::kInvalidThreadId;
   handler_thread_handle_ = NULL;
   completion_port_ =
@@ -1360,7 +1379,6 @@ EventHandlerImplementation::~EventHandlerImplementation() {
   DWORD res = WaitForSingleObject(handler_thread_handle_, INFINITE);
   CloseHandle(handler_thread_handle_);
   ASSERT(res == WAIT_OBJECT_0);
-  delete startup_monitor_;
   CloseHandle(completion_port_);
 }
 
@@ -1393,7 +1411,7 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
   ASSERT(handler_impl != NULL);
 
   {
-    MonitorLocker ml(handler_impl->startup_monitor_);
+    MonitorLocker ml(&handler_impl->startup_monitor_);
     handler_impl->handler_thread_id_ = Thread::GetCurrentThreadId();
     handler_impl->handler_thread_handle_ =
         OpenThread(SYNCHRONIZE, false, handler_impl->handler_thread_id_);
@@ -1418,7 +1436,7 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
     if (!ok && (overlapped == NULL)) {
       if (GetLastError() == ERROR_ABANDONED_WAIT_0) {
         // The completion port should never be closed.
-        Log::Print("Completion port closed\n");
+        Syslog::Print("Completion port closed\n");
         UNREACHABLE();
       } else {
         // Timeout is signalled by false result and NULL in overlapped.
@@ -1460,22 +1478,17 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
 }
 
 void EventHandlerImplementation::Start(EventHandler* handler) {
-  int result =
-      Thread::Start(EventHandlerEntry, reinterpret_cast<uword>(handler));
+  int result = Thread::Start("dart:io EventHandler", EventHandlerEntry,
+                             reinterpret_cast<uword>(handler));
   if (result != 0) {
     FATAL1("Failed to start event handler thread %d", result);
   }
 
   {
-    MonitorLocker ml(startup_monitor_);
+    MonitorLocker ml(&startup_monitor_);
     while (handler_thread_id_ == Thread::kInvalidThreadId) {
       ml.Wait();
     }
-  }
-
-  // Initialize Winsock32
-  if (!SocketBase::Initialize()) {
-    FATAL("Failed to initialized Windows sockets");
   }
 }
 

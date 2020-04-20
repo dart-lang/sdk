@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Test that loading of a library (with top-level functions only) can
 // be deferred.
 
@@ -10,7 +12,7 @@ import 'package:expect/expect.dart';
 
 import 'deferred_function_library.dart' deferred as lib;
 
-isError(e) => e is Error;
+bool isError(e) => e is Error;
 
 readFoo() {
   return lib.foo;

@@ -9,7 +9,7 @@ class C<T> {
   C(T x());
 }
 
-var /*@topType=C<dynamic>*/ v = new C<dynamic>(/*@returnType=int*/ () {
+var v = new C<dynamic>(/*@ returnType=int* */ () {
   return 1;
 });
 

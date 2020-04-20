@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.async;
 
 class _BroadcastStream<T> extends _ControllerStream<T> {
@@ -57,11 +59,7 @@ class _BroadcastSubscription<T> extends _ControllerSubscription<T> {
 }
 
 abstract class _BroadcastStreamController<T>
-    implements
-        StreamController<T>,
-        _StreamControllerLifecycle<T>,
-        _EventSink<T>,
-        _EventDispatch<T> {
+    implements _StreamControllerBase<T> {
   static const int _STATE_INITIAL = 0;
   static const int _STATE_EVENT_ID = 1;
   static const int _STATE_FIRING = 2;
@@ -206,7 +204,7 @@ abstract class _BroadcastStreamController<T>
   StreamSubscription<T> _subscribe(void onData(T data), Function onError,
       void onDone(), bool cancelOnError) {
     if (isClosed) {
-      if (onDone == null) onDone = _nullDoneHandler;
+      onDone ??= _nullDoneHandler;
       return new _DoneStreamSubscription<T>(onDone);
     }
     StreamSubscription<T> subscription = new _BroadcastSubscription<T>(
@@ -255,13 +253,14 @@ abstract class _BroadcastStreamController<T>
   }
 
   void addError(Object error, [StackTrace stackTrace]) {
-    error = _nonNullError(error);
+    ArgumentError.checkNotNull(error, "error");
     if (!_mayAddEvent) throw _addEventError();
     AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
     if (replacement != null) {
       error = _nonNullError(replacement.error);
       stackTrace = replacement.stackTrace;
     }
+    stackTrace ??= AsyncError.defaultStackTrace(error);
     _sendError(error, stackTrace);
   }
 
@@ -279,10 +278,10 @@ abstract class _BroadcastStreamController<T>
 
   Future get done => _ensureDoneFuture();
 
-  Future addStream(Stream<T> stream, {bool cancelOnError: true}) {
+  Future addStream(Stream<T> stream, {bool cancelOnError}) {
     if (!_mayAddEvent) throw _addEventError();
     _state |= _STATE_ADDSTREAM;
-    _addStreamState = new _AddStreamState(this, stream, cancelOnError);
+    _addStreamState = new _AddStreamState(this, stream, cancelOnError ?? false);
     return _addStreamState.addStreamFuture;
   }
 
@@ -466,9 +465,7 @@ class _AsBroadcastStreamController<T> extends _SyncBroadcastStreamController<T>
   bool get _hasPending => _pending != null && !_pending.isEmpty;
 
   void _addPendingEvent(_DelayedEvent event) {
-    if (_pending == null) {
-      _pending = new _StreamImplEvents<T>();
-    }
+    _pending ??= new _StreamImplEvents<T>();
     _pending.add(event);
   }
 
@@ -484,6 +481,8 @@ class _AsBroadcastStreamController<T> extends _SyncBroadcastStreamController<T>
   }
 
   void addError(Object error, [StackTrace stackTrace]) {
+    ArgumentError.checkNotNull(error, "error");
+    stackTrace ??= AsyncError.defaultStackTrace(error);
     if (!isClosed && _isFiring) {
       _addPendingEvent(new _DelayedError(error, stackTrace));
       return;

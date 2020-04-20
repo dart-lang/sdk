@@ -1,9 +1,10 @@
-# Copyright 2014 The Chromium Authors. All rights reserved.
+# Copyright (c) 2020 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+default_clang_prefix =
+    rebase_path("//buildtools/${host_os}-${host_cpu}/clang/bin", root_build_dir)
+
 declare_args() {
-  # Indicates if the build should use the Chrome-specific plugins for enforcing
-  # coding guidelines, etc. Only used when compiling with Clang.
-  clang_use_chrome_plugins = false
+  clang_prefix = default_clang_prefix
 }

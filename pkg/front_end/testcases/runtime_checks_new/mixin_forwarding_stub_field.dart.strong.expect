@@ -1,69 +1,83 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:51:7: Error: The mixin application class 'C' introduces an erroneous override of 'y'.
+// class C = B with M implements I<int>;
+//       ^
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:48:7: Context: The field 'M.y' has type 'int', which does not match the corresponding type, 'Object', in the overridden setter, 'I.y'.
+//  - 'Object' is from 'dart:core'.
+//   int y;
+//       ^
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:43:12: Context: This is the overridden method ('y').
+//   void set y(covariant Object value);
+//            ^
+//
 import self as self;
 import "dart:core" as core;
 
 class B extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
-  get x() → core::int {
+  get x() → core::int* {
     throw "Should not be reached";
   }
-  set x(core::int value) → void {
+  set x(core::int* value) → void {
     throw "Should not be reached";
   }
-  get y() → core::int {
+  get y() → core::int* {
     throw "Should not be reached";
   }
-  set y(core::int value) → void {
+  set y(core::int* value) → void {
     throw "Should not be reached";
   }
 }
-abstract class I<T extends core::Object> extends core::Object {
-  default constructor •() → void
+abstract class I<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::T*>*
     : super core::Object::•()
     ;
-  abstract get x() → self::I::T;
-  abstract set x(generic-covariant-impl generic-covariant-interface self::I::T value) → void;
-  abstract get y() → core::Object;
-  abstract set y(covariant core::Object value) → void;
+  abstract get x() → self::I::T*;
+  abstract set x(generic-covariant-impl self::I::T* value) → void;
+  abstract get y() → core::Object*;
+  abstract set y(covariant core::Object* value) → void;
 }
 class M extends core::Object {
-  field core::int x = null;
-  field core::int y = null;
-  default constructor •() → void
+  field core::int* x = null;
+  field core::int* y = null;
+  synthetic constructor •() → self::M*
     : super core::Object::•()
     ;
 }
-class C = self::B with self::M implements self::I<core::int> {
-  constructor •() → void
+class C = self::B with self::M implements self::I<core::int*> {
+  synthetic constructor •() → self::C*
     : super self::B::•()
     ;
-  forwarding-stub set y(covariant core::Object value) → void
-    return super.{self::B::y} = value;
-  forwarding-stub set x(generic-covariant-impl core::int _) → void
+  forwarding-stub set x(generic-covariant-impl core::int* _) → void
     return super.{self::B::x} = _;
+  forwarding-stub set y(covariant core::Object* value) → void
+    return super.{self::B::y} = value;
 }
-static method expectTypeError(() → void callback) → void {
+static method expectTypeError(() →* void callback) → void {
   try {
     callback.call();
     throw "Expected TypeError, did not occur";
   }
-  on core::TypeError catch(no-exception-var) {
+  on core::TypeError* catch(no-exception-var) {
   }
 }
-static method expect(core::Object value, core::Object expected) → void {
+static method expect(core::Object* value, core::Object* expected) → void {
   if(!value.{core::Object::==}(expected)) {
     throw "Expected ${expected}, got ${value}";
   }
 }
-static method test(self::I<core::Object> i) → void {
-  self::expectTypeError(() → core::Null {
+static method test(self::I<core::Object*>* i) → void {
+  self::expectTypeError(() → core::Null? {
     i.{self::I::x} = "hello";
   });
   i.{self::I::x} = 1;
   self::expect(i.{self::I::x}, 1);
-  self::expectTypeError(() → core::Null {
+  self::expectTypeError(() → core::Null? {
     i.{self::I::y} = "hello";
   });
   i.{self::I::y} = 2;

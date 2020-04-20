@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import "native_testing.dart";
 import 'dart:_foreign_helper' show JS_INTERCEPTOR_CONSTANT;
 import 'dart:_interceptors'
@@ -81,7 +83,8 @@ expectTypeName(expectedName, s) {
   var m = new RegExp(r"Instance of '(.*)'").firstMatch(s);
   Expect.isNotNull(m);
   var name = m.group(1);
-  Expect.isTrue(expectedName == name || name.length <= 3,
+  Expect.isTrue(
+      expectedName == name || name.length <= 3 || name.startsWith('minified:'),
       "Is '$expectedName' or minified: '$name'");
 }
 

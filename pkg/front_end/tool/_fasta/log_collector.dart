@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show JSON, UTF8;
+import 'dart:convert' show jsonDecode, utf8;
 
 import 'dart:isolate' show RawReceivePort;
 
 import 'dart:io';
 
-import 'package:front_end/src/fasta/deprecated_problems.dart'
-    show defaultServerAddress;
+import 'package:front_end/src/fasta/crash.dart' show defaultServerAddress;
 
 badRequest(HttpRequest request, int status, String message) {
   request.response.statusCode = status;
@@ -32,24 +31,24 @@ badRequest(HttpRequest request, int status, String message) {
 }
 
 collectLog(DateTime time, HttpRequest request) async {
-  String json = await request.transform(UTF8.decoder).join();
+  String json = await request.cast<List<int>>().transform(utf8.decoder).join();
   var data;
   try {
-    data = JSON.decode(json);
+    data = jsonDecode(json);
   } on FormatException catch (e) {
     print(e);
     return badRequest(
-        request, HttpStatus.BAD_REQUEST, "Malformed JSON data: ${e.message}.");
+        request, HttpStatus.badRequest, "Malformed JSON data: ${e.message}.");
   }
   if (data is! Map) {
     return badRequest(
-        request, HttpStatus.BAD_REQUEST, "Malformed JSON data: not a map.");
+        request, HttpStatus.badRequest, "Malformed JSON data: not a map.");
   }
   if (data["type"] != "crash") {
-    return badRequest(request, HttpStatus.BAD_REQUEST,
+    return badRequest(request, HttpStatus.badRequest,
         "Malformed JSON data: type should be 'crash'.");
   }
-  request.response.close();
+  await request.response.close();
   String year = "${time.year}".padLeft(4, "0");
   String month = "${time.month}".padLeft(2, "0");
   String day = "${time.day}".padLeft(2, "0");
@@ -93,16 +92,16 @@ main(List<String> arguments) async {
     throw "Unexpected arguments: ${arguments.join(' ')}.";
   }
   int port = uri.hasPort ? uri.port : 0;
-  var host = uri.host.isEmpty ? InternetAddress.LOOPBACK_IP_V4 : uri.host;
+  var host = uri.host.isEmpty ? InternetAddress.loopbackIPv4 : uri.host;
   HttpServer server = await HttpServer.bind(host, port);
   print("Listening on http://${server.address.host}:${server.port}/");
   await for (HttpRequest request in server) {
     if (request.method != "POST") {
-      badRequest(request, HttpStatus.METHOD_NOT_ALLOWED, "Not allowed.");
+      badRequest(request, HttpStatus.methodNotAllowed, "Not allowed.");
       continue;
     }
     if (request.uri.path != "/") {
-      badRequest(request, HttpStatus.NOT_FOUND, "Not found.");
+      badRequest(request, HttpStatus.notFound, "Not found.");
       continue;
     }
     collectLog(new DateTime.now(), request);

@@ -6,12 +6,12 @@
 library test;
 
 class A implements B {
-  get /*@topType=int*/ x => f();
-  void set x(/*@topType=int*/ value) {}
+  get x => f();
+  void set x(value) {}
 }
 
 class B {
-  var /*@topType=int*/ x = 0;
+  var x = 0;
 }
 
 dynamic f() => null;

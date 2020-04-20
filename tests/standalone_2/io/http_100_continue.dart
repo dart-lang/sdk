@@ -67,7 +67,7 @@ Content-Length: 2\r
 \r
 AB''';
 
-  test(ASCII.encode(r1), 0);
-  test(ASCII.encode(r2), 0);
-  test(ASCII.encode(r3), 2);
+  test(ascii.encode(r1), 0);
+  test(ascii.encode(r2), 0);
+  test(ascii.encode(r3), 2);
 }

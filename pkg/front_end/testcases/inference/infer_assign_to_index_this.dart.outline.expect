@@ -3,40 +3,40 @@ import self as self;
 import "dart:core" as core;
 
 class Index extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::Index*
     ;
 }
 class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::A*
     ;
 }
 class B extends self::A {
-  default constructor •() → void
+  synthetic constructor •() → self::B*
     ;
-  operator +(self::C v) → self::A
+  operator +(self::C* v) → self::A*
     ;
-  operator -(core::int i) → self::B
+  operator -(core::int* i) → self::B*
     ;
-  operator *(self::B v) → self::B
+  operator *(self::B* v) → self::B*
     ;
-  operator &(self::A v) → self::C
+  operator &(self::A* v) → self::C*
     ;
 }
 class C extends self::B {
-  default constructor •() → void
+  synthetic constructor •() → self::C*
     ;
 }
 class Test extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::Test*
     ;
-  operator [](self::Index i) → self::B
+  operator [](self::Index* i) → self::B*
     ;
-  operator []=(self::Index i, self::B v) → void
+  operator []=(self::Index* i, self::B* v) → void
     ;
   method test() → void
     ;
 }
-static method f<T extends core::Object>() → self::f::T
+static method f<T extends core::Object* = dynamic>() → self::f::T*
   ;
 static method main() → dynamic
   ;

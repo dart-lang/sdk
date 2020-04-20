@@ -1,16 +1,18 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart' hide Declaration;
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
+import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,6 +22,8 @@ import 'base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SearchTest);
+    defineReflectiveTests(SearchWithExtensionMethodsTest);
+    defineReflectiveTests(SearchWithNnbdTest);
   });
 }
 
@@ -32,8 +36,9 @@ class ExpectedResult {
   final bool isQualified;
 
   ExpectedResult(this.enclosingElement, this.kind, this.offset, this.length,
-      {this.isResolved: true, this.isQualified: false});
+      {this.isResolved = true, this.isQualified = false});
 
+  @override
   bool operator ==(Object result) {
     return result is SearchResult &&
         result.kind == this.kind &&
@@ -46,7 +51,7 @@ class ExpectedResult {
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write("ExpectedResult(kind=");
     buffer.write(kind);
     buffer.write(", enclosingElement=");
@@ -72,7 +77,7 @@ class SearchTest extends BaseAnalysisDriverTest {
   CompilationUnitElement testUnitElement;
   LibraryElement testLibraryElement;
 
-  test_classMembers() async {
+  test_classMembers_class() async {
     await _resolveTestUnit('''
 class A {
   test() {}
@@ -96,6 +101,25 @@ class B {
 import 'not-dart.txt';
 ''');
     expect(await driver.search.classMembers('test'), isEmpty);
+  }
+
+  test_classMembers_mixin() async {
+    await _resolveTestUnit('''
+mixin A {
+  test() {}
+}
+mixin B {
+  int test = 1;
+  int testTwo = 2;
+  main() {
+    int test = 3;
+  }
+}
+''');
+    ClassElement a = _findElement('A');
+    ClassElement b = _findElement('B');
+    expect(await driver.search.classMembers('test'),
+        unorderedEquals([a.methods[0], b.fields[0]]));
   }
 
   test_searchMemberReferences_qualified_resolved() async {
@@ -178,8 +202,8 @@ Random v2;
     ClassElement randomElement;
     {
       String randomPath = sdk.mapDartUri('dart:math').fullName;
-      AnalysisResult result = await driver.getResult(randomPath);
-      randomElement = result.unit.element.getType('Random');
+      ResolvedUnitResult result = await driver.getResult(randomPath);
+      randomElement = result.unit.declaredElement.getType('Random');
     }
 
     Element v1 = _findElement('v1');
@@ -238,7 +262,7 @@ List<A> v2 = null;
   }
 
   test_searchReferences_ClassElement_definedOutside() async {
-    provider.newFile(_p('$testProject/lib.dart'), r'''
+    newFile('$testProject/lib.dart', content: r'''
 class A {};
 ''');
     await _resolveTestUnit('''
@@ -257,8 +281,21 @@ main(A p) {
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_ClassElement_mixin() async {
+    await _resolveTestUnit('''
+mixin A {}
+class B extends Object with A {} // with
+''');
+    ClassElement element = _findElementAtString('A {}');
+    Element b = _findElement('B');
+    var expected = [
+      _expectId(b, SearchResultKind.REFERENCE, 'A {} // with'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_CompilationUnitElement() async {
-    provider.newFile(_p('$testProject/foo.dart'), '');
+    newFile('$testProject/foo.dart');
     await _resolveTestUnit('''
 import 'foo.dart'; // import
 export 'foo.dart'; // export
@@ -295,14 +332,14 @@ main() {
   }
 
   test_searchReferences_ConstructorElement_default_otherFile() async {
-    String other = _p('$testProject/other.dart');
+    String other = convertPath('$testProject/other.dart');
     String otherCode = '''
 import 'test.dart';
 main() {
   new A(); // in other
 }
 ''';
-    provider.newFile(other, otherCode);
+    newFile(other, content: otherCode);
     driver.addFile(other);
 
     await _resolveTestUnit('''
@@ -313,10 +350,9 @@ class A {
     ConstructorElement element = _findElementAtString('A() {}');
 
     CompilationUnit otherUnit = (await driver.getResult(other)).unit;
-    Element main =
-        resolutionMap.elementDeclaredByCompilationUnit(otherUnit).functions[0];
+    Element main = otherUnit.declaredElement.functions[0];
     var expected = [
-      new ExpectedResult(main, SearchResultKind.REFERENCE,
+      ExpectedResult(main, SearchResultKind.REFERENCE,
           otherCode.indexOf('(); // in other'), 0,
           isResolved: true, isQualified: true)
     ];
@@ -384,8 +420,8 @@ class A {
       _expectIdQ(main, SearchResultKind.REFERENCE, 'field: 1'),
       _expectId(main, SearchResultKind.READ, 'field); // ref-nq'),
       _expectIdQ(main, SearchResultKind.READ, 'field); // ref-q'),
-      _expectId(main, SearchResultKind.INVOCATION, 'field(); // inv-nq'),
-      _expectIdQ(main, SearchResultKind.INVOCATION, 'field(); // inv-q'),
+      _expectId(main, SearchResultKind.READ, 'field(); // inv-nq'),
+      _expectIdQ(main, SearchResultKind.READ, 'field(); // inv-q'),
       _expectId(main, SearchResultKind.WRITE, 'field = 2; // ref-nq'),
       _expectIdQ(main, SearchResultKind.WRITE, 'field = 3; // ref-q'),
     ];
@@ -440,8 +476,8 @@ class A {
     var expected = [
       _expectId(main, SearchResultKind.READ, 'field); // ref-nq'),
       _expectIdQ(main, SearchResultKind.READ, 'field); // ref-q'),
-      _expectId(main, SearchResultKind.INVOCATION, 'field(); // inv-nq'),
-      _expectIdQ(main, SearchResultKind.INVOCATION, 'field(); // inv-q'),
+      _expectId(main, SearchResultKind.READ, 'field(); // inv-nq'),
+      _expectIdQ(main, SearchResultKind.READ, 'field(); // inv-q'),
       _expectId(main, SearchResultKind.WRITE, 'field = 2; // ref-nq'),
       _expectIdQ(main, SearchResultKind.WRITE, 'field = 3; // ref-q'),
     ];
@@ -494,13 +530,38 @@ main() {
 Random bar() => null;
 ''');
     ImportElement element = testLibraryElement.imports[0];
-    Element mainElement = await _findElement('main');
-    Element barElement = await _findElement('bar');
+    Element mainElement = _findElement('main');
+    Element barElement = _findElement('bar');
     var kind = SearchResultKind.REFERENCE;
     var expected = [
       _expectId(mainElement, kind, 'PI);', length: 0),
       _expectId(mainElement, kind, 'Random()', length: 0),
       _expectId(mainElement, kind, 'max(', length: 0),
+      _expectId(barElement, kind, 'Random bar()', length: 0),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ImportElement_noPrefix_inPackage() async {
+    testFile = convertPath('/aaa/lib/a.dart');
+    await _resolveTestUnit('''
+import 'dart:math' show max, PI, Random hide min;
+export 'dart:math' show max, PI, Random hide min;
+main() {
+  PI;
+  new Random();
+  max(1, 2);
+}
+Random bar() => null;
+''', addToDriver: false);
+    ImportElement element = testLibraryElement.imports[0];
+    Element mainElement = _findElement('main');
+    Element barElement = _findElement('bar');
+    var kind = SearchResultKind.REFERENCE;
+    var expected = [
+      _expectId(mainElement, kind, 'PI;', length: 0),
+      _expectId(mainElement, kind, 'Random();', length: 0),
+      _expectId(mainElement, kind, 'max(1, 2);', length: 0),
       _expectId(barElement, kind, 'Random bar()', length: 0),
     ];
     await _verifyReferences(element, expected);
@@ -518,8 +579,8 @@ main() {
 math.Random bar() => null;
 ''');
     ImportElement element = testLibraryElement.imports[0];
-    Element mainElement = await _findElement('main');
-    Element barElement = await _findElement('bar');
+    Element mainElement = _findElement('main');
+    Element barElement = _findElement('bar');
     var kind = SearchResultKind.REFERENCE;
     var length = 'math.'.length;
     var expected = [
@@ -540,7 +601,7 @@ main() {
   p.Future;
 }
 ''');
-    Element mainElement = await _findElement('main');
+    Element mainElement = _findElement('main');
     var kind = SearchResultKind.REFERENCE;
     var length = 'p.'.length;
     {
@@ -583,8 +644,8 @@ label:
   test_searchReferences_LibraryElement() async {
     var codeA = 'part of lib; // A';
     var codeB = 'part of lib; // B';
-    provider.newFile(_p('$testProject/unitA.dart'), codeA);
-    provider.newFile(_p('$testProject/unitB.dart'), codeB);
+    newFile('$testProject/unitA.dart', content: codeA);
+    newFile('$testProject/unitB.dart', content: codeB);
     await _resolveTestUnit('''
 library lib;
 part 'unitA.dart';
@@ -594,9 +655,35 @@ part 'unitB.dart';
     CompilationUnitElement unitElementA = element.parts[0];
     CompilationUnitElement unitElementB = element.parts[1];
     var expected = [
-      new ExpectedResult(unitElementA, SearchResultKind.REFERENCE,
+      ExpectedResult(unitElementA, SearchResultKind.REFERENCE,
           codeA.indexOf('lib; // A'), 'lib'.length),
-      new ExpectedResult(unitElementB, SearchResultKind.REFERENCE,
+      ExpectedResult(unitElementB, SearchResultKind.REFERENCE,
+          codeB.indexOf('lib; // B'), 'lib'.length),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_LibraryElement_inPackage() async {
+    testFile = convertPath('/aaa/lib/a.dart');
+    var partPathA = convertPath('/aaa/lib/unitA.dart');
+    var partPathB = convertPath('/aaa/lib/unitB.dart');
+
+    var codeA = 'part of lib; // A';
+    var codeB = 'part of lib; // B';
+    newFile(partPathA, content: codeA);
+    newFile(partPathB, content: codeB);
+    await _resolveTestUnit('''
+library lib;
+part 'unitA.dart';
+part 'unitB.dart';
+''', addToDriver: false);
+    LibraryElement element = testLibraryElement;
+    CompilationUnitElement unitElementA = element.parts[0];
+    CompilationUnitElement unitElementB = element.parts[1];
+    var expected = [
+      ExpectedResult(unitElementA, SearchResultKind.REFERENCE,
+          codeA.indexOf('lib; // A'), 'lib'.length),
+      ExpectedResult(unitElementB, SearchResultKind.REFERENCE,
           codeB.indexOf('lib; // B'), 'lib'.length),
     ];
     await _verifyReferences(element, expected);
@@ -618,12 +705,12 @@ main() {
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
       _expectId(main, SearchResultKind.READ_WRITE, 'v += 2;'),
       _expectId(main, SearchResultKind.READ, 'v);'),
-      _expectId(main, SearchResultKind.INVOCATION, 'v();')
+      _expectId(main, SearchResultKind.READ, 'v();')
     ];
     await _verifyReferences(element, expected);
   }
 
-  test_searchReferences_localVariableElement_inForEachLoop() async {
+  test_searchReferences_LocalVariableElement_inForEachLoop() async {
     await _resolveTestUnit('''
 main() {
   for (var v in []) {
@@ -640,7 +727,31 @@ main() {
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
       _expectId(main, SearchResultKind.READ_WRITE, 'v += 2;'),
       _expectId(main, SearchResultKind.READ, 'v);'),
-      _expectId(main, SearchResultKind.INVOCATION, 'v();')
+      _expectId(main, SearchResultKind.READ, 'v();')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_LocalVariableElement_inPackage() async {
+    testFile = convertPath('/aaa/lib/a.dart');
+
+    await _resolveTestUnit('''
+main() {
+  var v;
+  v = 1;
+  v += 2;
+  print(v);
+  v();
+}
+''', addToDriver: false);
+    Element element = findElementsByName(testUnit, 'v').single;
+    Element main = _findElement('main');
+
+    var expected = [
+      _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
+      _expectId(main, SearchResultKind.READ_WRITE, 'v += 2;'),
+      _expectId(main, SearchResultKind.READ, 'v);'),
+      _expectId(main, SearchResultKind.READ, 'v();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -704,7 +815,7 @@ main() {
       _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
       _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
       _expectId(fooElement, SearchResultKind.READ, 'p);'),
-      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();'),
+      _expectId(fooElement, SearchResultKind.READ, 'p();'),
       _expectIdQ(mainElement, SearchResultKind.REFERENCE, 'p: 42')
     ];
     await _verifyReferences(element, expected);
@@ -733,7 +844,7 @@ main() {
       _expectId(constructorA, SearchResultKind.WRITE, 'p = 2;'),
       _expectId(constructorA, SearchResultKind.READ_WRITE, 'p += 3;'),
       _expectId(constructorA, SearchResultKind.READ, 'p);'),
-      _expectId(constructorA, SearchResultKind.INVOCATION, 'p();')
+      _expectId(constructorA, SearchResultKind.READ, 'p();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -757,7 +868,7 @@ main() {
       _expectId(main, SearchResultKind.WRITE, 'p = 1;'),
       _expectId(main, SearchResultKind.READ_WRITE, 'p += 2;'),
       _expectId(main, SearchResultKind.READ, 'p);'),
-      _expectId(main, SearchResultKind.INVOCATION, 'p();')
+      _expectId(main, SearchResultKind.READ, 'p();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -782,7 +893,7 @@ main(C c) {
       _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
       _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
       _expectId(fooElement, SearchResultKind.READ, 'p);'),
-      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();')
+      _expectId(fooElement, SearchResultKind.READ, 'p();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -805,7 +916,32 @@ main() {
       _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
       _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
       _expectId(fooElement, SearchResultKind.READ, 'p);'),
-      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();')
+      _expectId(fooElement, SearchResultKind.READ, 'p();')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ParameterElement_optionalPositional() async {
+    await _resolveTestUnit('''
+foo([p]) {
+  p = 1;
+  p += 2;
+  print(p);
+  p();
+}
+main() {
+  foo(42);
+}
+''');
+    ParameterElement element = _findElement('p');
+    Element fooElement = _findElement('foo');
+    Element mainElement = _findElement('main');
+    var expected = [
+      _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
+      _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
+      _expectId(fooElement, SearchResultKind.READ, 'p);'),
+      _expectId(fooElement, SearchResultKind.READ, 'p();'),
+      _expectIdQ(mainElement, SearchResultKind.REFERENCE, '42', length: 0)
     ];
     await _verifyReferences(element, expected);
   }
@@ -815,7 +951,7 @@ main() {
 part of my_lib;
 ppp.Future c;
 ''';
-    provider.newFile(_p('$testProject/my_part.dart'), partCode);
+    newFile('$testProject/my_part.dart', content: partCode);
     await _resolveTestUnit('''
 library my_lib;
 import 'dart:async' as ppp;
@@ -831,21 +967,51 @@ main() {
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'ppp.Future'),
       _expectId(main, SearchResultKind.REFERENCE, 'ppp.Stream'),
-      new ExpectedResult(c, SearchResultKind.REFERENCE,
+      ExpectedResult(c, SearchResultKind.REFERENCE,
+          partCode.indexOf('ppp.Future c'), 'ppp'.length)
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_PrefixElement_inPackage() async {
+    testFile = convertPath('/aaa/lib/a.dart');
+    var partPath = convertPath('/aaa/lib/my_part.dart');
+
+    String partCode = r'''
+part of my_lib;
+ppp.Future c;
+''';
+    newFile(partPath, content: partCode);
+    await _resolveTestUnit('''
+library my_lib;
+import 'dart:async' as ppp;
+part 'my_part.dart';
+main() {
+  ppp.Future a;
+  ppp.Stream b;
+}
+''', addToDriver: false);
+    PrefixElement element = _findElementAtString('ppp;');
+    Element main = _findElement('main');
+    Element c = findChildElement(testLibraryElement, 'c');
+    var expected = [
+      _expectId(main, SearchResultKind.REFERENCE, 'ppp.Future'),
+      _expectId(main, SearchResultKind.REFERENCE, 'ppp.Stream'),
+      ExpectedResult(c, SearchResultKind.REFERENCE,
           partCode.indexOf('ppp.Future c'), 'ppp'.length)
     ];
     await _verifyReferences(element, expected);
   }
 
   test_searchReferences_private_declaredInDefiningUnit() async {
-    String p1 = _p('$testProject/part1.dart');
-    String p2 = _p('$testProject/part2.dart');
-    String p3 = _p('$testProject/part3.dart');
+    String p1 = convertPath('$testProject/part1.dart');
+    String p2 = convertPath('$testProject/part2.dart');
+    String p3 = convertPath('$testProject/part3.dart');
     String code1 = 'part of lib; _C v1;';
     String code2 = 'part of lib; _C v2;';
-    provider.newFile(p1, code1);
-    provider.newFile(p2, code2);
-    provider.newFile(p3, 'part of lib; int v3;');
+    newFile(p1, content: code1);
+    newFile(p2, content: code2);
+    newFile(p3, content: 'part of lib; int v3;');
 
     driver.addFile(p1);
     driver.addFile(p2);
@@ -865,18 +1031,18 @@ _C v;
     Element v2 = testLibraryElement.parts[1].topLevelVariables[0];
     var expected = [
       _expectId(v, SearchResultKind.REFERENCE, '_C v;', length: 2),
-      new ExpectedResult(
+      ExpectedResult(
           v1, SearchResultKind.REFERENCE, code1.indexOf('_C v1;'), 2),
-      new ExpectedResult(
+      ExpectedResult(
           v2, SearchResultKind.REFERENCE, code2.indexOf('_C v2;'), 2),
     ];
     await _verifyReferences(element, expected);
   }
 
   test_searchReferences_private_declaredInPart() async {
-    String p = _p('$testProject/lib.dart');
-    String p1 = _p('$testProject/part1.dart');
-    String p2 = _p('$testProject/part2.dart');
+    String p = convertPath('$testProject/lib.dart');
+    String p1 = convertPath('$testProject/part1.dart');
+    String p2 = convertPath('$testProject/part2.dart');
 
     var code = '''
 library lib;
@@ -891,17 +1057,17 @@ _C v1;
 ''';
     String code2 = 'part of lib; _C v2;';
 
-    provider.newFile(p, code);
-    provider.newFile(p1, code1);
-    provider.newFile(p2, code2);
+    newFile(p, content: code);
+    newFile(p1, content: code1);
+    newFile(p2, content: code2);
 
     driver.addFile(p);
     driver.addFile(p1);
     driver.addFile(p2);
 
-    AnalysisResult result = await driver.getResult(p);
+    ResolvedUnitResult result = await driver.getResult(p);
     testUnit = result.unit;
-    testUnitElement = testUnit.element;
+    testUnitElement = testUnit.declaredElement;
     testLibraryElement = testUnitElement.library;
 
     ClassElement element = testLibraryElement.parts[0].types[0];
@@ -909,11 +1075,44 @@ _C v1;
     Element v1 = testLibraryElement.parts[0].topLevelVariables[0];
     Element v2 = testLibraryElement.parts[1].topLevelVariables[0];
     var expected = [
-      new ExpectedResult(
-          v, SearchResultKind.REFERENCE, code.indexOf('_C v;'), 2),
-      new ExpectedResult(
+      ExpectedResult(v, SearchResultKind.REFERENCE, code.indexOf('_C v;'), 2),
+      ExpectedResult(
           v1, SearchResultKind.REFERENCE, code1.indexOf('_C v1;'), 2),
-      new ExpectedResult(
+      ExpectedResult(
+          v2, SearchResultKind.REFERENCE, code2.indexOf('_C v2;'), 2),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_private_inPackage() async {
+    testFile = convertPath('/aaa/lib/a.dart');
+    var p1 = convertPath('/aaa/lib/part1.dart');
+    var p2 = convertPath('/aaa/lib/part2.dart');
+
+    String code1 = 'part of lib; _C v1;';
+    String code2 = 'part of lib; _C v2;';
+
+    newFile(p1, content: code1);
+    newFile(p2, content: code2);
+
+    await _resolveTestUnit('''
+library lib;
+part 'part1.dart';
+part 'part2.dart';
+class _C {}
+_C v;
+''', addToDriver: false);
+
+    Element element = testUnitElement.types.single;
+    Element v = testUnitElement.topLevelVariables[0];
+    Element v1 = testLibraryElement.parts[0].topLevelVariables[0];
+    Element v2 = testLibraryElement.parts[1].topLevelVariables[0];
+    var expected = [
+      ExpectedResult(
+          v, SearchResultKind.REFERENCE, testCode.indexOf('_C v;'), 2),
+      ExpectedResult(
+          v1, SearchResultKind.REFERENCE, code1.indexOf('_C v1;'), 2),
+      ExpectedResult(
           v2, SearchResultKind.REFERENCE, code2.indexOf('_C v2;'), 2),
     ];
     await _verifyReferences(element, expected);
@@ -936,8 +1135,8 @@ class A {
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'ggg); // ref-nq'),
       _expectIdQ(main, SearchResultKind.REFERENCE, 'ggg); // ref-q'),
-      _expectId(main, SearchResultKind.INVOCATION, 'ggg(); // inv-nq'),
-      _expectIdQ(main, SearchResultKind.INVOCATION, 'ggg(); // inv-q'),
+      _expectId(main, SearchResultKind.REFERENCE, 'ggg(); // inv-nq'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'ggg(); // inv-q'),
     ];
     await _verifyReferences(element, expected);
   }
@@ -962,7 +1161,7 @@ class A {
   }
 
   test_searchReferences_TopLevelVariableElement() async {
-    provider.newFile(_p('$testProject/lib.dart'), '''
+    newFile('$testProject/lib.dart', content: '''
 library lib;
 var V;
 ''');
@@ -987,10 +1186,10 @@ main() {
       _expectIdQ(testUnitElement, SearchResultKind.REFERENCE, 'V; // imp'),
       _expectIdQ(main, SearchResultKind.WRITE, 'V = 1; // q'),
       _expectIdQ(main, SearchResultKind.READ, 'V); // q'),
-      _expectIdQ(main, SearchResultKind.INVOCATION, 'V(); // q'),
+      _expectIdQ(main, SearchResultKind.READ, 'V(); // q'),
       _expectId(main, SearchResultKind.WRITE, 'V = 1; // nq'),
       _expectId(main, SearchResultKind.READ, 'V); // nq'),
-      _expectId(main, SearchResultKind.INVOCATION, 'V(); // nq'),
+      _expectId(main, SearchResultKind.READ, 'V(); // nq'),
     ];
     await _verifyReferences(variable, expected);
   }
@@ -1079,6 +1278,22 @@ class C implements T {} // C
     await _verifyReferences(element, expected);
   }
 
+  test_searchSubtypes_mixinDeclaration() async {
+    await _resolveTestUnit('''
+class T {}
+mixin A on T {} // A
+mixin B implements T {} // B
+''');
+    ClassElement element = _findElement('T');
+    ClassElement a = _findElement('A');
+    ClassElement b = _findElement('B');
+    var expected = [
+      _expectId(a, SearchResultKind.REFERENCE, 'T {} // A'),
+      _expectId(b, SearchResultKind.REFERENCE, 'T {} // B'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_subtypes() async {
     await _resolveTestUnit('''
 class A {}
@@ -1104,7 +1319,8 @@ class F {}
     ClassElement a = _findElement('A');
 
     // Search by 'type'.
-    List<SubtypeResult> subtypes = await driver.search.subtypes(type: a);
+    List<SubtypeResult> subtypes =
+        await driver.search.subtypes(SearchedFiles(), type: a);
     expect(subtypes, hasLength(3));
 
     SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
@@ -1125,21 +1341,118 @@ class F {}
 
     // Search by 'id'.
     {
-      List<SubtypeResult> subtypes = await driver.search.subtypes(subtype: b);
+      List<SubtypeResult> subtypes =
+          await driver.search.subtypes(SearchedFiles(), subtype: b);
       expect(subtypes, hasLength(1));
       SubtypeResult e = subtypes.singleWhere((r) => r.name == 'E');
       expect(e.members, ['methodE']);
     }
   }
 
+  test_subtypes_discover() async {
+    var pathT = convertPath('/test/lib/t.dart');
+    var pathA = convertPath('/aaa/lib/a.dart');
+    var pathB = convertPath('/bbb/lib/b.dart');
+
+    var tUri = 'package:test/t.dart';
+    var aUri = 'package:aaa/a.dart';
+    var bUri = 'package:bbb/b.dart';
+
+    newFile(pathT, content: r'''
+import 'package:aaa/a.dart';
+
+class T1 extends A {
+  void method1() {}
+}
+
+class T2 extends A {
+  void method2() {}
+}
+''');
+
+    newFile(pathB, content: r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  void method1() {}
+}
+''');
+
+    newFile(pathA, content: r'''
+class A {
+  void method1() {}
+  void method2() {}
+}
+''');
+
+    driver.addFile(pathT);
+
+    var aLibrary = await driver.getLibraryByUri(aUri);
+    ClassElement aClass = aLibrary.getType('A');
+
+    // Search by 'type'.
+    List<SubtypeResult> subtypes =
+        await driver.search.subtypes(SearchedFiles(), type: aClass);
+    expect(subtypes, hasLength(3));
+
+    SubtypeResult t1 = subtypes.singleWhere((r) => r.name == 'T1');
+    SubtypeResult t2 = subtypes.singleWhere((r) => r.name == 'T2');
+    SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
+
+    expect(t1.libraryUri, tUri);
+    expect(t1.id, '$tUri;$tUri;T1');
+    expect(t1.members, ['method1']);
+
+    expect(t2.libraryUri, tUri);
+    expect(t2.id, '$tUri;$tUri;T2');
+    expect(t2.members, ['method2']);
+
+    expect(b.libraryUri, bUri);
+    expect(b.id, '$bUri;$bUri;B');
+    expect(b.members, ['method1']);
+  }
+
+  test_subTypes_discover() async {
+    var t = convertPath('/test/lib/t.dart');
+    var a = convertPath('/aaa/lib/a.dart');
+    var b = convertPath('/bbb/lib/b.dart');
+    var c = convertPath('/ccc/lib/c.dart');
+
+    newFile(t, content: 'class T implements List {}');
+    newFile(a, content: 'class A implements List {}');
+    newFile(b, content: 'class B implements List {}');
+    newFile(c, content: 'class C implements List {}');
+
+    driver.addFile(t);
+
+    LibraryElement coreLib = await driver.getLibraryByUri('dart:core');
+    ClassElement listElement = coreLib.getType('List');
+
+    var searchedFiles = SearchedFiles();
+    var results = await driver.search.subTypes(listElement, searchedFiles);
+
+    void assertHasResult(String path, String name, {bool not = false}) {
+      var matcher = contains(predicate((SearchResult r) {
+        var element = r.enclosingElement;
+        return element.name == name && element.source.fullName == path;
+      }));
+      expect(results, not ? isNot(matcher) : matcher);
+    }
+
+    assertHasResult(t, 'T');
+    assertHasResult(a, 'A');
+    assertHasResult(b, 'B');
+    assertHasResult(c, 'C', not: true);
+  }
+
   test_subtypes_files() async {
-    String pathB = _p('$testProject/b.dart');
-    String pathC = _p('$testProject/c.dart');
-    provider.newFile(pathB, r'''
+    String pathB = convertPath('$testProject/b.dart');
+    String pathC = convertPath('$testProject/c.dart');
+    newFile(pathB, content: r'''
 import 'test.dart';
 class B extends A {}
 ''');
-    provider.newFile(pathC, r'''
+    newFile(pathC, content: r'''
 import 'test.dart';
 class C extends A {}
 class D {}
@@ -1154,7 +1467,8 @@ class A {}
     driver.addFile(pathC);
     await scheduler.waitForIdle();
 
-    List<SubtypeResult> subtypes = await driver.search.subtypes(type: a);
+    List<SubtypeResult> subtypes =
+        await driver.search.subtypes(SearchedFiles(), type: a);
     expect(subtypes, hasLength(2));
 
     SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
@@ -1164,33 +1478,92 @@ class A {}
     expect(c.id, endsWith('c.dart;C'));
   }
 
+  test_subtypes_mixin_superclassConstraints() async {
+    await _resolveTestUnit('''
+class A {
+  void methodA() {}
+}
+
+class B {
+  void methodB() {}
+}
+
+mixin M on A, B {
+  void methodA() {}
+  void methodM() {}
+}
+''');
+    ClassElement a = _findElement('A');
+    ClassElement b = _findElement('B');
+
+    {
+      var subtypes = await driver.search.subtypes(SearchedFiles(), type: a);
+      expect(subtypes, hasLength(1));
+
+      var m = subtypes.singleWhere((r) => r.name == 'M');
+      expect(m.libraryUri, testUri);
+      expect(m.id, '$testUri;$testUri;M');
+      expect(m.members, ['methodA', 'methodM']);
+    }
+
+    {
+      var subtypes = await driver.search.subtypes(SearchedFiles(), type: b);
+      expect(subtypes, hasLength(1));
+
+      var m = subtypes.singleWhere((r) => r.name == 'M');
+      expect(m.libraryUri, testUri);
+      expect(m.id, '$testUri;$testUri;M');
+      expect(m.members, ['methodA', 'methodM']);
+    }
+  }
+
+  test_subtypes_partWithoutLibrary() async {
+    await _resolveTestUnit('''
+part of lib;
+
+class A {}
+class B extends A {}
+''');
+    ClassElement a = _findElement('A');
+
+    List<SubtypeResult> subtypes =
+        await driver.search.subtypes(SearchedFiles(), type: a);
+    expect(subtypes, hasLength(1));
+
+    SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
+    expect(b.libraryUri, testUri);
+    expect(b.id, '$testUri;$testUri;B');
+  }
+
   test_topLevelElements() async {
     await _resolveTestUnit('''
 class A {} // A
 class B = Object with A;
-typedef C();
-D() {}
-var e = null;
-class NoMatchABCDE {}
+mixin C {}
+typedef D();
+e() {}
+var f = null;
+class NoMatchABCDEF {}
 ''');
     Element a = _findElement('A');
     Element b = _findElement('B');
     Element c = _findElement('C');
     Element d = _findElement('D');
     Element e = _findElement('e');
-    RegExp regExp = new RegExp(r'^[ABCDe]$');
+    Element f = _findElement('f');
+    RegExp regExp = RegExp(r'^[ABCDef]$');
     expect(await driver.search.topLevelElements(regExp),
-        unorderedEquals([a, b, c, d, e]));
+        unorderedEquals([a, b, c, d, e, f]));
   }
 
   ExpectedResult _expectId(
       Element enclosingElement, SearchResultKind kind, String search,
-      {int length, bool isResolved: true, bool isQualified: false}) {
+      {int length, bool isResolved = true, bool isQualified = false}) {
     int offset = findOffset(search);
     if (length == null) {
       length = getLeadingIdentifierLength(search);
     }
-    return new ExpectedResult(enclosingElement, kind, offset, length,
+    return ExpectedResult(enclosingElement, kind, offset, length,
         isResolved: isResolved, isQualified: isQualified);
   }
 
@@ -1199,7 +1572,7 @@ class NoMatchABCDE {}
    */
   ExpectedResult _expectIdQ(
       Element element, SearchResultKind kind, String search,
-      {int length, bool isResolved: true}) {
+      {int length, bool isResolved = true}) {
     return _expectId(element, kind, search, isQualified: true, length: length);
   }
 
@@ -1224,38 +1597,43 @@ class NoMatchABCDE {}
   }
 
   Element _findElement(String name, [ElementKind kind]) {
-    return findChildElement(testUnit.element, name, kind);
+    return findChildElement(testUnit.declaredElement, name, kind);
   }
 
   Element _findElementAtString(String search) {
     int offset = findOffset(search);
-    AstNode node = new NodeLocator(offset).searchWithin(testUnit);
+    AstNode node = NodeLocator(offset).searchWithin(testUnit);
     return ElementLocator.locate(node);
   }
 
-  String _p(String path) => provider.convertPath(path);
-
-  Future<Null> _resolveTestUnit(String code) async {
-    addTestFile(code);
+  Future<void> _resolveTestUnit(String code, {bool addToDriver = true}) async {
+    if (addToDriver) {
+      addTestFile(code);
+    } else {
+      testCode = code;
+      newFile(testFile, content: testCode);
+    }
     if (testUnit == null) {
-      AnalysisResult result = await driver.getResult(testFile);
+      ResolvedUnitResult result = await driver.getResult(testFile);
       testUnit = result.unit;
-      testUnitElement = testUnit.element;
+      testUnitElement = testUnit.declaredElement;
       testLibraryElement = testUnitElement.library;
     }
   }
 
-  Future<Null> _verifyNameReferences(
+  Future<void> _verifyNameReferences(
       String name, List<ExpectedResult> expectedMatches) async {
+    var searchedFiles = SearchedFiles();
     List<SearchResult> results =
-        await driver.search.unresolvedMemberReferences(name);
+        await driver.search.unresolvedMemberReferences(name, searchedFiles);
     _assertResults(results, expectedMatches);
     expect(results, hasLength(expectedMatches.length));
   }
 
   Future _verifyReferences(
       Element element, List<ExpectedResult> expectedMatches) async {
-    List<SearchResult> results = await driver.search.references(element);
+    var searchedFiles = SearchedFiles();
+    var results = await driver.search.references(element, searchedFiles);
     _assertResults(results, expectedMatches);
     expect(results, hasLength(expectedMatches.length));
   }
@@ -1263,5 +1641,225 @@ class NoMatchABCDE {}
   static void _assertResults(
       List<SearchResult> matches, List<ExpectedResult> expectedMatches) {
     expect(matches, unorderedEquals(expectedMatches));
+  }
+}
+
+@reflectiveTest
+class SearchWithExtensionMethodsTest extends SearchTest {
+  @override
+  AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
+
+  test_searchReferences_ExtensionElement() async {
+    await _resolveTestUnit('''
+extension E on int {
+  void foo() {}
+  static void bar() {}
+}
+
+main() {
+  E(0).foo();
+  E.bar();
+}
+''');
+    var element = _findElement('E');
+    var main = _findElement('main');
+    var expected = [
+      _expectId(main, SearchResultKind.REFERENCE, 'E(0)'),
+      _expectId(main, SearchResultKind.REFERENCE, 'E.bar()'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_MethodElement_ofExtension_instance() async {
+    await _resolveTestUnit('''
+extension E on int {
+  void foo() {}
+
+  void bar() {
+    foo(); // 1
+    this.foo(); // 2
+    foo; // 3
+    this.foo; // 4
+  }
+}
+
+main() {
+  E(0).foo(); // 5
+  0.foo(); // 6
+  E(0).foo; // 7
+  0.foo; // 8
+}
+''');
+    var element = _findElement('foo');
+    var bar = _findElement('bar');
+    var main = _findElement('main');
+    var expected = [
+      _expectId(bar, SearchResultKind.INVOCATION, 'foo(); // 1'),
+      _expectIdQ(bar, SearchResultKind.INVOCATION, 'foo(); // 2'),
+      _expectId(bar, SearchResultKind.REFERENCE, 'foo; // 3'),
+      _expectIdQ(bar, SearchResultKind.REFERENCE, 'foo; // 4'),
+      _expectIdQ(main, SearchResultKind.INVOCATION, 'foo(); // 5'),
+      _expectIdQ(main, SearchResultKind.INVOCATION, 'foo(); // 6'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo; // 7'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo; // 8'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_MethodElement_ofExtension_static() async {
+    await _resolveTestUnit('''
+extension E on int {
+  static void foo() {}
+
+  static void bar() {
+    foo(); // 1
+    foo; // 2
+  }
+}
+
+main() {
+  E.foo(); // 3
+  E.foo; // 4
+}
+''');
+    var element = _findElement('foo');
+    var bar = _findElement('bar');
+    var main = _findElement('main');
+    var expected = [
+      _expectId(bar, SearchResultKind.INVOCATION, 'foo(); // 1'),
+      _expectId(bar, SearchResultKind.REFERENCE, 'foo; // 2'),
+      _expectIdQ(main, SearchResultKind.INVOCATION, 'foo(); // 3'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo; // 4'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_PropertyAccessor_getter_ofExtension_instance() async {
+    await _resolveTestUnit('''
+extension E on int {
+  int get foo => 0;
+
+  void bar() {
+    foo; // 1
+    this.foo; // 2
+  }
+}
+
+main() {
+  E(0).foo; // 3
+  0.foo; // 4
+}
+''');
+    var element = _findElement('foo', ElementKind.GETTER);
+    var bar = _findElement('bar');
+    var main = _findElement('main');
+    var expected = [
+      _expectId(bar, SearchResultKind.REFERENCE, 'foo; // 1'),
+      _expectIdQ(bar, SearchResultKind.REFERENCE, 'foo; // 2'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo; // 3'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo; // 4'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_PropertyAccessor_setter_ofExtension_instance() async {
+    await _resolveTestUnit('''
+extension E on int {
+  set foo(int _) {}
+
+  void bar() {
+    foo = 1;
+    this.foo = 2;
+  }
+}
+
+main() {
+  E(0).foo = 3;
+  0.foo = 4;
+}
+''');
+    var element = _findElement('foo=');
+    var bar = _findElement('bar');
+    var main = _findElement('main');
+    var expected = [
+      _expectId(bar, SearchResultKind.REFERENCE, 'foo = 1;'),
+      _expectIdQ(bar, SearchResultKind.REFERENCE, 'foo = 2;'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo = 3;'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo = 4;'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+}
+
+@reflectiveTest
+class SearchWithNnbdTest extends SearchTest {
+  @override
+  AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
+
+  test_searchReferences_ImportElement_noPrefix_optIn_fromOptOut() async {
+    newFile('/test/lib/a.dart', content: r'''
+class N1 {}
+void N2() {}
+int get N3 => 0;
+set N4(int _) {}
+''');
+
+    await _resolveTestUnit('''
+// @dart = 2.7
+import 'a.dart';
+
+main() {
+  N1;
+  N2();
+  N3;
+  N4 = 0;
+}
+''');
+    ImportElement element = testLibraryElement.imports[0];
+    Element mainElement = _findElement('main');
+    var kind = SearchResultKind.REFERENCE;
+    var expected = [
+      _expectId(mainElement, kind, 'N1;', length: 0),
+      _expectId(mainElement, kind, 'N2();', length: 0),
+      _expectId(mainElement, kind, 'N3;', length: 0),
+      _expectId(mainElement, kind, 'N4 =', length: 0),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ImportElement_withPrefix_optIn_fromOptOut() async {
+    newFile('/test/lib/a.dart', content: r'''
+class N1 {}
+void N2() {}
+int get N3 => 0;
+set N4(int _) {}
+''');
+
+    await _resolveTestUnit('''
+// @dart = 2.7
+import 'a.dart' as a;
+
+main() {
+  a.N1;
+  a.N2();
+  a.N3;
+  a.N4 = 0;
+}
+''');
+    ImportElement element = testLibraryElement.imports[0];
+    Element mainElement = _findElement('main');
+    var kind = SearchResultKind.REFERENCE;
+    var length = 'a.'.length;
+    var expected = [
+      _expectId(mainElement, kind, 'a.N1;', length: length),
+      _expectId(mainElement, kind, 'a.N2()', length: length),
+      _expectId(mainElement, kind, 'a.N3', length: length),
+      _expectId(mainElement, kind, 'a.N4', length: length),
+    ];
+    await _verifyReferences(element, expected);
   }
 }

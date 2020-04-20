@@ -1,0 +1,9 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39058_prime.crash_dart:1:1: Error: Expected a declaration, but got '{'.
+// {<[]()>}
+// ^
+//
+import self as self;

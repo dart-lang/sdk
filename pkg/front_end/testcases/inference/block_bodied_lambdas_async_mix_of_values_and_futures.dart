@@ -8,8 +8,8 @@ library test;
 import 'dart:async';
 import 'dart:math' show Random;
 
-main() {
-  var /*@type=() -> Future<num>*/ f = /*@returnType=Future<num>*/ () async {
+test() {
+  var /*@ type=() ->* Future<num*>* */ f = /*@ returnType=Future<num*>* */ () async {
     if (new Random(). /*@target=dart.math::Random::nextBool*/ nextBool()) {
       return new Future<int>.value(1);
     } else {
@@ -19,3 +19,5 @@ main() {
   Future<num> g = f();
   Future<int> h = /*info:ASSIGNMENT_CAST*/ f();
 }
+
+main() {}

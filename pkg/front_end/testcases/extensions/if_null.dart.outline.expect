@@ -1,0 +1,25 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int* field;
+  synthetic constructor •() → self::Class*
+    ;
+}
+extension Extension on self::Class* {
+  get property = self::Extension|get#property;
+  method method = self::Extension|method;
+  tearoff method = self::Extension|get#method;
+  set property = self::Extension|set#property;
+}
+static method Extension|get#property(final self::Class* #this) → core::int*
+  ;
+static method Extension|set#property(final self::Class* #this, core::int* value) → void
+  ;
+static method Extension|method(final self::Class* #this) → core::int*
+  ;
+static method Extension|get#method(final self::Class* #this) → () →* core::int*
+  return () → core::int* => self::Extension|method(#this);
+static method main() → dynamic
+  ;

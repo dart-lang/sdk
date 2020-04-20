@@ -1,0 +1,31 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class MapLike<K extends core::Object* = dynamic, V extends core::Object* = dynamic> extends core::Object {
+  final field core::Map<self::MapLike::K*, self::MapLike::V*>* _map;
+  synthetic constructor •() → self::MapLike<self::MapLike::K*, self::MapLike::V*>*
+    ;
+  method get(core::Object* key) → self::MapLike::V*
+    ;
+  method put(generic-covariant-impl self::MapLike::K* key, generic-covariant-impl self::MapLike::V* value) → self::MapLike::V*
+    ;
+}
+extension Extension<K extends core::Object* = dynamic, V extends core::Object* = dynamic> on self::MapLike<K*, V*>* {
+  operator [] = self::Extension|[];
+  operator []= = self::Extension|[]=;
+}
+static method Extension|[]<K extends core::Object* = dynamic, V extends core::Object* = dynamic>(final self::MapLike<self::Extension|[]::K*, self::Extension|[]::V*>* #this, core::Object* key) → self::Extension|[]::V*
+  ;
+static method Extension|[]=<K extends core::Object* = dynamic, V extends core::Object* = dynamic>(final self::MapLike<self::Extension|[]=::K*, self::Extension|[]=::V*>* #this, self::Extension|[]=::K* key, self::Extension|[]=::V* value) → void
+  ;
+static method main() → dynamic
+  ;
+static method implicit() → dynamic
+  ;
+static method explicitWithTypeArguments() → dynamic
+  ;
+static method explicitInferredTypeArguments() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

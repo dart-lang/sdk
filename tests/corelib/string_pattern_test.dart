@@ -84,11 +84,11 @@ testMatchAsPrefix() {
   String str = "banana";
   Expect.isNull(pattern.matchAsPrefix(str));
   Expect.isNull(pattern.matchAsPrefix(str, 0));
-  var m = pattern.matchAsPrefix(str, 1);
+  var m = pattern.matchAsPrefix(str, 1)!;
   Expect.equals("an", m[0]);
   Expect.equals(1, m.start);
   Expect.isNull(pattern.matchAsPrefix(str, 2));
-  m = pattern.matchAsPrefix(str, 3);
+  m = pattern.matchAsPrefix(str, 3)!;
   Expect.equals("an", m[0]);
   Expect.equals(3, m.start);
   Expect.isNull(pattern.matchAsPrefix(str, 4));

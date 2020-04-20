@@ -22,30 +22,33 @@ void test(Future<Process> future, int expectedExitCode) {
       Expect.equals(expectedExitCode, exitCode);
     });
 
-    List<int> data = "ABCDEFGHI\n".codeUnits;
-    final int dataSize = data.length;
+    List<int> input_data = "ABCDEFGHI\n".codeUnits;
+    final int input_dataSize = input_data.length;
 
     int received = 0;
     List<int> buffer = [];
 
-    void readData(data) {
+    void readData(List<int> data) {
       buffer.addAll(data);
-      for (int i = received; i < min(data.length, buffer.length) - 1; i++) {
-        Expect.equals(data[i], buffer[i]);
+      for (int i = received;
+          i < min(input_data.length, buffer.length) - 1;
+          i++) {
+        Expect.equals(input_data[i], buffer[i]);
       }
       received = buffer.length;
-      if (received >= dataSize) {
+      if (received >= input_dataSize) {
         // We expect an extra character on windows due to carriage return.
-        if (13 == buffer[dataSize - 1] && dataSize + 1 == received) {
-          Expect.equals(13, buffer[dataSize - 1]);
-          Expect.equals(10, buffer[dataSize]);
+        if (13 == buffer[input_dataSize - 1] &&
+            input_dataSize + 1 == received) {
+          Expect.equals(13, buffer[input_dataSize - 1]);
+          Expect.equals(10, buffer[input_dataSize]);
           buffer.removeLast();
         }
       }
     }
 
     process.stdout.listen((_) {});
-    process.stdin.add(data);
+    process.stdin.add(input_data);
     process.stdin.flush().then((_) => process.stdin.close());
     process.stderr.listen(readData);
   });
@@ -63,5 +66,11 @@ main() {
     scriptFile = new File("../tests/standalone/io/process_std_io_script.dart");
   }
   Expect.isTrue(scriptFile.existsSync());
-  test(Process.start(Platform.executable, [scriptFile.path, "1"]), 0);
+  test(
+      Process.start(
+          Platform.executable,
+          []
+            ..addAll(Platform.executableArguments)
+            ..addAll([scriptFile.path, "1"])),
+      0);
 }

@@ -1,0 +1,74 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method block_test() → void {
+  () →* core::List<core::Object*>* g;
+  g = () → core::List<core::Object*>* {
+    return <core::Object*>[3];
+  };
+  assert(g is () →* core::List<core::Object*>*);
+  assert(!(g is () →* core::List<core::int*>*));
+  g.call().{core::List::add}("hello");
+  core::List<core::int*>* l = <core::int*>[3];
+  g = () → core::List<core::int*>* {
+    return l;
+  };
+  assert(g is () →* core::List<core::Object*>*);
+  assert(g is () →* core::List<core::int*>*);
+  try {
+    g.call().{core::List::add}("hello");
+    throw "expected a runtime error";
+  }
+  on core::TypeError* catch(no-exception-var) {
+  }
+  core::Object* o = l;
+  g = () → core::List<core::Object*>* {
+    return o as{TypeError} core::List<core::Object*>*;
+  };
+  assert(g is () →* core::List<core::Object*>*);
+  assert(!(g is () →* core::List<core::int*>*));
+  assert(!(g is () →* core::Object*));
+  g.call();
+  o = 3;
+  try {
+    g.call();
+    throw "expected a runtime error";
+  }
+  on core::TypeError* catch(no-exception-var) {
+  }
+}
+static method arrow_test() → void {
+  () →* core::List<core::Object*>* g;
+  g = () → core::List<core::Object*>* => <core::Object*>[3];
+  assert(g is () →* core::List<core::Object*>*);
+  assert(!(g is () →* core::List<core::int*>*));
+  g.call().{core::List::add}("hello");
+  core::List<core::int*>* l = <core::int*>[3];
+  g = () → core::List<core::int*>* => l;
+  assert(g is () →* core::List<core::Object*>*);
+  assert(g is () →* core::List<core::int*>*);
+  try {
+    g.call().{core::List::add}("hello");
+    throw "expected a runtime error";
+  }
+  on core::TypeError* catch(no-exception-var) {
+  }
+  core::Object* o = l;
+  g = () → core::List<core::Object*>* => o as{TypeError} core::List<core::Object*>*;
+  assert(g is () →* core::List<core::Object*>*);
+  assert(!(g is () →* core::List<core::int*>*));
+  assert(!(g is () →* core::Object*));
+  g.call();
+  o = 3;
+  try {
+    g.call();
+    throw "expected a runtime error";
+  }
+  on core::TypeError* catch(no-exception-var) {
+  }
+}
+static method main() → dynamic {
+  self::block_test();
+  self::arrow_test();
+}

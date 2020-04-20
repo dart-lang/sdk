@@ -4,10 +4,9 @@
 
 import 'dart:html';
 
-import 'package:unittest/html_individual_config.dart';
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 
-import '../utils.dart';
+import 'utils.dart';
 
 class Foo extends HtmlElement {
   static const tag = 'x-foo';
@@ -77,9 +76,7 @@ class CustomCustomDiv extends CustomDiv {
   CustomCustomDiv.created() : super.created();
 }
 
-main() {
-  useHtmlIndividualConfiguration();
-
+main() async {
   // Adapted from Blink's fast/dom/custom/document-register-type-extension test.
 
   var testForm = new FormElement()..id = 'testForm';
@@ -96,42 +93,42 @@ main() {
       return;
     }
     registeredTypes = true;
-    document.registerElement(Foo.tag, Foo);
-    document.registerElement(Bar.tag, Bar, extendsTag: 'input');
-    document.registerElement(Baz.tag, Baz);
-    document.registerElement(Qux.tag, Qux, extendsTag: 'input');
-    document.registerElement(MyCanvas.tag, MyCanvas, extendsTag: 'canvas');
-    document.registerElement(CustomCustomDiv.tag, CustomCustomDiv,
-        extendsTag: 'div');
+    document.registerElement2(Foo.tag, {'prototype': Foo});
+    document.registerElement2(Bar.tag, {'prototype': Bar, 'extends': 'input'});
+    document.registerElement2(Baz.tag, {'prototype': Baz});
+    document.registerElement2(Qux.tag, {'prototype': Qux, 'extends': 'input'});
+    document.registerElement2(MyCanvas.tag, {'prototype': MyCanvas, 'extends': 'canvas'});
+    document.registerElement2(CustomCustomDiv.tag, {'prototype': CustomCustomDiv,
+        'extends': 'div'});
   }
 
-  setUp(() => customElementsReady);
+  await customElementsReady;
 
   group('registration', () {
-    setUp(registerTypes);
-
     test('cannot register twice', () {
-      expect(() => document.registerElement(FooBad.tag, Foo, extendsTag: 'div'),
+      registerTypes();
+      expect(() => document.registerElement2(FooBad.tag, {'prototype': Foo, 'extends': 'div'}),
           throws);
     });
 
     test('cannot register for non-matching tag', () {
+      registerTypes();
       expect(() {
-        document.registerElement('x-input-div', Bar, extendsTag: 'div');
+        document.registerElement2('x-input-div', {'prototype': Bar, 'extends': 'div'});
       }, throws);
     });
 
     test('cannot register type extension for custom tag', () {
+      registerTypes();
       expect(() {
-        document.registerElement('x-custom-tag', CustomCustomDiv);
+        document.registerElement2('x-custom-tag',  {'prototype': CustomCustomDiv});
       }, throws);
     });
   });
 
   group('construction', () {
-    setUp(registerTypes);
-
     group('constructors', () {
+      registerTypes();
       test('custom tag', () {
         var fooNewed = new Foo();
         expect(fooNewed.outerHtml, anyOf(Foo.outerHtmlStrings));
@@ -167,6 +164,7 @@ main() {
     });
 
     group('single-parameter createElement', () {
+      registerTypes();
       test('custom tag', () {
         var fooCreated = new Element.tag('x-foo');
         expect(fooCreated.outerHtml, anyOf(Foo.outerHtmlStrings));
@@ -198,6 +196,7 @@ main() {
     });
 
     group('createElement with type extension', () {
+      registerTypes();
       test('does not upgrade extension of custom tag', () {
         var divFooCreated = new Element.tag("div", Foo.tag);
         expect(divFooCreated.outerHtml, '<div is="x-foo"></div>');
@@ -253,9 +252,8 @@ main() {
   });
 
   group('namespaces', () {
-    setUp(registerTypes);
-
     test('createElementNS', () {
+      registerTypes();
       var fooCreatedNS = document.createElementNS(
           "http://www.w3.org/1999/xhtml", Foo.tag, null);
       expect(fooCreatedNS.outerHtml, anyOf(Foo.outerHtmlStrings));
@@ -275,9 +273,8 @@ main() {
   });
 
   group('parsing', () {
-    setUp(registerTypes);
-
     test('parsing', () {
+      registerTypes();
       createElementFromHtml(html) {
         var container = new DivElement()
           ..setInnerHtml(html, treeSanitizer: new NullTreeSanitizer());
@@ -310,9 +307,8 @@ main() {
   });
 
   group('functional', () {
-    setUp(registerTypes);
-
     test('canvas', () {
+      registerTypes();
       var canvas = new MyCanvas();
       canvas.fillAsRed();
     });

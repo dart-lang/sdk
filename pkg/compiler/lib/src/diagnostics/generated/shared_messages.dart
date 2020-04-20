@@ -43,15 +43,12 @@ const Map<MessageKind, MessageTemplate> TEMPLATES =
       howToFix: "Try removing '#{modifier}'.",
       examples: const [
         "var String foo; main(){}",
-        "var set foo; main(){}",
         "var final foo; main(){}",
         "var var foo; main(){}",
         "var const foo; main(){}",
         "var abstract foo; main(){}",
         "var static foo; main(){}",
         "var external foo; main(){}",
-        "get var foo; main(){}",
-        "set var foo; main(){}",
         "final var foo; main(){}",
         "var var foo; main(){}",
         "const var foo; main(){}",
@@ -80,11 +77,7 @@ const Map<MessageKind, MessageTemplate> TEMPLATES =
   MessageKind.MISSING_EXPRESSION_IN_THROW: const MessageTemplate(
       MessageKind.MISSING_EXPRESSION_IN_THROW,
       "Missing expression after 'throw'.",
-      howToFix: "Did you mean 'rethrow'?",
-      examples: const [
-        "main() { throw; }",
-        "main() { try { throw 0; } catch(e) { throw; } }",
-      ]), // Generated. Don't edit.
+      howToFix: "Did you mean 'rethrow'?"), // Generated. Don't edit.
   MessageKind.RETHROW_OUTSIDE_CATCH: const MessageTemplate(
       MessageKind.RETHROW_OUTSIDE_CATCH,
       "Rethrow must be inside of catch clause.",

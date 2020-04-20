@@ -33,7 +33,7 @@ import 'package:observatory/src/elements/nav/notify.dart';
 ///   overlapping the related events.
 enum _TimelineView { strict, frame }
 
-class TimelineDashboardElement extends HtmlElement implements Renderable {
+class TimelineDashboardElement extends CustomElement implements Renderable {
   static const tag = const Tag<TimelineDashboardElement>('timeline-dashboard',
       dependencies: const [NavNotifyElement.tag]);
 
@@ -57,8 +57,8 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
     assert(vm != null);
     assert(repository != null);
     assert(notifications != null);
-    TimelineDashboardElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    TimelineDashboardElement e = new TimelineDashboardElement.created();
+    e._r = new RenderingScheduler<TimelineDashboardElement>(e, queue: queue);
     e._vm = vm;
     e._repository = repository;
     e._notifications = notifications;
@@ -68,7 +68,7 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  TimelineDashboardElement.created() : super.created();
+  TimelineDashboardElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -81,7 +81,7 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   IFrameElement _frame;
@@ -95,29 +95,32 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
       _content = new DivElement()..classes = ['content-centered-big'];
     }
     _frame.src = _makeFrameUrl();
-    _content.children = [
-      new HeadingElement.h1()
-        ..children = ([new Text("Timeline")]
+    _content.children = <Element>[
+      new HeadingElement.h2()
+        ..nodes = ([new Text("Timeline View")]
           ..addAll(_createButtons())
           ..addAll(_createTabs())),
-      new Text(_view == _TimelineView.frame
-          ? 'Logical view of the computation involved in each frame. '
-              '(Timestamps may not be preserved)'
-          : 'Sequence of events generated during the execution. '
-          '(Timestamps are preserved)')
+      new ParagraphElement()
+        ..text = (_view == _TimelineView.frame
+            ? 'Logical view of the computation involved in each frame '
+                '(timestamps may not be preserved)'
+            : 'Sequence of events generated during the execution '
+                '(timestamps are preserved)')
     ];
     if (children.isEmpty) {
-      children = [
-        navBar([new NavNotifyElement(_notifications, queue: _r.queue)]),
+      children = <Element>[
+        navBar(<Element>[
+          new NavNotifyElement(_notifications, queue: _r.queue).element
+        ]),
         _content,
         new DivElement()
           ..classes = ['iframe']
-          ..children = [_frame]
+          ..children = <Element>[_frame]
       ];
     }
   }
 
-  List<Element> _createButtons() {
+  List<Node> _createButtons() {
     if (_flags == null) {
       return [new Text('Loading')];
     }
@@ -128,32 +131,27 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
           ..text = 'Enable'
           ..title = 'The Timeline is not fully enabled, click to enable'
           ..onClick.listen((e) => _enable()),
-        new ButtonElement()
-          ..classes = ['header_button']
-          ..text = ' 📂 Load'
-          ..title = 'Load a saved timeline from file'
-          ..onClick.listen((e) => _load()),
       ];
     }
     return [
       new ButtonElement()
         ..classes = ['header_button']
-        ..text = ' ↺ Refresh'
-        ..title = 'Refresh the current timeline'
+        ..text = 'Load from VM'
+        ..title = 'Load the timeline'
         ..onClick.listen((e) => _refresh()),
       new ButtonElement()
         ..classes = ['header_button']
-        ..text = ' ❌ Clear'
-        ..title = 'Clear the current Timeline to file'
+        ..text = 'Reset Timeline'
+        ..title = 'Reset the current timeline'
         ..onClick.listen((e) => _clear()),
       new ButtonElement()
-        ..classes = ['header_button']
-        ..text = ' 💾 Save'
+        ..classes = ['header_button', 'left-pad']
+        ..text = 'Save to File…'
         ..title = 'Save the current Timeline to file'
         ..onClick.listen((e) => _save()),
       new ButtonElement()
         ..classes = ['header_button']
-        ..text = ' 📂 Load'
+        ..text = 'Load from File…'
         ..title = 'Load a saved timeline from file'
         ..onClick.listen((e) => _load()),
     ];
@@ -166,7 +164,7 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
     return [
       new SpanElement()
         ..classes = ['tab_buttons']
-        ..children = [
+        ..children = <Element>[
           new ButtonElement()
             ..text = 'Frame View'
             ..title = 'Logical view of the computation involved in each frame\n'
@@ -210,8 +208,9 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
   Future _refresh() async {
     _flags = await _repository.getFlags(vm);
     _r.dirty();
-    final params = new Map.from(await _repository.getIFrameParams(vm));
-    return _postMessage('refresh', params);
+    final traceData =
+        Map<String, dynamic>.from(await _repository.getTimeline(vm));
+    return _postMessage('refresh', traceData);
   }
 
   Future _clear() async {
@@ -219,19 +218,15 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
     return _postMessage('clear');
   }
 
-  Future _save() async {
-    return _postMessage('save');
-  }
+  Future _save() => _postMessage('save');
 
-  Future _load() async {
-    return _postMessage('load');
-  }
+  Future _load() => _postMessage('load');
 
   Future _postMessage(String method,
       [Map<String, dynamic> params = const <String, dynamic>{}]) async {
     var message = {'method': method, 'params': params};
     _frame.contentWindow
-        .postMessage(JSON.encode(message), window.location.href);
+        .postMessage(json.encode(message), window.location.href);
     return null;
   }
 }

@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+// @dart = 2.7
+
+/*member: main:[null]*/
 main() {
   setTopLevelFieldUninitialized();
   setStaticFieldUninitialized();
@@ -17,10 +19,10 @@ main() {
 /// Static set of an uninitialized top level field.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: field1:[null|exact=JSUInt31]*/
+/*member: field1:[null|exact=JSUInt31]*/
 var field1;
 
-/*element: setTopLevelFieldUninitialized:[exact=JSUInt31]*/
+/*member: setTopLevelFieldUninitialized:[exact=JSUInt31]*/
 setTopLevelFieldUninitialized() => field1 = 42;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -28,21 +30,21 @@ setTopLevelFieldUninitialized() => field1 = 42;
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class1 {
-  /*element: Class1.field:[null|exact=JSUInt31]*/
+  /*member: Class1.field:[null|exact=JSUInt31]*/
   static var field;
 }
 
-/*element: setStaticFieldUninitialized:[exact=JSUInt31]*/
+/*member: setStaticFieldUninitialized:[exact=JSUInt31]*/
 setStaticFieldUninitialized() => Class1.field = 42;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Static set of an initialized top level field.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: field2:Union of [[exact=JSString], [exact=JSUInt31]]*/
+/*member: field2:Union([exact=JSString], [exact=JSUInt31])*/
 dynamic field2 = '';
 
-/*element: setTopLevelFieldInitialized:[exact=JSUInt31]*/
+/*member: setTopLevelFieldInitialized:[exact=JSUInt31]*/
 setTopLevelFieldInitialized() => field2 = 42;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -50,11 +52,11 @@ setTopLevelFieldInitialized() => field2 = 42;
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class2 {
-  /*element: Class2.field:Union of [[exact=JSString], [exact=JSUInt31]]*/
+  /*member: Class2.field:Union([exact=JSString], [exact=JSUInt31])*/
   static dynamic field = '';
 }
 
-/*element: setStaticFieldInitialized:[exact=JSUInt31]*/
+/*member: setStaticFieldInitialized:[exact=JSUInt31]*/
 setStaticFieldInitialized() => Class2.field = 42;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -63,7 +65,7 @@ setStaticFieldInitialized() => Class2.field = 42;
 
 set _setter1(/*[exact=JSUInt31]*/ value) {}
 
-/*element: setTopLevelSetter:[exact=JSUInt31]*/
+/*member: setTopLevelSetter:[exact=JSUInt31]*/
 setTopLevelSetter() => _setter1 = 42;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -74,5 +76,5 @@ class Class3 {
   static set setter(/*[exact=JSUInt31]*/ value) {}
 }
 
-/*element: setStaticSetter:[exact=JSUInt31]*/
+/*member: setStaticSetter:[exact=JSUInt31]*/
 setStaticSetter() => Class3.setter = 42;

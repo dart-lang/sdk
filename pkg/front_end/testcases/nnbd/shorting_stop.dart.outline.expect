@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int field;
+  synthetic constructor •() → self::Class
+    ;
+  get next() → self::Class
+    ;
+  operator [](core::int key) → core::int
+    ;
+  operator []=(core::int key, core::int value) → void
+    ;
+}
+static final field core::bool inStrongMode;
+static method main() → dynamic
+  ;
+static method test(self::Class? c) → dynamic
+  ;
+static method _inStrongMode() → core::bool
+  ;
+static method throwsInStrong(() → void f) → void
+  ;

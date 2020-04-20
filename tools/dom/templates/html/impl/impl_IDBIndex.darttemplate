@@ -5,7 +5,6 @@
 part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
-  @DomName('IDBIndex.count')
   Future<int> count([key_OR_range]) {
    try {
       var request = _count(key_OR_range);
@@ -15,7 +14,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  @DomName('IDBIndex.get')
   Future get(key) {
     try {
       var request = _get(key);
@@ -26,7 +24,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  @DomName('IDBIndex.getKey')
   Future getKey(key) {
     try {
       var request = _getKey(key);
@@ -44,8 +41,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    *
    * * [ObjectStore.openCursor]
    */
-  Stream<CursorWithValue> openCursor({key, KeyRange range, String direction,
-      bool autoAdvance}) {
+  Stream<CursorWithValue> openCursor({key, KeyRange$NULLABLE range,
+      String$NULLABLE direction, bool$NULLABLE autoAdvance}) {
     var key_OR_range = null;
     if (key != null) {
       if (range != null) {
@@ -72,8 +69,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    *
    * * [ObjectStore.openCursor]
    */
-  Stream<Cursor> openKeyCursor({key, KeyRange range, String direction,
-      bool autoAdvance}) {
+  Stream<Cursor> openKeyCursor({key, KeyRange$NULLABLE range,
+      String$NULLABLE direction, bool$NULLABLE autoAdvance}) {
     var key_OR_range = null;
     if (key != null) {
       if (range != null) {

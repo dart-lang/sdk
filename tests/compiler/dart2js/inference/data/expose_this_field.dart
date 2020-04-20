@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+// @dart = 2.7
+
+/*member: main:[null]*/
 main() {
   exposeThis1();
   exposeThis2();
@@ -20,16 +22,16 @@ main() {
 class Class1 {
   // The inferred type of the field does _not_ include `null` because it has
   // _not_ been read before its initialization.
-  /*element: Class1.field:[exact=JSUInt31]*/
+  /*member: Class1.field:[exact=JSUInt31]*/
   var field;
 
-  /*element: Class1.:[exact=Class1]*/
+  /*member: Class1.:[exact=Class1]*/
   Class1() {
     /*update: [exact=Class1]*/ field = 42;
   }
 }
 
-/*element: exposeThis1:[exact=Class1]*/
+/*member: exposeThis1:[exact=Class1]*/
 exposeThis1() => new Class1();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -39,16 +41,16 @@ exposeThis1() => new Class1();
 class Class2 {
   // The inferred type of the field includes `null` because it has been read
   // before its initialization.
-  /*element: Class2.field:[null]*/
+  /*member: Class2.field:[null]*/
   var field;
 
-  /*element: Class2.:[exact=Class2]*/
+  /*member: Class2.:[exact=Class2]*/
   Class2() {
     /*update: [exact=Class2]*/ field = /*[exact=Class2]*/ field;
   }
 }
 
-/*element: exposeThis2:[exact=Class2]*/
+/*member: exposeThis2:[exact=Class2]*/
 exposeThis2() => new Class2();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -56,17 +58,17 @@ exposeThis2() => new Class2();
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class3 {
-  /*element: Class3.field:[null|exact=JSUInt31]*/
+  /*member: Class3.field:[null|exact=JSUInt31]*/
   var field;
 
-  /*element: Class3.:[exact=Class3]*/
+  /*member: Class3.:[exact=Class3]*/
   Class3() {
     /*update: [exact=Class3]*/ field = /*[exact=Class3]*/ field;
     /*update: [exact=Class3]*/ field = 42;
   }
 }
 
-/*element: exposeThis3:[exact=Class3]*/
+/*member: exposeThis3:[exact=Class3]*/
 exposeThis3() => new Class3();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -74,10 +76,10 @@ exposeThis3() => new Class3();
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class4 {
-  /*element: Class4.field:[null|exact=JSUInt31]*/
+  /*member: Class4.field:[null|exact=JSUInt31]*/
   var field;
 
-  /*element: Class4.:[exact=Class4]*/
+  /*member: Class4.:[exact=Class4]*/
   Class4() {
     // ignore: UNUSED_LOCAL_VARIABLE
     var o = /*[exact=Class4]*/ field;
@@ -85,7 +87,7 @@ class Class4 {
   }
 }
 
-/*element: exposeThis4:[exact=Class4]*/
+/*member: exposeThis4:[exact=Class4]*/
 exposeThis4() => new Class4();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -93,17 +95,17 @@ exposeThis4() => new Class4();
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class5 {
-  /*element: Class5.field:[null|subclass=JSPositiveInt]*/
+  /*member: Class5.field:[null|subclass=JSPositiveInt]*/
   var field;
 
-  /*element: Class5.:[exact=Class5]*/
+  /*member: Class5.:[exact=Class5]*/
   Class5() {
     /*[exact=Class5]*/ /*update: [exact=Class5]*/ field /*invoke: [null|subclass=JSPositiveInt]*/ ++;
     /*update: [exact=Class5]*/ field = 42;
   }
 }
 
-/*element: exposeThis5:[exact=Class5]*/
+/*member: exposeThis5:[exact=Class5]*/
 exposeThis5() => new Class5();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -111,17 +113,17 @@ exposeThis5() => new Class5();
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class6 {
-  /*element: Class6.field:[subclass=JSPositiveInt]*/
+  /*member: Class6.field:[subclass=JSPositiveInt]*/
   var field;
 
-  /*element: Class6.:[exact=Class6]*/
+  /*member: Class6.:[exact=Class6]*/
   Class6() {
     /*update: [exact=Class6]*/ field = 42;
     /*[exact=Class6]*/ /*update: [exact=Class6]*/ field /*invoke: [subclass=JSPositiveInt]*/ ++;
   }
 }
 
-/*element: exposeThis6:[exact=Class6]*/
+/*member: exposeThis6:[exact=Class6]*/
 exposeThis6() => new Class6();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -129,13 +131,13 @@ exposeThis6() => new Class6();
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class7 {
-  /*element: Class7.field1:[null|exact=JSUInt31]*/
+  /*member: Class7.field1:[null|exact=JSUInt31]*/
   var field1;
 
-  /*element: Class7.field2:[null|exact=JSUInt31]*/
+  /*member: Class7.field2:[null|exact=JSUInt31]*/
   var field2;
 
-  /*element: Class7.:[exact=Class7]*/
+  /*member: Class7.:[exact=Class7]*/
   Class7() {
     // ignore: UNUSED_LOCAL_VARIABLE
     var o1 = /*[exact=Class7]*/ field1;
@@ -146,5 +148,5 @@ class Class7 {
   }
 }
 
-/*element: exposeThis7:[exact=Class7]*/
+/*member: exposeThis7:[exact=Class7]*/
 exposeThis7() => new Class7();

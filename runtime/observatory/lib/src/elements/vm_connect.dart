@@ -4,21 +4,19 @@
 
 library vm_connect_element;
 
-import 'dart:html';
 import 'dart:async';
-import 'dart:convert';
+import 'dart:html';
+
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/helpers/tag.dart';
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/src/elements/vm_connect_target.dart';
 
-typedef void CrashDumpLoadCallback(Map dump);
-
-class VMConnectElement extends HtmlElement implements Renderable {
+class VMConnectElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<VMConnectElement>('vm-connect', dependencies: const [
     NavTopMenuElement.tag,
@@ -27,34 +25,31 @@ class VMConnectElement extends HtmlElement implements Renderable {
     VMConnectTargetElement.tag
   ]);
 
-  RenderingScheduler _r;
+  RenderingScheduler<VMConnectElement> _r;
 
   Stream<RenderedEvent<VMConnectElement>> get onRendered => _r.onRendered;
 
-  CrashDumpLoadCallback _loadDump;
   M.NotificationRepository _notifications;
   M.TargetRepository _targets;
   StreamSubscription _targetsSubscription;
 
   String _address;
 
-  factory VMConnectElement(M.TargetRepository targets,
-      CrashDumpLoadCallback loadDump, M.NotificationRepository notifications,
+  factory VMConnectElement(
+      M.TargetRepository targets, M.NotificationRepository notifications,
       {String address: '', RenderingQueue queue}) {
     assert(address != null);
-    assert(loadDump != null);
     assert(notifications != null);
     assert(targets != null);
-    VMConnectElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    VMConnectElement e = new VMConnectElement.created();
+    e._r = new RenderingScheduler<VMConnectElement>(e, queue: queue);
     e._address = address;
-    e._loadDump = loadDump;
     e._notifications = notifications;
     e._targets = targets;
     return e;
   }
 
-  VMConnectElement.created() : super.created();
+  VMConnectElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -66,7 +61,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
     _targetsSubscription.cancel();
   }
@@ -74,40 +69,41 @@ class VMConnectElement extends HtmlElement implements Renderable {
   void render() {
     final host = window.location.hostname;
     final port = window.location.port;
-    children = [
-      navBar([
-        new NavTopMenuElement(queue: _r.queue),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+    children = <Element>[
+      navBar(<Element>[
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h1()..text = 'Connect to a Dart VM',
           new HRElement(),
           new BRElement(),
           new DivElement()
             ..classes = ['flex-row']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['flex-item-40-percent']
-                ..children = [
+                ..children = <Element>[
                   new HeadingElement.h2()..text = 'Connect over WebSocket',
                   new BRElement(),
                   new UListElement()
-                    ..children = _targets.list().map((target) {
+                    ..children = _targets.list().map<Element>((target) {
                       final bool current = _targets.isConnectedVMTarget(target);
                       return new LIElement()
-                        ..children = [
-                          new VMConnectTargetElement(target,
-                              current: current, queue: _r.queue)
-                            ..onConnect.listen(_connect)
-                            ..onDelete.listen(_delete)
+                        ..children = <Element>[
+                          (new VMConnectTargetElement(target,
+                                  current: current, queue: _r.queue)
+                                ..onConnect.listen(_connect)
+                                ..onDelete.listen(_delete))
+                              .element
                         ];
                     }).toList(),
                   new HRElement(),
                   new FormElement()
                     ..autocomplete = 'on'
-                    ..children = [
+                    ..children = <Element>[
                       _createAddressBox(),
                       new SpanElement()..text = ' ',
                       new ButtonElement()
@@ -124,22 +120,9 @@ class VMConnectElement extends HtmlElement implements Renderable {
                     ..text = 'Run Standalone with: \'--observe\'',
                 ],
               new DivElement()..classes = ['flex-item-20-percent'],
-              new DivElement()
-                ..classes = ['flex-item-40-percent']
-                ..children = [
-                  new HeadingElement.h2()..text = 'View crash dump',
-                  new BRElement(),
-                  _createCrushDumpLoader(),
-                  new BRElement(),
-                  new BRElement(),
-                  new PreElement()
-                    ..classes = ['well']
-                    ..text = 'Request a crash dump with:\n'
-                        '\'curl $host:$port/_getCrashDump > dump.json\'',
-                ]
             ],
         ],
-      new ViewFooterElement(queue: _r.queue)
+      new ViewFooterElement(queue: _r.queue).element
     ];
   }
 
@@ -156,20 +139,6 @@ class VMConnectElement extends HtmlElement implements Renderable {
       _address = textbox.value;
     });
     return textbox;
-  }
-
-  FileUploadInputElement _createCrushDumpLoader() {
-    FileUploadInputElement e = new FileUploadInputElement()
-      ..id = 'crashDumpFile';
-    e.onChange.listen((_) {
-      var reader = new FileReader();
-      reader.readAsText(e.files[0]);
-      reader.onLoad.listen((_) {
-        var crashDump = JSON.decode(reader.result);
-        _loadDump(crashDump);
-      });
-    });
-    return e;
   }
 
   void _createAndConnect() {

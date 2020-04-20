@@ -1,0 +1,36 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object = core::Object, Y extends core::Object? = core::Object?> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X, self::A::Y%>
+    ;
+  method foo() → self::A::X
+    ;
+  method bar() → self::A::X?
+    ;
+  method baz() → self::A::Y%
+    ;
+}
+class B<X extends core::List<self::B::Y%> = core::List<core::Object?>, Y extends core::Object? = core::Object?> extends core::Object {
+  synthetic constructor •() → self::B<self::B::X, self::B::Y%>
+    ;
+  method foo(generic-covariant-impl self::B::X x, generic-covariant-impl self::B::Y% y) → dynamic
+    ;
+}
+class C<X extends core::List<self::C::Y%>? = core::List<dynamic>?, Y extends core::List<self::C::X%>? = core::List<dynamic>?> extends core::Object {
+  synthetic constructor •() → self::C<self::C::X%, self::C::Y%>
+    ;
+  method foo(generic-covariant-impl self::C::X% x, generic-covariant-impl self::C::Y% y) → dynamic
+    ;
+}
+class D<X extends self::D::Y% = dynamic, Y extends self::D::Z% = dynamic, Z extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::D<self::D::X%, self::D::Y%, self::D::Z%>
+    ;
+  method foo(generic-covariant-impl self::D::X% x, generic-covariant-impl self::D::Y% y, generic-covariant-impl self::D::Z% z) → dynamic
+    ;
+}
+static method never() → Never
+  ;
+static method main() → dynamic
+  ;

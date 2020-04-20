@@ -1,16 +1,17 @@
 name: telemetry
 description: A library to facilitate reporting analytics and crash reports.
-version: 0.0.1
+publish_to: none
 author: Dart Team <misc@dartlang.org>
 
 environment:
-  sdk: '>=1.0.0 <2.0.0'
+  sdk: '>=1.0.0 <3.0.0'
 
 dependencies:
-  http: ^0.11.3+12
+  http: ^0.12.0
+  meta: ^1.0.2
   path: ^1.4.0
   stack_trace: ^1.7.0
   usage: ^3.2.0+1
 
 dev_dependencies:
-  test: ^0.12.0
+  test: ^1.0.0

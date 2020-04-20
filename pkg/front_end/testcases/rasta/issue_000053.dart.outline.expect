@@ -3,9 +3,9 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::C*
     ;
-  operator ==(dynamic other) → dynamic
+  operator ==(dynamic other) → core::bool*
     ;
   method test() → dynamic
     ;

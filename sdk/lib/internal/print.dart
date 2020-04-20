@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart._internal;
 
 /**
@@ -12,6 +14,6 @@ part of dart._internal;
  *
  * This decouples the core library from the async library.
  */
-Function printToZone = null;
+void Function(String) printToZone = null;
 
 external void printToConsole(String line);

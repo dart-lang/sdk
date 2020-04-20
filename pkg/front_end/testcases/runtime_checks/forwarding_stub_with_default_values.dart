@@ -16,21 +16,18 @@ class B {
   }
 
   void check(Object expectedValue) {
-    if (/*@callKind=this*/ _x != expectedValue) {
-      throw 'Expected _x == $expectedValue; got ${/*@callKind=this*/_x}';
+    if (_x != expectedValue) {
+      throw 'Expected _x == $expectedValue; got ${_x}';
     }
   }
 }
 
 abstract class I<T> {
-  void f([T /*@covariance=genericInterface, genericImpl*/ x]);
-  void g({T /*@covariance=genericInterface, genericImpl*/ x});
+  void f([T x]);
+  void g({T x});
 }
 
-class
-/*@forwardingStub=void f([covariance=(genericImpl) num x])*/
-/*@forwardingStub=void g({covariance=(genericImpl) num x})*/
-    C extends B implements I<num> {}
+class C extends B implements I<num> {}
 
 main() {
   C c = new C();

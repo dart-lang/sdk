@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import "package:expect/expect.dart";
 
 int zero() {
@@ -93,7 +95,7 @@ void mulTest() {
 void divTest() {
   var m1 = 0.0 - 1.0;
   var m2 = 0 - 2;
-  var x = two();
+  num x = two();
   x /= 2;
   Expect.equals(1.0, x);
   x /= 2;

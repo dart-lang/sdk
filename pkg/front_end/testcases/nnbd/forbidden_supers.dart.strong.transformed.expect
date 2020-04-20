@@ -1,0 +1,283 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:12:7: Error: Can't mix 'Aoo' in because it's marked with '?'.
+// class Coo extends Boo with Aoo? {}
+//       ^^^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:14:7: Error: Can't extend 'Aoo' because it's marked with '?'.
+// class Doo extends Aoo? {}
+//       ^^^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:16:7: Error: Can't implement 'Boo' because it's marked with '?'.
+// class Eoo implements Boo? {}
+//       ^^^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:18:7: Error: Can't extend 'Boo' because it's marked with '?'.
+// class Foo extends Boo? with Aoo {}
+//       ^^^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:20:7: Error: Can't extend 'Boo' because it's marked with '?'.
+// class Goo = Boo? with Aoo?;
+//       ^^^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:20:7: Error: Can't mix 'Aoo' in because it's marked with '?'.
+// class Goo = Boo? with Aoo?;
+//       ^^^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:22:7: Error: Can't implement 'Boo' because it's marked with '?'.
+// class Hoo extends Object with Aoo implements Boo? {}
+//       ^^^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:24:7: Error: Can't implement 'Boo' because it's marked with '?'.
+// class Ioo = Object with Aoo implements Boo?;
+//       ^^^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:32:7: Error: Can't extend 'Aoo' because it's marked with '?'.
+// mixin Moo1 on Aoo? implements Boo? {}
+//       ^^^^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:32:7: Error: Can't implement 'Boo' because it's marked with '?'.
+// mixin Moo1 on Aoo? implements Boo? {}
+//       ^^^^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:34:7: Error: Can't extend 'Aoo' because it's marked with '?'.
+// mixin Moo2 on Aoo?, Boo? {}
+//       ^^^^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:34:7: Error: Can't extend 'Boo' because it's marked with '?'.
+// mixin Moo2 on Aoo?, Boo? {}
+//       ^^^^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:36:7: Error: Can't implement 'Aoo' because it's marked with '?'.
+// mixin Moo3 implements Aoo?, Boo? {}
+//       ^^^^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:36:7: Error: Can't implement 'Boo' because it's marked with '?'.
+// mixin Moo3 implements Aoo?, Boo? {}
+//       ^^^^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:50:17: Error: Type 'void' can't be used here.
+// Try removing 'void' keyword or replace it with 'var', 'final', or a type.
+// class NooVoid = void with Aoo;
+//                 ^^^^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:50:17: Error: Type 'void' not found.
+// class NooVoid = void with Aoo;
+//                 ^^^^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:26:7: Error: The type 'Never' can't be mixed in.
+// class Joo extends Boo with Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:52:7: Error: The type 'Never' can't be mixed in.
+// class Ooo = Aoo with Never;
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:26:7: Error: The type 'Never' can't be used as supertype.
+// class Joo extends Boo with Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:28:7: Error: The type 'Never' can't be used as supertype.
+// class Koo extends Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:30:7: Error: The type 'Never' can't be used as supertype.
+// class Loo implements Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:38:7: Error: The type 'Never' can't be used as supertype.
+// mixin Moo4 on Aoo implements Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:40:7: Error: The type 'Never' can't be used as supertype.
+// mixin Moo5 on Aoo, Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:42:7: Error: The type 'Never' can't be used as supertype.
+// mixin Moo6 on Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:44:7: Error: The type 'Never' can't be used as supertype.
+// mixin Moo7 implements Aoo, Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:46:7: Error: The type 'Never' can't be used as supertype.
+// mixin Moo8 implements Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:48:7: Error: The type 'Never' can't be used as supertype.
+// class Noo = Never with Aoo;
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:49:7: Error: The type 'dynamic' can't be used as supertype.
+// class NooDynamic = dynamic with Aoo;
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:52:7: Error: The type 'Never' can't be used as supertype.
+// class Ooo = Aoo with Never;
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:28:7: Error: The type 'Never' can't be used in an 'extends' clause.
+// class Koo extends Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:30:7: Error: The type 'Never' can't be used in an 'implements' clause.
+// class Loo implements Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:38:7: Error: The type 'Never' can't be used in an 'implements' clause.
+// mixin Moo4 on Aoo implements Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:40:7: Error: The type 'Never' can't be used in an 'implements' clause.
+// mixin Moo5 on Aoo, Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:42:7: Error: The type 'Never' can't be used in an 'extends' clause.
+// mixin Moo6 on Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:44:7: Error: The type 'Never' can't be used in an 'implements' clause.
+// mixin Moo7 implements Aoo, Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:46:7: Error: The type 'Never' can't be used in an 'implements' clause.
+// mixin Moo8 implements Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:48:7: Error: The type 'Never' can't be used in an 'extends' clause.
+// class Noo = Never with Aoo;
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Aoo extends core::Object {
+  synthetic constructor •() → self::Aoo
+    : super core::Object::•()
+    ;
+}
+class Boo extends core::Object {
+  synthetic constructor •() → self::Boo
+    : super core::Object::•()
+    ;
+}
+abstract class _Coo&Boo&Aoo extends self::Boo implements self::Aoo /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_Coo&Boo&Aoo
+    : super self::Boo::•()
+    ;
+}
+class Coo extends self::_Coo&Boo&Aoo {
+  synthetic constructor •() → self::Coo
+    : super self::_Coo&Boo&Aoo::•()
+    ;
+}
+class Doo extends self::Aoo {
+  synthetic constructor •() → self::Doo
+    : super self::Aoo::•()
+    ;
+}
+class Eoo extends core::Object implements self::Boo {
+  synthetic constructor •() → self::Eoo
+    : super core::Object::•()
+    ;
+}
+abstract class _Foo&Boo&Aoo extends self::Boo implements self::Aoo /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_Foo&Boo&Aoo
+    : super self::Boo::•()
+    ;
+}
+class Foo extends self::_Foo&Boo&Aoo {
+  synthetic constructor •() → self::Foo
+    : super self::_Foo&Boo&Aoo::•()
+    ;
+}
+class Goo extends self::Boo implements self::Aoo /*isEliminatedMixin*/  {
+  synthetic constructor •() → self::Goo
+    : super self::Boo::•()
+    ;
+}
+abstract class _Hoo&Object&Aoo extends core::Object implements self::Aoo /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Hoo&Object&Aoo
+    : super core::Object::•()
+    ;
+}
+class Hoo extends self::_Hoo&Object&Aoo implements self::Boo {
+  synthetic constructor •() → self::Hoo
+    : super self::_Hoo&Object&Aoo::•()
+    ;
+}
+class Ioo extends core::Object implements self::Boo, self::Aoo /*isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::Ioo
+    : super core::Object::•()
+    ;
+}
+abstract class _Joo&Boo&Never extends self::Boo /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Joo&Boo&Never
+    : super self::Boo::•()
+    ;
+}
+class Joo extends self::_Joo&Boo&Never {
+  synthetic constructor •() → self::Joo
+    : super self::_Joo&Boo&Never::•()
+    ;
+}
+class Koo extends core::Object {
+  synthetic constructor •() → self::Koo
+    : super core::Object::•()
+    ;
+}
+class Loo extends core::Object {
+  synthetic constructor •() → self::Loo
+    : super core::Object::•()
+    ;
+}
+abstract class Moo1 extends self::Aoo implements self::Boo /*isMixinDeclaration*/  {
+}
+abstract class _Moo2&Aoo&Boo extends core::Object implements self::Aoo, self::Boo /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Moo2&Aoo&Boo
+    : super core::Object::•()
+    ;
+}
+abstract class Moo2 extends self::_Moo2&Aoo&Boo /*isMixinDeclaration*/  {
+}
+abstract class Moo3 extends core::Object implements self::Aoo, self::Boo /*isMixinDeclaration*/  {
+}
+abstract class Moo4 extends self::Aoo /*isMixinDeclaration*/  {
+}
+abstract class _Moo5&Aoo&Never extends core::Object implements self::Aoo /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Moo5&Aoo&Never
+    : super core::Object::•()
+    ;
+}
+abstract class Moo5 extends self::_Moo5&Aoo&Never /*isMixinDeclaration*/  {
+}
+abstract class Moo6 extends core::Object /*isMixinDeclaration*/  {
+}
+abstract class Moo7 extends core::Object implements self::Aoo /*isMixinDeclaration*/  {
+}
+abstract class Moo8 extends core::Object /*isMixinDeclaration*/  {
+}
+class Noo extends core::Object implements self::Aoo /*isEliminatedMixin*/  {
+  synthetic constructor •() → self::Noo
+    : super core::Object::•()
+    ;
+}
+class NooDynamic extends core::Object implements self::Aoo /*isEliminatedMixin*/  {
+  synthetic constructor •() → self::NooDynamic
+    : super core::Object::•()
+    ;
+}
+class NooVoid extends core::Object implements self::Aoo /*isEliminatedMixin*/  {
+  synthetic constructor •() → self::NooVoid
+    : super core::Object::•()
+    ;
+}
+class Ooo extends self::Aoo {
+  synthetic constructor •() → self::Ooo
+    : super self::Aoo::•()
+    ;
+}
+static method main() → dynamic {}

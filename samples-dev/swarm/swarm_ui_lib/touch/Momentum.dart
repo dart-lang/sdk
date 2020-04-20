@@ -112,7 +112,7 @@ class _Move {
  * class at all.
  */
 class Solver {
-  static num solve(num fn(num), num targetY, num startX,
+  static num solve(num Function(num) fn, num targetY, num startX,
       [int maxIterations = 50]) {
     num lastX = 0;
     num lastY = fn(lastX);

@@ -1,10 +1,11 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -19,7 +20,7 @@ Pubspec _findAndParsePubspec(Directory root) {
         .listSync(followLinks: false)
         .firstWhere((f) => isPubspecFile(f), orElse: () => null);
     if (pubspec != null) {
-      return new Pubspec.parse(pubspec.readAsStringSync(),
+      return Pubspec.parse(pubspec.readAsStringSync(),
           sourceUrl: p.toUri(pubspec.path));
     }
   }
@@ -50,18 +51,7 @@ class DartProject {
   DartProject._(AnalysisDriver driver, List<Source> sources, {Directory dir})
       : root = dir ?? Directory.current {
     _pubspec = _findAndParsePubspec(root);
-    _apiModel = new _ApiModel(driver, sources, root);
-  }
-
-  /// Create an initialized Dart project for the corresponding [driver] and
-  /// [sources].
-  /// If a [dir] is unspecified the current working directory will be
-  /// used.
-  static Future<DartProject> create(AnalysisDriver driver, List<Source> sources,
-      {Directory dir}) async {
-    DartProject project = new DartProject._(driver, sources, dir: dir);
-    await project._apiModel._calculate();
-    return project;
+    _apiModel = _ApiModel(driver, sources, root);
   }
 
   /// The project's name.
@@ -91,6 +81,17 @@ class DartProject {
     }
     return p.basename(root.path);
   }
+
+  /// Create an initialized Dart project for the corresponding [driver] and
+  /// [sources].
+  /// If a [dir] is unspecified the current working directory will be
+  /// used.
+  static Future<DartProject> create(AnalysisDriver driver, List<Source> sources,
+      {Directory dir}) async {
+    DartProject project = DartProject._(driver, sources, dir: dir);
+    await project._apiModel._calculate();
+    return project;
+  }
 }
 
 /// An object that can be used to visit Dart project structure.
@@ -103,7 +104,7 @@ class _ApiModel {
   final AnalysisDriver driver;
   final List<Source> sources;
   final Directory root;
-  final Set<LibraryElement> elements = new Set();
+  final Set<Element> elements = {};
 
   _ApiModel(this.driver, this.sources, this.root) {
     _calculate();
@@ -131,10 +132,10 @@ class _ApiModel {
     for (Source source in sources) {
       String path = source.uri.path;
       if (path.startsWith(libDir) && !path.startsWith(libSrcDir)) {
-        AnalysisResult result = await driver.getResult(source.fullName);
+        ResolvedUnitResult result = await driver.getResult(source.fullName);
         LibraryElement library = result.libraryElement;
 
-        NamespaceBuilder namespaceBuilder = new NamespaceBuilder();
+        NamespaceBuilder namespaceBuilder = NamespaceBuilder();
         Namespace exports =
             namespaceBuilder.createExportNamespaceForLibrary(library);
         Namespace public =

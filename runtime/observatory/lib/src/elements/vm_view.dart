@@ -19,7 +19,7 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/utils.dart';
 
-class VMViewElement extends HtmlElement implements Renderable {
+class VMViewElement extends CustomElement implements Renderable {
   static const tag = const Tag<VMViewElement>('vm-view', dependencies: const [
     IsolateSummaryElement.tag,
     NavTopMenuElement.tag,
@@ -38,6 +38,7 @@ class VMViewElement extends HtmlElement implements Renderable {
   M.EventRepository _events;
   M.NotificationRepository _notifications;
   M.IsolateRepository _isolates;
+  M.IsolateGroupRepository _isolateGroups;
   M.ScriptRepository _scripts;
   StreamSubscription _vmSubscription;
   StreamSubscription _startSubscription;
@@ -52,6 +53,7 @@ class VMViewElement extends HtmlElement implements Renderable {
       M.EventRepository events,
       M.NotificationRepository notifications,
       M.IsolateRepository isolates,
+      M.IsolateGroupRepository isolateGroups,
       M.ScriptRepository scripts,
       {RenderingQueue queue}) {
     assert(vm != null);
@@ -60,18 +62,19 @@ class VMViewElement extends HtmlElement implements Renderable {
     assert(notifications != null);
     assert(isolates != null);
     assert(scripts != null);
-    VMViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    VMViewElement e = new VMViewElement.created();
+    e._r = new RenderingScheduler<VMViewElement>(e, queue: queue);
     e._vm = vm;
     e._vms = vms;
     e._events = events;
     e._notifications = notifications;
     e._isolates = isolates;
+    e._isolateGroups = isolateGroups;
     e._scripts = scripts;
     return e;
   }
 
-  VMViewElement.created() : super.created();
+  VMViewElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -83,222 +86,252 @@ class VMViewElement extends HtmlElement implements Renderable {
     });
     _startSubscription = _events.onIsolateStart.listen((_) => _r.dirty());
     _exitSubscription = _events.onIsolateExit.listen((_) => _r.dirty());
+    _loadExtraData();
   }
 
   @override
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
     _vmSubscription.cancel();
     _startSubscription.cancel();
     _exitSubscription.cancel();
   }
 
+  Future _loadExtraData() async {
+    for (var group in _vm.isolateGroups) {
+      await _isolateGroups.get(group);
+    }
+    _r.dirty();
+  }
+
   void render() {
-    final uptime = new DateTime.now().difference(_vm.startTime);
-    final isolates = _vm.isolates.toList();
-    children = [
-      navBar([
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavRefreshElement(queue: _r.queue)
-          ..onRefresh.listen((e) async {
-            e.element.disabled = true;
-            _vm = await _vms.get(_vm);
-            _r.dirty();
-          }),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+    children = <Element>[
+      navBar(<Element>[
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        (new NavRefreshElement(queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                _vm = await _vms.get(_vm);
+                _loadExtraData();
+                _r.dirty();
+              }))
+            .element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <HtmlElement>[
-          new HeadingElement.h1()..text = 'VM',
-          new HRElement(),
-          new DivElement()
-            ..classes = ['memberList']
-            ..children = [
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = [
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'name',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = _vm.displayName
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = [
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'version',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = _vm.version
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = [
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'embedder',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = _vm.embedder ?? "UNKNOWN"
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = [
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'started at',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = '${_vm.startTime}'
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = [
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'uptime',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = '$uptime'
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = [
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'refreshed at',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = '${new DateTime.now()}'
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = [
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'pid',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = '${_vm.pid}'
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = [
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'peak memory',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = _vm.maxRSS != null
-                        ? Utils.formatSize(_vm.maxRSS)
-                        : "unavailable"
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = [
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'current memory',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = _vm.currentRSS != null
-                        ? Utils.formatSize(_vm.currentRSS)
-                        : "unavailable"
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = [
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'native zone memory',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = Utils.formatSize(_vm.nativeZoneMemoryUsage)
-                    ..title = '${_vm.nativeZoneMemoryUsage} bytes'
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = [
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'native heap memory',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = _vm.heapAllocatedMemoryUsage != null
-                        ? Utils.formatSize(_vm.heapAllocatedMemoryUsage)
-                        : 'unavailable'
-                    ..title = _vm.heapAllocatedMemoryUsage != null
-                        ? '${_vm.heapAllocatedMemoryUsage} bytes'
-                        : null
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = [
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'native heap allocation count',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = _vm.heapAllocationCount != null
-                        ? '${_vm.heapAllocationCount}'
-                        : 'unavailable'
-                ],
-              new BRElement(),
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = [
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..children = [
-                      new SpanElement()..text = 'see ',
-                      new AnchorElement(href: Uris.flags())..text = 'flags'
-                    ],
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..children = [
-                      new SpanElement()..text = 'view ',
-                      new AnchorElement(href: Uris.timeline())
-                        ..text = 'timeline'
-                    ]
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = [
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..children = [
-                      new SpanElement()..text = 'view ',
-                      new AnchorElement(href: Uris.nativeMemory())
-                        ..text = 'native memory profile'
-                    ]
-                ]
-            ],
-          new BRElement(),
-          new HeadingElement.h1()..text = 'Isolates (${isolates.length})',
-          new HRElement(),
-          new UListElement()
-            ..classes = ['list-group']
-            ..children = isolates
-                .expand((i) => [
-                      new LIElement()
-                        ..classes = ['list-group-item']
-                        ..children = [
-                          new IsolateSummaryElement(
-                              i, _isolates, _events, _scripts,
-                              queue: _r.queue)
-                        ],
-                      new HRElement()
-                    ])
-                .toList(),
-          new ViewFooterElement(queue: _r.queue)
-        ]
+      describeVM(),
+      describeIsolateGroups(),
+      new ViewFooterElement(queue: _r.queue).element
     ];
+  }
+
+  Element describeVM() {
+    final uptime = new DateTime.now().difference(_vm.startTime);
+    return new DivElement()
+      ..classes = ['content-centered-big']
+      ..children = <HtmlElement>[
+        new HeadingElement.h1()..text = 'VM',
+        new DivElement()
+          ..classes = ['memberList']
+          ..children = <Element>[
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..text = 'name',
+                new DivElement()
+                  ..classes = ['memberValue']
+                  ..text = _vm.displayName
+              ],
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..text = 'version',
+                new DivElement()
+                  ..classes = ['memberValue']
+                  ..text = _vm.version
+              ],
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..text = 'embedder',
+                new DivElement()
+                  ..classes = ['memberValue']
+                  ..text = _vm.embedder ?? "UNKNOWN"
+              ],
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..text = 'started at',
+                new DivElement()
+                  ..classes = ['memberValue']
+                  ..text = '${_vm.startTime}'
+              ],
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..text = 'uptime',
+                new DivElement()
+                  ..classes = ['memberValue']
+                  ..text = '$uptime'
+              ],
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..text = 'refreshed at',
+                new DivElement()
+                  ..classes = ['memberValue']
+                  ..text = '${new DateTime.now()}'
+              ],
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..text = 'pid',
+                new DivElement()
+                  ..classes = ['memberValue']
+                  ..text = '${_vm.pid}'
+              ],
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..text = 'peak memory',
+                new DivElement()
+                  ..classes = ['memberValue']
+                  ..text = _vm.maxRSS != null
+                      ? Utils.formatSize(_vm.maxRSS)
+                      : "unavailable"
+              ],
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..text = 'current memory',
+                new DivElement()
+                  ..classes = ['memberValue']
+                  ..text = _vm.currentRSS != null
+                      ? Utils.formatSize(_vm.currentRSS)
+                      : "unavailable"
+              ],
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..text = 'native zone memory',
+                new DivElement()
+                  ..classes = ['memberValue']
+                  ..text = Utils.formatSize(_vm.nativeZoneMemoryUsage)
+                  ..title = '${_vm.nativeZoneMemoryUsage} bytes'
+              ],
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..text = 'native heap memory',
+                new DivElement()
+                  ..classes = ['memberValue']
+                  ..text = _vm.heapAllocatedMemoryUsage != null
+                      ? Utils.formatSize(_vm.heapAllocatedMemoryUsage)
+                      : 'unavailable'
+                  ..title = _vm.heapAllocatedMemoryUsage != null
+                      ? '${_vm.heapAllocatedMemoryUsage} bytes'
+                      : null
+              ],
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..text = 'native heap allocation count',
+                new DivElement()
+                  ..classes = ['memberValue']
+                  ..text = _vm.heapAllocationCount != null
+                      ? '${_vm.heapAllocationCount}'
+                      : 'unavailable'
+              ],
+            new BRElement(),
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..children = <Element>[
+                    new SpanElement()..text = 'see ',
+                    new AnchorElement(href: Uris.flags())..text = 'flags'
+                  ],
+                new DivElement()
+                  ..classes = ['memberValue']
+                  ..children = <Element>[
+                    new SpanElement()..text = 'view ',
+                    new AnchorElement(href: Uris.timeline())..text = 'timeline'
+                  ]
+              ],
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..children = <Element>[
+                    new SpanElement()..text = 'view ',
+                    new AnchorElement(href: Uris.nativeMemory())
+                      ..text = 'native memory profile'
+                  ]
+              ]
+          ],
+        new BRElement(),
+      ];
+  }
+
+  Element describeIsolateGroups() {
+    final isolateGroups = _vm.isolateGroups.toList();
+    return new DivElement()
+      ..children = isolateGroups.map(describeIsolateGroup).toList();
+  }
+
+  Element describeIsolateGroup(M.IsolateGroupRef group) {
+    final isolates = (group as M.IsolateGroup).isolates;
+    return new DivElement()
+      ..classes = ['content-centered-big']
+      ..children = <Element>[
+        new HRElement(),
+        new HeadingElement.h1()
+          ..text = "Isolate Group ${group.number} (${group.name})",
+        new LIElement()
+          ..classes = ['list-group-item']
+          ..children = <Element>[
+            new UListElement()
+              ..classes = ['list-group']
+              ..children = isolates.map(describeIsolate).toList(),
+          ],
+      ];
+  }
+
+  Element describeIsolate(M.IsolateRef isolate) {
+    return new LIElement()
+      ..classes = ['list-group-item']
+      ..children = <Element>[
+        new IsolateSummaryElement(isolate, _isolates, _events, _scripts,
+                queue: _r.queue)
+            .element
+      ];
   }
 }

@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_DATASTREAM_H_
 #define RUNTIME_VM_DATASTREAM_H_
 
+#include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/allocation.h"
@@ -71,19 +72,27 @@ class ReadStream : public ValueObject {
     current_ += len;
   }
 
-  intptr_t ReadUnsigned() { return Read<intptr_t>(kEndUnsignedByteMarker); }
+  template <typename T = intptr_t>
+  T ReadUnsigned() {
+    return Read<T>(kEndUnsignedByteMarker);
+  }
 
   intptr_t Position() const { return current_ - buffer_; }
-
   void SetPosition(intptr_t value) {
     ASSERT((end_ - buffer_) > value);
     current_ = buffer_ + value;
   }
 
+  void Align(intptr_t alignment) {
+    intptr_t position_before = Position();
+    intptr_t position_after = Utils::RoundUp(position_before, alignment);
+    Advance(position_after - position_before);
+  }
+
   const uint8_t* AddressOfCurrentPosition() const { return current_; }
 
   void Advance(intptr_t value) {
-    ASSERT((end_ - current_) > value);
+    ASSERT((end_ - current_) >= value);
     current_ = current_ + value;
   }
 
@@ -95,6 +104,19 @@ class ReadStream : public ValueObject {
   template <typename T>
   T Read() {
     return Read<T>(kEndByteMarker);
+  }
+
+  uword ReadWordWith32BitReads() {
+    constexpr intptr_t kNumBytesPerRead32 = sizeof(uint32_t);
+    constexpr intptr_t kNumRead32PerWord = sizeof(uword) / kNumBytesPerRead32;
+    constexpr intptr_t kNumBitsPerRead32 = kNumBytesPerRead32 * kBitsPerByte;
+
+    uword value = 0;
+    for (intptr_t j = 0; j < kNumRead32PerWord; j++) {
+      const auto partial_value = Raw<kNumBytesPerRead32, uint32_t>::Read(this);
+      value |= (static_cast<uword>(partial_value) << (j * kNumBitsPerRead32));
+    }
+    return value;
   }
 
  private:
@@ -312,12 +334,14 @@ class WriteStream : public ValueObject {
   void set_buffer(uint8_t* value) { *buffer_ = value; }
   intptr_t bytes_written() const { return current_ - *buffer_; }
 
-  void set_current(uint8_t* value) { current_ = value; }
+  intptr_t Position() const { return current_ - *buffer_; }
+  void SetPosition(intptr_t value) { current_ = *buffer_ + value; }
 
   void Align(intptr_t alignment) {
-    intptr_t position = current_ - *buffer_;
-    position = Utils::RoundUp(position, alignment);
-    current_ = *buffer_ + position;
+    intptr_t position_before = Position();
+    intptr_t position_after = Utils::RoundUp(position_before, alignment);
+    memset(current_, 0, position_after - position_before);
+    SetPosition(position_after);
   }
 
   template <int N, typename T>
@@ -355,8 +379,21 @@ class WriteStream : public ValueObject {
     }
   };
 
-  void WriteUnsigned(intptr_t value) {
-    ASSERT((value >= 0) && (value <= kIntptrMax));
+  void WriteWordWith32BitWrites(uword value) {
+    constexpr intptr_t kNumBytesPerWrite32 = sizeof(uint32_t);
+    constexpr intptr_t kNumWrite32PerWord = sizeof(uword) / kNumBytesPerWrite32;
+    constexpr intptr_t kNumBitsPerWrite32 = kNumBytesPerWrite32 * kBitsPerByte;
+
+    const uint32_t mask = Utils::NBitMask(kNumBitsPerWrite32);
+    for (intptr_t j = 0; j < kNumWrite32PerWord; j++) {
+      const uint32_t shifted_value = (value >> (j * kNumBitsPerWrite32));
+      Raw<kNumBytesPerWrite32, uint32_t>::Write(this, shifted_value & mask);
+    }
+  }
+
+  template <typename T>
+  void WriteUnsigned(T value) {
+    ASSERT(value >= 0);
     while (value > kMaxUnsignedDataPerByte) {
       WriteByte(static_cast<uint8_t>(value & kByteMask));
       value = value >> kDataBitsPerByte;
@@ -364,7 +401,7 @@ class WriteStream : public ValueObject {
     WriteByte(static_cast<uint8_t>(value + kEndUnsignedByteMarker));
   }
 
-  void WriteBytes(const uint8_t* addr, intptr_t len) {
+  void WriteBytes(const void* addr, intptr_t len) {
     if ((end_ - current_) < len) {
       Resize(len);
     }
@@ -383,6 +420,21 @@ class WriteStream : public ValueObject {
     current_ += len;
   }
 
+  void WriteTargetWord(uword value) {
+#if defined(IS_SIMARM_X64)
+    RELEASE_ASSERT(Utils::IsInt(32, static_cast<word>(value)));
+    const intptr_t len = sizeof(uint32_t);
+    if ((end_ - current_) < len) {
+      Resize(len);
+    }
+    ASSERT((end_ - current_) >= len);
+    *reinterpret_cast<uint32_t*>(current_) = static_cast<uint32_t>(value);
+    current_ += len;
+#else   // defined(IS_SIMARM_X64)
+    WriteWord(value);
+#endif  // defined(IS_SIMARM_X64)
+  }
+
   void Print(const char* format, ...) {
     va_list args;
     va_start(args, format);
@@ -394,7 +446,7 @@ class WriteStream : public ValueObject {
     // Measure.
     va_list measure_args;
     va_copy(measure_args, args);
-    intptr_t len = OS::VSNPrint(NULL, 0, format, measure_args);
+    intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
     va_end(measure_args);
 
     // Alloc.
@@ -406,8 +458,8 @@ class WriteStream : public ValueObject {
     // Print.
     va_list print_args;
     va_copy(print_args, args);
-    OS::VSNPrint(reinterpret_cast<char*>(current_), len + 1, format,
-                 print_args);
+    Utils::VSNPrint(reinterpret_cast<char*>(current_), len + 1, format,
+                    print_args);
     va_end(print_args);
     current_ += len;  // Not len + 1 to swallow the terminating NUL.
   }
@@ -420,6 +472,17 @@ class WriteStream : public ValueObject {
       v = v >> kDataBitsPerByte;
     }
     WriteByte(static_cast<uint8_t>(v + kEndByteMarker));
+  }
+
+  template <typename T>
+  void WriteFixed(T value) {
+    const intptr_t len = sizeof(T);
+    if ((end_ - current_) < len) {
+      Resize(len);
+    }
+    ASSERT((end_ - current_) >= len);
+    *reinterpret_cast<T*>(current_) = static_cast<T>(value);
+    current_ += len;
   }
 
  private:
@@ -459,6 +522,56 @@ class WriteStream : public ValueObject {
   intptr_t initial_size_;
 
   DISALLOW_COPY_AND_ASSIGN(WriteStream);
+};
+
+class StreamingWriteStream : public ValueObject {
+ public:
+  explicit StreamingWriteStream(intptr_t initial_capacity,
+                                Dart_StreamingWriteCallback callback,
+                                void* callback_data);
+  ~StreamingWriteStream();
+
+  intptr_t position() const { return flushed_size_ + (cursor_ - buffer_); }
+
+  void Align(intptr_t alignment) {
+    intptr_t padding = Utils::RoundUp(position(), alignment) - position();
+    EnsureAvailable(padding);
+    memset(cursor_, 0, padding);
+    cursor_ += padding;
+  }
+
+  void Print(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    VPrint(format, args);
+    va_end(args);
+  }
+  void VPrint(const char* format, va_list args);
+
+  void WriteBytes(const uint8_t* buffer, intptr_t size) {
+    EnsureAvailable(size);
+    memmove(cursor_, buffer, size);
+    cursor_ += size;
+  }
+
+ private:
+  void EnsureAvailable(intptr_t needed) {
+    intptr_t available = limit_ - cursor_;
+    if (available >= needed) return;
+    EnsureAvailableSlowPath(needed);
+  }
+
+  void EnsureAvailableSlowPath(intptr_t needed);
+  void Flush();
+
+  uint8_t* buffer_;
+  uint8_t* cursor_;
+  uint8_t* limit_;
+  intptr_t flushed_size_;
+  Dart_StreamingWriteCallback callback_;
+  void* callback_data_;
+
+  DISALLOW_COPY_AND_ASSIGN(StreamingWriteStream);
 };
 
 }  // namespace dart

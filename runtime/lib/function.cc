@@ -13,15 +13,15 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(Function_apply, 2) {
+DEFINE_NATIVE_ENTRY(Function_apply, 0, 2) {
   const int kTypeArgsLen = 0;  // TODO(regis): Add support for generic function.
   const Array& fun_arguments =
       Array::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Array& fun_arg_names =
       Array::CheckedHandle(zone, arguments->NativeArgAt(1));
   const Array& fun_args_desc = Array::Handle(
-      zone, ArgumentsDescriptor::New(kTypeArgsLen, fun_arguments.Length(),
-                                     fun_arg_names));
+      zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, fun_arguments.Length(),
+                                          fun_arg_names));
   const Object& result = Object::Handle(
       zone, DartEntry::InvokeClosure(fun_arguments, fun_args_desc));
   if (result.IsError()) {
@@ -30,7 +30,7 @@ DEFINE_NATIVE_ENTRY(Function_apply, 2) {
   return result.raw();
 }
 
-DEFINE_NATIVE_ENTRY(Closure_equals, 2) {
+DEFINE_NATIVE_ENTRY(Closure_equals, 0, 2) {
   const Closure& receiver =
       Closure::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NATIVE_ARGUMENT(Instance, other, arguments->NativeArgAt(1));
@@ -65,13 +65,13 @@ DEFINE_NATIVE_ENTRY(Closure_equals, 2) {
   return Bool::False().raw();
 }
 
-DEFINE_NATIVE_ENTRY(Closure_computeHash, 1) {
+DEFINE_NATIVE_ENTRY(Closure_computeHash, 0, 1) {
   const Closure& receiver =
       Closure::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Smi::New(receiver.ComputeHash());
 }
 
-DEFINE_NATIVE_ENTRY(Closure_clone, 1) {
+DEFINE_NATIVE_ENTRY(Closure_clone, 0, 1) {
   const Closure& receiver =
       Closure::CheckedHandle(zone, arguments->NativeArgAt(0));
   const TypeArguments& instantiator_type_arguments =
@@ -80,13 +80,15 @@ DEFINE_NATIVE_ENTRY(Closure_clone, 1) {
       TypeArguments::Handle(zone, receiver.function_type_arguments());
   const Function& function = Function::Handle(zone, receiver.function());
   const Context& context = Context::Handle(zone, receiver.context());
-  Context& cloned_context =
-      Context::Handle(zone, Context::New(context.num_variables()));
-  cloned_context.set_parent(Context::Handle(zone, context.parent()));
-  Object& instance = Object::Handle(zone);
-  for (int i = 0; i < context.num_variables(); i++) {
-    instance = context.At(i);
-    cloned_context.SetAt(i, instance);
+  Context& cloned_context = Context::Handle(zone);
+  if (!context.IsNull()) {
+    cloned_context = Context::New(context.num_variables());
+    cloned_context.set_parent(Context::Handle(zone, context.parent()));
+    Object& instance = Object::Handle(zone);
+    for (int i = 0; i < context.num_variables(); i++) {
+      instance = context.At(i);
+      cloned_context.SetAt(i, instance);
+    }
   }
   return Closure::New(instantiator_type_arguments, function_type_arguments,
                       function, cloned_context);

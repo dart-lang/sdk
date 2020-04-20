@@ -1,11 +1,10 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -14,8 +13,9 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
+import '../mocks.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateContentTest);
   });
@@ -30,9 +30,9 @@ class UpdateContentTest extends AbstractAnalysisTest {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-      var decoded = new AnalysisErrorsParams.fromNotification(notification);
+      var decoded = AnalysisErrorsParams.fromNotification(notification);
       String _format(AnalysisError e) =>
-          "${e.location.startLine}: ${e.message}";
+          '${e.location.startLine}: ${e.message}';
       filesErrors[decoded.file] = decoded.errors.map(_format).toList();
     }
     if (notification.event == ANALYSIS_NOTIFICATION_NAVIGATION) {
@@ -43,15 +43,15 @@ class UpdateContentTest extends AbstractAnalysisTest {
     }
   }
 
-  test_illegal_ChangeContentOverlay() {
+  void test_illegal_ChangeContentOverlay() {
     // It should be illegal to send a ChangeContentOverlay for a file that
     // doesn't have an overlay yet.
     createProject();
     addTestFile('library foo;');
-    String id = 'myId';
+    var id = 'myId';
     try {
       server.updateContent(id, {
-        testFile: new ChangeContentOverlay([new SourceEdit(8, 3, 'bar')])
+        testFile: ChangeContentOverlay([SourceEdit(8, 3, 'bar')])
       });
       fail('Expected an exception to be thrown');
     } on RequestFailure catch (e) {
@@ -60,24 +60,45 @@ class UpdateContentTest extends AbstractAnalysisTest {
     }
   }
 
-  test_multiple_contexts() async {
-    String fooPath = '/project1/foo.dart';
-    resourceProvider.newFile(fooPath, '''
+  Future<void> test_invalidFilePathFormat_notAbsolute() async {
+    var request = AnalysisUpdateContentParams(
+      {'test.dart': AddContentOverlay('')},
+    ).toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
+  }
+
+  Future<void> test_invalidFilePathFormat_notNormalized() async {
+    var request = AnalysisUpdateContentParams(
+      {convertPath('/foo/../bar/test.dart'): AddContentOverlay('')},
+    ).toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
+  }
+
+  Future<void> test_multiple_contexts() async {
+    var project1path = convertPath('/project1');
+    var project2path = convertPath('/project2');
+    var fooPath = newFile('/project1/foo.dart', content: '''
 library foo;
 import '../project2/baz.dart';
-main() { f(); }''');
-    String barPath = '/project2/bar.dart';
-    resourceProvider.newFile(barPath, '''
+main() { f(); }''').path;
+    var barPath = newFile('/project2/bar.dart', content: '''
 library bar;
 import 'baz.dart';
-main() { f(); }''');
-    String bazPath = '/project2/baz.dart';
-    resourceProvider.newFile(bazPath, '''
+main() { f(); }''').path;
+    var bazPath = newFile('/project2/baz.dart', content: '''
 library baz;
 f(int i) {}
-''');
-    Request request =
-        new AnalysisSetAnalysisRootsParams(['/project1', '/project2'], [])
+''').path;
+    var request =
+        AnalysisSetAnalysisRootsParams([project1path, project2path], [])
             .toRequest('0');
     handleSuccessfulRequest(request);
     {
@@ -88,7 +109,7 @@ f(int i) {}
       expect(filesErrors[barPath], hasLength(1));
       // Overlay the content of baz.dart to eliminate the errors.
       server.updateContent('1', {
-        bazPath: new AddContentOverlay('''
+        bazPath: AddContentOverlay('''
 library baz;
 f() {}
 ''')
@@ -104,14 +125,14 @@ f() {}
   }
 
   @failingTest
-  test_overlay_addPreviouslyImported() async {
+  Future<void> test_overlay_addPreviouslyImported() async {
     // The list of errors doesn't include errors for '/project/target.dart'.
-    Folder project = resourceProvider.newFolder('/project');
+    var project = newFolder('/project');
     handleSuccessfulRequest(
-        new AnalysisSetAnalysisRootsParams([project.path], []).toRequest('0'));
+        AnalysisSetAnalysisRootsParams([project.path], []).toRequest('0'));
 
     server.updateContent('1',
-        {'/project/main.dart': new AddContentOverlay('import "target.dart";')});
+        {'/project/main.dart': AddContentOverlay('import "target.dart";')});
     await server.onAnalysisComplete;
     expect(filesErrors, {
       '/project/main.dart': ["1: Target of URI doesn't exist: 'target.dart'."],
@@ -119,59 +140,62 @@ f() {}
     });
 
     server.updateContent('1',
-        {'/project/target.dart': new AddContentOverlay('import "none.dart";')});
+        {'/project/target.dart': AddContentOverlay('import "none.dart";')});
     await server.onAnalysisComplete;
     expect(filesErrors, {
-      '/project/main.dart': ["1: Unused import."],
+      '/project/main.dart': ['1: Unused import.'],
       '/project/target.dart': ["1: Target of URI doesn't exist: 'none.dart'."],
       '/project/none.dart': []
     });
   }
 
-  test_overlayOnly() async {
-    String filePath = '/User/project1/test.dart';
-    Folder folder1 = resourceProvider.newFolder('/User/project1');
-    Folder folder2 = resourceProvider.newFolder('/User/project2');
-    Request request =
-        new AnalysisSetAnalysisRootsParams([folder1.path, folder2.path], [])
-            .toRequest('0');
-    handleSuccessfulRequest(request);
+  Future<void> test_overlayOnly() async {
+    var filePath1 = convertPath('/User/project1/test.dart');
+    var filePath2 = convertPath('/User/project2/test.dart');
+    var folderPath1 = newFolder('/User/project1').path;
+    var folderPath2 = newFolder('/User/project2').path;
+
+    handleSuccessfulRequest(AnalysisSetAnalysisRootsParams(
+      [folderPath1, folderPath2],
+      [],
+    ).toRequest('0'));
+
     // exactly 2 contexts
     expect(server.driverMap, hasLength(2));
-    AnalysisDriver driver1 = server.driverMap[folder1];
-    AnalysisDriver driver2 = server.driverMap[folder2];
+    var driver1 = server.getAnalysisDriver(filePath1);
+    var driver2 = server.getAnalysisDriver(filePath2);
+
     // no sources
     expect(_getUserSources(driver1), isEmpty);
     expect(_getUserSources(driver2), isEmpty);
+
     // add an overlay - new Source in context1
-    server.updateContent('1', {filePath: new AddContentOverlay('')});
-    {
-      List<String> paths = _getUserSources(driver1);
-      expect(paths, hasLength(1));
-      expect(paths[0], filePath);
-    }
+    server.updateContent('1', {filePath1: AddContentOverlay('')});
+    expect(_getUserSources(driver1), [filePath1]);
     expect(_getUserSources(driver2), isEmpty);
+
     // remove the overlay - no sources
-    server.updateContent('2', {filePath: new RemoveContentOverlay()});
+    server.updateContent('2', {filePath1: RemoveContentOverlay()});
+
     // The file isn't removed from the list of added sources.
 //    expect(_getUserSources(driver1), isEmpty);
     expect(_getUserSources(driver2), isEmpty);
   }
 
   @failingTest
-  test_sendNoticesAfterNopChange() async {
+  Future<void> test_sendNoticesAfterNopChange() async {
     // The errors are empty on the last line.
-    createProject();
     addTestFile('');
+    createProject();
     await server.onAnalysisComplete;
     // add an overlay
     server.updateContent(
-        '1', {testFile: new AddContentOverlay('main() {} main() {}')});
+        '1', {testFile: AddContentOverlay('main() {} main() {}')});
     await server.onAnalysisComplete;
     // clear errors and make a no-op change
     filesErrors.clear();
     server.updateContent('2', {
-      testFile: new ChangeContentOverlay([new SourceEdit(0, 4, 'main')])
+      testFile: ChangeContentOverlay([SourceEdit(0, 4, 'main')])
     });
     await server.onAnalysisComplete;
     // errors should have been resent
@@ -179,72 +203,70 @@ f() {}
   }
 
   @failingTest
-  test_sendNoticesAfterNopChange_flushedUnit() async {
+  Future<void> test_sendNoticesAfterNopChange_flushedUnit() async {
     // The list of errors is empty on the last line.
-    createProject();
     addTestFile('');
+    createProject();
     await server.onAnalysisComplete;
     // add an overlay
     server.updateContent(
-        '1', {testFile: new AddContentOverlay('main() {} main() {}')});
+        '1', {testFile: AddContentOverlay('main() {} main() {}')});
     await server.onAnalysisComplete;
     // clear errors and make a no-op change
     filesErrors.clear();
     server.updateContent('2', {
-      testFile: new ChangeContentOverlay([new SourceEdit(0, 4, 'main')])
+      testFile: ChangeContentOverlay([SourceEdit(0, 4, 'main')])
     });
     await server.onAnalysisComplete;
     // errors should have been resent
     expect(filesErrors, isNotEmpty);
   }
 
-  test_sentToPlugins() {
-    String filePath = '/project/target.dart';
-    String fileContent = 'import "none.dart";';
+  void test_sentToPlugins() {
+    var filePath = convertPath('/project/target.dart');
+    var fileContent = 'import "none.dart";';
     //
     // Add
     //
-    handleSuccessfulRequest(new AnalysisUpdateContentParams(
-            <String, dynamic>{filePath: new AddContentOverlay(fileContent)})
+    handleSuccessfulRequest(AnalysisUpdateContentParams(
+            <String, dynamic>{filePath: AddContentOverlay(fileContent)})
         .toRequest('0'));
-    plugin.AnalysisUpdateContentParams params =
-        pluginManager.analysisUpdateContentParams;
+    var params = pluginManager.analysisUpdateContentParams;
     expect(params, isNotNull);
-    Map<String, dynamic> files = params.files;
+    var files = params.files;
     expect(files, hasLength(1));
     Object overlay = files[filePath];
-    expect(overlay, new isInstanceOf<plugin.AddContentOverlay>());
+    expect(overlay, const TypeMatcher<plugin.AddContentOverlay>());
     plugin.AddContentOverlay addOverlay = overlay;
     expect(addOverlay.content, fileContent);
     //
     // Change
     //
     pluginManager.analysisUpdateContentParams = null;
-    handleSuccessfulRequest(new AnalysisUpdateContentParams(<String, dynamic>{
-      filePath: new ChangeContentOverlay(
-          <SourceEdit>[new SourceEdit(8, 1, "'"), new SourceEdit(18, 1, "'")])
+    handleSuccessfulRequest(AnalysisUpdateContentParams(<String, dynamic>{
+      filePath: ChangeContentOverlay(
+          <SourceEdit>[SourceEdit(8, 1, "'"), SourceEdit(18, 1, "'")])
     }).toRequest('1'));
     params = pluginManager.analysisUpdateContentParams;
     expect(params, isNotNull);
     files = params.files;
     expect(files, hasLength(1));
     overlay = files[filePath];
-    expect(overlay, new isInstanceOf<plugin.ChangeContentOverlay>());
+    expect(overlay, const TypeMatcher<plugin.ChangeContentOverlay>());
     plugin.ChangeContentOverlay changeOverlay = overlay;
     expect(changeOverlay.edits, hasLength(2));
     //
     // Remove
     //
     pluginManager.analysisUpdateContentParams = null;
-    handleSuccessfulRequest(new AnalysisUpdateContentParams(
-            <String, dynamic>{filePath: new RemoveContentOverlay()})
-        .toRequest('2'));
+    handleSuccessfulRequest(AnalysisUpdateContentParams(
+        <String, dynamic>{filePath: RemoveContentOverlay()}).toRequest('2'));
     params = pluginManager.analysisUpdateContentParams;
     expect(params, isNotNull);
     files = params.files;
     expect(files, hasLength(1));
     overlay = files[filePath];
-    expect(overlay, new isInstanceOf<plugin.RemoveContentOverlay>());
+    expect(overlay, const TypeMatcher<plugin.RemoveContentOverlay>());
   }
 
 //  CompilationUnit _getTestUnit() {
@@ -255,9 +277,9 @@ f() {}
 //  }
 
   List<String> _getUserSources(AnalysisDriver driver) {
-    List<String> sources = <String>[];
+    var sources = <String>[];
     driver.addedFiles.forEach((path) {
-      if (path.startsWith('/User/')) {
+      if (path.startsWith(convertPath('/User/'))) {
         sources.add(path);
       }
     });

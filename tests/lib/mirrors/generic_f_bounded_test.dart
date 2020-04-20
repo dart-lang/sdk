@@ -4,7 +4,6 @@
 
 library test.generic_f_bounded;
 
-@MirrorsUsed(targets: "test.generic_f_bounded")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -24,8 +23,8 @@ main() {
   ClassMirror realDecl = reflectClass(Real);
   ClassMirror sorterDecl = reflectClass(Sorter);
   ClassMirror realSorterDecl = reflectClass(RealSorter);
-  ClassMirror magnitudeOfReal = realDecl.superclass;
-  ClassMirror sorterOfReal = realSorterDecl.superclass;
+  ClassMirror magnitudeOfReal = realDecl.superclass!;
+  ClassMirror sorterOfReal = realSorterDecl.superclass!;
 
   Expect.isTrue(magnitudeDecl.isOriginalDeclaration);
   Expect.isTrue(realDecl.isOriginalDeclaration);
@@ -39,7 +38,7 @@ main() {
 
   Expect.equals(reflectClass(Object), tFromMagnitude.upperBound);
 
-  ClassMirror magnitudeOfR = rFromSorter.upperBound;
+  ClassMirror magnitudeOfR = rFromSorter.upperBound as ClassMirror;
   Expect.isFalse(magnitudeOfR.isOriginalDeclaration);
   Expect.equals(magnitudeDecl, magnitudeOfR.originalDeclaration);
   Expect.equals(rFromSorter, magnitudeOfR.typeArguments.single);

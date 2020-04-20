@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 // Efficient JavaScript based implementation of a linked hash map used as a
 // backing map for constant maps and the [LinkedHashMap] patch
 
@@ -9,7 +11,8 @@ part of _js_helper;
 
 const _USE_ES6_MAPS = const bool.fromEnvironment("dart2js.use.es6.maps");
 
-class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
+class JsLinkedHashMap<K, V> extends MapBase<K, V>
+    implements LinkedHashMap<K, V>, InternalMap {
   int _length = 0;
 
   // The hash map contents are divided into three parts: one part for
@@ -26,8 +29,8 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
 
   // The keys and values are stored in cells that are linked together
   // to form a double linked list.
-  LinkedHashMapCell/*<K, V>*/ _first;
-  LinkedHashMapCell/*<K, V>*/ _last;
+  LinkedHashMapCell _first;
+  LinkedHashMapCell _last;
 
   // We track the number of modifications done to the key set of the
   // hash map to be able to throw when the map is modified while being
@@ -42,7 +45,7 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
   JsLinkedHashMap();
 
   /// If ES6 Maps are available returns a linked hash-map backed by an ES6 Map.
-  @ForceInline()
+  @pragma('dart2js:tryInline')
   factory JsLinkedHashMap.es6() {
     return (_USE_ES6_MAPS && JsLinkedHashMap._supportsEs6Maps)
         ? new Es6LinkedHashMap<K, V>()
@@ -96,13 +99,13 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
     if (_isStringKey(key)) {
       var strings = _strings;
       if (strings == null) return null;
-      LinkedHashMapCell/*<K, V>*/ cell = _getTableCell(strings, key);
-      return (cell == null) ? null : cell.hashMapCellValue;
+      LinkedHashMapCell cell = _getTableCell(strings, key);
+      return JS('', '#', cell == null ? null : cell.hashMapCellValue);
     } else if (_isNumericKey(key)) {
       var nums = _nums;
       if (nums == null) return null;
-      LinkedHashMapCell/*<K, V>*/ cell = _getTableCell(nums, key);
-      return (cell == null) ? null : cell.hashMapCellValue;
+      LinkedHashMapCell cell = _getTableCell(nums, key);
+      return JS('', '#', cell == null ? null : cell.hashMapCellValue);
     } else {
       return internalGet(key);
     }
@@ -114,8 +117,8 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
     var bucket = _getBucket(rest, key);
     int index = internalFindBucketIndex(bucket, key);
     if (index < 0) return null;
-    LinkedHashMapCell/*<K, V>*/ cell = JS('var', '#[#]', bucket, index);
-    return cell.hashMapCellValue;
+    LinkedHashMapCell cell = JS('var', '#[#]', bucket, index);
+    return JS('', '#', cell.hashMapCellValue);
   }
 
   void operator []=(K key, V value) {
@@ -138,15 +141,15 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
     var hash = internalComputeHashCode(key);
     var bucket = _getTableBucket(rest, hash);
     if (bucket == null) {
-      LinkedHashMapCell/*<K, V>*/ cell = _newLinkedCell(key, value);
+      LinkedHashMapCell cell = _newLinkedCell(key, value);
       _setTableEntry(rest, hash, JS('var', '[#]', cell));
     } else {
       int index = internalFindBucketIndex(bucket, key);
       if (index >= 0) {
-        LinkedHashMapCell/*<K, V>*/ cell = JS('var', '#[#]', bucket, index);
+        LinkedHashMapCell cell = JS('var', '#[#]', bucket, index);
         cell.hashMapCellValue = value;
       } else {
-        LinkedHashMapCell/*<K, V>*/ cell = _newLinkedCell(key, value);
+        LinkedHashMapCell cell = _newLinkedCell(key, value);
         JS('void', '#.push(#)', bucket, cell);
       }
     }
@@ -172,17 +175,19 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
   V internalRemove(Object key) {
     var rest = _rest;
     if (rest == null) return null;
-    var bucket = _getBucket(rest, key);
+    var hash = internalComputeHashCode(key);
+    var bucket = _getTableBucket(rest, hash);
     int index = internalFindBucketIndex(bucket, key);
     if (index < 0) return null;
     // Use splice to remove the [cell] element at the index and
     // unlink the cell before returning its value.
-    LinkedHashMapCell/*<K, V>*/ cell =
-        JS('var', '#.splice(#, 1)[0]', bucket, index);
+    LinkedHashMapCell cell = JS('var', '#.splice(#, 1)[0]', bucket, index);
     _unlinkCell(cell);
-    // TODO(kasperl): Consider getting rid of the bucket list when
-    // the length reaches zero.
-    return cell.hashMapCellValue;
+    // Remove empty bucket list to avoid memory leak.
+    if (JS('int', '#.length', bucket) == 0) {
+      _deleteTableEntry(rest, hash);
+    }
+    return JS('', '#', cell.hashMapCellValue);
   }
 
   void clear() {
@@ -194,10 +199,12 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
   }
 
   void forEach(void action(K key, V value)) {
-    LinkedHashMapCell/*<K, V>*/ cell = _first;
+    LinkedHashMapCell cell = _first;
     int modifications = _modifications;
     while (cell != null) {
-      action(cell.hashMapCellKey, cell.hashMapCellValue);
+      K key = JS('', '#', cell.hashMapCellKey);
+      V value = JS('', '#', cell.hashMapCellValue);
+      action(key, value);
       if (modifications != _modifications) {
         throw new ConcurrentModificationError(this);
       }
@@ -206,7 +213,7 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
   }
 
   void _addHashTableEntry(var table, K key, V value) {
-    LinkedHashMapCell/*<K, V>*/ cell = _getTableCell(table, key);
+    LinkedHashMapCell cell = _getTableCell(table, key);
     if (cell == null) {
       _setTableEntry(table, key, _newLinkedCell(key, value));
     } else {
@@ -216,11 +223,11 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
 
   V _removeHashTableEntry(var table, Object key) {
     if (table == null) return null;
-    LinkedHashMapCell/*<K, V>*/ cell = _getTableCell(table, key);
+    LinkedHashMapCell cell = _getTableCell(table, key);
     if (cell == null) return null;
     _unlinkCell(cell);
     _deleteTableEntry(table, key);
-    return cell.hashMapCellValue;
+    return JS('', '#', cell.hashMapCellValue);
   }
 
   void _modified() {
@@ -232,13 +239,12 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
   }
 
   // Create a new cell and link it in as the last one in the list.
-  LinkedHashMapCell/*<K, V>*/ _newLinkedCell(K key, V value) {
-    LinkedHashMapCell/*<K, V>*/ cell =
-        new LinkedHashMapCell/*<K, V>*/(key, value);
+  LinkedHashMapCell _newLinkedCell(K key, V value) {
+    LinkedHashMapCell cell = new LinkedHashMapCell(key, value);
     if (_first == null) {
       _first = _last = cell;
     } else {
-      LinkedHashMapCell/*<K, V>*/ last = _last;
+      LinkedHashMapCell last = _last;
       cell._previous = last;
       _last = last._next = cell;
     }
@@ -248,9 +254,9 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
   }
 
   // Unlink the given cell from the linked list of cells.
-  void _unlinkCell(LinkedHashMapCell/*<K, V>*/ cell) {
-    LinkedHashMapCell/*<K, V>*/ previous = cell._previous;
-    LinkedHashMapCell/*<K, V>*/ next = cell._next;
+  void _unlinkCell(LinkedHashMapCell cell) {
+    LinkedHashMapCell previous = cell._previous;
+    LinkedHashMapCell next = cell._next;
     if (previous == null) {
       assert(cell == _first);
       _first = next;
@@ -285,7 +291,7 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
     return JS('int', '# & 0x3ffffff', key.hashCode);
   }
 
-  List<dynamic/*=LinkedHashMapCell<K, V>*/ > _getBucket(var table, var key) {
+  List<LinkedHashMapCell> _getBucket(var table, var key) {
     var hash = internalComputeHashCode(key);
     return _getTableBucket(table, hash);
   }
@@ -294,19 +300,19 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i++) {
-      LinkedHashMapCell/*<K, V>*/ cell = JS('var', '#[#]', bucket, i);
+      LinkedHashMapCell cell = JS('var', '#[#]', bucket, i);
       if (cell.hashMapCellKey == key) return i;
     }
     return -1;
   }
 
-  String toString() => Maps.mapToString(this);
+  String toString() => MapBase.mapToString(this);
 
-  /*=LinkedHashMapCell<K, V>*/ _getTableCell(var table, var key) {
+  LinkedHashMapCell _getTableCell(var table, var key) {
     return JS('var', '#[#]', table, key);
   }
 
-  /*=List<LinkedHashMapCell<K, V>>*/ _getTableBucket(var table, var key) {
+  List<LinkedHashMapCell> _getTableBucket(var table, var key) {
     return JS('var', '#[#]', table, key);
   }
 
@@ -320,7 +326,7 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
   }
 
   bool _containsTableEntry(var table, var key) {
-    LinkedHashMapCell/*<K, V>*/ cell = _getTableCell(table, key);
+    LinkedHashMapCell cell = _getTableCell(table, key);
     return cell != null;
   }
 
@@ -340,12 +346,12 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
 
 class Es6LinkedHashMap<K, V> extends JsLinkedHashMap<K, V> {
   @override
-  /*=LinkedHashMapCell<K, V>*/ _getTableCell(var table, var key) {
+  LinkedHashMapCell _getTableCell(var table, var key) {
     return JS('var', '#.get(#)', table, key);
   }
 
   @override
-  /*=List<LinkedHashMapCell<K, V>>*/ _getTableBucket(var table, var key) {
+  List<LinkedHashMapCell> _getTableBucket(var table, var key) {
     return JS('var', '#.get(#)', table, key);
   }
 
@@ -370,18 +376,18 @@ class Es6LinkedHashMap<K, V> extends JsLinkedHashMap<K, V> {
   }
 }
 
-class LinkedHashMapCell<K, V> {
-  final dynamic/*=K*/ hashMapCellKey;
-  dynamic/*=V*/ hashMapCellValue;
+class LinkedHashMapCell {
+  final dynamic hashMapCellKey;
+  dynamic hashMapCellValue;
 
-  LinkedHashMapCell/*<K, V>*/ _next;
-  LinkedHashMapCell/*<K, V>*/ _previous;
+  LinkedHashMapCell _next;
+  LinkedHashMapCell _previous;
 
   LinkedHashMapCell(this.hashMapCellKey, this.hashMapCellValue);
 }
 
 class LinkedHashMapKeyIterable<E> extends EfficientLengthIterable<E> {
-  final dynamic/*=JsLinkedHashMap<E, dynamic>*/ _map;
+  final dynamic _map;
   LinkedHashMapKeyIterable(this._map);
 
   int get length => _map._length;
@@ -396,10 +402,10 @@ class LinkedHashMapKeyIterable<E> extends EfficientLengthIterable<E> {
   }
 
   void forEach(void f(E element)) {
-    LinkedHashMapCell/*<E, dynamic>*/ cell = _map._first;
+    LinkedHashMapCell cell = _map._first;
     int modifications = _map._modifications;
     while (cell != null) {
-      f(cell.hashMapCellKey);
+      f(JS('', '#', cell.hashMapCellKey));
       if (modifications != _map._modifications) {
         throw new ConcurrentModificationError(_map);
       }
@@ -409,9 +415,9 @@ class LinkedHashMapKeyIterable<E> extends EfficientLengthIterable<E> {
 }
 
 class LinkedHashMapKeyIterator<E> implements Iterator<E> {
-  final dynamic/*=JsLinkedHashMap<E, dynamic>*/ _map;
+  final dynamic _map;
   final int _modifications;
-  LinkedHashMapCell/*<E, dynamic>*/ _cell;
+  LinkedHashMapCell _cell;
   E _current;
 
   LinkedHashMapKeyIterator(this._map, this._modifications) {
@@ -427,7 +433,7 @@ class LinkedHashMapKeyIterator<E> implements Iterator<E> {
       _current = null;
       return false;
     } else {
-      _current = _cell.hashMapCellKey;
+      _current = JS('', '#', _cell.hashMapCellKey);
       _cell = _cell._next;
       return true;
     }

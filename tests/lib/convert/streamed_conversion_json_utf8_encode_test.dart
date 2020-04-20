@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'json_unicode_tests.dart';
 import "package:async_helper/async_helper.dart";
 
-final JSON_UTF8 = JSON.fuse(UTF8);
+final jsonUtf8 = json.fuse<List<int>>(utf8);
 
 Stream<List<int>> encode(Object o) {
   var controller;
@@ -16,26 +16,26 @@ Stream<List<int>> encode(Object o) {
     controller.add(o);
     controller.close();
   });
-  return controller.stream.transform(JSON_UTF8.encoder);
+  return controller.stream.transform(jsonUtf8.encoder);
 }
 
-void testUnpaused(List<int> expected, Stream stream) {
+void testUnpaused(List<int> expected, Stream<List<int>> stream) {
   asyncStart();
   stream.toList().then((list) {
-    var combined = [];
+    var combined = <int>[];
     list.forEach(combined.addAll);
     Expect.listEquals(expected, combined);
     asyncEnd();
   });
 }
 
-void testWithPauses(List<int> expected, Stream stream) {
+void testWithPauses(List<int> expected, Stream<List<int>> stream) {
   asyncStart();
-  var accumulated = [];
+  var accumulated = <int>[];
   var sub;
   sub = stream.listen((x) {
     accumulated.addAll(x);
-    sub.pause(new Future.delayed(Duration.ZERO));
+    sub.pause(new Future.delayed(Duration.zero));
   }, onDone: () {
     Expect.listEquals(expected, accumulated);
     asyncEnd();

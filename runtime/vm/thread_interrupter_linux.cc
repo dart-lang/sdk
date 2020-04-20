@@ -17,7 +17,6 @@ namespace dart {
 
 #ifndef PRODUCT
 
-DECLARE_FLAG(bool, thread_interrupter);
 DECLARE_FLAG(bool, trace_thread_interrupter);
 
 class ThreadInterrupterLinux : public AllStatic {
@@ -30,6 +29,10 @@ class ThreadInterrupterLinux : public AllStatic {
     }
     Thread* thread = Thread::Current();
     if (thread == NULL) {
+      return;
+    }
+    ThreadInterrupter::SampleBufferWriterScope scope;
+    if (!scope.CanSample()) {
       return;
     }
     // Extract thread state.

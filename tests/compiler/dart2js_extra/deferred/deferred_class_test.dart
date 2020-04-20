@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
@@ -9,7 +11,7 @@ import 'dart:async';
 
 import 'deferred_class_library.dart' deferred as lib;
 
-isError(e) => e is Error;
+bool isError(e) => e is Error;
 
 main() {
   var x;

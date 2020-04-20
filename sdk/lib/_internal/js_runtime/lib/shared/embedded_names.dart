@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 /// Contains the names of globals that are embedded into the output by the
 /// compiler.
 ///
@@ -47,6 +49,10 @@ const NATIVE_SUPERCLASS_TAG_NAME = r"$nativeSuperclassTag";
 /// the static function's unique (potentially minified) name.
 const STATIC_FUNCTION_NAME_PROPERTY_NAME = r'$static_name';
 
+/// The name of a property on the constructor function of Dart Object
+/// and interceptor types, used for caching Rti types.
+const CONSTRUCTOR_RTI_CACHE_PROPERTY_NAME = r'$ccache';
+
 /// The name of the embedded global for metadata.
 ///
 /// Use [JsBuiltin.getMetadata] instead of directly accessing this embedded
@@ -64,11 +70,6 @@ const TYPES = 'types';
 /// This embedded global is used by the runtime when computing the internal
 /// runtime-type-information (rti) object.
 const GET_TYPE_FROM_NAME = 'getTypeFromName';
-
-/// If [JSInvocationMirror._invokeOn] is being used, this embedded global
-/// contains a JavaScript map with the names of methods that are
-/// intercepted.
-const INTERCEPTED_NAMES = 'interceptedNames';
 
 /// A JS map from mangled global names to their unmangled names.
 ///
@@ -122,6 +123,11 @@ const GET_ISOLATE_TAG = 'getIsolateTag';
 //    [INTERCEPTORS_BY_TAG] and [LEAF_TAGS].
 const ISOLATE_TAG = 'isolateTag';
 
+/// An embedded global that contains the property used to store type information
+/// on JavaScript Array instances. This is a Symbol (except for IE11, where is
+/// is a String).
+const ARRAY_RTI_PROPERTY = 'arrayRti';
+
 /// This embedded global (a function) returns the isolate-specific dispatch-tag
 /// that is used to accelerate interceptor calls.
 const DISPATCH_PROPERTY_NAME = "dispatchPropertyName";
@@ -138,60 +144,34 @@ const TYPE_TO_INTERCEPTOR_MAP = "typeToInterceptorMap";
 /// This embedded global is set at startup, just before invoking `main`.
 const CURRENT_SCRIPT = 'currentScript';
 
-/// Returns a function that creates a new Isolate (its static state).
-///
-/// (floitsch): Note that this embedded global will probably go away, since one
-/// JS heap will only contain one Dart isolate.
-const CREATE_NEW_ISOLATE = 'createNewIsolate';
-
-/// Returns a class-id of the given instance.
-///
-/// The extracted id can be used to built a new instance of the same type
-/// (see [INSTANCE_FROM_CLASS_ID].
-///
-/// This embedded global is used for serialization in the isolate-library.
-const CLASS_ID_EXTRACTOR = 'classIdExtractor';
-
-/// Returns an empty instance of the given class-id.
-///
-/// Given a class-id (see [CLASS_ID_EXTRACTOR]) returns an empty instance.
-///
-/// This embedded global is used for deserialization in the isolate-library.
-const INSTANCE_FROM_CLASS_ID = "instanceFromClassId";
-
-/// Returns a list of (mangled) field names for the given instance.
-///
-/// The list of fields can be used to extract the instance's values and then
-/// initialize an empty instance (see [INITIALIZE_EMPTY_INSTANCE].
-///
-/// This embedded global is used for serialization in the isolate-library.
-const CLASS_FIELDS_EXTRACTOR = 'classFieldsExtractor';
-
-/// Initializes the given empty instance with the given fields.
-///
-/// The given fields are in an array and must be in the same order as the
-/// field-names obtained by [CLASS_FIELDS_EXTRACTOR].
-///
-/// This embedded global is used for deserialization in the isolate-library.
-const INITIALIZE_EMPTY_INSTANCE = "initializeEmptyInstance";
-
-/// Returns a map from load-ids to URIs.
+/// Contains a map from load-ids to lists of part indexes.
 ///
 /// To load the deferred library that is represented by the load-id, the runtime
-/// must load all associated URIs.
+/// must load all associated URIs (named in DEFERRED_PART_URIS) and initialize
+/// all the loaded hunks (DEFERRED_PART_HASHES).
 ///
 /// This embedded global is only used for deferred loading.
-const DEFERRED_LIBRARY_URIS = 'deferredLibraryUris';
+const DEFERRED_LIBRARY_PARTS = 'deferredLibraryParts';
 
-/// Returns a map from load-ids to hashes.
+/// Contains a list of URIs (Strings), indexed by part.
+///
+/// The lists in the DEFERRED_LIBRARY_PARTS map contain indexes into this list.
+///
+/// This embedded global is only used for deferred loading.
+const DEFERRED_PART_URIS = 'deferredPartUris';
+
+/// Contains a list of hashes, indexed by part.
+///
+/// The lists in the DEFERRED_LIBRARY_PARTS map contain indexes into this list.
 ///
 /// The hashes are associated with the URIs of the load-ids (see
-/// [DEFERRED_LIBRARY_URIS]). They are MD5 (or similar) hashes of the code that
-/// must be loaded. By using cryptographic hashes we can avoid loading similar
-/// code multiple times.
+/// [DEFERRED_PART_URIS]). They are SHA1 (or similar) hashes of the code that
+/// must be loaded. By using cryptographic hashes we can (1) handle loading in
+/// the same web page the parts from multiple Dart applications (2) avoid
+/// loading similar code multiple times.
 ///
 /// This embedded global is only used for deferred loading.
-const DEFERRED_LIBRARY_HASHES = 'deferredLibraryHashes';
+const DEFERRED_PART_HASHES = 'deferredPartHashes';
 
 /// Initialize a loaded hunk.
 ///
@@ -223,6 +203,11 @@ const IS_HUNK_INITIALIZED = 'isHunkInitialized';
 /// globals don't clash with it.
 const DEFERRED_INITIALIZED = 'deferredInitialized';
 
+/// A 'Universe' object used by 'dart:_rti'.
+///
+/// This embedded global is used for --experiment-new-rti.
+const RTI_UNIVERSE = 'typeUniverse';
+
 /// Returns a function that creates all precompiled functions (in particular
 /// constructors).
 ///
@@ -238,29 +223,6 @@ const PRECOMPILED = 'precompiled';
 
 /// An emitter-internal embedded global. This global is not used by the runtime.
 const FINISHED_CLASSES = 'finishedClasses';
-
-/// An emitter-internal embedded global. This global is not used by the runtime.
-///
-/// The constant remains in this file to make sure that other embedded globals
-/// don't clash with it.
-///
-/// It can be used by the compiler to store a mapping from static function names
-/// to dart-closure getters (which can be useful for
-/// [JsBuiltin.createDartClosureFromNameOfStaticFunction].
-const GLOBAL_FUNCTIONS = 'globalFunctions';
-
-/// An emitter-internal embedded global. This global is not used by the runtime.
-///
-/// The constant remains in this file to make sure that other embedded globals
-/// don't clash with it.
-///
-/// This embedded global stores a function that returns a dart-closure getter
-/// for a given static function name.
-///
-/// This embedded global is used to implement
-/// [JsBuiltin.createDartClosureFromNameOfStaticFunction], and is only
-/// used with isolates.
-const STATIC_FUNCTION_NAME_TO_CLOSURE = 'staticFunctionNameToClosure';
 
 /// A JavaScript object literal that maps the (minified) JavaScript constructor
 /// name (as given by [JsBuiltin.rawRtiToJsConstructorName] to the
@@ -314,6 +276,9 @@ enum JsGetName {
   /// Prefix used for generated type argument substitutions on classes.
   OPERATOR_AS_PREFIX,
 
+  /// Prefix used for generated type test property on classes.
+  OPERATOR_IS_PREFIX,
+
   /// Name used for generated function types on classes and methods.
   SIGNATURE_NAME,
 
@@ -321,11 +286,13 @@ enum JsGetName {
   /// instances of parameterized classes.
   RTI_NAME,
 
-  /// Name used to tag typedefs.
-  TYPEDEF_TAG,
-
   /// Name used to tag a function type.
   FUNCTION_TYPE_TAG,
+
+  /// Name used to tag bounds of a generic function type. If bounds are present,
+  /// the property value is an Array of bounds (the length gives the number of
+  /// type parameters). If absent, the type is not a generic function type.
+  FUNCTION_TYPE_GENERIC_BOUNDS_TAG,
 
   /// Name used to tag void return in function type representations in
   /// JavaScript.
@@ -347,6 +314,16 @@ enum JsGetName {
   /// JavaScript.
   FUNCTION_TYPE_NAMED_PARAMETERS_TAG,
 
+  /// Name used to tag a FutureOr type.
+  FUTURE_OR_TAG,
+
+  /// Name used to tag type arguments types in FutureOr type representations in
+  /// JavaScript.
+  FUTURE_OR_TYPE_ARGUMENT_TAG,
+
+  /// String representation of the type of the Future class.
+  FUTURE_CLASS_TYPE_NAME,
+
   /// Field name used for determining if an object or its interceptor has
   /// JavaScript indexing behavior.
   IS_INDEXABLE_FIELD_NAME,
@@ -359,6 +336,15 @@ enum JsGetName {
 
   /// String representation of the type of the function class.
   FUNCTION_CLASS_TYPE_NAME,
+
+  /// String representation of the type of the JavaScriptFunction class.
+  JS_FUNCTION_CLASS_TYPE_NAME,
+
+  /// Property name for Rti._as field.
+  RTI_FIELD_AS,
+
+  /// Property name for Rti._is field.
+  RTI_FIELD_IS,
 }
 
 enum JsBuiltin {
@@ -369,6 +355,15 @@ enum JsBuiltin {
   ///     if (JS('bool', '# instanceof #', obj, constructor))
   ///       ...
   dartObjectConstructor,
+
+  /// Returns the JavaScript constructor function for the runtime's Closure
+  /// class, the base class of all closure objects.  This can be used for type
+  /// tests, as in
+  ///
+  ///     var constructor = JS_BUILTIN('', JsBuiltin.dartClosureConstructor);
+  ///     if (JS('bool', '# instanceof #', obj, constructor))
+  ///       ...
+  dartClosureConstructor,
 
   /// Returns the JavaScript-constructor name given an [isCheckProperty].
   ///
@@ -387,10 +382,26 @@ enum JsBuiltin {
   ///     JS_BUILTIN('bool', JsBuiltin.isFunctionType, o)
   isFunctionType,
 
-  /// Returns a new function type object.
+  /// Returns true if the given type is a FutureOr type.
   ///
-  ///     JS_BUILTIN('=Object', JsBuiltin.createFunctionType)
-  createFunctionTypeRti,
+  ///     JS_BUILTIN('bool', JsBuiltin.isFutureOrType, o)
+  isFutureOrType,
+
+  /// Returns true if the given type is the `void` type.
+  ///
+  ///     JS_BUILTIN('bool', JsBuiltin.isVoidType, o)
+  isVoidType,
+
+  /// Returns true if the given type is the `dynamic` type.
+  ///
+  ///     JS_BUILTIN('bool', JsBuiltin.isDynamicType, o)
+  isDynamicType,
+
+  /// Returns true if the given type is a type argument of a js-interop class
+  /// or a supertype of a js-interop class.
+  ///
+  ///     JS_BUILTIN('bool', JsBuiltin.isJsInteropTypeArgument, o)
+  isJsInteropTypeArgument,
 
   /// Returns the JavaScript-constructor name given an rti encoding.
   ///
@@ -433,16 +444,13 @@ enum JsBuiltin {
   ///     JS_BUILTIN('returns:var;effects:none;depends:none',
   ///                JsBuiltin.getType, index);
   getType,
+}
 
-  /// Returns a Dart closure for the global function with the given [name].
-  ///
-  /// The [name] is the globally unique (minified) JavaScript name of the
-  /// function (same as the one stored in [STATIC_FUNCTION_NAME_PROPERTY_NAME])
-  ///
-  /// This builtin is used when a static closure was sent to a different
-  /// isolate.
-  ///
-  ///     JS_BUILTIN('returns:Function',
-  ///                JsBuiltin.createDartClosureFromNameOfStaticFunction, name);
-  createDartClosureFromNameOfStaticFunction,
+/// Names of fields of the Rti Universe object.
+class RtiUniverseFieldNames {
+  static String evalCache = 'eC';
+  static String typeRules = 'tR';
+  static String erasedTypes = 'eT';
+  static String typeParameterVariances = 'tPV';
+  static String sharedEmptyArray = 'sEA';
 }

@@ -6,6 +6,7 @@
 #define RUNTIME_VM_VIRTUAL_MEMORY_H_
 
 #include "platform/utils.h"
+#include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/memory_region.h"
 
@@ -24,42 +25,48 @@ class VirtualMemory {
   // The reserved memory is unmapped on destruction.
   ~VirtualMemory();
 
-  int32_t handle() const { return handle_; }
   uword start() const { return region_.start(); }
   uword end() const { return region_.end(); }
   void* address() const { return region_.pointer(); }
   intptr_t size() const { return region_.size(); }
+  intptr_t AliasOffset() const { return alias_.start() - region_.start(); }
 
-  static void InitOnce();
+  static void Init();
+
+  // Returns true if dual mapping is enabled.
+  static bool DualMappingEnabled();
 
   bool Contains(uword addr) const { return region_.Contains(addr); }
+  bool ContainsAlias(uword addr) const {
+    return (AliasOffset() != 0) && alias_.Contains(addr);
+  }
 
   // Changes the protection of the virtual memory area.
-  static bool Protect(void* address, intptr_t size, Protection mode);
-  bool Protect(Protection mode) { return Protect(address(), size(), mode); }
+  static void Protect(void* address, intptr_t size, Protection mode);
+  void Protect(Protection mode) { return Protect(address(), size(), mode); }
 
   // Reserves and commits a virtual memory segment with size. If a segment of
   // the requested size cannot be allocated, NULL is returned.
   static VirtualMemory* Allocate(intptr_t size,
                                  bool is_executable,
-                                 const char* name);
+                                 const char* name) {
+    return AllocateAligned(size, PageSize(), is_executable, name);
+  }
   static VirtualMemory* AllocateAligned(intptr_t size,
                                         intptr_t alignment,
                                         bool is_executable,
                                         const char* name);
 
+  // Returns the cached page size. Use only if Init() has been called.
   static intptr_t PageSize() {
     ASSERT(page_size_ != 0);
-    ASSERT(Utils::IsPowerOfTwo(page_size_));
     return page_size_;
   }
 
   static bool InSamePage(uword address0, uword address1);
 
-  // Truncate this virtual memory segment. If try_unmap is false, the
-  // memory beyond the new end is still accessible, but will be returned
-  // upon destruction.
-  void Truncate(intptr_t new_size, bool try_unmap = true);
+  // Truncate this virtual memory segment.
+  void Truncate(intptr_t new_size);
 
   // False for a part of a snapshot added directly to the Dart heap, which
   // belongs to the embedder and must not be deallocated or have its
@@ -68,26 +75,40 @@ class VirtualMemory {
 
   static VirtualMemory* ForImagePage(void* pointer, uword size);
 
+  void release() {
+    // Make sure no pages would be leaked.
+    const uword size_ = size();
+    ASSERT(address() == reserved_.pointer() && size_ == reserved_.size());
+    reserved_ = MemoryRegion(nullptr, 0);
+  }
+
  private:
+  static intptr_t CalculatePageSize();
+
   // Free a sub segment. On operating systems that support it this
   // can give back the virtual memory to the system. Returns true on success.
-  static bool FreeSubSegment(int32_t handle, void* address, intptr_t size);
+  static void FreeSubSegment(void* address, intptr_t size);
 
-  // This constructor is only used internally when reserving new virtual spaces.
-  // It does not reserve any virtual address space on its own.
+  // These constructors are only used internally when reserving new virtual
+  // spaces. They do not reserve any virtual address space on their own.
   VirtualMemory(const MemoryRegion& region,
-                const MemoryRegion& reserved,
-                int32_t handle = 0)
-      : region_(region), reserved_(reserved), handle_(handle) {}
+                const MemoryRegion& alias,
+                const MemoryRegion& reserved)
+      : region_(region), alias_(alias), reserved_(reserved) {}
+
+  VirtualMemory(const MemoryRegion& region, const MemoryRegion& reserved)
+      : region_(region), alias_(region), reserved_(reserved) {}
 
   MemoryRegion region_;
+
+  // Optional secondary mapping of region_ to a virtual space with different
+  // protection, e.g. allowing code execution.
+  MemoryRegion alias_;
 
   // The underlying reservation not yet given back to the OS.
   // Its address might disagree with region_ due to aligned allocations.
   // Its size might disagree with region_ due to Truncate.
   MemoryRegion reserved_;
-
-  int32_t handle_;
 
   static uword page_size_;
 

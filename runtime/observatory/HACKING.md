@@ -9,16 +9,6 @@ Getting ready to start.
 Before you start to hack on Observatory, follow the [instructions][build_sdk] to
 have a working environment in which you are able to build and test the Dart SDK.
 
-### Develop with Dartium ~ Suggested
-If you want to avoid triggering a new compilation to JavaScript for each edit
-you do, you can use a modified version of Chromium named Dartium that will
-interpret your dart code directly.
-
-You can obtain Dartium in two different ways:
-1. [Download][download_dartium] the binaries
-2. [Build][build_dartium] Dartium from the source code
-
-
 ## Run existing tests
 Before hacking Observatory let's run the existing Observatory tests.
 We suggest to run all the test in __debug__ mode.
@@ -34,21 +24,14 @@ $ ./tools/test.py -mdebug service
 ```
 
 ## Serve Observatory
-Observatory is built as part of building the sdk, but when working on
-Observatory we recommend that you use __pub serve__ so you can avoid the
-overhead of building the sdk for each change.
+Observatory is built as part of building the sdk. Previously, it was recommended
+to run the Observatory using `pub serve` to avoid having to rebuild the sdk for
+each change to Observatory. However, `pub serve` was deprecated as part of the
+transition to Dart 2.0.
 
-Use __pub__ to __serve__ Observatory:
-```
-[...]/runtime/observatory$ pub serve
-```
-
-## Open Observatory
-You can open the development version of Observatory from
-Chrome/Chromium/__Dartium__ by navigating to [localhost:8080][open_observatory]
-
-Every change you make to the Observatory source code will be visible by simply
-__refreshing__ the page in the browser.
+[Issue #35678](https://github.com/dart-lang/sdk/issues/35678)
+tracks changes required to allow for `package:build_runner` to run Observatory
+without having to rebuild the sdk after each change.
 
 ## Connect to a VM
 Start a Dart VM with the ``--observe`` flag (as explained in the
@@ -79,8 +62,8 @@ Follow the code review [instructions][code_review] to be able to successfully
 submit your code.
 
 The main reviewers for Observatory related CLs are:
-  - turnidge
-  - johnmccutchan
+  - asiva
+  - bkonyi
   - rmacnak
 
 ## Write a new service test
@@ -185,8 +168,6 @@ and utility functions:
 See: __Run existing tests__
 
 [build_sdk]: https://github.com/dart-lang/sdk/wiki/Building "Building the Dart SDK"
-[download_dartium]: https://webdev.dartlang.org/tools/dartium/ "Download Dartium"
-[build_dartium]: https://github.com/dart-lang/sdk/wiki/Building-Dartium "Build Dartium"
 [open_observatory]: http://localhost:8080/ "Open Observatory"
 [observatory_get_started]: https://dart-lang.github.io/observatory/get-started.html "Observatory get started"
 [code_review]: https://github.com/dart-lang/sdk/wiki/Code-review-workflow-with-GitHub-and-reitveld "Code Review"

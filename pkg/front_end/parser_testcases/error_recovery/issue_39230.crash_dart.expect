@@ -1,0 +1,75 @@
+Problems reported:
+
+parser/error_recovery/issue_39230.crash:3:5: Expected a function body, but got '/'.
+    /
+    ^
+
+parser/error_recovery/issue_39230.crash:3:5: Operator declarations must be preceded by the keyword 'operator'.
+    /
+    ^
+
+parser/error_recovery/issue_39230.crash:3:5: A method declaration needs an explicit list of parameters.
+    /
+    ^
+
+parser/error_recovery/issue_39230.crash:3:5: The name of a constructor must match the name of the enclosing class.
+    /
+    ^
+
+beginCompilationUnit(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(C, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, C)
+      handleNoType(C)
+      handleClassExtends(null)
+      handleClassNoWithClause()
+      handleClassOrMixinImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinBody(DeclarationKind.Class, {)
+        beginMetadataStar(C)
+        endMetadataStar(0)
+        beginMember()
+          beginMethod(null, null, null, null, null, C)
+            handleNoType({)
+            handleIdentifier(C, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '/'., null, {token: /}], /, /)
+            handleInvalidFunctionBody({)
+          endClassConstructor(null, C, (, null, })
+        endMember()
+        beginMetadataStar(/)
+        endMetadataStar(0)
+        beginMember()
+          handleRecoverableError(MissingOperatorKeyword, /, /)
+          beginMethod(null, null, null, null, null, operator)
+            handleNoType(})
+            handleOperatorName(operator, /)
+            handleNoTypeVariables(:)
+            handleRecoverableError(MissingMethodParameters, /, /)
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            beginInitializers(:)
+              beginInitializer(super)
+                handleSuperExpression(super, expression)
+                handleNoTypeArguments(()
+                beginArguments(()
+                endArguments(0, (, ))
+                handleSend(super, ;)
+              endInitializer(;)
+            endInitializers(1, :, ;)
+            handleAsyncModifier(null, null)
+            handleEmptyFunctionBody(;)
+            handleRecoverableError(ConstructorWithWrongName, /, /)
+          endClassConstructor(null, operator, (, :, ;)
+        endMember()
+      endClassOrMixinBody(DeclarationKind.Class, 2, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration()
+endCompilationUnit(1, )

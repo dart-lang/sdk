@@ -7,8 +7,8 @@ library test;
 
 import 'infer_statics_transitively_a.dart';
 
-final /*@topType=int*/ m1 = a1;
-final /*@topType=int*/ m2 = A.a2;
+final m1 = a1;
+final m2 = A.a2;
 
 foo() {
   int i;

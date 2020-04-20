@@ -53,7 +53,7 @@ void Validate(const Table& table) {
   EXPECT_EQ(0, num_deleted);
 }
 
-TEST_CASE(HashTable) {
+ISOLATE_UNIT_TEST_CASE(HashTable) {
   typedef HashTable<TestTraits, 2, 1> Table;
   Table table(Thread::Current()->zone(), HashTables::New<Table>(5));
   // Ensure that we did get at least 5 entries.
@@ -243,14 +243,14 @@ void TestMap(intptr_t initial_capacity, bool ordered) {
   actual.Release();
 }
 
-TEST_CASE(Sets) {
+ISOLATE_UNIT_TEST_CASE(Sets) {
   for (intptr_t initial_capacity = 0; initial_capacity < 32;
        ++initial_capacity) {
     TestSet<UnorderedHashSet<TestTraits> >(initial_capacity, false);
   }
 }
 
-TEST_CASE(Maps) {
+ISOLATE_UNIT_TEST_CASE(Maps) {
   for (intptr_t initial_capacity = 0; initial_capacity < 32;
        ++initial_capacity) {
     TestMap<UnorderedHashMap<TestTraits> >(initial_capacity, false);

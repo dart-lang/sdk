@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart._internal;
 
 /**
@@ -94,6 +96,14 @@ abstract class UnmodifiableListMixin<E> implements List<E> {
   set length(int newLength) {
     throw new UnsupportedError(
         "Cannot change the length of an unmodifiable list");
+  }
+
+  set first(E element) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  set last(E element) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
@@ -212,7 +222,7 @@ class _ListIndicesIterable extends ListIterable<int> {
   }
 }
 
-class ListMapView<E> implements Map<int, E> {
+class ListMapView<E> extends UnmodifiableMapBase<int, E> {
   List<E> _values;
 
   ListMapView(this._values);
@@ -237,33 +247,6 @@ class ListMapView<E> implements Map<int, E> {
       }
     }
   }
-
-  /** This operation is not supported by an unmodifiable map. */
-  void operator []=(int key, E value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable map");
-  }
-
-  /** This operation is not supported by an unmodifiable map. */
-  E putIfAbsent(int key, E ifAbsent()) {
-    throw new UnsupportedError("Cannot modify an unmodifiable map");
-  }
-
-  /** This operation is not supported by an unmodifiable map. */
-  E remove(Object key) {
-    throw new UnsupportedError("Cannot modify an unmodifiable map");
-  }
-
-  /** This operation is not supported by an unmodifiable map. */
-  void clear() {
-    throw new UnsupportedError("Cannot modify an unmodifiable map");
-  }
-
-  /** This operation is not supported by an unmodifiable map. */
-  void addAll(Map<int, E> other) {
-    throw new UnsupportedError("Cannot modify an unmodifiable map");
-  }
-
-  String toString() => Maps.mapToString(this);
 }
 
 class ReversedListIterable<E> extends ListIterable<E> {

@@ -7,7 +7,6 @@
 /// Use this to detect flakiness of failures, especially timeouts.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'bot.dart';
 import 'buildbot_structures.dart';
@@ -22,13 +21,15 @@ Future mainInternal(Bot bot, List<String> args,
     {int runCount: 10,
     String commit,
     bool verbose: false,
-    bool noCache: false}) async {
+    bool noCache: false,
+    bool forcePastResults: false}) async {
   printBuildResultsSummary(
       await loadBuildResults(bot, args,
           runCount: runCount,
           commit: commit,
           verbose: verbose,
-          noCache: noCache),
+          noCache: noCache,
+          forcePastResults: forcePastResults),
       args);
 }
 
@@ -41,7 +42,8 @@ Future<Map<BuildUri, List<BuildResult>>> loadBuildResults(
     {int runCount: 10,
     String commit,
     bool verbose: false,
-    bool noCache: false}) async {
+    bool noCache: false,
+    bool forcePastResults: false}) async {
   List<BuildUri> buildUriList = <BuildUri>[];
   List<BuildDetail> buildDetails;
   if (commit != null) {
@@ -111,8 +113,9 @@ Future<Map<BuildUri, List<BuildResult>>> loadBuildResults(
   for (int index = 0; index < buildResults.length; index++) {
     BuildUri buildUri = buildUriList[index];
     BuildResult buildResult = buildResults[index];
-    List<BuildResult> results =
-        await readPastResults(bot, buildUri, buildResult, runCount);
+    List<BuildResult> results = await readPastResults(
+        bot, buildUri, buildResult, runCount,
+        forcePastResults: forcePastResults);
     pastResultsMap[buildUri] = results;
   }
   return pastResultsMap;
@@ -173,14 +176,15 @@ void printBuildResultsSummary(
 /// Creates a [BuildResult] for [buildUri] and, if it contains failures, the
 /// [BuildResult]s for the previous [runCount] builds.
 Future<List<BuildResult>> readPastResults(
-    Bot bot, BuildUri buildUri, BuildResult summary, int runCount) async {
+    Bot bot, BuildUri buildUri, BuildResult summary, int runCount,
+    {bool forcePastResults: false}) async {
   List<BuildResult> summaries = <BuildResult>[];
   if (summary == null) {
     print('No result found for $buildUri');
     return summaries;
   }
   summaries.add(summary);
-  if (summary.hasFailures) {
+  if (summary.hasFailures || forcePastResults) {
     summaries.addAll(await bot.readHistoricResults(summary.buildUri.prev(),
         previousCount: runCount - 1));
   }

@@ -30,7 +30,7 @@
 ///      ]
 ///    },
 ///    {
-///      "name" : "small_chnage",
+///      "name" : "small_change",
 ///      "edits" : [
 ///        ["input1.dart", "green", "blue"]
 ///      ]
@@ -47,71 +47,131 @@ import 'dart:convert';
 import 'dart:io' hide FileSystemEntity;
 
 import 'package:args/args.dart';
-import 'package:front_end/file_system.dart' show FileSystemEntity;
-import 'package:front_end/front_end.dart';
-import 'package:front_end/incremental_kernel_generator.dart';
-import 'package:front_end/memory_file_system.dart';
-import 'package:front_end/physical_file_system.dart';
-import 'package:kernel/target/flutter.dart';
-import 'package:kernel/target/targets.dart';
+import 'package:front_end/src/api_prototype/file_system.dart'
+    show FileSystemEntity;
+import 'package:front_end/src/api_prototype/front_end.dart';
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
+import 'package:front_end/src/api_prototype/memory_file_system.dart';
+import 'package:front_end/src/api_prototype/standard_file_system.dart';
+import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/fasta/uri_translator.dart';
+
+import 'perf_common.dart';
 
 main(List<String> args) async {
   var options = argParser.parse(args);
   if (options.rest.length != 2) {
-    print('usage: incremental_perf.dart [options] <entry.dart> <edits.json>');
-    print(argParser.usage);
-    exit(1);
+    throw """
+usage: incremental_perf.dart [options] <entry.dart> <edits.json>
+${argParser.usage}""";
   }
 
   var entryUri = _resolveOverlayUri(options.rest[0]);
   var editsUri = Uri.base.resolve(options.rest[1]);
   var changeSets =
-      parse(JSON.decode(new File.fromUri(editsUri).readAsStringSync()));
+      parse(jsonDecode(new File.fromUri(editsUri).readAsStringSync()));
+  bool verbose = options["verbose"];
+  bool verboseCompilation = options["verbose-compilation"];
+  bool isFlutter = options["target"] == "flutter";
+  bool useMinimalGenerator = options["implementation"] == "minimal";
+  TimingsCollector collector = new TimingsCollector(verbose);
 
+  for (int i = 0; i < 8; i++) {
+    await benchmark(
+        collector,
+        entryUri,
+        isFlutter,
+        useMinimalGenerator,
+        verbose,
+        verboseCompilation,
+        changeSets,
+        options["sdk-summary"],
+        options["sdk-library-specification"],
+        options["cache"]);
+    if (!options["loop"]) break;
+  }
+  collector.printTimings();
+}
+
+Future benchmark(
+    TimingsCollector collector,
+    Uri entryUri,
+    bool isFlutter,
+    bool useMinimalGenerator,
+    bool verbose,
+    bool verboseCompilation,
+    List<ChangeSet> changeSets,
+    String sdkSummary,
+    String sdkLibrarySpecification,
+    String cache) async {
   var overlayFs = new OverlayFileSystem();
-  var compilerOptions = new CompilerOptions()..fileSystem = overlayFs;
-
-  if (options['sdk-summary'] != null) {
-    compilerOptions.sdkSummary = _resolveOverlayUri(options["sdk-summary"]);
-  } else if (options['sdk-library-specification'] != null) {
+  var compilerOptions = new CompilerOptions()
+    ..verbose = verboseCompilation
+    ..fileSystem = overlayFs
+    ..onDiagnostic = onDiagnosticMessageHandler()
+    ..target = createTarget(isFlutter: isFlutter)
+    ..environmentDefines = const {};
+  if (sdkSummary != null) {
+    compilerOptions.sdkSummary = _resolveOverlayUri(sdkSummary);
+  }
+  if (sdkLibrarySpecification != null) {
     compilerOptions.librariesSpecificationUri =
-        _resolveOverlayUri(options["sdk-library-specification"]);
-  }
-  if (options['target'] == 'flutter') {
-    compilerOptions..target = new FlutterTarget(new TargetFlags());
+        _resolveOverlayUri(sdkLibrarySpecification);
   }
 
-  var timer1 = new Stopwatch()..start();
-  var generator =
-      await IncrementalKernelGenerator.newInstance(compilerOptions, entryUri);
+  var dir = Directory.systemTemp.createTempSync("ikg-cache");
 
-  var delta = await generator.computeDelta();
-  generator.acceptLastDelta();
-  timer1.stop();
-  print("Libraries changed: ${delta.newProgram.libraries.length}");
-  print("Initial compilation took: ${timer1.elapsedMilliseconds}ms");
+  final processedOptions =
+      new ProcessedOptions(options: compilerOptions, inputs: [entryUri]);
+  final UriTranslator uriTranslator = await processedOptions.getUriTranslator();
+
+  collector.start("Initial compilation");
+  var generator = new IncrementalKernelGenerator(compilerOptions, entryUri);
+
+  var component = await generator.computeDelta();
+  collector.stop("Initial compilation");
+  if (verbose) {
+    print("Libraries changed: ${component.libraries.length}");
+  }
+  if (component.libraries.length < 1) {
+    throw "No libraries were changed";
+  }
 
   for (final ChangeSet changeSet in changeSets) {
-    await applyEdits(changeSet.edits, overlayFs, generator);
-    var iterTimer = new Stopwatch()..start();
-    delta = await generator.computeDelta();
-    generator.acceptLastDelta();
-    iterTimer.stop();
-    print("Change '${changeSet.name}' - "
-        "Libraries changed: ${delta.newProgram.libraries.length}");
-    print("Change '${changeSet.name}' - "
-        "Incremental compilation took: ${iterTimer.elapsedMilliseconds}ms");
+    String name = "Change '${changeSet.name}' - Incremental compilation";
+    await applyEdits(
+        changeSet.edits, overlayFs, generator, uriTranslator, verbose);
+    collector.start(name);
+    component = await generator.computeDelta();
+    collector.stop(name);
+    if (verbose) {
+      print("Change '${changeSet.name}' - "
+          "Libraries changed: ${component.libraries.length}");
+    }
+    if (component.libraries.length < 1) {
+      throw "No libraries were changed";
+    }
   }
+
+  dir.deleteSync(recursive: true);
 }
 
 /// Apply all edits of a single iteration by updating the copy of the file in
 /// the memory file system.
-applyEdits(List<Edit> edits, OverlayFileSystem fs,
-    IncrementalKernelGenerator generator) async {
+applyEdits(
+    List<Edit> edits,
+    OverlayFileSystem fs,
+    IncrementalKernelGenerator generator,
+    UriTranslator uriTranslator,
+    bool verbose) async {
   for (var edit in edits) {
-    print('edit $edit');
-    generator.invalidate(edit.uri);
-    OverlayFileSystemEntity entity = fs.entityForUri(edit.uri);
+    if (verbose) {
+      print('edit $edit');
+    }
+    var uri = edit.uri;
+    if (uri.scheme == 'package') uri = uriTranslator.translate(uri);
+    generator.invalidate(uri);
+    OverlayFileSystemEntity entity = fs.entityForUri(uri);
     var contents = await entity.readAsString();
     entity.writeAsStringSync(
         contents.replaceAll(edit.original, edit.replacement));
@@ -148,16 +208,22 @@ List<ChangeSet> parse(List json) {
 class OverlayFileSystem implements FileSystem {
   final MemoryFileSystem memory =
       new MemoryFileSystem(Uri.parse('org-dartlang-overlay:///'));
-  final PhysicalFileSystem physical = PhysicalFileSystem.instance;
+  final StandardFileSystem physical = StandardFileSystem.instance;
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
-    if (uri.scheme != 'org-dartlang-overlay') {
+    if (uri.scheme == 'org-dartlang-overlay') {
+      return new OverlayFileSystemEntity(uri, this);
+    } else if (uri.scheme == 'file') {
+      // The IKG compiler reads ".packages" which might contain absolute file
+      // URIs (which it will then try to use on the FS).  We therefore replace
+      // them with overlay-fs URIs as usual.
+      return new OverlayFileSystemEntity(_resolveOverlayUri('$uri'), this);
+    } else {
       throw "Unsupported scheme: ${uri.scheme}."
           " The OverlayFileSystem only accepts URIs"
           " with the 'org-dartlang-overlay' scheme";
     }
-    return new OverlayFileSystemEntity(uri, this);
   }
 }
 
@@ -213,12 +279,34 @@ class ChangeSet {
   String toString() => 'ChangeSet($name, $edits)';
 }
 
-_resolveOverlayUri(uriString) =>
-    Uri.base.resolve(uriString).replace(scheme: 'org-dartlang-overlay');
+_resolveOverlayUri(String uriString) {
+  Uri result = Uri.base.resolve(uriString);
+  return result.isScheme("file")
+      ? result.replace(scheme: 'org-dartlang-overlay')
+      : result;
+}
 
 ArgParser argParser = new ArgParser()
+  ..addFlag('verbose-compilation',
+      help: 'make the compiler verbose', defaultsTo: false)
+  ..addFlag('verbose', help: 'print additional information', defaultsTo: false)
+  ..addFlag('loop', help: 'run benchmark 8 times', defaultsTo: true)
   ..addOption('target',
       help: 'target platform', defaultsTo: 'vm', allowed: ['vm', 'flutter'])
+  ..addOption('cache',
+      help: 'caching policy used by the compiler',
+      defaultsTo: 'protected',
+      allowed: ['evicting', 'memory', 'protected'])
+  // TODO(johnniwinther): Remove mode option. Legacy mode is no longer
+  // supported.
+  ..addOption('mode',
+      help: 'whether to run in strong or legacy mode',
+      defaultsTo: 'strong',
+      allowed: ['legacy', 'strong'])
+  ..addOption('implementation',
+      help: 'incremental compiler implementation to use',
+      defaultsTo: 'default',
+      allowed: ['default', 'minimal'])
   ..addOption('sdk-summary', help: 'Location of the sdk outline.dill file')
   ..addOption('sdk-library-specification',
       help: 'Location of the '

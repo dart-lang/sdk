@@ -15,7 +15,7 @@ class D<T extends num> {
 }
 
 void main() {
-  const /*@type=C<int>*/ c = const /*@typeArgs=int*/ C(0);
+  const /*@ type=C<int*>* */ c = const /*@ typeArgs=int* */ C(0);
   C<int> c2 = c;
-  const D<int> d = const /*@typeArgs=int*/ D();
+  const D<int> d = const /*@ typeArgs=int* */ D();
 }

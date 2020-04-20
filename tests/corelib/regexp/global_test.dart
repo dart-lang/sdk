@@ -42,7 +42,7 @@ void main() {
   // Test zero-length matches that have non-zero-length sub-captures.
   str = "It was a pleasure to burn.";
   str = str.replaceAllMapped(
-      new RegExp(r"(?=(\w+))\b"), (Match m) => m.group(1).length.toString());
+      new RegExp(r"(?=(\w+))\b"), (Match m) => m.group(1)!.length.toString());
   assertEquals("2It 3was 1a 8pleasure 2to 4burn.", str);
 
   // Test multiple captures.
@@ -52,6 +52,7 @@ void main() {
     if (m.group(1) != null) return "-";
     if (m.group(2) != null) return "+";
     if (m.group(3) != null) return "=";
+    throw 'Unexpected match $m';
   });
   assertEquals("= -. +, or + -. There is - =.", str);
 
@@ -60,7 +61,7 @@ void main() {
   str = str.replaceAllMapped(new RegExp(r"(FOUR|TWO) LEGS (GOOD|BAD)"), (m) {
     if (m.group(1) == "FOUR") assertTrue(m.group(2) == "GOOD");
     if (m.group(1) == "TWO") assertTrue(m.group(2) == "BAD");
-    return m.group(0).length - 10;
+    return (m.group(0)!.length - 10).toString();
   });
   assertEquals("4, 2!", str);
 
@@ -78,7 +79,7 @@ void main() {
   // Test zero-length matches that have non-zero-length sub-captures.
   str = "It was a pleasure to \u70e7.";
   str = str.replaceAllMapped(
-      new RegExp(r"(?=(\w+))\b"), (m) => "${m.group(1).length}");
+      new RegExp(r"(?=(\w+))\b"), (m) => "${m.group(1)!.length}");
   assertEquals("2It 3was 1a 8pleasure 2to \u70e7.", str);
 
   // Test multiple captures.
@@ -88,6 +89,7 @@ void main() {
     if (m.group(1) != null) return "-";
     if (m.group(2) != null) return "+";
     if (m.group(3) != null) return "=";
+    throw 'Unexpected match $m';
   });
   assertEquals("= -. +, or + -. There is - =.", str);
 
@@ -96,7 +98,7 @@ void main() {
   str = str.replaceAllMapped(new RegExp(r"(FOUR|TWO) \u817f (GOOD|BAD)"), (m) {
     if (m.group(1) == "FOUR") assertTrue(m.group(2) == "GOOD");
     if (m.group(1) == "TWO") assertTrue(m.group(2) == "BAD");
-    return m.group(0).length - 7;
+    return (m.group(0)!.length - 7).toString();
   });
   assertEquals("4, 2!", str);
 
@@ -109,7 +111,7 @@ void main() {
   // start at the match start position.
   str = "up up up up";
   str = str.replaceAllMapped(
-      new RegExp(r"\b(?=u(p))"), (m) => "${m.group(1).length}");
+      new RegExp(r"\b(?=u(p))"), (m) => "${m.group(1)!.length}");
 
   assertEquals("1up 1up 1up 1up", str);
 
@@ -121,9 +123,9 @@ void main() {
   re_string = re_string + "1";
   // re_string = "(((...((a))...)))1"
 
-  var regexps = new List();
-  var last_match_expectations = new List();
-  var first_capture_expectations = new List();
+  var regexps = [];
+  var last_match_expectations = [];
+  var first_capture_expectations = [];
 
   // Atomic regexp.
   regexps.add(new RegExp(r"a1"));
@@ -156,12 +158,10 @@ void main() {
     var subject = "";
     var test_1_expectation = "";
     var test_2_expectation = "";
-    var test_3_expectation = (m == 0) ? null : new List();
     for (var i = 0; i < m; i++) {
       subject += "a11";
       test_1_expectation += "x1";
       test_2_expectation += "1";
-      test_3_expectation.add("a1");
     }
 
     // Test 1a: String.replace with string.

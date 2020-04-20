@@ -5,11 +5,14 @@
 /*@testedFeatures=inference*/
 library test;
 
-/*error:IMPORT_INTERNAL_LIBRARY*/ import 'dart:_foreign_helper' show JS;
+// TODO(johnniwinther): Support testing of internal libraries.
+import 'dart:_foreign_helper' show JS; // error
 
-main() {
-  String x = /*error:INVALID_ASSIGNMENT*/ JS('int', '42');
-  var /*@type=String*/ y = JS('String', '"hello"');
+test() {
+  String x = JS('int', '42'); // error
+  var /*@type=dynamic*/ y = JS<String>('String', '"hello"');
   y = "world";
-  y = /*error:INVALID_ASSIGNMENT*/ 42;
+  y = 42; // error
 }
+
+main() {}

@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_JIT_JIT_CALL_SPECIALIZER_H_
 #define RUNTIME_VM_COMPILER_JIT_JIT_CALL_SPECIALIZER_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/compiler/call_specializer.h"
 
 namespace dart {
@@ -30,9 +34,14 @@ class JitCallSpecializer : public CallSpecializer {
 
   virtual bool TryOptimizeStaticCallUsingStaticTypes(StaticCallInstr* call);
 
-  void LowerContextAllocation(Definition* instr,
-                              intptr_t num_context_variables,
-                              Value* context_value);
+  void LowerContextAllocation(
+      Definition* instr,
+      const ZoneGrowableArray<const Slot*>& context_variables,
+      Value* context_value);
+
+  void ReplaceWithStaticCall(InstanceCallInstr* instr,
+                             const Function& target,
+                             intptr_t call_count);
 
   DISALLOW_COPY_AND_ASSIGN(JitCallSpecializer);
 };

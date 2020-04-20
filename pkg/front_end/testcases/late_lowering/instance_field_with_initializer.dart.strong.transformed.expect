@@ -1,0 +1,94 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int? _#Class#field = null;
+  constructor constructor1() → self::Class
+    : super core::Object::•()
+    ;
+  constructor constructor2(core::int field) → self::Class
+    : self::Class::_#Class#field = field, super core::Object::•()
+    ;
+  constructor constructor3(core::int value) → self::Class
+    : self::Class::_#Class#field = value.{core::num::+}(1), super core::Object::•()
+    ;
+  constructor constructor4([core::int field = #C1]) → self::Class
+    : self::Class::_#Class#field = field, super core::Object::•()
+    ;
+  get field() → core::int
+    return let final core::int? #t1 = this.{self::Class::_#Class#field} in #t1.==(null) ?{core::int} this.{self::Class::_#Class#field} = 10 : #t1{core::int};
+  set field(core::int #t2) → void
+    this.{self::Class::_#Class#field} = #t2;
+}
+class Subclass extends self::Class {
+  constructor constructor1() → self::Subclass
+    : super self::Class::constructor1()
+    ;
+  constructor constructor2(core::int value) → self::Subclass
+    : super self::Class::constructor2(value)
+    ;
+  constructor constructor3(core::int value) → self::Subclass
+    : super self::Class::constructor3(value)
+    ;
+  constructor constructor4([core::int value = #C2]) → self::Subclass
+    : super self::Class::constructor4(value)
+    ;
+}
+static method test1() → dynamic {
+  self::Class c1 = new self::Class::constructor1();
+  self::expect(10, c1.{self::Class::field});
+  c1.{self::Class::field} = 16;
+  self::expect(16, c1.{self::Class::field});
+  self::Class c2 = new self::Class::constructor2(42);
+  self::expect(42, c2.{self::Class::field});
+  c2.{self::Class::field} = 43;
+  self::expect(43, c2.{self::Class::field});
+  self::Class c3 = new self::Class::constructor3(87);
+  self::expect(88, c3.{self::Class::field});
+  c3.{self::Class::field} = 89;
+  self::expect(89, c3.{self::Class::field});
+  self::Class c4 = new self::Class::constructor4();
+  self::expect(42, c4.{self::Class::field});
+  c4.{self::Class::field} = 43;
+  self::expect(43, c4.{self::Class::field});
+  self::Class c5 = new self::Class::constructor4(123);
+  self::expect(123, c5.{self::Class::field});
+  c5.{self::Class::field} = 124;
+  self::expect(124, c5.{self::Class::field});
+}
+static method test2() → dynamic {
+  self::Subclass c1 = new self::Subclass::constructor1();
+  self::expect(10, c1.{self::Class::field});
+  c1.{self::Class::field} = 16;
+  self::expect(16, c1.{self::Class::field});
+  self::Subclass c2 = new self::Subclass::constructor2(42);
+  self::expect(42, c2.{self::Class::field});
+  c2.{self::Class::field} = 43;
+  self::expect(43, c2.{self::Class::field});
+  self::Subclass c3 = new self::Subclass::constructor3(87);
+  self::expect(88, c3.{self::Class::field});
+  c3.{self::Class::field} = 89;
+  self::expect(89, c3.{self::Class::field});
+  self::Subclass c4 = new self::Subclass::constructor4();
+  self::expect(87, c4.{self::Class::field});
+  c4.{self::Class::field} = 88;
+  self::expect(88, c4.{self::Class::field});
+  self::Subclass c5 = new self::Subclass::constructor4(123);
+  self::expect(123, c5.{self::Class::field});
+  c5.{self::Class::field} = 124;
+  self::expect(124, c5.{self::Class::field});
+}
+static method main() → dynamic {
+  self::test1();
+  self::test2();
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = 42
+  #C2 = 87
+}

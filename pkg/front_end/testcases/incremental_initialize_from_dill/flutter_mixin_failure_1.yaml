@@ -1,0 +1,62 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Regression test from flutter.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import 'lib.dart';
+
+        class Test extends Test2 {
+          Quux world() => null;
+        }
+
+        abstract class Test2 {
+          Baz world();
+        }
+      lib.dart: |
+        class FooEntry {}
+
+        class BarEntry extends FooEntry {}
+
+        abstract class FooTarget {
+          void hello(FooEntry entry);
+        }
+
+        abstract class Baz implements FooTarget {
+          void hello(covariant FooEntry entry) {}
+        }
+
+        mixin MyMixin on Baz {}
+
+        abstract class Qux extends Baz {
+          void hello(BarEntry entry) {}
+        }
+
+        class Quux extends Qux with MyMixin {}
+    expectedLibraryCount: 2
+  - entry: main.dart
+    worldType: updated
+    invalidate:
+      - main.dart
+    expectInitializeFromDill: false
+    sources:
+      main.dart: |
+        import 'lib.dart';
+
+        class Test extends Test2 {
+          Quux world() => null;
+        }
+
+        abstract class Test2 {
+          Baz world();
+        }
+
+        main() {
+          print(new Test());
+        }
+    expectedLibraryCount: 2

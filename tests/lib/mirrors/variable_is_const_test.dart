@@ -4,14 +4,13 @@
 
 library test.variable_is_const;
 
-@MirrorsUsed(targets: "test.variable_is_const")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
 class Class {
   const //# 01: compile-time error
-  int instanceWouldBeConst = 1;
+      int instanceWouldBeConst = 1;
   var instanceNonConst = 2;
 
   static const staticConst = 3;
@@ -30,7 +29,7 @@ main() {
   Expect.isTrue(isConst(cm, #staticConst));
   Expect.isFalse(isConst(cm, #staticNonConst));
 
-  LibraryMirror lm = cm.owner;
+  LibraryMirror lm = cm.owner as LibraryMirror;
   Expect.isTrue(isConst(lm, #topLevelConst));
   Expect.isFalse(isConst(lm, #topLevelNonConst));
 }

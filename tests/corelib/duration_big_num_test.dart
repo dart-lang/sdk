@@ -8,7 +8,7 @@ import 'dart:math';
 main() {
   Duration d, d1;
 
-  d1 = new Duration(microseconds: pow(2, 53));
+  d1 = new Duration(microseconds: pow(2, 53) as int);
   d = d1 * 2;
   Expect.equals(pow(2, 54), d.inMicroseconds);
   d = d1 * 1.5;
@@ -16,6 +16,6 @@ main() {
   Expect.isTrue(d.inMicroseconds is int);
 
   // Test that we lose precision when multiplying with a double.
-  d = new Duration(microseconds: pow(2, 53) + 1) * 1.0;
+  d = new Duration(microseconds: (pow(2, 53) as int) + 1) * 1.0;
   Expect.equals(0, d.inMicroseconds % 2);
 }

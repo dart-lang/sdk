@@ -4,22 +4,24 @@
 
 // OtherResources=process_sync_script.dart
 
+import "dart:io";
 import "package:expect/expect.dart";
 import 'package:path/path.dart';
-import "dart:io";
 
 test(int blockCount, int stdoutBlockSize, int stderrBlockSize, int exitCode,
-    [int nonWindowsExitCode]) {
+    [int? nonWindowsExitCode]) {
   // Get the Dart script file that generates output.
   var scriptFile = new File(
       Platform.script.resolve("process_sync_script.dart").toFilePath());
-  var args = [
-    scriptFile.path,
-    blockCount.toString(),
-    stdoutBlockSize.toString(),
-    stderrBlockSize.toString(),
-    exitCode.toString()
-  ];
+  var args = <String>[]
+    ..addAll(Platform.executableArguments)
+    ..addAll([
+      scriptFile.path,
+      blockCount.toString(),
+      stdoutBlockSize.toString(),
+      stderrBlockSize.toString(),
+      exitCode.toString()
+    ]);
   ProcessResult syncResult = Process.runSync(Platform.executable, args);
   Expect.equals(blockCount * stdoutBlockSize, syncResult.stdout.length);
   Expect.equals(blockCount * stderrBlockSize, syncResult.stderr.length);

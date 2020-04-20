@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/backend/locations.h"
 
 #include "vm/compiler/assembler/assembler.h"
@@ -13,6 +11,31 @@
 
 namespace dart {
 
+const char* Location::RepresentationToCString(Representation repr) {
+  switch (repr) {
+#define REPR_CASE(Name)                                                        \
+  case k##Name:                                                                \
+    return #Name;
+    FOR_EACH_REPRESENTATION_KIND(REPR_CASE)
+#undef KIND_CASE
+    default:
+      UNREACHABLE();
+  }
+  return nullptr;
+}
+
+bool Location::ParseRepresentation(const char* str, Representation* out) {
+  ASSERT(str != nullptr && out != nullptr);
+#define KIND_CASE(Name)                                                        \
+  if (strcmp(str, #Name) == 0) {                                               \
+    *out = k##Name;                                                            \
+    return true;                                                               \
+  }
+  FOR_EACH_REPRESENTATION_KIND(KIND_CASE)
+#undef KIND_CASE
+  return false;
+}
+
 intptr_t RegisterSet::RegisterCount(intptr_t registers) {
   // Brian Kernighan's algorithm for counting the bits set.
   intptr_t count = 0;
@@ -21,6 +44,23 @@ intptr_t RegisterSet::RegisterCount(intptr_t registers) {
     registers &= (registers - 1);  // Clear the least significant bit set.
   }
   return count;
+}
+
+void RegisterSet::DebugPrint() {
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
+    Register r = static_cast<Register>(i);
+    if (ContainsRegister(r)) {
+      THR_Print("%s %s\n", RegisterNames::RegisterName(r),
+                IsTagged(r) ? "tagged" : "untagged");
+    }
+  }
+
+  for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
+    FpuRegister r = static_cast<FpuRegister>(i);
+    if (ContainsFpuRegister(r)) {
+      THR_Print("%s\n", RegisterNames::FpuRegisterName(r));
+    }
+  }
 }
 
 LocationSummary::LocationSummary(Zone* zone,
@@ -67,82 +107,63 @@ PairLocation* Location::AsPairLocation() const {
   return reinterpret_cast<PairLocation*>(value_ & ~kLocationTagMask);
 }
 
-Location Location::RegisterOrConstant(Value* value) {
+Location Location::Component(intptr_t i) const {
+  return AsPairLocation()->At(i);
+}
+
+Location LocationRegisterOrConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
-  return ((constant != NULL) && Assembler::IsSafe(constant->value()))
+  return ((constant != NULL) && compiler::Assembler::IsSafe(constant->value()))
              ? Location::Constant(constant)
              : Location::RequiresRegister();
 }
 
-Location Location::RegisterOrSmiConstant(Value* value) {
+Location LocationRegisterOrSmiConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
-  return ((constant != NULL) && Assembler::IsSafeSmi(constant->value()))
+  return ((constant != NULL) &&
+          compiler::Assembler::IsSafeSmi(constant->value()))
              ? Location::Constant(constant)
              : Location::RequiresRegister();
 }
 
-Location Location::WritableRegisterOrSmiConstant(Value* value) {
+Location LocationWritableRegisterOrSmiConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
-  return ((constant != NULL) && Assembler::IsSafeSmi(constant->value()))
+  return ((constant != NULL) &&
+          compiler::Assembler::IsSafeSmi(constant->value()))
              ? Location::Constant(constant)
              : Location::WritableRegister();
 }
 
-Location Location::FixedRegisterOrConstant(Value* value, Register reg) {
+Location LocationFixedRegisterOrConstant(Value* value, Register reg) {
+  ASSERT(((1 << reg) & kDartAvailableCpuRegs) != 0);
   ConstantInstr* constant = value->definition()->AsConstant();
-  return ((constant != NULL) && Assembler::IsSafe(constant->value()))
+  return ((constant != NULL) && compiler::Assembler::IsSafe(constant->value()))
              ? Location::Constant(constant)
              : Location::RegisterLocation(reg);
 }
 
-Location Location::FixedRegisterOrSmiConstant(Value* value, Register reg) {
+Location LocationFixedRegisterOrSmiConstant(Value* value, Register reg) {
+  ASSERT(((1 << reg) & kDartAvailableCpuRegs) != 0);
   ConstantInstr* constant = value->definition()->AsConstant();
-  return ((constant != NULL) && Assembler::IsSafeSmi(constant->value()))
+  return ((constant != NULL) &&
+          compiler::Assembler::IsSafeSmi(constant->value()))
              ? Location::Constant(constant)
              : Location::RegisterLocation(reg);
 }
 
-Location Location::AnyOrConstant(Value* value) {
+Location LocationAnyOrConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
-  return ((constant != NULL) && Assembler::IsSafe(constant->value()))
+  return ((constant != NULL) && compiler::Assembler::IsSafe(constant->value()))
              ? Location::Constant(constant)
              : Location::Any();
 }
 
-// DBC does not have an notion of 'address' in its instruction set.
-#if !defined(TARGET_ARCH_DBC)
-Address Location::ToStackSlotAddress() const {
-  const intptr_t index = stack_index();
-  const Register base = base_reg();
-  if (base == FPREG) {
-    if (index < 0) {
-      const intptr_t offset = (kParamEndSlotFromFp - index) * kWordSize;
-      return Address(base, offset);
-    } else {
-      const intptr_t offset = (kFirstLocalSlotFromFp - index) * kWordSize;
-      return Address(base, offset);
-    }
-  } else {
-    ASSERT(base == SPREG);
-    return Address(base, index * kWordSize);
-  }
+compiler::Address LocationToStackSlotAddress(Location loc) {
+  return compiler::Address(loc.base_reg(), loc.ToStackSlotOffset());
 }
-#endif
 
 intptr_t Location::ToStackSlotOffset() const {
-  const intptr_t index = stack_index();
-  if (base_reg() == FPREG) {
-    if (index < 0) {
-      const intptr_t offset = (kParamEndSlotFromFp - index) * kWordSize;
-      return offset;
-    } else {
-      const intptr_t offset = (kFirstLocalSlotFromFp - index) * kWordSize;
-      return offset;
-    }
-  } else {
-    ASSERT(base_reg() == SPREG);
-    return index * kWordSize;
-  }
+  return stack_index() * compiler::target::kWordSize;
 }
 
 const Object& Location::constant() const {
@@ -154,9 +175,9 @@ const char* Location::Name() const {
     case kInvalid:
       return "?";
     case kRegister:
-      return Assembler::RegisterName(reg());
+      return RegisterNames::RegisterName(reg());
     case kFpuRegister:
-      return Assembler::FpuRegisterName(fpu_reg());
+      return RegisterNames::FpuRegisterName(fpu_reg());
     case kStackSlot:
       return "S";
     case kDoubleStackSlot:
@@ -238,56 +259,78 @@ Location Location::Copy() const {
   }
 }
 
-Location Location::RemapForSlowPath(Definition* def,
-                                    intptr_t* cpu_reg_slots,
-                                    intptr_t* fpu_reg_slots) const {
-  if (IsRegister()) {
-    intptr_t index = cpu_reg_slots[reg()];
+Location LocationArgumentsDescriptorLocation() {
+  return Location::RegisterLocation(ARGS_DESC_REG);
+}
+
+Location LocationExceptionLocation() {
+  return Location::RegisterLocation(kExceptionObjectReg);
+}
+
+Location LocationStackTraceLocation() {
+  return Location::RegisterLocation(kStackTraceObjectReg);
+}
+
+Location LocationRemapForSlowPath(Location loc,
+                                  Definition* def,
+                                  intptr_t* cpu_reg_slots,
+                                  intptr_t* fpu_reg_slots) {
+  if (loc.IsRegister()) {
+    intptr_t index = cpu_reg_slots[loc.reg()];
     ASSERT(index >= 0);
-    return Location::StackSlot(index);
-  } else if (IsFpuRegister()) {
-    intptr_t index = fpu_reg_slots[fpu_reg()];
+    return Location::StackSlot(
+        compiler::target::frame_layout.FrameSlotForVariableIndex(-index),
+        FPREG);
+  } else if (loc.IsFpuRegister()) {
+    intptr_t index = fpu_reg_slots[loc.fpu_reg()];
     ASSERT(index >= 0);
     switch (def->representation()) {
-      case kUnboxedDouble:
-        return Location::DoubleStackSlot(index);
+      case kUnboxedDouble:  // SlowPathEnvironmentFor sees _one_ register
+      case kUnboxedFloat:   // both for doubles and floats.
+        return Location::DoubleStackSlot(
+            compiler::target::frame_layout.FrameSlotForVariableIndex(-index),
+            FPREG);
 
       case kUnboxedFloat32x4:
       case kUnboxedInt32x4:
       case kUnboxedFloat64x2:
-        return Location::QuadStackSlot(index);
+        return Location::QuadStackSlot(
+            compiler::target::frame_layout.FrameSlotForVariableIndex(-index),
+            FPREG);
 
       default:
         UNREACHABLE();
     }
-  } else if (IsPairLocation()) {
+  } else if (loc.IsPairLocation()) {
     ASSERT(def->representation() == kUnboxedInt64);
-    PairLocation* value_pair = AsPairLocation();
+    PairLocation* value_pair = loc.AsPairLocation();
     intptr_t index_lo;
     intptr_t index_hi;
 
     if (value_pair->At(0).IsRegister()) {
-      index_lo = cpu_reg_slots[value_pair->At(0).reg()];
+      index_lo = compiler::target::frame_layout.FrameSlotForVariableIndex(
+          -cpu_reg_slots[value_pair->At(0).reg()]);
     } else {
       ASSERT(value_pair->At(0).IsStackSlot());
       index_lo = value_pair->At(0).stack_index();
     }
 
     if (value_pair->At(1).IsRegister()) {
-      index_hi = cpu_reg_slots[value_pair->At(1).reg()];
+      index_hi = compiler::target::frame_layout.FrameSlotForVariableIndex(
+          -cpu_reg_slots[value_pair->At(1).reg()]);
     } else {
       ASSERT(value_pair->At(1).IsStackSlot());
       index_hi = value_pair->At(1).stack_index();
     }
 
-    return Location::Pair(Location::StackSlot(index_lo),
-                          Location::StackSlot(index_hi));
-  } else if (IsInvalid() && def->IsMaterializeObject()) {
+    return Location::Pair(Location::StackSlot(index_lo, FPREG),
+                          Location::StackSlot(index_hi, FPREG));
+  } else if (loc.IsInvalid() && def->IsMaterializeObject()) {
     def->AsMaterializeObject()->RemapRegisters(cpu_reg_slots, fpu_reg_slots);
-    return *this;
+    return loc;
   }
 
-  return *this;
+  return loc;
 }
 
 void LocationSummary::PrintTo(BufferFormatter* f) const {
@@ -349,5 +392,3 @@ void LocationSummary::CheckWritableInputs() {
 #endif
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

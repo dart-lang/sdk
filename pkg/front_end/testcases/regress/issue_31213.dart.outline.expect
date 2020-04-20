@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef C<contravariant A extends core::Object* = dynamic, contravariant K extends core::Object* = dynamic> = <B extends core::Object* = dynamic>(A*, K*, B*) →* core::int*;
+typedef D<contravariant K extends core::Object* = dynamic> = <A extends core::Object* = dynamic>(core::int*) →* <B extends core::Object* = dynamic>(A*, K*, B*) →* core::int*;
+static method producer<K extends core::Object* = dynamic>() → dynamic
+  ;
+static method main() → dynamic
+  ;

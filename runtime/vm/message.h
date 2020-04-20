@@ -5,10 +5,13 @@
 #ifndef RUNTIME_VM_MESSAGE_H_
 #define RUNTIME_VM_MESSAGE_H_
 
+#include <memory>
+#include <utility>
+
 #include "platform/assert.h"
 #include "vm/allocation.h"
+#include "vm/finalizable_data.h"
 #include "vm/globals.h"
-#include "vm/raw_object.h"
 
 // Duplicated from dart_api.h to avoid including the whole header.
 typedef int64_t Dart_Port;
@@ -16,6 +19,7 @@ typedef int64_t Dart_Port;
 namespace dart {
 
 class JSONStream;
+class RawObject;
 
 class Message {
  public:
@@ -39,65 +43,66 @@ class Message {
   } OOBMsgTag;
 
   // A port number which is never used.
-  static const Dart_Port kIllegalPort = 0;
+  static const Dart_Port kIllegalPort;
 
   // A new message to be sent between two isolates. The data handed to this
   // message will be disposed by calling free() once the message object is
   // being destructed (after delivery or when the receiving port is closed).
   Message(Dart_Port dest_port,
-          uint8_t* data,
-          intptr_t len,
+          uint8_t* snapshot,
+          intptr_t snapshot_length,
+          MessageFinalizableData* finalizable_data,
           Priority priority,
-          Dart_Port delivery_failure_port = kIllegalPort)
-      : next_(NULL),
-        dest_port_(dest_port),
-        delivery_failure_port_(delivery_failure_port),
-        data_(data),
-        len_(len),
-        priority_(priority) {
-    ASSERT((priority == kNormalPriority) ||
-           (delivery_failure_port == kIllegalPort));
-  }
+          Dart_Port delivery_failure_port = kIllegalPort);
 
   // Message objects can also carry RawObject pointers for Smis and objects in
   // the VM heap. This is indicated by setting the len_ field to 0.
   Message(Dart_Port dest_port,
           RawObject* raw_obj,
           Priority priority,
-          Dart_Port delivery_failure_port = kIllegalPort)
-      : next_(NULL),
-        dest_port_(dest_port),
-        delivery_failure_port_(delivery_failure_port),
-        data_(reinterpret_cast<uint8_t*>(raw_obj)),
-        len_(0),
-        priority_(priority) {
-    ASSERT(!raw_obj->IsHeapObject() || raw_obj->IsVMHeapObject());
-    ASSERT((priority == kNormalPriority) ||
-           (delivery_failure_port == kIllegalPort));
-  }
-  ~Message() {
-    ASSERT(delivery_failure_port_ == kIllegalPort);
-    if (len_ > 0) {
-      free(data_);
-    }
+          Dart_Port delivery_failure_port = kIllegalPort);
+
+  ~Message();
+
+  template <typename... Args>
+  static std::unique_ptr<Message> New(Args&&... args) {
+    return std::unique_ptr<Message>(new Message(std::forward<Args>(args)...));
   }
 
   Dart_Port dest_port() const { return dest_port_; }
-  uint8_t* data() const {
-    ASSERT(len_ > 0);
-    return data_;
+
+  uint8_t* snapshot() const {
+    ASSERT(!IsRaw());
+    return snapshot_;
   }
-  intptr_t len() const { return len_; }
+  intptr_t snapshot_length() const { return snapshot_length_; }
+
+  MessageFinalizableData* finalizable_data() { return finalizable_data_; }
+
+  intptr_t Size() const {
+    intptr_t size = snapshot_length_;
+    if (finalizable_data_ != NULL) {
+      size += finalizable_data_->external_size();
+    }
+    return size;
+  }
+
   RawObject* raw_obj() const {
-    ASSERT(len_ == 0);
-    return reinterpret_cast<RawObject*>(data_);
+    ASSERT(IsRaw());
+    return reinterpret_cast<RawObject*>(snapshot_);
   }
   Priority priority() const { return priority_; }
 
   bool IsOOB() const { return priority_ == Message::kOOBPriority; }
-  bool IsRaw() const { return len_ == 0; }
+  bool IsRaw() const { return snapshot_length_ == 0; }
 
   bool RedirectToDeliveryFailurePort();
+
+  void DropFinalizers() {
+    if (finalizable_data_ != nullptr) {
+      finalizable_data_->DropFinalizers();
+    }
+  }
 
   intptr_t Id() const;
 
@@ -109,8 +114,9 @@ class Message {
   Message* next_;
   Dart_Port dest_port_;
   Dart_Port delivery_failure_port_;
-  uint8_t* data_;
-  intptr_t len_;
+  uint8_t* snapshot_;
+  intptr_t snapshot_length_;
+  MessageFinalizableData* finalizable_data_;
   Priority priority_;
 
   DISALLOW_COPY_AND_ASSIGN(Message);
@@ -122,11 +128,11 @@ class MessageQueue {
   MessageQueue();
   ~MessageQueue();
 
-  void Enqueue(Message* msg, bool before_events);
+  void Enqueue(std::unique_ptr<Message> msg, bool before_events);
 
   // Gets the next message from the message queue or NULL if no
   // message is available.  This function will not block.
-  Message* Dequeue();
+  std::unique_ptr<Message> Dequeue();
 
   bool IsEmpty() { return head_ == NULL; }
 

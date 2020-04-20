@@ -158,6 +158,29 @@ typedef void (*Dart_EmbedderInformationCallback)(
 DART_EXPORT void Dart_SetEmbedderInformationCallback(
     Dart_EmbedderInformationCallback callback);
 
+/**
+ * Invoke a vm-service method and wait for its result.
+ *
+ * \param request_json The utf8-encoded json-rpc request.
+ * \param request_json_length The length of the json-rpc request.
+ *
+ * \param response_json The returned utf8-encoded json response, must be
+ *   free()ed by caller.
+ * \param response_json_length The length of the returned json response.
+ * \param error An optional error, must be free()ed by caller.
+ *
+ * \return Whether the call was sucessfully performed.
+ *
+ * NOTE: This method does not need a current isolate and must not have the
+ * vm-isolate being the current isolate. It must be called after
+ * Dart_Initialize() and before Dart_Cleanup().
+ */
+DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
+                                            intptr_t request_json_length,
+                                            uint8_t** response_json,
+                                            intptr_t* response_json_length,
+                                            char** error);
+
 /*
  * ========
  * Event Streams
@@ -194,9 +217,28 @@ typedef void (*Dart_ServiceStreamCancelCallback)(const char* stream_id);
  * \return Success if the callbacks were added.  Otherwise, returns an
  *   error handle.
  */
-DART_EXPORT Dart_Handle Dart_SetServiceStreamCallbacks(
+DART_EXPORT char* Dart_SetServiceStreamCallbacks(
     Dart_ServiceStreamListenCallback listen_callback,
     Dart_ServiceStreamCancelCallback cancel_callback);
+
+/**
+ * A callback invoked when the VM service receives an event.
+ */
+typedef void (*Dart_NativeStreamConsumer)(const uint8_t* event_json,
+                                          intptr_t event_json_length);
+
+/**
+ * Sets the native VM service stream callbacks for a particular stream.
+ * Note: The function may be called on multiple threads concurrently.
+ *
+ * \param consumer A function pointer to an event handler callback function.
+ *   A NULL value removes the existing listen callback function if any.
+ *
+ * \param stream_id The ID of the stream on which to set the callback.
+ */
+DART_EXPORT void Dart_SetNativeServiceStreamCallback(
+    Dart_NativeStreamConsumer consumer,
+    const char* stream_id);
 
 /**
  * Sends a data event to clients of the VM Service.
@@ -243,8 +285,8 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
  */
 typedef bool (*Dart_FileModifiedCallback)(const char* url, int64_t since);
 
-DART_EXPORT Dart_Handle
-Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_modified_callback);
+DART_EXPORT char* Dart_SetFileModifiedCallback(
+    Dart_FileModifiedCallback file_modified_callback);
 
 /**
  * Returns true if isolate is currently reloading.
@@ -259,7 +301,8 @@ DART_EXPORT bool Dart_IsReloading();
 
 /**
  * Returns a timestamp in microseconds. This timestamp is suitable for
- * passing into the timeline system.
+ * passing into the timeline system, and uses the same monotonic clock
+ * as dart:developer's Timeline.now.
  *
  * \return A timestamp that can be passed to the timeline system.
  */
@@ -302,58 +345,6 @@ DART_EXPORT int64_t Dart_TimelineGetMicros();
 DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask);
 
 typedef enum {
-  /** Indicates a new stream is being output */
-  Dart_StreamConsumer_kStart = 0,
-  /** Data for the current stream */
-  Dart_StreamConsumer_kData = 1,
-  /** Indicates stream is finished */
-  Dart_StreamConsumer_kFinish = 2,
-} Dart_StreamConsumer_State;
-
-/**
- * A stream consumer callback function.
- *
- * This function will be called repeatedly until there is no more data in a
- * stream and there are no more streams.
- *
- * \param state Indicates a new stream, data, or a finished stream.
- * \param stream_name A name for this stream. Not guaranteed to be meaningful.
- * \param buffer A pointer to the stream data.
- * \param buffer_length The number of bytes at buffer that should be consumed.
- * \param stream_callback_data The pointer passed in when requesting the stream.
- *
- * At the start of each stream state will be DART_STREAM_CONSUMER_STATE_START
- * and buffer will be NULL.
- *
- * For each chunk of data the state will be DART_STREAM_CONSUMER_STATE_DATA
- * and buffer will not be NULL.
- *
- * At the end of each stream state will be DART_STREAM_CONSUMER_STATE_FINISH
- * and buffer will be NULL.
- */
-typedef void (*Dart_StreamConsumer)(Dart_StreamConsumer_State state,
-                                    const char* stream_name,
-                                    const uint8_t* buffer,
-                                    intptr_t buffer_length,
-                                    void* stream_callback_data);
-
-/**
- * Get the timeline for entire VM (including all isolates).
- *
- * NOTE: The timeline retrieved from this API call may not include the most
- * recent events.
- *
- * \param consumer A Dart_StreamConsumer.
- * \param user_data User data passed into consumer.
- *
- * NOTE: The trace-event format is documented here: https://goo.gl/hDZw5M
- *
- * \return True if a stream was output.
- */
-DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
-                                             void* user_data);
-
-typedef enum {
   Dart_Timeline_Event_Begin,          // Phase = 'B'.
   Dart_Timeline_Event_End,            // Phase = 'E'.
   Dart_Timeline_Event_Instant,        // Phase = 'i'.
@@ -370,13 +361,17 @@ typedef enum {
 /**
  * Add a timeline event to the embedder stream.
  *
- * \param label The name of the evnet.
+ * \param label The name of the event. Its lifetime must extend at least until
+ *     Dart_Cleanup.
  * \param timestamp0 The first timestamp of the event.
  * \param timestamp1_or_async_id The second timestamp of the event or
  *     the async id.
  * \param argument_count The number of argument names and values.
- * \param argument_names An array of names of the arguments.
- * \param argument_values An array of values of the arguments.
+ * \param argument_names An array of names of the arguments. The lifetime of the
+ *     names must extend at least until Dart_Cleanup. The array may be reclaimed
+ *     when this call returns.
+ * \param argument_values An array of values of the arguments. The values and
+ *     the array may be reclaimed when this call returns.
  */
 DART_EXPORT void Dart_TimelineEvent(const char* label,
                                     int64_t timestamp0,
@@ -394,29 +389,48 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
  */
 DART_EXPORT void Dart_SetThreadName(const char* name);
 
-/**
- * Called by the VM to let the embedder know when to start recording into the
- * timeline. Can be called from any thread.
+/*
+ * =======
+ * Metrics
+ * =======
  */
-typedef void (*Dart_EmbedderTimelineStartRecording)();
 
 /**
- * Called by the VM to let the embedder know when to stop recording into the
- * timeline. Can be called from any thread.
- */
-typedef void (*Dart_EmbedderTimelineStopRecording)();
-
-/**
- * Sets the embedder timeline callbacks. These callbacks are used by the VM
- * to notify the embedder of timeline recording state changes.
+ * Return metrics gathered for the VM and individual isolates.
  *
- * \param start_recording See Dart_EmbedderTimelineStartRecording.
- * \param stop_recording See Dart_EmbedderTimelineStopRecording.
- *
- * NOTE: To avoid races, this should be called before Dart_Initialize.
+ * NOTE: Metrics are not available in PRODUCT builds of Dart.
+ * Calling the metric functions on a PRODUCT build might return invalid metrics.
  */
-DART_EXPORT void Dart_SetEmbedderTimelineCallbacks(
-    Dart_EmbedderTimelineStartRecording start_recording,
-    Dart_EmbedderTimelineStopRecording stop_recording);
+DART_EXPORT int64_t Dart_VMIsolateCountMetric();  // Counter
+DART_EXPORT int64_t Dart_VMCurrentRSSMetric();    // Byte
+DART_EXPORT int64_t Dart_VMPeakRSSMetric();       // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapOldUsedMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapOldUsedMaxMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapOldCapacityMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapOldCapacityMaxMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapOldExternalMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapNewUsedMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapNewUsedMaxMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapNewCapacityMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapNewCapacityMaxMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapNewExternalMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapGlobalUsedMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateHeapGlobalUsedMaxMetric(Dart_Isolate isolate);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateRunnableLatencyMetric(Dart_Isolate isolate);  // Microsecond
+DART_EXPORT int64_t
+Dart_IsolateRunnableHeapSizeMetric(Dart_Isolate isolate);  // Byte
 
 #endif  // RUNTIME_INCLUDE_DART_TOOLS_API_H_

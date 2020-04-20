@@ -47,9 +47,8 @@ class ApiMessageReader : public BaseReader {
   // The ApiMessageReader object must be enclosed by an ApiNativeScope.
   // Allocation of all C Heap objects is done in the zone associated with
   // the enclosing ApiNativeScope.
-  ApiMessageReader(const uint8_t* buffer, intptr_t length);
   explicit ApiMessageReader(Message* message);
-  ~ApiMessageReader() {}
+  ~ApiMessageReader();
 
   Dart_CObject* ReadMessage();
 
@@ -85,8 +84,6 @@ class ApiMessageReader : public BaseReader {
   Dart_CObject* AllocateDartCObjectInt32(int32_t value);
   // Allocates a Dart_CObject object for for a 64-bit integer.
   Dart_CObject* AllocateDartCObjectInt64(int64_t value);
-  // Allocates an empty Dart_CObject object for a bigint to be filled up later.
-  Dart_CObject* AllocateDartCObjectBigint();
   // Allocates a Dart_CObject object for a double.
   Dart_CObject* AllocateDartCObjectDouble(double value);
   // Allocates a Dart_CObject object for string data.
@@ -149,27 +146,22 @@ class ApiMessageReader : public BaseReader {
 
   Dart_CObject type_arguments_marker;
   Dart_CObject dynamic_type_marker;
+
+  MessageFinalizableData* finalizable_data_;
+
   static _Dart_CObject* singleton_uint32_typed_data_;
 };
 
 class ApiMessageWriter : public BaseWriter {
  public:
   static const intptr_t kInitialSize = 512;
-  ApiMessageWriter(uint8_t** buffer, ReAlloc alloc)
-      : BaseWriter(buffer, alloc, NULL, kInitialSize),
-        object_id_(0),
-        forward_list_(NULL),
-        forward_list_length_(0),
-        forward_id_(0) {
-    ASSERT(kDartCObjectTypeMask >= Dart_CObject_kNumberOfTypes - 1);
-  }
-  ~ApiMessageWriter() { ::free(forward_list_); }
-
-  // Writes a message of integers.
-  void WriteMessage(intptr_t field_count, intptr_t* data);
+  ApiMessageWriter();
+  ~ApiMessageWriter();
 
   // Writes a message with a single object.
-  bool WriteCMessage(Dart_CObject* object);
+  std::unique_ptr<Message> WriteCMessage(Dart_CObject* object,
+                                         Dart_Port dest_port,
+                                         Message::Priority priority);
 
  private:
   static const intptr_t kDartCObjectTypeBits = 4;
@@ -199,6 +191,7 @@ class ApiMessageWriter : public BaseWriter {
   Dart_CObject** forward_list_;
   intptr_t forward_list_length_;
   intptr_t forward_id_;
+  MessageFinalizableData* finalizable_data_;
 
   DISALLOW_COPY_AND_ASSIGN(ApiMessageWriter);
 };

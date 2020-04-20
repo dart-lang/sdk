@@ -24,7 +24,7 @@ Future runBatch(BatchCallback callback) async {
   int testsFailed = 0;
   var watch = new Stopwatch()..start();
   print('>>> BATCH START');
-  Stream input = stdin.transform(UTF8.decoder).transform(new LineSplitter());
+  Stream input = stdin.transform(utf8.decoder).transform(new LineSplitter());
   await for (String line in input) {
     if (line.isEmpty) {
       int time = watch.elapsedMilliseconds;

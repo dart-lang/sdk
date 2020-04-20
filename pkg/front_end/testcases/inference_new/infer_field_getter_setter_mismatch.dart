@@ -13,7 +13,7 @@ abstract class A {
 // Type inference should fail here since the getter and setter for x don't
 // match.
 class B extends A {
-  var /*@topType=int*/ x;
+  var x;
 }
 
 main() {}

@@ -6,22 +6,21 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:front_end/src/api_prototype/constant_evaluator.dart'
+    as constants show EvaluationMode, SimpleErrorReporter, transformComponent;
+
 import 'package:args/args.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/src/tool/batch_util.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/transformations/closure_conversion.dart' as closures;
+
 import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/empty.dart' as empty;
-import 'package:kernel/transformations/method_call.dart' as method_call;
 import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
-import 'package:kernel/transformations/treeshaker.dart' as treeshaker;
-// import 'package:kernel/verifier.dart';
-import 'package:kernel/transformations/coq.dart' as coq;
-
-import 'util.dart';
+import 'package:kernel/type_environment.dart';
+import 'package:kernel/vm/constants_native_effects.dart';
 
 ArgParser parser = new ArgParser()
   ..addOption('format',
@@ -35,10 +34,7 @@ ArgParser parser = new ArgParser()
       negatable: false,
       help: 'Be verbose (e.g. prints transformed main library).',
       defaultsTo: false)
-  ..addOption('embedder-entry-points-manifest',
-      allowMultiple: true,
-      help: 'A path to a file describing entrypoints '
-          '(lines of the form `<library>,<class>,<member>`).')
+  ..addMultiOption('define', abbr: 'D', splitCommas: false)
   ..addOption('transformation',
       abbr: 't',
       help: 'The transformation to apply.',
@@ -68,41 +64,51 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
   var format = options['format'];
   var verbose = options['verbose'];
 
+  Map<String, String> defines = <String, String>{};
+  for (String define in options['define']) {
+    int index = define.indexOf('=');
+    String name;
+    String expression;
+    if (index != -1) {
+      name = define.substring(0, index);
+      expression = define.substring(index + 1);
+    } else {
+      name = define;
+      expression = define;
+    }
+    defines[name] = expression;
+  }
+
   if (output == null) {
     output = '${input.substring(0, input.lastIndexOf('.'))}.transformed.dill';
   }
 
-  List<String> embedderEntryPointManifests =
-      options['embedder-entry-points-manifest'] as List<String>;
-  List<treeshaker.ProgramRoot> programRoots =
-      parseProgramRoots(embedderEntryPointManifests);
+  var component = loadComponentFromBinary(input);
 
-  var program = loadProgramFromBinary(input);
-  var coreTypes = new CoreTypes(program);
-  var hierarchy = new ClosedWorldClassHierarchy(program);
+  final coreTypes = new CoreTypes(component);
+  final hierarchy = new ClassHierarchy(component, coreTypes);
+  final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
   switch (options['transformation']) {
     case 'continuation':
-      program = cont.transformProgram(coreTypes, program);
+      bool productMode = defines["dart.vm.product"] == "true";
+      component = cont.transformComponent(typeEnvironment, component,
+          productMode: productMode);
       break;
     case 'resolve-mixins':
-      mix.transformLibraries(
-          new NoneTarget(null), coreTypes, hierarchy, program.libraries);
+      mix.transformLibraries(new NoneTarget(null), coreTypes, hierarchy,
+          component.libraries, null);
       break;
-    case 'closures':
-      program = closures.transformProgram(coreTypes, program);
-      break;
-    case 'coq':
-      program = coq.transformProgram(coreTypes, program);
-      break;
-    case 'treeshake':
-      program = treeshaker.transformProgram(coreTypes, hierarchy, program,
-          programRoots: programRoots);
-      break;
-    case 'methodcall':
-      program = method_call.transformProgram(coreTypes, hierarchy, program);
+    case 'constants':
+      final VmConstantsBackend backend = new VmConstantsBackend(coreTypes);
+      component = constants.transformComponent(
+          component,
+          backend,
+          defines,
+          const constants.SimpleErrorReporter(),
+          constants.EvaluationMode.legacy);
       break;
     case 'empty':
-      program = empty.transformProgram(program);
+      component = empty.transformComponent(component);
       break;
     default:
       throw 'Unknown transformation';
@@ -111,17 +117,17 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
   // TODO(30631): Fix the verifier so we can check that the transform produced
   // valid output.
   //
-  // verifyProgram(program);
+  // verifyComponent(component);
 
   if (format == 'text') {
-    writeProgramToText(program, path: output);
+    writeComponentToText(component, path: output);
   } else {
     assert(format == 'bin');
-    await writeProgramToBinary(program, output);
+    await writeComponentToBinary(component, output);
   }
 
   if (verbose) {
-    writeLibraryToText(program.mainMethod.parent as Library);
+    writeLibraryToText(component.mainMethod.parent as Library);
   }
 
   return CompilerOutcome.Ok;

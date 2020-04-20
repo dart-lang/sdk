@@ -1,0 +1,90 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    ;
+}
+class C extends self::B {
+  synthetic constructor •() → self::C*
+    ;
+}
+class D extends self::C {
+  synthetic constructor •() → self::D*
+    ;
+}
+class G<T extends self::A* = self::A*> extends core::Object {
+  synthetic constructor •() → self::G<self::G::T*>*
+    ;
+}
+class GB extends self::G<self::B*> {
+  synthetic constructor •() → self::GB*
+    ;
+}
+class GC extends self::G<self::C*> {
+  synthetic constructor •() → self::GC*
+    ;
+}
+class GD extends self::G<self::D*> {
+  synthetic constructor •() → self::GD*
+    ;
+}
+class X extends core::Object implements self::A {
+  synthetic constructor •() → self::X*
+    ;
+}
+class Y extends self::X {
+  synthetic constructor •() → self::Y*
+    ;
+}
+class Z extends core::Object implements self::Y {
+  synthetic constructor •() → self::Z*
+    ;
+}
+class W extends core::Object implements self::Z {
+  synthetic constructor •() → self::W*
+    ;
+}
+class GX extends core::Object implements self::G<self::A*> {
+  synthetic constructor •() → self::GX*
+    ;
+}
+class GY extends self::X implements self::GB {
+  synthetic constructor •() → self::GY*
+    ;
+}
+class GZ extends core::Object implements self::Y, self::GC {
+  synthetic constructor •() → self::GZ*
+    ;
+}
+class GW extends core::Object implements self::Z, self::GD {
+  synthetic constructor •() → self::GW*
+    ;
+}
+class GU extends self::GW {
+  synthetic constructor •() → self::GU*
+    ;
+}
+class GV extends self::GU implements self::GW {
+  synthetic constructor •() → self::GV*
+    ;
+}
+class ARO<S extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::ARO<self::ARO::S*>*
+    ;
+}
+class ARQ<T extends core::Object* = dynamic> extends core::Object implements self::ARO<self::ARQ::T*> {
+  synthetic constructor •() → self::ARQ<self::ARQ::T*>*
+    ;
+}
+class ARN extends self::ARQ<self::A*> {
+  synthetic constructor •() → self::ARN*
+    ;
+}
+static method main() → dynamic
+  ;

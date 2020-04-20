@@ -3,20 +3,20 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object implements self::B {
-  default constructor •() → void
+  synthetic constructor •() → self::A*
     ;
-  get x() → dynamic
+  get x() → core::int*
     ;
 }
 abstract class B extends core::Object implements self::C {
-  default constructor •() → void
+  synthetic constructor •() → self::B*
     ;
-  abstract get x() → dynamic;
+  abstract get x() → core::int*;
 }
 abstract class C extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::C*
     ;
-  abstract get x() → core::int;
+  abstract get x() → core::int*;
 }
 static method f() → dynamic
   ;

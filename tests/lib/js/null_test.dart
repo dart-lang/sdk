@@ -5,13 +5,12 @@
 library null_test;
 
 import 'dart:js';
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:expect/expect.dart';
 
 main() {
-  useHtmlConfiguration();
-  test('null is sent as null', () {
-    expect(context['isNull'].apply([null]), isTrue);
-    expect(context['isUndefined'].apply([null]), isFalse);
-  });
+  context.callMethod('eval', ['isNull = function (x) { return x === null; }']);
+  context.callMethod(
+      'eval', ['isUndefined = function (x) { return x === void 0; }']);
+  Expect.isTrue(context['isNull'].apply([null]));
+  Expect.isFalse(context['isUndefined'].apply([null]));
 }

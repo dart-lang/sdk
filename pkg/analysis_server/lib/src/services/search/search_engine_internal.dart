@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,11 +9,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/generated/source.dart' show Source, SourceRange;
-import 'package:meta/meta.dart';
 
-/**
- * A [SearchEngine] implementation.
- */
+/// A [SearchEngine] implementation.
 class SearchEngineImpl implements SearchEngine {
   final Iterable<AnalysisDriver> _drivers;
 
@@ -21,21 +18,26 @@ class SearchEngineImpl implements SearchEngine {
 
   @override
   Future<Set<String>> membersOfSubtypes(ClassElement type) async {
-    List<AnalysisDriver> drivers = _drivers.toList();
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    var drivers = _drivers.toList();
+    var searchedFiles = _createSearchedFiles(drivers);
 
-    String libraryUriStr = type.librarySource.uri.toString();
-    bool hasSubtypes = false;
-    Set<String> visitedIds = new Set<String>();
-    Set<String> members = new Set<String>();
+    var libraryUriStr = type.librarySource.uri.toString();
+    var hasSubtypes = false;
+    var visitedIds = <String>{};
+    var members = <String>{};
 
-    Future<Null> addMembers(ClassElement type, SubtypeResult subtype) async {
+    Future<void> addMembers(ClassElement type, SubtypeResult subtype) async {
+      // TODO(brianwilkerson) Determine whether this await is necessary.
+      await null;
       if (subtype != null && !visitedIds.add(subtype.id)) {
         return;
       }
-      for (AnalysisDriver driver in drivers) {
-        List<SubtypeResult> subtypes =
-            await driver.search.subtypes(type: type, subtype: subtype);
-        for (SubtypeResult subtype in subtypes) {
+      for (var driver in drivers) {
+        var subtypes = await driver.search
+            .subtypes(searchedFiles, type: type, subtype: subtype);
+        for (var subtype in subtypes) {
           hasSubtypes = true;
           members.addAll(subtype.libraryUri == libraryUriStr
               ? subtype.members
@@ -55,11 +57,15 @@ class SearchEngineImpl implements SearchEngine {
 
   @override
   Future<Set<ClassElement>> searchAllSubtypes(ClassElement type) async {
-    Set<ClassElement> allSubtypes = new Set<ClassElement>();
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    var allSubtypes = <ClassElement>{};
 
-    Future<Null> addSubtypes(ClassElement type) async {
-      List<SearchResult> directResults = await _searchDirectSubtypes(type);
-      for (SearchResult directResult in directResults) {
+    Future<void> addSubtypes(ClassElement type) async {
+      // TODO(brianwilkerson) Determine whether this await is necessary.
+      await null;
+      var directResults = await _searchDirectSubtypes(type);
+      for (var directResult in directResults) {
         var directSubtype = directResult.enclosingElement as ClassElement;
         if (allSubtypes.add(directSubtype)) {
           await addSubtypes(directSubtype);
@@ -73,10 +79,12 @@ class SearchEngineImpl implements SearchEngine {
 
   @override
   Future<List<SearchMatch>> searchMemberDeclarations(String name) async {
-    List<SearchMatch> allDeclarations = [];
-    List<AnalysisDriver> drivers = _drivers.toList();
-    for (AnalysisDriver driver in drivers) {
-      List<Element> elements = await driver.search.classMembers(name);
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    var allDeclarations = <SearchMatch>[];
+    var drivers = _drivers.toList();
+    for (var driver in drivers) {
+      var elements = await driver.search.classMembers(name);
       allDeclarations.addAll(elements.map(SearchMatchImpl.forElement));
     }
     return allDeclarations;
@@ -84,11 +92,14 @@ class SearchEngineImpl implements SearchEngine {
 
   @override
   Future<List<SearchMatch>> searchMemberReferences(String name) async {
-    List<SearchResult> allResults = [];
-    List<AnalysisDriver> drivers = _drivers.toList();
-    for (AnalysisDriver driver in drivers) {
-      List<SearchResult> results =
-          await driver.search.unresolvedMemberReferences(name);
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    var allResults = <SearchResult>[];
+    var drivers = _drivers.toList();
+    var searchedFiles = _createSearchedFiles(drivers);
+    for (var driver in drivers) {
+      var results =
+          await driver.search.unresolvedMemberReferences(name, searchedFiles);
       allResults.addAll(results);
     }
     return allResults.map(SearchMatchImpl.forSearchResult).toList();
@@ -96,10 +107,13 @@ class SearchEngineImpl implements SearchEngine {
 
   @override
   Future<List<SearchMatch>> searchReferences(Element element) async {
-    List<SearchResult> allResults = [];
-    List<AnalysisDriver> drivers = _drivers.toList();
-    for (AnalysisDriver driver in drivers) {
-      List<SearchResult> results = await driver.search.references(element);
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    var allResults = <SearchResult>[];
+    var drivers = _drivers.toList();
+    var searchedFiles = _createSearchedFiles(drivers);
+    for (var driver in drivers) {
+      var results = await driver.search.references(element, searchedFiles);
       allResults.addAll(results);
     }
     return allResults.map(SearchMatchImpl.forSearchResult).toList();
@@ -107,34 +121,50 @@ class SearchEngineImpl implements SearchEngine {
 
   @override
   Future<List<SearchMatch>> searchSubtypes(ClassElement type) async {
-    List<SearchResult> results = await _searchDirectSubtypes(type);
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    var results = await _searchDirectSubtypes(type);
     return results.map(SearchMatchImpl.forSearchResult).toList();
   }
 
   @override
   Future<List<SearchMatch>> searchTopLevelDeclarations(String pattern) async {
-    List<SearchMatch> allDeclarations = [];
-    RegExp regExp = new RegExp(pattern);
-    List<AnalysisDriver> drivers = _drivers.toList();
-    for (AnalysisDriver driver in drivers) {
-      List<Element> elements = await driver.search.topLevelElements(regExp);
-      allDeclarations.addAll(elements.map(SearchMatchImpl.forElement));
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    var allElements = <Element>{};
+    var regExp = RegExp(pattern);
+    var drivers = _drivers.toList();
+    for (var driver in drivers) {
+      var elements = await driver.search.topLevelElements(regExp);
+      allElements.addAll(elements);
     }
-    return allDeclarations;
+    return allElements.map(SearchMatchImpl.forElement).toList();
+  }
+
+  /// Create a new [SearchedFiles] instance in which added files are owned
+  /// by the drivers that have them added.
+  SearchedFiles _createSearchedFiles(List<AnalysisDriver> drivers) {
+    var searchedFiles = SearchedFiles();
+    for (var driver in drivers) {
+      searchedFiles.ownAdded(driver.search);
+    }
+    return searchedFiles;
   }
 
   Future<List<SearchResult>> _searchDirectSubtypes(ClassElement type) async {
-    List<SearchResult> allResults = [];
-    List<AnalysisDriver> drivers = _drivers.toList();
-    for (AnalysisDriver driver in drivers) {
-      List<SearchResult> results = await driver.search.subTypes(type);
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    var allResults = <SearchResult>[];
+    var drivers = _drivers.toList();
+    var searchedFiles = _createSearchedFiles(drivers);
+    for (var driver in drivers) {
+      var results = await driver.search.subTypes(type, searchedFiles);
       allResults.addAll(results);
     }
     return allResults;
   }
 }
 
-@visibleForTesting
 class SearchMatchImpl implements SearchMatch {
   @override
   final String file;
@@ -176,25 +206,25 @@ class SearchMatchImpl implements SearchMatch {
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
-    buffer.write("SearchMatch(kind=");
+    var buffer = StringBuffer();
+    buffer.write('SearchMatch(kind=');
     buffer.write(kind);
-    buffer.write(", libraryUri=");
+    buffer.write(', libraryUri=');
     buffer.write(librarySource.uri);
-    buffer.write(", unitUri=");
+    buffer.write(', unitUri=');
     buffer.write(unitSource.uri);
-    buffer.write(", range=");
+    buffer.write(', range=');
     buffer.write(sourceRange);
-    buffer.write(", isResolved=");
+    buffer.write(', isResolved=');
     buffer.write(isResolved);
-    buffer.write(", isQualified=");
+    buffer.write(', isQualified=');
     buffer.write(isQualified);
-    buffer.write(")");
+    buffer.write(')');
     return buffer.toString();
   }
 
   static SearchMatchImpl forElement(Element element) {
-    return new SearchMatchImpl(
+    return SearchMatchImpl(
         element.source.fullName,
         element.librarySource,
         element.source,
@@ -203,12 +233,12 @@ class SearchMatchImpl implements SearchMatch {
         true,
         true,
         MatchKind.DECLARATION,
-        new SourceRange(element.nameOffset, element.nameLength));
+        SourceRange(element.nameOffset, element.nameLength));
   }
 
   static SearchMatchImpl forSearchResult(SearchResult result) {
-    Element enclosingElement = result.enclosingElement;
-    return new SearchMatchImpl(
+    var enclosingElement = result.enclosingElement;
+    return SearchMatchImpl(
         enclosingElement.source.fullName,
         enclosingElement.librarySource,
         enclosingElement.source,
@@ -217,7 +247,7 @@ class SearchMatchImpl implements SearchMatch {
         result.isResolved,
         result.isQualified,
         toMatchKind(result.kind),
-        new SourceRange(result.offset, result.length));
+        SourceRange(result.offset, result.length));
   }
 
   static MatchKind toMatchKind(SearchResultKind kind) {

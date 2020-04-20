@@ -16,7 +16,7 @@ import "dart:io";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-InternetAddress HOST;
+late InternetAddress HOST;
 String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
@@ -32,18 +32,15 @@ void testCloseOneEnd(String toClose) {
   Completer serverDone = new Completer();
   Completer serverEndDone = new Completer();
   Completer clientEndDone = new Completer();
-  Future.wait([
-    serverDone.future,
-    serverEndDone.future,
-    clientEndDone.future
-  ]).then((_) {
+  Future.wait([serverDone.future, serverEndDone.future, clientEndDone.future])
+      .then((_) {
     asyncEnd();
   });
   RawSecureServerSocket.bind(HOST, 0, serverContext).then((server) {
     server.listen((serverConnection) {
       serverConnection.listen((event) {
-        if (toClose == "server" || event == RawSocketEvent.READ_CLOSED) {
-          serverConnection.shutdown(SocketDirection.SEND);
+        if (toClose == "server" || event == RawSocketEvent.readClosed) {
+          serverConnection.shutdown(SocketDirection.send);
         }
       }, onDone: () {
         serverEndDone.complete(null);
@@ -51,12 +48,11 @@ void testCloseOneEnd(String toClose) {
     }, onDone: () {
       serverDone.complete(null);
     });
-    RawSecureSocket
-        .connect(HOST, server.port, context: clientContext)
+    RawSecureSocket.connect(HOST, server.port, context: clientContext)
         .then((clientConnection) {
       clientConnection.listen((event) {
-        if (toClose == "client" || event == RawSocketEvent.READ_CLOSED) {
-          clientConnection.shutdown(SocketDirection.SEND);
+        if (toClose == "client" || event == RawSocketEvent.readClosed) {
+          clientConnection.shutdown(SocketDirection.send);
         }
       }, onDone: () {
         clientEndDone.complete(null);
@@ -89,14 +85,13 @@ testPauseServerSocket() {
 
   asyncStart();
 
-  RawSecureServerSocket
-      .bind(HOST, 0, serverContext, backlog: 2 * socketCount)
+  RawSecureServerSocket.bind(HOST, 0, serverContext, backlog: 2 * socketCount)
       .then((server) {
     Expect.isTrue(server.port > 0);
     var subscription;
     subscription = server.listen((connection) {
       Expect.isTrue(resumed);
-      connection.shutdown(SocketDirection.SEND);
+      connection.shutdown(SocketDirection.send);
       if (++acceptCount == 2 * socketCount) {
         server.close();
         asyncEnd();
@@ -109,20 +104,18 @@ testPauseServerSocket() {
     subscription.pause();
     var connectCount = 0;
     for (int i = 0; i < socketCount; i++) {
-      RawSecureSocket
-          .connect(HOST, server.port, context: clientContext)
+      RawSecureSocket.connect(HOST, server.port, context: clientContext)
           .then((connection) {
-        connection.shutdown(SocketDirection.SEND);
+        connection.shutdown(SocketDirection.send);
       });
     }
     new Timer(const Duration(milliseconds: 500), () {
       subscription.resume();
       resumed = true;
       for (int i = 0; i < socketCount; i++) {
-        RawSecureSocket
-            .connect(HOST, server.port, context: clientContext)
+        RawSecureSocket.connect(HOST, server.port, context: clientContext)
             .then((connection) {
-          connection.shutdown(SocketDirection.SEND);
+          connection.shutdown(SocketDirection.send);
         });
       }
     });
@@ -151,8 +144,7 @@ testCloseServer() {
     });
 
     for (int i = 0; i < socketCount; i++) {
-      RawSecureSocket
-          .connect(HOST, server.port, context: clientContext)
+      RawSecureSocket.connect(HOST, server.port, context: clientContext)
           .then((connection) {
         ends.add(connection);
         checkDone();

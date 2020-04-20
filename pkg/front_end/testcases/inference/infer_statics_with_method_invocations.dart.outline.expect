@@ -1,0 +1,26 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///infer_statics_with_method_invocations_a.dart";
+
+class T extends core::Object {
+  static final field self::T* foo;
+  synthetic constructor •() → self::T*
+    ;
+  static method m1(core::String* m) → self::T*
+    ;
+  static method m2(dynamic e) → core::String*
+    ;
+}
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+static method m3(core::String* a, core::String* b, [dynamic a1, dynamic a2]) → dynamic
+  ;
+static method main() → dynamic
+  ;

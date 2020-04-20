@@ -2,12 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart._vmservice;
 
 typedef void ClientServiceHandle(Message response);
 
 // A service client.
 abstract class Client {
+  static int _idCounter = 0;
+  final int _id = ++_idCounter;
+
+  String get defaultClientName => 'client$_id';
+
+  String get name => _name;
+  set name(n) => _name = n ?? defaultClientName;
+  String _name;
+
   final VMService service;
   final bool sendEvents;
 
@@ -26,6 +37,7 @@ abstract class Client {
       new Map<String, ClientServiceHandle>();
 
   Client(this.service, {bool sendEvents: true}) : this.sendEvents = sendEvents {
+    name = defaultClientName;
     service._addClient(this);
   }
 
@@ -41,7 +53,7 @@ abstract class Client {
   void onRequest(Message message) {
     // In JSON-RPC 2.0 messages with and id are Request and must be answered
     // http://www.jsonrpc.org/specification#notification
-    service.routeRequest(message).then((response) => post(response));
+    service.routeRequest(service, message).then(post);
   }
 
   void onResponse(Message message) {
@@ -53,11 +65,11 @@ abstract class Client {
     // In JSON-RPC 2.0 messages without an id are Notification
     // and should not be answered
     // http://www.jsonrpc.org/specification#notification
-    service.routeRequest(message);
+    service.routeRequest(service, message);
   }
 
   // Sends a result to the client.  Implemented in subclasses.
-  void post(dynamic result);
+  void post(Response result);
 
   dynamic toJson() {
     return {};

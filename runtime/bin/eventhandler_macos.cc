@@ -19,11 +19,11 @@
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
 #include "bin/lockers.h"
-#include "bin/log.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "platform/hashmap.h"
+#include "platform/syslog.h"
 #include "platform/utils.h"
 
 namespace dart {
@@ -93,7 +93,7 @@ static void AddToKqueue(intptr_t kqueue_fd_, DescriptorInfo* di) {
 }
 
 EventHandlerImplementation::EventHandlerImplementation()
-    : socket_map_(&HashMap::SamePointerValue, 16) {
+    : socket_map_(&SimpleHashMap::SamePointerValue, 16) {
   intptr_t result;
   result = NO_RETRY_EXPECTED(pipe(interrupt_fds_));
   if (result != 0) {
@@ -137,9 +137,9 @@ static void DeleteDescriptorInfo(void* info) {
 
 EventHandlerImplementation::~EventHandlerImplementation() {
   socket_map_.Clear(DeleteDescriptorInfo);
-  VOID_TEMP_FAILURE_RETRY(close(kqueue_fd_));
-  VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[0]));
-  VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[1]));
+  close(kqueue_fd_);
+  close(interrupt_fds_[0]);
+  close(interrupt_fds_[1]);
 }
 
 void EventHandlerImplementation::UpdateKQueueInstance(intptr_t old_mask,
@@ -160,8 +160,8 @@ DescriptorInfo* EventHandlerImplementation::GetDescriptorInfo(
     intptr_t fd,
     bool is_listening) {
   ASSERT(fd >= 0);
-  HashMap::Entry* entry = socket_map_.Lookup(GetHashmapKeyFromFd(fd),
-                                             GetHashmapHashFromFd(fd), true);
+  SimpleHashMap::Entry* entry = socket_map_.Lookup(
+      GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd), true);
   ASSERT(entry != NULL);
   DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(entry->value);
   if (di == NULL) {
@@ -230,7 +230,9 @@ void EventHandlerImplementation::HandleInterruptFd() {
         // message.
         intptr_t old_mask = di->Mask();
         Dart_Port port = msg[i].dart_port;
-        di->RemovePort(port);
+        if (port != ILLEGAL_PORT) {
+          di->RemovePort(port);
+        }
         intptr_t new_mask = di->Mask();
         UpdateKQueueInstance(old_mask, di);
 
@@ -250,14 +252,14 @@ void EventHandlerImplementation::HandleInterruptFd() {
                                GetHashmapHashFromFd(fd));
             di->Close();
             delete di;
-            socket->SetClosedFd();
           }
+          socket->CloseFd();
         } else {
           ASSERT(new_mask == 0);
           socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
           di->Close();
           delete di;
-          socket->SetClosedFd();
+          socket->CloseFd();
         }
 
         DartUtils::PostInt32(port, 1 << kDestroyedEvent);
@@ -282,37 +284,38 @@ void EventHandlerImplementation::HandleInterruptFd() {
 
 #ifdef DEBUG_KQUEUE
 static void PrintEventMask(intptr_t fd, struct kevent* event) {
-  Log::Print("%d ", static_cast<int>(fd));
+  Syslog::Print("%d ", static_cast<int>(fd));
 
-  Log::Print("filter=0x%x:", event->filter);
+  Syslog::Print("filter=0x%x:", event->filter);
   if (event->filter == EVFILT_READ) {
-    Log::Print("EVFILT_READ ");
+    Syslog::Print("EVFILT_READ ");
   }
   if (event->filter == EVFILT_WRITE) {
-    Log::Print("EVFILT_WRITE ");
+    Syslog::Print("EVFILT_WRITE ");
   }
 
-  Log::Print("flags: %x: ", event->flags);
+  Syslog::Print("flags: %x: ", event->flags);
   if ((event->flags & EV_EOF) != 0) {
-    Log::Print("EV_EOF ");
+    Syslog::Print("EV_EOF ");
   }
   if ((event->flags & EV_ERROR) != 0) {
-    Log::Print("EV_ERROR ");
+    Syslog::Print("EV_ERROR ");
   }
   if ((event->flags & EV_CLEAR) != 0) {
-    Log::Print("EV_CLEAR ");
+    Syslog::Print("EV_CLEAR ");
   }
   if ((event->flags & EV_ADD) != 0) {
-    Log::Print("EV_ADD ");
+    Syslog::Print("EV_ADD ");
   }
   if ((event->flags & EV_DELETE) != 0) {
-    Log::Print("EV_DELETE ");
+    Syslog::Print("EV_DELETE ");
   }
 
-  Log::Print("- fflags: %d ", event->fflags);
-  Log::Print("- data: %ld ", event->data);
-  Log::Print("(available %d) ", static_cast<int>(FDUtils::AvailableBytes(fd)));
-  Log::Print("\n");
+  Syslog::Print("- fflags: %d ", event->fflags);
+  Syslog::Print("- data: %ld ", event->data);
+  Syslog::Print("(available %d) ",
+                static_cast<int>(FDUtils::AvailableBytes(fd)));
+  Syslog::Print("\n");
 }
 #endif
 
@@ -462,7 +465,8 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
 }
 
 void EventHandlerImplementation::Start(EventHandler* handler) {
-  int result = Thread::Start(&EventHandlerImplementation::EventHandlerEntry,
+  int result = Thread::Start("dart:io EventHandler",
+                             &EventHandlerImplementation::EventHandlerEntry,
                              reinterpret_cast<uword>(handler));
   if (result != 0) {
     FATAL1("Failed to start event handler thread %d", result);

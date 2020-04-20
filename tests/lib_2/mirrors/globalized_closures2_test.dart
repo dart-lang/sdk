@@ -33,6 +33,5 @@ main() {
       collectedParents.add(MirrorSystem.getName(c.superclass.simpleName));
     }
   }
-  ;
   Expect.isTrue(collectedParents.isEmpty); //  //# 00: ok
 }

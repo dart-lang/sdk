@@ -7,9 +7,10 @@ import "dart:io";
 
 void main(List<String> arguments) {
   int i = 0;
-  String line;
-  while ((line = stdin.readLineSync(encoding: UTF8)) != null) {
-    if (JSON.decode(arguments[i]) != line) {
+  while (true) {
+    final line = stdin.readLineSync(encoding: utf8);
+    if (line == null) break;
+    if (json.decode(arguments[i]) != line) {
       throw "bad line at $i: ${line.codeUnits}";
     }
     i++;

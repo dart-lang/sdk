@@ -5,20 +5,33 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_RANGE_ANALYSIS_H_
 #define RUNTIME_VM_COMPILER_BACKEND_RANGE_ANALYSIS_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
 
 namespace dart {
 
+class SExpression;
+class FlowGraphSerializer;
+
 class RangeBoundary : public ValueObject {
  public:
-  enum Kind {
-    kUnknown,
-    kNegativeInfinity,
-    kPositiveInfinity,
-    kSymbol,
-    kConstant,
-  };
+#define FOR_EACH_RANGE_BOUNDARY_KIND(V)                                        \
+  V(Unknown)                                                                   \
+  V(NegativeInfinity)                                                          \
+  V(PositiveInfinity)                                                          \
+  V(Symbol)                                                                    \
+  V(Constant)
+
+#define KIND_DEFN(name) k##name,
+  enum Kind { FOR_EACH_RANGE_BOUNDARY_KIND(KIND_DEFN) };
+#undef KIND_DEFN
+
+  static const char* KindToCString(Kind kind);
+  static bool ParseKind(const char* str, Kind* out);
 
   enum RangeSize {
     kRangeBoundarySmi,
@@ -63,23 +76,30 @@ class RangeBoundary : public ValueObject {
   // Construct a RangeBoundary from a definition and offset.
   static RangeBoundary FromDefinition(Definition* defn, int64_t offs = 0);
 
+  static bool IsValidOffsetForSymbolicRangeBoundary(int64_t offset) {
+    if ((offset > (kMaxInt64 - compiler::target::kSmiMax)) ||
+        (offset < (kMinInt64 - compiler::target::kSmiMin))) {
+      // Avoid creating symbolic range boundaries which can wrap around.
+      return false;
+    }
+    return true;
+  }
+
   // Construct a RangeBoundary for the constant MinSmi value.
-  static RangeBoundary MinSmi() { return FromConstant(Smi::kMinValue); }
+  static RangeBoundary MinSmi() {
+    return FromConstant(compiler::target::kSmiMin);
+  }
 
   // Construct a RangeBoundary for the constant MaxSmi value.
-  static RangeBoundary MaxSmi() { return FromConstant(Smi::kMaxValue); }
-
-  // Construct a RangeBoundary for the constant kMin value.
-  static RangeBoundary MinConstant() { return FromConstant(kMin); }
-
-  // Construct a RangeBoundary for the constant kMax value.
-  static RangeBoundary MaxConstant() { return FromConstant(kMax); }
+  static RangeBoundary MaxSmi() {
+    return FromConstant(compiler::target::kSmiMax);
+  }
 
   // Construct a RangeBoundary for the constant kMin value.
   static RangeBoundary MinConstant(RangeSize size) {
     switch (size) {
       case kRangeBoundarySmi:
-        return FromConstant(Smi::kMinValue);
+        return FromConstant(compiler::target::kSmiMin);
       case kRangeBoundaryInt32:
         return FromConstant(kMinInt32);
       case kRangeBoundaryInt64:
@@ -92,7 +112,7 @@ class RangeBoundary : public ValueObject {
   static RangeBoundary MaxConstant(RangeSize size) {
     switch (size) {
       case kRangeBoundarySmi:
-        return FromConstant(Smi::kMaxValue);
+        return FromConstant(compiler::target::kSmiMax);
       case kRangeBoundaryInt32:
         return FromConstant(kMaxInt32);
       case kRangeBoundaryInt64:
@@ -136,7 +156,8 @@ class RangeBoundary : public ValueObject {
 
   // Returns true when this is a constant that is outside of Smi range.
   bool OverflowedSmi() const {
-    return (IsConstant() && !Smi::IsValid(ConstantValue())) || IsInfinity();
+    return (IsConstant() && !compiler::target::IsSmi(ConstantValue())) ||
+           IsInfinity();
   }
 
   bool Overflowed(RangeBoundary::RangeSize size) const {
@@ -225,6 +246,7 @@ class RangeBoundary : public ValueObject {
 
   void PrintTo(BufferFormatter* f) const;
   const char* ToCString() const;
+  SExpression* ToSExpression(FlowGraphSerializer* s);
 
   static RangeBoundary Add(const RangeBoundary& a,
                            const RangeBoundary& b,
@@ -242,8 +264,10 @@ class RangeBoundary : public ValueObject {
                            int64_t shift_count) {
     ASSERT(value_boundary.IsConstant());
     ASSERT(shift_count >= 0);
-    int64_t value = static_cast<int64_t>(value_boundary.ConstantValue());
-    int64_t result = value >> shift_count;
+    const int64_t value = static_cast<int64_t>(value_boundary.ConstantValue());
+    const int64_t result = (shift_count <= 63)
+                               ? (value >> shift_count)
+                               : (value >= 0 ? 0 : -1);  // Dart semantics
     return RangeBoundary(result);
   }
 
@@ -277,6 +301,8 @@ class RangeBoundary : public ValueObject {
   int64_t SmiLowerBound() const { return LowerBound(kRangeBoundarySmi); }
 
  private:
+  friend class FlowGraphDeserializer;  // For setting fields directly.
+
   RangeBoundary(Kind kind, int64_t value, int64_t offset)
       : kind_(kind), value_(value), offset_(offset) {}
 
@@ -288,8 +314,14 @@ class RangeBoundary : public ValueObject {
 class Range : public ZoneAllocated {
  public:
   Range() : min_(), max_() {}
+
   Range(RangeBoundary min, RangeBoundary max) : min_(min), max_(max) {
     ASSERT(min_.IsUnknown() == max_.IsUnknown());
+
+    if (min_.IsInfinity() || max_.IsInfinity()) {
+      // Value can wrap around, so fall back to the full 64-bit range.
+      SetInt64Range();
+    }
   }
 
   Range(const Range& other)
@@ -315,6 +347,7 @@ class Range : public ZoneAllocated {
 
   void PrintTo(BufferFormatter* f) const;
   static const char* ToCString(const Range* range);
+  SExpression* ToSExpression(FlowGraphSerializer* s);
 
   bool Equals(const Range* other) {
     ASSERT(min_.IsUnknown() == max_.IsUnknown());
@@ -326,8 +359,24 @@ class Range : public ZoneAllocated {
 
   const RangeBoundary& min() const { return min_; }
   const RangeBoundary& max() const { return max_; }
-  void set_min(const RangeBoundary& value) { min_ = value; }
-  void set_max(const RangeBoundary& value) { max_ = value; }
+
+  void set_min(const RangeBoundary& value) {
+    min_ = value;
+
+    if (min_.IsInfinity()) {
+      // Value can wrap around, so fall back to the full 64-bit range.
+      SetInt64Range();
+    }
+  }
+
+  void set_max(const RangeBoundary& value) {
+    max_ = value;
+
+    if (max_.IsInfinity()) {
+      // Value can wrap around, so fall back to the full 64-bit range.
+      SetInt64Range();
+    }
+  }
 
   static RangeBoundary ConstantMinSmi(const Range* range) {
     return ConstantMin(range, RangeBoundary::kRangeBoundarySmi);
@@ -412,6 +461,16 @@ class Range : public ZoneAllocated {
                   const Range* right_range,
                   RangeBoundary* min,
                   RangeBoundary* max);
+
+  static void TruncDiv(const Range* left_range,
+                       const Range* right_range,
+                       RangeBoundary* min,
+                       RangeBoundary* max);
+
+  static void Mod(const Range* right_range,
+                  RangeBoundary* min,
+                  RangeBoundary* max);
+
   static void Shr(const Range* left_range,
                   const Range* right_range,
                   RangeBoundary* min,
@@ -451,8 +510,15 @@ class Range : public ZoneAllocated {
                        Range* result);
 
  private:
+  friend class FlowGraphDeserializer;  // For setting min_/max_ directly.
+
   RangeBoundary min_;
   RangeBoundary max_;
+
+  void SetInt64Range() {
+    min_ = RangeBoundary::MinConstant(RangeBoundary::kRangeBoundaryInt64);
+    max_ = RangeBoundary::MaxConstant(RangeBoundary::kRangeBoundaryInt64);
+  }
 };
 
 class RangeUtils : public AllStatic {
@@ -496,10 +562,6 @@ class RangeAnalysis : public ValueObject {
   // inference.
   // Returns meaningful results for uses of non-smi/non-int definitions that
   // have smi/int as a reaching type.
-  // For Int typed definitions we use full Int64 range as a safe approximation
-  // even though they might contain Bigint values because we only support
-  // 64-bit operations in the optimized code - which means that Bigint will
-  // cause deoptimization.
   const Range* GetSmiRange(Value* value) const;
   const Range* GetIntRange(Value* value) const;
 
@@ -513,8 +575,8 @@ class RangeAnalysis : public ValueObject {
   enum JoinOperator { NONE, WIDEN, NARROW };
   static char OpPrefix(JoinOperator op);
 
-  // Collect all values that were proven to be smi in smi_values_ array and all
-  // CheckSmi instructions in smi_check_ array.
+  // Collect all integer values (smi or int), all 64-bit binary
+  // and shift operations, and all check bounds.
   void CollectValues();
 
   // Iterate over smi values and constrain them at branch successors.
@@ -535,13 +597,9 @@ class RangeAnalysis : public ValueObject {
                                        Instruction* after);
 
   bool ConstrainValueAfterBranch(Value* use, Definition* defn);
-  void ConstrainValueAfterCheckArrayBound(Value* use, Definition* defn);
-
-  // Replace uses of the definition def that are dominated by instruction dom
-  // with uses of other definition.
-  void RenameDominatedUses(Definition* def,
-                           Instruction* dom,
-                           Definition* other);
+  void ConstrainValueAfterCheckBound(Value* use,
+                                     CheckBoundBase* check,
+                                     Definition* defn);
 
   // Infer ranges for integer (smi or mint) definitions.
   void InferRanges();
@@ -564,8 +622,6 @@ class RangeAnalysis : public ValueObject {
   // Convert mint operations that stay within int32 range into Int32 operations.
   void NarrowMintToInt32();
 
-  void DiscoverSimpleInductionVariables();
-
   // Remove artificial Constraint instructions and replace them with actual
   // unconstrained definitions.
   void RemoveConstraints();
@@ -581,15 +637,15 @@ class RangeAnalysis : public ValueObject {
 
   Range int64_range_;
 
-  // Value that are known to be smi or mint.
+  // All values that are known to be smi or mint.
   GrowableArray<Definition*> values_;
 
+  // All 64-bit binary and shift operations.
   GrowableArray<BinaryInt64OpInstr*> binary_int64_ops_;
+  GrowableArray<ShiftIntegerOpInstr*> shift_int64_ops_;
 
-  GrowableArray<ShiftInt64OpInstr*> shift_int64_ops_;
-
-  // All CheckArrayBound instructions.
-  GrowableArray<CheckArrayBoundInstr*> bounds_checks_;
+  // All CheckArrayBound/GenericCheckBound instructions.
+  GrowableArray<CheckBoundBase*> bounds_checks_;
 
   // All Constraints inserted during InsertConstraints phase. They are treated
   // as smi values.

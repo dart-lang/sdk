@@ -1,0 +1,15 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  abstract class Foo extends dart.core::Object {
+    synthetic constructor •() → main::Foo*
+      ;
+    abstract get foo() → dart.core::int*;
+  }
+  class Bar extends dart.core::Object implements main::Foo {
+    static field dart.core::int* _foo;
+    final field dart.core::int* foo;
+    synthetic constructor •() → main::Bar*
+      ;
+  }
+}

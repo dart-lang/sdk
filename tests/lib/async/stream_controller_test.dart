@@ -27,7 +27,7 @@ void testMultiController() {
       ..error("error too!")
       ..close();
     CaptureEvents actualEvents =
-        new Events.capture(c.stream.asBroadcastStream());
+        new Events.capture(c.stream.asBroadcastStream()) as CaptureEvents;
     expectedEvents.replay(c);
     Expect.listEquals(expectedEvents.events, actualEvents.events);
   }
@@ -55,7 +55,7 @@ void testMultiController() {
       ..add(42)
       ..error("error")
       ..add(37);
-    var actualEvents =
+    dynamic actualEvents =
         new Events.capture(c.stream.asBroadcastStream(), cancelOnError: false);
     expectedEvents.replay(c);
     actualEvents.subscription.cancel();
@@ -208,7 +208,7 @@ void testMultiController() {
 
   // Test subscription changes while firing.
   {
-    var c = new StreamController(sync: true);
+    var c = new StreamController<int>(sync: true);
     var sink = c.sink;
     var stream = c.stream.asBroadcastStream();
     var counter = 0;
@@ -244,7 +244,7 @@ testSingleController() {
       ..error("error!")
       ..error("error too!")
       ..close();
-    CaptureEvents actualEvents = new Events.capture(c.stream);
+    CaptureEvents actualEvents = new Events.capture(c.stream) as CaptureEvents;
     expectedEvents.replay(c);
     Expect.listEquals(expectedEvents.events, actualEvents.events);
   }
@@ -271,7 +271,7 @@ testSingleController() {
       ..add(42)
       ..error("error")
       ..add(37);
-    var actualEvents = new Events.capture(c.stream, cancelOnError: false);
+    dynamic actualEvents = new Events.capture(c.stream, cancelOnError: false);
     expectedEvents.replay(c);
     actualEvents.subscription.cancel();
     c.add("Are you there"); // Not sent to actualEvents.
@@ -469,9 +469,9 @@ testSingleController() {
     var stream = c.stream;
     var counter = 0;
     var subscription = stream.listen((data) {
-      counter += data;
+      counter += data as int;
     });
-    Expect.throws(() => stream.listen(null), (e) => e is StateError);
+    Expect.throwsStateError(() => stream.listen(null));
     sink.add(1);
     Expect.equals(1, counter);
     c.close();
@@ -696,7 +696,7 @@ void testCancelThrow() {
   c.add(2);
   c.add(3);
   Future done = c.close();
-  StreamSubscription sub;
+  late StreamSubscription sub;
   sub = c.stream.listen((v) {
     Expect.equals(1, v);
     Future f = sub.cancel();
@@ -1056,12 +1056,8 @@ void testBroadcastSettingCallbacks() {
   var stream = controller.stream;
   var state = initial;
 
-  Expect.throws(() {
-    controller.onPause = () {};
-  }, (e) => e is UnsupportedError);
-  Expect.throws(() {
-    controller.onResume = () {};
-  }, (e) => e is UnsupportedError);
+  Expect.throwsUnsupportedError(() => controller.onPause = () {});
+  Expect.throwsUnsupportedError(() => controller.onResume = () {});
 
   controller
     ..onListen = () {

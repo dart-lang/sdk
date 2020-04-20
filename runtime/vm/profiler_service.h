@@ -5,11 +5,13 @@
 #ifndef RUNTIME_VM_PROFILER_SERVICE_H_
 #define RUNTIME_VM_PROFILER_SERVICE_H_
 
+#include "platform/text_buffer.h"
 #include "vm/allocation.h"
 #include "vm/code_observers.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/object.h"
+#include "vm/profiler.h"
 #include "vm/tags.h"
 #include "vm/thread_interrupter.h"
 #include "vm/token_position.h"
@@ -31,6 +33,7 @@ class RawFunction;
 class SampleFilter;
 class ProcessedSample;
 class ProcessedSampleBuffer;
+class Profile;
 
 class ProfileFunctionSourcePosition {
  public:
@@ -48,6 +51,81 @@ class ProfileFunctionSourcePosition {
   intptr_t inclusive_ticks_;
 
   DISALLOW_ALLOCATION();
+};
+
+class ProfileCodeInlinedFunctionsCache : public ZoneAllocated {
+ public:
+  ProfileCodeInlinedFunctionsCache() : cache_cursor_(0), last_hit_(0) {
+    for (intptr_t i = 0; i < kCacheSize; i++) {
+      cache_[i].Reset();
+    }
+    cache_hit_ = 0;
+    cache_miss_ = 0;
+  }
+
+  ~ProfileCodeInlinedFunctionsCache() {
+    if (FLAG_trace_profiler) {
+      intptr_t total = cache_hit_ + cache_miss_;
+      OS::PrintErr("LOOKUPS: %" Pd " HITS: %" Pd " MISSES: %" Pd "\n", total,
+                   cache_hit_, cache_miss_);
+    }
+  }
+
+  void Get(uword pc,
+           const Code& code,
+           ProcessedSample* sample,
+           intptr_t frame_index,
+           // Outputs:
+           GrowableArray<const Function*>** inlined_functions,
+           GrowableArray<TokenPosition>** inlined_token_positions,
+           TokenPosition* token_position);
+
+ private:
+  bool FindInCache(uword pc,
+                   intptr_t offset,
+                   GrowableArray<const Function*>** inlined_functions,
+                   GrowableArray<TokenPosition>** inlined_token_positions,
+                   TokenPosition* token_position);
+
+  // Add to cache and fill in outputs.
+  void Add(uword pc,
+           const Code& code,
+           ProcessedSample* sample,
+           intptr_t frame_index,
+           // Outputs:
+           GrowableArray<const Function*>** inlined_functions,
+           GrowableArray<TokenPosition>** inlined_token_positions,
+           TokenPosition* token_position);
+
+  intptr_t NextFreeIndex() {
+    cache_cursor_ = (cache_cursor_ + 1) % kCacheSize;
+    return cache_cursor_;
+  }
+
+  intptr_t OffsetForPC(uword pc,
+                       const Code& code,
+                       ProcessedSample* sample,
+                       intptr_t frame_index);
+  struct CacheEntry {
+    void Reset() {
+      pc = 0;
+      offset = 0;
+      inlined_functions.Clear();
+      inlined_token_positions.Clear();
+    }
+    uword pc;
+    intptr_t offset;
+    GrowableArray<const Function*> inlined_functions;
+    GrowableArray<TokenPosition> inlined_token_positions;
+    TokenPosition token_position;
+  };
+
+  static const intptr_t kCacheSize = 128;
+  intptr_t cache_cursor_;
+  intptr_t last_hit_;
+  CacheEntry cache_[kCacheSize];
+  intptr_t cache_miss_;
+  intptr_t cache_hit_;
 };
 
 // Profile data related to a |Function|.
@@ -74,6 +152,9 @@ class ProfileFunction : public ZoneAllocated {
   const char* Name() const;
 
   const Function* function() const { return &function_; }
+
+  // Returns the resolved_url for the script containing this function.
+  const char* ResolvedScriptUrl() const;
 
   bool is_visible() const;
 
@@ -158,7 +239,7 @@ class ProfileCode : public ZoneAllocated {
               uword start,
               uword end,
               int64_t timestamp,
-              const Code& code);
+              const AbstractCode code);
 
   Kind kind() const { return kind_; }
 
@@ -195,7 +276,7 @@ class ProfileCode : public ZoneAllocated {
   void IncInclusiveTicks() { inclusive_ticks_++; }
 
   bool IsOptimizedDart() const;
-  RawCode* code() const { return code_.raw(); }
+  const AbstractCode code() const { return code_; }
 
   const char* name() const { return name_; }
   void SetName(const char* name);
@@ -205,13 +286,15 @@ class ProfileCode : public ZoneAllocated {
 
   void PrintToJSONArray(JSONArray* codes);
 
+  ProfileFunction* function() const { return function_; }
+
+  intptr_t code_table_index() const { return code_table_index_; }
+
  private:
   void Tick(uword pc, bool exclusive, intptr_t serial);
   void TickAddress(uword pc, bool exclusive);
 
   ProfileFunction* SetFunctionAndName(ProfileFunctionTable* table);
-
-  ProfileFunction* function() const { return function_; }
 
   void PrintNativeCode(JSONObject* profile_code_obj);
   void PrintCollectedCode(JSONObject* profile_code_obj);
@@ -219,7 +302,6 @@ class ProfileCode : public ZoneAllocated {
   void PrintTagCode(JSONObject* profile_code_obj);
 
   void set_code_table_index(intptr_t index) { code_table_index_ = index; }
-  intptr_t code_table_index() const { return code_table_index_; }
 
   const Kind kind_;
   uword start_;
@@ -228,7 +310,7 @@ class ProfileCode : public ZoneAllocated {
   intptr_t inclusive_ticks_;
   intptr_t inclusive_serial_;
 
-  const Code& code_;
+  const AbstractCode code_;
   char* name_;
   int64_t compile_timestamp_;
   ProfileFunction* function_;
@@ -279,122 +361,46 @@ class ProfileCodeTable : public ZoneAllocated {
   ZoneGrowableArray<ProfileCode*> table_;
 };
 
-// Stack traces are organized in a trie. This holds information about one node
-// in the trie. A node in a tree represents a stack frame and a path in the tree
-// represents a stack trace. Each unique stack trace appears in the tree once
-// and each node has a count indicating how many times this has been observed.
-// The index can be used to look up a |ProfileFunction| or |ProfileCode|.
-// A node can have zero or more children. Depending on the kind of trie the
-// children are callers or callees of the current node.
-class ProfileTrieNode : public ZoneAllocated {
- public:
-  explicit ProfileTrieNode(intptr_t index);
-  virtual ~ProfileTrieNode();
-
-  virtual void PrintToJSONArray(JSONArray* array) const = 0;
-
-  // Index into function or code tables.
-  intptr_t table_index() const { return table_index_; }
-
-  intptr_t count() const { return count_; }
-
-  void Tick(ProcessedSample* sample, bool exclusive = false);
-
-  void IncrementAllocation(intptr_t allocation, bool exclusive) {
-    ASSERT(allocation >= 0);
-    if (exclusive) {
-      exclusive_allocations_ += allocation;
-    }
-    inclusive_allocations_ += allocation;
-  }
-
-  intptr_t inclusive_allocations() const { return inclusive_allocations_; }
-  intptr_t exclusive_allocations() const { return exclusive_allocations_; }
-
-  intptr_t NumChildren() const { return children_.length(); }
-
-  ProfileTrieNode* At(intptr_t i) { return children_.At(i); }
-
-  intptr_t IndexOf(ProfileTrieNode* node);
-
-  intptr_t frame_id() const { return frame_id_; }
-  void set_frame_id(intptr_t id) {
-    ASSERT(frame_id_ == -1);
-    frame_id_ = id;
-  }
-
- protected:
-  void SortChildren();
-
-  static int ProfileTrieNodeCompare(ProfileTrieNode* const* a,
-                                    ProfileTrieNode* const* b) {
-    ASSERT(a != NULL);
-    ASSERT(b != NULL);
-    return (*b)->count() - (*a)->count();
-  }
-
-  intptr_t table_index_;
-  intptr_t count_;
-  intptr_t exclusive_allocations_;
-  intptr_t inclusive_allocations_;
-  ZoneGrowableArray<ProfileTrieNode*> children_;
-  intptr_t frame_id_;
-
-  friend class ProfileBuilder;
-};
 
 // The model for a profile. Most of the model is zone allocated, therefore
 // a zone must be created that lives longer than this object.
 class Profile : public ValueObject {
  public:
-  enum TagOrder { kNoTags, kUser, kUserVM, kVM, kVMUser };
-
-  enum TrieKind {
-    kExclusiveCode,
-    kExclusiveFunction,
-    kInclusiveCode,
-    kInclusiveFunction,
-    kNumTrieKinds,
-  };
-
-  static bool IsCodeTrie(TrieKind kind) {
-    return (kind == kExclusiveCode) || (kind == kInclusiveCode);
-  }
-
-  static bool IsFunctionTrie(TrieKind kind) { return !IsCodeTrie(kind); }
-
   explicit Profile(Isolate* isolate);
 
-  // Build a filtered model using |filter| with the specified |tag_order|.
-  void Build(Thread* thread,
-             SampleFilter* filter,
-             SampleBuffer* sample_buffer,
-             TagOrder tag_order,
-             intptr_t extra_tags = 0);
+  // Build a filtered model using |filter|.
+  void Build(Thread* thread, SampleFilter* filter, SampleBuffer* sample_buffer);
 
   // After building:
   int64_t min_time() const { return min_time_; }
   int64_t max_time() const { return max_time_; }
   int64_t GetTimeSpan() const { return max_time() - min_time(); }
   intptr_t sample_count() const { return sample_count_; }
+  ProcessedSample* SampleAt(intptr_t index);
 
   intptr_t NumFunctions() const;
 
   ProfileFunction* GetFunction(intptr_t index);
   ProfileCode* GetCode(intptr_t index);
-  ProfileTrieNode* GetTrieRoot(TrieKind trie_kind);
+  ProfileCode* GetCodeFromPC(uword pc, int64_t timestamp);
 
-  void PrintProfileJSON(JSONStream* stream);
-  void PrintTimelineJSON(JSONStream* stream);
+  void PrintProfileJSON(JSONStream* stream, bool include_code_samples);
 
   ProfileFunction* FindFunction(const Function& function);
 
  private:
   void PrintHeaderJSON(JSONObject* obj);
-  void PrintTimelineFrameJSON(JSONObject* frames,
-                              ProfileTrieNode* current,
-                              ProfileTrieNode* parent,
-                              intptr_t* next_id);
+  void ProcessSampleFrameJSON(JSONArray* stack,
+                              ProfileCodeInlinedFunctionsCache* cache,
+                              ProcessedSample* sample,
+                              intptr_t frame_index);
+  void ProcessInlinedFunctionFrameJSON(JSONArray* stack,
+                                       const Function* inlined_function);
+  void PrintFunctionFrameIndexJSON(JSONArray* stack, ProfileFunction* function);
+  void PrintCodeFrameIndexJSON(JSONArray* stack,
+                               ProcessedSample* sample,
+                               intptr_t frame_index);
+  void PrintSamplesJSON(JSONObject* obj, bool code_samples);
 
   Isolate* isolate_;
   Zone* zone_;
@@ -406,8 +412,6 @@ class Profile : public ValueObject {
   intptr_t dead_code_index_offset_;
   intptr_t tag_code_index_offset_;
 
-  ProfileTrieNode* roots_[kNumTrieKinds];
-
   int64_t min_time_;
   int64_t max_time_;
 
@@ -416,84 +420,31 @@ class Profile : public ValueObject {
   friend class ProfileBuilder;
 };
 
-class ProfileTrieWalker : public ValueObject {
- public:
-  explicit ProfileTrieWalker(Profile* profile)
-      : profile_(profile), parent_(NULL), current_(NULL), code_trie_(false) {
-    ASSERT(profile_ != NULL);
-  }
-
-  void Reset(Profile::TrieKind trie_kind);
-
-  const char* CurrentName();
-  // Return the current node's peer's inclusive tick count.
-  intptr_t CurrentInclusiveTicks();
-  // Return the current node's peer's exclusive tick count.
-  intptr_t CurrentExclusiveTicks();
-  // Return the current node's inclusive allocation count.
-  intptr_t CurrentInclusiveAllocations();
-  // Return the current node's exclusive allocation count.
-  intptr_t CurrentExclusiveAllocations();
-  // Return the current node's tick count.
-  intptr_t CurrentNodeTickCount();
-  // Return the number siblings (including yourself).
-  intptr_t SiblingCount();
-
-  // If the following conditions are met returns the current token:
-  // 1) This is a function trie.
-  // 2) There is only one token position for a given function.
-  // Will return NULL otherwise.
-  const char* CurrentToken();
-
-  bool Down();
-  bool NextSibling();
-
- private:
-  Profile* profile_;
-  ProfileTrieNode* parent_;
-  ProfileTrieNode* current_;
-  bool code_trie_;
-};
-
 class ProfilerService : public AllStatic {
  public:
-  enum {
-    kNoExtraTags = 0,
-    kCodeTransitionTagsBit = (1 << 0),
-  };
-
   static void PrintJSON(JSONStream* stream,
-                        Profile::TagOrder tag_order,
-                        intptr_t extra_tags,
                         int64_t time_origin_micros,
-                        int64_t time_extent_micros);
+                        int64_t time_extent_micros,
+                        bool include_code_samples);
 
   static void PrintAllocationJSON(JSONStream* stream,
-                                  Profile::TagOrder tag_order,
                                   const Class& cls,
                                   int64_t time_origin_micros,
                                   int64_t time_extent_micros);
 
   static void PrintNativeAllocationJSON(JSONStream* stream,
-                                        Profile::TagOrder tag_order,
                                         int64_t time_origin_micros,
-                                        int64_t time_extent_micros);
-
-  static void PrintTimelineJSON(JSONStream* stream,
-                                Profile::TagOrder tag_order,
-                                int64_t time_origin_micros,
-                                int64_t time_extent_micros);
+                                        int64_t time_extent_micros,
+                                        bool include_code_samples);
 
   static void ClearSamples();
 
  private:
   static void PrintJSONImpl(Thread* thread,
                             JSONStream* stream,
-                            Profile::TagOrder tag_order,
-                            intptr_t extra_tags,
                             SampleFilter* filter,
                             SampleBuffer* sample_buffer,
-                            bool as_timline);
+                            bool include_code_samples);
 };
 
 }  // namespace dart

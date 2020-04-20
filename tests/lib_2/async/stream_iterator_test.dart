@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 main() {
   test("stream iterator basic", () async {
@@ -23,7 +23,7 @@ main() {
   test("stream iterator prefilled", () async {
     Stream stream = createStream();
     StreamIterator iterator = new StreamIterator(stream);
-    await new Future.delayed(Duration.ZERO);
+    await new Future.delayed(Duration.zero);
     expect(iterator.current, isNull);
     expect(await iterator.moveNext(), isTrue);
     expect(iterator.current, 42);
@@ -51,7 +51,7 @@ main() {
     Stream stream = createStream();
     StreamIterator iterator = new StreamIterator(stream);
     var hasNext = iterator.moveNext();
-    expect(iterator.moveNext, throwsA(isStateError));
+    expect(iterator.moveNext, throwsStateError);
     expect(await hasNext, isTrue);
     expect(iterator.current, 42);
     iterator.cancel();

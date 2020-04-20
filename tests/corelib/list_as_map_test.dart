@@ -47,10 +47,9 @@ void testConstAsMap(List list) {
 
   testListMapCorrespondence(list, map);
 
-  Expect.throws(() => map[0] = 499, (e) => e is UnsupportedError);
-  Expect.throws(
-      () => map.putIfAbsent(0, () => 499), (e) => e is UnsupportedError);
-  Expect.throws(() => map.clear(), (e) => e is UnsupportedError);
+  Expect.throwsUnsupportedError(() => map[0] = 499);
+  Expect.throwsUnsupportedError(() => map.putIfAbsent(0, () => 499));
+  Expect.throwsUnsupportedError(() => map.clear());
 }
 
 void testFixedAsMap(List list) {
@@ -86,11 +85,11 @@ void testAsMap(List list) {
 main() {
   testConstAsMap(const [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   testAsMap([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-  List list = new List(10);
+  List list = new List.filled(10, null);
   for (int i = 0; i < 10; i++) list[i] = i + 1;
   testFixedAsMap(list);
 
   testConstAsMap(const []);
   testAsMap([]);
-  testFixedAsMap(new List(0));
+  testFixedAsMap(new List.empty());
 }

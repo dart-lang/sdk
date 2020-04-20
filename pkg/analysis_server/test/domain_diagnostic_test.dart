@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DiagnosticDomainTest);
   });
@@ -21,27 +21,26 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
   void setUp() {
     generateSummaryFiles = true;
     super.setUp();
-    handler = new DiagnosticDomainHandler(server);
+    handler = DiagnosticDomainHandler(server);
     server.handlers = [handler];
   }
 
-  test_getDiagnostics() async {
-    String file = '/project/bin/test.dart';
-    resourceProvider.newFile('/project/pubspec.yaml', 'name: project');
-    resourceProvider.newFile(file, 'main() {}');
+  Future<void> test_getDiagnostics() async {
+    newFile('/project/pubspec.yaml', content: 'name: project');
+    newFile('/project/bin/test.dart', content: 'main() {}');
 
-    server.setAnalysisRoots('0', ['/project/'], [], {});
+    server.setAnalysisRoots('0', [convertPath('/project')], [], {});
 
     await server.onAnalysisComplete;
 
-    var request = new DiagnosticGetDiagnosticsParams().toRequest('0');
+    var request = DiagnosticGetDiagnosticsParams().toRequest('0');
     var response = handler.handleRequest(request);
-    var result = new DiagnosticGetDiagnosticsResult.fromResponse(response);
+    var result = DiagnosticGetDiagnosticsResult.fromResponse(response);
 
     expect(result.contexts, hasLength(1));
 
-    ContextData context = result.contexts[0];
-    expect(context.name, '/project');
+    var context = result.contexts[0];
+    expect(context.name, convertPath('/project'));
     expect(context.explicitFileCount, 1); /* test.dart */
 
     expect(context.implicitFileCount, 4);
@@ -49,10 +48,10 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
     expect(context.workItemQueueLength, isNotNull);
   }
 
-  test_getDiagnostics_noRoot() async {
-    var request = new DiagnosticGetDiagnosticsParams().toRequest('0');
+  Future<void> test_getDiagnostics_noRoot() async {
+    var request = DiagnosticGetDiagnosticsParams().toRequest('0');
     var response = handler.handleRequest(request);
-    var result = new DiagnosticGetDiagnosticsResult.fromResponse(response);
+    var result = DiagnosticGetDiagnosticsResult.fromResponse(response);
     expect(result.contexts, isEmpty);
   }
 }

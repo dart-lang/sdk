@@ -10,7 +10,7 @@ import 'mirrors_visitor.dart';
 class ReadError {
   final String tag;
   final exception;
-  final StackTrace stackTrace;
+  final StackTrace? stackTrace;
 
   ReadError(this.tag, this.exception, this.stackTrace);
 }
@@ -63,12 +63,12 @@ class MirrorsReader extends MirrorsVisitor {
     return !visited.add(mirror);
   }
 
-  reportError(var receiver, String tag, var exception, StackTrace stackTrace) {
+  reportError(var receiver, String tag, var exception, StackTrace? stackTrace) {
     String errorTag = '${receiver.runtimeType}.$tag';
     errors.add(new ReadError(errorTag, exception, stackTrace));
   }
 
-  visitUnsupported(var receiver, String tag, UnsupportedError exception,
+  visitUnsupported(var receiver, String tag, UnsupportedError? exception,
       StackTrace stackTrace) {
     if (verbose) print('visitUnsupported:$receiver.$tag:$exception');
     if (!expectUnsupported(receiver, tag, exception) &&
@@ -79,16 +79,17 @@ class MirrorsReader extends MirrorsVisitor {
 
   /// Override to specify that access is expected to be unsupported.
   bool expectUnsupported(
-          var receiver, String tag, UnsupportedError exception) =>
+          var receiver, String tag, UnsupportedError? exception) =>
       false;
 
   /// Override to allow unsupported access.
-  bool allowUnsupported(var receiver, String tag, UnsupportedError exception) =>
+  bool allowUnsupported(
+          var receiver, String tag, UnsupportedError? exception) =>
       false;
 
   /// Evaluates the function [f]. Subclasses can override this to handle
   /// specific exceptions.
-  evaluate(f()) => f();
+  dynamic evaluate(dynamic f) => f();
 
   visit(var receiver, String tag, var value) {
     if (value is Function) {

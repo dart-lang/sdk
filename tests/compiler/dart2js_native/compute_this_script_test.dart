@@ -2,23 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test of IsolateNatives.computeThisScript().
+// @dart = 2.7
 
-import 'dart:_isolate_helper';
-// The isolate helper library is not correctly set up if the dart:isolate
-// library hasn't been loaded.
-import 'dart:isolate';
+// Test of _computeThisScript().
+
+import 'dart:_js_helper' show thisScript;
 
 main() {
-  // Need to use the isolate-library so dart2js correctly initializes the
-  // library.
-  Capability cab = new Capability();
-  String script = IsolateNatives.computeThisScript();
-
   // This is somewhat brittle and relies on an implementation detail
   // of our test runner, but I can think of no other way to test this.
   // -- ahe
-  if (!script.endsWith('/out.js')) {
-    throw 'Unexpected script: "$script"';
+  if (!thisScript.endsWith('/compute_this_script_test.js')) {
+    throw 'Unexpected script: "$thisScript"';
   }
 }

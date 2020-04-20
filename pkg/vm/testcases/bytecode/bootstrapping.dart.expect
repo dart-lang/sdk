@@ -1,0 +1,778 @@
+main = #lib::main;
+ [@vm.bytecode=
+BytecodeMetadata {
+Bytecode (version: stable)
+Main library: #lib
+Library '#lib'
+    name '#lib'
+    script '#lib'
+
+Class '', script = '#lib'
+
+Field '_stdinFD', type = dart:core::int, reflectable, static, has-initializer
+    value = const 0
+
+Field '_stdoutFD', type = dart:core::int, reflectable, static, has-initializer
+    value = const 1
+
+Field '_stderrFD', type = dart:core::int, reflectable, static, has-initializer
+    value = const 2
+
+Field '_rawScript', type = dart:core::String, reflectable, static
+    value = null
+
+Field '_stdin', type = #lib::Stdin, reflectable, static
+    value = null
+
+Function '_printString', static, reflectable, debuggable, native 'Builtin_PrintString'
+    parameters [dart:core::String 's'] (required: 1)
+    return-type void
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  NativeCall           CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = NativeEntry Builtin_PrintString
+}
+
+
+Function '_print', static, reflectable, debuggable
+    parameters [dynamic 'arg'] (required: 1)
+    return-type void
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  InterfaceCall        CP#0, 1
+  DirectCall           CP#2, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InterfaceCall 'dart:core::Object::toString', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = DirectCall '#lib::_printString', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+}
+
+
+Function '_getPrintClosure', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef const tear-off #lib::_print
+}
+
+
+Function '_setScheduleImmediateClosure', static, reflectable, debuggable
+    parameters [FunctionType (FunctionType () -> void) -> void 'closure'] (required: 1)
+    return-type void
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  Push                 FP[-5]
+  StoreStaticTOS       CP#0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = StaticField #lib::_ScheduleImmediate::_closure (field)
+}
+
+
+Function '_setStdioFDs', static, reflectable, debuggable
+    parameters [dart:core::int 'stdin', dart:core::int 'stdout', dart:core::int 'stderr'] (required: 3)
+    return-type void
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  Push                 FP[-7]
+  StoreStaticTOS       CP#0
+  Push                 FP[-6]
+  StoreStaticTOS       CP#1
+  Push                 FP[-5]
+  StoreStaticTOS       CP#2
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = StaticField #lib::_stdinFD (field)
+  [1] = StaticField #lib::_stdoutFD (field)
+  [2] = StaticField #lib::_stderrFD (field)
+}
+
+
+Function '_scriptUri', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::Uri
+
+Bytecode {
+  Entry                2
+  CheckStack           0
+  LoadStatic           CP#0
+  PushConstant         CP#1
+  InterfaceCall        CP#2, 2
+  AssertBoolean        0
+  JumpIfTrue           L1
+  LoadStatic           CP#0
+  PushConstant         CP#4
+  InterfaceCall        CP#2, 2
+  AssertBoolean        0
+  JumpIfTrue           L1
+  LoadStatic           CP#0
+  PushConstant         CP#5
+  InterfaceCall        CP#2, 2
+  AssertBoolean        0
+  JumpIfFalse          L2
+L1:
+  LoadStatic           CP#0
+  DirectCall           CP#6, 1
+  ReturnTOS
+L2:
+  DirectCall           CP#8, 0
+  PushNull
+  LoadStatic           CP#0
+  DirectCall           CP#10, 2
+  InterfaceCall        CP#12, 2
+  ReturnTOS
+}
+ConstantPool {
+  [0] = StaticField #lib::_rawScript (field)
+  [1] = ObjectRef 'http:'
+  [2] = InterfaceCall 'dart:core::String::startsWith', ArgDesc num-args 2, num-type-args 0, names []
+  [3] = Reserved
+  [4] = ObjectRef 'https:'
+  [5] = ObjectRef 'file:'
+  [6] = DirectCall 'dart:core::Uri::parse', ArgDesc num-args 1, num-type-args 0, names []
+  [7] = Reserved
+  [8] = DirectCall 'dart:core::Uri::get:base', ArgDesc num-args 0, num-type-args 0, names []
+  [9] = Reserved
+  [10] = DirectCall 'dart:core::_Uri::file (constructor)', ArgDesc num-args 2, num-type-args 0, names []
+  [11] = Reserved
+  [12] = InterfaceCall 'dart:core::Uri::resolveUri', ArgDesc num-args 2, num-type-args 0, names []
+  [13] = Reserved
+}
+
+
+Function '_setupHooks', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  PushConstant         CP#0
+  DirectCall           CP#1, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef const tear-off #lib::_scriptUri
+  [1] = DirectCall '#lib::VMLibraryHooks::set:platformScript', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
+}
+
+
+Function 'get:stdin', getter, static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type #lib::Stdin
+
+Bytecode {
+  Entry                2
+  CheckStack           0
+  LoadStatic           CP#0
+  JumpIfNotNull        L1
+  LoadStatic           CP#1
+  DirectCall           CP#2, 1
+  StoreLocal           r1
+  Push                 r1
+  StoreStaticTOS       CP#0
+  PopLocal             r0
+  Jump                 L2
+L1:
+  PushNull
+  PopLocal             r0
+L2:
+  Push                 r0
+  Drop1
+  LoadStatic           CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = StaticField #lib::_stdin (field)
+  [1] = StaticField #lib::_stdinFD (field)
+  [2] = DirectCall '#lib::_StdIOUtils::_getStdioInputStream', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+}
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+}
+
+Class '_ScheduleImmediate', script = '#lib'
+    extends dart:core::Object
+
+Field '_closure', type = FunctionType (FunctionType () -> void) -> void, reflectable, static, has-initializer
+    value = null
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type #lib::_ScheduleImmediate
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+Class '_NamespaceImpl', script = '#lib'
+    extends dart:core::Object
+    implements [#lib::_Namespace]
+
+Field '_cachedNamespace', type = #lib::_NamespaceImpl, reflectable, static, has-initializer
+    value = null
+
+Function '_', constructor, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type #lib::_NamespaceImpl
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function '_create', static, reflectable, debuggable, native 'Namespace_Create'
+    parameters [#lib::_NamespaceImpl 'namespace', dynamic 'n'] (required: 2)
+    return-type #lib::_NamespaceImpl
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-6]
+  Push                 FP[-5]
+  NativeCall           CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = NativeEntry Namespace_Create
+}
+
+
+Function '_getPointer', static, reflectable, debuggable, native 'Namespace_GetPointer'
+    parameters [#lib::_NamespaceImpl 'namespace'] (required: 1)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  NativeCall           CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = NativeEntry Namespace_GetPointer
+}
+
+
+Function '_getDefault', static, reflectable, debuggable, native 'Namespace_GetDefault'
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  NativeCall           CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = NativeEntry Namespace_GetDefault
+}
+
+
+Function '_setupNamespace', static, reflectable, debuggable
+    parameters [dynamic 'namespace'] (required: 1)
+    return-type void
+
+Bytecode {
+  Entry                2
+  CheckStack           0
+  Allocate             CP#0
+  StoreLocal           r1
+  Push                 r1
+  DirectCall           CP#1, 1
+  Drop1
+  Push                 FP[-5]
+  DirectCall           CP#3, 2
+  StoreStaticTOS       CP#5
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Class #lib::_NamespaceImpl
+  [1] = DirectCall '#lib::_NamespaceImpl::_ (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
+  [3] = DirectCall '#lib::_NamespaceImpl::_create', ArgDesc num-args 2, num-type-args 0, names []
+  [4] = Reserved
+  [5] = StaticField #lib::_NamespaceImpl::_cachedNamespace (field)
+}
+
+
+Function 'get:_namespace', getter, static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type #lib::_NamespaceImpl
+
+Bytecode {
+  Entry                2
+  CheckStack           0
+  LoadStatic           CP#0
+  JumpIfNotNull        L1
+  Allocate             CP#1
+  StoreLocal           r1
+  Push                 r1
+  DirectCall           CP#2, 1
+  Drop1
+  DirectCall           CP#4, 0
+  DirectCall           CP#6, 2
+  StoreStaticTOS       CP#0
+L1:
+  LoadStatic           CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = StaticField #lib::_NamespaceImpl::_cachedNamespace (field)
+  [1] = Class #lib::_NamespaceImpl
+  [2] = DirectCall '#lib::_NamespaceImpl::_ (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+  [4] = DirectCall '#lib::_NamespaceImpl::_getDefault', ArgDesc num-args 0, num-type-args 0, names []
+  [5] = Reserved
+  [6] = DirectCall '#lib::_NamespaceImpl::_create', ArgDesc num-args 2, num-type-args 0, names []
+  [7] = Reserved
+}
+
+
+Function 'get:_namespacePointer', getter, static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  DirectCall           CP#0, 0
+  DirectCall           CP#2, 1
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall '#lib::_NamespaceImpl::get:_namespace', ArgDesc num-args 0, num-type-args 0, names []
+  [1] = Reserved
+  [2] = DirectCall '#lib::_NamespaceImpl::_getPointer', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+}
+
+Class '_Namespace', script = '#lib'
+    extends dart:core::Object
+
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type #lib::_Namespace
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function '_setupNamespace', static, reflectable, debuggable
+    parameters [dynamic 'namespace'] (required: 1)
+    return-type void
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall '#lib::_NamespaceImpl::_setupNamespace', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'get:_namespace', getter, static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type #lib::_Namespace
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  DirectCall           CP#0, 0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall '#lib::_NamespaceImpl::get:_namespace', ArgDesc num-args 0, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'get:_namespacePointer', getter, static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  DirectCall           CP#0, 0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall '#lib::_NamespaceImpl::get:_namespacePointer', ArgDesc num-args 0, num-type-args 0, names []
+  [1] = Reserved
+}
+
+Class 'VMLibraryHooks', script = '#lib'
+    extends dart:core::Object
+
+Field 'timerFactory', type = dynamic, reflectable, static, has-initializer
+    value = null
+
+Field 'eventHandlerSendData', type = dynamic, reflectable, static, has-initializer
+    value = null
+
+Field 'timerMillisecondClock', type = dynamic, reflectable, static, has-initializer
+    value = null
+
+Field 'resourceReadAsBytes', type = dynamic, reflectable, static, has-initializer
+    value = null
+
+Field 'packageRootString', type = dynamic, reflectable, static, has-initializer
+    value = null
+
+Field 'packageConfigString', type = dynamic, reflectable, static, has-initializer
+    value = null
+
+Field 'packageRootUriFuture', type = dynamic, reflectable, static, has-initializer
+    value = null
+
+Field 'packageConfigUriFuture', type = dynamic, reflectable, static, has-initializer
+    value = null
+
+Field 'resolvePackageUriFuture', type = dynamic, reflectable, static, has-initializer
+    value = null
+
+Field '_computeScriptUri', type = dynamic, reflectable, static, has-initializer
+    value = null
+
+Field '_cachedScript', type = dynamic, reflectable, static, has-initializer
+    value = null
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type #lib::VMLibraryHooks
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'set:platformScript', setter, static, reflectable, debuggable
+    parameters [dynamic 'f'] (required: 1)
+    return-type void
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  Push                 FP[-5]
+  StoreStaticTOS       CP#0
+  PushNull
+  StoreStaticTOS       CP#1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = StaticField #lib::VMLibraryHooks::_computeScriptUri (field)
+  [1] = StaticField #lib::VMLibraryHooks::_cachedScript (field)
+}
+
+
+Function 'get:platformScript', getter, static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  LoadStatic           CP#0
+  JumpIfNotNull        L1
+  LoadStatic           CP#1
+  JumpIfNull           L1
+  LoadStatic           CP#1
+  DynamicCall          CP#2, 1
+  StoreStaticTOS       CP#0
+L1:
+  LoadStatic           CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = StaticField #lib::VMLibraryHooks::_cachedScript (field)
+  [1] = StaticField #lib::VMLibraryHooks::_computeScriptUri (field)
+  [2] = DynamicCall 'call', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+}
+
+Class 'Stdin', script = '#lib'
+    extends dart:core::Object
+
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type #lib::Stdin
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+Class '_StdIOUtils', script = '#lib'
+    extends dart:core::Object
+
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type #lib::_StdIOUtils
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function '_getStdioInputStream', static, reflectable, debuggable
+    parameters [dart:core::int 'fd'] (required: 1)
+    return-type #lib::Stdin
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+}
+
+
+}
+]library #lib from "#lib" as #lib {
+
+  typedef _ScheduleImmediateClosure = (() →* void) →* void;
+  class _ScheduleImmediate extends dart.core::Object {
+    static field (() →* void) →* void _closure = null;
+    synthetic constructor •() → #lib::_ScheduleImmediate*
+      : super dart.core::Object::•()
+      ;
+  }
+  class _NamespaceImpl extends dart.core::Object implements #lib::_Namespace {
+    static field #lib::_NamespaceImpl* _cachedNamespace = null;
+    constructor _() → #lib::_NamespaceImpl*
+      : super dart.core::Object::•()
+      ;
+    @#C2
+    external static method _create(#lib::_NamespaceImpl* namespace, dynamic n) → #lib::_NamespaceImpl*;
+    @#C4
+    external static method _getPointer(#lib::_NamespaceImpl* namespace) → dart.core::int*;
+    @#C6
+    external static method _getDefault() → dart.core::int*;
+    static method _setupNamespace(dynamic namespace) → void {
+      #lib::_NamespaceImpl::_cachedNamespace = #lib::_NamespaceImpl::_create(new #lib::_NamespaceImpl::_(), namespace);
+    }
+    static get _namespace() → #lib::_NamespaceImpl* {
+      if(#lib::_NamespaceImpl::_cachedNamespace.{dart.core::Object::==}(null)) {
+        #lib::_NamespaceImpl::_cachedNamespace = #lib::_NamespaceImpl::_create(new #lib::_NamespaceImpl::_(), #lib::_NamespaceImpl::_getDefault());
+      }
+      return #lib::_NamespaceImpl::_cachedNamespace;
+    }
+    static get _namespacePointer() → dart.core::int*
+      return #lib::_NamespaceImpl::_getPointer(#lib::_NamespaceImpl::_namespace);
+  }
+  class _Namespace extends dart.core::Object {
+    synthetic constructor •() → #lib::_Namespace*
+      : super dart.core::Object::•()
+      ;
+    static method _setupNamespace(dynamic namespace) → void {
+      #lib::_NamespaceImpl::_setupNamespace(namespace);
+    }
+    static get _namespace() → #lib::_Namespace*
+      return #lib::_NamespaceImpl::_namespace;
+    static get _namespacePointer() → dart.core::int*
+      return #lib::_NamespaceImpl::_namespacePointer;
+  }
+  class VMLibraryHooks extends dart.core::Object {
+    static field dynamic timerFactory = null;
+    static field dynamic eventHandlerSendData = null;
+    static field dynamic timerMillisecondClock = null;
+    static field dynamic resourceReadAsBytes = null;
+    static field dynamic packageRootString = null;
+    static field dynamic packageConfigString = null;
+    static field dynamic packageRootUriFuture = null;
+    static field dynamic packageConfigUriFuture = null;
+    static field dynamic resolvePackageUriFuture = null;
+    static field dynamic _computeScriptUri = null;
+    static field dynamic _cachedScript = null;
+    synthetic constructor •() → #lib::VMLibraryHooks*
+      : super dart.core::Object::•()
+      ;
+    static set platformScript(dynamic f) → void {
+      #lib::VMLibraryHooks::_computeScriptUri = f;
+      #lib::VMLibraryHooks::_cachedScript = null;
+    }
+    static get platformScript() → dynamic {
+      if(#lib::VMLibraryHooks::_cachedScript.{dart.core::Object::==}(null) && !#lib::VMLibraryHooks::_computeScriptUri.{dart.core::Object::==}(null)) {
+        #lib::VMLibraryHooks::_cachedScript = [@vm.call-site-attributes.metadata=receiverType:DynamicType(dynamic)] #lib::VMLibraryHooks::_computeScriptUri.call();
+      }
+      return #lib::VMLibraryHooks::_cachedScript;
+    }
+  }
+  class Stdin extends dart.core::Object {
+    synthetic constructor •() → #lib::Stdin*
+      : super dart.core::Object::•()
+      ;
+  }
+  class _StdIOUtils extends dart.core::Object {
+    synthetic constructor •() → #lib::_StdIOUtils*
+      : super dart.core::Object::•()
+      ;
+    static method _getStdioInputStream(dart.core::int* fd) → #lib::Stdin*
+      return null;
+  }
+  static field dart.core::int* _stdinFD = 0;
+  static field dart.core::int* _stdoutFD = 1;
+  static field dart.core::int* _stderrFD = 2;
+  static field dart.core::String* _rawScript;
+  static field #lib::Stdin* _stdin;
+  @#C8
+  external static method _printString(dart.core::String* s) → void;
+  static method _print(dynamic arg) → void {
+    #lib::_printString(arg.{dart.core::Object::toString}());
+  }
+  static method _getPrintClosure() → dynamic
+    return #C9;
+  static method _setScheduleImmediateClosure((() →* void) →* void closure) → void {
+    #lib::_ScheduleImmediate::_closure = closure;
+  }
+  static method _setStdioFDs(dart.core::int* stdin, dart.core::int* stdout, dart.core::int* stderr) → void {
+    #lib::_stdinFD = stdin;
+    #lib::_stdoutFD = stdout;
+    #lib::_stderrFD = stderr;
+  }
+  static method _scriptUri() → dart.core::Uri* {
+    if(#lib::_rawScript.{dart.core::String::startsWith}("http:") || #lib::_rawScript.{dart.core::String::startsWith}("https:") || #lib::_rawScript.{dart.core::String::startsWith}("file:")) {
+      return dart.core::Uri::parse(#lib::_rawScript);
+    }
+    else {
+      return dart.core::Uri::base.{dart.core::Uri::resolveUri}(dart.core::_Uri::file(#lib::_rawScript));
+    }
+  }
+  static method _setupHooks() → dynamic {
+    #lib::VMLibraryHooks::platformScript = #C10;
+  }
+  static get stdin() → #lib::Stdin* {
+    #lib::_stdin.{dart.core::Object::==}(null) ?{#lib::Stdin*} #lib::_stdin = #lib::_StdIOUtils::_getStdioInputStream(#lib::_stdinFD) : null;
+    return #lib::_stdin;
+  }
+  static method main() → dynamic {}
+}
+constants  {
+  #C1 = "Namespace_Create"
+  #C2 = dart._internal::ExternalName {name:#C1}
+  #C3 = "Namespace_GetPointer"
+  #C4 = dart._internal::ExternalName {name:#C3}
+  #C5 = "Namespace_GetDefault"
+  #C6 = dart._internal::ExternalName {name:#C5}
+  #C7 = "Builtin_PrintString"
+  #C8 = dart._internal::ExternalName {name:#C7}
+  #C9 = tearoff #lib::_print
+  #C10 = tearoff #lib::_scriptUri
+}

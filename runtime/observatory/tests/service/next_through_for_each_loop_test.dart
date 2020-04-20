@@ -20,10 +20,6 @@ List<String> expected = [
   // Initialize data (on '[')
   "$file:${LINE+0}:20",
 
-  // Twice on data (probably for 'create iterator' and 'moveNext' on iterator)
-  // (on 'data')
-  "$file:${LINE+1}:25",
-
   // An iteration of the loop is "data", "{", then inside loop
   // (on call to 'print')
   "$file:${LINE+1}:25",
@@ -50,7 +46,7 @@ List<String> expected = [
   "$file:${LINE+4}:1"
 ];
 
-var tests = [
+var tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtLine(LINE),
   runStepThroughProgramRecordingStops(stops),

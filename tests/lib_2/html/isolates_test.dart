@@ -1,7 +1,6 @@
 library IsolatesTest;
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:async_helper/async_minitest.dart';
 import 'dart:async';
 import 'dart:html';
 import 'dart:convert';
@@ -25,7 +24,7 @@ void isolateEntry(isolate.SendPort initialReplyTo) {
   }
 
   // Check that convert library was loaded to isolate.
-  JSON.encode([1, 2, 3]);
+  json.encode([1, 2, 3]);
 
   port.listen((message) {
     var data = message[0];
@@ -41,7 +40,6 @@ Future sendReceive(isolate.SendPort port, msg) {
 }
 
 main() {
-  useHtmlConfiguration();
   test('IsolateSpawn', () {
     var port = new isolate.ReceivePort();
     isolate.Isolate.spawn(isolateEntry, port.sendPort);

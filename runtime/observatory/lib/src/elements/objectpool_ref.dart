@@ -9,7 +9,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class ObjectPoolRefElement extends HtmlElement implements Renderable {
+class ObjectPoolRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<ObjectPoolRefElement>('object-pool-ref');
 
   RenderingScheduler<ObjectPoolRefElement> _r;
@@ -26,14 +26,14 @@ class ObjectPoolRefElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(pool != null);
-    ObjectPoolRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    ObjectPoolRefElement e = new ObjectPoolRefElement.created();
+    e._r = new RenderingScheduler<ObjectPoolRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._pool = pool;
     return e;
   }
 
-  ObjectPoolRefElement.created() : super.created();
+  ObjectPoolRefElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -45,13 +45,13 @@ class ObjectPoolRefElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new AnchorElement(href: Uris.inspect(_isolate, object: _pool))
-        ..children = [
+        ..children = <Element>[
           new SpanElement()
             ..classes = ['emphasize']
             ..text = 'ObjectPool',

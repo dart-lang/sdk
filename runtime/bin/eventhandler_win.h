@@ -172,6 +172,7 @@ class Handle : public ReferenceCounted<Handle>, public DescriptorInfoBase {
 
   // Socket interface exposing normal socket operations.
   intptr_t Available();
+  bool DataReady();
   intptr_t Read(void* buffer, intptr_t num_bytes);
   intptr_t RecvFrom(void* buffer,
                     intptr_t num_bytes,
@@ -262,7 +263,7 @@ class Handle : public ReferenceCounted<Handle>, public DescriptorInfoBase {
 
   virtual void HandleIssueError();
 
-  Monitor* monitor_;
+  Monitor monitor_;
   Type type_;
   HANDLE handle_;
   HANDLE completion_port_;
@@ -558,7 +559,7 @@ class EventHandlerImplementation {
   HANDLE completion_port() { return completion_port_; }
 
  private:
-  Monitor* startup_monitor_;
+  Monitor startup_monitor_;
   ThreadId handler_thread_id_;
   HANDLE handler_thread_handle_;
 

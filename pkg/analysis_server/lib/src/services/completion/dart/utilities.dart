@@ -1,12 +1,10 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * A collection of utility methods used by completion contributors.
- */
+/// A collection of utility methods used by completion contributors.
 import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestion, CompletionSuggestionKind, Location;
+    show CompletionSuggestion, Location;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
@@ -18,51 +16,89 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
     show Element, ElementKind;
 
-/**
- * The name of the type `dynamic`;
- */
+/// The name of the type `dynamic`;
 const DYNAMIC = 'dynamic';
 
-/**
- * A marker used in place of `null` when a function has no return type.
- */
+/// Sort by relevance first, highest to lowest, and then by the completion
+/// alphabetically.
+Comparator<CompletionSuggestion> completionComparator = (a, b) {
+  if (a.relevance == b.relevance) {
+    return a.completion.compareTo(b.completion);
+  }
+  return b.relevance.compareTo(a.relevance);
+};
+
+/// A marker used in place of `null` when a function has no return type.
 final TypeName NO_RETURN_TYPE = astFactory.typeName(
-    astFactory.simpleIdentifier(new StringToken(TokenType.IDENTIFIER, '', 0)),
+    astFactory.simpleIdentifier(StringToken(TokenType.IDENTIFIER, '', 0)),
     null);
 
-/**
- * Add default argument list text and ranges based on the given [requiredParams]
- * and [namedParams].
- */
+/// Add default argument list text and ranges based on the given
+/// [requiredParams] and [namedParams].
 void addDefaultArgDetails(
     CompletionSuggestion suggestion,
     Element element,
     Iterable<ParameterElement> requiredParams,
     Iterable<ParameterElement> namedParams) {
-  StringBuffer sb = new StringBuffer();
-  List<int> ranges = <int>[];
+  var sb = StringBuffer();
+  var ranges = <int>[];
 
   int offset;
 
-  for (ParameterElement param in requiredParams) {
+  for (var param in requiredParams) {
     if (sb.isNotEmpty) {
       sb.write(', ');
     }
     offset = sb.length;
-    String name = param.name;
-    sb.write(name);
-    ranges.addAll([offset, name.length]);
+
+    if (param.type is FunctionType) {
+      FunctionType type = param.type;
+
+      var rangeStart = offset;
+      var rangeLength;
+
+      // todo (pq): consider adding ranges for params
+      // pending: https://github.com/dart-lang/sdk/issues/40207
+      // (types in closure param completions make this UX awkward)
+      final parametersString = buildClosureParameters(type);
+      final blockBuffer = StringBuffer(parametersString);
+
+      blockBuffer.write(' ');
+
+      // todo (pq): consider refactoring to share common logic w/
+      //  ArgListContributor.buildClosureSuggestions
+      final returnType = type.returnType;
+      if (returnType.isVoid) {
+        blockBuffer.write('{');
+        rangeStart = sb.length + blockBuffer.length;
+        blockBuffer.write(' }');
+        rangeLength = 1;
+      } else {
+        final returnValue = returnType.isDartCoreBool ? 'false' : 'null';
+        blockBuffer.write('=> ');
+        rangeStart = sb.length + blockBuffer.length;
+        blockBuffer.write(returnValue);
+        rangeLength = returnValue.length;
+      }
+
+      sb.write(blockBuffer);
+      ranges.addAll([rangeStart, rangeLength]);
+    } else {
+      var name = param.name;
+      sb.write(name);
+      ranges.addAll([offset, name.length]);
+    }
   }
 
-  for (ParameterElement param in namedParams) {
-    if (param.isRequired) {
+  for (var param in namedParams) {
+    if (param.hasRequired) {
       if (sb.isNotEmpty) {
         sb.write(', ');
       }
-      String name = param.name;
+      var name = param.name;
       sb.write('$name: ');
       offset = sb.length;
-      String defaultValue = _getDefaultValue(param);
+      var defaultValue = _getDefaultValue(param);
       sb.write(defaultValue);
       ranges.addAll([offset, defaultValue.length]);
     }
@@ -72,128 +108,115 @@ void addDefaultArgDetails(
   suggestion.defaultArgumentListTextRanges = ranges.isNotEmpty ? ranges : null;
 }
 
-/**
- * Create a new protocol Element for inclusion in a completion suggestion.
- */
+String buildClosureParameters(FunctionType type) {
+  var buffer = StringBuffer();
+  buffer.write('(');
+
+  var hasNamed = false;
+  var hasOptionalPositional = false;
+  var parameters = type.parameters;
+  for (var i = 0; i < parameters.length; ++i) {
+    var parameter = parameters[i];
+    if (i != 0) {
+      buffer.write(', ');
+    }
+    if (parameter.isNamed && !hasNamed) {
+      hasNamed = true;
+      buffer.write('{');
+    } else if (parameter.isOptionalPositional && !hasOptionalPositional) {
+      hasOptionalPositional = true;
+      buffer.write('[');
+    }
+    // todo (pq): consider abbreviating names
+    buffer.write(parameter.name);
+  }
+
+  if (hasNamed) {
+    buffer.write('}');
+  } else if (hasOptionalPositional) {
+    buffer.write(']');
+  }
+
+  buffer.write(')');
+  return buffer.toString();
+}
+
+/// Create a new protocol Element for inclusion in a completion suggestion.
 protocol.Element createLocalElement(
     Source source, protocol.ElementKind kind, SimpleIdentifier id,
     {String parameters,
     TypeAnnotation returnType,
-    bool isAbstract: false,
-    bool isDeprecated: false}) {
+    bool isAbstract = false,
+    bool isDeprecated = false}) {
   String name;
   Location location;
   if (id != null) {
     name = id.name;
     // TODO(danrubel) use lineInfo to determine startLine and startColumn
-    location = new Location(source.fullName, id.offset, id.length, 0, 0);
+    location = Location(source.fullName, id.offset, id.length, 0, 0);
   } else {
     name = '';
-    location = new Location(source.fullName, -1, 0, 1, 0);
+    location = Location(source.fullName, -1, 0, 1, 0);
   }
-  int flags = protocol.Element.makeFlags(
+  var flags = protocol.Element.makeFlags(
       isAbstract: isAbstract,
       isDeprecated: isDeprecated,
       isPrivate: Identifier.isPrivateName(name));
-  return new protocol.Element(kind, name, flags,
+  return protocol.Element(kind, name, flags,
       location: location,
       parameters: parameters,
-      returnType: nameForType(returnType));
+      returnType: nameForType(id, returnType));
 }
 
-/**
- * Create a new suggestion for the given [fieldDecl]. Return the new suggestion
- * or `null` if it could not be created.
- */
-CompletionSuggestion createLocalFieldSuggestion(
-    Source source, FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
-  bool deprecated = isDeprecated(fieldDecl) || isDeprecated(varDecl);
-  TypeAnnotation type = fieldDecl.fields.type;
-  return createLocalSuggestion(
-      varDecl.name, deprecated, DART_RELEVANCE_LOCAL_FIELD, type,
-      classDecl: fieldDecl.parent,
-      element: createLocalElement(
-          source, protocol.ElementKind.FIELD, varDecl.name,
-          returnType: type, isDeprecated: deprecated));
-}
-
-/**
- * Create a new suggestion based upon the given information. Return the new
- * suggestion or `null` if it could not be created.
- */
-CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
-    bool isDeprecated, int defaultRelevance, TypeAnnotation returnType,
-    {ClassDeclaration classDecl,
-    CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
-    protocol.Element element}) {
-  if (id == null) {
-    return null;
-  }
-  String completion = id.name;
-  if (completion == null || completion.length <= 0 || completion == '_') {
-    return null;
-  }
-  CompletionSuggestion suggestion = new CompletionSuggestion(
-      kind,
-      isDeprecated ? DART_RELEVANCE_LOW : defaultRelevance,
-      completion,
-      completion.length,
-      0,
-      isDeprecated,
-      false,
-      returnType: nameForType(returnType),
-      element: element);
-  if (classDecl != null) {
-    SimpleIdentifier classId = classDecl.name;
-    if (classId != null) {
-      String className = classId.name;
-      if (className != null && className.length > 0) {
-        suggestion.declaringType = className;
-      }
-    }
-  }
-  return suggestion;
-}
-
-String getDefaultStringParameterValue(ParameterElement param) {
+DefaultArgument getDefaultStringParameterValue(ParameterElement param) {
   if (param != null) {
-    DartType type = param.type;
-    if (type is InterfaceType && isDartList(type)) {
-      List<DartType> typeArguments = type.typeArguments;
-      if (typeArguments.length == 1) {
-        DartType typeArg = typeArguments.first;
-        String typeInfo = !typeArg.isDynamic ? '<${typeArg.name}>' : '';
-        return '$typeInfo[]';
-      }
-    }
-    if (type is FunctionType) {
-      String params = type.parameters
+    var type = param.type;
+    if (type is InterfaceType && type.isDartCoreList) {
+      return DefaultArgument('[]', cursorPosition: 1);
+    } else if (type is FunctionType) {
+      var params = type.parameters
           .map((p) => '${getTypeString(p.type)}${p.name}')
           .join(', ');
-      //TODO(pq): consider adding a `TODO:` message in generated stub
-      return '($params) {}';
+      // TODO(devoncarew): Support having this method return text with newlines.
+      var text = '($params) {  }';
+      return DefaultArgument(text, cursorPosition: text.length - 2);
     }
-    //TODO(pq): support map literals
+
+    // TODO(pq): support map literals
+
   }
+
   return null;
 }
 
-String getTypeString(DartType type) => type.isDynamic ? '' : '${type.name} ';
-
-bool isDartList(DartType type) {
-  ClassElement element = type.element;
-  if (element != null) {
-    return element.name == "List" && element.library.isDartCore;
+String getRequestLineIndent(DartCompletionRequest request) {
+  var content = request.result.content;
+  var lineStartOffset = request.offset;
+  var notWhitespaceOffset = request.offset;
+  for (; lineStartOffset > 0; lineStartOffset--) {
+    var char = content.substring(lineStartOffset - 1, lineStartOffset);
+    if (char == '\n') {
+      break;
+    }
+    if (char != ' ' && char != '\t') {
+      notWhitespaceOffset = lineStartOffset - 1;
+    }
   }
-  return false;
+  return content.substring(lineStartOffset, notWhitespaceOffset);
 }
 
-/**
- * Return `true` if the @deprecated annotation is present on the given [node].
- */
+String getTypeString(DartType type) {
+  if (type.isDynamic) {
+    return '';
+  } else {
+    return type.getDisplayString(withNullability: false) + ' ';
+  }
+}
+
+/// Return `true` if the @deprecated annotation is present on the given [node].
 bool isDeprecated(AnnotatedNode node) {
   if (node != null) {
-    NodeList<Annotation> metadata = node.metadata;
+    var metadata = node.metadata;
     if (metadata != null) {
       return metadata.any((Annotation a) {
         return a.name is SimpleIdentifier && a.name.name == 'deprecated';
@@ -203,35 +226,59 @@ bool isDeprecated(AnnotatedNode node) {
   return false;
 }
 
-/**
- * Return the name for the given [type].
- */
-String nameForType(TypeAnnotation type) {
-  if (type == NO_RETURN_TYPE) {
+/// Return name of the type of the given [identifier], or, if it unresolved, the
+/// name of its declared [declaredType].
+String nameForType(SimpleIdentifier identifier, TypeAnnotation declaredType) {
+  if (identifier == null) {
     return null;
   }
+
+  // Get the type from the identifier element.
+  DartType type;
+  var element = identifier.staticElement;
+  if (element == null) {
+    return DYNAMIC;
+  } else if (element is FunctionTypedElement) {
+    if (element is PropertyAccessorElement && element.isSetter) {
+      return null;
+    }
+    type = element.returnType;
+  } else if (element is FunctionTypeAliasElement) {
+    type = element.function.returnType;
+  } else if (element is VariableElement) {
+    type = element.type;
+  } else {
+    return null;
+  }
+
+  // If the type is unresolved, use the declared type.
+  if (type != null && type.isDynamic) {
+    if (declaredType is TypeName) {
+      var id = declaredType.name;
+      if (id != null) {
+        return id.name;
+      }
+    }
+    return DYNAMIC;
+  }
+
   if (type == null) {
     return DYNAMIC;
   }
-  if (type is TypeName) {
-    Identifier id = type.name;
-    if (id == null) {
-      return DYNAMIC;
-    }
-    String name = id.name;
-    if (name == null || name.length <= 0) {
-      return DYNAMIC;
-    }
-    TypeArgumentList typeArgs = type.typeArguments;
-    if (typeArgs != null) {
-      //TODO (danrubel) include type arguments
-    }
-    return name;
-  } else if (type is GenericFunctionType) {
-    // TODO(brianwilkerson) Implement this.
-  }
-  return DYNAMIC;
+  return type.getDisplayString(withNullability: false);
 }
 
-//TODO(pq): fix to use getDefaultStringParameterValue()
+/// TODO(pq): fix to use getDefaultStringParameterValue()
 String _getDefaultValue(ParameterElement param) => 'null';
+
+/// A tuple of text to insert and an (optional) location for the cursor.
+class DefaultArgument {
+  /// The text to insert.
+  final String text;
+
+  /// An optional location for the cursor, relative to the text's start. This
+  /// field can be null.
+  final int cursorPosition;
+
+  DefaultArgument(this.text, {this.cursorPosition});
+}

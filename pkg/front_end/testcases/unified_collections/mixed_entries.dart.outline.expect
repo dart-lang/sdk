@@ -1,0 +1,49 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/unified_collections/mixed_entries.dart:33:32: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// var error4 = {if (b) 0: 1 else for (var a in list) a};
+//                                ^
+//
+// pkg/front_end/testcases/unified_collections/mixed_entries.dart:34:22: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// var error5 = {if (b) for (var a in list) a else 0: 1};
+//                      ^
+//
+// pkg/front_end/testcases/unified_collections/mixed_entries.dart:41:32: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// var error8 = {if (b) 0: 1 else for (var i = 0; i < list.length; i++) list[i]};
+//                                ^
+//
+// pkg/front_end/testcases/unified_collections/mixed_entries.dart:42:22: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// var error9 = {if (b) for (var i = 0; i < list.length; i++) list[i] else 0: 1};
+//                      ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field core::bool* b;
+static field core::List<dynamic>* list;
+static field core::Map<dynamic, dynamic>* map0;
+static field core::Map<dynamic, dynamic>* map1;
+static field core::Map<dynamic, dynamic>* map2;
+static field core::Map<dynamic, dynamic>* map3;
+static field core::Map<dynamic, core::int*>* map4;
+static field core::Map<dynamic, core::int*>* map5;
+static field core::Map<dynamic, core::int*>* map6;
+static field core::Map<dynamic, core::int*>* map7;
+static field core::Map<dynamic, core::int*>* map8;
+static field core::Map<dynamic, core::int*>* map9;
+static field core::Map<dynamic, core::int*>* map10;
+static field core::Map<dynamic, core::int*>* map11;
+static field core::Map<core::int*, core::int*>* map12;
+static field core::Map<dynamic, core::Null?>* error4;
+static field core::Map<dynamic, core::Null?>* error5;
+static field dynamic error6;
+static field dynamic error7;
+static field core::Map<dynamic, core::Null?>* error8;
+static field core::Map<dynamic, core::Null?>* error9;
+static field dynamic error10;
+static field dynamic error11;
+static field dynamic error12;
+static method main() → dynamic
+  ;

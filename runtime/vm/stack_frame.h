@@ -6,7 +6,10 @@
 #define RUNTIME_VM_STACK_FRAME_H_
 
 #include "vm/allocation.h"
+#include "vm/frame_layout.h"
+#include "vm/interpreter.h"
 #include "vm/object.h"
+#include "vm/stack_frame_kbc.h"
 #include "vm/stub_code.h"
 
 #if defined(TARGET_ARCH_IA32)
@@ -17,8 +20,6 @@
 #include "vm/stack_frame_arm.h"
 #elif defined(TARGET_ARCH_ARM64)
 #include "vm/stack_frame_arm64.h"
-#elif defined(TARGET_ARCH_DBC)
-#include "vm/stack_frame_dbc.h"
 #else
 #error Unknown architecture.
 #endif
@@ -28,6 +29,9 @@ namespace dart {
 // Forward declarations.
 class ObjectPointerVisitor;
 class RawContext;
+class LocalVariable;
+
+extern FrameLayout runtime_frame_layout;
 
 // Generic stack frame.
 class StackFrame : public ValueObject {
@@ -41,39 +45,47 @@ class StackFrame : public ValueObject {
 
   // The pool pointer is not implemented on all architectures.
   static int SavedCallerPpSlotFromFp() {
-    if (kSavedCallerPpSlotFromFp != kSavedCallerFpSlotFromFp) {
-      return kSavedCallerPpSlotFromFp;
+    // Never called on an interpreter frame.
+    if (runtime_frame_layout.saved_caller_pp_from_fp !=
+        kSavedCallerFpSlotFromFp) {
+      return runtime_frame_layout.saved_caller_pp_from_fp;
     }
     UNREACHABLE();
     return 0;
   }
 
-  uword IsMarkedForLazyDeopt() const {
+  bool IsMarkedForLazyDeopt() const {
+    ASSERT(!is_interpreted());
     uword raw_pc =
         *reinterpret_cast<uword*>(sp() + (kSavedPcSlotFromSp * kWordSize));
-    return raw_pc == StubCode::DeoptimizeLazyFromReturn_entry()->EntryPoint();
+    return raw_pc == StubCode::DeoptimizeLazyFromReturn().EntryPoint();
   }
   void MarkForLazyDeopt() {
-    set_pc(StubCode::DeoptimizeLazyFromReturn_entry()->EntryPoint());
+    ASSERT(!is_interpreted());
+    set_pc(StubCode::DeoptimizeLazyFromReturn().EntryPoint());
   }
   void UnmarkForLazyDeopt() {
     // If this frame was marked for lazy deopt, pc_ was computed to be the
     // original return address using the pending deopts table in GetCallerPc.
     // Write this value back into the frame.
+    ASSERT(!is_interpreted());
     uword original_pc = pc();
-    ASSERT(original_pc !=
-           StubCode::DeoptimizeLazyFromReturn_entry()->EntryPoint());
+    ASSERT(original_pc != StubCode::DeoptimizeLazyFromReturn().EntryPoint());
     set_pc(original_pc);
   }
 
   void set_pc(uword value) {
-    *reinterpret_cast<uword*>(sp() + (kSavedPcSlotFromSp * kWordSize)) = value;
+    *reinterpret_cast<uword*>(sp() + ((is_interpreted() ? kKBCSavedPcSlotFromSp
+                                                        : kSavedPcSlotFromSp) *
+                                      kWordSize)) = value;
     pc_ = value;
   }
 
   void set_pc_marker(RawCode* code) {
-    *reinterpret_cast<RawCode**>(fp() + (kPcMarkerSlotFromFp * kWordSize)) =
-        code;
+    *reinterpret_cast<RawCode**>(
+        fp() + ((is_interpreted() ? kKBCPcMarkerSlotFromFp
+                                  : runtime_frame_layout.code_from_fp) *
+                kWordSize)) = code;
   }
 
   // Visit objects in the frame.
@@ -82,19 +94,38 @@ class StackFrame : public ValueObject {
   const char* ToCString() const;
 
   // Check validity of a frame, used for assertion purposes.
-  virtual bool IsValid() const;
+  virtual bool IsValid(bool needed_for_gc = false) const;
+
+  // Returns the isolate containing the bare instructions of the current frame.
+  //
+  // If the frame does not belong to a bare instructions snapshot, it will
+  // return nullptr.
+  //
+  // [needed_for_gc] has to be set to `true` if the caller needs only GC
+  // relevant information.
+  Isolate* IsolateOfBareInstructionsFrame(bool needed_for_gc) const;
+
+  // Returns true iff the current frame is a bare instructions dart frame.
+  bool IsBareInstructionsDartFrame() const;
+
+  // Returns true iff the current frame is a bare instructions stub frame.
+  bool IsBareInstructionsStubFrame() const;
 
   // Frame type.
-  virtual bool IsDartFrame(bool validate = true) const {
-    ASSERT(!validate || IsValid());
-    return !(IsEntryFrame() || IsExitFrame() || IsStubFrame());
+  virtual bool IsDartFrame(bool validate = true,
+                           bool needed_for_gc = false) const {
+    ASSERT(!validate || IsValid(needed_for_gc));
+    return !(IsEntryFrame() || IsExitFrame() || IsStubFrame(needed_for_gc));
   }
-  virtual bool IsStubFrame() const;
+  virtual bool IsStubFrame(bool neede_for_gc = false) const;
   virtual bool IsEntryFrame() const { return false; }
   virtual bool IsExitFrame() const { return false; }
 
+  virtual bool is_interpreted() const { return is_interpreted_; }
+
   RawFunction* LookupDartFunction() const;
   RawCode* LookupDartCode() const;
+  RawBytecode* LookupDartBytecode() const;
   bool FindExceptionHandler(Thread* thread,
                             uword* handler_pc,
                             bool* needs_stacktrace,
@@ -103,36 +134,50 @@ class StackFrame : public ValueObject {
   // Returns token_pos of the pc(), or -1 if none exists.
   TokenPosition GetTokenPos() const;
 
+  static void DumpCurrentTrace();
+
+  uword GetCallerSp() const {
+    return fp() +
+           ((is_interpreted() ? kKBCCallerSpSlotFromFp : kCallerSpSlotFromFp) *
+            kWordSize);
+  }
+
  protected:
   explicit StackFrame(Thread* thread)
-      : fp_(0), sp_(0), pc_(0), thread_(thread) {}
+      : fp_(0), sp_(0), pc_(0), thread_(thread), is_interpreted_(false) {}
 
   // Name of the frame, used for generic frame printing functionality.
   virtual const char* GetName() const {
-    return IsStubFrame() ? "stub" : "dart";
+    if (IsBareInstructionsStubFrame()) return "bare-stub";
+    if (IsStubFrame()) return "stub";
+    return IsBareInstructionsDartFrame() ? "bare-dart" : "dart";
   }
 
   Isolate* isolate() const { return thread_->isolate(); }
+  IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
 
   Thread* thread() const { return thread_; }
 
  private:
-  RawCode* GetCodeObject() const;
-  RawCode* UncheckedGetCodeObject() const;
+  RawCode* GetCodeObject(bool needed_for_gc = false) const;
+  RawBytecode* GetBytecodeObject() const;
 
-  uword GetCallerSp() const { return fp() + (kCallerSpSlotFromFp * kWordSize); }
 
   uword GetCallerFp() const {
-    return *(reinterpret_cast<uword*>(fp() +
-                                      (kSavedCallerFpSlotFromFp * kWordSize)));
+    return *(reinterpret_cast<uword*>(
+        fp() + ((is_interpreted() ? kKBCSavedCallerFpSlotFromFp
+                                  : kSavedCallerFpSlotFromFp) *
+                kWordSize)));
   }
 
   uword GetCallerPc() const {
     uword raw_pc = *(reinterpret_cast<uword*>(
-        fp() + (kSavedCallerPcSlotFromFp * kWordSize)));
-    ASSERT(raw_pc != StubCode::DeoptimizeLazyFromThrow_entry()->EntryPoint());
-    if (raw_pc == StubCode::DeoptimizeLazyFromReturn_entry()->EntryPoint()) {
-      return isolate()->FindPendingDeopt(GetCallerFp());
+        fp() + ((is_interpreted() ? kKBCSavedCallerPcSlotFromFp
+                                  : kSavedCallerPcSlotFromFp) *
+                kWordSize)));
+    ASSERT(raw_pc != StubCode::DeoptimizeLazyFromThrow().EntryPoint());
+    if (raw_pc == StubCode::DeoptimizeLazyFromReturn().EntryPoint()) {
+      return isolate_group()->FindPendingDeoptAtSafepoint(GetCallerFp());
     }
     return raw_pc;
   }
@@ -141,6 +186,7 @@ class StackFrame : public ValueObject {
   uword sp_;
   uword pc_;
   Thread* thread_;
+  bool is_interpreted_;
 
   // The iterators FrameSetIterator and StackFrameIterator set the private
   // fields fp_ and sp_ when they return the respective frame objects.
@@ -154,9 +200,11 @@ class StackFrame : public ValueObject {
 // runtime code.
 class ExitFrame : public StackFrame {
  public:
-  bool IsValid() const { return sp() == 0; }
-  bool IsDartFrame(bool validate = true) const { return false; }
-  bool IsStubFrame() const { return false; }
+  bool IsValid(bool needed_for_gc = false) const { return sp() == 0; }
+  bool IsDartFrame(bool validate = true, bool needed_for_gc = false) const {
+    return false;
+  }
+  bool IsStubFrame(bool needed_for_gc = false) const { return false; }
   bool IsExitFrame() const { return true; }
 
   // Visit objects in the frame.
@@ -176,9 +224,13 @@ class ExitFrame : public StackFrame {
 // dart code.
 class EntryFrame : public StackFrame {
  public:
-  bool IsValid() const { return StubCode::InInvocationStub(pc()); }
-  bool IsDartFrame(bool validate = true) const { return false; }
-  bool IsStubFrame() const { return false; }
+  bool IsValid(bool needed_for_gc = false) const {
+    return StubCode::InInvocationStub(pc(), is_interpreted());
+  }
+  bool IsDartFrame(bool validate = true, bool needed_for_gc = false) const {
+    return false;
+  }
+  bool IsStubFrame(bool needed_for_gc = false) const { return false; }
   bool IsEntryFrame() const { return true; }
 
   // Visit objects in the frame.
@@ -201,10 +253,6 @@ class EntryFrame : public StackFrame {
 // concurrently.
 class StackFrameIterator : public ValueObject {
  public:
-  enum ValidationPolicy {
-    kValidateFrames = 0,
-    kDontValidateFrames = 1,
-  };
   enum CrossThreadPolicy {
     kNoCrossThreadIteration = 0,
     kAllowCrossThreadIteration = 1,
@@ -220,7 +268,6 @@ class StackFrameIterator : public ValueObject {
                      Thread* thread,
                      CrossThreadPolicy cross_thread_policy);
 
-#if !defined(TARGET_ARCH_DBC)
   // Iterator for iterating over all frames from the current frame (given by its
   // fp, sp, and pc) to the first EntryFrame.
   StackFrameIterator(uword fp,
@@ -229,7 +276,6 @@ class StackFrameIterator : public ValueObject {
                      ValidationPolicy validation_policy,
                      Thread* thread,
                      CrossThreadPolicy cross_thread_policy);
-#endif
 
   // Checks if a next frame exists.
   bool HasNextFrame() const { return frames_.fp_ != 0; }
@@ -249,9 +295,11 @@ class StackFrameIterator : public ValueObject {
       if (fp_ == 0) {
         return false;
       }
-      const uword pc =
-          *(reinterpret_cast<uword*>(sp_ + (kSavedPcSlotFromSp * kWordSize)));
-      return !StubCode::InInvocationStub(pc);
+      const uword pc = *(reinterpret_cast<uword*>(
+          sp_ +
+          ((is_interpreted() ? kKBCSavedPcSlotFromSp : kSavedPcSlotFromSp) *
+           kWordSize)));
+      return !StubCode::InInvocationStub(pc, is_interpreted());
     }
 
     // Get next non entry/exit frame in the set (assumes a next frame exists).
@@ -259,12 +307,22 @@ class StackFrameIterator : public ValueObject {
 
    private:
     explicit FrameSetIterator(Thread* thread)
-        : fp_(0), sp_(0), pc_(0), stack_frame_(thread), thread_(thread) {}
+        : fp_(0),
+          sp_(0),
+          pc_(0),
+          stack_frame_(thread),
+          thread_(thread),
+          is_interpreted_(false) {}
+    bool is_interpreted() const { return is_interpreted_; }
+    void CheckIfInterpreted(uword exit_marker);
+    void Unpoison();
+
     uword fp_;
     uword sp_;
     uword pc_;
     StackFrame stack_frame_;  // Singleton frame returned by NextFrame().
     Thread* thread_;
+    bool is_interpreted_;
 
     friend class StackFrameIterator;
     DISALLOW_COPY_AND_ASSIGN(FrameSetIterator);
@@ -284,6 +342,8 @@ class StackFrameIterator : public ValueObject {
   // stack frames.
   void SetupLastExitFrameData();
   void SetupNextExitFrameData();
+
+  void CheckInterpreterExitFrame(uword exit_marker);
 
   bool validate_;     // Validate each frame as we traverse the frames.
   EntryFrame entry_;  // Singleton entry frame returned by NextEntryFrame().
@@ -308,7 +368,7 @@ class DartFrameIterator : public ValueObject {
   explicit DartFrameIterator(
       Thread* thread,
       StackFrameIterator::CrossThreadPolicy cross_thread_policy)
-      : frames_(StackFrameIterator::kDontValidateFrames,
+      : frames_(ValidationPolicy::kDontValidateFrames,
                 thread,
                 cross_thread_policy) {}
   explicit DartFrameIterator(
@@ -316,11 +376,10 @@ class DartFrameIterator : public ValueObject {
       Thread* thread,
       StackFrameIterator::CrossThreadPolicy cross_thread_policy)
       : frames_(last_fp,
-                StackFrameIterator::kDontValidateFrames,
+                ValidationPolicy::kDontValidateFrames,
                 thread,
                 cross_thread_policy) {}
 
-#if !defined(TARGET_ARCH_DBC)
   DartFrameIterator(uword fp,
                     uword sp,
                     uword pc,
@@ -329,10 +388,9 @@ class DartFrameIterator : public ValueObject {
       : frames_(fp,
                 sp,
                 pc,
-                StackFrameIterator::kDontValidateFrames,
+                ValidationPolicy::kDontValidateFrames,
                 thread,
                 cross_thread_policy) {}
-#endif
 
   // Get next dart frame.
   StackFrame* NextFrame() {
@@ -373,7 +431,9 @@ class InlinedFunctionsIterator : public ValueObject {
     return code_.raw();
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   intptr_t GetDeoptFpOffset() const;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
  private:
   void SetDone() { index_ = -1; }
@@ -395,7 +455,6 @@ class InlinedFunctionsIterator : public ValueObject {
 void ValidateFrames();
 #endif
 
-#if !defined(TARGET_ARCH_DBC)
 DART_FORCE_INLINE static intptr_t LocalVarIndex(intptr_t fp_offset,
                                                 intptr_t var_index) {
   return fp_offset + var_index;
@@ -405,15 +464,19 @@ DART_FORCE_INLINE static uword ParamAddress(uword fp, intptr_t reverse_index) {
   return fp + (kParamEndSlotFromFp * kWordSize) + (reverse_index * kWordSize);
 }
 
+// Both fp and other_fp are compiled code frame pointers.
 DART_FORCE_INLINE static bool IsCalleeFrameOf(uword fp, uword other_fp) {
   return other_fp < fp;
 }
 
+// Both fp and other_fp are bytecode frame pointers.
+DART_FORCE_INLINE static bool IsBytecodeCalleeFrameOf(uword fp,
+                                                      uword other_fp) {
+  return other_fp > fp;
+}
+
 // Value for stack limit that is used to cause an interrupt.
-// Note that on DBC stack is growing upwards so interrupt limit is 0 unlike
-// on all other architectures.
 static const uword kInterruptStackLimit = ~static_cast<uword>(0);
-#endif
 
 DART_FORCE_INLINE static uword LocalVarAddress(uword fp, intptr_t index) {
   return fp + LocalVarIndex(0, index) * kWordSize;

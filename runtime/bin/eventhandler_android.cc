@@ -20,11 +20,11 @@
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
 #include "bin/lockers.h"
-#include "bin/log.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "platform/hashmap.h"
+#include "platform/syslog.h"
 #include "platform/utils.h"
 
 // Android doesn't define EPOLLRDHUP.
@@ -75,7 +75,7 @@ static void AddToEpollInstance(intptr_t epoll_fd_, DescriptorInfo* di) {
 }
 
 EventHandlerImplementation::EventHandlerImplementation()
-    : socket_map_(&HashMap::SamePointerValue, 16) {
+    : socket_map_(&SimpleHashMap::SamePointerValue, 16) {
   intptr_t result;
   result = NO_RETRY_EXPECTED(pipe(interrupt_fds_));
   if (result != 0) {
@@ -120,9 +120,9 @@ static void DeleteDescriptorInfo(void* info) {
 
 EventHandlerImplementation::~EventHandlerImplementation() {
   socket_map_.Clear(DeleteDescriptorInfo);
-  VOID_TEMP_FAILURE_RETRY(close(epoll_fd_));
-  VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[0]));
-  VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[1]));
+  close(epoll_fd_);
+  close(interrupt_fds_[0]);
+  close(interrupt_fds_[1]);
 }
 
 void EventHandlerImplementation::UpdateEpollInstance(intptr_t old_mask,
@@ -143,8 +143,8 @@ DescriptorInfo* EventHandlerImplementation::GetDescriptorInfo(
     intptr_t fd,
     bool is_listening) {
   ASSERT(fd >= 0);
-  HashMap::Entry* entry = socket_map_.Lookup(GetHashmapKeyFromFd(fd),
-                                             GetHashmapHashFromFd(fd), true);
+  SimpleHashMap::Entry* entry = socket_map_.Lookup(
+      GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd), true);
   ASSERT(entry != NULL);
   DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(entry->value);
   if (di == NULL) {
@@ -214,7 +214,9 @@ void EventHandlerImplementation::HandleInterruptFd() {
         // message.
         intptr_t old_mask = di->Mask();
         Dart_Port port = msg[i].dart_port;
-        di->RemovePort(port);
+        if (port != ILLEGAL_PORT) {
+          di->RemovePort(port);
+        }
         intptr_t new_mask = di->Mask();
         UpdateEpollInstance(old_mask, di);
 
@@ -234,14 +236,14 @@ void EventHandlerImplementation::HandleInterruptFd() {
                                GetHashmapHashFromFd(fd));
             di->Close();
             delete di;
-            socket->SetClosedFd();
           }
+          socket->CloseFd();
         } else {
           ASSERT(new_mask == 0);
           socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
           di->Close();
           delete di;
-          socket->SetClosedFd();
+          socket->CloseFd();
         }
 
         DartUtils::PostInt32(port, 1 << kDestroyedEvent);
@@ -267,33 +269,33 @@ void EventHandlerImplementation::HandleInterruptFd() {
 
 #ifdef DEBUG_POLL
 static void PrintEventMask(intptr_t fd, intptr_t events) {
-  Log::Print("%d ", fd);
+  Syslog::Print("%d ", fd);
   if ((events & EPOLLIN) != 0) {
-    Log::Print("EPOLLIN ");
+    Syslog::Print("EPOLLIN ");
   }
   if ((events & EPOLLPRI) != 0) {
-    Log::Print("EPOLLPRI ");
+    Syslog::Print("EPOLLPRI ");
   }
   if ((events & EPOLLOUT) != 0) {
-    Log::Print("EPOLLOUT ");
+    Syslog::Print("EPOLLOUT ");
   }
   if ((events & EPOLLERR) != 0) {
-    Log::Print("EPOLLERR ");
+    Syslog::Print("EPOLLERR ");
   }
   if ((events & EPOLLHUP) != 0) {
-    Log::Print("EPOLLHUP ");
+    Syslog::Print("EPOLLHUP ");
   }
   if ((events & EPOLLRDHUP) != 0) {
-    Log::Print("EPOLLRDHUP ");
+    Syslog::Print("EPOLLRDHUP ");
   }
   int all_events =
       EPOLLIN | EPOLLPRI | EPOLLOUT | EPOLLERR | EPOLLHUP | EPOLLRDHUP;
   if ((events & ~all_events) != 0) {
-    Log::Print("(and %08x) ", events & ~all_events);
+    Syslog::Print("(and %08x) ", events & ~all_events);
   }
-  Log::Print("(available %d) ", FDUtils::AvailableBytes(fd));
+  Syslog::Print("(available %d) ", FDUtils::AvailableBytes(fd));
 
-  Log::Print("\n");
+  Syslog::Print("\n");
 }
 #endif
 
@@ -399,8 +401,9 @@ void EventHandlerImplementation::Poll(uword args) {
 }
 
 void EventHandlerImplementation::Start(EventHandler* handler) {
-  int result = Thread::Start(&EventHandlerImplementation::Poll,
-                             reinterpret_cast<uword>(handler));
+  int result =
+      Thread::Start("dart:io EventHandler", &EventHandlerImplementation::Poll,
+                    reinterpret_cast<uword>(handler));
   if (result != 0) {
     FATAL1("Failed to start event handler thread %d", result);
   }

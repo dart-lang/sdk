@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static field core::int i;
+static field core::String s;
+static field core::String x = self::i = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference_new/invalid_assignment_during_toplevel_inference.dart:9:62: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+var  x = i = /*@error=InvalidAssignment*/ s;
+                                                             ^" in self::s as{TypeError} <BottomType>;
+static method main() → dynamic {}

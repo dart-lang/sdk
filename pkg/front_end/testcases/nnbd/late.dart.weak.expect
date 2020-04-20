@@ -1,0 +1,105 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/late.dart:40:5: Error: Can't assign to the final variable 'lateFinalVariableWithInit'.
+//     lateFinalVariableWithInit = 0;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/late.dart:44:5: Error: Setter not found: 'lateFinalStaticFieldWithInit'.
+//     lateFinalStaticFieldWithInit = 0;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/late.dart:42:5: Error: The setter 'lateFinalInstanceFieldWithInit' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/late.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'lateFinalInstanceFieldWithInit'.
+//     lateFinalInstanceFieldWithInit = 0;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/late.dart:63:3: Error: Setter not found: 'lateFinalTopLevelFieldWithInit'.
+//   lateFinalTopLevelFieldWithInit = 0;
+//   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/late.dart:67:9: Error: Setter not found: 'lateFinalStaticFieldWithInit'.
+//   Class.lateFinalStaticFieldWithInit = 0;
+//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/late.dart:65:5: Error: The setter 'lateFinalInstanceFieldWithInit' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/late.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'lateFinalInstanceFieldWithInit'.
+//   c.lateFinalInstanceFieldWithInit = 0;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  late field core::int lateInstanceField;
+  late final [setter] field core::int lateFinalInstanceField1;
+  late final [setter] field core::int lateFinalInstanceField2;
+  late final field core::int lateFinalInstanceFieldWithInit = 0;
+  late field self::Class lateInstanceFieldThis = this;
+  late final field self::Class lateFinalInstanceFieldThis = this;
+  late static field core::int lateStaticField;
+  late static final field core::int lateFinalStaticField1;
+  late static final field core::int lateFinalStaticField2;
+  late static final field core::int lateFinalStaticFieldWithInit = 0;
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  method method() → dynamic {
+    late core::int lateVariable;
+    late final core::int lateFinalVariable;
+    late final core::int lateFinalVariableWithInit = 0;
+    lateVariable = 0;
+    lateFinalVariable = 0;
+    this.{self::Class::lateInstanceField} = 0;
+    this.{self::Class::lateFinalInstanceField1} = 0;
+    self::Class::lateStaticField = 0;
+    self::Class::lateFinalStaticField1 = 0;
+  }
+  method methodWithErrors() → dynamic {
+    late final core::int lateFinalVariableWithInit = 0;
+    invalid-expression "pkg/front_end/testcases/nnbd/late.dart:40:5: Error: Can't assign to the final variable 'lateFinalVariableWithInit'.
+    lateFinalVariableWithInit = 0;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/nnbd/late.dart:42:5: Error: The setter 'lateFinalInstanceFieldWithInit' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/late.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'lateFinalInstanceFieldWithInit'.
+    lateFinalInstanceFieldWithInit = 0;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/nnbd/late.dart:44:5: Error: Setter not found: 'lateFinalStaticFieldWithInit'.
+    lateFinalStaticFieldWithInit = 0;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+  }
+}
+late static field core::int lateTopLevelField;
+late static final field core::int lateFinalTopLevelField;
+late static final field core::int lateFinalTopLevelFieldWithInit = 0;
+static method main() → dynamic {}
+static method noErrors() → dynamic {
+  self::lateTopLevelField = 0;
+  self::lateFinalTopLevelField = 0;
+  self::Class c1 = new self::Class::•();
+  c1.{self::Class::method}();
+  self::Class c2 = new self::Class::•();
+  c2.{self::Class::lateInstanceField} = 0;
+  c2.{self::Class::lateFinalInstanceField2} = 0;
+  self::Class::lateStaticField = 0;
+  self::Class::lateFinalStaticField2 = 0;
+}
+static method errors() → dynamic {
+  invalid-expression "pkg/front_end/testcases/nnbd/late.dart:63:3: Error: Setter not found: 'lateFinalTopLevelFieldWithInit'.
+  lateFinalTopLevelFieldWithInit = 0;
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+  self::Class c = new self::Class::•();
+  invalid-expression "pkg/front_end/testcases/nnbd/late.dart:65:5: Error: The setter 'lateFinalInstanceFieldWithInit' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/late.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'lateFinalInstanceFieldWithInit'.
+  c.lateFinalInstanceFieldWithInit = 0;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+  c.{self::Class::methodWithErrors}();
+  invalid-expression "pkg/front_end/testcases/nnbd/late.dart:67:9: Error: Setter not found: 'lateFinalStaticFieldWithInit'.
+  Class.lateFinalStaticFieldWithInit = 0;
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+}

@@ -1,13 +1,12 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.generated.utilities_general;
-
+import 'dart:async';
 import 'dart:collection';
 import 'dart:developer' show UserTag;
 
-export 'package:front_end/src/base/jenkins_smi_hash.dart' show JenkinsSmiHash;
+import 'package:yaml/yaml.dart';
 
 /**
  * Test if the given [value] is `false` or the string "false" (case-insensitive).
@@ -26,6 +25,9 @@ bool isTrue(Object value) =>
  * value could not be converted.
  */
 bool toBool(Object value) {
+  if (value is YamlScalar) {
+    value = (value as YamlScalar).value;
+  }
   if (value is bool) {
     return value;
   }
@@ -50,6 +52,57 @@ String toLowerCase(Object value) => value?.toString()?.toLowerCase();
  * null.
  */
 String toUpperCase(Object value) => value?.toString()?.toUpperCase();
+
+/// Jenkins hash function, optimized for small integers.
+///
+/// Static methods borrowed from sdk/lib/math/jenkins_smi_hash.dart.  Non-static
+/// methods are an enhancement for the "front_end" package.
+///
+/// Where performance is critical, use [hash2], [hash3], or [hash4], or the
+/// pattern `finish(combine(combine(...combine(0, a), b)..., z))`, where a..z
+/// are hash codes to be combined.
+///
+/// For ease of use, you may also use this pattern:
+/// `(new JenkinsSmiHash()..add(a)..add(b)....add(z)).hashCode`, where a..z are
+/// the sub-objects whose hashes should be combined.  This pattern performs the
+/// same operations as the performance critical variant, but allocates an extra
+/// object.
+class JenkinsSmiHash {
+  /// Accumulates the hash code [value] into the running hash [hash].
+  static int combine(int hash, int value) {
+    hash = 0x1fffffff & (hash + value);
+    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
+    return hash ^ (hash >> 6);
+  }
+
+  /// Finalizes a running hash produced by [combine].
+  static int finish(int hash) {
+    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
+    hash = hash ^ (hash >> 11);
+    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+  }
+
+  /// Combines together two hash codes.
+  static int hash2(a, b) => finish(combine(combine(0, a), b));
+
+  /// Combines together three hash codes.
+  static int hash3(a, b, c) => finish(combine(combine(combine(0, a), b), c));
+
+  /// Combines together four hash codes.
+  static int hash4(a, b, c, d) =>
+      finish(combine(combine(combine(combine(0, a), b), c), d));
+
+  int _hash = 0;
+
+  /// Accumulates the object [o] into the hash.
+  void add(Object o) {
+    _hash = combine(_hash, o.hashCode);
+  }
+
+  /// Finalizes the hash and return the resulting hashcode.
+  @override
+  int get hashCode => finish(_hash);
+}
 
 /**
  * A simple limited queue.
@@ -124,11 +177,13 @@ abstract class PerformanceTag {
    */
   PerformanceTag makeCurrent();
 
-  /**
-   * Make this the current tag for the isolate, run [f], and restore the
-   * previous tag. Returns the result of invoking [f].
-   */
-  E makeCurrentWhile<E>(E f());
+  /// Make this the current tag for the isolate, run [f], and restore the
+  /// previous tag. Returns the result of invoking [f].
+  E makeCurrentWhile<E>(E Function() f);
+
+  /// Make this the current tag for the isolate, run [f], and restore the
+  /// previous tag. Returns the result of invoking [f].
+  Future<E> makeCurrentWhileAsync<E>(Future<E> Function() f);
 
   /**
    * Reset the total time tracked by all [PerformanceTag]s to zero.
@@ -146,7 +201,7 @@ class _PerformanceTagImpl implements PerformanceTag {
    */
   static _PerformanceTagImpl current = unknown;
 
-  static final _PerformanceTagImpl unknown = new _PerformanceTagImpl('unknown');
+  static final _PerformanceTagImpl unknown = _PerformanceTagImpl('unknown');
 
   /**
    * A list of all performance tags that have been created so far.
@@ -165,8 +220,8 @@ class _PerformanceTagImpl implements PerformanceTag {
   final Stopwatch stopwatch;
 
   _PerformanceTagImpl(String label)
-      : userTag = new UserTag(label),
-        stopwatch = new Stopwatch() {
+      : userTag = UserTag(label),
+        stopwatch = Stopwatch() {
     all.add(this);
   }
 
@@ -178,7 +233,7 @@ class _PerformanceTagImpl implements PerformanceTag {
 
   @override
   PerformanceTag createChild(String childTagName) {
-    return new _PerformanceTagImpl('$label.$childTagName');
+    return _PerformanceTagImpl('$label.$childTagName');
   }
 
   @override
@@ -194,10 +249,21 @@ class _PerformanceTagImpl implements PerformanceTag {
     return previous;
   }
 
-  E makeCurrentWhile<E>(E f()) {
+  @override
+  E makeCurrentWhile<E>(E Function() f) {
     PerformanceTag prevTag = makeCurrent();
     try {
       return f();
+    } finally {
+      prevTag.makeCurrent();
+    }
+  }
+
+  @override
+  Future<E> makeCurrentWhileAsync<E>(Future<E> Function() f) async {
+    PerformanceTag prevTag = makeCurrent();
+    try {
+      return await f();
     } finally {
       prevTag.makeCurrent();
     }

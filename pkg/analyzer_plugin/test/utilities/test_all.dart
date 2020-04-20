@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,7 +10,7 @@ import 'navigation_test.dart' as navigation_test;
 import 'range_factory_test.dart' as range_factory_test;
 import 'subscriptions/test_all.dart' as subscriptions;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     analyzer_converter_test.main();
     completion.main();

@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 import "dart:collection";
 
-test(List list, int index, Iterable iterable) {
+test(List<int> list, int index, Iterable<int> iterable) {
   List copy = list.toList();
   list.insertAll(index, iterable);
   List iterableList = iterable.toList();
@@ -21,8 +21,8 @@ test(List list, int index, Iterable iterable) {
   }
 }
 
-class MyList extends ListBase {
-  List list;
+class MyList<T> extends ListBase<T> {
+  List<T> list;
   MyList(this.list);
   get length => list.length;
   set length(value) {
@@ -32,6 +32,10 @@ class MyList extends ListBase {
   operator [](index) => list[index];
   operator []=(index, val) {
     list[index] = val;
+  }
+
+  void add(T element) {
+    list.add(element);
   }
 
   toString() => list.toString();
@@ -74,17 +78,16 @@ main() {
   test(new MyList([1, 2, 3]), 3, [4, 5].map((x) => x));
   test(new MyList([1, 2, 3]), 2, [4].map((x) => x));
   test(new MyList([1, 2, 3]), 3, [].map((x) => x));
+  test(new MyList([]), 0, []);
+  test(new MyList([]), 0, [4]);
+  test(new MyList([]), 0, [4, 5]);
+  test(new MyList([1]), 0, [4, 5]);
+  test(new MyList([1]), 1, [4, 5]);
 
-  expectRE(() => test([1, 2, 3], -1, [4, 5]));
-  expectUE(() => test([1, 2, 3].toList(growable: false), -1, [4, 5]));
-  expectRE(() => test(new MyList([1, 2, 3]), -1, [4, 5]));
-  expectUE(() => test([1, 2, 3].toList(growable: false), 0, [4, 5]));
-}
-
-void expectRE(Function f) {
-  Expect.throws(f, (e) => e is RangeError);
-}
-
-void expectUE(Function f) {
-  Expect.throws(f, (e) => e is UnsupportedError);
+  Expect.throwsRangeError(() => test([1, 2, 3], -1, [4, 5]));
+  Expect.throwsUnsupportedError(
+      () => test([1, 2, 3].toList(growable: false), -1, [4, 5]));
+  Expect.throwsRangeError(() => test(new MyList([1, 2, 3]), -1, [4, 5]));
+  Expect.throwsUnsupportedError(
+      () => test([1, 2, 3].toList(growable: false), 0, [4, 5]));
 }

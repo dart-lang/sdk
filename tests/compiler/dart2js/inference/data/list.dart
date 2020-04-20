@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'dart:typed_data';
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   emptyList();
   nullList();
@@ -21,6 +23,7 @@ main() {
   newFloat64List();
   newInt16List();
   newInt32List();
+  newInt32List2();
   newInt8List();
   newUint16List();
   newUint32List();
@@ -28,91 +31,102 @@ main() {
   newUint8List();
 }
 
-/*element: emptyList:Container mask: [empty] length: 0 type: [exact=JSExtendableArray]*/
+/*member: emptyList:Container([exact=JSExtendableArray], element: [empty], length: 0)*/
 emptyList() => [];
 
-/*element: constList:Container mask: [empty] length: 0 type: [exact=JSUnmodifiableArray]*/
+/*member: constList:Container([exact=JSUnmodifiableArray], element: [empty], length: 0)*/
 constList() => const [];
 
-/*element: nullList:Container mask: [null] length: 1 type: [exact=JSExtendableArray]*/
+/*member: nullList:Container([exact=JSExtendableArray], element: [null], length: 1)*/
 nullList() => [null];
 
-/*element: constNullList:Container mask: [null] length: 1 type: [exact=JSUnmodifiableArray]*/
+/*member: constNullList:Container([exact=JSUnmodifiableArray], element: [null], length: 1)*/
 constNullList() => const [null];
 
-/*element: intList:Container mask: [exact=JSUInt31] length: 3 type: [exact=JSExtendableArray]*/
+/*member: intList:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 3)*/
 intList() => [1, 2, 3];
 
-/*element: newList:Container mask: [empty] length: 0 type: [exact=JSExtendableArray]*/
+/*member: newList:Container([exact=JSExtendableArray], element: [empty], length: 0)*/
 newList() => new List();
 
-/*element: newFixedList:Container mask: [null] length: 2 type: [exact=JSFixedArray]*/
+/*member: newFixedList:Container([exact=JSFixedArray], element: [null], length: 2)*/
 newFixedList() => new List(2);
 
-/*element: newFilledList:Container mask: Value mask: [""] type: [exact=JSString] length: 3 type: [exact=JSFixedArray]*/
+/*member: newFilledList:Container([exact=JSFixedArray], element: Value([exact=JSString], value: ""), length: 3)*/
 newFilledList() => new List.filled(3, '');
 
-/*element: newFloat32x4List:[exact=NativeFloat32x4List]*/
+/*member: newFloat32x4List:[exact=NativeFloat32x4List]*/
 newFloat32x4List() => new Float32x4List(4);
 
-/*element: newInt32x4List:[exact=NativeInt32x4List]*/
+/*member: newInt32x4List:[exact=NativeInt32x4List]*/
 newInt32x4List() => new Int32x4List(5);
 
-/*element: newFloat64x2List:[exact=NativeFloat64x2List]*/
+/*member: newFloat64x2List:[exact=NativeFloat64x2List]*/
 newFloat64x2List() => new Float64x2List(6);
 
-/*element: newFloat32List:Container mask: [subclass=JSNumber] length: 7 type: [exact=NativeFloat32List]*/
+/*member: newFloat32List:Container([exact=NativeFloat32List], element: [subclass=JSNumber], length: 7)*/
 newFloat32List() => new Float32List(7);
 
-/*element: newFloat64List:Container mask: [subclass=JSNumber] length: 8 type: [exact=NativeFloat64List]*/
+/*member: newFloat64List:Container([exact=NativeFloat64List], element: [subclass=JSNumber], length: 8)*/
 newFloat64List() => new Float64List(8);
 
-/*element: newInt16List:Container mask: [subclass=JSInt] length: 9 type: [exact=NativeInt16List]*/
+/*member: newInt16List:Container([exact=NativeInt16List], element: [subclass=JSInt], length: 9)*/
 newInt16List() => new Int16List(9);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Create a Int32List using an unchanged non-final top-level field as length.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _field1:[exact=JSUInt31]*/
+/*member: _field1:[exact=JSUInt31]*/
 var _field1 = 10;
 
-/*element: newInt32List:Container mask: [subclass=JSInt] length: null type: [exact=NativeInt32List]*/
+/*member: newInt32List:Container([exact=NativeInt32List], element: [subclass=JSInt], length: 10)*/
 newInt32List() => new Int32List(_field1);
+
+////////////////////////////////////////////////////////////////////////////////
+// Create a Int32List using a changed non-final top-level field as length.
+////////////////////////////////////////////////////////////////////////////////
+
+/*member: _field1b:[subclass=JSPositiveInt]*/
+var _field1b = 10;
+
+/*member: newInt32List2:Container([exact=NativeInt32List], element: [subclass=JSInt], length: null)*/
+newInt32List2() {
+  _field1b /*invoke: [subclass=JSPositiveInt]*/ ++;
+  return new Int32List(_field1b);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Create a Int8List using a final top-level field as length.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _field2:[exact=JSUInt31]*/
+/*member: _field2:[exact=JSUInt31]*/
 final _field2 = 11;
 
-/*element: newInt8List:Container mask: [subclass=JSInt] length: 11 type: [exact=NativeInt8List]*/
+/*member: newInt8List:Container([exact=NativeInt8List], element: [subclass=JSInt], length: 11)*/
 newInt8List() => new Int8List(_field2);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Create a Uint16List using a const top-level field as length.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _field3:[exact=JSUInt31]*/
 const _field3 = 12;
 
-/*element: newUint16List:Container mask: [exact=JSUInt31] length: 12 type: [exact=NativeUint16List]*/
+/*member: newUint16List:Container([exact=NativeUint16List], element: [exact=JSUInt31], length: 12)*/
 newUint16List() => new Uint16List(_field3);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Create a Uint32List using a parenthesized literal int as length.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*ast.element: newUint32List:Container mask: [subclass=JSUInt32] length: null type: [exact=NativeUint32List]*/
-/*kernel.element: newUint32List:Container mask: [subclass=JSUInt32] length: 13 type: [exact=NativeUint32List]*/
+/*member: newUint32List:Container([exact=NativeUint32List], element: [subclass=JSUInt32], length: 13)*/
 newUint32List() => new Uint32List((13));
 
 ////////////////////////////////////////////////////////////////////////////////
 // Create a Uint8ClampedList using a constant multiplication as length.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: newUint8ClampedList:Container mask: [exact=JSUInt31] length: null type: [exact=NativeUint8ClampedList]*/
+/*member: newUint8ClampedList:Container([exact=NativeUint8ClampedList], element: [exact=JSUInt31], length: null)*/
 newUint8ClampedList() =>
     new Uint8ClampedList(2 /*invoke: [exact=JSUInt31]*/ * 7);
 
@@ -121,9 +135,8 @@ newUint8ClampedList() =>
 ////////////////////////////////////////////////////////////////////////////////
 
 abstract class Class1 {
-  /*element: Class1.field:[exact=JSUInt31]*/
   static const field = 15;
 }
 
-/*element: newUint8List:Container mask: [exact=JSUInt31] length: 15 type: [exact=NativeUint8List]*/
+/*member: newUint8List:Container([exact=NativeUint8List], element: [exact=JSUInt31], length: 15)*/
 newUint8List() => new Uint8List(Class1.field);

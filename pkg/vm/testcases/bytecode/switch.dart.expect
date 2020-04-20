@@ -1,0 +1,279 @@
+main = #lib::main;
+ [@vm.bytecode=
+BytecodeMetadata {
+Bytecode (version: stable)
+Main library: #lib
+Library '#lib'
+    name '#lib'
+    script '#lib'
+
+Class '', script = '#lib'
+
+
+Function 'foo1', static, reflectable, debuggable
+    parameters [dart:core::int 'x'] (required: 1)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                2
+  CheckStack           0
+  PushNull
+  PopLocal             r0
+  Push                 FP[-5]
+  PopLocal             r1
+  PushInt              1
+  Push                 r1
+  InterfaceCall        CP#0, 2
+  JumpIfTrue           L1
+  PushInt              2
+  Push                 r1
+  InterfaceCall        CP#0, 2
+  JumpIfTrue           L2
+  PushInt              3
+  Push                 r1
+  InterfaceCall        CP#0, 2
+  JumpIfTrue           L3
+  Jump                 L4
+L1:
+  PushInt              11
+  PopLocal             r0
+  Jump                 L4
+L2:
+  PushInt              22
+  PopLocal             r0
+  Jump                 L4
+L3:
+  PushInt              33
+  PopLocal             r0
+  Jump                 L4
+L4:
+  Push                 r0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InterfaceCall 'dart:core::Object::==', ArgDesc num-args 2, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'foo2', static, reflectable, debuggable
+    parameters [dart:core::int 'x'] (required: 1)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                2
+  CheckStack           0
+  PushNull
+  PopLocal             r0
+  Push                 FP[-5]
+  PopLocal             r1
+  PushInt              1
+  Push                 r1
+  InterfaceCall        CP#0, 2
+  JumpIfTrue           L1
+  PushInt              2
+  Push                 r1
+  InterfaceCall        CP#0, 2
+  JumpIfTrue           L1
+  PushInt              3
+  Push                 r1
+  InterfaceCall        CP#0, 2
+  JumpIfTrue           L1
+  PushInt              4
+  Push                 r1
+  InterfaceCall        CP#0, 2
+  JumpIfTrue           L2
+  PushInt              5
+  Push                 r1
+  InterfaceCall        CP#0, 2
+  JumpIfTrue           L2
+  PushInt              6
+  Push                 r1
+  InterfaceCall        CP#0, 2
+  JumpIfTrue           L2
+  Jump                 L3
+L1:
+  PushInt              11
+  PopLocal             r0
+  Jump                 L4
+L2:
+  PushInt              22
+  PopLocal             r0
+  Jump                 L4
+L3:
+  PushInt              33
+  PopLocal             r0
+L4:
+  Push                 r0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InterfaceCall 'dart:core::Object::==', ArgDesc num-args 2, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'foo3', static, reflectable, debuggable
+    parameters [dart:core::int 'x'] (required: 1)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                2
+  CheckStack           0
+  PushNull
+  PopLocal             r0
+  Push                 FP[-5]
+  PopLocal             r1
+  PushInt              1
+  Push                 r1
+  InterfaceCall        CP#0, 2
+  JumpIfTrue           L1
+  PushInt              2
+  Push                 r1
+  InterfaceCall        CP#0, 2
+  JumpIfTrue           L1
+  PushInt              3
+  Push                 r1
+  InterfaceCall        CP#0, 2
+  JumpIfTrue           L1
+  PushInt              4
+  Push                 r1
+  InterfaceCall        CP#0, 2
+  JumpIfTrue           L2
+  PushInt              5
+  Push                 r1
+  InterfaceCall        CP#0, 2
+  JumpIfTrue           L2
+  PushInt              6
+  Push                 r1
+  InterfaceCall        CP#0, 2
+  JumpIfTrue           L2
+  Jump                 L3
+L1:
+  PushInt              11
+  PopLocal             r0
+  Jump                 L2
+L2:
+  PushInt              22
+  PopLocal             r0
+  PushInt              42
+  ReturnTOS
+L3:
+  PushInt              33
+  PopLocal             r0
+  Push                 r0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InterfaceCall 'dart:core::Object::==', ArgDesc num-args 2, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+}
+
+
+}
+]library #lib from "#lib" as #lib {
+
+  static method foo1(dart.core::int* x) → dart.core::int* {
+    dart.core::int* y;
+    #L1:
+    switch(x) {
+      #L2:
+      case #C1:
+        {
+          y = 11;
+          break #L1;
+        }
+      #L3:
+      case #C2:
+        {
+          y = 22;
+          break #L1;
+        }
+      #L4:
+      case #C3:
+        {
+          y = 33;
+          break #L1;
+        }
+    }
+    return y;
+  }
+  static method foo2(dart.core::int* x) → dart.core::int* {
+    dart.core::int* y;
+    #L5:
+    switch(x) {
+      #L6:
+      case #C1:
+      case #C2:
+      case #C3:
+        {
+          y = 11;
+          break #L5;
+        }
+      #L7:
+      case #C4:
+      case #C5:
+      case #C6:
+        {
+          y = 22;
+          break #L5;
+        }
+      #L8:
+      default:
+        {
+          y = 33;
+        }
+    }
+    return y;
+  }
+  static method foo3(dart.core::int* x) → dart.core::int* {
+    dart.core::int* y;
+    switch(x) {
+      #L9:
+      case #C1:
+      case #C2:
+      case #C3:
+        {
+          y = 11;
+          continue #L10;
+        }
+      #L10:
+      case #C4:
+      case #C5:
+      case #C6:
+        {
+          y = 22;
+          return 42;
+        }
+      #L11:
+      default:
+        {
+          y = 33;
+        }
+    }
+    return y;
+  }
+  static method main() → dynamic {}
+}
+constants  {
+  #C1 = 1
+  #C2 = 2
+  #C3 = 3
+  #C4 = 4
+  #C5 = 5
+  #C6 = 6
+}

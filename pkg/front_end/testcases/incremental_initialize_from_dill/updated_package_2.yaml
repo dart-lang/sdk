@@ -1,0 +1,63 @@
+# Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with a package and use it.
+# Then update the package from .packages.
+# The old package is still included in the dill file we initialize from,
+# but shouldn't cause trouble, nor be included in the output.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "package:example/b.dart";
+        main() {
+          print("hello");
+          b();
+        }
+      package_0.1.0/a.dart: |
+        a() {
+          la1();
+        }
+        la1() {
+          print("v0.1.0");
+        }
+      package_0.1.0/b.dart: |
+        import "a.dart";
+        b() {
+          a();
+        }
+      .packages: example:package_0.1.0
+    expectedLibraryCount: 3
+  - entry: main.dart
+    invalidate:
+    # TODO(jensj): For now we don't initialize from dill when a package was
+    # changed.
+    expectInitializeFromDill: false
+    sources:
+      main.dart: |
+        import "package:example/b.dart";
+        main() {
+          print("hello");
+          b();
+        }
+      package_0.1.0/a.dart: |
+        a() {
+          la1();
+        }
+        la1() {
+          print("v0.1.0");
+        }
+      package_0.1.0/b.dart: |
+        import "a.dart";
+        b() {
+          a();
+        }
+      package_0.1.1/b.dart: |
+        b() {
+          print("hello from v0.1.1");
+        }
+      .packages: example:package_0.1.1
+    expectedLibraryCount: 2

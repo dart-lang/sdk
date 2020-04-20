@@ -1,0 +1,7 @@
+Errors: {
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return () → main::A::T* {
+    main::A::T* k = null;
+    return k;
+  };

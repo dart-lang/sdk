@@ -4,7 +4,6 @@
 
 library lib;
 
-@MirrorsUsed(targets: "lib")
 import "dart:mirrors";
 
 import "package:expect/expect.dart";
@@ -43,6 +42,7 @@ checkKinds(method, kinds) {
   Expect.equals(kinds[2], method.isGetter, "isGetter");
   Expect.equals(kinds[3], method.isSetter, "isSetter");
   Expect.equals(kinds[4], method.isConstructor, "isConstructor");
+  Expect.equals(false, method.isExtensionMember, "isExtension");
 }
 
 main() {

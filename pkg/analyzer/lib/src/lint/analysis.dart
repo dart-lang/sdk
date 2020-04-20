@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,15 +6,21 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:io' as io;
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart'
     show File, Folder, ResourceProvider, ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
+import 'package:analyzer/src/file_system/file_system.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -23,15 +29,13 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/project.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/sdk.dart';
-import 'package:front_end/byte_store.dart';
-import 'package:front_end/src/base/performace_logger.dart';
-import 'package:package_config/packages.dart' show Packages;
-import 'package:package_config/packages_file.dart' as pkgfile show parse;
-import 'package:package_config/src/packages_impl.dart' show MapPackages;
 import 'package:path/path.dart' as p;
-import 'package:plugin/manager.dart';
-import 'package:plugin/plugin.dart';
+import 'package:yaml/yaml.dart';
+
+AnalysisOptionsProvider _optionsProvider = AnalysisOptionsProvider();
 
 Source createSource(Uri sourceUri) {
   return PhysicalResourceProvider.INSTANCE
@@ -40,17 +44,21 @@ Source createSource(Uri sourceUri) {
 }
 
 /// Print the given message and exit with the given [exitCode]
-void printAndFail(String message, {int exitCode: 15}) {
+void printAndFail(String message, {int exitCode = 15}) {
   print(message);
   io.exit(exitCode);
 }
 
 AnalysisOptions _buildAnalyzerOptions(LinterOptions options) {
-  AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
-  analysisOptions.strongMode = options.strongMode;
+  AnalysisOptionsImpl analysisOptions = AnalysisOptionsImpl();
+  if (options.analysisOptions != null) {
+    YamlMap map =
+        _optionsProvider.getOptionsFromString(options.analysisOptions);
+    applyToAnalysisOptions(analysisOptions, map);
+  }
+
   analysisOptions.hint = false;
   analysisOptions.lint = options.enableLints;
-  analysisOptions.generateSdkErrors = options.showSdkWarnings;
   analysisOptions.enableTiming = options.enableTiming;
   analysisOptions.lintRules = options.enabledLints?.toList(growable: false);
   return analysisOptions;
@@ -76,9 +84,6 @@ class DriverOptions {
   /// The path to the package root.
   String packageRootPath;
 
-  /// Whether to show SDK warnings.
-  bool showSdkWarnings = false;
-
   /// Whether to use Dart's Strong Mode analyzer.
   bool strongMode = true;
 
@@ -93,22 +98,27 @@ class DriverOptions {
   /// Set whether the parser is able to parse asserts in the initializer list of
   /// a constructor to match [enable].
   @deprecated
-  void set enableAssertInitializer(bool enable) {
+  set enableAssertInitializer(bool enable) {
     // Ignored because the option is now always enabled.
   }
+
+  /// Whether to use Dart 2.0 features.
+  @deprecated
+  bool get previewDart2 => true;
+
+  @deprecated
+  set previewDart2(bool value) {}
 }
 
 class LintDriver {
   /// The sources which have been analyzed so far.  This is used to avoid
   /// analyzing a source more than once, and to compute the total number of
   /// sources analyzed for statistics.
-  Set<Source> _sourcesAnalyzed = new HashSet<Source>();
+  final Set<Source> _sourcesAnalyzed = HashSet<Source>();
 
   final LinterOptions options;
 
-  LintDriver(this.options) {
-    _processPlugins();
-  }
+  LintDriver(this.options);
 
   /// Return the number of sources that have been analyzed so far.
   int get numSourcesAnalyzed => _sourcesAnalyzed.length;
@@ -116,33 +126,33 @@ class LintDriver {
   List<UriResolver> get resolvers {
     // TODO(brianwilkerson) Use the context builder to compute all of the resolvers.
     ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
-    ContextBuilder builder = new ContextBuilder(resourceProvider, null, null);
+    ContextBuilder builder = ContextBuilder(resourceProvider, null, null);
 
     DartSdk sdk = options.mockSdk ??
-        new FolderBasedDartSdk(resourceProvider,
-            resourceProvider.getFolder(sdkDir), options.strongMode);
+        FolderBasedDartSdk(
+            resourceProvider, resourceProvider.getFolder(sdkDir));
 
-    List<UriResolver> resolvers = [new DartUriResolver(sdk)];
+    List<UriResolver> resolvers = [DartUriResolver(sdk)];
 
     if (options.packageRootPath != null) {
-      // TODO(brianwilkerson) After 0.30.0 is published, clean up the following.
-      try {
-        // Try to use the post 0.30.0 API.
-        (builder as dynamic).builderOptions.defaultPackagesDirectoryPath =
-            options.packageRootPath;
-      } catch (_) {
-        // If that fails, fall back to the pre 0.30.0 API.
-        (builder as dynamic).defaultPackagesDirectoryPath =
-            options.packageRootPath;
+      builder.builderOptions.defaultPackagesDirectoryPath =
+          options.packageRootPath;
+      var packages = builder.createPackageMap(null);
+      var packageMap = <String, List<Folder>>{};
+      for (var package in packages.packages) {
+        packageMap[package.name] = [package.libFolder];
       }
-      Map<String, List<Folder>> packageMap =
-          builder.convertPackagesToMap(builder.createPackageMap(null));
-      resolvers.add(new PackageMapUriResolver(resourceProvider, packageMap));
+      resolvers.add(PackageMapUriResolver(resourceProvider, packageMap));
+    }
+
+    var packageUriResolver = _getPackageUriResolver();
+    if (packageUriResolver != null) {
+      resolvers.add(packageUriResolver);
     }
 
     // File URI resolver must come last so that files inside "/lib" are
     // are analyzed via "package:" URI's.
-    resolvers.add(new ResourceUriResolver(resourceProvider));
+    resolvers.add(ResourceUriResolver(resourceProvider));
     return resolvers;
   }
 
@@ -154,22 +164,23 @@ class LintDriver {
   }
 
   Future<List<AnalysisErrorInfo>> analyze(Iterable<io.File> files) async {
-    AnalysisEngine.instance.logger = new StdLogger();
+    AnalysisEngine.instance.instrumentationService = StdInstrumentation();
 
-    SourceFactory sourceFactory =
-        new SourceFactory(resolvers, _getPackageConfig());
+    SourceFactory sourceFactory = SourceFactory(resolvers);
 
-    PerformanceLog log = new PerformanceLog(null);
-    AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
-    AnalysisDriver analysisDriver = new AnalysisDriver(
-        scheduler,
-        log,
-        resourceProvider,
-        new MemoryByteStore(),
-        new FileContentOverlay(),
-        null,
-        sourceFactory,
-        _buildAnalyzerOptions(options));
+    PerformanceLog log = PerformanceLog(null);
+    AnalysisDriverScheduler scheduler = AnalysisDriverScheduler(log);
+    AnalysisDriver analysisDriver = AnalysisDriver(
+      scheduler,
+      log,
+      resourceProvider,
+      MemoryByteStore(),
+      FileContentOverlay(),
+      null,
+      sourceFactory,
+      _buildAnalyzerOptions(options),
+      packages: Packages.empty,
+    );
     analysisDriver.results.listen((_) {});
     analysisDriver.exceptions.listen((_) {});
     scheduler.start();
@@ -201,8 +212,8 @@ class LintDriver {
     for (Source source in sources) {
       ErrorsResult errorsResult =
           await analysisDriver.getErrors(source.fullName);
-      errors.add(new AnalysisErrorInfoImpl(
-          errorsResult.errors, errorsResult.lineInfo));
+      errors.add(
+          AnalysisErrorInfoImpl(errorsResult.errors, errorsResult.lineInfo));
       _sourcesAnalyzed.add(source);
     }
 
@@ -215,36 +226,60 @@ class LintDriver {
     }
   }
 
-  Packages _getPackageConfig() {
-    if (options.packageConfigPath != null) {
-      String packageConfigPath = options.packageConfigPath;
-      Uri fileUri = new Uri.file(packageConfigPath);
+  PackageMapUriResolver _getPackageUriResolver() {
+    var packageConfigPath = options.packageConfigPath;
+    if (packageConfigPath != null) {
+      var resourceProvider = PhysicalResourceProvider.INSTANCE;
+      var pathContext = resourceProvider.pathContext;
+      packageConfigPath = pathContext.absolute(packageConfigPath);
+      packageConfigPath = pathContext.normalize(packageConfigPath);
+
       try {
-        io.File configFile = new io.File.fromUri(fileUri).absolute;
-        List<int> bytes = configFile.readAsBytesSync();
-        Map<String, Uri> map = pkgfile.parse(bytes, configFile.uri);
-        return new MapPackages(map);
+        var packages = parsePackagesFile(
+          resourceProvider,
+          resourceProvider.getFile(packageConfigPath),
+        );
+
+        var packageMap = <String, List<Folder>>{};
+        for (var package in packages.packages) {
+          packageMap[package.name] = [package.libFolder];
+        }
+
+        return PackageMapUriResolver(resourceProvider, packageMap);
       } catch (e) {
         printAndFail(
-            'Unable to read package config data from $packageConfigPath: $e');
+          'Unable to read package config data from $packageConfigPath: $e',
+        );
       }
     }
     return null;
-  }
-
-  void _processPlugins() {
-    List<Plugin> plugins = <Plugin>[];
-    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(plugins);
   }
 }
 
 /// Prints logging information comments to the [outSink] and error messages to
 /// [errorSink].
-class StdLogger extends Logger {
+class StdInstrumentation extends NoopInstrumentationService {
   @override
-  void logError(String message, [exception]) => errorSink.writeln(message);
+  void logError(String message, [exception]) {
+    errorSink.writeln(message);
+    if (exception != null) {
+      errorSink.writeln(exception);
+    }
+  }
+
   @override
-  void logInformation(String message, [exception]) => outSink.writeln(message);
+  void logException(dynamic exception,
+      [StackTrace stackTrace,
+      List<InstrumentationServiceAttachment> attachments]) {
+    errorSink.writeln(exception);
+    errorSink.writeln(stackTrace);
+  }
+
+  @override
+  void logInfo(String message, [exception]) {
+    outSink.writeln(message);
+    if (exception != null) {
+      outSink.writeln(exception);
+    }
+  }
 }

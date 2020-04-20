@@ -13,9 +13,8 @@ main() async {
     Logger.root.onRecord.listen((LogRecord rec) {
       print('${rec.level.name}: ${rec.time}: ${rec.message}');
     });
-    await initElements();
     Logger.root.info('Starting Observatory');
     document.body.children
-        .insert(0, document.createElement('observatory-application'));
+        .insert(0, new ObservatoryApplicationElement.created().element);
   });
 }

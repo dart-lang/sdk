@@ -1,15 +1,16 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 library inbound_references_test;
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 class Node {
+  // Make sure this field is not removed by the tree shaker.
+  @pragma("vm:entry-point")
   var edge;
 }
 
@@ -26,10 +27,10 @@ void script() {
   array[1] = e;
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
-    var lib = await isolate.rootLibrary.load();
-    var field = lib.variables.where((v) => v.name == 'e').single;
+    Library lib = await isolate.rootLibrary.load();
+    Field field = lib.variables.where((v) => v.name == 'e').single;
     await field.load();
     Instance e = field.staticValue;
     ServiceMap response = await isolate.getInboundReferences(e, 100);
@@ -47,8 +48,6 @@ var tests = [
         r['source'].clazz.name == 'Node');
     hasReferenceSuchThat(
         (r) => r['parentListIndex'] == 1 && r['source'].isList);
-    hasReferenceSuchThat(
-        (r) => r['source'] is Field && r['source'].name == 'e');
   }
 ];
 

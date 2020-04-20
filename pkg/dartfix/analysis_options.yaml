@@ -1,0 +1,41 @@
+include: package:pedantic/analysis_options.1.8.0.yaml
+
+analyzer:
+  strong-mode:
+    implicit-casts: false
+  errors:
+    # Increase the severity of the unused_import hint.
+    unused_import: warning
+    unnecessary_brace_in_string_interps: warning
+    # There are many pre-existing violations; this lint may not work well with
+    # the Analyzer team's style.
+    omit_local_variable_types: ignore
+    # Turn off the prefer_is_empty lint so that it can be used in the example tests
+    # and not be reported during normal package analysis.
+    prefer_is_empty: ignore
+
+linter:
+  rules:
+    - directives_ordering
+    - empty_statements
+    - unnecessary_brace_in_string_interps
+    #
+    # Delta from pedantic 1.8.0 to 1.9.0
+    #
+    #- always_declare_return_types # 17
+    - always_require_non_null_named_parameters
+    - annotate_overrides
+    - avoid_null_checks_in_equality_operators
+    - camel_case_extensions
+    #- omit_local_variable_types # 44
+    - prefer_adjacent_string_concatenation
+    - prefer_collection_literals
+    - prefer_conditional_assignment
+    #- prefer_final_fields # 1
+    - prefer_for_elements_to_map_fromIterable
+    - prefer_generic_function_type_aliases
+    #- prefer_if_null_operators # 2
+    - prefer_single_quotes
+    - prefer_spread_collections
+    - unnecessary_this
+    - use_function_type_syntax_for_parameters

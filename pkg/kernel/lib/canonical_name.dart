@@ -20,6 +20,10 @@ import 'ast.dart';
 ///         Canonical name of enclosing library
 ///         Name of class
 ///
+///      Extension:
+///         Canonical name of enclosing library
+///         Name of extension
+///
 ///      Constructor:
 ///         Canonical name of enclosing class or library
 ///         "@constructors"
@@ -29,6 +33,11 @@ import 'ast.dart';
 ///         Canonical name of enclosing class or library
 ///         "@fields"
 ///         Qualified name
+///
+///      Typedef:
+///         Canonical name of enclosing class
+///         "@typedefs"
+///         Name text
 ///
 ///      Procedure that is not an accessor or factory:
 ///         Canonical name of enclosing class or library
@@ -89,6 +98,8 @@ class CanonicalName {
   Iterable<CanonicalName> get children =>
       _children?.values ?? const <CanonicalName>[];
 
+  Iterable<CanonicalName> get childrenOrNull => _children?.values;
+
   bool hasChild(String name) {
     return _children != null && _children.containsKey(name);
   }
@@ -114,6 +125,10 @@ class CanonicalName {
   CanonicalName getChildFromMember(Member member) {
     return getChild(getMemberQualifier(member))
         .getChildFromQualifiedName(member.name);
+  }
+
+  CanonicalName getChildFromFieldWithName(Name name) {
+    return getChild('@fields').getChildFromQualifiedName(name);
   }
 
   CanonicalName getChildFromTypedef(Typedef typedef_) {
@@ -164,18 +179,32 @@ class CanonicalName {
   void unbind() {
     if (reference == null) return;
     assert(reference.canonicalName == this);
+    if (reference.node is Class) {
+      // TODO(jensj): Get rid of this. This is only needed because pkg:vm does
+      // weird stuff in transformations. `unbind` should probably be private.
+      Class c = reference.node;
+      c.ensureLoaded();
+    }
     reference.canonicalName = null;
     reference = null;
   }
 
   void unbindAll() {
     unbind();
-    for (var child in children) {
-      child.unbindAll();
+    Iterable<CanonicalName> children_ = childrenOrNull;
+    if (children_ != null) {
+      for (CanonicalName child in children_) {
+        child.unbindAll();
+      }
     }
   }
 
   String toString() => _parent == null ? 'root' : '$parent::$name';
+  String toStringInternal() {
+    if (isRoot) return "";
+    if (parent.isRoot) return "$name";
+    return "${parent.toStringInternal()}::$name";
+  }
 
   Reference getReference() {
     return reference ??= (new Reference()..canonicalName = this);
@@ -193,6 +222,9 @@ class CanonicalName {
     }
     if (member is Constructor) {
       return '@constructors';
+    }
+    if (member is RedirectingFactoryConstructor) {
+      return '@factories';
     }
     throw 'Unexpected member: $member';
   }

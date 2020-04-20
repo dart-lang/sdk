@@ -9,6 +9,7 @@ config("internal_config") {
   cflags = [
     "-Wall",
     "-Wextra",
+    "-Wno-format",
     "-Wno-missing-field-initializers",
     "-Wno-sign-compare",
     "-Wno-type-limits",
@@ -30,9 +31,14 @@ config("internal_config") {
     "-fno-builtin-posix_memalign",
     "-fno-builtin-valloc",
     "-fno-builtin-pvalloc",
+    "-fsized-deallocation",
+    "-faligned-new",
   ]
   if (is_clang) {
-    cflags += [ "-Wno-unused-const-variable" ]
+    cflags += [
+      "-Wno-unused-const-variable",
+      "-Wno-implicit-int-float-conversion",
+    ]
   }
   if (current_cpu == "arm" && !is_clang) {
     cflags += [ "-Wno-psabi" ]
@@ -49,7 +55,10 @@ config("link_config") {
 }
 
 source_set("dynamic_annotations") {
-  configs -= [ "//build/config/compiler:chromium_code" ]
+  configs -= [
+    "//build/config/compiler:chromium_code",
+    "//build/config/compiler:clang_stackrealign",
+  ]
   configs += [ ":internal_config" ]
 
   include_dirs = [
@@ -65,14 +74,16 @@ source_set("dynamic_annotations") {
 }
 
 source_set("tcmalloc") {
-  configs -= [ "//build/config/compiler:chromium_code" ]
+  configs -= [
+    "//build/config/compiler:chromium_code",
+    "//build/config/compiler:clang_stackrealign",
+    "//build/config/compiler:compiler_arm_thumb",
+  ]
   configs += [ ":internal_config" ]
 
   public_configs = [ ":link_config" ]
 
-  deps = [
-    ":dynamic_annotations",
-  ]
+  deps = [ ":dynamic_annotations" ]
 
   include_dirs = [
     "include",

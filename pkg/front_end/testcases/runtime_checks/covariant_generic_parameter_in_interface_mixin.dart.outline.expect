@@ -3,30 +3,32 @@ import self as self;
 import "dart:core" as core;
 
 class B extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::B*
     ;
-  method f(core::int x) → void
+  method f(core::int* x) → void
     ;
 }
-abstract class I<T extends core::Object> extends core::Object {
-  default constructor •() → void
+abstract class I<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::T*>*
     ;
-  abstract method f(self::I::T x) → void;
+  abstract method f(generic-covariant-impl self::I::T* x) → void;
 }
 class M extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::M*
     ;
-  method f(core::int x) → void
+  method f(core::int* x) → void
     ;
 }
-class C = self::B with self::M implements self::I<core::int> {
-  constructor •() → void
+class C = self::B with self::M implements self::I<core::int*> {
+  synthetic constructor •() → self::C*
     : super self::B::•()
     ;
+  forwarding-stub method f(generic-covariant-impl core::int* x) → void
+    return super.{self::B::f}(x);
 }
-static method g1(self::C c) → void
+static method g1(self::C* c) → void
   ;
-static method g2(self::I<core::num> i) → void
+static method g2(self::I<core::num*>* i) → void
   ;
 static method test() → void
   ;

@@ -7,20 +7,18 @@
 
 #include "bin/socket_base.h"
 
-// TODO(ZX-766): If/when Fuchsia adds getifaddrs(), use that instead of the
-// ioctl in netconfig.h.
-#include <errno.h>  // NOLINT
-#include <fcntl.h>  // NOLINT
-#include <lib/netstack/c/netconfig.h>
-#include <ifaddrs.h>      // NOLINT
-#include <net/if.h>       // NOLINT
-#include <netinet/tcp.h>  // NOLINT
-#include <stdio.h>        // NOLINT
-#include <stdlib.h>       // NOLINT
-#include <string.h>       // NOLINT
-#include <sys/ioctl.h>    // NOLINT
-#include <sys/stat.h>     // NOLINT
-#include <unistd.h>       // NOLINT
+#include <errno.h>
+#include <fuchsia/netstack/cpp/fidl.h>
+#include <ifaddrs.h>
+#include <lib/sys/cpp/service_directory.h>
+#include <net/if.h>
+#include <netinet/tcp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <vector>
 
 #include "bin/eventhandler.h"
 #include "bin/fdutils.h"
@@ -37,13 +35,14 @@
 #define LOG_ERR(msg, ...)                                                      \
   {                                                                            \
     int err = errno;                                                           \
-    Log::PrintErr("Dart Socket ERROR: %s:%d: " msg, __FILE__, __LINE__,        \
-                  ##__VA_ARGS__);                                              \
+    Syslog::PrintErr("Dart Socket ERROR: %s:%d: " msg, __FILE__, __LINE__,     \
+                     ##__VA_ARGS__);                                           \
     errno = err;                                                               \
   }
 #if defined(SOCKET_LOG_INFO)
 #define LOG_INFO(msg, ...)                                                     \
-  Log::Print("Dart Socket INFO: %s:%d: " msg, __FILE__, __LINE__, ##__VA_ARGS__)
+  Syslog::Print("Dart Socket INFO: %s:%d: " msg, __FILE__, __LINE__,           \
+                ##__VA_ARGS__)
 #else
 #define LOG_INFO(msg, ...)
 #endif  // defined(SOCKET_LOG_INFO)
@@ -55,7 +54,11 @@
 namespace dart {
 namespace bin {
 
-SocketAddress::SocketAddress(struct sockaddr* sa) {
+SocketAddress::SocketAddress(struct sockaddr* sa, bool unnamed_unix_socket) {
+  // Fuchsia does not support unix domain sockets.
+  if (unnamed_unix_socket) {
+    FATAL("Fuchsia does not support unix domain sockets.");
+  }
   ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
   if (!SocketBase::FormatNumericAddress(*reinterpret_cast<RawAddr*>(sa),
                                         as_string_, INET6_ADDRSTRLEN)) {
@@ -65,9 +68,21 @@ SocketAddress::SocketAddress(struct sockaddr* sa) {
   memmove(reinterpret_cast<void*>(&addr_), sa, salen);
 }
 
+static fidl::SynchronousInterfacePtr<fuchsia::netstack::Netstack> netstack;
+static std::once_flag once;
+
 bool SocketBase::Initialize() {
-  // Nothing to do on Fuchsia.
-  return true;
+  static zx_status_t status;
+  std::call_once(once, [&]() {
+    auto directory = sys::ServiceDirectory::CreateFromNamespace();
+    status = directory->Connect(netstack.NewRequest());
+    if (status != ZX_OK) {
+      Syslog::PrintErr(
+          "Initialize: connecting to fuchsia.netstack failed: %s\n",
+          zx_status_get_string(status));
+    }
+  });
+  return status == ZX_OK;
 }
 
 bool SocketBase::FormatNumericAddress(const RawAddr& addr,
@@ -86,10 +101,7 @@ bool SocketBase::IsBindError(intptr_t error_number) {
 
 intptr_t SocketBase::Available(intptr_t fd) {
   IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
-  ASSERT(handle->fd() >= 0);
-  intptr_t available = FDUtils::AvailableBytes(handle->fd());
-  LOG_INFO("SocketBase::Available(%ld) = %ld\n", handle->fd(), available);
-  return available;
+  return handle->AvailableBytes();
 }
 
 intptr_t SocketBase::Read(intptr_t fd,
@@ -121,9 +133,14 @@ intptr_t SocketBase::RecvFrom(intptr_t fd,
                               intptr_t num_bytes,
                               RawAddr* addr,
                               SocketOpKind sync) {
-  LOG_ERR("SocketBase::RecvFrom is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return -1;
+}
+
+bool SocketBase::AvailableDatagram(intptr_t fd,
+                                   void* buffer,
+                                   intptr_t num_bytes) {
+  return false;
 }
 
 intptr_t SocketBase::Write(intptr_t fd,
@@ -155,8 +172,7 @@ intptr_t SocketBase::SendTo(intptr_t fd,
                             intptr_t num_bytes,
                             const RawAddr& addr,
                             SocketOpKind sync) {
-  LOG_ERR("SocketBase::SendTo is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return -1;
 }
 
@@ -185,19 +201,22 @@ SocketAddress* SocketBase::GetRemotePeer(intptr_t fd, intptr_t* port) {
 }
 
 void SocketBase::GetError(intptr_t fd, OSError* os_error) {
-  LOG_ERR("SocketBase::GetError is unimplemented\n");
-  UNIMPLEMENTED();
+  IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
+  ASSERT(handle->fd() >= 0);
+  int len = sizeof(errno);
+  int err = 0;
+  VOID_NO_RETRY_EXPECTED(getsockopt(handle->fd(), SOL_SOCKET, SO_ERROR, &err,
+                                    reinterpret_cast<socklen_t*>(&len)));
+  errno = err;
+  os_error->SetCodeAndMessage(OSError::kSystem, errno);
 }
 
 int SocketBase::GetType(intptr_t fd) {
-  LOG_ERR("SocketBase::GetType is unimplemented\n");
-  UNIMPLEMENTED();
-  return File::kOther;
+  errno = ENOSYS;
+  return -1;
 }
 
 intptr_t SocketBase::GetStdioHandle(intptr_t num) {
-  LOG_ERR("SocketBase::GetStdioHandle is unimplemented\n");
-  UNIMPLEMENTED();
   return num;
 }
 
@@ -249,8 +268,7 @@ bool SocketBase::ReverseLookup(const RawAddr& addr,
                                char* host,
                                intptr_t host_len,
                                OSError** os_error) {
-  LOG_ERR("SocketBase::ReverseLookup is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 
@@ -266,11 +284,14 @@ bool SocketBase::ParseAddress(int type, const char* address, RawAddr* addr) {
   return (result == 1);
 }
 
-static bool ShouldIncludeIfaAddrs(netc_if_info_t* if_info, int lookup_family) {
-  const int family = if_info->addr.ss_family;
-  return ((lookup_family == family) ||
-          (((lookup_family == AF_UNSPEC) &&
-            ((family == AF_INET) || (family == AF_INET6)))));
+bool SocketBase::RawAddrToString(RawAddr* addr, char* str) {
+  if (addr->addr.sa_family == AF_INET) {
+    return inet_ntop(AF_INET, &addr->in.sin_addr, str, INET_ADDRSTRLEN) != NULL;
+  } else {
+    ASSERT(addr->addr.sa_family == AF_INET6);
+    return inet_ntop(AF_INET6, &addr->in6.sin6_addr, str, INET6_ADDRSTRLEN) !=
+           NULL;
+  }
 }
 
 bool SocketBase::ListInterfacesSupported() {
@@ -280,45 +301,59 @@ bool SocketBase::ListInterfacesSupported() {
 AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
     int type,
     OSError** os_error) {
-  // We need a dummy socket.
-  const int fd = socket(AF_INET6, SOCK_STREAM, 0);
-  if (fd < 0) {
-    LOG_ERR("ListInterfaces: socket(AF_INET, SOCK_DGRAM, 0) failed\n");
-    return NULL;
-  }
-
-  // Call the ioctl.
-  netc_get_if_info_t get_if_info;
-  const ssize_t size = ioctl_netc_get_if_info(fd, &get_if_info);
-  if (size < 0) {
-    LOG_ERR("ListInterfaces: ioctl_netc_get_if_info() failed");
-    close(fd);
+  std::vector<fuchsia::netstack::NetInterface2> interfaces;
+  zx_status_t status = netstack->GetInterfaces2(&interfaces);
+  if (status != ZX_OK) {
+    LOG_ERR("ListInterfaces: fuchsia.netstack.GetInterfaces2 failed: %s\n",
+            zx_status_get_string(status));
+    errno = EIO;
     return NULL;
   }
 
   // Process the results.
   const int lookup_family = SocketAddress::FromType(type);
-  intptr_t count = 0;
-  for (intptr_t i = 0; i < get_if_info.n_info; i++) {
-    if (ShouldIncludeIfaAddrs(&get_if_info.info[i], lookup_family)) {
-      count++;
-    }
-  }
 
-  AddressList<InterfaceSocketAddress>* addresses =
-      new AddressList<InterfaceSocketAddress>(count);
+  std::remove_if(
+      interfaces.begin(), interfaces.end(),
+      [lookup_family](const auto& interface) {
+        switch (interface.addr.Which()) {
+          case fuchsia::net::IpAddress::Tag::kIpv4:
+            return !(lookup_family == AF_UNSPEC || lookup_family == AF_INET);
+          case fuchsia::net::IpAddress::Tag::kIpv6:
+            return !(lookup_family == AF_UNSPEC || lookup_family == AF_INET6);
+          case fuchsia::net::IpAddress::Tag::Invalid:
+            return true;
+        }
+      });
+
+  auto addresses = new AddressList<InterfaceSocketAddress>(interfaces.size());
   int addresses_idx = 0;
-  for (intptr_t i = 0; i < get_if_info.n_info; i++) {
-    if (ShouldIncludeIfaAddrs(&get_if_info.info[i], lookup_family)) {
-      char* ifa_name = DartUtils::ScopedCopyCString(get_if_info.info[i].name);
-      InterfaceSocketAddress* isa = new InterfaceSocketAddress(
-          reinterpret_cast<struct sockaddr*>(&get_if_info.info[i].addr),
-          ifa_name, if_nametoindex(get_if_info.info[i].name));
-      addresses->SetAt(addresses_idx, isa);
-      addresses_idx++;
+  for (const auto& interface : interfaces) {
+    struct sockaddr_storage addr = {};
+    auto addr_in = reinterpret_cast<struct sockaddr_in*>(&addr);
+    auto addr_in6 = reinterpret_cast<struct sockaddr_in6*>(&addr);
+    switch (interface.addr.Which()) {
+      case fuchsia::net::IpAddress::Tag::kIpv4:
+        addr_in->sin_family = AF_INET;
+        memmove(&addr_in->sin_addr, interface.addr.ipv4().addr.data(),
+                sizeof(addr_in->sin_addr));
+        break;
+      case fuchsia::net::IpAddress::Tag::kIpv6:
+        addr_in6->sin6_family = AF_INET6;
+        memmove(&addr_in6->sin6_addr, interface.addr.ipv6().addr.data(),
+                sizeof(addr_in6->sin6_addr));
+        break;
+      case fuchsia::net::IpAddress::Tag::Invalid:
+        // Should have been filtered out above.
+        UNREACHABLE();
     }
+    addresses->SetAt(addresses_idx,
+                     new InterfaceSocketAddress(
+                         reinterpret_cast<sockaddr*>(&addr),
+                         DartUtils::ScopedCopyCString(interface.name.c_str()),
+                         if_nametoindex(interface.name.c_str())));
+    addresses_idx++;
   }
-  close(fd);
   return addresses;
 }
 
@@ -329,8 +364,7 @@ void SocketBase::Close(intptr_t fd) {
 }
 
 bool SocketBase::GetNoDelay(intptr_t fd, bool* enabled) {
-  LOG_ERR("SocketBase::GetNoDelay is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 
@@ -345,49 +379,65 @@ bool SocketBase::SetNoDelay(intptr_t fd, bool enabled) {
 bool SocketBase::GetMulticastLoop(intptr_t fd,
                                   intptr_t protocol,
                                   bool* enabled) {
-  LOG_ERR("SocketBase::GetMulticastLoop is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 
 bool SocketBase::SetMulticastLoop(intptr_t fd,
                                   intptr_t protocol,
                                   bool enabled) {
-  LOG_ERR("SocketBase::SetMulticastLoop is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 
 bool SocketBase::GetMulticastHops(intptr_t fd, intptr_t protocol, int* value) {
-  LOG_ERR("SocketBase::GetMulticastHops is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 
 bool SocketBase::SetMulticastHops(intptr_t fd, intptr_t protocol, int value) {
-  LOG_ERR("SocketBase::SetMulticastHops is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 
 bool SocketBase::GetBroadcast(intptr_t fd, bool* enabled) {
-  LOG_ERR("SocketBase::GetBroadcast is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 
 bool SocketBase::SetBroadcast(intptr_t fd, bool enabled) {
-  LOG_ERR("SocketBase::SetBroadcast is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
+}
+
+bool SocketBase::SetOption(intptr_t fd,
+                           int level,
+                           int option,
+                           const char* data,
+                           int length) {
+  IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
+  return NO_RETRY_EXPECTED(
+             setsockopt(handle->fd(), level, option, data, length)) == 0;
+}
+
+bool SocketBase::GetOption(intptr_t fd,
+                           int level,
+                           int option,
+                           char* data,
+                           unsigned int* length) {
+  IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
+  socklen_t optlen = static_cast<socklen_t>(*length);
+  auto result =
+      NO_RETRY_EXPECTED(getsockopt(handle->fd(), level, option, data, &optlen));
+  *length = static_cast<unsigned int>(optlen);
+  return result == 0;
 }
 
 bool SocketBase::JoinMulticast(intptr_t fd,
                                const RawAddr& addr,
                                const RawAddr&,
                                int interfaceIndex) {
-  LOG_ERR("SocketBase::JoinMulticast is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 
@@ -395,8 +445,7 @@ bool SocketBase::LeaveMulticast(intptr_t fd,
                                 const RawAddr& addr,
                                 const RawAddr&,
                                 int interfaceIndex) {
-  LOG_ERR("SocketBase::LeaveMulticast is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 

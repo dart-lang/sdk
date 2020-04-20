@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common_elements.dart';
-import '../constants/constant_system.dart';
+import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -14,43 +14,41 @@ import '../universe/world_impact.dart'
 import 'backend_usage.dart' show BackendUsageBuilder;
 import 'native_data.dart';
 
-/**
- * Support for Custom Elements.
- *
- * The support for custom elements the compiler builds a table that maps the
- * custom element class's [Type] to the interceptor for the class and the
- * constructor(s) for the class.
- *
- * We want the table to contain only the custom element classes used, and we
- * want to avoid resolving and compiling constructors that are not used since
- * that may bring in unused code.  This class controls the resolution and code
- * generation to restrict the impact.
- *
- * The following line of code requires the generation of the generative
- * constructor factory function(s) for FancyButton, and their insertion into the
- * table:
- *
- *     document.register(FancyButton, 'x-fancy-button');
- *
- * We detect this by 'joining' the classes that are referenced as type literals
- * with the classes that are custom elements, enabled by detecting the presence
- * of the table access code used by document.register.
- *
- * We have to be more conservative when the type is unknown, e.g.
- *
- *     document.register(classMirror.reflectedType, tagFromMetadata);
- *
- * and
- *
- *     class Component<T> {
- *       final tag;
- *       Component(this.tag);
- *       void register() => document.register(T, tag);
- *     }
- *     const Component<FancyButton>('x-fancy-button').register();
- *
- * In these cases we conservatively generate all viable entries in the table.
- */
+/// Support for Custom Elements.
+///
+/// The support for custom elements the compiler builds a table that maps the
+/// custom element class's [Type] to the interceptor for the class and the
+/// constructor(s) for the class.
+///
+/// We want the table to contain only the custom element classes used, and we
+/// want to avoid resolving and compiling constructors that are not used since
+/// that may bring in unused code.  This class controls the resolution and code
+/// generation to restrict the impact.
+///
+/// The following line of code requires the generation of the generative
+/// constructor factory function(s) for FancyButton, and their insertion into
+/// the table:
+///
+///     document.register(FancyButton, 'x-fancy-button');
+///
+/// We detect this by 'joining' the classes that are referenced as type literals
+/// with the classes that are custom elements, enabled by detecting the presence
+/// of the table access code used by document.register.
+///
+/// We have to be more conservative when the type is unknown, e.g.
+///
+///     document.register(classMirror.reflectedType, tagFromMetadata);
+///
+/// and
+///
+///     class Component<T> {
+///       final tag;
+///       Component(this.tag);
+///       void register() => document.register(T, tag);
+///     }
+///     const Component<FancyButton>('x-fancy-button').register();
+///
+/// In these cases we conservatively generate all viable entries in the table.
 abstract class CustomElementsAnalysisBase {
   final NativeBasicData _nativeData;
   final ElementEnvironment _elementEnvironment;
@@ -73,7 +71,7 @@ abstract class CustomElementsAnalysisBase {
 
   void registerStaticUse(MemberEntity element) {
     assert(element != null);
-    if (element == _commonElements.findIndexForNativeSubclassType) {
+    if (_commonElements.isFindIndexForNativeSubclassType(element)) {
       join.demanded = true;
     }
   }
@@ -83,16 +81,16 @@ abstract class CustomElementsAnalysisBase {
 }
 
 class CustomElementsResolutionAnalysis extends CustomElementsAnalysisBase {
+  @override
   final CustomElementsAnalysisJoin join;
 
   CustomElementsResolutionAnalysis(
-      ConstantSystem constantSystem,
       ElementEnvironment elementEnvironment,
       CommonElements commonElements,
       NativeBasicData nativeData,
       BackendUsageBuilder backendUsageBuilder)
       : join = new CustomElementsAnalysisJoin(
-            constantSystem, elementEnvironment, commonElements, nativeData,
+            elementEnvironment, commonElements, nativeData,
             backendUsageBuilder: backendUsageBuilder),
         super(elementEnvironment, commonElements, nativeData) {
     // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
@@ -104,13 +102,13 @@ class CustomElementsResolutionAnalysis extends CustomElementsAnalysisBase {
   }
 
   void registerTypeLiteral(DartType type) {
-    if (type.isInterfaceType) {
+    if (type is InterfaceType) {
       // TODO(sra): If we had a flow query from the type literal expression to
       // the Type argument of the metadata lookup, we could tell if this type
       // literal is really a demand for the metadata.
       InterfaceType interfaceType = type;
       join.selectedClasses.add(interfaceType.element);
-    } else if (type.isTypeVariable) {
+    } else if (type is TypeVariableType) {
       // This is a type parameter of a parameterized class.
       // TODO(sra): Is there a way to determine which types are bound to the
       // parameter?
@@ -120,15 +118,13 @@ class CustomElementsResolutionAnalysis extends CustomElementsAnalysisBase {
 }
 
 class CustomElementsCodegenAnalysis extends CustomElementsAnalysisBase {
+  @override
   final CustomElementsAnalysisJoin join;
 
-  CustomElementsCodegenAnalysis(
-      ConstantSystem constantSystem,
-      CommonElements commonElements,
-      ElementEnvironment elementEnvironment,
-      NativeBasicData nativeData)
+  CustomElementsCodegenAnalysis(CommonElements commonElements,
+      ElementEnvironment elementEnvironment, NativeBasicData nativeData)
       : join = new CustomElementsAnalysisJoin(
-            constantSystem, elementEnvironment, commonElements, nativeData),
+            elementEnvironment, commonElements, nativeData),
         super(elementEnvironment, commonElements, nativeData) {
     // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
     // both joins only when we see a construct generating an unknown [Type] but
@@ -151,7 +147,6 @@ class CustomElementsCodegenAnalysis extends CustomElementsAnalysisBase {
 }
 
 class CustomElementsAnalysisJoin {
-  final ConstantSystem _constantSystem;
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final NativeBasicData _nativeData;
@@ -177,8 +172,8 @@ class CustomElementsAnalysisJoin {
   // ClassesOutput: classes requiring metadata.
   final Set<ClassEntity> activeClasses = new Set<ClassEntity>();
 
-  CustomElementsAnalysisJoin(this._constantSystem, this._elementEnvironment,
-      this._commonElements, this._nativeData,
+  CustomElementsAnalysisJoin(
+      this._elementEnvironment, this._commonElements, this._nativeData,
       {BackendUsageBuilder backendUsageBuilder})
       : this._backendUsageBuilder = backendUsageBuilder,
         this.forResolution = backendUsageBuilder != null;
@@ -219,7 +214,7 @@ class CustomElementsAnalysisJoin {
 
   TypeConstantValue _makeTypeConstant(ClassEntity cls) {
     DartType type = _elementEnvironment.getRawType(cls);
-    return _constantSystem.createType(_commonElements, type);
+    return constant_system.createType(_commonElements, type);
   }
 
   List<ConstructorEntity> computeEscapingConstructors(ClassEntity cls) {

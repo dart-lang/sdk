@@ -1,8 +1,8 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -13,6 +13,8 @@ main() {
     defineReflectiveTests(ClassDeclarationTest);
     defineReflectiveTests(CompilationUnitMemberTest);
     defineReflectiveTests(ImportDirectiveTest);
+    defineReflectiveTests(MisplacedMetadataTest);
+    defineReflectiveTests(MixinDeclarationTest);
     defineReflectiveTests(TryStatementTest);
   });
 }
@@ -85,12 +87,11 @@ class UnrelatedClass extends Bar {}
 ''');
   }
 
-  @failingTest
   void test_typing_extends_identifier() {
     testRecovery('''
 class Foo extends CurrentlyTypingHere
 class UnrelatedClass extends Bar {}
-''', [ParserErrorCode.MULTIPLE_WITH_CLAUSES], '''
+''', [ParserErrorCode.MISSING_CLASS_BODY], '''
 class Foo extends CurrentlyTypingHere {}
 class UnrelatedClass extends Bar {}
 ''');
@@ -102,18 +103,6 @@ class A with B extends C {}
 ''', [ParserErrorCode.WITH_BEFORE_EXTENDS], '''
 class A extends C with B {}
 ''');
-  }
-
-  void test_withWithoutExtends() {
-    testRecovery('''
-class A with B, C {}
-''', [ParserErrorCode.WITH_WITHOUT_EXTENDS], '''
-class A extends Object with B, C {}
-''', adjustValidUnitBeforeComparison: (CompilationUnit unit) {
-      ClassDeclaration declaration = unit.declarations[0];
-      declaration.extendsClause = null;
-      return unit;
-    });
   }
 }
 
@@ -306,6 +295,86 @@ import 'b.dart';
 import 'bar.dart' deferred s as p;
 ''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
 import 'bar.dart' deferred as p;
+''');
+  }
+}
+
+/**
+ * Test how well the parser recovers when metadata appears in invalid places.
+ */
+@reflectiveTest
+class MisplacedMetadataTest extends AbstractRecoveryTest {
+  @failingTest
+  void test_field_afterType() {
+    // This test fails because `findMemberName` doesn't recognize that the `@`
+    // isn't a valid token in the stream leading up to a member name. That
+    // causes `parseMethod` to attempt to parse from the `x` as a function body.
+    testRecovery('''
+class A {
+  const A([x]);
+}
+class B {
+  dynamic @A(const A()) x;
+}
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+class A {
+  const A([x]);
+}
+class B {
+  @A(const A()) dynamic x;
+}
+''');
+  }
+}
+
+/**
+ * Test how well the parser recovers when the clauses in a mixin declaration are
+ * out of order.
+ */
+@reflectiveTest
+class MixinDeclarationTest extends AbstractRecoveryTest {
+  void test_implementsBeforeOn() {
+    testRecovery('''
+mixin A implements B on C {}
+''', [ParserErrorCode.IMPLEMENTS_BEFORE_ON], '''
+mixin A on C implements B {}
+''');
+  }
+
+  void test_multipleImplements() {
+    testRecovery('''
+mixin A implements B implements C, D {}
+''', [ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES], '''
+mixin A implements B, C, D {}
+''');
+  }
+
+  void test_multipleOn() {
+    testRecovery('''
+mixin A on B on C {}
+''', [ParserErrorCode.MULTIPLE_ON_CLAUSES], '''
+mixin A on B, C {}
+''');
+  }
+
+  @failingTest
+  void test_typing_implements() {
+    testRecovery('''
+mixin Foo imple
+mixin UnrelatedMixin on Bar {}
+''', [ParserErrorCode.MULTIPLE_WITH_CLAUSES], '''
+mixin Foo {}
+mixin UnrelatedMixin on Bar {}
+''');
+  }
+
+  void test_typing_implements_identifier() {
+    testRecovery('''
+mixin Foo implements CurrentlyTypingHere
+mixin UnrelatedMixin on Bar {}
+''', [ParserErrorCode.MISSING_CLASS_BODY], '''
+mixin Foo implements CurrentlyTypingHere {}
+mixin UnrelatedMixin on Bar {}
 ''');
   }
 }

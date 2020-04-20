@@ -4,6 +4,8 @@
 
 // OtherResources=certificates/server_chain.pem
 // OtherResources=certificates/server_key.pem
+// OtherResources=certificates/bad_server_chain.pem
+// OtherResources=certificates/bad_server_key.pem
 // OtherResources=certificates/trusted_certs.pem
 
 // This test verifies that the bad certificate callback works.
@@ -22,12 +24,26 @@ SecurityContext serverContext = new SecurityContext()
   ..usePrivateKey(localFile('certificates/server_key.pem'),
       password: 'dartdart');
 
+SecurityContext badServerContext = new SecurityContext()
+  ..useCertificateChain(localFile('certificates/bad_server_chain.pem'))
+  ..usePrivateKey(localFile('certificates/bad_server_key.pem'),
+      password: 'dartdart');
+
 class CustomException {}
 
 main() async {
   var HOST = (await InternetAddress.lookup(HOST_NAME)).first;
   var server = await SecureServerSocket.bind(HOST_NAME, 0, serverContext);
   server.listen((SecureSocket socket) {
+    socket.listen((_) {}, onDone: () {
+      socket.close();
+    });
+  }, onError: (e) {
+    if (e is! HandshakeException) throw e;
+  });
+
+  var badServer = await SecureServerSocket.bind(HOST_NAME, 0, badServerContext);
+  badServer.listen((SecureSocket socket) {
     socket.listen((_) {}, onDone: () {
       socket.close();
     });
@@ -52,17 +68,22 @@ main() async {
   await runClient(server.port, defaultContext, false, 'fail');
   await runClient(server.port, defaultContext, 'fisk', 'fail');
   await runClient(server.port, defaultContext, 'exception', 'throw');
+
+  await runClient(badServer.port, goodContext, false, 'fail');
+
   server.close();
+  badServer.close();
 }
 
 Future runClient(
     int port, SecurityContext context, callbackReturns, result) async {
-  badCertificateCallback(X509Certificate certificate) {
-    Expect.isTrue(certificate.subject.contains('rootauthority'));
-    Expect.isTrue(certificate.issuer.contains('rootauthority'));
+  bool badCertificateCallback(X509Certificate certificate) {
+    Expect.isNotNull(certificate.subject);
+    Expect.isNotNull(certificate.issuer);
     // Throw exception if one is requested.
     if (callbackReturns == 'exception') throw new CustomException();
-    return callbackReturns;
+    if (callbackReturns is bool) return callbackReturns;
+    return false;
   }
 
   try {

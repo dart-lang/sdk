@@ -8,14 +8,15 @@
 
 #include "vm/os_thread.h"
 
-#include <errno.h>     // NOLINT
+#include <errno.h>  // NOLINT
+#include <stdio.h>
 #include <sys/time.h>  // NOLINT
 
+#include "platform/address_sanitizer.h"
 #include "platform/assert.h"
+#include "platform/safe_stack.h"
 #include "platform/signal_blocker.h"
 #include "platform/utils.h"
-
-#include "vm/profiler.h"
 
 namespace dart {
 
@@ -23,7 +24,6 @@ namespace dart {
   if (result != 0) {                                                           \
     const int kBufferSize = 1024;                                              \
     char error_message[kBufferSize];                                           \
-    NOT_IN_PRODUCT(Profiler::DumpStackTrace());                                \
     Utils::StrError(result, error_message, kBufferSize);                       \
     FATAL2("pthread error: %d (%s)", result, error_message);                   \
   }
@@ -35,7 +35,6 @@ namespace dart {
   if (result != 0) {                                                           \
     const int kBufferSize = 1024;                                              \
     char error_message[kBufferSize];                                           \
-    NOT_IN_PRODUCT(Profiler::DumpStackTrace());                                \
     Utils::StrError(result, error_message, kBufferSize);                       \
     FATAL3("[%s] pthread error: %d (%s)", name_, result, error_message);       \
   }
@@ -96,6 +95,7 @@ class ThreadStartData {
   DISALLOW_COPY_AND_ASSIGN(ThreadStartData);
 };
 
+// TODO(bkonyi): remove this call once the prebuilt SDK is updated.
 // Spawned threads inherit their spawner's signal mask. We sometimes spawn
 // threads for running Dart code from a thread that is blocking SIGPROF.
 // This function explicitly unblocks SIGPROF so the profiler continues to
@@ -120,6 +120,11 @@ static void* ThreadStart(void* data_ptr) {
   OSThread::ThreadStartFunction function = data->function();
   uword parameter = data->parameter();
   delete data;
+
+  // Set the thread name. There is 16 bytes limit on the name (including \0).
+  char truncated_name[16];
+  snprintf(truncated_name, ARRAY_SIZE(truncated_name), "%s", name);
+  pthread_setname_np(pthread_self(), truncated_name);
 
   // Create new OSThread object and set as TLS for new thread.
   OSThread* thread = OSThread::CreateOSThread();
@@ -189,7 +194,7 @@ ThreadId OSThread::GetCurrentThreadId() {
   return gettid();
 }
 
-#ifndef PRODUCT
+#ifdef SUPPORT_TIMELINE
 ThreadId OSThread::GetCurrentThreadTraceId() {
   return GetCurrentThreadId();
 }
@@ -214,7 +219,7 @@ void OSThread::Join(ThreadJoinId id) {
 }
 
 intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
-  ASSERT(sizeof(id) == sizeof(intptr_t));
+  ASSERT(sizeof(id) <= sizeof(intptr_t));
   return static_cast<intptr_t>(id);
 }
 
@@ -228,7 +233,6 @@ bool OSThread::Compare(ThreadId a, ThreadId b) {
 
 bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
   pthread_attr_t attr;
-  // May fail on the main thread.
   if (pthread_getattr_np(pthread_self(), &attr) != 0) {
     return false;
   }
@@ -245,6 +249,21 @@ bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
   *upper = *lower + size;
   return true;
 }
+
+#if defined(USING_SAFE_STACK)
+NO_SANITIZE_ADDRESS
+NO_SANITIZE_SAFE_STACK
+uword OSThread::GetCurrentSafestackPointer() {
+#error "SAFE_STACK is unsupported on this platform"
+  return 0;
+}
+
+NO_SANITIZE_ADDRESS
+NO_SANITIZE_SAFE_STACK
+void OSThread::SetCurrentSafestackPointer(uword ssp) {
+#error "SAFE_STACK is unsupported on this platform"
+}
+#endif
 
 Mutex::Mutex(NOT_IN_PRODUCT(const char* name))
 #if !defined(PRODUCT)

@@ -7,7 +7,7 @@ library test;
 
 import 'infer_from_variables_in_cycle_libs_when_flag_is_on_a.dart';
 
-var /*@topType=int*/ y = x; // now ok :)
+var y = x; // now ok :)
 
 test1() {
   int t = 3;

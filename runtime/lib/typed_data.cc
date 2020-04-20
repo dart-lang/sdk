@@ -9,6 +9,7 @@
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 
 namespace dart {
 
@@ -28,6 +29,15 @@ static void RangeCheck(intptr_t offset_in_bytes,
   }
 }
 
+static void AlignmentCheck(intptr_t offset_in_bytes, intptr_t element_size) {
+  if ((offset_in_bytes % element_size) != 0) {
+    const auto& error = String::Handle(String::NewFormatted(
+        "Offset in bytes (%" Pd ") must be a multiple of %" Pd "",
+        offset_in_bytes, element_size));
+    Exceptions::ThrowArgumentError(error);
+  }
+}
+
 // Checks to see if a length will not result in an OOM error.
 static void LengthCheck(intptr_t len, intptr_t max) {
   if (len < 0 || len > max) {
@@ -37,7 +47,7 @@ static void LengthCheck(intptr_t len, intptr_t max) {
   }
 }
 
-DEFINE_NATIVE_ENTRY(TypedData_length, 1) {
+DEFINE_NATIVE_ENTRY(TypedData_length, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
   if (instance.IsTypedData()) {
     const TypedData& array = TypedData::Cast(instance);
@@ -51,6 +61,27 @@ DEFINE_NATIVE_ENTRY(TypedData_length, 1) {
       "Expected a TypedData object but found %s", instance.ToCString()));
   Exceptions::ThrowArgumentError(error);
   return Integer::null();
+}
+
+DEFINE_NATIVE_ENTRY(TypedDataView_offsetInBytes, 0, 1) {
+  // "this" is either a _*ArrayView class or _ByteDataView.
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
+  ASSERT(instance.IsTypedDataView());
+  return TypedDataView::Cast(instance).offset_in_bytes();
+}
+
+DEFINE_NATIVE_ENTRY(TypedDataView_length, 0, 1) {
+  // "this" is either a _*ArrayView class or _ByteDataView.
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
+  ASSERT(instance.IsTypedDataView());
+  return TypedDataView::Cast(instance).length();
+}
+
+DEFINE_NATIVE_ENTRY(TypedDataView_typedData, 0, 1) {
+  // "this" is either a _*ArrayView class or _ByteDataView.
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
+  ASSERT(instance.IsTypedDataView());
+  return TypedDataView::Cast(instance).typed_data();
 }
 
 template <typename DstType, typename SrcType>
@@ -105,14 +136,16 @@ static bool IsUint8(intptr_t cid) {
   }
 }
 
-DEFINE_NATIVE_ENTRY(TypedData_setRange, 7) {
-  const Instance& dst = Instance::CheckedHandle(arguments->NativeArgAt(0));
-  const Smi& dst_start = Smi::CheckedHandle(arguments->NativeArgAt(1));
-  const Smi& length = Smi::CheckedHandle(arguments->NativeArgAt(2));
-  const Instance& src = Instance::CheckedHandle(arguments->NativeArgAt(3));
-  const Smi& src_start = Smi::CheckedHandle(arguments->NativeArgAt(4));
-  const Smi& to_cid_smi = Smi::CheckedHandle(arguments->NativeArgAt(5));
-  const Smi& from_cid_smi = Smi::CheckedHandle(arguments->NativeArgAt(6));
+DEFINE_NATIVE_ENTRY(TypedData_setRange, 0, 7) {
+  const Instance& dst =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Smi& dst_start = Smi::CheckedHandle(zone, arguments->NativeArgAt(1));
+  const Smi& length = Smi::CheckedHandle(zone, arguments->NativeArgAt(2));
+  const Instance& src =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(3));
+  const Smi& src_start = Smi::CheckedHandle(zone, arguments->NativeArgAt(4));
+  const Smi& to_cid_smi = Smi::CheckedHandle(zone, arguments->NativeArgAt(5));
+  const Smi& from_cid_smi = Smi::CheckedHandle(zone, arguments->NativeArgAt(6));
 
   if (length.Value() < 0) {
     const String& error = String::Handle(String::NewFormatted(
@@ -145,26 +178,63 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 7) {
 }
 
 // We check the length parameter against a possible maximum length for the
-// array based on available physical addressable memory on the system. The
-// maximum possible length is a scaled value of kSmiMax which is set up based
-// on whether the underlying architecture is 32-bit or 64-bit.
+// array based on available physical addressable memory on the system.
+//
+// More specifically
+//
+//   TypedData::MaxElements(cid) is equal to (kSmiMax / ElementSizeInBytes(cid))
+//
+// which ensures that the number of bytes the array holds is guaranteed to fit
+// into a _Smi.
+//
 // Argument 0 is type arguments and is ignored.
 #define TYPED_DATA_NEW(name)                                                   \
-  DEFINE_NATIVE_ENTRY(TypedData_##name##_new, 2) {                             \
-    GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(1));      \
-    intptr_t cid = kTypedData##name##Cid;                                      \
-    intptr_t len = length.Value();                                             \
-    intptr_t max = TypedData::MaxElements(cid);                                \
-    LengthCheck(len, max);                                                     \
-    return TypedData::New(cid, len);                                           \
+  DEFINE_NATIVE_ENTRY(TypedData_##name##_new, 0, 2) {                          \
+    GET_NON_NULL_NATIVE_ARGUMENT(Integer, length, arguments->NativeArgAt(1));  \
+    const intptr_t cid = kTypedData##name##Cid;                                \
+    const intptr_t max = TypedData::MaxElements(cid);                          \
+    const int64_t len = length.AsInt64Value();                                 \
+    if (len < 0) {                                                             \
+      Exceptions::ThrowRangeError("length", length, 0, max);                   \
+    } else if (len > max) {                                                    \
+      const Instance& exception = Instance::Handle(                            \
+          zone, thread->isolate()->object_store()->out_of_memory());           \
+      Exceptions::Throw(thread, exception);                                    \
+    }                                                                          \
+    return TypedData::New(cid, static_cast<intptr_t>(len));                    \
   }
 
 #define TYPED_DATA_NEW_NATIVE(name) TYPED_DATA_NEW(name)
 
 CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
+#undef TYPED_DATA_NEW_NATIVE
+#undef TYPED_DATA_NEW
+
+#define TYPED_DATA_VIEW_NEW(native_name, cid)                                  \
+  DEFINE_NATIVE_ENTRY(native_name, 0, 4) {                                     \
+    GET_NON_NULL_NATIVE_ARGUMENT(TypedDataBase, typed_data,                    \
+                                 arguments->NativeArgAt(1));                   \
+    GET_NON_NULL_NATIVE_ARGUMENT(Smi, offset, arguments->NativeArgAt(2));      \
+    GET_NON_NULL_NATIVE_ARGUMENT(Smi, len, arguments->NativeArgAt(3));         \
+    const intptr_t backing_length = typed_data.LengthInBytes();                \
+    const intptr_t offset_in_bytes = offset.Value();                           \
+    const intptr_t length = len.Value();                                       \
+    const intptr_t element_size = TypedDataBase::ElementSizeInBytes(cid);      \
+    AlignmentCheck(offset_in_bytes, element_size);                             \
+    LengthCheck(offset_in_bytes + length * element_size, backing_length);      \
+    return TypedDataView::New(cid, typed_data, offset_in_bytes, length);       \
+  }
+
+#define TYPED_DATA_NEW_NATIVE(name)                                            \
+  TYPED_DATA_VIEW_NEW(TypedDataView_##name##View_new, kTypedData##name##ViewCid)
+
+CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
+TYPED_DATA_VIEW_NEW(TypedDataView_ByteDataView_new, kByteDataViewCid)
+#undef TYPED_DATA_NEW_NATIVE
+#undef TYPED_DATA_VIEW_NEW
 
 #define TYPED_DATA_GETTER(getter, object, ctor, access_size)                   \
-  DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                 \
+  DEFINE_NATIVE_ENTRY(TypedData_##getter, 0, 2) {                              \
     GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance,                           \
                                  arguments->NativeArgAt(0));                   \
     GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes,                           \
@@ -189,7 +259,7 @@ CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
 
 #define TYPED_DATA_SETTER(setter, object, get_object_value, access_size,       \
                           access_type)                                         \
-  DEFINE_NATIVE_ENTRY(TypedData_##setter, 3) {                                 \
+  DEFINE_NATIVE_ENTRY(TypedData_##setter, 0, 3) {                              \
     GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance,                           \
                                  arguments->NativeArgAt(0));                   \
     GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes,                           \

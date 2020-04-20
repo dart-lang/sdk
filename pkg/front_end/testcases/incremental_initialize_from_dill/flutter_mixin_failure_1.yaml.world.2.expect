@@ -1,0 +1,67 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  class FooEntry extends dart.core::Object {
+    synthetic constructor •() → lib::FooEntry*
+      : super dart.core::Object::•()
+      ;
+  }
+  class BarEntry extends lib::FooEntry {
+    synthetic constructor •() → lib::BarEntry*
+      : super lib::FooEntry::•()
+      ;
+  }
+  abstract class FooTarget extends dart.core::Object {
+    synthetic constructor •() → lib::FooTarget*
+      : super dart.core::Object::•()
+      ;
+    abstract method hello(lib::FooEntry* entry) → void;
+  }
+  abstract class Baz extends dart.core::Object implements lib::FooTarget {
+    synthetic constructor •() → lib::Baz*
+      : super dart.core::Object::•()
+      ;
+    method hello(covariant lib::FooEntry* entry) → void {}
+  }
+  abstract class MyMixin extends lib::Baz /*isMixinDeclaration*/  {
+  }
+  abstract class Qux extends lib::Baz {
+    synthetic constructor •() → lib::Qux*
+      : super lib::Baz::•()
+      ;
+    method hello(covariant lib::BarEntry* entry) → void {}
+  }
+  abstract class _Quux&Qux&MyMixin extends lib::Qux implements lib::MyMixin /*isAnonymousMixin,isEliminatedMixin*/  {
+    synthetic constructor •() → lib::_Quux&Qux&MyMixin*
+      : super lib::Qux::•()
+      ;
+    abstract forwarding-stub method hello(covariant lib::FooEntry* entry) → void;
+  }
+  class Quux extends lib::_Quux&Qux&MyMixin {
+    synthetic constructor •() → lib::Quux*
+      : super lib::_Quux&Qux&MyMixin::•()
+      ;
+    abstract forwarding-stub method hello(covariant lib::FooEntry* entry) → void;
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart";
+
+  class Test extends main::Test2 {
+    synthetic constructor •() → main::Test*
+      : super main::Test2::•()
+      ;
+    method world() → lib::Quux*
+      return null;
+  }
+  abstract class Test2 extends dart.core::Object {
+    synthetic constructor •() → main::Test2*
+      : super dart.core::Object::•()
+      ;
+    abstract method world() → lib::Baz*;
+  }
+  static method main() → dynamic {
+    dart.core::print(new main::Test::•());
+  }
+}

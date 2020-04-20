@@ -1,7 +1,6 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
 import 'test_helper.dart';
@@ -14,13 +13,13 @@ void script() {
     if (iterations <= 0) {
       return;
     }
-    new List<int>(size);
+    new List<int>.filled(size, 0);
     new Timer(duration, () => grow(iterations - 1, size, duration));
   };
   grow(100, 1 << 24, new Duration(seconds: 1));
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) {
     Completer completer = new Completer();
     // Expect at least this many GC events.

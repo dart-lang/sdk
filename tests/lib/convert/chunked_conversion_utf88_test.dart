@@ -8,8 +8,8 @@ import "package:expect/expect.dart";
 import 'dart:convert';
 
 List<int> encode(String str) {
-  List<int> bytes;
-  ChunkedConversionSink byteSink =
+  late List<int> bytes;
+  var byteSink =
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   stringConversionSink.add(str);
@@ -18,8 +18,8 @@ List<int> encode(String str) {
 }
 
 List<int> encode2(String str) {
-  List<int> bytes;
-  ChunkedConversionSink byteSink =
+  late List<int> bytes;
+  var byteSink =
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ClosableStringSink stringSink = stringConversionSink.asStringSink();
@@ -29,8 +29,8 @@ List<int> encode2(String str) {
 }
 
 List<int> encode3(String str) {
-  List<int> bytes;
-  ChunkedConversionSink byteSink =
+  late List<int> bytes;
+  var byteSink =
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ClosableStringSink stringSink = stringConversionSink.asStringSink();
@@ -40,8 +40,8 @@ List<int> encode3(String str) {
 }
 
 List<int> encode4(String str) {
-  List<int> bytes;
-  ChunkedConversionSink byteSink =
+  late List<int> bytes;
+  var byteSink =
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ClosableStringSink stringSink = stringConversionSink.asStringSink();
@@ -51,32 +51,32 @@ List<int> encode4(String str) {
 }
 
 List<int> encode5(String str) {
-  List<int> bytes;
-  ChunkedConversionSink byteSink =
+  late List<int> bytes;
+  var byteSink =
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(false);
-  List<int> tmpBytes = UTF8.encode(str);
+  List<int> tmpBytes = utf8.encode(str);
   inputByteSink.add(tmpBytes);
   inputByteSink.close();
   return bytes;
 }
 
 List<int> encode6(String str) {
-  List<int> bytes;
-  ChunkedConversionSink byteSink =
+  late List<int> bytes;
+  var byteSink =
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(false);
-  List<int> tmpBytes = UTF8.encode(str);
+  List<int> tmpBytes = utf8.encode(str);
   tmpBytes.forEach((b) => inputByteSink.addSlice([0, b, 1], 1, 2, false));
   inputByteSink.close();
   return bytes;
 }
 
 List<int> encode7(String str) {
-  List<int> bytes;
-  ChunkedConversionSink byteSink =
+  late List<int> bytes;
+  var byteSink =
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   stringConversionSink.addSlice("1" + str + "2", 1, str.length + 1, false);
@@ -117,12 +117,11 @@ main() {
   const CHAR_A = 0x61;
 
   // Test surrogates at all kinds of locations.
-  var tests = [];
-  List codeUnits = <int>[];
+  var codeUnits = <int>[];
   for (int i = 0; i < 2049; i++) {
     // Invariant: codeUnits[0..i - 1] is filled with CHAR_A (character 'a').
-    codeUnits.length = i + 1;
-    codeUnits[i] = CHAR_A;
+    codeUnits.add(CHAR_A);
+    Expect.equals(i + 1, codeUnits.length);
 
     // Only test for problem zones, close to powers of two.
     if (i > 20 && _nextPowerOf2(i - 2) - i > 10) continue;
@@ -143,7 +142,8 @@ main() {
     bytes[i + 2] = UTF8_TRAILING[2];
     runTest([bytes, str]);
 
-    codeUnits.length = i + 2;
+    codeUnits.add(CHAR_A);
+    Expect.equals(i + 2, codeUnits.length);
     codeUnits[i] = LEADING_SURROGATE;
     codeUnits[i + 1] = TRAILING_SURROGATE;
     str = new String.fromCharCodes(codeUnits);
@@ -190,7 +190,8 @@ main() {
     bytes[i + 5] = UTF8_LEADING[2];
     runTest([bytes, str]);
 
-    codeUnits.length = i + 3;
+    codeUnits.add(CHAR_A);
+    Expect.equals(i + 3, codeUnits.length);
     codeUnits[i] = LEADING_SURROGATE;
     codeUnits[i + 1] = TRAILING_SURROGATE;
     codeUnits[i + 2] = CHAR_A; // Add trailing 'a'.
@@ -244,6 +245,7 @@ main() {
     runTest([bytes, str]);
 
     // Make sure the invariant is correct.
+    codeUnits.length = i + 1;
     codeUnits[i] = CHAR_A;
   }
 }

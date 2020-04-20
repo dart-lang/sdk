@@ -7,12 +7,14 @@
 
 #include "bin/platform.h"
 
+#include <errno.h>        // NOLINT
 #include <signal.h>       // NOLINT
 #include <string.h>       // NOLINT
+#include <sys/resource.h>  // NOLINT
 #include <sys/utsname.h>  // NOLINT
 #include <unistd.h>       // NOLINT
 
-#include "bin/fdutils.h"
+#include "bin/console.h"
 #include "bin/file.h"
 
 namespace dart {
@@ -24,7 +26,13 @@ int Platform::script_index_ = 1;
 char** Platform::argv_ = NULL;
 
 static void segv_handler(int signal, siginfo_t* siginfo, void* context) {
+  Syslog::PrintErr(
+      "\n===== CRASH =====\n"
+      "si_signo=%s(%d), si_code=%d, si_addr=%p\n",
+      strsignal(siginfo->si_signo), siginfo->si_signo, siginfo->si_code,
+      siginfo->si_addr);
   Dart_DumpNativeStackTrace(context);
+  Dart_PrepareToAbort();
   abort();
 }
 
@@ -32,10 +40,20 @@ bool Platform::Initialize() {
   // Turn off the signal handler for SIGPIPE as it causes the process
   // to terminate on writing to a closed pipe. Without the signal
   // handler error EPIPE is set instead.
-  struct sigaction act;
-  bzero(&act, sizeof(act));
+  struct sigaction act = {};
   act.sa_handler = SIG_IGN;
   if (sigaction(SIGPIPE, &act, 0) != 0) {
+    perror("Setting signal handler failed");
+    return false;
+  }
+
+  // tcsetattr raises SIGTTOU if we try to set console attributes when
+  // backgrounded, which suspends the process. Ignoring the signal prevents
+  // us from being suspended and lets us fail gracefully instead.
+  sigset_t signal_mask;
+  sigemptyset(&signal_mask);
+  sigaddset(&signal_mask, SIGTTOU);
+  if (sigprocmask(SIG_BLOCK, &signal_mask, NULL) < 0) {
     perror("Setting signal handler failed");
     return false;
   }
@@ -59,6 +77,10 @@ bool Platform::Initialize() {
     return false;
   }
   if (sigaction(SIGTRAP, &act, NULL) != 0) {
+    perror("sigaction() failed.");
+    return false;
+  }
+  if (sigaction(SIGILL, &act, NULL) != 0) {
     perror("sigaction() failed.");
     return false;
   }
@@ -140,8 +162,19 @@ const char* Platform::ResolveExecutablePath() {
   return File::ReadLink("/proc/self/exe");
 }
 
+intptr_t Platform::ResolveExecutablePathInto(char* result, size_t result_size) {
+  return File::ReadLinkInto("/proc/self/exe", result, result_size);
+}
+
 void Platform::Exit(int exit_code) {
+  Console::RestoreConfig();
+  Dart_PrepareToAbort();
   exit(exit_code);
+}
+
+void Platform::SetCoreDumpResourceLimit(int value) {
+  rlimit limit = {static_cast<rlim_t>(value), static_cast<rlim_t>(value)};
+  setrlimit(RLIMIT_CORE, &limit);
 }
 
 }  // namespace bin

@@ -22,7 +22,7 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class ObjectPoolViewElement extends HtmlElement implements Renderable {
+class ObjectPoolViewElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<ObjectPoolViewElement>('object-pool-view', dependencies: const [
     ContextRefElement.tag,
@@ -81,8 +81,8 @@ class ObjectPoolViewElement extends HtmlElement implements Renderable {
     assert(references != null);
     assert(retainingPaths != null);
     assert(objects != null);
-    ObjectPoolViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    ObjectPoolViewElement e = new ObjectPoolViewElement.created();
+    e._r = new RenderingScheduler<ObjectPoolViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -97,7 +97,7 @@ class ObjectPoolViewElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  ObjectPoolViewElement.created() : super.created();
+  ObjectPoolViewElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -109,40 +109,42 @@ class ObjectPoolViewElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
-      navBar([
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+    children = <Element>[
+      navBar(<Element>[
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
         navMenu('instance'),
-        new NavRefreshElement(queue: _r.queue)
-          ..onRefresh.listen((e) async {
-            e.element.disabled = true;
-            _pool = await _pools.get(_isolate, _pool.id);
-            _r.dirty();
-          }),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        (new NavRefreshElement(queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                _pool = await _pools.get(_isolate, _pool.id);
+                _r.dirty();
+              }))
+            .element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = 'ObjectPool',
           new HRElement(),
           new ObjectCommonElement(_isolate, _pool, _retainedSizes,
-              _reachableSizes, _references, _retainingPaths, _objects,
-              queue: _r.queue),
+                  _reachableSizes, _references, _retainingPaths, _objects,
+                  queue: _r.queue)
+              .element,
           new HRElement(),
           new HeadingElement.h3()..text = 'entries (${_pool.entries.length})',
           new DivElement()
             ..classes = ['memberList']
             ..children = _pool.entries
-                .map((entry) => new DivElement()
+                .map<Element>((entry) => new DivElement()
                   ..classes = ['memberItem']
-                  ..children = [
+                  ..children = <Element>[
                     new DivElement()
                       ..classes = ['memberName', 'hexadecimal']
                       ..text = '[PP+0x${entry.offset.toRadixString(16)}]',
@@ -152,13 +154,14 @@ class ObjectPoolViewElement extends HtmlElement implements Renderable {
                   ])
                 .toList(),
           new HRElement(),
-          new ViewFooterElement(queue: _r.queue)
+          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }
 
   List<Element> _createEntry(M.ObjectPoolEntry entry) {
     switch (entry.kind) {
+      case M.ObjectPoolEntryKind.nativeEntryData:
       case M.ObjectPoolEntryKind.object:
         return [anyRef(_isolate, entry.asObject, _objects, queue: _r.queue)];
       case M.ObjectPoolEntryKind.immediate:

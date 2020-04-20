@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,96 +10,99 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
+import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analysis_server/src/services/completion/token_details/token_detail_builder.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 
-/**
- * Instances of the class [CompletionDomainHandler] implement a [RequestHandler]
- * that handles requests in the completion domain.
- */
+/// Instances of the class [CompletionDomainHandler] implement a
+/// [RequestHandler] that handles requests in the completion domain.
 class CompletionDomainHandler extends AbstractRequestHandler {
-  /**
-   * The maximum number of performance measurements to keep.
-   */
+  /// The maximum number of performance measurements to keep.
   static const int performanceListMaxLength = 50;
 
-  /**
-   * The next completion response id.
-   */
+  /// The completion services that the client is currently subscribed.
+  final Set<CompletionService> subscriptions = <CompletionService>{};
+
+  /// The next completion response id.
   int _nextCompletionId = 0;
 
-  /**
-   * Code completion performance for the last completion operation.
-   */
+  /// Code completion performance for the last completion operation.
   CompletionPerformance performance;
 
-  /**
-   * A list of code completion performance measurements for the latest
-   * completion operation up to [performanceListMaxLength] measurements.
-   */
+  /// A list of code completion performance measurements for the latest
+  /// completion operation up to [performanceListMaxLength] measurements.
   final RecentBuffer<CompletionPerformance> performanceList =
-      new RecentBuffer<CompletionPerformance>(performanceListMaxLength);
+      RecentBuffer<CompletionPerformance>(performanceListMaxLength);
 
-  /**
-   * Performance for the last priority change event.
-   */
-  CompletionPerformance computeCachePerformance;
-
-  /**
-   * The current request being processed or `null` if none.
-   */
+  /// The current request being processed or `null` if none.
   CompletionRequestImpl _currentRequest;
 
-  /**
-   * Initialize a new request handler for the given [server].
-   */
+  /// The identifiers of the latest `getSuggestionDetails` request.
+  /// We use it to abort previous requests.
+  int _latestGetSuggestionDetailsId = 0;
+
+  /// Initialize a new request handler for the given [server].
   CompletionDomainHandler(AnalysisServer server) : super(server);
 
-  /**
-   * Compute completion results for the given request and append them to the stream.
-   * Clients should not call this method directly as it is automatically called
-   * when a client listens to the stream returned by [results].
-   * Subclasses should override this method, append at least one result
-   * to the [controller], and close the controller stream once complete.
-   */
-  Future<CompletionResult> computeSuggestions(CompletionRequestImpl request,
-      CompletionGetSuggestionsParams params) async {
+  /// Compute completion results for the given request and append them to the
+  /// stream. Clients should not call this method directly as it is
+  /// automatically called when a client listens to the stream returned by
+  /// [results]. Subclasses should override this method, append at least one
+  /// result to the [controller], and close the controller stream once complete.
+  Future<CompletionResult> computeSuggestions(
+    CompletionRequestImpl request,
+    CompletionGetSuggestionsParams params,
+    Set<ElementKind> includedElementKinds,
+    Set<String> includedElementNames,
+    List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags,
+  ) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     //
     // Allow plugins to start computing fixes.
     //
     Map<PluginInfo, Future<plugin.Response>> pluginFutures;
     plugin.CompletionGetSuggestionsParams requestParams;
-    String file = params.file;
-    int offset = params.offset;
-    AnalysisDriver driver = server.getAnalysisDriver(file);
+    var file = params.file;
+    var offset = params.offset;
+    var driver = server.getAnalysisDriver(file);
     if (driver != null) {
-      requestParams = new plugin.CompletionGetSuggestionsParams(file, offset);
+      requestParams = plugin.CompletionGetSuggestionsParams(file, offset);
       pluginFutures = server.pluginManager
           .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
     }
     //
     // Compute completions generated by server.
     //
-    List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
+    var suggestions = <CompletionSuggestion>[];
     if (request.result != null) {
       const COMPUTE_SUGGESTIONS_TAG = 'computeSuggestions';
       performance.logStartTime(COMPUTE_SUGGESTIONS_TAG);
 
-      CompletionContributor contributor = new DartCompletionManager();
-      String contributorTag = 'computeSuggestions - ${contributor
-          .runtimeType}';
+      var manager = DartCompletionManager(
+        dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(request.result),
+        includedElementKinds: includedElementKinds,
+        includedElementNames: includedElementNames,
+        includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
+      );
+
+      var contributorTag = 'computeSuggestions - ${manager.runtimeType}';
       performance.logStartTime(contributorTag);
       try {
-        suggestions.addAll(await contributor.computeSuggestions(request));
+        suggestions.addAll(await manager.computeSuggestions(request));
       } on AbortCompletion {
         suggestions.clear();
       }
@@ -113,11 +116,11 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     // Add the fixes produced by plugins to the server-generated fixes.
     //
     if (pluginFutures != null) {
-      List<plugin.Response> responses = await waitForResponses(pluginFutures,
+      var responses = await waitForResponses(pluginFutures,
           requestParameters: requestParams);
-      for (plugin.Response response in responses) {
-        plugin.CompletionGetSuggestionsResult result =
-            new plugin.CompletionGetSuggestionsResult.fromResponse(response);
+      for (var response in responses) {
+        var result =
+            plugin.CompletionGetSuggestionsResult.fromResponse(response);
         if (result.results != null && result.results.isNotEmpty) {
           if (suggestions.isEmpty) {
             request.replacementOffset = result.replacementOffset;
@@ -136,24 +139,106 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     //
     // Return the result.
     //
-    return new CompletionResult(
+    return CompletionResult(
         request.replacementOffset, request.replacementLength, suggestions);
+  }
+
+  /// Process a `completion.getSuggestionDetails` request.
+  void getSuggestionDetails(Request request) async {
+    var params = CompletionGetSuggestionDetailsParams.fromRequest(request);
+
+    var file = params.file;
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
+
+    var libraryId = params.id;
+    var library = server.declarationsTracker.getLibrary(libraryId);
+    if (library == null) {
+      server.sendResponse(Response.invalidParameter(
+        request,
+        'libraryId',
+        'No such library: $libraryId',
+      ));
+      return;
+    }
+
+    // The label might be `MyEnum.myValue`, but we import only `MyEnum`.
+    var requestedName = params.label;
+    if (requestedName.contains('.')) {
+      requestedName = requestedName.substring(
+        0,
+        requestedName.indexOf('.'),
+      );
+    }
+
+    const timeout = Duration(milliseconds: 1000);
+    var timer = Stopwatch()..start();
+    var id = ++_latestGetSuggestionDetailsId;
+    while (id == _latestGetSuggestionDetailsId && timer.elapsed < timeout) {
+      try {
+        var analysisDriver = server.getAnalysisDriver(file);
+        var session = analysisDriver.currentSession;
+
+        var completion = params.label;
+        var builder = DartChangeBuilder(session);
+        await builder.addFileEdit(file, (builder) {
+          var result = builder.importLibraryElement(library.uri);
+          if (result.prefix != null) {
+            completion = '${result.prefix}.$completion';
+          }
+        });
+
+        server.sendResponse(
+          CompletionGetSuggestionDetailsResult(
+            completion,
+            change: builder.sourceChange,
+          ).toResponse(request.id),
+        );
+        return;
+      } on InconsistentAnalysisException {
+        // Loop around to try again.
+      }
+    }
+
+    // Timeout or abort, send the empty response.
+    server.sendResponse(
+      CompletionGetSuggestionDetailsResult('').toResponse(request.id),
+    );
   }
 
   @override
   Response handleRequest(Request request) {
-    return runZoned(() {
-      String requestName = request.method;
-      if (requestName == COMPLETION_REQUEST_GET_SUGGESTIONS) {
+    if (!server.options.featureSet.completion) {
+      return Response.invalidParameter(
+        request,
+        'request',
+        'The completion feature is not enabled',
+      );
+    }
+
+    return runZonedGuarded(() {
+      var requestName = request.method;
+
+      if (requestName == COMPLETION_REQUEST_GET_SUGGESTION_DETAILS) {
+        getSuggestionDetails(request);
+        return Response.DELAYED_RESPONSE;
+      } else if (requestName == COMPLETION_REQUEST_GET_SUGGESTIONS) {
         processRequest(request);
         return Response.DELAYED_RESPONSE;
+      } else if (requestName == COMPLETION_REQUEST_LIST_TOKEN_DETAILS) {
+        listTokenDetails(request);
+        return Response.DELAYED_RESPONSE;
+      } else if (requestName == COMPLETION_REQUEST_SET_SUBSCRIPTIONS) {
+        return setSubscriptions(request);
       }
       return null;
-    }, onError: (exception, stackTrace) {
-      server.sendServerErrorNotification(
-          'Failed to handle completion domain request: ${request.toJson()}',
-          exception,
-          stackTrace);
+    }, (exception, stackTrace) {
+      AnalysisEngine.instance.instrumentationService.logException(
+          CaughtException.withMessage(
+              'Failed to handle completion domain request: ${request.method}',
+              exception,
+              stackTrace));
     });
   }
 
@@ -163,62 +248,126 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     }
   }
 
-  /**
-   * Process a `completion.getSuggestions` request.
-   */
-  Future<Null> processRequest(Request request) async {
-    performance = new CompletionPerformance();
+  /// Process a `completion.listTokenDetails` request.
+  Future<void> listTokenDetails(Request request) async {
+    var params = CompletionListTokenDetailsParams.fromRequest(request);
+
+    var file = params.file;
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
+
+    var analysisDriver = server.getAnalysisDriver(file);
+    if (analysisDriver == null) {
+      server.sendResponse(Response.invalidParameter(
+        request,
+        'file',
+        'File is not being analyzed: $file',
+      ));
+    }
+    var session = analysisDriver.currentSession;
+    var result = await session.getResolvedUnit(file);
+    if (result.state != ResultState.VALID) {
+      server.sendResponse(Response.invalidParameter(
+        request,
+        'file',
+        'File does not exist or cannot be read: $file',
+      ));
+    }
+
+    var builder = TokenDetailBuilder();
+    builder.visitNode(result.unit);
+    server.sendResponse(
+      CompletionListTokenDetailsResult(builder.details).toResponse(request.id),
+    );
+  }
+
+  /// Process a `completion.getSuggestions` request.
+  Future<void> processRequest(Request request) async {
+    performance = CompletionPerformance();
 
     // extract and validate params
-    CompletionGetSuggestionsParams params =
-        new CompletionGetSuggestionsParams.fromRequest(request);
-    String filePath = params.file;
-    int offset = params.offset;
+    var params = CompletionGetSuggestionsParams.fromRequest(request);
+    var file = params.file;
+    var offset = params.offset;
 
-    AnalysisResult result = await server.getAnalysisResult(filePath);
-    Source source;
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
 
-    if (result == null || !result.exists) {
-      if (server.onNoAnalysisCompletion != null) {
-        String completionId = (_nextCompletionId++).toString();
-        await server.onNoAnalysisCompletion(
-            request, this, params, performance, completionId);
-        return;
-      }
-      source = server.resourceProvider.getFile(filePath).createSource();
-    } else {
-      if (offset < 0 || offset > result.content.length) {
-        server.sendResponse(new Response.invalidParameter(
+    var resolvedUnit = await server.getResolvedUnit(file);
+    server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
+    if (resolvedUnit?.state == ResultState.VALID) {
+      if (offset < 0 || offset > resolvedUnit.content.length) {
+        server.sendResponse(Response.invalidParameter(
             request,
             'params.offset',
             'Expected offset between 0 and source length inclusive,'
-            ' but found $offset'));
+                ' but found $offset'));
         return;
       }
-      source =
-          server.resourceProvider.getFile(result.path).createSource(result.uri);
 
-      recordRequest(performance, source, result.content, offset);
+      recordRequest(performance, file, resolvedUnit.content, offset);
     }
-    CompletionRequestImpl completionRequest = new CompletionRequestImpl(
-        result, server.resourceProvider, source, offset, performance);
+    var completionRequest = CompletionRequestImpl(
+        resolvedUnit, offset, server.options.useNewRelevance, performance);
 
-    String completionId = (_nextCompletionId++).toString();
+    var completionId = (_nextCompletionId++).toString();
 
     setNewRequest(completionRequest);
 
     // initial response without results
-    server.sendResponse(new CompletionGetSuggestionsResult(completionId)
-        .toResponse(request.id));
+    server.sendResponse(
+        CompletionGetSuggestionsResult(completionId).toResponse(request.id));
+
+    // If the client opted into using available suggestion sets,
+    // create the kinds set, so signal the completion manager about opt-in.
+    Set<ElementKind> includedElementKinds;
+    Set<String> includedElementNames;
+    List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
+    if (subscriptions.contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
+      includedElementKinds = <ElementKind>{};
+      includedElementNames = <String>{};
+      includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
+    }
 
     // Compute suggestions in the background
-    computeSuggestions(completionRequest, params)
-        .then((CompletionResult result) {
+    computeSuggestions(
+      completionRequest,
+      params,
+      includedElementKinds,
+      includedElementNames,
+      includedSuggestionRelevanceTags,
+    ).then((CompletionResult result) {
+      String libraryFile;
+      var includedSuggestionSets = <IncludedSuggestionSet>[];
+      if (includedElementKinds != null && resolvedUnit != null) {
+        libraryFile = resolvedUnit.libraryElement.source.fullName;
+        server.sendNotification(
+          createExistingImportsNotification(resolvedUnit),
+        );
+        computeIncludedSetList(
+          server.declarationsTracker,
+          resolvedUnit,
+          includedSuggestionSets,
+          includedElementNames,
+        );
+      }
+
       const SEND_NOTIFICATION_TAG = 'send notification';
       performance.logStartTime(SEND_NOTIFICATION_TAG);
-      sendCompletionNotification(completionId, result.replacementOffset,
-          result.replacementLength, result.suggestions);
+      sendCompletionNotification(
+        completionId,
+        result.replacementOffset,
+        result.replacementLength,
+        result.suggestions,
+        libraryFile,
+        includedSuggestionSets,
+        includedElementKinds?.toList(),
+        includedSuggestionRelevanceTags,
+      );
       performance.logElapseTime(SEND_NOTIFICATION_TAG);
+
       performance.notificationCount = 1;
       performance.logFirstNotificationComplete('notification 1 complete');
       performance.suggestionCountFirst = result.suggestions.length;
@@ -229,28 +378,42 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     });
   }
 
-  /**
-   * If tracking code completion performance over time, then
-   * record addition information about the request in the performance record.
-   */
-  void recordRequest(CompletionPerformance performance, Source source,
+  /// If tracking code completion performance over time, then
+  /// record addition information about the request in the performance record.
+  void recordRequest(CompletionPerformance performance, String path,
       String content, int offset) {
-    performance.source = source;
-    if (performanceListMaxLength == 0 || source == null) {
+    performance.path = path;
+    if (performanceListMaxLength == 0) {
       return;
     }
     performance.setContentsAndOffset(content, offset);
     performanceList.add(performance);
   }
 
-  /**
-   * Send completion notification results.
-   */
-  void sendCompletionNotification(String completionId, int replacementOffset,
-      int replacementLength, Iterable<CompletionSuggestion> results) {
-    server.sendNotification(new CompletionResultsParams(
-            completionId, replacementOffset, replacementLength, results, true)
-        .toNotification());
+  /// Send completion notification results.
+  void sendCompletionNotification(
+    String completionId,
+    int replacementOffset,
+    int replacementLength,
+    Iterable<CompletionSuggestion> results,
+    String libraryFile,
+    List<IncludedSuggestionSet> includedSuggestionSets,
+    List<ElementKind> includedElementKinds,
+    List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags,
+  ) {
+    server.sendNotification(
+      CompletionResultsParams(
+        completionId,
+        replacementOffset,
+        replacementLength,
+        results,
+        true,
+        libraryFile: libraryFile,
+        includedSuggestionSets: includedSuggestionSets,
+        includedElementKinds: includedElementKinds,
+        includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
+      ).toNotification(),
+    );
   }
 
   void setNewRequest(CompletionRequest completionRequest) {
@@ -258,9 +421,37 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     _currentRequest = completionRequest;
   }
 
-  /**
-   * Abort the current completion request, if any.
-   */
+  /// Implement the 'completion.setSubscriptions' request.
+  Response setSubscriptions(Request request) {
+    var params = CompletionSetSubscriptionsParams.fromRequest(request);
+
+    subscriptions.clear();
+    subscriptions.addAll(params.subscriptions);
+
+    if (subscriptions.contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
+      var data = server.declarationsTrackerData;
+      var soFarLibraries = data.startListening((change) {
+        server.sendNotification(
+          createCompletionAvailableSuggestionsNotification(
+            change.changed,
+            change.removed,
+          ),
+        );
+      });
+      server.sendNotification(
+        createCompletionAvailableSuggestionsNotification(
+          soFarLibraries,
+          [],
+        ),
+      );
+    } else {
+      server.declarationsTrackerData.stopListening();
+    }
+
+    return CompletionSetSubscriptionsResult().toResponse(request.id);
+  }
+
+  /// Abort the current completion request, if any.
   void _abortCurrentRequest() {
     if (_currentRequest != null) {
       _currentRequest.abort();
@@ -269,28 +460,20 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   }
 }
 
-/**
- * The result of computing suggestions for code completion.
- */
+/// The result of computing suggestions for code completion.
 class CompletionResult {
-  /**
-   * The length of the text to be replaced if the remainder of the identifier
-   * containing the cursor is to be replaced when the suggestion is applied
-   * (that is, the number of characters in the existing identifier).
-   */
+  /// The length of the text to be replaced if the remainder of the identifier
+  /// containing the cursor is to be replaced when the suggestion is applied
+  /// (that is, the number of characters in the existing identifier).
   final int replacementLength;
 
-  /**
-   * The offset of the start of the text to be replaced. This will be different
-   * than the offset used to request the completion suggestions if there was a
-   * portion of an identifier before the original offset. In particular, the
-   * replacementOffset will be the offset of the beginning of said identifier.
-   */
+  /// The offset of the start of the text to be replaced. This will be different
+  /// than the offset used to request the completion suggestions if there was a
+  /// portion of an identifier before the original offset. In particular, the
+  /// replacementOffset will be the offset of the beginning of said identifier.
   final int replacementOffset;
 
-  /**
-   * The suggested completions.
-   */
+  /// The suggested completions.
   final List<CompletionSuggestion> suggestions;
 
   CompletionResult(

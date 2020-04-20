@@ -1,0 +1,165 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef TakeInts = (core::int*, core::int*, core::int*, core::int*, core::int*) →* void;
+typedef TakeObjectsAndInts = (core::Object*, core::int*, core::Object*, core::int*, core::int*) →* void;
+typedef TakeObjects = (core::Object*, core::Object*, core::Object*, core::Object*, core::Object*) →* void;
+typedef TakeOptionalInts = ([core::int*, core::int*, core::int*, core::int*]) →* void;
+typedef TakeOptionalObjectsAndInts = ([core::Object*, core::int*, core::Object*, core::int*]) →* void;
+typedef TakeNamedInts = ({a: core::int*, b: core::int*, c: core::int*, d: core::int*}) →* void;
+typedef TakeNamedObjectsAndInts = ({a: core::Object*, b: core::int*, c: core::Object*, d: core::int*}) →* void;
+class M1 extends core::Object {
+  synthetic constructor •() → self::M1*
+    ;
+  method method(covariant core::int* a, core::int* b) → dynamic
+    ;
+}
+class M2 extends core::Object {
+  synthetic constructor •() → self::M2*
+    ;
+  method method(core::int* a, covariant core::int* b) → dynamic
+    ;
+}
+abstract class _C&Object&M1 = core::Object with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C&Object&M1*
+    : super core::Object::•()
+    ;
+}
+abstract class _C&Object&M1&M2 = self::_C&Object&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C&Object&M1&M2*
+    : super self::_C&Object&M1::•()
+    ;
+  forwarding-stub method method(covariant core::int* a, covariant core::int* b) → dynamic
+    return super.{self::M1::method}(a, b);
+}
+class C extends self::_C&Object&M1&M2 {
+  synthetic constructor •() → self::C*
+    ;
+}
+class Direct extends core::Object {
+  synthetic constructor •() → self::Direct*
+    ;
+  method positional(covariant core::int* a, core::int* b, covariant core::int* c, core::int* d, core::int* e) → void
+    ;
+  method optional([covariant core::int* a, core::int* b, covariant core::int* c, core::int* d]) → void
+    ;
+  method named({covariant core::int* a, core::int* b, covariant core::int* c, core::int* d}) → void
+    ;
+}
+class Inherited extends self::Direct {
+  synthetic constructor •() → self::Inherited*
+    ;
+}
+class Override1 extends core::Object {
+  synthetic constructor •() → self::Override1*
+    ;
+  method method(covariant core::int* a, core::int* b, core::int* c, core::int* d, core::int* e) → void
+    ;
+}
+class Override2 extends self::Override1 {
+  synthetic constructor •() → self::Override2*
+    ;
+  method method(covariant core::int* a, core::int* b, covariant core::int* c, core::int* d, core::int* e) → void
+    ;
+}
+class Override3 extends self::Override2 {
+  synthetic constructor •() → self::Override3*
+    ;
+  method method(covariant core::int* a, core::int* b, covariant core::int* c, core::int* d, core::int* e) → void
+    ;
+}
+abstract class Implement1 extends core::Object {
+  synthetic constructor •() → self::Implement1*
+    ;
+  method method(covariant core::int* a, core::int* b, core::int* c, core::int* d, core::int* e) → void
+    ;
+}
+class Implement2 extends core::Object {
+  synthetic constructor •() → self::Implement2*
+    ;
+  method method(core::int* a, covariant core::int* b, core::int* c, core::int* d, core::int* e) → void
+    ;
+}
+class Implement3 extends core::Object {
+  synthetic constructor •() → self::Implement3*
+    ;
+  method method(core::int* a, core::int* b, covariant core::int* c, core::int* d, core::int* e) → void
+    ;
+}
+class Implement4 extends core::Object implements self::Implement3 {
+  synthetic constructor •() → self::Implement4*
+    ;
+  method method(core::int* a, core::int* b, covariant core::int* c, covariant core::int* d, core::int* e) → void
+    ;
+}
+class Implement5 extends core::Object implements self::Implement1, self::Implement2, self::Implement4 {
+  synthetic constructor •() → self::Implement5*
+    ;
+  method method(covariant core::int* a, covariant core::int* b, covariant core::int* c, covariant core::int* d, covariant core::int* e) → void
+    ;
+}
+class Interface1 extends core::Object {
+  synthetic constructor •() → self::Interface1*
+    ;
+  method method(covariant core::int* a, core::int* b, core::int* c, core::int* d, core::int* e) → void
+    ;
+}
+class Interface2 extends core::Object {
+  synthetic constructor •() → self::Interface2*
+    ;
+  method method(core::int* a, covariant core::int* b, core::int* c, core::int* d, core::int* e) → void
+    ;
+}
+class Mixin1 extends core::Object {
+  synthetic constructor •() → self::Mixin1*
+    ;
+  method method(core::int* a, core::int* b, covariant core::int* c, core::int* d, core::int* e) → void
+    ;
+}
+class Mixin2 extends core::Object {
+  synthetic constructor •() → self::Mixin2*
+    ;
+  method method(core::int* a, core::int* b, core::int* c, covariant core::int* d, core::int* e) → void
+    ;
+}
+class Superclass extends core::Object {
+  synthetic constructor •() → self::Superclass*
+    ;
+  method method(core::int* a, core::int* b, core::int* c, core::int* d, covariant core::int* e) → void
+    ;
+}
+abstract class _Mixed&Superclass&Mixin1 = self::Superclass with self::Mixin1 /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Mixed&Superclass&Mixin1*
+    : super self::Superclass::•()
+    ;
+  forwarding-stub method method(core::int* a, core::int* b, covariant core::int* c, core::int* d, covariant core::int* e) → void
+    return super.{self::Superclass::method}(a, b, c, d, e);
+}
+abstract class _Mixed&Superclass&Mixin1&Mixin2 = self::_Mixed&Superclass&Mixin1 with self::Mixin2 /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Mixed&Superclass&Mixin1&Mixin2*
+    : super self::_Mixed&Superclass&Mixin1::•()
+    ;
+  forwarding-stub method method(core::int* a, core::int* b, covariant core::int* c, covariant core::int* d, covariant core::int* e) → void
+    return super.{self::Superclass::method}(a, b, c, d, e);
+}
+class Mixed extends self::_Mixed&Superclass&Mixin1&Mixin2 implements self::Interface1, self::Interface2 {
+  synthetic constructor •() → self::Mixed*
+    ;
+  forwarding-stub method method(covariant core::int* a, covariant core::int* b, covariant core::int* c, covariant core::int* d, covariant core::int* e) → void
+    return super.{self::Superclass::method}(a, b, c, d, e);
+}
+static method main() → void
+  ;
+static method testDirect() → void
+  ;
+static method testInherited() → void
+  ;
+static method testOverridden() → void
+  ;
+static method testImplemented() → void
+  ;
+static method testMixed() → void
+  ;
+static method isTrue(core::bool* value) → void
+  ;

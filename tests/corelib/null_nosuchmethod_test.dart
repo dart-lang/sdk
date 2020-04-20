@@ -6,16 +6,30 @@ import "package:expect/expect.dart";
 
 // Test that Null's noSuchMethod can be closurized and called directly.
 
+class InvocationFactory {
+  static final dynamic instance = new InvocationFactory();
+  noSuchMethod(i) => i;
+}
+
 main() {
-  var x;
+  dynamic x;
   // Non-existing method calls noSuchMethod.
-  Expect.throws(() => x.foo(), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => x.foo());
+
+  var invocation = InvocationFactory.instance.foo;
 
   // Calling noSuchMethod directly.
-  Expect.throws(() => x.noSuchMethod("foo", []), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => x.noSuchMethod(invocation, []));
 
   // Closurizing noSuchMethod and calling it.
-  var nsm = x.noSuchMethod;
+  dynamic nsm = x.noSuchMethod;
   Expect.notEquals(null, nsm);
-  Expect.throws(() => nsm("foo", []), (e) => e is NoSuchMethodError);
+  Expect.throwsTypeError(() => nsm("foo"));
+
+  Expect.throwsNoSuchMethodError(() => nsm(invocation));
+  Expect.throwsNoSuchMethodError(
+      () => nsm(invocation, [])); // wrong number of args
+
+  // Wrong number and type of arguments.
+  Expect.throwsNoSuchMethodError(() => nsm("foo", [])); //# 01: ok
 }

@@ -37,16 +37,11 @@ StackResource::~StackResource() {
 #if defined(DEBUG)
   if (thread_ != NULL) {
     ASSERT(Thread::Current() == thread_);
-    BaseIsolate::AssertCurrent(reinterpret_cast<BaseIsolate*>(isolate()));
   }
 #endif
 }
 
-Isolate* StackResource::isolate() const {
-  return thread_ == NULL ? NULL : thread_->isolate();
-}
-
-void StackResource::Init(Thread* thread) {
+void StackResource::Init(ThreadState* thread) {
   // We can only have longjumps and exceptions when there is a current
   // thread and isolate.  If there is no current thread, we don't need to
   // protect this case.
@@ -60,22 +55,12 @@ void StackResource::Init(Thread* thread) {
   }
 }
 
-void StackResource::UnwindAbove(Thread* thread, StackResource* new_top) {
+void StackResource::UnwindAbove(ThreadState* thread, StackResource* new_top) {
   StackResource* current_resource = thread->top_resource();
   while (current_resource != new_top) {
     current_resource->~StackResource();
     current_resource = thread->top_resource();
   }
 }
-
-#if defined(DEBUG)
-NoSafepointScope::NoSafepointScope() : StackResource(Thread::Current()) {
-  thread()->IncrementNoSafepointScopeDepth();
-}
-
-NoSafepointScope::~NoSafepointScope() {
-  thread()->DecrementNoSafepointScopeDepth();
-}
-#endif  // defined(DEBUG)
 
 }  // namespace dart

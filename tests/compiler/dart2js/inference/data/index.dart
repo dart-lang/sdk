@@ -2,15 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 ////////////////////////////////////////////////////////////////////////////////
 // Lookup into a singleton list.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: listIndexSingle:[exact=JSUInt31]*/
+/*member: listIndexSingle:[exact=JSUInt31]*/
 listIndexSingle() {
   var list = [0];
   return list
-      /*Container mask: [exact=JSUInt31] length: 1 type: [exact=JSExtendableArray]*/
+      /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
       [0];
 }
 
@@ -18,11 +20,11 @@ listIndexSingle() {
 // Lookup into a list with multiple elements.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: listIndexMultiple:[exact=JSUInt31]*/
+/*member: listIndexMultiple:[exact=JSUInt31]*/
 listIndexMultiple() {
   var list = [0, 1, 2, 3];
   return list
-      /*Container mask: [exact=JSUInt31] length: 4 type: [exact=JSExtendableArray]*/
+      /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 4)*/
       [2];
 }
 
@@ -30,11 +32,11 @@ listIndexMultiple() {
 // Lookup into a list with an out-of-range index.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: listIndexBad:[exact=JSUInt31]*/
+/*member: listIndexBad:[exact=JSUInt31]*/
 listIndexBad() {
   var list = [0, 1];
   return list
-      /*Container mask: [exact=JSUInt31] length: 2 type: [exact=JSExtendableArray]*/
+      /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 2)*/
       [3];
 }
 
@@ -42,11 +44,11 @@ listIndexBad() {
 // Lookup into a list with mixed element types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: listIndexMixed:Union of [[exact=JSString], [exact=JSUInt31]]*/
+/*member: listIndexMixed:Union([exact=JSString], [exact=JSUInt31])*/
 listIndexMixed() {
   var list = [0, ''];
   return list
-      /*Container mask: Union of [[exact=JSString], [exact=JSUInt31]] length: 2 type: [exact=JSExtendableArray]*/
+      /*Container([exact=JSExtendableArray], element: Union([exact=JSString], [exact=JSUInt31]), length: 2)*/
       [0];
 }
 
@@ -54,11 +56,11 @@ listIndexMixed() {
 // Lookup into a singleton map.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: mapLookupSingle:[null|exact=JSUInt31]*/
+/*member: mapLookupSingle:[null|exact=JSUInt31]*/
 mapLookupSingle() {
   var map = {0: 1};
   return map
-      /*Map mask: [[exact=JSUInt31]/[null|exact=JSUInt31]] type: [subclass=JsLinkedHashMap]*/
+      /*Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
       [0];
 }
 
@@ -66,11 +68,11 @@ mapLookupSingle() {
 // Lookup into a map with multiple entries.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: mapLookupMultiple:[null|exact=JSUInt31]*/
+/*member: mapLookupMultiple:[null|exact=JSUInt31]*/
 mapLookupMultiple() {
   var map = {0: 1, 2: 3, 4: 5};
   return map
-      /*Map mask: [[exact=JSUInt31]/[null|exact=JSUInt31]] type: [subclass=JsLinkedHashMap]*/
+      /*Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
       [2];
 }
 
@@ -78,11 +80,11 @@ mapLookupMultiple() {
 // Lookup into a map with a missing key.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: mapLookupMissing:[null|exact=JSUInt31]*/
+/*member: mapLookupMissing:[null|exact=JSUInt31]*/
 mapLookupMissing() {
   var map = {0: 1};
   return map
-      /*Map mask: [[exact=JSUInt31]/[null|exact=JSUInt31]] type: [subclass=JsLinkedHashMap]*/
+      /*Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
       [2];
 }
 
@@ -90,11 +92,11 @@ mapLookupMissing() {
 // Lookup into a map with mixed key types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: mapLookupMixedKeys:[null|exact=JSUInt31]*/
+/*member: mapLookupMixedKeys:[null|exact=JSUInt31]*/
 mapLookupMixedKeys() {
   var map = {0: 1, '': 2};
   return map
-      /*Map mask: [Union of [[exact=JSString], [exact=JSUInt31]]/[null|exact=JSUInt31]] type: [subclass=JsLinkedHashMap]*/
+      /*Map([subclass=JsLinkedHashMap], key: Union([exact=JSString], [exact=JSUInt31]), value: [null|exact=JSUInt31])*/
       [''];
 }
 
@@ -102,11 +104,11 @@ mapLookupMixedKeys() {
 // Lookup into a map with mixed value types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: mapLookupMixedValues:Union of [[exact=JSUInt31], [null|exact=JSString]]*/
+/*member: mapLookupMixedValues:Union(null, [exact=JSString], [exact=JSUInt31])*/
 mapLookupMixedValues() {
   var map = {0: 1, 2: ''};
   return map
-      /*Map mask: [[exact=JSUInt31]/Union of [[exact=JSUInt31], [null|exact=JSString]]] type: [subclass=JsLinkedHashMap]*/
+      /*Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: Union(null, [exact=JSString], [exact=JSUInt31]))*/
       [2];
 }
 
@@ -114,11 +116,11 @@ mapLookupMixedValues() {
 // Lookup into a singleton map with String keys.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: dictionaryLookupSingle:Value mask: ["bar"] type: [exact=JSString]*/
+/*member: dictionaryLookupSingle:Value([exact=JSString], value: "bar")*/
 dictionaryLookupSingle() {
   var map = {'foo': 'bar'};
   return map
-      /*Dictionary mask: [Value mask: ["foo"] type: [exact=JSString]/Value mask: ["bar"] type: [null|exact=JSString] with {foo: Value mask: ["bar"] type: [exact=JSString]}] type: [subclass=JsLinkedHashMap]*/
+      /*Dictionary([subclass=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: Value([null|exact=JSString], value: "bar"), map: {foo: Value([exact=JSString], value: "bar")})*/
       ['foo'];
 }
 
@@ -126,11 +128,11 @@ dictionaryLookupSingle() {
 // Lookup into a map with String keys.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: dictionaryLookupMultiple:Value mask: ["boz"] type: [exact=JSString]*/
+/*member: dictionaryLookupMultiple:Value([exact=JSString], value: "boz")*/
 dictionaryLookupMultiple() {
   var map = {'foo': 'bar', 'baz': 'boz'};
   return map
-      /*Dictionary mask: [[exact=JSString]/[null|exact=JSString] with {foo: Value mask: ["bar"] type: [exact=JSString], baz: Value mask: ["boz"] type: [exact=JSString]}] type: [subclass=JsLinkedHashMap]*/
+      /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSString], map: {foo: Value([exact=JSString], value: "bar"), baz: Value([exact=JSString], value: "boz")})*/
       ['baz'];
 }
 
@@ -138,11 +140,11 @@ dictionaryLookupMultiple() {
 // Lookup into a map with String keys with a missing key.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: dictionaryLookupMissing:[null]*/
+/*member: dictionaryLookupMissing:[null]*/
 dictionaryLookupMissing() {
   var map = {'foo': 'bar', 'baz': 'boz'};
   return map
-      /*Dictionary mask: [[exact=JSString]/[null|exact=JSString] with {foo: Value mask: ["bar"] type: [exact=JSString], baz: Value mask: ["boz"] type: [exact=JSString]}] type: [subclass=JsLinkedHashMap]*/
+      /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSString], map: {foo: Value([exact=JSString], value: "bar"), baz: Value([exact=JSString], value: "boz")})*/
       ['unknown'];
 }
 
@@ -150,15 +152,44 @@ dictionaryLookupMissing() {
 // Lookup into a string-to-int map.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: intDictionaryLookupSingle:[exact=JSUInt31]*/
+/*member: intDictionaryLookupSingle:[exact=JSUInt31]*/
 intDictionaryLookupSingle() {
   var map = {'foo': 0};
   return map
-      /*Dictionary mask: [Value mask: ["foo"] type: [exact=JSString]/[null|exact=JSUInt31] with {foo: [exact=JSUInt31]}] type: [subclass=JsLinkedHashMap]*/
+      /*Dictionary([subclass=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: [null|exact=JSUInt31], map: {foo: [exact=JSUInt31]})*/
       ['foo'];
 }
 
-/*element: main:[null]*/
+////////////////////////////////////////////////////////////////////////////////
+// Index access on custom class.
+////////////////////////////////////////////////////////////////////////////////
+
+/*member: Class1.:[exact=Class1]*/
+class Class1 {
+  /*member: Class1.[]:[exact=JSUInt31]*/
+  operator [](/*[exact=JSUInt31]*/ index) => index;
+}
+
+/*member: customIndex:[exact=JSUInt31]*/
+customIndex() => new Class1() /*[exact=Class1]*/ [42];
+
+////////////////////////////////////////////////////////////////////////////////
+// Index access on custom class through `this`.
+////////////////////////////////////////////////////////////////////////////////
+
+/*member: Class2.:[exact=Class2]*/
+class Class2 {
+  /*member: Class2.[]:[exact=JSUInt31]*/
+  operator [](/*[exact=JSUInt31]*/ index) => index;
+
+  /*member: Class2.method:[exact=JSUInt31]*/
+  method() => this /*[exact=Class2]*/ [42];
+}
+
+/*member: customIndexThis:[exact=JSUInt31]*/
+customIndexThis() => new Class2(). /*invoke: [exact=Class2]*/ method();
+
+/*member: main:[null]*/
 main() {
   listIndexSingle();
   listIndexMultiple();
@@ -176,4 +207,7 @@ main() {
   dictionaryLookupMissing();
 
   intDictionaryLookupSingle();
+
+  customIndex();
+  customIndexThis();
 }

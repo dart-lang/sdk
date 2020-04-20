@@ -10,20 +10,25 @@
 
 namespace dart {
 
+class String;
 class Zone;
 
 // TextBuffer maintains a dynamic character buffer with a printf-style way to
 // append text.
 class ZoneTextBuffer : ValueObject {
  public:
-  ZoneTextBuffer(Zone* zone, intptr_t initial_capacity);
+  explicit ZoneTextBuffer(Zone* zone, intptr_t initial_capacity = 64);
   ~ZoneTextBuffer() {}
 
   intptr_t Printf(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+  void AddChar(char ch);
   void AddString(const char* s);
+  void AddString(const String& s);
 
   char* buffer() { return buffer_; }
   intptr_t length() { return length_; }
+
+  void Clear();
 
  private:
   void EnsureCapacity(intptr_t len);

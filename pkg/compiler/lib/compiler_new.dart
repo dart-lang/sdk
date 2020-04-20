@@ -9,11 +9,13 @@ library compiler_new;
 
 import 'dart:async';
 
+import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
+
 import 'compiler.dart' show Diagnostic;
 import 'src/apiimpl.dart';
 import 'src/options.dart' show CompilerOptions;
 
-export 'compiler.dart' show Diagnostic, PackagesDiscoveryProvider;
+export 'compiler.dart' show Diagnostic;
 
 // Unless explicitly allowed, passing `null` for any argument to the
 // methods of library will result in an Error being thrown.
@@ -22,7 +24,7 @@ export 'compiler.dart' show Diagnostic, PackagesDiscoveryProvider;
 enum InputKind {
   /// Data is read as UTF8 either as a [String] or a zero-terminated
   /// `List<int>`.
-  utf8,
+  UTF8,
 
   /// Data is read as bytes in a `List<int>`.
   binary,
@@ -46,7 +48,7 @@ abstract class CompilerInput {
   /// Returns a future that completes to the source corresponding to [uri].
   /// If an exception occurs, the future completes with this exception.
   ///
-  /// If [inputKind] is `InputKind.utf8` the source can be represented either as
+  /// If [inputKind] is `InputKind.UTF8` the source can be represented either as
   /// a zero-terminated `List<int>` of UTF-8 bytes or as a [String]. If
   /// [inputKind] is `InputKind.binary` the source is a read a `List<int>`.
   ///
@@ -56,7 +58,7 @@ abstract class CompilerInput {
   /// scanner is more efficient in this case. In either case, the data structure
   /// is expected to hold a zero element at the last position. If this is not
   /// the case, the entire data structure is copied before scanning.
-  Future<Input> readFromUri(Uri uri, {InputKind inputKind: InputKind.utf8});
+  Future<Input> readFromUri(Uri uri, {InputKind inputKind: InputKind.UTF8});
 }
 
 /// Output types used in `CompilerOutput.createOutputSink`.
@@ -70,12 +72,11 @@ enum OutputType {
   /// A source map for a JavaScript output.
   sourceMap,
 
-  /// Serialization data output.
-  serializationData,
+  /// Dump info output.
+  dumpInfo,
 
-  /// Additional information requested by the user, such dump info or a deferred
-  /// map.
-  info,
+  /// Deferred map output.
+  deferredMap,
 
   /// Implementation specific output used for debugging the compiler.
   debug,
@@ -85,6 +86,15 @@ enum OutputType {
 abstract class OutputSink {
   /// Adds [text] to the sink.
   void add(String text);
+
+  /// Closes the sink.
+  void close();
+}
+
+/// Sink interface used for generating binary data from the compiler.
+abstract class BinaryOutputSink {
+  /// Writes indices [start] to [end] of [buffer] to the sink.
+  void write(List<int> buffer, [int start = 0, int end]);
 
   /// Closes the sink.
   void close();
@@ -102,6 +112,10 @@ abstract class CompilerOutput {
   // TODO(johnniwinther): Replace [name] and [extension] with something like
   // [id] and [uri].
   OutputSink createOutputSink(String name, String extension, OutputType type);
+
+  /// Returns an [BinaryOutputSink] that will serve as compiler output for the
+  /// given URI.
+  BinaryOutputSink createBinarySink(Uri uri);
 }
 
 /// Interface for receiving diagnostic message from the compiler. That is,
@@ -134,7 +148,13 @@ class CompilationResult {
   /// Use only for debugging and testing.
   final compiler;
 
-  CompilationResult(this.compiler, {this.isSuccess: true});
+  /// Shared state between compilations.
+  ///
+  /// This is used to speed up batch mode.
+  final fe.InitializedCompilerState kernelInitializedCompilerState;
+
+  CompilationResult(this.compiler,
+      {this.isSuccess: true, this.kernelInitializedCompilerState: null});
 }
 
 /// Returns a future that completes to a [CompilationResult] when the Dart
@@ -167,6 +187,9 @@ Future<CompilationResult> compile(
   CompilerImpl compiler = new CompilerImpl(
       compilerInput, compilerOutput, compilerDiagnostics, compilerOptions);
   return compiler.run(compilerOptions.entryPoint).then((bool success) {
-    return new CompilationResult(compiler, isSuccess: success);
+    return new CompilationResult(compiler,
+        isSuccess: success,
+        kernelInitializedCompilerState:
+            compiler.kernelLoader.initializedCompilerState);
   });
 }

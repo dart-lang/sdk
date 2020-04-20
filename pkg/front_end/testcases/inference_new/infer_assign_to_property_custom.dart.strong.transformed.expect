@@ -1,0 +1,36 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  operator +(dynamic other) → core::int
+    return 1;
+  operator -(dynamic other) → core::double
+    return 2.0;
+}
+class B extends core::Object {
+  field self::A a = null;
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+static field core::int v_prefix_pp = let final self::B #t1 = new self::B::•() in #t1.{self::B::a} = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:17:37: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'test::A'.
+Try changing the type of the left hand side, or casting the right hand side to 'test::A'.
+var  v_prefix_pp = (++new B(). /*@target=B::a*/ a);
+                                    ^" in #t1.{self::B::a}.{self::A::+}(1) as{TypeError} <BottomType>;
+static field core::double v_prefix_mm = let final self::B #t3 = new self::B::•() in #t3.{self::B::a} = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:18:40: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'test::A'.
+Try changing the type of the left hand side, or casting the right hand side to 'test::A'.
+var  v_prefix_mm = (--new B(). /*@target=B::a*/ a);
+                                       ^" in #t3.{self::B::a}.{self::A::-}(1) as{TypeError} <BottomType>;
+static field self::A v_postfix_pp = let final self::B #t5 = new self::B::•() in let final self::A #t6 = #t5.{self::B::a} in let final core::int #t7 = #t5.{self::B::a} = let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:19:63: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'test::A'.
+Try changing the type of the left hand side, or casting the right hand side to 'test::A'.
+var  v_postfix_pp = (new B(). /*@target=B::a*/ a++);
+                                                              ^" in #t6.{self::A::+}(1) as{TypeError} <BottomType>in #t6;
+static field self::A v_postfix_mm = let final self::B #t9 = new self::B::•() in let final self::A #t10 = #t9.{self::B::a} in let final core::double #t11 = #t9.{self::B::a} = let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:20:63: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'test::A'.
+Try changing the type of the left hand side, or casting the right hand side to 'test::A'.
+var  v_postfix_mm = (new B(). /*@target=B::a*/ a--);
+                                                              ^" in #t10.{self::A::-}(1) as{TypeError} <BottomType>in #t10;
+static method main() → dynamic {}

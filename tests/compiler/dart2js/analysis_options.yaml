@@ -3,15 +3,15 @@
 # BSD-style license that can be found in the LICENSE file.
 
 analyzer:
-  strong-mode: true
-
-  language:
-    enableSuperMixins: false
-
   errors:
     todo: ignore
     deprecated_member_use: ignore
 
   exclude:
-    - data/*
-    - sourcemaps/data/*
+    - '**/data/*'
+    - '**/model_data/*'
+    - 'deferred_loading/libs/*'
+
+linter:
+  rules:
+    - annotate_overrides

@@ -1,0 +1,26 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile a hello world program, check that omit platform works as expected.
+# Omit platform is true by default in tests.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        main() {
+          print("Hello world");
+        }
+    expectedLibraryCount: 1
+  - entry: main.dart
+    noFullComponent: true
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        main() {
+          print("Hello world!");
+        }
+    expectedLibraryCount: 1

@@ -6,7 +6,7 @@
 library test;
 
 main() {
-  var /*@type=() -> Iterable<Null>*/ f = /*@returnType=Iterable<Null>*/ () sync* {
+  var /*@ type=() ->* Iterable<Null?>* */ f = /*@ returnType=Iterable<Null?>* */ () sync* {
     yield null;
   };
   Iterable y = f();

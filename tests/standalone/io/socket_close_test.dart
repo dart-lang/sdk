@@ -1,6 +1,9 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
 //
 // VMOptions=
 // VMOptions=--short_socket_read
@@ -12,6 +15,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
@@ -27,8 +31,7 @@ Future sendReceive(SendPort port, message) {
 
 class SocketClose {
   SocketClose.start(this._mode, this._done)
-      : _sendPort = null,
-        _readBytes = 0,
+      : _readBytes = 0,
         _dataEvents = 0,
         _closeEvents = 0,
         _errorEvents = 0,
@@ -45,7 +48,7 @@ class SocketClose {
   }
 
   void sendData() {
-    void dataHandler(bytes) {
+    void dataHandler(Uint8List bytes) {
       switch (_mode) {
         case 0:
         case 1:
@@ -147,7 +150,7 @@ class SocketClose {
 
     receivePort.first.then((message) {
       this._sendPort = message;
-      sendReceive(_sendPort, _mode).then((int port) {
+      sendReceive(_sendPort, _mode).then((port) {
         this._port = port;
         proceed();
       });
@@ -186,9 +189,8 @@ class SocketClose {
     Expect.equals(0, _errorEvents);
   }
 
-  int _port;
-  SendPort _sendPort;
-  List<int> _buffer;
+  late int _port;
+  late SendPort _sendPort;
   int _readBytes;
   int _dataEvents;
   int _closeEvents;
@@ -204,7 +206,8 @@ class ConnectionData {
   int readBytes;
 }
 
-void startSocketCloseServer(SendPort replyTo) {
+void startSocketCloseServer(Object replyToObj) {
+  SendPort replyTo = replyToObj as SendPort;
   var server = new SocketCloseServer();
   replyTo.send(server.dispatchSendPort);
 }
@@ -219,7 +222,7 @@ class SocketCloseServer {
   void connectionHandler(ConnectionData data) {
     var connection = data.connection;
 
-    void readBytes(bytes, whenFiveBytes) {
+    void readBytes(Uint8List bytes, whenFiveBytes) {
       data.readBytes += bytes.length;
       Expect.isTrue(data.readBytes <= 5);
       if (data.readBytes == 5) {
@@ -231,7 +234,7 @@ class SocketCloseServer {
       connection.write("Hello");
     }
 
-    void dataHandler(bytes) {
+    void dataHandler(Uint8List bytes) {
       switch (_mode) {
         case 0:
           Expect.fail("No data expected");
@@ -358,15 +361,15 @@ class SocketCloseServer {
     }
   }
 
-  ServerSocket _server;
+  late ServerSocket _server;
   final ReceivePort _dispatchPort;
-  SendPort _donePort;
-  int _readBytes;
-  int _errorEvents;
-  int _dataEvents;
-  int _closeEvents;
-  int _iterations;
-  int _mode;
+  late SendPort _donePort;
+  int _readBytes = 0;
+  int _errorEvents = 0;
+  int _dataEvents = 0;
+  int _closeEvents = 0;
+  int _iterations = 0;
+  int _mode = 0;
 }
 
 main() {

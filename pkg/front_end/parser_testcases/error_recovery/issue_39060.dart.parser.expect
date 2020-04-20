@@ -1,0 +1,9 @@
+NOTICE: Stream was rewritten by parser!
+
+main() {
+{s A;<}>
+[];}
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+{[BeginToken]s[StringToken] A[StringToken];[SyntheticToken]<[BeginToken][SyntheticStringToken]}[SimpleToken]>[SimpleToken]
+[[SyntheticBeginToken]][SyntheticToken];[SyntheticToken]}[SimpleToken][SimpleToken]

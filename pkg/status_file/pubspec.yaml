@@ -1,11 +1,11 @@
 name: status_file
-author: Dart Team <misc@dartlang.org>
-description: Parses status files.
-homepage: http://www.dartlang.org
-#environment:
-#  sdk: '>=1.0.0 <2.0.0'
+# This package is not intended to be published.
+publish_to: none
+environment:
+  sdk: "^2.3.0"
 dependencies:
   path: "^1.4.0"
+  args: "^1.4.4"
 dev_dependencies:
   expect:
     path: ../expect

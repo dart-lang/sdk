@@ -9,16 +9,16 @@
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
+#include "vm/heap/verifier.h"
 #include "vm/resolver.h"
 #include "vm/unit_test.h"
-#include "vm/verifier.h"
 #include "vm/zone.h"
 
 namespace dart {
 
 // Unit test for empty stack frame iteration.
 ISOLATE_UNIT_TEST_CASE(EmptyStackFrameIteration) {
-  StackFrameIterator iterator(StackFrameIterator::kValidateFrames,
+  StackFrameIterator iterator(ValidationPolicy::kValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
   EXPECT(!iterator.HasNextFrame());
@@ -39,42 +39,42 @@ ISOLATE_UNIT_TEST_CASE(EmptyDartStackFrameIteration) {
 
 void FUNCTION_NAME(StackFrame_equals)(Dart_NativeArguments args) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  const Instance& expected = Instance::CheckedHandle(arguments->NativeArgAt(0));
-  const Instance& actual = Instance::CheckedHandle(arguments->NativeArgAt(1));
+  TransitionNativeToVM transition(arguments->thread());
+  Zone* zone = arguments->thread()->zone();
+  const Instance& expected =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Instance& actual =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
   if (!expected.OperatorEquals(actual)) {
-    OS::Print("expected: '%s' actual: '%s'\n", expected.ToCString(),
-              actual.ToCString());
-    FATAL("Expect_equals fails.\n");
+    OS::PrintErr("expected: '%s' actual: '%s'\n", expected.ToCString(),
+                 actual.ToCString());
+    EXPECT(false);
   }
 }
 
 void FUNCTION_NAME(StackFrame_frameCount)(Dart_NativeArguments args) {
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  TransitionNativeToVM transition(arguments->thread());
   int count = 0;
-  StackFrameIterator frames(StackFrameIterator::kValidateFrames,
-                            Thread::Current(),
+  StackFrameIterator frames(ValidationPolicy::kValidateFrames,
+                            arguments->thread(),
                             StackFrameIterator::kNoCrossThreadIteration);
   while (frames.NextFrame() != NULL) {
     count += 1;  // Count the frame.
   }
-  {
-    TransitionNativeToVM transition(Thread::Current());
-    VerifyPointersVisitor::VerifyPointers();
-  }
-  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  VerifyPointersVisitor::VerifyPointers();
   arguments->SetReturn(Object::Handle(Smi::New(count)));
 }
 
 void FUNCTION_NAME(StackFrame_dartFrameCount)(Dart_NativeArguments args) {
+  TransitionNativeToVM transition(Thread::Current());
   int count = 0;
   DartFrameIterator frames(Thread::Current(),
                            StackFrameIterator::kNoCrossThreadIteration);
   while (frames.NextFrame() != NULL) {
     count += 1;  // Count the dart frame.
   }
-  {
-    TransitionNativeToVM transition(Thread::Current());
-    VerifyPointersVisitor::VerifyPointers();
-  }
+  VerifyPointersVisitor::VerifyPointers();
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   arguments->SetReturn(Object::Handle(Smi::New(count)));
 }
@@ -85,13 +85,15 @@ void FUNCTION_NAME(StackFrame_validateFrame)(Dart_NativeArguments args) {
 
   Dart_Handle index = Dart_GetNativeArgument(args, 0);
   Dart_Handle name = Dart_GetNativeArgument(args, 1);
-  const Smi& frame_index_smi = Smi::CheckedHandle(Api::UnwrapHandle(index));
+
+  TransitionNativeToVM transition(thread);
+  const Smi& frame_index_smi =
+      Smi::CheckedHandle(zone, Api::UnwrapHandle(index));
   const char* expected_name =
-      String::CheckedHandle(Api::UnwrapHandle(name)).ToCString();
+      String::CheckedHandle(zone, Api::UnwrapHandle(name)).ToCString();
   int frame_index = frame_index_smi.Value();
   int count = 0;
-  DartFrameIterator frames(Thread::Current(),
-                           StackFrameIterator::kNoCrossThreadIteration);
+  DartFrameIterator frames(thread, StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
   while (frame != NULL) {
     if (count == frame_index) {
@@ -110,9 +112,7 @@ void FUNCTION_NAME(StackFrame_validateFrame)(Dart_NativeArguments args) {
       ASSERT(!lib.IsNull());
       const char* lib_name = String::Handle(zone, lib.url()).ToCString();
       char* full_name = OS::SCreate(zone, "%s_%s", lib_name, expected_name);
-      if (strcmp(full_name, name) != 0) {
-        FATAL("StackFrame_validateFrame fails, incorrect frame.\n");
-      }
+      EXPECT_STREQ(full_name, name);
       return;
     }
     count += 1;  // Count the dart frames.
@@ -141,6 +141,7 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
                                          bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
   *auto_setup_scope = false;
+  TransitionNativeToVM transition(Thread::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(name));
   ASSERT(obj.IsString());
   const char* function_name = obj.ToCString();
@@ -148,7 +149,7 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
   int num_entries = sizeof(BuiltinEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
     struct NativeEntries* entry = &(BuiltinEntries[i]);
-    if (!strcmp(function_name, entry->name_) &&
+    if ((strcmp(function_name, entry->name_) == 0) &&
         (entry->argument_count_ == argument_count)) {
       return reinterpret_cast<Dart_NativeFunction>(entry->function_);
     }
@@ -248,7 +249,45 @@ TEST_CASE(ValidateNoSuchMethodStackFrameIteration) {
   // The true stack depends on which strategy we are using for noSuchMethod. The
   // stacktrace as seen by Dart is the same either way because dispatcher
   // methods are marked invisible.
-  if (FLAG_lazy_dispatchers) {
+  if (FLAG_enable_interpreter) {
+    kScriptChars =
+        "class StackFrame {"
+        "  static equals(var obj1, var obj2) native \"StackFrame_equals\";"
+        "  static int frameCount() native \"StackFrame_frameCount\";"
+        "  static int dartFrameCount() native \"StackFrame_dartFrameCount\";"
+        "  static validateFrame(int index,"
+        "                       String name) native "
+        "\"StackFrame_validateFrame\";"
+        "} "
+        "class StackFrame2Test {"
+        "  StackFrame2Test() {}"
+        "  noSuchMethod(Invocation im) {"
+        "    /* We should have 8 general frames and 4 dart frames as follows:"
+        "     * exit frame"
+        "     * dart frame corresponding to StackFrame.frameCount"
+        "     * dart frame corresponding to StackFrame2Test.noSuchMethod"
+        "     * entry frame"
+        "     * exit frame"
+        "     * dart frame for noSuchMethod dispatcher"
+        "     * dart frame corresponding to StackFrame2Test.testMain"
+        "     * entry frame"
+        "     */"
+        "    StackFrame.equals(8, StackFrame.frameCount());"
+        "    StackFrame.equals(4, StackFrame.dartFrameCount());"
+        "    StackFrame.validateFrame(0, \"StackFrame_validateFrame\");"
+        "    StackFrame.validateFrame(1, \"StackFrame2Test_noSuchMethod\");"
+        "    StackFrame.validateFrame(2, \"StackFrame2Test_foo\");"
+        "    StackFrame.validateFrame(3, \"StackFrame2Test_testMain\");"
+        "    return 5;"
+        "  }"
+        "  static testMain() {"
+        "    /* Declare |obj| dynamic so that noSuchMethod can be"
+        "     * called in strong mode. */"
+        "    dynamic obj = new StackFrame2Test();"
+        "    StackFrame.equals(5, obj.foo(101, 202));"
+        "  }"
+        "}";
+  } else if (FLAG_lazy_dispatchers) {
     kScriptChars =
         "class StackFrame {"
         "  static equals(var obj1, var obj2) native \"StackFrame_equals\";"
@@ -279,7 +318,9 @@ TEST_CASE(ValidateNoSuchMethodStackFrameIteration) {
         "    return 5;"
         "  }"
         "  static testMain() {"
-        "    var obj = new StackFrame2Test();"
+        "    /* Declare |obj| dynamic so that noSuchMethod can be"
+        "     * called in strong mode. */"
+        "    dynamic obj = new StackFrame2Test();"
         "    StackFrame.equals(5, obj.foo(101, 202));"
         "  }"
         "}";
@@ -301,7 +342,7 @@ TEST_CASE(ValidateNoSuchMethodStackFrameIteration) {
         "     * dart frame corresponding to StackFrame.frameCount"
         "     * dart frame corresponding to StackFrame2Test.noSuchMethod"
         "     * entry frame"
-        "     * exit frame (call to runtime InvokeNoSuchMethodDispatcher)"
+        "     * exit frame (call to runtime NoSuchMethodFromCallStub)"
         "     * IC stub"
         "     * dart frame corresponding to StackFrame2Test.testMain"
         "     * entry frame"
@@ -314,7 +355,9 @@ TEST_CASE(ValidateNoSuchMethodStackFrameIteration) {
         "    return 5;"
         "  }"
         "  static testMain() {"
-        "    var obj = new StackFrame2Test();"
+        "    /* Declare |obj| dynamic so that noSuchMethod can be"
+        "     * called in strong mode. */"
+        "    dynamic obj = new StackFrame2Test();"
         "    StackFrame.equals(5, obj.foo(101, 202));"
         "  }"
         "}";

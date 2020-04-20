@@ -6,7 +6,7 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/thread.h"
@@ -14,6 +14,6 @@
 
 namespace dart {
 
-intptr_t ApiNativeScope::current_memory_usage_ = 0;
+RelaxedAtomic<intptr_t> ApiNativeScope::current_memory_usage_ = 0;
 
 }  // namespace dart

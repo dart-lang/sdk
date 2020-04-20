@@ -33,8 +33,8 @@ testDatagramBroadcastOptions() {
     });
   }
 
-  test(InternetAddress.LOOPBACK_IP_V4);
-  test(InternetAddress.ANY_IP_V4);
+  test(InternetAddress.loopbackIPv4);
+  test(InternetAddress.anyIPv4);
 }
 
 testDatagramMulticastOptions() {
@@ -61,35 +61,103 @@ testDatagramMulticastOptions() {
     });
   }
 
-  test(InternetAddress.LOOPBACK_IP_V4);
-  test(InternetAddress.ANY_IP_V4);
-  test(InternetAddress.LOOPBACK_IP_V6);
-  test(InternetAddress.ANY_IP_V6);
+  test(InternetAddress.loopbackIPv4);
+  test(InternetAddress.anyIPv4);
+  test(InternetAddress.loopbackIPv6);
+  test(InternetAddress.anyIPv6);
 }
 
 testDatagramSocketReuseAddress() {
   test(address, reuseAddress) {
     asyncStart();
-    RawDatagramSocket
-        .bind(address, 0, reuseAddress: reuseAddress)
+    RawDatagramSocket.bind(address, 0,
+            reuseAddress: reuseAddress,
+            reusePort: Platform.isMacOS && reuseAddress)
         .then((socket) {
       if (reuseAddress) {
-        RawDatagramSocket
-            .bind(address, socket.port)
+        RawDatagramSocket.bind(address, socket.port,
+                reusePort: Platform.isMacOS)
             .then((s) => Expect.isTrue(s is RawDatagramSocket))
             .then(asyncSuccess);
       } else {
-        FutureExpect
-            .throws(RawDatagramSocket.bind(address, socket.port))
+        FutureExpect.throws(RawDatagramSocket.bind(address, socket.port))
             .then(asyncSuccess);
       }
     });
   }
 
-  test(InternetAddress.LOOPBACK_IP_V4, true);
-  test(InternetAddress.LOOPBACK_IP_V4, false);
-  test(InternetAddress.LOOPBACK_IP_V6, true);
-  test(InternetAddress.LOOPBACK_IP_V6, false);
+  test(InternetAddress.loopbackIPv4, true);
+  test(InternetAddress.loopbackIPv4, false);
+  test(InternetAddress.loopbackIPv6, true);
+  test(InternetAddress.loopbackIPv6, false);
+}
+
+testDatagramSocketTtl() {
+  test(address, ttl, shouldSucceed) {
+    asyncStart();
+    if (shouldSucceed) {
+      RawDatagramSocket.bind(address, 0, ttl: ttl).then(asyncSuccess);
+    } else {
+      Expect.throws(() => RawDatagramSocket.bind(address, 0, ttl: ttl));
+      asyncEnd();
+    }
+  }
+
+  test(InternetAddress.loopbackIPv4, 1, true);
+  test(InternetAddress.loopbackIPv4, 255, true);
+  test(InternetAddress.loopbackIPv4, 256, false);
+  test(InternetAddress.loopbackIPv4, 0, false);
+  test(InternetAddress.loopbackIPv4, null, false);
+
+  test(InternetAddress.loopbackIPv6, 1, true);
+  test(InternetAddress.loopbackIPv6, 255, true);
+  test(InternetAddress.loopbackIPv6, 256, false);
+  test(InternetAddress.loopbackIPv6, 0, false);
+  test(InternetAddress.loopbackIPv6, null, false);
+}
+
+testDatagramSocketMulticastIf() {
+  test(address) async {
+    asyncStart();
+    final socket = await RawDatagramSocket.bind(address, 0);
+    RawSocketOption option;
+    late int idx;
+    if (address.type == InternetAddressType.IPv4) {
+      option = RawSocketOption(RawSocketOption.levelIPv4,
+          RawSocketOption.IPv4MulticastInterface, address.rawAddress);
+    } else {
+      if (!NetworkInterface.listSupported) {
+        asyncEnd();
+        return;
+      }
+      var interface = await NetworkInterface.list();
+      if (interface.length == 0) {
+        asyncEnd();
+        return;
+      }
+      idx = interface[0].index;
+      option = RawSocketOption.fromInt(RawSocketOption.levelIPv6,
+          RawSocketOption.IPv6MulticastInterface, idx);
+    }
+
+    socket.setRawOption(option);
+    final getResult = socket.getRawOption(option);
+
+    if (address.type == InternetAddressType.IPv4) {
+      Expect.listEquals(getResult, address.rawAddress);
+    } else {
+      // RawSocketOption.fromInt() will create a Uint8List(4).
+      Expect.equals(
+          getResult.buffer.asByteData().getUint32(0, Endian.host), idx);
+    }
+
+    asyncSuccess(socket);
+  }
+
+  test(InternetAddress.loopbackIPv4);
+  test(InternetAddress.anyIPv4);
+  test(InternetAddress.loopbackIPv6);
+  test(InternetAddress.anyIPv6);
 }
 
 testBroadcast() {
@@ -107,7 +175,7 @@ testBroadcast() {
       receiver.broadcastEnabled = enabled;
       sender.broadcastEnabled = enabled;
       receiver.listen((event) {
-        if (event == RawSocketEvent.READ) {
+        if (event == RawSocketEvent.read) {
           Expect.isTrue(enabled);
           sender.close();
           receiver.close();
@@ -135,8 +203,8 @@ testBroadcast() {
   }
 
   var broadcast = new InternetAddress("255.255.255.255");
-  test(InternetAddress.ANY_IP_V4, broadcast, false);
-  test(InternetAddress.ANY_IP_V4, broadcast, true);
+  test(InternetAddress.anyIPv4, broadcast, false);
+  test(InternetAddress.anyIPv4, broadcast, true);
 }
 
 testLoopbackMulticast() {
@@ -158,9 +226,9 @@ testLoopbackMulticast() {
       sender.multicastLoopback = enabled;
 
       receiver.listen((event) {
-        if (event == RawSocketEvent.READ) {
+        if (event == RawSocketEvent.read) {
           if (!enabled) {
-            var data = receiver.receive();
+            var data = receiver.receive()!;
             print(data.port);
             print(data.address);
           }
@@ -190,17 +258,17 @@ testLoopbackMulticast() {
     });
   }
 
-  test(InternetAddress.ANY_IP_V4, new InternetAddress("228.0.0.4"), true);
-  test(InternetAddress.ANY_IP_V4, new InternetAddress("224.0.0.0"), false);
+  test(InternetAddress.anyIPv4, new InternetAddress("228.0.0.4"), true);
+  test(InternetAddress.anyIPv4, new InternetAddress("224.0.0.0"), false);
   // TODO(30306): Reenable for Linux
   if (!Platform.isMacOS && !Platform.isLinux) {
-    test(InternetAddress.ANY_IP_V6, new InternetAddress("ff11::0"), true);
-    test(InternetAddress.ANY_IP_V6, new InternetAddress("ff11::0"), false);
+    test(InternetAddress.anyIPv6, new InternetAddress("ff11::0"), true);
+    test(InternetAddress.anyIPv6, new InternetAddress("ff11::0"), false);
   }
 }
 
 testLoopbackMulticastError() {
-  var bindAddress = InternetAddress.ANY_IP_V4;
+  var bindAddress = InternetAddress.anyIPv4;
   var multicastAddress = new InternetAddress("228.0.0.4");
   asyncStart();
   Future.wait([
@@ -226,7 +294,7 @@ testSendReceive(InternetAddress bindAddress, int dataSize) {
   int receivedSeq = 0;
 
   var ackSeq = 0;
-  Timer ackTimer;
+  Timer? ackTimer;
 
   Future.wait([
     RawDatagramSocket.bind(bindAddress, 0, reuseAddress: false),
@@ -268,14 +336,14 @@ testSendReceive(InternetAddress bindAddress, int dataSize) {
       int bytes = receiver.send(createAckPackage(receivedSeq), address, port);
       Expect.isTrue(bytes == 0 || bytes == 4);
       // Start a "long" timer for more data.
-      if (ackTimer != null) ackTimer.cancel();
+      ackTimer?.cancel();
       ackTimer = new Timer.periodic(
           new Duration(milliseconds: 100), (_) => sendAck(address, port));
     }
 
     sender.listen((event) {
       switch (event) {
-        case RawSocketEvent.READ:
+        case RawSocketEvent.read:
           var datagram = sender.receive();
           if (datagram != null) {
             Expect.equals(datagram.port, receiver.port);
@@ -288,16 +356,16 @@ testSendReceive(InternetAddress bindAddress, int dataSize) {
             } else {
               sender.close();
               receiver.close();
-              ackTimer.cancel();
+              ackTimer?.cancel();
               asyncEnd();
             }
           }
           break;
-        case RawSocketEvent.WRITE:
+        case RawSocketEvent.write:
           // Send the next package.
           sendData(ackSeq + 1);
           break;
-        case RawSocketEvent.CLOSED:
+        case RawSocketEvent.closed:
           break;
         default:
           throw "Unexpected event $event";
@@ -307,7 +375,7 @@ testSendReceive(InternetAddress bindAddress, int dataSize) {
     receiver.writeEventsEnabled = false;
     receiver.listen((event) {
       switch (event) {
-        case RawSocketEvent.READ:
+        case RawSocketEvent.read:
           var datagram = receiver.receive();
           if (datagram != null) {
             Expect.equals(datagram.port, sender.port);
@@ -322,10 +390,10 @@ testSendReceive(InternetAddress bindAddress, int dataSize) {
             }
           }
           break;
-        case RawSocketEvent.WRITE:
-          throw "Unexpected WRITE";
+        case RawSocketEvent.write:
+          throw "Unexpected.write";
           break;
-        case RawSocketEvent.CLOSED:
+        case RawSocketEvent.closed:
           break;
         default:
           throw "Unexpected event $event";
@@ -337,18 +405,18 @@ testSendReceive(InternetAddress bindAddress, int dataSize) {
 main() {
   testDatagramBroadcastOptions();
   testDatagramMulticastOptions();
-  if (!Platform.isMacOS) {
-    testDatagramSocketReuseAddress();
-  }
+  testDatagramSocketReuseAddress();
+  testDatagramSocketTtl();
+  testDatagramSocketMulticastIf();
   testBroadcast();
   testLoopbackMulticast();
   testLoopbackMulticastError();
-  testSendReceive(InternetAddress.LOOPBACK_IP_V4, 1000);
-  testSendReceive(InternetAddress.LOOPBACK_IP_V6, 1000);
+  testSendReceive(InternetAddress.loopbackIPv4, 1000);
+  testSendReceive(InternetAddress.loopbackIPv6, 1000);
   if (!Platform.isMacOS) {
-    testSendReceive(InternetAddress.LOOPBACK_IP_V4, 32 * 1024);
-    testSendReceive(InternetAddress.LOOPBACK_IP_V6, 32 * 1024);
-    testSendReceive(InternetAddress.LOOPBACK_IP_V4, 64 * 1024 - 32);
-    testSendReceive(InternetAddress.LOOPBACK_IP_V6, 64 * 1024 - 32);
+    testSendReceive(InternetAddress.loopbackIPv4, 32 * 1024);
+    testSendReceive(InternetAddress.loopbackIPv6, 32 * 1024);
+    testSendReceive(InternetAddress.loopbackIPv4, 64 * 1024 - 32);
+    testSendReceive(InternetAddress.loopbackIPv6, 64 * 1024 - 32);
   }
 }

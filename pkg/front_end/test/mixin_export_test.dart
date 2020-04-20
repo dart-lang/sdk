@@ -5,7 +5,7 @@
 import 'package:async_helper/async_helper.dart' show asyncTest;
 
 import 'package:front_end/src/testing/compiler_common.dart';
-import 'package:front_end/front_end.dart';
+import 'package:front_end/src/api_prototype/front_end.dart';
 
 main() {
   asyncTest(() async {
@@ -16,6 +16,6 @@ main() {
     };
     await compileUnit(sources.keys.toList(), sources,
         options: new CompilerOptions()
-          ..onError = (e) => throw '${e.severity}: ${e.message}');
+          ..onDiagnostic = (m) => throw m.plainTextFormatted.join("\n"));
   });
 }

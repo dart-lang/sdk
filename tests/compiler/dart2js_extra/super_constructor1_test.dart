@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import "package:expect/expect.dart";
 
 String message;
@@ -25,8 +27,8 @@ class B extends A {
 class C extends B {
   var z;
   C(i)
-      : super(i * 3),
-        z = i {
+      : z = i,
+        super(i * 3) {
     message = '${message}C($i)';
   }
 }

@@ -2,6 +2,8 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef IntToInt = (core::int) → core::int;
+import "dart:async";
+
+typedef IntToInt = (core::int*) →* core::int*;
 static method main() → dynamic
   ;

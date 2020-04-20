@@ -1,0 +1,67 @@
+/*
+Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+*/
+
+.actionCell {
+    cursor: pointer;
+}
+.actionCell:hover {
+    text-decoration: underline;
+}
+
+.headerRow {
+    font-weight: bold;
+    background-color: #BBBBBB;
+}
+
+.nameCell {
+    flex-basis: 0px;
+    flex-grow: 3;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 5px;
+}
+
+.edgeCell {
+    flex-basis: 0px;
+    flex-grow: 2;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 5px;
+}
+
+.classCell {
+    flex-basis: 0px;
+    flex-grow: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 5px;
+}
+
+.sizeCell {
+    flex-basis: 8em;
+    flex-grow: 0;
+    text-align: right;
+    padding: 5px
+}
+
+.sizePercentCell {
+    flex-basis: 2.5em;
+    flex-grow: 0;
+    text-align: right;
+    padding: 5px;
+    color: gray;
+}
+
+.treemapTile {
+    position: absolute;
+    box-sizing: border-box;
+    border: solid 1px;
+    font-size: 10;
+    text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
+    cursor: default;
+}

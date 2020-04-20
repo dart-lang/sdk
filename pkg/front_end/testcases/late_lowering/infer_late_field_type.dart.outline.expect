@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int? field;
+  synthetic constructor •() → self::A
+    ;
+}
+class B extends core::Object implements self::A {
+  field core::int? _#B#field;
+  field core::bool _#B#field#isSet;
+  synthetic constructor •() → self::B
+    ;
+  get field() → core::int?;
+  set field(core::int? #t1) → void;
+}
+static method main() → dynamic
+  ;

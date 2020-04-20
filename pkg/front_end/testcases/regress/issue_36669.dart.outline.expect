@@ -1,0 +1,21 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class NoUnnamedConstuctor extends core::Object {
+  constructor _() → self::NoUnnamedConstuctor*
+    ;
+}
+class MixMeIn extends core::Object {
+  synthetic constructor •() → self::MixMeIn*
+    ;
+}
+abstract class _Foo&NoUnnamedConstuctor&MixMeIn = self::NoUnnamedConstuctor with self::MixMeIn /*isAnonymousMixin*/  {
+  synthetic constructor _() → self::_Foo&NoUnnamedConstuctor&MixMeIn*
+    : super self::NoUnnamedConstuctor::_()
+    ;
+}
+class Foo extends self::_Foo&NoUnnamedConstuctor&MixMeIn {
+  synthetic constructor •() → self::Foo*
+    ;
+}

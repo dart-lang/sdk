@@ -17,7 +17,6 @@ library front_end.src.vm.reload;
 
 import 'dart:async';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
-import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/io.dart';
 
 /// APIs to communicate with a remote VM via the VM's service protocol.
@@ -42,9 +41,8 @@ class RemoteVm {
 
   /// Establishes the JSON rpc connection.
   json_rpc.Peer _createPeer() {
-    StreamChannel socket =
-        new IOWebSocketChannel.connect('ws://127.0.0.1:$port/ws');
-    var peer = new json_rpc.Peer(socket);
+    var socket = new IOWebSocketChannel.connect('ws://127.0.0.1:$port/ws');
+    var peer = new json_rpc.Peer(socket.cast<String>());
     peer.listen().then((_) {
       if (VERBOSE_DEBUG) print('connection to vm-service closed');
       return disconnect();
@@ -77,7 +75,7 @@ class RemoteVm {
     var id = await mainId;
     var result = await rpc.sendRequest('reloadSources', {
       'isolateId': id,
-      'rootLibUri': entryUri.path,
+      'rootLibUri': entryUri.toFilePath(),
     });
     return result;
   }

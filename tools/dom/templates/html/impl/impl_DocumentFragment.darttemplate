@@ -8,14 +8,16 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   factory $CLASSNAME() => document.createDocumentFragment();
 
   factory $CLASSNAME.html(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
 
-    return document.body.createFragment(html,
+    return document.body$NULLASSERT.createFragment(html,
       validator: validator, treeSanitizer: treeSanitizer);
   }
 
   factory $CLASSNAME.svg(String svgContent,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
 
     return new svg.SvgSvgElement().createFragment(svgContent,
         validator: validator, treeSanitizer: treeSanitizer);
@@ -27,13 +29,13 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   // Native field is used only by Dart code so does not lead to instantiation
   // of native classes
   @Creates('Null')
-  List<Element> _docChildren;
+  List<Element>$NULLABLE _docChildren;
 
   List<Element> get children {
     if (_docChildren == null) {
       _docChildren = new FilteredElementList(this);
     }
-    return _docChildren;
+    return _docChildren$NULLASSERT;
   }
 
   set children(List<Element> value) {
@@ -55,9 +57,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  ElementList<Element /*=T*/> querySelectorAll/*<T extends Element>*/(String selectors) =>
-    new _FrozenElementList/*<T>*/._wrap(_querySelectorAll(selectors));
-
+  ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
+    new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
   String get innerHtml {
     final e = new DivElement();
@@ -70,10 +71,11 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   }
 
   void setInnerHtml(String html,
-    {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+    {NodeValidator$NULLABLE validator,
+     NodeTreeSanitizer$NULLABLE treeSanitizer}) {
 
     this.nodes.clear();
-    append(document.body.createFragment(
+    append(document.body$NULLASSERT.createFragment(
         html, validator: validator, treeSanitizer: treeSanitizer));
   }
 
@@ -90,31 +92,11 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * Parses the specified text as HTML and adds the resulting node after the
    * last child of this document fragment.
    */
-  void appendHtml(String text, {NodeValidator validator,
-      NodeTreeSanitizer, treeSanitizer}) {
+  void appendHtml(String text,
+        {NodeValidator$NULLABLE validator,
+         NodeTreeSanitizer$NULLABLE treeSanitizer}) {
     this.append(new DocumentFragment.html(text, validator: validator,
         treeSanitizer: treeSanitizer));
   }
-
-  /** 
-   * Alias for [querySelector]. Note this function is deprecated because its
-   * semantics will be changing in the future.
-   */
-  @deprecated
-  @Experimental()
-  @DomName('DocumentFragment.querySelector')
-  Element query(String relativeSelectors) {
-    return querySelector(relativeSelectors);
-  }
-
-  /** 
-   * Alias for [querySelectorAll]. Note this function is deprecated because its
-   * semantics will be changing in the future.
-   */
-  @deprecated
-  @Experimental()
-  @DomName('DocumentFragment.querySelectorAll')
-  ElementList<Element /*=T*/> queryAll/*<T extends Element>*/(String relativeSelectors) =>
-    querySelectorAll(relativeSelectors);
 $!MEMBERS
 }

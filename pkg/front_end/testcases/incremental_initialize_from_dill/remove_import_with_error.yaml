@@ -1,0 +1,66 @@
+# Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# First compile a file (a) that imports a file (b) with errors in it.
+# Then change a to not import b, but leave b as-is, thus rightfully only
+# invalidating a. Compiling this should not result in any errors.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    errors: true
+    warnings: false
+    sources:
+      main.dart: |
+        library mainLibrary;
+        import "b.dart" as b;
+
+        main() {
+          b.foo();
+        }
+      b.dart: |
+        library bLibrary;
+
+        foo() {
+          print("hello from b.dart foo!");
+          print(new C());
+        }
+
+        class I<T> {}
+
+        class A implements I<int> {}
+
+        class B implements I<String> {}
+
+        class C extends A implements B {}
+
+    expectedLibraryCount: 2
+  - entry: main.dart
+    invalidate:
+      - main.dart
+    errors: false
+    warnings: false
+    sources:
+      main.dart: |
+        library mainLibrary;
+
+        main() {
+          print("hello");
+        }
+      b.dart: |
+        library bLibrary;
+
+        foo() {
+          print("hello from b.dart foo!");
+          print(new C());
+        }
+
+        class I<T> {}
+
+        class A implements I<int> {}
+
+        class B implements I<String> {}
+
+        class C extends A implements B {}
+    expectedLibraryCount: 1

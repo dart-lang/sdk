@@ -5,10 +5,16 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_LOCATIONS_H_
 #define RUNTIME_VM_COMPILER_BACKEND_LOCATIONS_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
+#include "vm/bitmap.h"
 #include "vm/compiler/assembler/assembler.h"
-#include "vm/log.h"
+#include "vm/constants.h"
+#include "vm/cpu.h"
 
 namespace dart {
 
@@ -18,20 +24,40 @@ class Definition;
 class PairLocation;
 class Value;
 
+#define FOR_EACH_REPRESENTATION_KIND(M)                                        \
+  M(NoRepresentation)                                                          \
+  M(Tagged)                                                                    \
+  M(Untagged)                                                                  \
+  M(UnboxedDouble)                                                             \
+  M(UnboxedFloat)                                                              \
+  M(UnboxedInt32)                                                              \
+  M(UnboxedUint32)                                                             \
+  M(UnboxedInt64)                                                              \
+  M(UnboxedFloat32x4)                                                          \
+  M(UnboxedInt32x4)                                                            \
+  M(UnboxedFloat64x2)                                                          \
+  M(PairOfTagged)
+
 enum Representation {
-  kNoRepresentation,
-  kTagged,
-  kUntagged,
-  kUnboxedDouble,
-  kUnboxedInt32,
-  kUnboxedUint32,
-  kUnboxedInt64,
-  kUnboxedFloat32x4,
-  kUnboxedInt32x4,
-  kUnboxedFloat64x2,
-  kPairOfTagged,
-  kNumRepresentations
+#define DECLARE_REPRESENTATION(name) k##name,
+  FOR_EACH_REPRESENTATION_KIND(DECLARE_REPRESENTATION)
+#undef DECLARE_REPRESENTATION
+      kNumRepresentations
 };
+
+// 'UnboxedFfiIntPtr' should be able to hold a pointer of the target word-size.
+// On a 32-bit platform, it's an unsigned 32-bit int because it should be
+// zero-extended to 64-bits, not sign-extended (pointers are inherently
+// unsigned).
+//
+// Issue(36370): Use [kUnboxedIntPtr] instead.
+static constexpr Representation kUnboxedFfiIntPtr =
+    compiler::target::kWordSize == 4 ? kUnboxedUint32 : kUnboxedInt64;
+
+// The representation which can be used for native pointers. We use signed 32/64
+// bit representation to be able to do arithmetic on pointers.
+static constexpr Representation kUnboxedIntPtr =
+    compiler::target::kWordSize == 4 ? kUnboxedInt32 : kUnboxedInt64;
 
 // Location objects are used to connect register allocator and code generator.
 // Instruction templates used by code generator have a corresponding
@@ -51,14 +77,20 @@ class Location : public ValueObject {
  private:
   enum {
     // Number of bits required to encode Kind value.
-    kBitsForKind = 4,
-    kBitsForPayload = kWordSize * kBitsPerByte - kBitsForKind,
+    kKindBitsPos = 0,
+    kKindBitsSize = 5,
+
+    kPayloadBitsPos = kKindBitsPos + kKindBitsSize,
+    kPayloadBitsSize = kBitsPerWord - kPayloadBitsPos,
   };
 
   static const uword kInvalidLocation = 0;
   static const uword kLocationTagMask = 0x3;
 
  public:
+  static bool ParseRepresentation(const char* str, Representation* out);
+  static const char* RepresentationToCString(Representation repr);
+
   // Constant payload can overlap with kind field so Kind values
   // have to be chosen in a way that their last 2 bits are never
   // the same as kConstantTag or kPairLocationTag.
@@ -163,6 +195,9 @@ class Location : public ValueObject {
 
   PairLocation* AsPairLocation() const;
 
+  // For pair locations, returns the ith component (for i in {0, 1}).
+  Location Component(intptr_t i) const;
+
   // Unallocated locations.
   enum Policy {
     kAny,
@@ -264,8 +299,7 @@ class Location : public ValueObject {
     return static_cast<uword>(kStackIndexBias + stack_index);
   }
 
-  // Spill slots.
-  static Location StackSlot(intptr_t stack_index, Register base = FPREG) {
+  static Location StackSlot(intptr_t stack_index, Register base) {
     uword payload = StackSlotBaseField::encode(base) |
                     StackIndexField::encode(EncodeStackIndex(stack_index));
     Location loc(kStackSlot, payload);
@@ -276,8 +310,8 @@ class Location : public ValueObject {
 
   bool IsStackSlot() const { return kind() == kStackSlot; }
 
-  static Location DoubleStackSlot(intptr_t stack_index) {
-    uword payload = StackSlotBaseField::encode(FPREG) |
+  static Location DoubleStackSlot(intptr_t stack_index, Register base) {
+    uword payload = StackSlotBaseField::encode(base) |
                     StackIndexField::encode(EncodeStackIndex(stack_index));
     Location loc(kDoubleStackSlot, payload);
     // Ensure that sign is preserved.
@@ -287,8 +321,8 @@ class Location : public ValueObject {
 
   bool IsDoubleStackSlot() const { return kind() == kDoubleStackSlot; }
 
-  static Location QuadStackSlot(intptr_t stack_index) {
-    uword payload = StackSlotBaseField::encode(FPREG) |
+  static Location QuadStackSlot(intptr_t stack_index, Register base) {
+    uword payload = StackSlotBaseField::encode(base) |
                     StackIndexField::encode(EncodeStackIndex(stack_index));
     Location loc(kQuadStackSlot, payload);
     // Ensure that sign is preserved.
@@ -313,22 +347,8 @@ class Location : public ValueObject {
     return IsStackSlot() || IsDoubleStackSlot() || IsQuadStackSlot();
   }
 
-// DBC does not have an notion of 'address' in its instruction set.
-#if !defined(TARGET_ARCH_DBC)
-  // Return a memory operand for stack slot locations.
-  Address ToStackSlotAddress() const;
-#endif
-
   // Returns the offset from the frame pointer for stack slot locations.
   intptr_t ToStackSlotOffset() const;
-
-  // Constants.
-  static Location RegisterOrConstant(Value* value);
-  static Location RegisterOrSmiConstant(Value* value);
-  static Location WritableRegisterOrSmiConstant(Value* value);
-  static Location FixedRegisterOrConstant(Value* value, Register reg);
-  static Location FixedRegisterOrSmiConstant(Value* value, Register reg);
-  static Location AnyOrConstant(Value* value);
 
   const char* Name() const;
   void PrintTo(BufferFormatter* f) const;
@@ -344,21 +364,33 @@ class Location : public ValueObject {
 
   Location Copy() const;
 
-  Location RemapForSlowPath(Definition* def,
-                            intptr_t* cpu_reg_slots,
-                            intptr_t* fpu_reg_slots) const;
+  static Location read(uword value) { return Location(value); }
+  uword write() const { return value_; }
 
  private:
   explicit Location(uword value) : value_(value) {}
+
+  void set_stack_index(intptr_t index) {
+    ASSERT(HasStackIndex());
+    value_ = PayloadField::update(
+        StackIndexField::update(EncodeStackIndex(index), payload()), value_);
+  }
+
+  void set_base_reg(Register reg) {
+    ASSERT(HasStackIndex());
+    value_ = PayloadField::update(StackSlotBaseField::update(reg, payload()),
+                                  value_);
+  }
 
   Location(Kind kind, uword payload)
       : value_(KindField::encode(kind) | PayloadField::encode(payload)) {}
 
   uword payload() const { return PayloadField::decode(value_); }
 
-  class KindField : public BitField<uword, Kind, 0, kBitsForKind> {};
+  class KindField : public BitField<uword, Kind, kKindBitsPos, kKindBitsSize> {
+  };
   class PayloadField
-      : public BitField<uword, uword, kBitsForKind, kBitsForPayload> {};
+      : public BitField<uword, uword, kPayloadBitsPos, kPayloadBitsSize> {};
 
   // Layout for kUnallocated locations payload.
   typedef BitField<uword, Policy, 0, 3> PolicyField;
@@ -369,7 +401,7 @@ class Location : public ValueObject {
 #else
   static const intptr_t kBitsForBaseReg = 5;
 #endif
-  static const intptr_t kBitsForStackIndex = kBitsForPayload - kBitsForBaseReg;
+  static const intptr_t kBitsForStackIndex = kPayloadBitsSize - kBitsForBaseReg;
   class StackSlotBaseField
       : public BitField<uword, Register, 0, kBitsForBaseReg> {};
   class StackIndexField
@@ -385,6 +417,25 @@ class Location : public ValueObject {
   // way that none of them can be interpreted as a kConstant tag.
   uword value_;
 };
+
+Location LocationArgumentsDescriptorLocation();
+Location LocationExceptionLocation();
+Location LocationStackTraceLocation();
+// Constants.
+Location LocationRegisterOrConstant(Value* value);
+Location LocationRegisterOrSmiConstant(Value* value);
+Location LocationWritableRegisterOrSmiConstant(Value* value);
+Location LocationFixedRegisterOrConstant(Value* value, Register reg);
+Location LocationFixedRegisterOrSmiConstant(Value* value, Register reg);
+Location LocationAnyOrConstant(Value* value);
+
+Location LocationRemapForSlowPath(Location loc,
+                                  Definition* def,
+                                  intptr_t* cpu_reg_slots,
+                                  intptr_t* fpu_reg_slots);
+
+// Return a memory operand for stack slot locations.
+compiler::Address LocationToStackSlotAddress(Location loc);
 
 class PairLocation : public ZoneAllocated {
  public:
@@ -453,6 +504,62 @@ class RegisterSet : public ValueObject {
     ASSERT(kNumberOfFpuRegisters <= (kWordSize * kBitsPerByte));
   }
 
+  void AddAllNonReservedRegisters(bool include_fpu_registers) {
+    for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
+      if ((kReservedCpuRegisters & (1 << i)) != 0u) continue;
+      Add(Location::RegisterLocation(static_cast<Register>(i)));
+    }
+
+    if (include_fpu_registers) {
+      for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
+        Add(Location::FpuRegisterLocation(static_cast<FpuRegister>(i)));
+      }
+    }
+  }
+
+  // Adds all registers which don't have a special purpose (e.g. FP, SP, PC,
+  // CSP, etc.).
+  void AddAllGeneralRegisters() {
+    for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
+      Register reg = static_cast<Register>(i);
+      if (reg == FPREG || reg == SPREG) continue;
+#if defined(TARGET_ARCH_ARM)
+      if (reg == PC) continue;
+#elif defined(TARGET_ARCH_ARM64)
+      if (reg == R31) continue;
+#endif
+      Add(Location::RegisterLocation(reg));
+    }
+
+#if defined(TARGET_ARCH_ARM)
+    if (TargetCPUFeatures::vfp_supported()) {
+#endif
+      for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
+        Add(Location::FpuRegisterLocation(static_cast<FpuRegister>(i)));
+      }
+#if defined(TARGET_ARCH_ARM)
+    }
+#endif
+  }
+
+  void AddAllArgumentRegisters() {
+    // All (native) arguments are passed on the stack in IA32.
+#if !defined(TARGET_ARCH_IA32)
+    for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+      const Register reg = static_cast<Register>(i);
+      if (IsArgumentRegister(reg)) {
+        Add(Location::RegisterLocation(reg));
+      }
+    }
+    for (intptr_t i = 0; i < kNumberOfFpuRegisters; ++i) {
+      const FpuRegister reg = static_cast<FpuRegister>(i);
+      if (IsFpuArgumentRegister(reg)) {
+        Add(Location::FpuRegisterLocation(reg));
+      }
+    }
+#endif
+  }
+
   void Add(Location loc, Representation rep = kTagged) {
     if (loc.IsRegister()) {
       cpu_registers_.Add(loc.reg());
@@ -484,22 +591,7 @@ class RegisterSet : public ValueObject {
     }
   }
 
-  void DebugPrint() {
-    for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
-      Register r = static_cast<Register>(i);
-      if (ContainsRegister(r)) {
-        THR_Print("%s %s\n", Assembler::RegisterName(r),
-                  IsTagged(r) ? "tagged" : "untagged");
-      }
-    }
-
-    for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
-      FpuRegister r = static_cast<FpuRegister>(i);
-      if (ContainsFpuRegister(r)) {
-        THR_Print("%s\n", Assembler::FpuRegisterName(r));
-      }
-    }
-  }
+  void DebugPrint();
 
   void MarkUntagged(Location loc) {
     ASSERT(loc.IsRegister());
@@ -547,7 +639,10 @@ class LocationSummary : public ZoneAllocated {
   enum ContainsCall {
     kNoCall,  // Used registers must be reserved as tmp.
     kCall,    // Registers have been saved and can be used without reservation.
-    kCallOnSlowPath  // Used registers must be reserved as tmp.
+    kCallCalleeSafe,       // Registers will be saved by the callee.
+    kCallOnSlowPath,       // Used registers must be reserved as tmp.
+    kCallOnSharedSlowPath  // Registers used to invoke shared stub must be
+                           // reserved as tmp.
   };
 
   LocationSummary(Zone* zone,
@@ -572,7 +667,18 @@ class LocationSummary : public ZoneAllocated {
   void set_in(intptr_t index, Location loc) {
     ASSERT(index >= 0);
     ASSERT(index < num_inputs_);
-    ASSERT(!always_calls() || loc.IsMachineRegister());
+    // See FlowGraphAllocator::ProcessOneInstruction for explanation of this
+    // restriction.
+    if (always_calls()) {
+      if (loc.IsUnallocated()) {
+        ASSERT(loc.policy() == Location::kAny);
+      } else if (loc.IsPairLocation()) {
+        ASSERT(!loc.AsPairLocation()->At(0).IsUnallocated() ||
+               loc.AsPairLocation()->At(0).policy() == Location::kAny);
+        ASSERT(!loc.AsPairLocation()->At(0).IsUnallocated() ||
+               loc.AsPairLocation()->At(0).policy() == Location::kAny);
+      }
+    }
     input_locations_[index] = loc;
   }
 
@@ -611,12 +717,8 @@ class LocationSummary : public ZoneAllocated {
 
   void set_out(intptr_t index, Location loc) {
     ASSERT(index == 0);
-// DBC calls are different from call on other architectures so this
-// assert doesn't make sense.
-#if !defined(TARGET_ARCH_DBC)
     ASSERT(!always_calls() || (loc.IsMachineRegister() || loc.IsInvalid() ||
                                loc.IsPairLocation()));
-#endif
     output_location_ = loc;
   }
 
@@ -628,11 +730,19 @@ class LocationSummary : public ZoneAllocated {
   }
   void SetStackBit(intptr_t index) { stack_bitmap()->Set(index, true); }
 
-  bool always_calls() const { return contains_call_ == kCall; }
+  bool always_calls() const {
+    return contains_call_ == kCall || contains_call_ == kCallCalleeSafe;
+  }
+
+  bool callee_safe_call() const { return contains_call_ == kCallCalleeSafe; }
 
   bool can_call() { return contains_call_ != kNoCall; }
 
   bool HasCallOnSlowPath() { return can_call() && !always_calls(); }
+
+  bool call_on_shared_slow_path() const {
+    return contains_call_ == kCallOnSharedSlowPath;
+  }
 
   void PrintTo(BufferFormatter* f) const;
 

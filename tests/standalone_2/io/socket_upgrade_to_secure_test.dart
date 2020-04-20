@@ -90,7 +90,7 @@ void test(bool hostnameInConnect, bool handshakeBeforeSecure,
 
   Future runServer(Socket client) {
     var completer = new Completer();
-    var dataReceived = [];
+    var dataReceived = <int>[];
     client.listen((data) {
       dataReceived.addAll(data);
       if (dataReceived.length == messageSize) {
@@ -103,8 +103,8 @@ void test(bool hostnameInConnect, bool handshakeBeforeSecure,
   }
 
   Future<RawSocket> runClient(Socket socket) {
-    var completer = new Completer();
-    var dataReceived = [];
+    Completer<RawSocket> completer = new Completer<RawSocket>();
+    var dataReceived = <int>[];
     socket.listen((data) {
       dataReceived.addAll(data);
     }, onDone: () {
@@ -156,15 +156,17 @@ void test(bool hostnameInConnect, bool handshakeBeforeSecure,
   Future<SecureSocket> connectClient(int port) {
     if (!handshakeBeforeSecure) {
       return Socket.connect(HOST, port).then((socket) {
-        var future;
+        Future<SecureSocket> future;
         if (hostnameInConnect) {
           future = SecureSocket.secure(socket, context: clientContext);
         } else {
           future =
               SecureSocket.secure(socket, host: HOST, context: clientContext);
         }
-        return future.then((secureSocket) {
-          socket.add([0]);
+        return future.then<SecureSocket>((SecureSocket secureSocket) {
+          Expect.throws(() {
+            socket.add([0]);
+          });
           return secureSocket;
         });
       });
@@ -179,7 +181,9 @@ void test(bool hostnameInConnect, bool handshakeBeforeSecure,
                 SecureSocket.secure(socket, host: HOST, context: clientContext);
           }
           return future.then((secureSocket) {
-            socket.add([0]);
+            Expect.throws(() {
+              socket.add([0]);
+            });
             return secureSocket;
           });
         });
@@ -191,7 +195,9 @@ void test(bool hostnameInConnect, bool handshakeBeforeSecure,
     server.listen((client) {
       if (!handshakeBeforeSecure) {
         SecureSocket.secureServer(client, serverContext).then((secureClient) {
-          client.add([0]);
+          Expect.throws(() {
+            client.add([0]);
+          });
           runServer(secureClient).then((_) => server.close());
         });
       } else {
@@ -199,7 +205,9 @@ void test(bool hostnameInConnect, bool handshakeBeforeSecure,
           SecureSocket
               .secureServer(client, serverContext, bufferedData: carryOverData)
               .then((secureClient) {
-            client.add([0]);
+            Expect.throws(() {
+              client.add([0]);
+            });
             runServer(secureClient).then((_) => server.close());
           });
         });

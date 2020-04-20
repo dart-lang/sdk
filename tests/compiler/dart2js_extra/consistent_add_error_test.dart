@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import "package:expect/expect.dart";
 
 // Test that optimized '+' and slow path '+' produce the same error.
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 confuse(x) => x;
 
 void check2(String name, name1, f1, name2, f2) {
@@ -126,21 +128,8 @@ class IntPlusString {
     return (confuse(1) as int) + confuse('a');
   }
 
-  static f5() {
-    return (confuse(1) as int) + 'a';
-  }
-
-  static f6() {
-    var a = confuse(true) ? 1 : 2; // Small int with unknown value.
-    return a + 'a';
-  }
-
-  static f7() {
-    return 1 + 'a';
-  }
-
   static test() {
-    check('IntPlusString', f1, f2, f3, f4, f5, f6, f7);
+    check('IntPlusString', f1, f2, f3, f4);
   }
 }
 
@@ -158,25 +147,12 @@ class StringPlusInt {
   }
 
   static f4() {
-    return (confuse('a') as String) + 1;
-  }
-
-  static f5() {
     var a = confuse(true) ? 'a' : 'bc';
     return a + confuse(1);
   }
 
-  static f6() {
-    var a = confuse(true) ? 'a' : 'bc';
-    return a + 1;
-  }
-
-  static f7() {
-    return 'a' + 1;
-  }
-
   static test() {
-    check('StringPlusInt', f1, f2, f3, f4, f5, f6, f7);
+    check('StringPlusInt', f1, f2, f3, f4);
   }
 }
 

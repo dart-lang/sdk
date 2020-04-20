@@ -4,14 +4,11 @@
 
 part of $LIBRARYNAME;
 
-@DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-  @DomName('HTMLTableElement.tBodies')
   List<TableSectionElement> get tBodies =>
   new _WrappedList<TableSectionElement>(_tBodies);
 
-  @DomName('HTMLTableElement.rows')
   List<TableRowElement> get rows =>
       new _WrappedList<TableRowElement>(_rows);
 
@@ -31,14 +28,15 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
     var tbody = new Element.tag('tbody');
     this.children.add(tbody);
-    return tbody;
+    return tbody $#NULLSAFECAST(as TableSectionElement);
   }
 
   @JSName('createTBody')
   TableSectionElement _nativeCreateTBody() native;
 
   DocumentFragment createFragment(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {
       return super.createFragment(
           html, validator: validator, treeSanitizer: treeSanitizer);

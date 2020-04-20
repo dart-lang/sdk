@@ -14,11 +14,11 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 
-gee(i) async {
+Future<int> gee(int i) async {
   return await i;
 }
 
-bar() async* {
+Stream<int> bar() async* {
   var i = 0;
   while (true) yield await gee(i++);
 }
@@ -124,7 +124,7 @@ ZoneBinaryCallback<R, T1, T2> registerBinaryCallback<R, T1, T2>(
   });
 }
 
-sm(Zone self, ZoneDelegate parent, Zone zone, f) {
+void sm(Zone self, ZoneDelegate parent, Zone zone, f) {
   var oldDepth = depth;
   increaseDepth();
   return parent.scheduleMicrotask(zone, () {

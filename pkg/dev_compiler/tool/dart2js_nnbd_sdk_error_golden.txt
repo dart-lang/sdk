@@ -1,0 +1,11 @@
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1634|7|5|Superinterfaces don't have a valid override for '&': JSNumber.& (num Function(num)), int.& (int Function(int)).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1634|7|5|Superinterfaces don't have a valid override for '<<': JSNumber.<< (num Function(num)), int.<< (int Function(int)).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1634|7|5|Superinterfaces don't have a valid override for '>>': JSNumber.>> (num Function(num)), int.>> (int Function(int)).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1634|7|5|Superinterfaces don't have a valid override for '\|': JSNumber.\| (num Function(num)), int.\| (int Function(int)).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1634|7|5|Superinterfaces don't have a valid override for '^': JSNumber.^ (num Function(num)), int.^ (int Function(int)).
+ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1651|28|1|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1653|27|1|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1656|17|1|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1661|18|1|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1661|44|1|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|STATIC_WARNING|ARGUMENT_TYPE_NOT_ASSIGNABLE|lib/io/io.dart|6334|51|12|The argument type 'Object' can't be assigned to the parameter type 'String'.

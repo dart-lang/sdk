@@ -23,7 +23,7 @@ void checkFileEmpty(String fileName) {
 void checkFileContent(String fileName, String content) {
   RandomAccessFile pipeOut = new File(fileName).openSync();
   int length = pipeOut.lengthSync();
-  List data = new List<int>(length);
+  var data = new List<int>.filled(length, 0);
   pipeOut.readIntoSync(data, 0, length);
   Expect.equals(content, new String.fromCharCodes(data));
   pipeOut.closeSync();
@@ -38,8 +38,8 @@ void test(String shellScript, String dartScript, String type, bool devNull) {
   if (devNull) pipeOutFile = "/dev/null";
   String redirectOutFile = "${dir.path}/redirect";
   String executable = Platform.executable;
-  List args = [
-    executable,
+  List<String> args = [
+    ([executable]..addAll(Platform.executableArguments)).join(' '),
     dartScript,
     type,
     pipeOutFile,
@@ -117,10 +117,10 @@ main() {
   }
 
   // Run the shell script.
-  test(shellScript.path, scriptFile.path, "0", false);
-  test(shellScript.path, scriptFile.path, "0", true);
-  test(shellScript.path, scriptFile.path, "1", false);
-  test(shellScript.path, scriptFile.path, "1", true);
-  test(shellScript.path, scriptFile.path, "2", false);
-  test(shellScript.path, scriptFile.path, "2", true);
+  test(shellScript.path, scriptFile.path, "0", false); //# 01: ok
+  test(shellScript.path, scriptFile.path, "0", true); //# 02: ok
+  test(shellScript.path, scriptFile.path, "1", false); //# 03: ok
+  test(shellScript.path, scriptFile.path, "1", true); //# 04: ok
+  test(shellScript.path, scriptFile.path, "2", false); //# 05: ok
+  test(shellScript.path, scriptFile.path, "2", true); //# 06: ok
 }

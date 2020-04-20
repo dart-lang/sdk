@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/backend/branch_optimizer.h"
 
 #include "vm/compiler/backend/flow_graph.h"
@@ -61,17 +59,28 @@ bool BranchSimplifier::Match(JoinEntryInstr* block) {
 }
 
 JoinEntryInstr* BranchSimplifier::ToJoinEntry(Zone* zone,
-                                              TargetEntryInstr* target) {
+                                              BlockEntryInstr* target) {
   // Convert a target block into a join block.  Branches will be duplicated
   // so the former true and false targets become joins of the control flows
   // from all the duplicated branches.
-  JoinEntryInstr* join = new (zone) JoinEntryInstr(
-      target->block_id(), target->try_index(), Thread::kNoDeoptId);
+  JoinEntryInstr* join = new (zone)
+      JoinEntryInstr(target->block_id(), target->try_index(), DeoptId::kNone);
   join->InheritDeoptTarget(zone, target);
   join->LinkTo(target->next());
   join->set_last_instruction(target->last_instruction());
   target->UnuseAllInputs();
   return join;
+}
+
+TargetEntryInstr* BranchSimplifier::ToTargetEntry(Zone* zone,
+                                                  BlockEntryInstr* target) {
+  auto replacement = new (zone)
+      TargetEntryInstr(target->block_id(), target->try_index(), DeoptId::kNone);
+  replacement->InheritDeoptTarget(zone, target);
+  replacement->LinkTo(target->next());
+  replacement->set_last_instruction(target->last_instruction());
+  target->UnuseAllInputs();
+  return replacement;
 }
 
 BranchInstr* BranchSimplifier::CloneBranch(Zone* zone,
@@ -82,7 +91,7 @@ BranchInstr* BranchSimplifier::CloneBranch(Zone* zone,
   ComparisonInstr* new_comparison =
       comparison->CopyWithNewOperands(new_left, new_right);
   BranchInstr* new_branch =
-      new (zone) BranchInstr(new_comparison, Thread::kNoDeoptId);
+      new (zone) BranchInstr(new_comparison, DeoptId::kNone);
   return new_branch;
 }
 
@@ -158,16 +167,8 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
           new_branch->comparison()->SetDeoptId(*comparison);
           // The phi can be used in the branch's environment.  Rename such
           // uses.
-          for (Environment::DeepIterator it(new_branch->env()); !it.Done();
-               it.Advance()) {
-            Value* use = it.CurrentValue();
-            if (use->definition() == phi) {
-              Definition* replacement = phi->InputAt(i)->definition();
-              use->RemoveFromUseList();
-              use->set_definition(replacement);
-              replacement->AddEnvUse(use);
-            }
-          }
+          Definition* replacement = phi->InputAt(i)->definition();
+          new_branch->ReplaceInEnvironment(phi, replacement);
         }
 
         new_branch->InsertBefore(old_goto);
@@ -182,24 +183,21 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
 
         // Connect the branch to the true and false joins, via empty target
         // blocks.
-        TargetEntryInstr* true_target =
-            new (zone) TargetEntryInstr(flow_graph->max_block_id() + 1,
-                                        block->try_index(), Thread::kNoDeoptId);
+        TargetEntryInstr* true_target = new (zone) TargetEntryInstr(
+            flow_graph->max_block_id() + 1, block->try_index(), DeoptId::kNone);
         true_target->InheritDeoptTarget(zone, join_true);
-        TargetEntryInstr* false_target =
-            new (zone) TargetEntryInstr(flow_graph->max_block_id() + 2,
-                                        block->try_index(), Thread::kNoDeoptId);
+        TargetEntryInstr* false_target = new (zone) TargetEntryInstr(
+            flow_graph->max_block_id() + 2, block->try_index(), DeoptId::kNone);
         false_target->InheritDeoptTarget(zone, join_false);
         flow_graph->set_max_block_id(flow_graph->max_block_id() + 2);
         *new_branch->true_successor_address() = true_target;
         *new_branch->false_successor_address() = false_target;
-        GotoInstr* goto_true =
-            new (zone) GotoInstr(join_true, Thread::kNoDeoptId);
+        GotoInstr* goto_true = new (zone) GotoInstr(join_true, DeoptId::kNone);
         goto_true->InheritDeoptTarget(zone, join_true);
         true_target->LinkTo(goto_true);
         true_target->set_last_instruction(goto_true);
         GotoInstr* goto_false =
-            new (zone) GotoInstr(join_false, Thread::kNoDeoptId);
+            new (zone) GotoInstr(join_false, DeoptId::kNone);
         goto_false->InheritDeoptTarget(zone, join_false);
         false_target->LinkTo(goto_false);
         false_target->set_last_instruction(goto_false);
@@ -284,6 +282,13 @@ void IfConverter::Simplify(FlowGraph* flow_graph) {
           (pred1->PredecessorAt(0) == pred2->PredecessorAt(0))) {
         BlockEntryInstr* pred = pred1->PredecessorAt(0);
         BranchInstr* branch = pred->last_instruction()->AsBranch();
+
+        if (branch == nullptr) {
+          // There is no "B_pred" block.
+          ASSERT(pred->last_instruction()->IsGraphEntry());
+          continue;
+        }
+
         ComparisonInstr* comparison = branch->comparison();
 
         // Check if the platform supports efficient branchless IfThenElseInstr
@@ -295,9 +300,9 @@ void IfConverter::Simplify(FlowGraph* flow_graph) {
 
           ComparisonInstr* new_comparison = comparison->CopyWithNewOperands(
               comparison->left()->Copy(zone), comparison->right()->Copy(zone));
-          IfThenElseInstr* if_then_else = new (zone)
-              IfThenElseInstr(new_comparison, if_true->Copy(zone),
-                              if_false->Copy(zone), Thread::kNoDeoptId);
+          IfThenElseInstr* if_then_else =
+              new (zone) IfThenElseInstr(new_comparison, if_true->Copy(zone),
+                                         if_false->Copy(zone), DeoptId::kNone);
           flow_graph->InsertBefore(branch, if_then_else, NULL,
                                    FlowGraph::kValue);
 
@@ -342,5 +347,3 @@ void IfConverter::Simplify(FlowGraph* flow_graph) {
 }
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

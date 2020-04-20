@@ -27,12 +27,12 @@ class F {
   F(this.foo);
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 testC(C o) {
   return o.foo;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 testF(F o) {
   return o.foo;
 }
@@ -41,5 +41,5 @@ main() {
   dynamic d = new D(foo: 4);
   var f = new F(6);
   Expect.equals(testC(d), 4);
-  Expect.equals(testF(f), 6); //# 01: ok
+  Expect.equals(testF(f), 6);
 }

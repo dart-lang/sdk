@@ -11,6 +11,6 @@ class C {
 
 class D<T> {}
 
-var /*@topType=D<int>*/ f = C.f<int>();
+var f = C.f<int>();
 
 main() {}

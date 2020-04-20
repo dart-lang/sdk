@@ -7,7 +7,7 @@
 #ifndef RUNTIME_INCLUDE_DART_NATIVE_API_H_
 #define RUNTIME_INCLUDE_DART_NATIVE_API_H_
 
-#include "dart_api.h"
+#include "dart_api.h" /* NOLINT */
 
 /*
  * ==========================================
@@ -27,13 +27,18 @@
  * kTypedData. The specific type from dart:typed_data is in the type
  * field of the as_typed_data structure. The length in the
  * as_typed_data structure is always in bytes.
+ *
+ * The data for kTypedData is copied on message send and ownership remains with
+ * the caller. The ownership of data for kExternalTyped is passed to the VM on
+ * message send and returned when the VM invokes the
+ * Dart_WeakPersistentHandleFinalizer callback; a non-NULL callback must be
+ * provided.
  */
 typedef enum {
   Dart_CObject_kNull = 0,
   Dart_CObject_kBool,
   Dart_CObject_kInt32,
   Dart_CObject_kInt64,
-  Dart_CObject_kBigint,
   Dart_CObject_kDouble,
   Dart_CObject_kString,
   Dart_CObject_kArray,
@@ -53,11 +58,6 @@ typedef struct _Dart_CObject {
     int64_t as_int64;
     double as_double;
     char* as_string;
-    struct {
-      bool neg;
-      intptr_t used;
-      struct _Dart_CObject* digits;
-    } as_bigint;
     struct {
       Dart_Port id;
       Dart_Port origin_id;
@@ -85,14 +85,22 @@ typedef struct _Dart_CObject {
 } Dart_CObject;
 
 /**
- * Posts a message on some port. The message will contain the
- * Dart_CObject object graph rooted in 'message'.
+ * Posts a message on some port. The message will contain the Dart_CObject
+ * object graph rooted in 'message'.
  *
- * While the message is being sent the state of the graph of
- * Dart_CObject structures rooted in 'message' should not be accessed,
- * as the message generation will make temporary modifications to the
- * data. When the message has been sent the graph will be fully
- * restored.
+ * While the message is being sent the state of the graph of Dart_CObject
+ * structures rooted in 'message' should not be accessed, as the message
+ * generation will make temporary modifications to the data. When the message
+ * has been sent the graph will be fully restored.
+ *
+ * If true is returned, the message was enqueued, and finalizers for external
+ * typed data will eventually run, even if the receiving isolate shuts down
+ * before processing the message. If false is returned, the message was not
+ * enqueued and ownership of external typed data in the message remains with the
+ * caller.
+ *
+ * This function may be called on any thread when the VM is running (that is,
+ * after Dart_Initialize has returned and before Dart_Cleanup has been called).
  *
  * \param port_id The destination port.
  * \param message The message to send.
@@ -122,7 +130,6 @@ DART_EXPORT bool Dart_PostInteger(Dart_Port port_id, int64_t message);
  * data references from the message are allocated by the caller and
  * will be reclaimed when returning to it.
  */
-
 typedef void (*Dart_NativeMessageHandler)(Dart_Port dest_port_id,
                                           Dart_CObject* message);
 
@@ -167,12 +174,19 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id);
  *
  * TODO(turnidge): Document.
  */
-DART_EXPORT Dart_Handle Dart_CompileAll();
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_CompileAll();
+
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_ReadAllBytecode();
 
 /**
- * Parses all loaded functions in the current isolate..
- *
+ * Finalizes all classes.
  */
-DART_EXPORT Dart_Handle Dart_ParseAll();
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_FinalizeAllClasses();
+
+/*  This function is intentionally undocumented.
+ *
+ *  It should not be used outside internal tests.
+ */
+DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg);
 
 #endif /* INCLUDE_DART_NATIVE_API_H_ */ /* NOLINT */

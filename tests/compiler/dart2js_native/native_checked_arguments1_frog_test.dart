@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'native_testing.dart';
 
 // Test that type checks occur on native methods.
@@ -50,8 +52,8 @@ expectThrows(action()) {
   Expect.isTrue(threw);
 }
 
-checkedModeTest() {
-  var things = [makeA(), makeB()];
+complianceModeTest() {
+  var things = <dynamic>[makeA(), makeB()];
   var a = things[0];
   var b = things[1];
 
@@ -68,28 +70,10 @@ checkedModeTest() {
   Expect.equals(1, b.cmp(b));
   expectThrows(() => b.cmp(a));
   expectThrows(() => b.cmp(5));
-
-  // Check that we throw the same errors when the locals are typed.
-  A aa = things[0];
-  B bb = things[1];
-
-  Expect.equals(124, aa.foo(123));
-  expectThrows(() => aa.foo('xxx'));
-
-  Expect.equals('helloha!', bb.foo('hello'));
-  expectThrows(() => bb.foo(123));
-
-  Expect.equals(0, aa.cmp(aa));
-  expectThrows(() => aa.cmp(bb));
-  expectThrows(() => aa.cmp(5));
-
-  Expect.equals(1, bb.cmp(bb));
-  expectThrows(() => bb.cmp(aa));
-  expectThrows(() => bb.cmp(5));
 }
 
-uncheckedModeTest() {
-  var things = [makeA(), makeB()];
+omitImplicitChecksModeTest() {
+  var things = <dynamic>[makeA(), makeB()];
   var a = things[0];
   var b = things[1];
 
@@ -106,30 +90,12 @@ uncheckedModeTest() {
   Expect.equals(1, b.cmp(b));
   Expect.equals(1, b.cmp(a));
   Expect.equals(1, b.cmp(5));
-
-  // Check that we do not throw errors when the locals are typed.
-  A aa = things[0];
-  B bb = things[1];
-
-  Expect.equals(124, aa.foo(123));
-  Expect.equals('xxx1', aa.foo('xxx'));
-
-  Expect.equals('helloha!', bb.foo('hello'));
-  Expect.equals('123ha!', bb.foo(123));
-
-  Expect.equals(0, aa.cmp(aa));
-  Expect.equals(0, aa.cmp(bb));
-  Expect.equals(0, aa.cmp(5));
-
-  Expect.equals(1, bb.cmp(bb));
-  Expect.equals(1, bb.cmp(aa));
-  Expect.equals(1, bb.cmp(5));
 }
 
-bool isCheckedMode() {
-  var stuff = [1, 'string'];
-  var a = stuff[0];
-  // Checked-mode detection.
+bool isComplianceMode() {
+  var stuff = <dynamic>[1, 'string'];
+  dynamic a = stuff[0];
+  // compliance-mode detection.
   try {
     String s = a;
     return false;
@@ -143,9 +109,9 @@ main() {
   nativeTesting();
   setup();
 
-  if (isCheckedMode()) {
-    checkedModeTest();
+  if (isComplianceMode()) {
+    complianceModeTest();
   } else {
-    uncheckedModeTest();
+    omitImplicitChecksModeTest();
   }
 }

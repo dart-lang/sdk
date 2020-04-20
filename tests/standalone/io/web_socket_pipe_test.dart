@@ -19,7 +19,7 @@ createReverseStringTransformer() {
   });
 }
 
-testPipe({int messages, bool transform}) {
+testPipe({required int messages, required bool transform}) {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       WebSocketTransformer.upgrade(request).then((websocket) {

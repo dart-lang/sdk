@@ -5,6 +5,9 @@
 # This file contains some C++ sources for the dart:io library.  The other
 # implementation files are in builtin_impl_sources.gypi.
 io_impl_sources = [
+  "console.h",
+  "console_posix.cc",
+  "console_win.cc",
   "eventhandler.cc",
   "eventhandler.h",
   "eventhandler_android.cc",
@@ -26,6 +29,8 @@ io_impl_sources = [
   "file_system_watcher_win.cc",
   "filter.cc",
   "filter.h",
+  "ifaddrs-android.cc",
+  "ifaddrs-android.h",
   "io_service.cc",
   "io_service.h",
   "io_service_no_ssl.cc",
@@ -34,6 +39,7 @@ io_impl_sources = [
   "namespace.h",
   "namespace_android.cc",
   "namespace_fuchsia.cc",
+  "namespace_fuchsia.h",
   "namespace_linux.cc",
   "namespace_macos.cc",
   "namespace_win.cc",
@@ -98,4 +104,6 @@ io_impl_sources = [
   "sync_socket_linux.cc",
   "sync_socket_macos.cc",
   "sync_socket_win.cc",
+  "typed_data_utils.cc",
+  "typed_data_utils.h",
 ]

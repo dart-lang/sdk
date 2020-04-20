@@ -1,0 +1,53 @@
+# Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Reproduce a crash.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    sources:
+      main.dart: |
+        import 'file1.dart';
+
+        class Class1 extends Class2 {}
+      file1.dart: |
+        import 'file2.dart';
+
+        class Class2 extends Class3 {
+          Class3 foo;
+        }
+      file2.dart: |
+        abstract class Class3 {
+          Class3 foo;
+        }
+    expectedLibraryCount: 3
+
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    expectedLibraryCount: 3
+    expectsRebuildBodiesOnly: true
+
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - file2.dart
+    expectedLibraryCount: 3
+    expectsRebuildBodiesOnly: true
+
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    expectedLibraryCount: 3
+    expectsRebuildBodiesOnly: true

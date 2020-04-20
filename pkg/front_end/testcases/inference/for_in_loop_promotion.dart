@@ -6,9 +6,9 @@
 library test;
 
 void test(List<num> nums) {
-  for (var /*@type=num*/ x in nums) {
+  for (var /*@ type=num* */ x in nums) {
     if (x is int) {
-      var /*@type=int*/ y = /*@promotedType=int*/ x;
+      var /*@ type=int* */ y = /*@ promotedType=int* */ x;
     }
   }
 }

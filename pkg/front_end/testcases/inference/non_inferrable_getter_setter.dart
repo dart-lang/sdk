@@ -6,8 +6,8 @@
 library test;
 
 class C {
-  get /*@topType=dynamic*/ x => null;
-  void set x(/*@topType=dynamic*/ value) {}
+  get x => null;
+  void set x(value) {}
 }
 
 main() {}

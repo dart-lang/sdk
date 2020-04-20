@@ -4,7 +4,7 @@
 
 library testing.test_dart;
 
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 
 import 'dart:io' show Platform;
 
@@ -29,7 +29,9 @@ class TestDart extends Suite {
   factory TestDart.fromJsonMap(Uri base, Map json, String name, String kind) {
     String common = json["common"] ?? "";
     String processes = json["processes"] ?? "-j${Platform.numberOfProcessors}";
-    List<String> commandLines = json["command-lines"] ?? <String>[];
+    List<String> commandLines = json["command-lines"] == null
+        ? new List<String>.from(json["command-lines"])
+        : <String>[];
     return new TestDart(name, common, processes, commandLines);
   }
 
@@ -41,18 +43,16 @@ class TestDart extends Suite {
 
   void writeRunCommandOn(StringSink sink) {
     Uri dartVm;
-    if (Platform.isMacOS) {
-      dartVm = Uri.base.resolve("tools/sdks/mac/dart-sdk/bin/dart");
+    if (Platform.isMacOS || Platform.isLinux) {
+      dartVm = Uri.base.resolve("tools/sdks/dart-sdk/bin/dart");
     } else if (Platform.isWindows) {
-      dartVm = Uri.base.resolve("tools/sdks/win/dart-sdk/bin/dart.exe");
-    } else if (Platform.isLinux) {
-      dartVm = Uri.base.resolve("tools/sdks/linux/dart-sdk/bin/dart");
+      dartVm = Uri.base.resolve("tools/sdks/dart-sdk/bin/dart.exe");
     } else {
       throw "Operating system not supported: ${Platform.operatingSystem}";
     }
     List<String> processedArguments = <String>[];
     processedArguments.add(Uri.base
-        .resolve("tools/testing/dart/package_testing_support.dart")
+        .resolve("pkg/test_runner/bin/package_testing_support.dart")
         .toFilePath());
     for (String commandLine in commandLines) {
       String arguments = common;
@@ -60,8 +60,8 @@ class TestDart extends Suite {
       arguments += " $commandLine";
       processedArguments.add(arguments);
     }
-    String executable = JSON.encode(dartVm.toFilePath());
-    String arguments = JSON.encode(processedArguments);
+    String executable = json.encode(dartVm.toFilePath());
+    String arguments = json.encode(processedArguments);
     sink.write("""
   {
     print('Running $arguments');
@@ -76,7 +76,7 @@ class TestDart extends Suite {
   }
 
   String toString() {
-    return "TestDart($name, ${JSON.encode(common)}, ${JSON.encode(processes)},"
-        " ${JSON.encode(commandLines)})";
+    return "TestDart($name, ${json.encode(common)}, ${json.encode(processes)},"
+        " ${json.encode(commandLines)})";
   }
 }

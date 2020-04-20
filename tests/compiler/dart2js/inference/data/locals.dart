@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+// @dart = 2.7
+
+/*member: main:[null]*/
 main() {
   uninitializedLocal();
   initializedLocal();
@@ -15,33 +17,33 @@ main() {
   complexAssignmentLocal();
 }
 
-/*element: uninitializedLocal:[null]*/
+/*member: uninitializedLocal:[null]*/
 uninitializedLocal() {
   var local;
   return local;
 }
 
-/*element: initializedLocal:[exact=JSUInt31]*/
+/*member: initializedLocal:[exact=JSUInt31]*/
 initializedLocal() {
   var local = 0;
   return local;
 }
 
-/*element: updatedLocal:[exact=JSUInt31]*/
+/*member: updatedLocal:[exact=JSUInt31]*/
 updatedLocal() {
   var local2;
   local2 = 0;
   return local2;
 }
 
-/*element: invokeLocal:[null]*/
+/*member: invokeLocal:[null]*/
 invokeLocal() {
   var local2 = 0;
   local2. /*invoke: [exact=JSUInt31]*/ toString();
   return null;
 }
 
-/*element: postfixLocal:[null]*/
+/*member: postfixLocal:[null]*/
 postfixLocal() {
   // ignore: UNUSED_LOCAL_VARIABLE
   var local2 = 0;
@@ -49,13 +51,13 @@ postfixLocal() {
   return null;
 }
 
-/*element: postfixLocalUsed:[exact=JSUInt31]*/
+/*member: postfixLocalUsed:[exact=JSUInt31]*/
 postfixLocalUsed() {
   var local2 = 0;
   return local2 /*invoke: [exact=JSUInt31]*/ ++;
 }
 
-/*element: prefixLocal:[null]*/
+/*member: prefixLocal:[null]*/
 prefixLocal() {
   // ignore: UNUSED_LOCAL_VARIABLE
   var local2 = 0;
@@ -63,13 +65,13 @@ prefixLocal() {
   return null;
 }
 
-/*element: prefixLocalUsed:[subclass=JSUInt32]*/
+/*member: prefixLocalUsed:[subclass=JSUInt32]*/
 prefixLocalUsed() {
   var local2 = 0;
   return /*invoke: [exact=JSUInt31]*/ ++local2;
 }
 
-/*element: complexAssignmentLocal:[subclass=JSUInt32]*/
+/*member: complexAssignmentLocal:[subclass=JSUInt32]*/
 complexAssignmentLocal() {
   var local2 = 0;
   return local2 /*invoke: [exact=JSUInt31]*/ += 42;

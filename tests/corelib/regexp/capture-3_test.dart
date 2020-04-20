@@ -40,7 +40,7 @@ void main() {
   assertEquals("acdacd", "abcdabcd".replaceAll(new RegExp(r"b"), ""));
 
   dynamic captureMatch(re) {
-    var match = firstMatch("abcd", re);
+    var match = firstMatch("abcd", re)!;
     assertEquals("b", match.group(1));
     assertEquals("c", match.group(2));
   }
@@ -93,7 +93,7 @@ void main() {
 
   var s = "Don't prune based on a repetition of length 0";
   assertEquals(null, firstMatch(s, new RegExp(r"å{1,1}prune")));
-  assertEquals("prune", (firstMatch(s, new RegExp(r"å{0,0}prune"))[0]));
+  assertEquals("prune", (firstMatch(s, new RegExp(r"å{0,0}prune"))![0]));
 
   // Some very deep regexps where FilterASCII gives up in order not to make the
   // stack overflow.

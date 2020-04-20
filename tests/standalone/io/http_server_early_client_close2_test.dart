@@ -7,10 +7,10 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
+import "package:expect/expect.dart";
 
 main() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
@@ -18,6 +18,7 @@ main() {
       String name = Platform.script.toFilePath();
       new File(name)
           .openRead()
+          .cast<List<int>>()
           .pipe(request.response)
           .catchError((e) {/* ignore */});
     });

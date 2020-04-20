@@ -20,7 +20,7 @@ String getDataFilename(String path) =>
     Platform.script.resolve(path).toFilePath();
 
 bool compareFileContent(String fileName1, String fileName2,
-    {int file1Offset: 0, int file2Offset: 0, int count}) {
+    {int file1Offset: 0, int file2Offset: 0, int? count}) {
   var file1 = new File(fileName1).openSync();
   var file2 = new File(fileName2).openSync();
   var length1 = file1.lengthSync();
@@ -33,8 +33,8 @@ bool compareFileContent(String fileName1, String fileName2,
     }
   }
   if (count == null) count = length1;
-  var data1 = new List<int>(count);
-  var data2 = new List<int>(count);
+  var data1 = new List<int>.filled(count, 0);
+  var data2 = new List<int>.filled(count, 0);
   if (file1Offset != 0) file1.setPositionSync(file1Offset);
   if (file2Offset != 0) file2.setPositionSync(file2Offset);
   var read1 = file1.readIntoSync(data1, 0, count);
@@ -67,7 +67,7 @@ testFileToFilePipe1() {
   String dstFileName = tempDir.path + "/readline_test1.dat";
   new File(dstFileName).createSync();
   var output = new File(dstFileName).openWrite();
-  srcStream.pipe(output).then((_) {
+  srcStream.cast<List<int>>().pipe(output).then((_) {
     bool result = compareFileContent(srcFileName, dstFileName);
     new File(dstFileName).deleteSync();
     tempDir.deleteSync();
@@ -92,7 +92,7 @@ testFileToFilePipe2() {
   var dstFile = new File(dstFileName);
   dstFile.createSync();
   var output = dstFile.openWrite();
-  output.addStream(srcStream).then((_) {
+  output.addStream(srcStream.cast<List<int>>()).then((_) {
     output.add([32]);
     output.close();
     output.done.then((_) {
@@ -104,7 +104,7 @@ testFileToFilePipe2() {
       Expect.isTrue(
           compareFileContent(srcFileName, dstFileName, count: srcLength));
       dst.setPositionSync(srcLength);
-      var data = new List<int>(1);
+      var data = new List<int>.filled(1, 0);
       var read2 = dst.readIntoSync(data, 0, 1);
       Expect.equals(32, data[0]);
       src.closeSync();
@@ -131,9 +131,9 @@ testFileToFilePipe3() {
   var dstFile = new File(dstFileName);
   dstFile.createSync();
   var output = dstFile.openWrite();
-  output.addStream(srcStream).then((_) {
+  output.addStream(srcStream.cast<List<int>>()).then((_) {
     var srcStream2 = srcFile.openRead();
-    output.addStream(srcStream2).then((_) {
+    output.addStream(srcStream2.cast<List<int>>()).then((_) {
       output.close();
       output.done.then((_) {
         var src = srcFile.openSync();

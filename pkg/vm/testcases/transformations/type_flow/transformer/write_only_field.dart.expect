@@ -1,0 +1,20 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class B extends core::Object {
+  constructor •() → self::B*
+    : super core::Object::•() {
+    core::print("B");
+  }
+}
+class C extends core::Object {
+[@vm.inferred-type.metadata=#lib::B?] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  field self::B* instanceField = new self::B::•();
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+}
+static method main() → void {
+  null;
+  [@vm.direct-call.metadata=C::instanceField] [@vm.inferred-type.metadata=!? (skip check)] new self::C::•().{self::C::instanceField} = null;
+}

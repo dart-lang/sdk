@@ -2,18 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of _interceptors;
 
-/**
- * The interceptor class for [String]. The compiler recognizes this
- * class as an interceptor, and changes references to [:this:] to
- * actually use the receiver of the method, which is generated as an extra
- * argument added to each member.
- */
+/// The interceptor class for [String]. The compiler recognizes this
+/// class as an interceptor, and changes references to [:this:] to
+/// actually use the receiver of the method, which is generated as an extra
+/// argument added to each member.
 class JSString extends Interceptor implements String, JSIndexable {
   const JSString();
 
-  @NoInline()
+  @pragma('dart2js:noInline')
   int codeUnitAt(int index) {
     if (index is! int) throw diagnoseIndexError(this, index);
     if (index < 0) throw diagnoseIndexError(this, index);
@@ -61,8 +61,7 @@ class JSString extends Interceptor implements String, JSIndexable {
   }
 
   String replaceAll(Pattern from, String to) {
-    checkString(to);
-    return stringReplaceAllUnchecked(this, from, to);
+    return stringReplaceAllUnchecked(this, from, checkString(to));
   }
 
   String replaceAllMapped(Pattern from, String convert(Match match)) {
@@ -92,10 +91,10 @@ class JSString extends Interceptor implements String, JSIndexable {
   List<String> split(Pattern pattern) {
     checkNull(pattern);
     if (pattern is String) {
-      return JS('JSExtendableArray', r'#.split(#)', this, pattern);
+      return stringSplitUnchecked(this, pattern);
     } else if (pattern is JSSyntaxRegExp && regExpCaptureCount(pattern) == 0) {
       var re = regExpGetNative(pattern);
-      return JS('JSExtendableArray', r'#.split(#)', this, re);
+      return stringSplitUnchecked(this, re);
     } else {
       return _defaultSplit(pattern);
     }
@@ -443,12 +442,10 @@ class JSString extends Interceptor implements String, JSIndexable {
   // Note: if you change this, also change the function [S].
   String toString() => this;
 
-  /**
-   * This is the [Jenkins hash function][1] but using masking to keep
-   * values in SMI range.
-   *
-   * [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
-   */
+  /// This is the [Jenkins hash function][1] but using masking to keep
+  /// values in SMI range.
+  ///
+  /// [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
   int get hashCode {
     // TODO(ahe): This method shouldn't have to use JS. Update when our
     // optimizations are smarter.

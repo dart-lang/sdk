@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.io;
 
 /**
@@ -46,13 +48,31 @@ abstract class SecureSocket implements Socket {
       bool onBadCertificate(X509Certificate certificate),
       List<String> supportedProtocols,
       Duration timeout}) {
-    return RawSecureSocket
-        .connect(host, port,
+    return RawSecureSocket.connect(host, port,
             context: context,
             onBadCertificate: onBadCertificate,
             supportedProtocols: supportedProtocols,
             timeout: timeout)
         .then((rawSocket) => new SecureSocket._(rawSocket));
+  }
+
+  /// Like [connect], but returns a [Future] that completes with a
+  /// [ConnectionTask] that can be cancelled if the [SecureSocket] is no
+  /// longer needed.
+  static Future<ConnectionTask<SecureSocket>> startConnect(host, int port,
+      {SecurityContext context,
+      bool onBadCertificate(X509Certificate certificate),
+      List<String> supportedProtocols}) {
+    return RawSecureSocket.startConnect(host, port,
+            context: context,
+            onBadCertificate: onBadCertificate,
+            supportedProtocols: supportedProtocols)
+        .then((rawState) {
+      Future<SecureSocket> socket =
+          rawState.socket.then((rawSocket) => new SecureSocket._(rawSocket));
+      return new ConnectionTask<SecureSocket>._(
+          socket: socket, onCancel: rawState._onCancel);
+    });
   }
 
   /**
@@ -74,6 +94,11 @@ abstract class SecureSocket implements Socket {
    * the [socket] will be used. The [host] can be either a [String] or
    * an [InternetAddress].
    *
+   * [supportedProtocols] is an optional list of protocols (in decreasing
+   * order of preference) to use during the ALPN protocol negotiation with the
+   * server.  Example values are "http/1.1" or "h2".  The selected protocol
+   * can be obtained via [SecureSocket.selectedProtocol].
+   *
    * Calling this function will _not_ cause a DNS host lookup. If the
    * [host] passed is a [String] the [InternetAddress] for the
    * resulting [SecureSocket] will have the passed in [host] as its
@@ -86,14 +111,16 @@ abstract class SecureSocket implements Socket {
   static Future<SecureSocket> secure(Socket socket,
       {host,
       SecurityContext context,
-      bool onBadCertificate(X509Certificate certificate)}) {
+      bool onBadCertificate(X509Certificate certificate),
+      @Since("2.6") List<String> supportedProtocols}) {
     return ((socket as dynamic /*_Socket*/)._detachRaw() as Future)
         .then<RawSecureSocket>((detachedRaw) {
       return RawSecureSocket.secure(detachedRaw[0] as RawSocket,
           subscription: detachedRaw[1] as StreamSubscription<RawSocketEvent>,
           host: host,
           context: context,
-          onBadCertificate: onBadCertificate);
+          onBadCertificate: onBadCertificate,
+          supportedProtocols: supportedProtocols);
     }).then<SecureSocket>((raw) => new SecureSocket._(raw));
   }
 
@@ -215,6 +242,26 @@ abstract class RawSecureSocket implements RawSocket {
     });
   }
 
+  /// Like [connect], but returns a [Future] that completes with a
+  /// [ConnectionTask] that can be cancelled if the [RawSecureSocket] is no
+  /// longer needed.
+  static Future<ConnectionTask<RawSecureSocket>> startConnect(host, int port,
+      {SecurityContext context,
+      bool onBadCertificate(X509Certificate certificate),
+      List<String> supportedProtocols}) {
+    return RawSocket.startConnect(host, port)
+        .then((ConnectionTask<RawSocket> rawState) {
+      Future<RawSecureSocket> socket = rawState.socket.then((rawSocket) {
+        return secure(rawSocket,
+            context: context,
+            onBadCertificate: onBadCertificate,
+            supportedProtocols: supportedProtocols);
+      });
+      return new ConnectionTask<RawSecureSocket>._(
+          socket: socket, onCancel: rawState._onCancel);
+    });
+  }
+
   /**
    * Takes an already connected [socket] and starts client side TLS
    * handshake to make the communication secure. When the returned
@@ -233,6 +280,11 @@ abstract class RawSecureSocket implements RawSocket {
    * for the TLS handshake. If [host] is not passed the host name from
    * the [socket] will be used. The [host] can be either a [String] or
    * an [InternetAddress].
+   *
+   * [supportedProtocols] is an optional list of protocols (in decreasing
+   * order of preference) to use during the ALPN protocol negotiation with the
+   * server.  Example values are "http/1.1" or "h2".  The selected protocol
+   * can be obtained via [SecureSocket.selectedProtocol].
    *
    * Calling this function will _not_ cause a DNS host lookup. If the
    * [host] passed is a [String] the [InternetAddress] for the
@@ -339,8 +391,19 @@ abstract class RawSecureSocket implements RawSocket {
  * X509Certificate represents an SSL certificate, with accessors to
  * get the fields of the certificate.
  */
+@pragma("vm:entry-point")
 abstract class X509Certificate {
+  @pragma("vm:entry-point")
   external factory X509Certificate._();
+
+  /// The DER encoded bytes of the certificate.
+  Uint8List get der;
+
+  /// The PEM encoded String of the certificate.
+  String get pem;
+
+  /// The SHA1 hash of the certificate.
+  Uint8List get sha1;
 
   String get subject;
   String get issuer;
@@ -364,21 +427,21 @@ class _FilterStatus {
 class _RawSecureSocket extends Stream<RawSocketEvent>
     implements RawSecureSocket {
   // Status states
-  static final int HANDSHAKE = 201;
-  static final int CONNECTED = 202;
-  static final int CLOSED = 203;
+  static const int handshakeStatus = 201;
+  static const int connectedStatus = 202;
+  static const int closedStatus = 203;
 
   // Buffer identifiers.
   // These must agree with those in the native C++ implementation.
-  static final int READ_PLAINTEXT = 0;
-  static final int WRITE_PLAINTEXT = 1;
-  static final int READ_ENCRYPTED = 2;
-  static final int WRITE_ENCRYPTED = 3;
-  static final int NUM_BUFFERS = 4;
+  static const int readPlaintextId = 0;
+  static const int writePlaintextId = 1;
+  static const int readEncryptedId = 2;
+  static const int writeEncryptedId = 3;
+  static const int bufferCount = 4;
 
   // Is a buffer identifier for an encrypted buffer?
   static bool _isBufferEncrypted(int identifier) =>
-      identifier >= READ_ENCRYPTED;
+      identifier >= readEncryptedId;
 
   RawSocket _socket;
   final Completer<_RawSecureSocket> _handshakeComplete =
@@ -395,7 +458,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   final bool requireClientCertificate;
   final Function onBadCertificate;
 
-  var _status = HANDSHAKE;
+  var _status = handshakeStatus;
   bool _writeEventsEnabled = true;
   bool _readEventsEnabled = true;
   int _pauseCount = 0;
@@ -411,7 +474,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   bool _filterPending = false;
   bool _filterActive = false;
 
-  _SecureFilter _secureFilter = new _SecureFilter();
+  _SecureFilter _secureFilter = new _SecureFilter._();
   String _selectedProtocol;
 
   static Future<_RawSecureSocket> connect(
@@ -460,9 +523,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       this.requireClientCertificate,
       this.onBadCertificate,
       List<String> supportedProtocols) {
-    if (context == null) {
-      context = SecurityContext.defaultContext;
-    }
+    context ??= SecurityContext.defaultContext;
     _controller = new StreamController<RawSocketEvent>(
         sync: true,
         onListen: _onSubscriptionStateChange,
@@ -491,10 +552,10 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         throw new ArgumentError("Subscription passed to TLS upgrade is paused");
       }
       // If we are upgrading a socket that is already closed for read,
-      // report an error as if we received READ_CLOSED during the handshake.
+      // report an error as if we received readClosed during the handshake.
       dynamic s = _socket; // Cast to dynamic to avoid warning.
       if (s._socket.closedReadEventSent) {
-        _eventDispatcher(RawSocketEvent.READ_CLOSED);
+        _eventDispatcher(RawSocketEvent.readClosed);
       }
       _socketSubscription
         ..onData(_eventDispatcher)
@@ -534,21 +595,14 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (host is! String && host is! InternetAddress) {
       throw new ArgumentError("host is not a String or an InternetAddress");
     }
-    if (requestedPort is! int) {
-      throw new ArgumentError("requestedPort is not an int");
-    }
+    ArgumentError.checkNotNull(requestedPort, "requestedPort");
     if (requestedPort < 0 || requestedPort > 65535) {
-      throw new ArgumentError("requestedPort is not in the range 0..65535");
+      throw ArgumentError("requestedPort is not in the range 0..65535");
     }
-    if (requestClientCertificate is! bool) {
-      throw new ArgumentError("requestClientCertificate is not a bool");
-    }
-    if (requireClientCertificate is! bool) {
-      throw new ArgumentError("requireClientCertificate is not a bool");
-    }
-    if (onBadCertificate != null && onBadCertificate is! Function) {
-      throw new ArgumentError("onBadCertificate is not null or a Function");
-    }
+    ArgumentError.checkNotNull(
+        requestClientCertificate, "requestClientCertificate");
+    ArgumentError.checkNotNull(
+        requireClientCertificate, "requireClientCertificate");
   }
 
   int get port => _socket.port;
@@ -562,13 +616,13 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   int available() {
-    return _status != CONNECTED
+    return _status != connectedStatus
         ? 0
-        : _secureFilter.buffers[READ_PLAINTEXT].length;
+        : _secureFilter.buffers[readPlaintextId].length;
   }
 
   Future<RawSecureSocket> close() {
-    shutdown(SocketDirection.BOTH);
+    shutdown(SocketDirection.both);
     return _closeCompleter.future;
   }
 
@@ -594,26 +648,26 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       _socketSubscription.cancel();
     }
     _controller.close();
-    _status = CLOSED;
+    _status = closedStatus;
   }
 
   void shutdown(SocketDirection direction) {
-    if (direction == SocketDirection.SEND ||
-        direction == SocketDirection.BOTH) {
+    if (direction == SocketDirection.send ||
+        direction == SocketDirection.both) {
       _closedWrite = true;
       if (_filterStatus.writeEmpty) {
-        _socket.shutdown(SocketDirection.SEND);
+        _socket.shutdown(SocketDirection.send);
         _socketClosedWrite = true;
         if (_closedRead) {
           _close();
         }
       }
     }
-    if (direction == SocketDirection.RECEIVE ||
-        direction == SocketDirection.BOTH) {
+    if (direction == SocketDirection.receive ||
+        direction == SocketDirection.both) {
       _closedRead = true;
       _socketClosedRead = true;
-      _socket.shutdown(SocketDirection.RECEIVE);
+      _socket.shutdown(SocketDirection.receive);
       if (_socketClosedWrite) {
         _close();
       }
@@ -636,7 +690,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     _scheduleReadEvent();
   }
 
-  List<int> read([int length]) {
+  Uint8List read([int length]) {
     if (length != null && (length is! int || length < 0)) {
       throw new ArgumentError(
           "Invalid length parameter in SecureSocket.read (length: $length)");
@@ -644,10 +698,10 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (_closedRead) {
       throw new SocketException("Reading from a closed socket");
     }
-    if (_status != CONNECTED) {
+    if (_status != connectedStatus) {
       return null;
     }
-    var result = _secureFilter.buffers[READ_PLAINTEXT].read(length);
+    var result = _secureFilter.buffers[readPlaintextId].read(length);
     _scheduleFilter();
     return result;
   }
@@ -666,12 +720,12 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       _controller.addError(new SocketException("Writing to a closed socket"));
       return 0;
     }
-    if (_status != CONNECTED) return 0;
-    if (offset == null) offset = 0;
-    if (bytes == null) bytes = data.length - offset;
+    if (_status != connectedStatus) return 0;
+    offset ??= 0;
+    bytes ??= data.length - offset;
 
     int written =
-        _secureFilter.buffers[WRITE_PLAINTEXT].write(data, offset, bytes);
+        _secureFilter.buffers[writePlaintextId].write(data, offset, bytes);
     if (written > 0) {
       _filterStatus.writeEmpty = false;
     }
@@ -696,13 +750,21 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     return _socket.setOption(option, enabled);
   }
 
+  Uint8List getRawOption(RawSocketOption option) {
+    return _socket?.getRawOption(option);
+  }
+
+  void setRawOption(RawSocketOption option) {
+    _socket?.setRawOption(option);
+  }
+
   void _eventDispatcher(RawSocketEvent event) {
     try {
-      if (event == RawSocketEvent.READ) {
+      if (event == RawSocketEvent.read) {
         _readHandler();
-      } else if (event == RawSocketEvent.WRITE) {
+      } else if (event == RawSocketEvent.write) {
         _writeHandler();
-      } else if (event == RawSocketEvent.READ_CLOSED) {
+      } else if (event == RawSocketEvent.readClosed) {
         _closeHandler();
       }
     } catch (e, stackTrace) {
@@ -727,7 +789,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   void _reportError(e, [StackTrace stackTrace]) {
-    if (_status == CLOSED) {
+    if (_status == closedStatus) {
       return;
     } else if (_connectPending) {
       // _connectPending is true until the handshake has completed, and the
@@ -741,19 +803,19 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   void _closeHandler() {
-    if (_status == CONNECTED) {
+    if (_status == connectedStatus) {
       if (_closedRead) return;
       _socketClosedRead = true;
       if (_filterStatus.readEmpty) {
         _closedRead = true;
-        _controller.add(RawSocketEvent.READ_CLOSED);
+        _controller.add(RawSocketEvent.readClosed);
         if (_socketClosedWrite) {
           _close();
         }
       } else {
         _scheduleFilter();
       }
-    } else if (_status == HANDSHAKE) {
+    } else if (_status == handshakeStatus) {
       _socketClosedRead = true;
       if (_filterStatus.readEmpty) {
         _reportError(
@@ -781,19 +843,19 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       {bool useSessionCache: true,
       bool requestClientCertificate: false,
       bool requireClientCertificate: false}) {
-    if (_status != CONNECTED) {
+    if (_status != connectedStatus) {
       throw new HandshakeException(
           "Called renegotiate on a non-connected socket");
     }
     _secureFilter.renegotiate(
         useSessionCache, requestClientCertificate, requireClientCertificate);
-    _status = HANDSHAKE;
+    _status = handshakeStatus;
     _filterStatus.writeEmpty = false;
     _scheduleFilter();
   }
 
   void _secureHandshakeCompleteHandler() {
-    _status = CONNECTED;
+    _status = connectedStatus;
     if (_connectPending) {
       _connectPending = false;
       try {
@@ -838,7 +900,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   void _tryFilter() {
-    if (_status == CLOSED) {
+    if (_status == closedStatus) {
       return;
     }
     if (_filterPending && !_filterActive) {
@@ -847,7 +909,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       _pushAllFilterStages().then((status) {
         _filterStatus = status;
         _filterActive = false;
-        if (_status == CLOSED) {
+        if (_status == closedStatus) {
           _secureFilter.destroy();
           _secureFilter = null;
           return;
@@ -855,22 +917,22 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _socket.readEventsEnabled = true;
         if (_filterStatus.writeEmpty && _closedWrite && !_socketClosedWrite) {
           // Checks for and handles all cases of partially closed sockets.
-          shutdown(SocketDirection.SEND);
-          if (_status == CLOSED) {
+          shutdown(SocketDirection.send);
+          if (_status == closedStatus) {
             return;
           }
         }
         if (_filterStatus.readEmpty && _socketClosedRead && !_closedRead) {
-          if (_status == HANDSHAKE) {
+          if (_status == handshakeStatus) {
             _secureFilter.handshake();
-            if (_status == HANDSHAKE) {
+            if (_status == handshakeStatus) {
               throw new HandshakeException(
                   'Connection terminated during handshake');
             }
           }
           _closeHandler();
         }
-        if (_status == CLOSED) {
+        if (_status == closedStatus) {
           return;
         }
         if (_filterStatus.progress) {
@@ -887,7 +949,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
           if (_filterStatus.readPlaintextNoLongerEmpty) {
             _scheduleReadEvent();
           }
-          if (_status == HANDSHAKE) {
+          if (_status == handshakeStatus) {
             _secureHandshake();
           }
         }
@@ -916,8 +978,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   void _readSocket() {
-    if (_status == CLOSED) return;
-    var buffer = _secureFilter.buffers[READ_ENCRYPTED];
+    if (_status == closedStatus) return;
+    var buffer = _secureFilter.buffers[readEncryptedId];
     if (buffer.writeFromSource(_readSocketOrBufferedData) > 0) {
       _filterStatus.readEmpty = false;
     } else {
@@ -927,7 +989,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   void _writeSocket() {
     if (_socketClosedWrite) return;
-    var buffer = _secureFilter.buffers[WRITE_ENCRYPTED];
+    var buffer = _secureFilter.buffers[writeEncryptedId];
     if (buffer.readToSocket(_socket)) {
       // Returns true if blocked
       _socket.writeEventsEnabled = true;
@@ -940,7 +1002,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _readEventsEnabled &&
         _pauseCount == 0 &&
         _secureFilter != null &&
-        !_secureFilter.buffers[READ_PLAINTEXT].isEmpty) {
+        !_secureFilter.buffers[readPlaintextId].isEmpty) {
       _pendingReadEvent = true;
       Timer.run(_sendReadEvent);
     }
@@ -948,12 +1010,12 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   _sendReadEvent() {
     _pendingReadEvent = false;
-    if (_status != CLOSED &&
+    if (_status != closedStatus &&
         _readEventsEnabled &&
         _pauseCount == 0 &&
         _secureFilter != null &&
-        !_secureFilter.buffers[READ_PLAINTEXT].isEmpty) {
-      _controller.add(RawSocketEvent.READ);
+        !_secureFilter.buffers[readPlaintextId].isEmpty) {
+      _controller.add(RawSocketEvent.read);
       _scheduleReadEvent();
     }
   }
@@ -964,24 +1026,25 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _writeEventsEnabled &&
         _pauseCount == 0 &&
         _secureFilter != null &&
-        _secureFilter.buffers[WRITE_PLAINTEXT].free > 0) {
+        _secureFilter.buffers[writePlaintextId].free > 0) {
       _writeEventsEnabled = false;
-      _controller.add(RawSocketEvent.WRITE);
+      _controller.add(RawSocketEvent.write);
     }
   }
 
   Future<_FilterStatus> _pushAllFilterStages() {
-    bool wasInHandshake = _status != CONNECTED;
-    List args = new List(2 + NUM_BUFFERS * 2);
+    bool wasInHandshake = _status != connectedStatus;
+    List args = new List(2 + bufferCount * 2);
     args[0] = _secureFilter._pointer();
     args[1] = wasInHandshake;
     var bufs = _secureFilter.buffers;
-    for (var i = 0; i < NUM_BUFFERS; ++i) {
+    for (var i = 0; i < bufferCount; ++i) {
       args[2 * i + 2] = bufs[i].start;
       args[2 * i + 3] = bufs[i].end;
     }
 
-    return _IOService._dispatch(_SSL_PROCESS_FILTER, args).then((response) {
+    return _IOService._dispatch(_IOService.sslProcessFilter, args)
+        .then((response) {
       if (response.length == 2) {
         if (wasInHandshake) {
           // If we're in handshake, throw a handshake error.
@@ -1000,19 +1063,19 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       _FilterStatus status = new _FilterStatus();
       // Compute writeEmpty as "write plaintext buffer and write encrypted
       // buffer were empty when we started and are empty now".
-      status.writeEmpty = bufs[WRITE_PLAINTEXT].isEmpty &&
-          start(WRITE_ENCRYPTED) == end(WRITE_ENCRYPTED);
+      status.writeEmpty = bufs[writePlaintextId].isEmpty &&
+          start(writeEncryptedId) == end(writeEncryptedId);
       // If we were in handshake when this started, _writeEmpty may be false
       // because the handshake wrote data after we checked.
       if (wasInHandshake) status.writeEmpty = false;
 
       // Compute readEmpty as "both read buffers were empty when we started
       // and are empty now".
-      status.readEmpty = bufs[READ_ENCRYPTED].isEmpty &&
-          start(READ_PLAINTEXT) == end(READ_PLAINTEXT);
+      status.readEmpty = bufs[readEncryptedId].isEmpty &&
+          start(readPlaintextId) == end(readPlaintextId);
 
-      _ExternalBuffer buffer = bufs[WRITE_PLAINTEXT];
-      int new_start = start(WRITE_PLAINTEXT);
+      _ExternalBuffer buffer = bufs[writePlaintextId];
+      int new_start = start(writePlaintextId);
       if (new_start != buffer.start) {
         status.progress = true;
         if (buffer.free == 0) {
@@ -1020,8 +1083,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         }
         buffer.start = new_start;
       }
-      buffer = bufs[READ_ENCRYPTED];
-      new_start = start(READ_ENCRYPTED);
+      buffer = bufs[readEncryptedId];
+      new_start = start(readEncryptedId);
       if (new_start != buffer.start) {
         status.progress = true;
         if (buffer.free == 0) {
@@ -1029,8 +1092,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         }
         buffer.start = new_start;
       }
-      buffer = bufs[WRITE_ENCRYPTED];
-      int new_end = end(WRITE_ENCRYPTED);
+      buffer = bufs[writeEncryptedId];
+      int new_end = end(writeEncryptedId);
       if (new_end != buffer.end) {
         status.progress = true;
         if (buffer.length == 0) {
@@ -1038,8 +1101,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         }
         buffer.end = new_end;
       }
-      buffer = bufs[READ_PLAINTEXT];
-      new_end = end(READ_PLAINTEXT);
+      buffer = bufs[readPlaintextId];
+      new_end = end(readPlaintextId);
       if (new_end != buffer.end) {
         status.progress = true;
         if (buffer.length == 0) {
@@ -1059,9 +1122,15 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
  */
 class _ExternalBuffer {
   // This will be an ExternalByteArray, backed by C allocated data.
+  @pragma("vm:entry-point", "set")
   List<int> data;
+
+  @pragma("vm:entry-point")
   int start;
+
+  @pragma("vm:entry-point")
   int end;
+
   final size;
 
   _ExternalBuffer(this.size) {
@@ -1102,14 +1171,14 @@ class _ExternalBuffer {
     return size - end;
   }
 
-  List<int> read(int bytes) {
+  Uint8List read(int bytes) {
     if (bytes == null) {
       bytes = length;
     } else {
       bytes = min(bytes, length);
     }
     if (bytes == 0) return null;
-    List<int> result = new Uint8List(bytes);
+    Uint8List result = new Uint8List(bytes);
     int bytesRead = 0;
     // Loop over zero, one, or two linear data ranges.
     while (bytesRead < bytes) {
@@ -1171,7 +1240,7 @@ class _ExternalBuffer {
 }
 
 abstract class _SecureFilter {
-  external factory _SecureFilter();
+  external factory _SecureFilter._();
 
   void connect(
       String hostName,
@@ -1208,7 +1277,8 @@ class TlsException implements IOException {
   final String message;
   final OSError osError;
 
-  const TlsException([String message = "", OSError osError = null])
+  @pragma("vm:entry-point")
+  const TlsException([String message = "", OSError osError])
       : this._("TlsException", message, osError);
 
   const TlsException._(this.type, this.message, this.osError);
@@ -1216,7 +1286,7 @@ class TlsException implements IOException {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write(type);
-    if (!message.isEmpty) {
+    if (message.isNotEmpty) {
       sb.write(": $message");
       if (osError != null) {
         sb.write(" ($osError)");
@@ -1232,8 +1302,10 @@ class TlsException implements IOException {
  * An exception that happens in the handshake phase of establishing
  * a secure network connection.
  */
+@pragma("vm:entry-point")
 class HandshakeException extends TlsException {
-  const HandshakeException([String message = "", OSError osError = null])
+  @pragma("vm:entry-point")
+  const HandshakeException([String message = "", OSError osError])
       : super._("HandshakeException", message, osError);
 }
 
@@ -1243,6 +1315,7 @@ class HandshakeException extends TlsException {
  * certificate.
  */
 class CertificateException extends TlsException {
-  const CertificateException([String message = "", OSError osError = null])
+  @pragma("vm:entry-point")
+  const CertificateException([String message = "", OSError osError])
       : super._("CertificateException", message, osError);
 }

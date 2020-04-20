@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Accessing static native methods names:
 //   plain declaration ->  use @Native tag as 'scope' for declared name.
 //   identifier @JSName -> use @Native tag as 'scope' for @JSName.
@@ -57,19 +59,14 @@ main() {
   nativeTesting();
   setup();
 
-  // TODO(sra): Investigate why this line is necessary to get a correctly
-  // compiled convertDartClosureToJS.  Without this line, the compiler crashes.
-  convertDartClosureToJS(main, 1);
-
   Expect.equals(5, AA.foo("Hello"));
 
-  Expect.equals(3, AA.bar((s) => s.length));
-  Expect.equals(3, AA.baz((s) => s.length));
+  Expect.equals(3, AA.bar((String s) => s.length));
+  Expect.equals(3, AA.baz((String s) => s.length));
 
-  Expect.equals(6, AA.lepton((s) => s.length));
-  Expect.equals(6, AA.electron((s) => s.length));
+  Expect.equals(6, AA.lepton((String s) => s.length));
+  Expect.equals(6, AA.electron((String s) => s.length));
 
-  Expect.equals(12, AA._baryon((s) => s.length));
-  Expect.equals(12, AA.proton((s) => s.length));
-  Expect.throws(() => AA.baryon((s) => s.length)); // Not defined on AA.
+  Expect.equals(12, AA._baryon((String s) => s.length));
+  Expect.equals(12, AA.proton((String s) => s.length));
 }

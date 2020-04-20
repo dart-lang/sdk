@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class late extends core::Object {
+  synthetic constructor •() → self::late*
+    ;
+  get g() → core::int*
+    ;
+}
+class required extends core::Object {
+  synthetic constructor •() → self::required*
+    ;
+  get g() → core::int*
+    ;
+}
+class C extends core::Object {
+  field self::late* l;
+  field self::required* r;
+  synthetic constructor •() → self::C*
+    ;
+}
+static method main() → dynamic
+  ;

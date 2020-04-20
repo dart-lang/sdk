@@ -1,0 +1,25 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class B<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::T*>*
+    ;
+  operator []=(generic-covariant-impl core::Map<core::int*, self::B::T*>* x, generic-covariant-impl core::List<self::B::T*>* y) → void
+    ;
+}
+class C<U extends core::Object* = dynamic> extends self::B<asy::Future<self::C::U*>*> {
+  synthetic constructor •() → self::C<self::C::U*>*
+    ;
+  operator []=(generic-covariant-impl core::Object* x, generic-covariant-impl core::Object* y) → void
+    ;
+  method h() → void
+    ;
+}
+static method f<T extends core::Object* = dynamic>() → self::f::T*
+  ;
+static method main() → dynamic
+  ;

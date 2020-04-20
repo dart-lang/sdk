@@ -8,12 +8,12 @@ library MirrorsTest;
 
 import 'dart:mirrors';
 import 'package:args/args.dart';
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 testLibraryUri(var value, Uri expectedUri) {
   var valueMirror = reflect(value);
   ClassMirror valueClass = valueMirror.type;
-  LibraryMirror valueLibrary = valueClass.owner;
+  LibraryMirror valueLibrary = valueClass.owner as LibraryMirror;
   Uri uri = valueLibrary.uri;
   if (uri.scheme != "https" ||
       uri.host != "dartlang.org" ||

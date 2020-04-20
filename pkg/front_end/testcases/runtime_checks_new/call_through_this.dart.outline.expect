@@ -2,29 +2,29 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef F<T extends core::Object> = (T) → dynamic;
-class C<T extends core::Object> extends core::Object {
-  default constructor •() → void
+typedef F<contravariant T extends core::Object* = dynamic> = (T*) →* dynamic;
+class C<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T*>*
     ;
-  method f(self::C::T x) → void
+  method f(generic-covariant-impl self::C::T* x) → void
     ;
-  method g1(self::C::T x) → void
+  method g1(generic-covariant-impl self::C::T* x) → void
     ;
-  method g2(self::C::T x) → void
+  method g2(generic-covariant-impl self::C::T* x) → void
     ;
-  method g3(self::C<self::C::T> c, self::C::T x) → void
+  method g3(generic-covariant-impl self::C<self::C::T*>* c, generic-covariant-impl self::C::T* x) → void
     ;
-  method g4() → (self::C::T) → dynamic
-    ;
-}
-class D extends self::C<core::int> {
-  default constructor •() → void
+  method g4() → (self::C::T*) →* dynamic
     ;
 }
-class E extends self::C<core::num> {
-  default constructor •() → void
+class D extends self::C<core::int*> {
+  synthetic constructor •() → self::D*
     ;
-  method f(covariant core::int x) → void
+}
+class E extends self::C<core::num*> {
+  synthetic constructor •() → self::E*
+    ;
+  method f(covariant generic-covariant-impl core::int* x) → void
     ;
 }
 static method test() → dynamic

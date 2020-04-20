@@ -9,6 +9,6 @@ class A<T> {
   A(T x);
 }
 
-var /*@topType=List<A<int>>*/ t1 = <A<int>>[new /*@typeArgs=int*/ A(1)];
+var t1 = <A<int>>[new /*@ typeArgs=int* */ A(1)];
 
 main() {}

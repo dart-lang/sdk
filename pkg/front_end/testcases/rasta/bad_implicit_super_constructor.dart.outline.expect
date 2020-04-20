@@ -1,13 +1,23 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:10:9: Error: The superclass, 'A', has no unnamed constructor that takes no arguments.
+//   const B();
+//         ^
+//
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  constructor •(dynamic x) → void
+  constructor •(dynamic x) → self::A*
     ;
 }
-class B extends self::A {
-  const constructor •() → void
+class B extends self::A /*hasConstConstructor*/  {
+  const constructor •() → self::B*
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:10:9: Error: The superclass, 'A', has no unnamed constructor that takes no arguments.
+  const B();
+        ^"
     ;
 }
 static method main() → dynamic

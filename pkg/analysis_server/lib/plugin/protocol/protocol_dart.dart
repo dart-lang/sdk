@@ -1,31 +1,28 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Utilities for converting Dart entities into analysis server's protocol
- * entities.
- */
+/// Utilities for converting Dart entities into analysis server's protocol
+/// entities.
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:path/path.dart' as pathos;
 
-/**
- * Return a protocol [Element] corresponding to the given [engine.Element].
- */
+/// Return a protocol [Element] corresponding to the given [engine.Element].
 Element convertElement(engine.Element element) {
-  String name = element.displayName;
-  String elementTypeParameters = _getTypeParametersString(element);
-  String elementParameters = _getParametersString(element);
-  String elementReturnType = getReturnTypeString(element);
-  ElementKind kind = convertElementToElementKind(element);
-  return new Element(
+  var name = getElementDisplayName(element);
+  var elementTypeParameters = _getTypeParametersString(element);
+  var elementParameters = _getParametersString(element);
+  var elementReturnType = getReturnTypeString(element);
+  var kind = convertElementToElementKind(element);
+  return Element(
       kind,
       name,
       Element.makeFlags(
           isPrivate: element.isPrivate,
-          isDeprecated: element.isDeprecated,
+          isDeprecated: element.hasDeprecated,
           isAbstract: _isAbstract(element),
           isConst: _isConst(element),
           isFinal: _isFinal(element),
@@ -36,14 +33,12 @@ Element convertElement(engine.Element element) {
       returnType: elementReturnType);
 }
 
-/**
- * Return a protocol [ElementKind] corresponding to the given
- * [engine.ElementKind].
- *
- * This does not take into account that an instance of [ClassElement] can be an
- * enum and an instance of [FieldElement] can be an enum constant.
- * Use [convertElementToElementKind] where possible.
- */
+/// Return a protocol [ElementKind] corresponding to the given
+/// [engine.ElementKind].
+///
+/// This does not take into account that an instance of [ClassElement] can be an
+/// enum and an instance of [FieldElement] can be an enum constant.
+/// Use [convertElementToElementKind] where possible.
 ElementKind convertElementKind(engine.ElementKind kind) {
   if (kind == engine.ElementKind.CLASS) {
     return ElementKind.CLASS;
@@ -54,6 +49,9 @@ ElementKind convertElementKind(engine.ElementKind kind) {
   if (kind == engine.ElementKind.CONSTRUCTOR) {
     return ElementKind.CONSTRUCTOR;
   }
+  if (kind == engine.ElementKind.EXTENSION) {
+    return ElementKind.EXTENSION;
+  }
   if (kind == engine.ElementKind.FIELD) {
     return ElementKind.FIELD;
   }
@@ -61,6 +59,9 @@ ElementKind convertElementKind(engine.ElementKind kind) {
     return ElementKind.FUNCTION;
   }
   if (kind == engine.ElementKind.FUNCTION_TYPE_ALIAS) {
+    return ElementKind.FUNCTION_TYPE_ALIAS;
+  }
+  if (kind == engine.ElementKind.GENERIC_FUNCTION_TYPE) {
     return ElementKind.FUNCTION_TYPE_ALIAS;
   }
   if (kind == engine.ElementKind.GETTER) {
@@ -96,12 +97,15 @@ ElementKind convertElementKind(engine.ElementKind kind) {
   return ElementKind.UNKNOWN;
 }
 
-/**
- * Return an [ElementKind] corresponding to the given [engine.Element].
- */
+/// Return an [ElementKind] corresponding to the given [engine.Element].
 ElementKind convertElementToElementKind(engine.Element element) {
-  if (element is engine.ClassElement && element.isEnum) {
-    return ElementKind.ENUM;
+  if (element is engine.ClassElement) {
+    if (element.isEnum) {
+      return ElementKind.ENUM;
+    }
+    if (element.isMixin) {
+      return ElementKind.MIXIN;
+    }
   }
   if (element is engine.FieldElement &&
       element.isEnumConstant &&
@@ -120,6 +124,14 @@ ElementKind convertElementToElementKind(engine.Element element) {
   return convertElementKind(element.kind);
 }
 
+String getElementDisplayName(engine.Element element) {
+  if (element is engine.CompilationUnitElement) {
+    return pathos.basename(element.source.fullName);
+  } else {
+    return element.displayName;
+  }
+}
+
 String _getParametersString(engine.Element element) {
   // TODO(scheglov) expose the corresponding feature from ExecutableElement
   List<engine.ParameterElement> parameters;
@@ -129,30 +141,34 @@ String _getParametersString(engine.Element element) {
         element.parameters.isEmpty) {
       return null;
     }
-    parameters = element.parameters;
+    parameters = element.parameters.toList();
   } else if (element is engine.FunctionTypeAliasElement) {
-    parameters = element.parameters;
+    parameters = element.function.parameters.toList();
   } else {
     return null;
   }
-  StringBuffer sb = new StringBuffer();
-  String closeOptionalString = '';
-  for (engine.ParameterElement parameter in parameters) {
+
+  parameters.sort(_preferRequiredParams);
+
+  var sb = StringBuffer();
+  var closeOptionalString = '';
+  for (var parameter in parameters) {
     if (sb.isNotEmpty) {
       sb.write(', ');
     }
     if (closeOptionalString.isEmpty) {
-      engine.ParameterKind kind = parameter.parameterKind;
-      if (kind == engine.ParameterKind.NAMED) {
+      if (parameter.isNamed) {
         sb.write('{');
         closeOptionalString = '}';
-      }
-      if (kind == engine.ParameterKind.POSITIONAL) {
+      } else if (parameter.isOptionalPositional) {
         sb.write('[');
         closeOptionalString = ']';
       }
     }
-    parameter.appendToWithoutDelimiters(sb);
+    if (parameter.hasRequired) {
+      sb.write('@required ');
+    }
+    parameter.appendToWithoutDelimiters(sb, withNullability: false);
   }
   sb.write(closeOptionalString);
   return '(' + sb.toString() + ')';
@@ -213,4 +229,12 @@ bool _isStatic(engine.Element element) {
     return element.isStatic;
   }
   return false;
+}
+
+/// Sort required named parameters before optional ones.
+int _preferRequiredParams(
+    engine.ParameterElement e1, engine.ParameterElement e2) {
+  var rank1 = (e1.isRequiredNamed || e1.hasRequired) ? 0 : !e1.isNamed ? -1 : 1;
+  var rank2 = (e2.isRequiredNamed || e2.hasRequired) ? 0 : !e2.isNamed ? -1 : 1;
+  return rank1 - rank2;
 }

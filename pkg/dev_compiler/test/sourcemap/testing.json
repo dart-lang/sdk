@@ -1,0 +1,33 @@
+{
+"":"Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file",
+"":"for details. All rights reserved. Use of this source code is governed by a",
+"":"BSD-style license that can be found in the LICENSE.md file.",
+  "packages": "../../../../.packages",
+  "suites": [
+    {
+      "name": "sourcemaps_ddk",
+      "kind": "Chain",
+      "source": "sourcemaps_ddk_suite.dart",
+      "path": "testfiles",
+      "status": "sourcemaps_ddk.status",
+      "pattern": [
+        "\\.dart$",
+        "\\.unformatteddart$"
+      ],
+      "exclude": [
+      ]
+    },
+    {
+      "name": "stacktrace_ddk",
+      "kind": "Chain",
+      "source": "stacktrace_ddk_suite.dart",
+      "path": "stacktrace_testfiles",
+      "status": "stacktrace_ddk.status",
+      "pattern": [
+        "\\.dart$"
+      ],
+      "exclude": [
+      ]
+    }
+  ]
+}

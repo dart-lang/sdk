@@ -91,9 +91,35 @@ testSub() {
   Expect.equals(1, o.w);
 }
 
+const int53 = 0x20000000000000; // 2^53.
+final usingJavaScriptNumbers = (int53 + 1) == int53;
+
+testTruncation() {
+  // Check that various bits from bit 32 and up are masked away.
+  var base = usingJavaScriptNumbers ? 0x1BCCDD00000000 : 0xAABBCCDD00000000;
+  var x1 = new Int32x4(base + 1, 0, 0, 0);
+  Expect.equals(1, x1.x);
+
+  // Check that all even bits up to bit 30 are preserved.
+  var x2 = new Int32x4(base + 0x55555555, 0, 0, 0);
+  Expect.equals(0x55555555, x2.x);
+
+  // Check that the odd bits up to bit 31 are preserved, and that
+  // bit 31 is treated as a sign bit.
+  var x3 = new Int32x4(base + 0xAAAAAAAA, 0, 0, 0);
+  const signExtended = -1431655766; // 0xFFFFFFFFAAAAAAAA or 0x3FFFFFAAAAAAAA.
+  Expect.equals(signExtended, x3.x);
+
+  // Check that all bits from bit 32 and up are masked away.
+  var highBase = 0xFFFFFFFF10000000;
+  var x4 = new Int32x4(highBase, 0, 0, 0);
+  Expect.equals(0x10000000, x4.x);
+}
+
 main() {
   for (int i = 0; i < 20; i++) {
     testAdd();
     testSub();
+    testTruncation();
   }
 }

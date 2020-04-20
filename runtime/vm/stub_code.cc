@@ -7,217 +7,327 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/clustered_snapshot.h"
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/flags.h"
+#include "vm/heap/safepoint.h"
+#include "vm/interpreter.h"
 #include "vm/object_store.h"
-#include "vm/safepoint.h"
 #include "vm/snapshot.h"
 #include "vm/virtual_memory.h"
 #include "vm/visitor.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/aot/precompiler.h"
+#include "vm/compiler/assembler/assembler.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 namespace dart {
 
 DEFINE_FLAG(bool, disassemble_stubs, false, "Disassemble generated stubs.");
+DECLARE_FLAG(bool, precompiled_mode);
 
-StubEntry* StubCode::entries_[kNumStubEntries] = {
-#define STUB_CODE_DECLARE(name) NULL,
+DECLARE_FLAG(bool, enable_interpreter);
+
+StubCode::StubCodeEntry StubCode::entries_[kNumStubEntries] = {
+#if defined(DART_PRECOMPILED_RUNTIME)
+#define STUB_CODE_DECLARE(name) {nullptr, #name},
+#else
+#define STUB_CODE_DECLARE(name)                                                \
+  {nullptr, #name, compiler::StubCodeCompiler::Generate##name##Stub},
+#endif
     VM_STUB_CODE_LIST(STUB_CODE_DECLARE)
 #undef STUB_CODE_DECLARE
 };
 
-StubEntry::StubEntry(const Code& code)
-    : code_(code.raw()),
-      entry_point_(code.UncheckedEntryPoint()),
-      checked_entry_point_(code.CheckedEntryPoint()),
-      size_(code.Size()),
-      label_(code.UncheckedEntryPoint()) {}
-
-// Visit all object pointers.
-void StubEntry::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  ASSERT(visitor != NULL);
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&code_));
-}
-
 #if defined(DART_PRECOMPILED_RUNTIME)
-void StubCode::InitOnce() {
+void StubCode::Init() {
   // Stubs will be loaded from the snapshot.
   UNREACHABLE();
 }
+
 #else
 
-#define STUB_CODE_GENERATE(name)                                               \
-  code ^= Generate("_stub_" #name, StubCode::Generate##name##Stub);            \
-  entries_[k##name##Index] = new StubEntry(code);
+void StubCode::Init() {
+  compiler::ObjectPoolBuilder object_pool_builder;
 
-void StubCode::InitOnce() {
   // Generate all the stubs.
-  Code& code = Code::Handle();
-  VM_STUB_CODE_LIST(STUB_CODE_GENERATE);
+  for (size_t i = 0; i < ARRAY_SIZE(entries_); i++) {
+    entries_[i].code = Code::ReadOnlyHandle();
+    *(entries_[i].code) =
+        Generate(entries_[i].name, &object_pool_builder, entries_[i].generator);
+  }
+
+  const ObjectPool& object_pool =
+      ObjectPool::Handle(ObjectPool::NewFromBuilder(object_pool_builder));
+
+  for (size_t i = 0; i < ARRAY_SIZE(entries_); i++) {
+    entries_[i].code->set_object_pool(object_pool.raw());
+  }
 }
 
 #undef STUB_CODE_GENERATE
+#undef STUB_CODE_SET_OBJECT_POOL
 
-RawCode* StubCode::Generate(const char* name,
-                            void (*GenerateStub)(Assembler* assembler)) {
-  Assembler assembler;
+RawCode* StubCode::Generate(
+    const char* name,
+    compiler::ObjectPoolBuilder* object_pool_builder,
+    void (*GenerateStub)(compiler::Assembler* assembler)) {
+  compiler::Assembler assembler(object_pool_builder);
   GenerateStub(&assembler);
-  const Code& code =
-      Code::Handle(Code::FinalizeCode(name, &assembler, false /* optimized */));
+  const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
+      name, nullptr, &assembler, Code::PoolAttachment::kNotAttachPool,
+      /*optimized=*/false));
 #ifndef PRODUCT
   if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
-    LogBlock lb;
-    THR_Print("Code for stub '%s': {\n", name);
-    DisassembleToStdout formatter;
-    code.Disassemble(&formatter);
-    THR_Print("}\n");
-    const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
-    object_pool.DebugPrint();
+    Disassembler::DisassembleStub(name, code);
   }
 #endif  // !PRODUCT
   return code.raw();
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-void StubCode::Init(Isolate* isolate) {}
-
-void StubCode::VisitObjectPointers(ObjectPointerVisitor* visitor) {}
-
-bool StubCode::HasBeenInitialized() {
-#if !defined(TARGET_ARCH_DBC)
-  // Use JumpToHandler and InvokeDart as canaries.
-  const StubEntry* entry_1 = StubCode::JumpToFrame_entry();
-  const StubEntry* entry_2 = StubCode::InvokeDartCode_entry();
-  return (entry_1 != NULL) && (entry_2 != NULL);
-#else
-  return true;
-#endif
+void StubCode::Cleanup() {
+  for (size_t i = 0; i < ARRAY_SIZE(entries_); i++) {
+    entries_[i].code = nullptr;
+  }
 }
 
-bool StubCode::InInvocationStub(uword pc) {
-#if !defined(TARGET_ARCH_DBC)
+bool StubCode::HasBeenInitialized() {
+  // Use AsynchronousGapMarker as canary.
+  return entries_[kAsynchronousGapMarkerIndex].code != nullptr;
+}
+
+bool StubCode::InInvocationStub(uword pc, bool is_interpreted_frame) {
   ASSERT(HasBeenInitialized());
-  uword entry = StubCode::InvokeDartCode_entry()->EntryPoint();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_enable_interpreter) {
+    if (is_interpreted_frame) {
+      // Recognize special marker set up by interpreter in entry frame.
+      return Interpreter::IsEntryFrameMarker(
+          reinterpret_cast<const KBCInstr*>(pc));
+    }
+    {
+      uword entry = StubCode::InvokeDartCodeFromBytecode().EntryPoint();
+      uword size = StubCode::InvokeDartCodeFromBytecodeSize();
+      if ((pc >= entry) && (pc < (entry + size))) {
+        return true;
+      }
+    }
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  uword entry = StubCode::InvokeDartCode().EntryPoint();
   uword size = StubCode::InvokeDartCodeSize();
   return (pc >= entry) && (pc < (entry + size));
-#else
-  // On DBC we use a special marker PC to signify entry frame because there is
-  // no such thing as invocation stub.
-  return (pc & 2) != 0;
-#endif
 }
 
 bool StubCode::InJumpToFrameStub(uword pc) {
-#if !defined(TARGET_ARCH_DBC)
   ASSERT(HasBeenInitialized());
-  uword entry = StubCode::JumpToFrame_entry()->EntryPoint();
+  uword entry = StubCode::JumpToFrame().EntryPoint();
   uword size = StubCode::JumpToFrameSize();
   return (pc >= entry) && (pc < (entry + size));
-#else
-  // This stub does not exist on DBC.
-  return false;
-#endif
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+RawArray* compiler::StubCodeCompiler::BuildStaticCallsTable(
+    Zone* zone,
+    compiler::UnresolvedPcRelativeCalls* unresolved_calls) {
+  if (unresolved_calls->length() == 0) {
+    return Array::null();
+  }
+  const intptr_t array_length =
+      unresolved_calls->length() * Code::kSCallTableEntryLength;
+  const auto& static_calls_table =
+      Array::Handle(zone, Array::New(array_length, Heap::kOld));
+  StaticCallsTable entries(static_calls_table);
+  auto& kind_type_and_offset = Smi::Handle(zone);
+  for (intptr_t i = 0; i < unresolved_calls->length(); i++) {
+    auto& unresolved_call = (*unresolved_calls)[i];
+    auto call_kind = unresolved_call->is_tail_call() ? Code::kPcRelativeTailCall
+                                                     : Code::kPcRelativeCall;
+    kind_type_and_offset =
+        Smi::New(Code::KindField::encode(call_kind) |
+                 Code::EntryPointField::encode(Code::kDefaultEntry) |
+                 Code::OffsetField::encode(unresolved_call->offset()));
+    auto view = entries[i];
+    view.Set<Code::kSCallTableKindAndOffset>(kind_type_and_offset);
+    view.Set<Code::kSCallTableCodeOrTypeTarget>(unresolved_call->target());
+  }
+  return static_calls_table.raw();
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
-// These stubs are not used by DBC.
-#if !defined(TARGET_ARCH_DBC)
   Thread* thread = Thread::Current();
+  auto object_store = thread->isolate()->object_store();
   Zone* zone = thread->zone();
   const Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
   ASSERT(error.IsNull());
   if (cls.id() == kArrayCid) {
-    return AllocateArray_entry()->code();
+    return object_store->allocate_array_stub();
+  } else if (cls.id() == kContextCid) {
+    return object_store->allocate_context_stub();
   }
   Code& stub = Code::Handle(zone, cls.allocation_stub());
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (stub.IsNull()) {
-    Assembler assembler;
-    const char* name = cls.ToCString();
-    StubCode::GenerateAllocationStubForClass(&assembler, cls);
+    compiler::ObjectPoolBuilder object_pool_builder;
+    Precompiler* precompiler = Precompiler::Instance();
 
-    if (thread->IsMutatorThread()) {
-      stub ^= Code::FinalizeCode(name, &assembler, false /* optimized */);
+    compiler::ObjectPoolBuilder* wrapper =
+        FLAG_use_bare_instructions && precompiler != NULL
+            ? precompiler->global_object_pool_builder()
+            : &object_pool_builder;
+
+    const auto pool_attachment =
+        FLAG_precompiled_mode && FLAG_use_bare_instructions
+            ? Code::PoolAttachment::kNotAttachPool
+            : Code::PoolAttachment::kAttachPool;
+
+    auto zone = thread->zone();
+    auto object_store = thread->isolate()->object_store();
+    auto& allocate_object_stub = Code::ZoneHandle(zone);
+    auto& allocate_object_parametrized_stub = Code::ZoneHandle(zone);
+    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+      allocate_object_stub = object_store->allocate_object_stub();
+      allocate_object_parametrized_stub =
+          object_store->allocate_object_parametrized_stub();
+    }
+
+    compiler::Assembler assembler(wrapper);
+    compiler::UnresolvedPcRelativeCalls unresolved_calls;
+    const char* name = cls.ToCString();
+    compiler::StubCodeCompiler::GenerateAllocationStubForClass(
+        &assembler, &unresolved_calls, cls, allocate_object_stub,
+        allocate_object_parametrized_stub);
+
+    const auto& static_calls_table =
+        Array::Handle(zone, compiler::StubCodeCompiler::BuildStaticCallsTable(
+                                zone, &unresolved_calls));
+
+    auto mutator_fun = [&]() {
+      stub = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
+                                /*optimized=*/false,
+                                /*stats=*/nullptr);
       // Check if background compilation thread has not already added the stub.
       if (cls.allocation_stub() == Code::null()) {
         stub.set_owner(cls);
-        cls.set_allocation_stub(stub);
-      }
-    } else {
-      // This part of stub code generation must be at a safepoint.
-      // Stop mutator thread before creating the instruction object and
-      // installing code.
-      // Mutator thread may not run code while we are creating the
-      // instruction object, since the creation of instruction object
-      // changes code page access permissions (makes them temporary not
-      // executable).
-      {
-        SafepointOperationScope safepoint_scope(thread);
-        stub = cls.allocation_stub();
-        // Check if stub was already generated.
-        if (!stub.IsNull()) {
-          return stub.raw();
+        if (!static_calls_table.IsNull()) {
+          stub.set_static_calls_target_table(static_calls_table);
         }
-        // Do not Garbage collect during this stage and instead allow the
-        // heap to grow.
-        NoHeapGrowthControlScope no_growth_control;
-        stub ^= Code::FinalizeCode(name, &assembler, false /* optimized */);
-        stub.set_owner(cls);
         cls.set_allocation_stub(stub);
       }
-      Isolate* isolate = thread->isolate();
-      if (isolate->heap()->NeedsGarbageCollection()) {
-        isolate->heap()->CollectAllGarbage();
+    };
+    auto bg_compiler_fun = [&]() {
+      ForceGrowthSafepointOperationScope safepoint_scope(thread);
+      stub = cls.allocation_stub();
+      // Check if stub was already generated.
+      if (!stub.IsNull()) {
+        return;
       }
-    }
+      stub = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
+                                /*optimized=*/false, /*stats=*/nullptr);
+      stub.set_owner(cls);
+      if (!static_calls_table.IsNull()) {
+        stub.set_static_calls_target_table(static_calls_table);
+      }
+      cls.set_allocation_stub(stub);
+    };
+
+    // We have to ensure no mutators are running, because:
+    //
+    //   a) We allocate an instructions object, which might cause us to
+    //      temporarily flip page protections from (RX -> RW -> RX).
+    //
+    //   b) To ensure only one thread succeeds installing an allocation for the
+    //      given class.
+    //
+    thread->isolate_group()->RunWithStoppedMutators(
+        mutator_fun, bg_compiler_fun, /*use_force_growth=*/true);
+
+    // We notify code observers after finalizing the code in order to be
+    // outside a [SafepointOperationScope].
+    Code::NotifyCodeObservers(name, stub, /*optimized=*/false);
 #ifndef PRODUCT
     if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
-      LogBlock lb;
-      THR_Print("Code for allocation stub '%s': {\n", name);
-      DisassembleToStdout formatter;
-      stub.Disassemble(&formatter);
-      THR_Print("}\n");
-      const ObjectPool& object_pool = ObjectPool::Handle(stub.object_pool());
-      object_pool.DebugPrint();
+      Disassembler::DisassembleStub(name, stub);
     }
 #endif  // !PRODUCT
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return stub.raw();
-#endif  // !DBC
-  UNIMPLEMENTED();
-  return Code::null();
 }
 
-const StubEntry* StubCode::UnoptimizedStaticCallEntry(
-    intptr_t num_args_tested) {
-// These stubs are not used by DBC.
-#if !defined(TARGET_ARCH_DBC)
+#if !defined(TARGET_ARCH_IA32)
+RawCode* StubCode::GetBuildMethodExtractorStub(
+    compiler::ObjectPoolBuilder* pool) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  auto thread = Thread::Current();
+  auto Z = thread->zone();
+  auto object_store = thread->isolate()->object_store();
+
+  const auto& closure_class =
+      Class::ZoneHandle(Z, object_store->closure_class());
+  const auto& closure_allocation_stub =
+      Code::ZoneHandle(Z, StubCode::GetAllocationStubForClass(closure_class));
+  const auto& context_allocation_stub = StubCode::AllocateContext();
+
+  compiler::ObjectPoolBuilder object_pool_builder;
+  compiler::Assembler assembler(pool != nullptr ? pool : &object_pool_builder);
+  compiler::StubCodeCompiler::GenerateBuildMethodExtractorStub(
+      &assembler, closure_allocation_stub, context_allocation_stub);
+
+  const char* name = "BuildMethodExtractor";
+  const Code& stub = Code::Handle(Code::FinalizeCodeAndNotify(
+      name, nullptr, &assembler, Code::PoolAttachment::kNotAttachPool,
+      /*optimized=*/false));
+
+  if (pool == nullptr) {
+    stub.set_object_pool(ObjectPool::NewFromBuilder(object_pool_builder));
+  }
+
+#ifndef PRODUCT
+  if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
+    Disassembler::DisassembleStub(name, stub);
+  }
+#endif  // !PRODUCT
+  return stub.raw();
+#else   // !defined(DART_PRECOMPILED_RUNTIME)
+  UNIMPLEMENTED();
+  return nullptr;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+}
+#endif  // !defined(TARGET_ARCH_IA32)
+
+const Code& StubCode::UnoptimizedStaticCallEntry(intptr_t num_args_tested) {
   switch (num_args_tested) {
     case 0:
-      return ZeroArgsUnoptimizedStaticCall_entry();
+      return ZeroArgsUnoptimizedStaticCall();
     case 1:
-      return OneArgUnoptimizedStaticCall_entry();
+      return OneArgUnoptimizedStaticCall();
     case 2:
-      return TwoArgsUnoptimizedStaticCall_entry();
+      return TwoArgsUnoptimizedStaticCall();
     default:
       UNIMPLEMENTED();
-      return NULL;
+      return Code::Handle();
   }
-#else
-  return NULL;
-#endif
 }
 
 const char* StubCode::NameOfStub(uword entry_point) {
-#define VM_STUB_CODE_TESTER(name)                                              \
-  if ((name##_entry() != NULL) &&                                              \
-      (entry_point == name##_entry()->EntryPoint())) {                         \
-    return "" #name;                                                           \
+  for (size_t i = 0; i < ARRAY_SIZE(entries_); i++) {
+    if ((entries_[i].code != nullptr) && !entries_[i].code->IsNull() &&
+        (entries_[i].code->EntryPoint() == entry_point)) {
+      return entries_[i].name;
+    }
   }
-  VM_STUB_CODE_LIST(VM_STUB_CODE_TESTER);
-#undef VM_STUB_CODE_TESTER
-  return NULL;
+
+  auto object_store = Isolate::Current()->object_store();
+#define DO(member, name)                                                       \
+  if (entry_point == Code::EntryPointOf(object_store->member())) {             \
+    return "_iso_stub_" #name "Stub";                                          \
+  }
+  OBJECT_STORE_STUB_CODE_LIST(DO)
+#undef DO
+  return nullptr;
 }
 
 }  // namespace dart

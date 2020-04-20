@@ -1,0 +1,19 @@
+name: dartdev
+
+# This package is not intended to be published
+publish_to: none
+
+environment:
+  sdk: '>=2.6.0 <3.0.0'
+dependencies:
+  args: ^1.5.2
+  cli_util: ^0.1.0
+  intl: ^0.16.0
+  path: ^1.6.2
+  stagehand: 3.3.7
+  watcher: ^0.9.7+13
+  yaml: ^2.2.0
+
+dev_dependencies:
+  test: ^1.0.0
+  pedantic: ^1.8.0

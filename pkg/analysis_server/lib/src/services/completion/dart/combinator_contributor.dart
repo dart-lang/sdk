@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,31 +11,29 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 
-/**
- * A contributor for calculating `completion.getSuggestions` request results
- * for the import combinators show and hide.
- */
+/// A contributor that produces suggestions based on the members of a library
+/// when the completion is in a show or hide combinator of an import or export.
 class CombinatorContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
-    AstNode node = request.target.containingNode;
+      DartCompletionRequest request, SuggestionBuilder builder) async {
+    var node = request.target.containingNode;
     if (node is! Combinator) {
-      return EMPTY_LIST;
+      return const <CompletionSuggestion>[];
     }
-
-    // Build list of suggestions
-    var directive = node.getAncestor((parent) => parent is NamespaceDirective);
+    // Build the list of suggestions.
+    var directive = node.thisOrAncestorOfType<NamespaceDirective>();
     if (directive is NamespaceDirective) {
-      LibraryElement library = directive.uriElement;
+      var library = directive.uriElement as LibraryElement;
       if (library != null) {
-        LibraryElementSuggestionBuilder builder =
-            new LibraryElementSuggestionBuilder(request.libraryElement,
-                CompletionSuggestionKind.IDENTIFIER, false, false);
-        library.visitChildren(builder);
+        var builder = LibraryElementSuggestionBuilder(
+            request, CompletionSuggestionKind.IDENTIFIER, false, false);
+        for (var element in library.exportNamespace.definedNames.values) {
+          element.accept(builder);
+        }
         return builder.suggestions;
       }
     }
-    return EMPTY_LIST;
+    return const <CompletionSuggestion>[];
   }
 }

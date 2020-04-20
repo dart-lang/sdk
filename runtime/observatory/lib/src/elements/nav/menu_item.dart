@@ -7,16 +7,16 @@ import 'dart:async';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
-class NavMenuItemElement extends HtmlElement implements Renderable {
+class NavMenuItemElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavMenuItemElement>('nav-menu-item');
 
-  RenderingScheduler _r;
+  RenderingScheduler<NavMenuItemElement> _r;
 
   Stream<RenderedEvent<NavMenuItemElement>> get onRendered => _r.onRendered;
 
   String _label;
   String _link;
-  Iterable<Element> _content = const [];
+  Iterable<Element> _content = const <Element>[];
 
   String get label => _label;
   String get link => _link;
@@ -32,14 +32,14 @@ class NavMenuItemElement extends HtmlElement implements Renderable {
   factory NavMenuItemElement(String label,
       {String link, RenderingQueue queue}) {
     assert(label != null);
-    NavMenuItemElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    NavMenuItemElement e = new NavMenuItemElement.created();
+    e._r = new RenderingScheduler<NavMenuItemElement>(e, queue: queue);
     e._label = label;
     e._link = link;
     return e;
   }
 
-  NavMenuItemElement.created() : super.created();
+  NavMenuItemElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -51,14 +51,14 @@ class NavMenuItemElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new LIElement()
         ..classes = ['nav-menu-item']
-        ..children = [
+        ..children = <Element>[
           new AnchorElement(href: link)..text = label,
           new UListElement()..children = _content
         ]

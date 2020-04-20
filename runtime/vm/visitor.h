@@ -6,6 +6,7 @@
 #define RUNTIME_VM_VISITOR_H_
 
 #include "vm/allocation.h"
+#include "vm/class_table.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 
@@ -13,22 +14,31 @@ namespace dart {
 
 // Forward declarations.
 class Isolate;
+class IsolateGroup;
 class RawObject;
 class RawFunction;
+class RawTypedDataView;
 
 // An object pointer visitor interface.
 class ObjectPointerVisitor {
  public:
-  explicit ObjectPointerVisitor(Isolate* isolate) : isolate_(isolate) {}
+  explicit ObjectPointerVisitor(IsolateGroup* isolate_group);
   virtual ~ObjectPointerVisitor() {}
 
-  Isolate* isolate() const { return isolate_; }
+  IsolateGroup* isolate_group() const { return isolate_group_; }
+
+  // Visit pointers inside the given typed data [view].
+  //
+  // Range of pointers to visit 'first' <= pointer <= 'last'.
+  virtual void VisitTypedDataViewPointers(RawTypedDataView* view,
+                                          RawObject** first,
+                                          RawObject** last) {
+    VisitPointers(first, last);
+  }
 
   // Range of pointers to visit 'first' <= pointer <= 'last'.
   virtual void VisitPointers(RawObject** first, RawObject** last) = 0;
 
-  virtual bool visit_function_code() const { return true; }
-  virtual void add_skipped_code_function(RawFunction* funct) { UNREACHABLE(); }
   // len argument is the number of pointers to visit starting from 'p'.
   void VisitPointers(RawObject** p, intptr_t len) {
     VisitPointers(p, (p + len - 1));
@@ -36,9 +46,23 @@ class ObjectPointerVisitor {
 
   void VisitPointer(RawObject** p) { VisitPointers(p, p); }
 
+  const char* gc_root_type() const { return gc_root_type_; }
+  void set_gc_root_type(const char* gc_root_type) {
+    gc_root_type_ = gc_root_type;
+  }
+
+  void clear_gc_root_type() { gc_root_type_ = "unknown"; }
+
+  virtual bool visit_weak_persistent_handles() const { return false; }
+
+  const SharedClassTable* shared_class_table() const {
+    return shared_class_table_;
+  }
+
  private:
-  Isolate* isolate_;
-  NoSafepointScope no_safepoints_;
+  IsolateGroup* isolate_group_;
+  const char* gc_root_type_;
+  SharedClassTable* shared_class_table_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectPointerVisitor);
 };

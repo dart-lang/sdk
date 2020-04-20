@@ -41,7 +41,7 @@ void testManyLines() {
 }
 
 String _getLinesSliced(String str) {
-  String lines;
+  late String lines;
   var stringSink =
       new StringConversionSink.withCallback((result) => lines = result);
   var sink = new LineSplitter().startChunkedConversion(stringSink);
@@ -77,9 +77,9 @@ void testSimpleConvert() {
 }
 
 void testReadLine1() {
-  var controller = new StreamController(sync: true);
+  var controller = new StreamController<List<int>>(sync: true);
   var stream =
-      controller.stream.transform(UTF8.decoder).transform(const LineSplitter());
+      controller.stream.transform(utf8.decoder).transform(const LineSplitter());
 
   var stage = 0;
   var done = false;
@@ -104,10 +104,10 @@ void testReadLine1() {
 }
 
 void testReadLine2() {
-  var controller = new StreamController(sync: true);
+  var controller = new StreamController<List<int>>(sync: true);
 
   var stream =
-      controller.stream.transform(UTF8.decoder).transform(const LineSplitter());
+      controller.stream.transform(utf8.decoder).transform(const LineSplitter());
 
   var expectedLines = [
     'Line1',
@@ -195,7 +195,7 @@ void testChunkedConversion() {
   for (int i = 0; i < test.length; i++) {
     var output = [];
     var splitter = new LineSplitter();
-    var outSink = new ChunkedConversionSink.withCallback(output.addAll);
+    var outSink = new ChunkedConversionSink<String>.withCallback(output.addAll);
     var sink = splitter.startChunkedConversion(outSink);
     sink.addSlice(test, 0, i, false);
     sink.addSlice(test, i, test.length, false);
@@ -208,7 +208,8 @@ void testChunkedConversion() {
     for (int j = i; j < test.length; j++) {
       var output = [];
       var splitter = new LineSplitter();
-      var outSink = new ChunkedConversionSink.withCallback(output.addAll);
+      var outSink =
+          new ChunkedConversionSink<String>.withCallback(output.addAll);
       var sink = splitter.startChunkedConversion(outSink);
       sink.addSlice(test, 0, i, false);
       sink.addSlice(test, i, j, false);

@@ -21,7 +21,7 @@ main() {
   dep.loadLibrary().then((_) {
     asyncEnd();
     Expect.isNotNull(dep.targetLibrary);
-    Expect.equals(#test.other_library, dep.targetLibrary.simpleName);
+    Expect.equals(#test.other_library, dep.targetLibrary!.simpleName);
     Expect.equals(42, other.topLevelMethod());
   });
 }

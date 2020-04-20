@@ -10,12 +10,12 @@ class CallableClass {
 }
 
 class C {
-  var /*@topType=CallableClass*/ f = new CallableClass();
+  var f = new CallableClass();
 }
 
 class D extends C {
   void g() {
-    var /*@type=int*/ y =
+    var /*@ type=int* */ y =
         super. /*@target=C::f*/ f /*@target=CallableClass::call*/ ();
   }
 }

@@ -1,0 +1,18 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/instantiate_tearoff_of_call.dart:10:12: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
+//   func = f.call;
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test(<T extends core::Object* = dynamic>(T*) →* T* f) → void {
+  (core::int*) →* core::int* func;
+  func = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/instantiate_tearoff_of_call.dart:10:12: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
+  func = f.call;
+           ^" in f.call as{TypeError} (core::int*) →* core::int*;
+}
+static method main() → dynamic {}

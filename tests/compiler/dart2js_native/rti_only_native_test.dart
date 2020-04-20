@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Regression test for a bug that was caused by uninstantiated classes being
 // added to emitted classes by runtime-type system.
 // See my explanation in https://codereview.chromium.org/14018036/.
@@ -19,7 +21,7 @@ typedef fisk();
 
 main() {
   void foo(A x) {}
-  var map = {'a': 0, 'b': main};
+  var map = <String, dynamic>{'a': 0, 'b': main};
   try {
     map.values.forEach((x) => x.rti_only_native_test_field);
   } finally {

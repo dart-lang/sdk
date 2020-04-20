@@ -6,12 +6,12 @@
 library test;
 
 abstract class I<E> {
-  String m(/*@topType=dynamic*/ a, String f(v, E e));
+  String m(a, String f(v, E e));
 }
 
 abstract class A<E> implements I<E> {
   const A();
-  String m(/*@topType=dynamic*/ a, String f(v, E e));
+  String m(a, String f(v, E e));
 }
 
 abstract class M {
@@ -22,7 +22,7 @@ class B<E> extends A<E> implements M {
   const B();
   int get y => 0;
 
-  /*@topType=String*/ m(/*@topType=dynamic*/ a, f(v, E e)) {}
+  m(a, f(v, E e)) {}
 }
 
 foo() {

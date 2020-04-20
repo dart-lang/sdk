@@ -2,18 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of _interceptors;
 
-/**
- * The super interceptor class for [JSInt] and [JSDouble]. The compiler
- * recognizes this class as an interceptor, and changes references to
- * [:this:] to actually use the receiver of the method, which is
- * generated as an extra argument added to each member.
- *
- * Note that none of the methods here delegate to a method defined on JSInt or
- * JSDouble.  This is exploited in [tryComputeConstantInterceptor].
- */
-class JSNumber extends Interceptor implements num {
+/// The super interceptor class for [JSInt] and [JSDouble]. The compiler
+/// recognizes this class as an interceptor, and changes references to
+/// [:this:] to actually use the receiver of the method, which is
+/// generated as an extra argument added to each member.
+///
+/// Note that none of the methods here delegate to a method defined on JSInt or
+/// JSDouble.  This is exploited in [tryComputeConstantInterceptor].
+class JSNumber extends Interceptor implements double {
   const JSNumber();
 
   int compareTo(num b) {
@@ -42,23 +42,33 @@ class JSNumber extends Interceptor implements num {
 
   bool get isNegative => (this == 0) ? (1 / this) < 0 : this < 0;
 
-  bool get isNaN => JS('bool', r'isNaN(#)', this);
+  bool get isNaN => JS(
+      'returns:bool;effects:none;depends:none;throws:never;gvn:true',
+      r'isNaN(#)',
+      this);
 
   bool get isInfinite {
     return JS('bool', r'# == (1/0)', this) || JS('bool', r'# == (-1/0)', this);
   }
 
-  bool get isFinite => JS('bool', r'isFinite(#)', this);
+  bool get isFinite => JS(
+      'returns:bool;effects:none;depends:none;throws:never;gvn:true',
+      r'isFinite(#)',
+      this);
 
-  num remainder(num b) {
+  JSNumber remainder(num b) {
     if (b is! num) throw argumentErrorValue(b);
     return JS('num', r'# % #', this, b);
   }
 
-  num abs() => JS('returns:num;effects:none;depends:none;throws:never;gvn:true',
-      r'Math.abs(#)', this);
+  // Use invoke_dynamic_specializer instead of inlining.
+  @pragma('dart2js:noInline')
+  JSNumber abs() => JS(
+      'returns:num;effects:none;depends:none;throws:never;gvn:true',
+      r'Math.abs(#)',
+      this);
 
-  num get sign => this > 0 ? 1 : this < 0 ? -1 : this;
+  JSNumber get sign => this > 0 ? 1 : this < 0 ? -1 : this;
 
   static const int _MIN_INT32 = -0x80000000;
   static const int _MAX_INT32 = 0x7FFFFFFF;
@@ -214,7 +224,7 @@ class JSNumber extends Interceptor implements num {
   static String _handleIEtoString(String result) {
     // Result is probably IE's untraditional format for large numbers,
     // e.g., "8.0000000000008(e+15)" for 0x8000000000000800.toString(16).
-    var match = JS('List|Null',
+    var match = JS('JSArray|Null',
         r'/^([\da-z]+)(?:\.([\da-z]+))?\(e\+(\d+)\)$/.exec(#)', result);
     if (match == null) {
       // Then we don't know how to handle it at all.
@@ -238,35 +248,68 @@ class JSNumber extends Interceptor implements num {
     }
   }
 
-  int get hashCode => JS('int', '# & 0x1FFFFFFF', this);
+  int get hashCode {
+    int intValue = JS('int', '# | 0', this);
+    // Fast exit for integers in signed 32-bit range. Masking converts -0.0 to 0
+    // and ensures that result fits in JavaScript engine's Smi range.
+    if (this == intValue) return 0x1FFFFFFF & intValue;
 
-  num operator -() => JS('num', r'-#', this);
+    // We would like to access the exponent and mantissa as integers but there
+    // are no JavaScript operations that do this, so use log2-floor-pow-divide
+    // to extract the values.
+    num absolute = JS('num', 'Math.abs(#)', this);
+    num lnAbsolute = JS('num', 'Math.log(#)', absolute);
+    num log2 = lnAbsolute / ln2;
+    // Floor via '# | 0' converts NaN to zero so the final result is not NaN.
+    int floorLog2 = JS('int', '# | 0', log2);
+    num factor = JS('num', 'Math.pow(2, #)', floorLog2);
+    num scaled = absolute < 1 ? absolute / factor : factor / absolute;
+    // [scaled] is in the range [0.5, 1].
 
-  num operator +(num other) {
+    // Multiply and truncate to pick up all the mantissa bits. Multiplying by
+    // 0x20000000000000 (which has 53 zero bits) converts the mantissa into an
+    // integer. There are interesting subsets where all the bit variance is in
+    // the most significant bits of the mantissa (e.g. 0.5, 0.625, 0.75), so we
+    // need to mix in the most significant bits. We do this by scaling with a
+    // constant that has many bits set to use the multiplier to mix in bits from
+    // all over the mantissa into low positions.
+    num rescaled1 = scaled * 0x20000000000000;
+    num rescaled2 = scaled * 0x0C95A6C285A6C9;
+    int d1 = JS('int', '# | 0', rescaled1);
+    int d2 = JS('int', '# | 0', rescaled2);
+    // Mix in exponent to distinguish e.g. 1.25 from 2.5.
+    int d3 = floorLog2;
+    int h = 0x1FFFFFFF & ((d1 + d2) * (601 * 997) + d3 * (1259));
+    return h;
+  }
+
+  JSNumber operator -() => JS('num', r'-#', this);
+
+  JSNumber operator +(num other) {
     if (other is! num) throw argumentErrorValue(other);
     return JS('num', '# + #', this, other);
   }
 
-  num operator -(num other) {
+  JSNumber operator -(num other) {
     if (other is! num) throw argumentErrorValue(other);
     return JS('num', '# - #', this, other);
   }
 
-  num operator /(num other) {
+  double operator /(num other) {
     if (other is! num) throw argumentErrorValue(other);
     return JS('num', '# / #', this, other);
   }
 
-  num operator *(num other) {
+  JSNumber operator *(num other) {
     if (other is! num) throw argumentErrorValue(other);
     return JS('num', '# * #', this, other);
   }
 
-  num operator %(num other) {
+  JSNumber operator %(num other) {
     if (other is! num) throw argumentErrorValue(other);
     // Euclidean Modulo.
     num result = JS('num', r'# % #', this, other);
-    if (result == 0) return 0; // Make sure we don't return -0.0.
+    if (result == 0) return JS('num', '0'); // Make sure we don't return -0.0.
     if (result > 0) return result;
     if (JS('num', '#', other) < 0) {
       return result - JS('num', '#', other);
@@ -408,15 +451,28 @@ class JSNumber extends Interceptor implements num {
   Type get runtimeType => num;
 }
 
-/**
- * The interceptor class for [int]s.
- *
- * This class implements double since in JavaScript all numbers are doubles, so
- * while we want to treat `2.0` as an integer for some operations, its
- * interceptor should answer `true` to `is double`.
- */
-class JSInt extends JSNumber implements int, double {
+/// The interceptor class for [int]s.
+///
+/// This class implements double (indirectly through JSNumber) since in
+/// JavaScript all numbers are doubles, so while we want to treat `2.0` as an
+/// integer for some operations, its interceptor should answer `true` to `is
+/// double`.
+class JSInt extends JSNumber implements int {
   const JSInt();
+
+  @override
+  // Use invoke_dynamic_specializer instead of inlining.
+  @pragma('dart2js:noInline')
+  JSInt abs() => JS(
+      'returns:int;effects:none;depends:none;throws:never;gvn:true',
+      r'Math.abs(#)',
+      this);
+
+  @override
+  JSInt get sign => this > 0 ? 1 : this < 0 ? -1 : this;
+
+  @override
+  JSInt operator -() => JS('int', r'-#', this);
 
   bool get isEven => (this & 1) == 0;
 
@@ -432,25 +488,55 @@ class JSInt extends JSNumber implements int, double {
   }
 
   int get bitLength {
-    int nonneg = this < 0 ? -this - 1 : this;
-    if (nonneg >= 0x100000000) {
+    JSInt nonneg = this < 0 ? -this - 1 : this;
+    int wordBits = 32;
+    while (nonneg >= 0x100000000) {
       nonneg = nonneg ~/ 0x100000000;
-      return _bitCount(_spread(nonneg)) + 32;
+      wordBits += 32;
     }
-    return _bitCount(_spread(nonneg));
+    return wordBits - _clz32(nonneg);
+  }
+
+  static int _clz32(int uint32) {
+    // TODO(sra): Use `Math.clz32(uint32)` (not available on IE11).
+    return 32 - _bitCount(_spread(uint32));
   }
 
   // Returns pow(this, e) % m.
   int modPow(int e, int m) {
     if (e is! int) {
-      throw new ArgumentError.value(e, 'exponent', 'not an integer');
+      throw ArgumentError.value(e, 'exponent', 'not an integer');
     }
     if (m is! int) {
-      throw new ArgumentError.value(m, 'modulus', 'not an integer');
+      throw ArgumentError.value(m, 'modulus', 'not an integer');
     }
-    if (e < 0) throw new RangeError.range(e, 0, null, 'exponent');
-    if (m <= 0) throw new RangeError.range(m, 1, null, 'modulus');
+    if (e < 0) throw RangeError.range(e, 0, null, 'exponent');
+    if (m <= 0) throw RangeError.range(m, 1, null, 'modulus');
     if (e == 0) return 1;
+
+    const int maxPreciseInteger = 9007199254740991;
+
+    // Reject inputs that are outside the range of integer values that can be
+    // represented precisely as a Number (double).
+    if (this < -maxPreciseInteger || this > maxPreciseInteger) {
+      throw RangeError.range(
+          this, -maxPreciseInteger, maxPreciseInteger, 'receiver');
+    }
+    if (e > maxPreciseInteger) {
+      throw RangeError.range(e, 0, maxPreciseInteger, 'exponent');
+    }
+    if (m > maxPreciseInteger) {
+      throw RangeError.range(e, 1, maxPreciseInteger, 'modulus');
+    }
+
+    // This is floor(sqrt(maxPreciseInteger)).
+    const int maxValueThatCanBeSquaredWithoutTruncation = 94906265;
+    if (m > maxValueThatCanBeSquaredWithoutTruncation) {
+      // Use BigInt version to avoid truncation in multiplications below. The
+      // 'maxPreciseInteger' check on [m] ensures that toInt() does not round.
+      return BigInt.from(this).modPow(BigInt.from(e), BigInt.from(m)).toInt();
+    }
+
     int b = this;
     if (b < 0 || b > m) {
       b %= m;
@@ -592,9 +678,9 @@ class JSInt extends JSNumber implements int, double {
     return (i & 0x0000003F);
   }
 
-  static _shru(int value, int shift) => JS('int', '# >>> #', value, shift);
-  static _shrs(int value, int shift) => JS('int', '# >> #', value, shift);
-  static _ors(int a, int b) => JS('int', '# | #', a, b);
+  static int _shru(int value, int shift) => JS('int', '# >>> #', value, shift);
+  static int _shrs(int value, int shift) => JS('int', '# >> #', value, shift);
+  static int _ors(int a, int b) => JS('int', '# | #', a, b);
 
   // Assumes i is <= 32-bit
   static int _spread(int i) {

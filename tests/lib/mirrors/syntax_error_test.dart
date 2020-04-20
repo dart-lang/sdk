@@ -7,7 +7,6 @@
 
 library lib;
 
-@MirrorsUsed(targets: "lib")
 import 'dart:mirrors';
 
 class MD {
@@ -25,5 +24,5 @@ class B {
 
 main() {
   reflectClass(A).metadata;
-  reflectClass(B).newInstance(const Symbol(''), []);
+  reflectClass(B).newInstance(Symbol.empty, []);
 }

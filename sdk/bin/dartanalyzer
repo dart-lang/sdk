@@ -31,7 +31,7 @@ declare -a EXTRA_VM_OPTIONS
 
 case $0 in
   *_developer)
-    EXTRA_VM_OPTIONS+=('--checked')
+    EXTRA_VM_OPTIONS+=('--enable-asserts')
     ;;
 esac
 

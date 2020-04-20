@@ -2,25 +2,25 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-class B<T extends core::Object> extends core::Object {
-  field self::B::T x;
-  field self::B::T y;
-  default constructor •() → void
+class B<T extends core::Object* = dynamic> extends core::Object {
+  generic-covariant-impl field self::B::T* x;
+  generic-covariant-impl field self::B::T* y;
+  synthetic constructor •() → self::B<self::B::T*>*
     ;
 }
-class C<T extends core::Object> extends core::Object implements self::B<core::num> {
-  field dynamic x;
-  default constructor •() → void
+abstract class C<T extends core::Object* = dynamic> extends core::Object implements self::B<core::num*> {
+  generic-covariant-impl field core::num* x;
+  synthetic constructor •() → self::C<self::C::T*>*
     ;
-  abstract get y() → dynamic;
-  abstract set y(dynamic value) → dynamic;
+  abstract get y() → core::num*;
+  abstract set y(generic-covariant-impl core::num* value) → void;
 }
-class D<T extends core::Object> extends core::Object implements self::B<self::D::T> {
-  field dynamic x;
-  default constructor •() → void
+abstract class D<T extends core::Object* = dynamic> extends core::Object implements self::B<self::D::T*> {
+  generic-covariant-impl field self::D::T* x;
+  synthetic constructor •() → self::D<self::D::T*>*
     ;
-  abstract get y() → dynamic;
-  abstract set y(dynamic value) → dynamic;
+  abstract get y() → self::D::T*;
+  abstract set y(generic-covariant-impl self::D::T* value) → void;
 }
 static method main() → dynamic
   ;

@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/globals.h"
-#if defined(HOST_OS_ANDROID) && !defined(PRODUCT)
+#include "vm/globals.h"
+#if defined(HOST_OS_ANDROID) && defined(SUPPORT_TIMELINE)
 
 #include <errno.h>
 #include <fcntl.h>
 #include <cstdlib>
 
-#include "vm/atomic.h"
+#include "platform/atomic.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/lockers.h"
@@ -23,8 +23,8 @@ namespace dart {
 
 DECLARE_FLAG(bool, trace_timeline);
 
-TimelineEventSystraceRecorder::TimelineEventSystraceRecorder(intptr_t capacity)
-    : TimelineEventPlatformRecorder(capacity), systrace_fd_(-1) {
+TimelineEventSystraceRecorder::TimelineEventSystraceRecorder()
+    : TimelineEventPlatformRecorder(), systrace_fd_(-1) {
   const char* kSystracePath = "/sys/kernel/debug/tracing/trace_marker";
   systrace_fd_ = open(kSystracePath, O_WRONLY);
   if ((systrace_fd_ < 0) && FLAG_trace_timeline) {
@@ -49,18 +49,31 @@ intptr_t TimelineEventSystraceRecorder::PrintSystrace(TimelineEvent* event,
   int64_t pid = OS::ProcessId();
   switch (event->event_type()) {
     case TimelineEvent::kBegin: {
-      length = OS::SNPrint(buffer, buffer_size, "B|%" Pd64 "|%s", pid,
-                           event->label());
-    } break;
+      length = Utils::SNPrint(buffer, buffer_size, "B|%" Pd64 "|%s", pid,
+                              event->label());
+      break;
+    }
     case TimelineEvent::kEnd: {
-      length = OS::SNPrint(buffer, buffer_size, "E");
-    } break;
+      length = Utils::SNPrint(buffer, buffer_size, "E");
+      break;
+    }
     case TimelineEvent::kCounter: {
       if (event->arguments_length() > 0) {
         // We only report the first counter value.
-        length = OS::SNPrint(buffer, buffer_size, "C|%" Pd64 "|%s|%s", pid,
-                             event->label(), event->arguments()[0].value);
+        length = Utils::SNPrint(buffer, buffer_size, "C|%" Pd64 "|%s|%s", pid,
+                                event->label(), event->arguments()[0].value);
       }
+      break;
+    }
+    case TimelineEvent::kAsyncBegin: {
+      length = Utils::SNPrint(buffer, buffer_size, "S|%" Pd64 "|%s|%" Pd64 "",
+                              pid, event->label(), event->AsyncId());
+      break;
+    }
+    case TimelineEvent::kAsyncEnd: {
+      length = Utils::SNPrint(buffer, buffer_size, "F|%" Pd64 "|%s|%" Pd64 "",
+                              pid, event->label(), event->AsyncId());
+      break;
     }
     default:
       // Ignore event types that we cannot serialize to the Systrace format.
@@ -69,55 +82,25 @@ intptr_t TimelineEventSystraceRecorder::PrintSystrace(TimelineEvent* event,
   return length;
 }
 
-void TimelineEventSystraceRecorder::CompleteEvent(TimelineEvent* event) {
+void TimelineEventSystraceRecorder::OnEvent(TimelineEvent* event) {
   if (event == NULL) {
     return;
   }
-  if (systrace_fd_ >= 0) {
-    // Serialize to the systrace format.
-    const intptr_t kBufferLength = 1024;
-    char buffer[kBufferLength];
-    const intptr_t event_length =
-        PrintSystrace(event, &buffer[0], kBufferLength);
-    if (event_length > 0) {
-      ssize_t result;
-      // Repeatedly attempt the write while we are being interrupted.
-      do {
-        result = write(systrace_fd_, buffer, event_length);
-      } while ((result == -1L) && (errno == EINTR));
-    }
+  if (systrace_fd_ < 0) {
+    return;
   }
-  ThreadBlockCompleteEvent(event);
-}
 
-TimelineEventPlatformRecorder::TimelineEventPlatformRecorder(intptr_t capacity)
-    : TimelineEventFixedBufferRecorder(capacity) {}
-
-TimelineEventPlatformRecorder::~TimelineEventPlatformRecorder() {}
-
-TimelineEventPlatformRecorder*
-TimelineEventPlatformRecorder::CreatePlatformRecorder(intptr_t capacity) {
-  return new TimelineEventSystraceRecorder(capacity);
-}
-
-const char* TimelineEventPlatformRecorder::name() const {
-  return "Systrace";
-}
-
-TimelineEventBlock* TimelineEventPlatformRecorder::GetNewBlockLocked() {
-  // TODO(johnmccutchan): This function should only hand out blocks
-  // which have been marked as finished.
-  if (block_cursor_ == num_blocks_) {
-    block_cursor_ = 0;
+  // Serialize to the systrace format.
+  const intptr_t kBufferLength = 1024;
+  char buffer[kBufferLength];
+  const intptr_t event_length = PrintSystrace(event, &buffer[0], kBufferLength);
+  if (event_length > 0) {
+    ssize_t result;
+    // Repeatedly attempt the write while we are being interrupted.
+    do {
+      result = write(systrace_fd_, buffer, event_length);
+    } while ((result == -1L) && (errno == EINTR));
   }
-  TimelineEventBlock* block = &blocks_[block_cursor_++];
-  block->Reset();
-  block->Open();
-  return block;
-}
-
-void TimelineEventPlatformRecorder::CompleteEvent(TimelineEvent* event) {
-  UNREACHABLE();
 }
 
 }  // namespace dart

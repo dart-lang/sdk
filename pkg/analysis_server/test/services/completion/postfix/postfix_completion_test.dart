@@ -1,16 +1,17 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/postfix/postfix_completion.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../abstract_single_unit.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(_AssertTest);
     defineReflectiveTests(_ForTest);
@@ -26,12 +27,13 @@ main() {
 }
 
 class PostfixCompletionTest extends AbstractSingleUnitTest {
+  PostfixCompletionProcessor processor;
   SourceChange change;
 
   void _assertHasChange(String message, String expectedCode, [Function cmp]) {
     if (change.message == message) {
-      if (!change.edits.isEmpty) {
-        String resultCode =
+      if (change.edits.isNotEmpty) {
+        var resultCode =
             SourceEdit.applySequence(testCode, change.edits[0].edits);
         expect(resultCode, expectedCode.replaceAll('/*caret*/', ''));
         if (cmp != null) {
@@ -46,48 +48,45 @@ class PostfixCompletionTest extends AbstractSingleUnitTest {
       }
       return;
     }
-    fail("Expected to find |$message| but got: " + change.message);
+    fail('Expected to find |$message| but got: ' + change.message);
   }
 
-  _computeCompletion(int offset, String key) async {
-    driver.changeFile(testFile);
-    AnalysisResult result = await driver.getResult(testFile);
-    PostfixCompletionContext context = new PostfixCompletionContext(
-        testFile,
-        result.lineInfo,
-        offset,
-        key,
-        result.driver,
-        testUnit,
-        testUnitElement,
-        result.errors);
-    PostfixCompletionProcessor processor =
-        new PostfixCompletionProcessor(context);
-    bool isApplicable = await processor.isApplicable();
+  Future<void> _assertNotApplicable(String key, String code) async {
+    await _prepareProcessor(key, code);
+
+    var isApplicable = await processor.isApplicable();
+    expect(isApplicable, isFalse);
+  }
+
+  Future<void> _prepareCompletion(String key, String code) async {
+    await _prepareProcessor(key, code);
+
+    var isApplicable = await processor.isApplicable();
     if (!isApplicable) {
-      fail("Postfix completion not applicable at given location");
+      fail('Postfix completion not applicable at given location');
     }
-    PostfixCompletion completion = await processor.compute();
-    change = completion.change;
+
+    if (isApplicable) {
+      var completion = await processor.compute();
+      change = completion.change;
+    }
   }
 
-  _prepareCompletion(String key, String sourceCode) async {
-    testCode = sourceCode.replaceAll('////', '');
-    int offset = findOffset(key);
-    testCode = testCode.replaceFirst(key, '', offset);
-    await _prepareCompletionAt(offset, key, testCode);
-  }
+  Future<void> _prepareProcessor(String key, String code) async {
+    var offset = code.indexOf(key);
+    code = code.replaceFirst(key, '', offset);
 
-  _prepareCompletionAt(int offset, String key, String sourceCode) async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit(sourceCode);
-    await _computeCompletion(offset, key);
+    await resolveTestUnit(code);
+
+    var context = PostfixCompletionContext(testAnalysisResult, offset, key);
+    processor = PostfixCompletionProcessor(context);
   }
 }
 
 @reflectiveTest
 class _AssertTest extends PostfixCompletionTest {
-  test_assert() async {
+  Future<void> test_assert() async {
     await _prepareCompletion('.assert', '''
 f(bool expr) {
   expr.assert
@@ -100,7 +99,7 @@ f(bool expr) {
 ''');
   }
 
-  test_assertFunc() async {
+  Future<void> test_assertFunc() async {
     await _prepareCompletion('.assert', '''
 f() {
   () => true.assert
@@ -113,16 +112,15 @@ f() {
 ''');
   }
 
-  @failingTest
-  test_assertFunc_invalid() async {
-    await _prepareCompletion('.assert', '''
+  Future<void> test_assertFunc_invalid() async {
+    await _assertNotApplicable('.assert', '''
 f() {
   () => null.assert
 }
 ''');
   }
 
-  test_assertFuncCmp() async {
+  Future<void> test_assertFuncCmp() async {
     await _prepareCompletion('.assert', '''
 f(int x, int y) {
   () => x + 3 > y + 4.assert
@@ -138,16 +136,15 @@ f(int x, int y) {
 
 @reflectiveTest
 class _ForTest extends PostfixCompletionTest {
-  @failingTest
-  test_for_invalid() async {
-    await _prepareCompletion('.for', '''
+  Future<void> test_for_invalid() async {
+    await _assertNotApplicable('.for', '''
 f() {
   {}.for
 }
 ''');
   }
 
-  test_forEmptyDynamic() async {
+  Future<void> test_forEmptyDynamic() async {
     await _prepareCompletion('.for', '''
 f() {
   [].for
@@ -162,7 +159,7 @@ f() {
 ''');
   }
 
-  test_forEmptyString() async {
+  Future<void> test_forEmptyString() async {
     await _prepareCompletion('.for', '''
 f() {
   <String>[].for
@@ -177,7 +174,7 @@ f() {
 ''');
   }
 
-  test_fori() async {
+  Future<void> test_fori() async {
     await _prepareCompletion('.fori', '''
 f() {
   100.fori
@@ -192,16 +189,15 @@ f() {
 ''');
   }
 
-  @failingTest
-  test_fori_invalid() async {
-    await _prepareCompletion('.fori', '''
+  Future<void> test_fori_invalid() async {
+    await _assertNotApplicable('.fori', '''
 f() {
   [].fori
 }
 ''');
   }
 
-  test_forIntList() async {
+  Future<void> test_forIntList() async {
     await _prepareCompletion('.for', '''
 f() {
   [1,2,3].for
@@ -216,7 +212,7 @@ f() {
 ''');
   }
 
-  test_foriVar() async {
+  Future<void> test_foriVar() async {
     await _prepareCompletion('.fori', '''
 f() {
   var n = 100;
@@ -233,7 +229,37 @@ f() {
 ''');
   }
 
-  test_iterList() async {
+  Future<void> test_iter_List_dynamic() async {
+    await _prepareCompletion('.iter', '''
+f(List values) {
+  values.iter
+}
+''');
+    _assertHasChange('Expand .iter', '''
+f(List values) {
+  for (var value in values) {
+    /*caret*/
+  }
+}
+''');
+  }
+
+  Future<void> test_iter_List_int() async {
+    await _prepareCompletion('.iter', '''
+f(List<int> values) {
+  values.iter
+}
+''');
+    _assertHasChange('Expand .iter', '''
+f(List<int> values) {
+  for (var value in values) {
+    /*caret*/
+  }
+}
+''');
+  }
+
+  Future<void> test_iterList() async {
     await _prepareCompletion('.iter', '''
 f() {
   [1,2,3].iter
@@ -248,7 +274,7 @@ f() {
 ''');
   }
 
-  test_iterName() async {
+  Future<void> test_iterName() async {
     await _prepareCompletion('.iter', '''
 f() {
   var value = [1,2,3];
@@ -268,7 +294,7 @@ f() {
 
 @reflectiveTest
 class _IfTest extends PostfixCompletionTest {
-  test_Else() async {
+  Future<void> test_Else() async {
     await _prepareCompletion('.else', '''
 f(bool val) {
   val.else
@@ -283,7 +309,7 @@ f(bool val) {
 ''');
   }
 
-  test_if() async {
+  Future<void> test_if() async {
     await _prepareCompletion('.if', '''
 f() {
   3 < 4.if
@@ -298,26 +324,27 @@ f() {
 ''');
   }
 
-  @failingTest
-  test_if_invalid() async {
-    await _prepareCompletion('.if', '''
+  Future<void> test_if_invalid() async {
+    await _assertNotApplicable('.if', '''
 f(List expr) {
   expr.if
 }
 ''');
   }
 
-  test_ifDynamic() async {
-    await _prepareCompletion('.if', '''
-f(expr) {
-  expr.if
+  Future<void> test_if_invalid_importPrefix() async {
+    await _assertNotApplicable('.if', '''
+import 'dart:async' as p;
+f() {
+  p.if
 }
 ''');
-    _assertHasChange('Expand .if', '''
-f(expr) {
-  if (expr) {
-    /*caret*/
   }
+
+  Future<void> test_ifDynamic() async {
+    await _assertNotApplicable('.if', '''
+f(expr) {
+  expr.if
 }
 ''');
   }
@@ -325,42 +352,41 @@ f(expr) {
 
 @reflectiveTest
 class _NegateTest extends PostfixCompletionTest {
-  test_negate() async {
+  Future<void> test_negate() async {
     await _prepareCompletion('.not', '''
-f(expr) {
+f(bool expr) {
   if (expr.not)
 }
 ''');
     _assertHasChange('Expand .not', '''
-f(expr) {
+f(bool expr) {
   if (!expr)
 }
 ''');
   }
 
-  @failingTest
-  test_negate_invalid() async {
-    await _prepareCompletion('.not', '''
+  Future<void> test_negate_invalid() async {
+    await _assertNotApplicable('.not', '''
 f(int expr) {
   if (expr.not)
 }
 ''');
   }
 
-  test_negateCascade() async {
+  Future<void> test_negateCascade() async {
     await _prepareCompletion('.not', '''
-f(expr) {
+f(bool expr) {
   if (expr..a..b..c.not)
 }
 ''');
     _assertHasChange('Expand .not', '''
-f(expr) {
+f(bool expr) {
   if (!expr..a..b..c)
 }
 ''');
   }
 
-  test_negateExpr() async {
+  Future<void> test_negateExpr() async {
     await _prepareCompletion('.not', '''
 f(int i, int j) {
   if (i + 3 < j - 4.not)
@@ -373,20 +399,36 @@ f(int i, int j) {
 ''');
   }
 
-  test_negateProperty() async {
+  Future<void> test_negateProperty() async {
     await _prepareCompletion('.not', '''
-f(expr) {
-  if (expr.a.b.c.not)
+f(B b) {
+  if (b.a.f.not)
+}
+
+class A {
+  bool f;
+}
+`
+class B {
+  A a;
 }
 ''');
     _assertHasChange('Expand .not', '''
-f(expr) {
-  if (!expr.a.b.c)
+f(B b) {
+  if (!b.a.f)
+}
+
+class A {
+  bool f;
+}
+`
+class B {
+  A a;
 }
 ''');
   }
 
-  test_notFalse() async {
+  Future<void> test_notFalse() async {
     await _prepareCompletion('!', '''
 f() {
   if (false!)
@@ -399,7 +441,7 @@ f() {
 ''');
   }
 
-  test_notFunc() async {
+  Future<void> test_notFunc() async {
     await _prepareCompletion('.not', '''
 bool f() {
   if (f().not)
@@ -412,7 +454,7 @@ bool f() {
 ''');
   }
 
-  test_notTrue() async {
+  Future<void> test_notTrue() async {
     await _prepareCompletion('.not', '''
 f() {
   if (true.not)
@@ -428,15 +470,15 @@ f() {
 
 @reflectiveTest
 class _NotNullTest extends PostfixCompletionTest {
-  test_nn() async {
+  Future<void> test_nn() async {
     await _prepareCompletion('.nn', '''
-f(expr) {
+f() {
   var list = [1,2,3];
   list.nn
 }
 ''');
     _assertHasChange('Expand .nn', '''
-f(expr) {
+f() {
   var list = [1,2,3];
   if (list != null) {
     /*caret*/
@@ -445,16 +487,15 @@ f(expr) {
 ''');
   }
 
-  @failingTest
-  test_nn_invalid() async {
-    await _prepareCompletion('.nn', '''
-f(expr) {
+  Future<void> test_nn_invalid() async {
+    await _assertNotApplicable('.nn', '''
+f() {
   var list = [1,2,3];
 }.nn
 ''');
   }
 
-  test_nnDynamic() async {
+  Future<void> test_nnDynamic() async {
     await _prepareCompletion('.nn', '''
 f(expr) {
   expr.nn
@@ -469,7 +510,7 @@ f(expr) {
 ''');
   }
 
-  test_notnull() async {
+  Future<void> test_notnull() async {
     await _prepareCompletion('.notnull', '''
 f(expr) {
   var list = [1,2,3];
@@ -486,24 +527,22 @@ f(expr) {
 ''');
   }
 
-  test_null() async {
+  Future<void> test_null() async {
     await _prepareCompletion('.null', '''
 f(expr) {
-  var list = [1,2,3];
-  list.null
+  expr.null
 }
 ''');
     _assertHasChange('Expand .null', '''
 f(expr) {
-  var list = [1,2,3];
-  if (list == null) {
+  if (expr == null) {
     /*caret*/
   }
 }
 ''');
   }
 
-  test_nullnn() async {
+  Future<void> test_nullnn() async {
     await _prepareCompletion('.nn', '''
 f() {
   null.nn
@@ -518,7 +557,7 @@ f() {
 ''');
   }
 
-  test_nullnull() async {
+  Future<void> test_nullnull() async {
     await _prepareCompletion('.null', '''
 f() {
   null.null
@@ -536,7 +575,7 @@ f() {
 
 @reflectiveTest
 class _ParenTest extends PostfixCompletionTest {
-  test_paren() async {
+  Future<void> test_paren() async {
     await _prepareCompletion('.par', '''
 f(expr) {
   expr.par
@@ -552,7 +591,7 @@ f(expr) {
 
 @reflectiveTest
 class _ReturnTest extends PostfixCompletionTest {
-  test_return() async {
+  Future<void> test_return() async {
     await _prepareCompletion('.return', '''
 f(expr) {
   expr.return
@@ -568,7 +607,7 @@ f(expr) {
 
 @reflectiveTest
 class _SwitchTest extends PostfixCompletionTest {
-  test_return() async {
+  Future<void> test_return() async {
     await _prepareCompletion('.switch', '''
 f(expr) {
   expr.switch
@@ -586,7 +625,7 @@ f(expr) {
 
 @reflectiveTest
 class _TryTest extends PostfixCompletionTest {
-  test_try() async {
+  Future<void> test_try() async {
     await _prepareCompletion('.try', '''
 f() {
   var x = 1.try
@@ -603,17 +642,16 @@ f() {
 ''');
   }
 
-  @failingTest
-  test_try_invalid() async {
+  Future<void> test_try_invalid() async {
     // The semicolon is fine; this fails because of the do-statement.
-    await _prepareCompletion('.try', '''
+    await _assertNotApplicable('.try', '''
 f() {
   do {} while (true);.try
 }
 ''');
   }
 
-  test_tryMultiline() async {
+  Future<void> test_tryMultiline() async {
     await _prepareCompletion('.try', '''
 f(arg) {
   arg
@@ -638,7 +676,7 @@ f(arg) {
 ''');
   }
 
-  test_tryon() async {
+  Future<void> test_tryon() async {
     await _prepareCompletion('.tryon', '''
 f() {
   var x = 1.tryon
@@ -655,7 +693,7 @@ f() {
 ''');
   }
 
-  test_tryonThrowStatement() async {
+  Future<void> test_tryonThrowStatement() async {
     await _prepareCompletion('.tryon', '''
 f() {
   throw 'error';.tryon
@@ -672,7 +710,7 @@ f() {
 ''');
   }
 
-  test_tryonThrowString() async {
+  Future<void> test_tryonThrowString() async {
     await _prepareCompletion('.tryon', '''
 f() {
   throw 'error'.tryon
@@ -692,14 +730,14 @@ f() {
 
 @reflectiveTest
 class _WhileTest extends PostfixCompletionTest {
-  test_while() async {
+  Future<void> test_while() async {
     await _prepareCompletion('.while', '''
-f(expr) {
+f(bool expr) {
   expr.while
 }
 ''');
     _assertHasChange('Expand .while', '''
-f(expr) {
+f(bool expr) {
   while (expr) {
     /*caret*/
   }

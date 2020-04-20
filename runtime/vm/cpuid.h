@@ -15,15 +15,15 @@ namespace dart {
 class CpuId : public AllStatic {
  public:
 #if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
-  static void InitOnce();
+  static void Init();
   static void Cleanup();
 
   // Caller must free the result of field.
   static const char* field(CpuInfoIndices idx);
 #else
-  static void InitOnce() {}
+  static void Init() {}
   static void Cleanup() {}
-  static const char* field(CpuInfoIndices idx) { return NULL; }
+  static const char* field(CpuInfoIndices idx) { return nullptr; }
 #endif
 
  private:
@@ -33,9 +33,13 @@ class CpuId : public AllStatic {
 
   static bool sse2() { return sse2_; }
   static bool sse41() { return sse41_; }
+  static bool popcnt() { return popcnt_; }
+  static bool abm() { return abm_; }
 
   static bool sse2_;
   static bool sse41_;
+  static bool popcnt_;
+  static bool abm_;
   static const char* id_string_;
   static const char* brand_string_;
 

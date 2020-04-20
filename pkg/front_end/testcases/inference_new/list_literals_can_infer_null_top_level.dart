@@ -5,7 +5,7 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=List<Null>*/ x = /*@typeArgs=Null*/ [null];
+var x = /*@ typeArgs=Null? */ [null];
 
 main() {
   x;

@@ -11,7 +11,7 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 
-class StronglyReachableInstancesElement extends HtmlElement
+class StronglyReachableInstancesElement extends CustomElement
     implements Renderable {
   static const tag = const Tag<StronglyReachableInstancesElement>(
       'strongly-reachable-instances',
@@ -42,8 +42,10 @@ class StronglyReachableInstancesElement extends HtmlElement
     assert(cls != null);
     assert(stronglyReachable != null);
     assert(objects != null);
-    StronglyReachableInstancesElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    StronglyReachableInstancesElement e =
+        new StronglyReachableInstancesElement.created();
+    e._r = new RenderingScheduler<StronglyReachableInstancesElement>(e,
+        queue: queue);
     e._isolate = isolate;
     e._cls = cls;
     e._stronglyReachableInstances = stronglyReachable;
@@ -51,7 +53,7 @@ class StronglyReachableInstancesElement extends HtmlElement
     return e;
   }
 
-  StronglyReachableInstancesElement.created() : super.created();
+  StronglyReachableInstancesElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -62,20 +64,21 @@ class StronglyReachableInstancesElement extends HtmlElement
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    children = [
-      new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
-        ..content = _createContent()
-        ..onToggle.listen((e) async {
-          _expanded = e.control.expanded;
-          e.control.disabled = true;
-          await _refresh();
-          e.control.disabled = false;
-        })
+    children = <Element>[
+      (new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
+            ..content = _createContent()
+            ..onToggle.listen((e) async {
+              _expanded = e.control.expanded;
+              e.control.disabled = true;
+              await _refresh();
+              e.control.disabled = false;
+            }))
+          .element
     ];
   }
 
@@ -89,9 +92,11 @@ class StronglyReachableInstancesElement extends HtmlElement
     if (_result == null) {
       return [new SpanElement()..text = 'Loading...'];
     }
-    final content = _result.samples
-        .map((sample) => new DivElement()
-          ..children = [anyRef(_isolate, sample, _objects, queue: _r.queue)])
+    final content = _result.instances
+        .map<Element>((sample) => new DivElement()
+          ..children = <Element>[
+            anyRef(_isolate, sample, _objects, queue: _r.queue)
+          ])
         .toList();
     content.add(new DivElement()
       ..children = ([]
@@ -101,7 +106,7 @@ class StronglyReachableInstancesElement extends HtmlElement
   }
 
   List<Element> _createShowMoreButton() {
-    final samples = _result.samples.toList();
+    final samples = _result.instances.toList();
     if (samples.length == _result.count) {
       return [];
     }

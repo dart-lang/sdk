@@ -1,0 +1,24 @@
+# Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Test using a mixin from the sdk and invalidationg it.
+# Make sure compiling from source and compiling where we initialize from dill
+# ends up including the same source code.
+
+type: basic
+entry: a.dart
+invalidate:
+  - a.dart
+sources:
+  a.dart: |
+    import 'dart:collection';
+
+    class Foo extends Object with ListMixin<int> {
+      int length = 0;
+      int operator [](int index) {
+        return 42;
+      }
+
+      void operator []=(int index, int value) {}
+    }

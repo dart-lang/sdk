@@ -1,0 +1,298 @@
+main = #lib::main;
+ [@vm.bytecode=
+BytecodeMetadata {
+Bytecode (version: stable)
+Main library: #lib
+Library '#lib'
+    name '#lib'
+    script '#lib'
+
+Class '', script = '#lib'
+
+
+Function 'foo1', static, has-optional-positional-params, reflectable, debuggable
+    parameters [dynamic 'x', dynamic 'a', dynamic 'b'] (required: 1)
+    return-type void
+
+Bytecode {
+  EntryOptional        1, 2, 0
+  LoadConstant         r1, CP#0
+  LoadConstant         r2, CP#1
+  Frame                1
+  CheckStack           0
+  PushNull
+  PushInt              2
+  CreateArrayTOS
+  StoreLocal           r3
+  Push                 r3
+  PushInt              0
+  PushConstant         CP#2
+  StoreIndexedTOS
+  Push                 r3
+  PushInt              1
+  Push                 r0
+  StoreIndexedTOS
+  DirectCall           CP#3, 1
+  DirectCall           CP#5, 1
+  Drop1
+  PushNull
+  PushInt              2
+  CreateArrayTOS
+  StoreLocal           r3
+  Push                 r3
+  PushInt              0
+  PushConstant         CP#7
+  StoreIndexedTOS
+  Push                 r3
+  PushInt              1
+  Push                 r1
+  StoreIndexedTOS
+  DirectCall           CP#3, 1
+  DirectCall           CP#5, 1
+  Drop1
+  PushNull
+  PushInt              2
+  CreateArrayTOS
+  StoreLocal           r3
+  Push                 r3
+  PushInt              0
+  PushConstant         CP#8
+  StoreIndexedTOS
+  Push                 r3
+  PushInt              1
+  Push                 r2
+  StoreIndexedTOS
+  DirectCall           CP#3, 1
+  DirectCall           CP#5, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef 'default_a'
+  [1] = ObjectRef 'default_b'
+  [2] = ObjectRef 'x = '
+  [3] = DirectCall 'dart:core::_StringBase::_interpolate', ArgDesc num-args 1, num-type-args 0, names []
+  [4] = Reserved
+  [5] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [6] = Reserved
+  [7] = ObjectRef 'a = '
+  [8] = ObjectRef 'b = '
+}
+
+
+Function 'foo2', static, has-optional-named-params, reflectable, debuggable
+    parameters [dynamic 'y', dynamic 'z', dynamic 'c', dynamic 'a', dynamic 'b'] (required: 2)
+    return-type void
+
+Bytecode {
+  EntryOptional        2, 0, 3
+  LoadConstant         r2, CP#0
+  LoadConstant         r2, CP#1
+  LoadConstant         r3, CP#2
+  LoadConstant         r3, CP#3
+  LoadConstant         r4, CP#4
+  LoadConstant         r4, CP#5
+  Frame                1
+  CheckStack           0
+  PushNull
+  PushInt              2
+  CreateArrayTOS
+  StoreLocal           r5
+  Push                 r5
+  PushInt              0
+  PushConstant         CP#6
+  StoreIndexedTOS
+  Push                 r5
+  PushInt              1
+  Push                 r0
+  StoreIndexedTOS
+  DirectCall           CP#7, 1
+  DirectCall           CP#9, 1
+  Drop1
+  PushNull
+  PushInt              2
+  CreateArrayTOS
+  StoreLocal           r5
+  Push                 r5
+  PushInt              0
+  PushConstant         CP#11
+  StoreIndexedTOS
+  Push                 r5
+  PushInt              1
+  Push                 r1
+  StoreIndexedTOS
+  DirectCall           CP#7, 1
+  DirectCall           CP#9, 1
+  Drop1
+  PushNull
+  PushInt              2
+  CreateArrayTOS
+  StoreLocal           r5
+  Push                 r5
+  PushInt              0
+  PushConstant         CP#12
+  StoreIndexedTOS
+  Push                 r5
+  PushInt              1
+  Push                 r2
+  StoreIndexedTOS
+  DirectCall           CP#7, 1
+  DirectCall           CP#9, 1
+  Drop1
+  PushNull
+  PushInt              2
+  CreateArrayTOS
+  StoreLocal           r5
+  Push                 r5
+  PushInt              0
+  PushConstant         CP#13
+  StoreIndexedTOS
+  Push                 r5
+  PushInt              1
+  Push                 r3
+  StoreIndexedTOS
+  DirectCall           CP#7, 1
+  DirectCall           CP#9, 1
+  Drop1
+  PushNull
+  PushInt              2
+  CreateArrayTOS
+  StoreLocal           r5
+  Push                 r5
+  PushInt              0
+  PushConstant         CP#14
+  StoreIndexedTOS
+  Push                 r5
+  PushInt              1
+  Push                 r4
+  StoreIndexedTOS
+  DirectCall           CP#7, 1
+  DirectCall           CP#9, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef 'a'
+  [1] = ObjectRef const 42
+  [2] = ObjectRef 'b'
+  [3] = ObjectRef const <dart:core::String> ['default_b']
+  [4] = ObjectRef 'c'
+  [5] = ObjectRef 'default_c'
+  [6] = ObjectRef 'y = '
+  [7] = DirectCall 'dart:core::_StringBase::_interpolate', ArgDesc num-args 1, num-type-args 0, names []
+  [8] = Reserved
+  [9] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [10] = Reserved
+  [11] = ObjectRef 'z = '
+  [12] = ObjectRef 'a = '
+  [13] = ObjectRef 'b = '
+  [14] = ObjectRef 'c = '
+}
+
+
+Function 'foo3', static, has-optional-named-params, reflectable, debuggable
+    type-params <dart:core::Object P, dart:core::Object Q>
+    parameters [dynamic 'z', dynamic 'y', dart:core::bool 'a', dart:core::Map < #lib::foo3::TypeParam/0, #lib::foo3::TypeParam/1 > 'b'] (required: 2)
+    return-type void
+
+Bytecode {
+  EntryOptional        2, 0, 2
+  LoadConstant         r2, CP#0
+  LoadConstant         r2, CP#1
+  LoadConstant         r3, CP#2
+  LoadConstant         r3, CP#3
+  Frame                1
+  CheckFunctionTypeArgs 2, r4
+  CheckStack           0
+  PushNull
+  Push                 r4
+  InstantiateType      CP#4
+  DirectCall           CP#5, 1
+  Drop1
+  Push                 r1
+  DirectCall           CP#5, 1
+  Drop1
+  Push                 r3
+  DirectCall           CP#5, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef 'a'
+  [1] = ObjectRef const false
+  [2] = ObjectRef 'b'
+  [3] = ObjectRef null
+  [4] = Type #lib::foo3::TypeParam/0
+  [5] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [6] = Reserved
+}
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  PushConstant         CP#1
+  DirectCall           CP#2, 2
+  Drop1
+  PushConstant         CP#4
+  PushConstant         CP#5
+  PushConstant         CP#1
+  DirectCall           CP#6, 3
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef 'fixed_x'
+  [1] = ObjectRef 'concrete_a'
+  [2] = DirectCall '#lib::foo1', ArgDesc num-args 2, num-type-args 0, names []
+  [3] = Reserved
+  [4] = ObjectRef 'fixed_y'
+  [5] = ObjectRef 'fixed_z'
+  [6] = DirectCall '#lib::foo2', ArgDesc num-args 3, num-type-args 0, names ['a']
+  [7] = Reserved
+}
+
+
+}
+]library #lib from "#lib" as #lib {
+
+  static method foo1(dynamic x, [dynamic a = #C1, dynamic b = #C2]) → void {
+    dart.core::print("x = ${x}");
+    dart.core::print("a = ${a}");
+    dart.core::print("b = ${b}");
+  }
+  static method foo2(dynamic y, dynamic z, {dynamic c = #C3, dynamic a = #C4, dynamic b = #C5}) → void {
+    dart.core::print("y = ${y}");
+    dart.core::print("z = ${z}");
+    dart.core::print("a = ${a}");
+    dart.core::print("b = ${b}");
+    dart.core::print("c = ${c}");
+  }
+  static method foo3<P extends dart.core::Object* = dynamic, Q extends dart.core::Object* = dynamic>(dynamic z, dynamic y, {dart.core::bool* a = #C6, dart.core::Map<#lib::foo3::P*, #lib::foo3::Q*>* b = #C7}) → void {
+    dart.core::print(#lib::foo3::P*);
+    dart.core::print(y);
+    dart.core::print(b);
+  }
+  static method main() → dynamic {
+    #lib::foo1("fixed_x", "concrete_a");
+    #lib::foo2("fixed_y", "fixed_z", a: "concrete_a");
+  }
+}
+constants  {
+  #C1 = "default_a"
+  #C2 = "default_b"
+  #C3 = "default_c"
+  #C4 = 42
+  #C5 = <dart.core::String*>[#C2]
+  #C6 = false
+  #C7 = null
+}

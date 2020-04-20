@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import "dart:math" show pow;
+import "dart:math" show pow, log;
 
 void main() {
   const String oneByteWhiteSpace = "\x09\x0a\x0b\x0c\x0d\x20"
-    "\x85" //   //# 01: ok
+    "\x85" //# 01: ok
       "\xa0";
   const String whiteSpace = "$oneByteWhiteSpace\u1680"
       "\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a"
@@ -65,10 +65,12 @@ void main() {
     }
   }
 
+  final max = 0x1FFFFFFFFFFFFF;
   for (int i = 2; i <= 36; i++) { //             //# 02: ok
     // Test with bignums. //                     //# 02: continued
+    final n = (log(max) / log(i)).truncate(); // //# 02: continued
     var digit = digits[i - 1]; //                //# 02: continued
-    testParse(pow(i, 64) - 1, digit * 64, i); // //# 02: continued
+    testParse((pow(i, n) as int) - 1, digit * n, i); //   //# 02: continued
     testParse(0, zeros, i); //                   //# 02: continued
   } //                                           //# 02: continued
 
@@ -76,10 +78,10 @@ void main() {
   Expect.equals(0xABCD, int.parse("ABCD", radix: 16));
   Expect.equals(0xABCD, int.parse("abcd", radix: 16));
   Expect.equals(15628859, int.parse("09azAZ", radix: 36));
-  // Big number.
-  Expect.equals(0x12345678123456781234567812345678, // //# 02: continued
-                int.parse("0x1234567812345678" //      //# 02: continued
-                          "1234567812345678")); //     //# 02: continued
+  // Big-ish number. (2^53)
+  Expect.equals(9007199254740991, int.parse("9007199254740991"));
+  Expect.equals(-9007199254740991, int.parse("-9007199254740991"));
+  Expect.equals(-9223372036854775808, int.parse("-9223372036854775808"));
   // Allow whitespace before and after the number.
   Expect.equals(1, int.parse(" 1", radix: 2));
   Expect.equals(1, int.parse("1 ", radix: 2));
@@ -106,7 +108,6 @@ void main() {
   testFails("", 2);
   testFails("+ 1", 2); // No space between sign and digits.
   testFails("- 1", 2); // No space between sign and digits.
-  testFails("0x", null);
   for (int i = 2; i <= 33; i++) {
     // No 0x specially allowed.
     // At radix 34 and above, "x" is a valid digit.
@@ -114,15 +115,7 @@ void main() {
   }
 
   testBadTypes(var source, var radix) {
-    if (!typeAssertionsEnabled) {
-      // No promises on what error is thrown if the type doesn't match.
-      // Likely either ArgumentError or NoSuchMethodError.
-      Expect.throws(() => int.parse(source, radix: radix, onError: (s) => 0));
-      return;
-    }
-    // With type assertions enabled we can be more precise.
-    Expect.throws(() => int.parse(source, radix: radix, onError: (s) => 0),
-        (e) => e is TypeError || e is CastError);
+    Expect.throwsTypeError(() => int.parse(source, radix: radix, onError: (s) => 0)); //# badTypes: ok
   }
 
   testBadTypes(9, 10);
@@ -132,8 +125,8 @@ void main() {
 
   testBadArguments(String source, int radix) {
     // If the types match, it should be an ArgumentError of some sort.
-    Expect.throws(() => int.parse(source, radix: radix, onError: (s) => 0),
-        (e) => e is ArgumentError);
+    Expect.throwsArgumentError(
+        () => int.parse(source, radix: radix, onError: (s) => 0));
   }
 
   testBadArguments("0", -1);

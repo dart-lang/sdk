@@ -2,11 +2,15 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static field core::List<core::int> v = self::f.call<core::int>(() → core::int {
+static field core::List<core::int*>* v = (#C1).call<core::int*>(() → core::int* {
   return 1;
 });
-static method f<T extends core::Object>(() → self::f::T g) → core::List<self::f::T>
-  return <self::f::T>[g.call()];
+static method f<T extends core::Object* = dynamic>(() →* self::f::T* g) → core::List<self::f::T*>*
+  return <self::f::T*>[g.call()];
 static method main() → dynamic {
   self::v;
+}
+
+constants  {
+  #C1 = tearoff self::f
 }

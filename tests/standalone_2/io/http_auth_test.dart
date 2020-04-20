@@ -14,7 +14,7 @@ class Server {
   bool passwordChanged = false;
 
   Future<Server> start() {
-    var completer = new Completer();
+    var completer = new Completer<Server>();
     HttpServer.bind("127.0.0.1", 0).then((s) {
       server = s;
       server.listen((HttpRequest request) {
@@ -36,23 +36,25 @@ class Server {
           password = request.uri.path.substring(1, 6);
         }
         if (passwordChanged) password = "${password}1";
-        if (request.headers[HttpHeaders.AUTHORIZATION] != null) {
-          Expect.equals(1, request.headers[HttpHeaders.AUTHORIZATION].length);
-          String authorization = request.headers[HttpHeaders.AUTHORIZATION][0];
+        if (request.headers[HttpHeaders.authorizationHeader] != null) {
+          Expect.equals(
+              1, request.headers[HttpHeaders.authorizationHeader].length);
+          String authorization =
+              request.headers[HttpHeaders.authorizationHeader][0];
           List<String> tokens = authorization.split(" ");
           Expect.equals("Basic", tokens[0]);
-          String auth = BASE64.encode(UTF8.encode("$username:$password"));
+          String auth = base64.encode(utf8.encode("$username:$password"));
           if (passwordChanged && auth != tokens[1]) {
-            response.statusCode = HttpStatus.UNAUTHORIZED;
+            response.statusCode = HttpStatus.unauthorized;
             response.headers
-                .set(HttpHeaders.WWW_AUTHENTICATE, "Basic, realm=realm");
+                .set(HttpHeaders.wwwAuthenticateHeader, "Basic, realm=realm");
           } else {
             Expect.equals(auth, tokens[1]);
           }
         } else {
-          response.statusCode = HttpStatus.UNAUTHORIZED;
+          response.statusCode = HttpStatus.unauthorized;
           response.headers
-              .set(HttpHeaders.WWW_AUTHENTICATE, "Basic, realm=realm");
+              .set(HttpHeaders.wwwAuthenticateHeader, "Basic, realm=realm");
         }
         response.close();
       });
@@ -97,7 +99,7 @@ void testBasicNoCredentials() {
           .getUrl(url)
           .then((HttpClientRequest request) => request.close())
           .then((HttpClientResponse response) {
-        Expect.equals(HttpStatus.UNAUTHORIZED, response.statusCode);
+        Expect.equals(HttpStatus.unauthorized, response.statusCode);
         return response.fold(null, (x, y) {});
       });
     }
@@ -125,7 +127,7 @@ void testBasicCredentials() {
           .getUrl(url)
           .then((HttpClientRequest request) => request.close())
           .then((HttpClientResponse response) {
-        Expect.equals(HttpStatus.OK, response.statusCode);
+        Expect.equals(HttpStatus.ok, response.statusCode);
         return response.fold(null, (x, y) {});
       });
     }
@@ -160,7 +162,7 @@ void testBasicAuthenticateCallback() {
       String username = url.path.substring(1, 6);
       String password = url.path.substring(1, 6);
       if (passwordChanged) password = "${password}1";
-      Completer completer = new Completer();
+      Completer completer = new Completer<bool>();
       new Timer(const Duration(milliseconds: 10), () {
         client.addCredentials(
             url, realm, new HttpClientBasicCredentials(username, password));
@@ -174,7 +176,7 @@ void testBasicAuthenticateCallback() {
           .getUrl(url)
           .then((HttpClientRequest request) => request.close())
           .then((HttpClientResponse response) {
-        Expect.equals(HttpStatus.OK, response.statusCode);
+        Expect.equals(HttpStatus.ok, response.statusCode);
         return response.fold(null, (x, y) {});
       });
     }
@@ -216,7 +218,7 @@ void testLocalServerBasic() {
       .getUrl(Uri.parse("http://127.0.0.1/basic/test"))
       .then((HttpClientRequest request) => request.close())
       .then((HttpClientResponse response) {
-    Expect.equals(HttpStatus.OK, response.statusCode);
+    Expect.equals(HttpStatus.ok, response.statusCode);
     response.fold(null, (x, y) {}).then((_) {
       client.close();
     });
@@ -237,7 +239,7 @@ void testLocalServerDigest() {
       .getUrl(Uri.parse("http://127.0.0.1/digest/test"))
       .then((HttpClientRequest request) => request.close())
       .then((HttpClientResponse response) {
-    Expect.equals(HttpStatus.OK, response.statusCode);
+    Expect.equals(HttpStatus.ok, response.statusCode);
     response.fold(null, (x, y) {}).then((_) {
       client.close();
     });

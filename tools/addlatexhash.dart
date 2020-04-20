@@ -11,9 +11,7 @@
 // hash listing file name as the third argument. From docs/language a
 // typical usage would be as follows:
 //
-//   dart
-//     --package-root=<build dir>/packages \
-//     ../../tools/addlatexhash.dart dartLangSpec.tex out.tex hash.txt
+// dart ../../tools/addlatexhash.dart dartLangSpec.tex out.tex hash.txt
 //
 // This will produce a normalized variant out.tex of the language
 // specification with hash values filled in, and a listing hash.txt of
@@ -22,14 +20,13 @@
 // please check the language specification source itself.
 //
 // NB: This utility assumes UN*X style line endings, \n, in the LaTeX
-// source file receieved as input; it will not work with other styles.
+// source file received as input; it will not work with other styles.
 
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 
-import 'package:crypto/crypto.dart';
 import 'package:convert/convert.dart';
-import 'package:utf/utf.dart';
+import 'package:crypto/crypto.dart';
 
 // ----------------------------------------------------------------------
 // Normalization of the text: removal or normalization of parts that
@@ -114,7 +111,7 @@ normalizeWhitespace(line) {
 multilineNormalize(lines) {
   var afterBlankLines = false; // Does [line] succeed >0 empty lines?
   var afterCommentLines = false; // Does [line] succeed >0 commentOnly lines?
-  var newLines = new List();
+  var newLines = [];
   for (var line in lines) {
     if (afterBlankLines && afterCommentLines) {
       // Previous line was both blank and a comment: not possible.
@@ -156,7 +153,7 @@ multilineNormalize(lines) {
       }
     } else {
       assert(!afterBlankLines && !afterCommentLines);
-      // No wsOnly or commentOnly lines preceed [line].
+      // No wsOnly or commentOnly lines precede [line].
       afterBlankLines = isWsOnly(line);
       afterCommentLines = isCommentOnly(line);
       if (!afterCommentLines) {
@@ -196,7 +193,7 @@ sispIsDartEnd(line) => line.contains(dartCodeEndRE);
 /// and "interesting" lines may be characterized by [analysisFunc] via
 /// the returned event object.
 findEvents(lines, analyzer) {
-  var events = new List();
+  var events = [];
   for (var line in lines) {
     var event = analyzer.analyze(line);
     if (event != null) events.add(event);
@@ -208,7 +205,7 @@ findEvents(lines, analyzer) {
 /// of its own, given the part of the RegExp that recognizes the
 /// command name, [cmdNameRE]
 lineCommandRE(cmdNameRE) =>
-    new RegExp(r"^\s*\\" + cmdNameRE + r"\s*\{.*\}\s*$");
+    new RegExp(r"^\s*\\" + cmdNameRE + r"\s*\{.*\}%?\s*$");
 
 final hashLabelStartRE = new RegExp(r"^\s*\\LMLabel\s*\{");
 final hashLabelEndRE = new RegExp(r"\}\s*$");
@@ -238,15 +235,18 @@ isParagraphCommand(line) => line.contains(paragraphRE);
 
 /// Returns true iff [line] does not end a block of lines that gets
 /// a hash value.
-isntHashBlockTerminator(line) => !isSectioningCommand(line);
+bool isntHashBlockTerminator(line) => !isSectioningCommand(line);
 
 /// Returns the label text part from [line], based on the assumption
 /// that isHashLabel(line) returns true.
 extractHashLabel(line) {
   var startMatch = hashLabelStartRE.firstMatch(line);
   var endMatch = hashLabelEndRE.firstMatch(line);
-  assert(startMatch != null && endMatch != null);
-  return line.substring(startMatch.end, endMatch.start);
+  if (startMatch != null && endMatch != null) {
+    return line.substring(startMatch.end, endMatch.start);
+  } else {
+    throw "Assertion failure (so this file is both valid nnbd and not)";
+  }
 }
 
 // Event classes: Keep track of relevant information about the LaTeX
@@ -494,7 +494,7 @@ computeHashValue(lines, startIndex, nextIndex, listSink) {
   final gatheredLine = gatherLines(lines, startIndex, nextIndex);
   final simplifiedLine = simplifyLine(gatheredLine);
   listSink.write("  % $simplifiedLine\n");
-  var digest = sha1.convert(encodeUtf8(simplifiedLine));
+  var digest = sha1.convert(utf8.encode(simplifiedLine));
   return digest.bytes;
 }
 
@@ -543,7 +543,7 @@ main([args]) {
 
   // Perform single-line normalization.
   var inDartCode = false;
-  var normalizedLines = new List();
+  var normalizedLines = [];
 
   for (var line in lines) {
     if (sispIsDartBegin(line)) {

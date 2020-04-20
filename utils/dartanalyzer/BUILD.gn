@@ -2,13 +2,12 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("../../build/compiled_action.gni")
+import("../../build/dart/dart_action.gni")
 import("../application_snapshot.gni")
 
 group("dartanalyzer") {
   deps = [
     ":generate_dartanalyzer_snapshot",
-    ":generate_summary_spec",
     ":generate_summary_strong",
   ]
 }
@@ -23,17 +22,13 @@ analyzer_files = exec_script("../../tools/list_dart_files.py",
 application_snapshot("generate_dartanalyzer_snapshot") {
   main_dart = "../../pkg/analyzer_cli/bin/analyzer.dart"
   training_args = [
-    "--dart-sdk=" + rebase_path("../../sdk"),
-    rebase_path("../../tests/language/first_test.dart"),
+    "--help",
+    # TODO(34616): This is broken on Fuchsia.
+    # "--dart-sdk=" + rebase_path("../../sdk/"),
+    # "--train-snapshot",
+    # rebase_path("../../tests/language_2/first_test.dart")
   ]
   name = "dartanalyzer"
-  cli_files = exec_script("../../tools/list_dart_files.py",
-                          [
-                            "absolute",
-                            rebase_path("../../pkg/analyzer_cli"),
-                          ],
-                          "list lines")
-  inputs = cli_files + analyzer_files
 }
 
 sdk_lib_files = exec_script("../../tools/list_dart_files.py",
@@ -43,37 +38,23 @@ sdk_lib_files = exec_script("../../tools/list_dart_files.py",
                             ],
                             "list lines")
 
-template("generate_summary") {
-  assert(defined(invoker.type), "Must specify the summary type")
-  type = invoker.type
-  assert(type == "spec" || type == "strong")
-  compiled_action(target_name) {
-    tool = "../../runtime/bin:dart"
-    inputs = sdk_lib_files + analyzer_files
-
-    output = "$root_gen_dir/$type.sum"
-    outputs = [
-      output,
-    ]
-
-    dot_packages = rebase_path("../../.packages")
-    build_sdk_summaries =
-        rebase_path("../../pkg/analyzer/tool/summary/build_sdk_summaries.dart")
-
+prebuilt_dart_action("generate_summary_strong") {
+  script = "../../pkg/analyzer/tool/summary/build_sdk_summaries.dart"
+  packages = "../../.packages"
+  inputs = sdk_lib_files + analyzer_files
+  output = "$root_gen_dir/strong.sum"
+  outputs = [ output ]
+  if (use_nnbd) {
     args = [
-      "--packages=$dot_packages",
-      build_sdk_summaries,
-      "build-$type",
+      "build-non-nullable",
+      rebase_path(output),
+      rebase_path("../../sdk_nnbd"),
+    ]
+  } else {
+    args = [
+      "build-legacy",
       rebase_path(output),
       rebase_path("../../sdk"),
     ]
   }
-}
-
-generate_summary("generate_summary_spec") {
-  type = "spec"
-}
-
-generate_summary("generate_summary_strong") {
-  type = "strong"
 }

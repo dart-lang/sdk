@@ -5,14 +5,25 @@
 /// Common compiler options and helper functions used for testing.
 library front_end.testing.compiler_options_common;
 
-import 'dart:async';
+import 'dart:async' show Future;
 
-import 'dart:io' show Platform;
+import 'package:kernel/ast.dart' show Library, Component;
 
-import 'package:front_end/front_end.dart';
-import 'package:front_end/memory_file_system.dart';
-import 'package:front_end/src/testing/hybrid_file_system.dart';
-import 'package:kernel/ast.dart';
+import '../api_prototype/front_end.dart'
+    show
+        CompilerOptions,
+        CompilerResult,
+        kernelForModule,
+        kernelForProgramInternal,
+        summaryFor;
+
+import '../api_prototype/memory_file_system.dart'
+    show MemoryFileSystem, MemoryFileSystemEntity;
+
+import '../compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
+
+import '../fasta/hybrid_file_system.dart' show HybridFileSystem;
 
 /// Generate kernel for a script.
 ///
@@ -21,11 +32,12 @@ import 'package:kernel/ast.dart';
 /// compiles the entry whose name is [fileName].
 ///
 /// Wraps [kernelForProgram] with some default testing options (see [setup]).
-Future<Program> compileScript(dynamic scriptOrSources,
-    {fileName: 'main.dart',
-    List<String> inputSummaries: const [],
-    List<String> linkedDependencies: const [],
-    CompilerOptions options}) async {
+Future<CompilerResult> compileScript(dynamic scriptOrSources,
+    {String fileName: 'main.dart',
+    List<String> additionalDills: const [],
+    CompilerOptions options,
+    bool retainDataForTesting: false,
+    bool requireMain: true}) async {
   options ??= new CompilerOptions();
   Map<String, dynamic> sources;
   if (scriptOrSources is String) {
@@ -34,32 +46,33 @@ Future<Program> compileScript(dynamic scriptOrSources,
     assert(scriptOrSources is Map);
     sources = scriptOrSources;
   }
-  await setup(options, sources,
-      inputSummaries: inputSummaries, linkedDependencies: linkedDependencies);
-  return await kernelForProgram(toTestUri(fileName), options);
+  await setup(options, sources, additionalDills: additionalDills);
+  return await kernelForProgramInternal(toTestUri(fileName), options,
+      retainDataForTesting: retainDataForTesting, requireMain: requireMain);
 }
 
-/// Generate a program for a modular complation unit.
+/// Generate a component for a modular compilation unit.
 ///
-/// Wraps [kernelForBuildUnit] with some default testing options (see [setup]).
-Future<Program> compileUnit(List<String> inputs, Map<String, dynamic> sources,
-    {List<String> inputSummaries: const [],
-    List<String> linkedDependencies: const [],
-    CompilerOptions options}) async {
+/// Wraps [kernelForModule] with some default testing options (see [setup]).
+Future<Component> compileUnit(List<String> inputs, Map<String, dynamic> sources,
+    {List<String> additionalDills: const [], CompilerOptions options}) async {
   options ??= new CompilerOptions();
-  await setup(options, sources,
-      inputSummaries: inputSummaries, linkedDependencies: linkedDependencies);
-  return await kernelForBuildUnit(inputs.map(toTestUri).toList(), options);
+  await setup(options, sources, additionalDills: additionalDills);
+  return (await kernelForModule(inputs.map(toTestUri).toList(), options))
+      .component;
 }
 
-/// Generate a summary for a modular complation unit.
+/// Generate a summary for a modular compilation unit.
 ///
 /// Wraps [summaryFor] with some default testing options (see [setup]).
 Future<List<int>> summarize(List<String> inputs, Map<String, dynamic> sources,
-    {List<String> inputSummaries: const [], CompilerOptions options}) async {
+    {List<String> additionalDills: const [],
+    CompilerOptions options,
+    bool truncate: false}) async {
   options ??= new CompilerOptions();
-  await setup(options, sources, inputSummaries: inputSummaries);
-  return await summaryFor(inputs.map(toTestUri).toList(), options);
+  await setup(options, sources, additionalDills: additionalDills);
+  return await summaryFor(inputs.map(toTestUri).toList(), options,
+      truncate: truncate);
 }
 
 /// Defines a default set of options for testing:
@@ -69,35 +82,36 @@ Future<List<int>> summarize(List<String> inputs, Map<String, dynamic> sources,
 ///   contain either source files (value is [String]) or .dill files (value
 ///   is [List<int>]).
 ///
-///   * define an empty .packages file
+///   * define an empty .packages file (if one isn't defined in sources)
 ///
 ///   * specify the location of the sdk summaries.
 Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
-    {List<String> inputSummaries: const [],
-    List<String> linkedDependencies: const []}) async {
-  var fs = new MemoryFileSystem(_defaultDir);
+    {List<String> additionalDills: const []}) async {
+  MemoryFileSystem fs = new MemoryFileSystem(_defaultDir);
   sources.forEach((name, data) {
-    var entity = fs.entityForUri(toTestUri(name));
+    MemoryFileSystemEntity entity = fs.entityForUri(toTestUri(name));
     if (data is String) {
       entity.writeAsStringSync(data);
     } else {
       entity.writeAsBytesSync(data);
     }
   });
-  fs.entityForUri(toTestUri('.packages')).writeAsStringSync('');
+  MemoryFileSystemEntity dotPackagesFile =
+      fs.entityForUri(toTestUri('.packages'));
+  if (!await dotPackagesFile.exists()) dotPackagesFile.writeAsStringSync('');
   fs
       .entityForUri(invalidCoreLibsSpecUri)
       .writeAsStringSync(_invalidLibrariesSpec);
   options
     ..verify = true
     ..fileSystem = new HybridFileSystem(fs)
-    ..inputSummaries = inputSummaries.map(toTestUri).toList()
-    ..linkedDependencies = linkedDependencies.map(toTestUri).toList()
-    ..packagesFileUri = toTestUri('.packages');
+    ..additionalDills = additionalDills.map(toTestUri).toList();
+  if (options.packagesFileUri == null) {
+    options.packagesFileUri = toTestUri('.packages');
+  }
 
   if (options.sdkSummary == null) {
-    options.sdkRoot =
-        Uri.base.resolve(Platform.resolvedExecutable).resolve("./");
+    options.sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   }
 }
 
@@ -129,8 +143,8 @@ String _invalidLibrariesSpec = '''
 bool isDartCoreLibrary(Library lib) => isDartCore(lib.importUri);
 bool isDartCore(Uri uri) => uri.scheme == 'dart' && uri.path == 'core';
 
-/// Find a library in [program] whose Uri ends with the given [suffix]
-Library findLibrary(Program program, String suffix) {
-  return program.libraries
+/// Find a library in [component] whose Uri ends with the given [suffix]
+Library findLibrary(Component component, String suffix) {
+  return component.libraries
       .firstWhere((lib) => lib.importUri.path.endsWith(suffix));
 }

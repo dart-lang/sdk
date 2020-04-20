@@ -44,7 +44,7 @@ void BytecodeRegExpMacroAssembler::BindBlock(BlockLabel* l) {
       *reinterpret_cast<uint32_t*>(buffer_->data() + fixup) = pc_;
     }
   }
-  l->bind_to(pc_);
+  l->BindTo(pc_);
 }
 
 void BytecodeRegExpMacroAssembler::EmitOrLink(BlockLabel* l) {
@@ -56,7 +56,7 @@ void BytecodeRegExpMacroAssembler::EmitOrLink(BlockLabel* l) {
     if (l->is_linked()) {
       pos = l->pos();
     }
-    l->link_to(pc_);
+    l->LinkTo(pc_);
     Emit32(pos);
   }
 }
@@ -246,8 +246,9 @@ void BytecodeRegExpMacroAssembler::CheckAtStart(BlockLabel* on_at_start) {
 }
 
 void BytecodeRegExpMacroAssembler::CheckNotAtStart(
+    intptr_t cp_offset,
     BlockLabel* on_not_at_start) {
-  Emit(BC_CHECK_NOT_AT_START, 0);
+  Emit(BC_CHECK_NOT_AT_START, cp_offset);
   EmitOrLink(on_not_at_start);
 }
 
@@ -336,19 +337,27 @@ void BytecodeRegExpMacroAssembler::CheckBitInTable(const TypedData& table,
 
 void BytecodeRegExpMacroAssembler::CheckNotBackReference(
     intptr_t start_reg,
+    bool read_backward,
     BlockLabel* on_not_equal) {
   ASSERT(start_reg >= 0);
   ASSERT(start_reg <= kMaxRegister);
-  Emit(BC_CHECK_NOT_BACK_REF, start_reg);
+  Emit(read_backward ? BC_CHECK_NOT_BACK_REF_BACKWARD : BC_CHECK_NOT_BACK_REF,
+       start_reg);
   EmitOrLink(on_not_equal);
 }
 
 void BytecodeRegExpMacroAssembler::CheckNotBackReferenceIgnoreCase(
     intptr_t start_reg,
+    bool read_backward,
+    bool unicode,
     BlockLabel* on_not_equal) {
   ASSERT(start_reg >= 0);
   ASSERT(start_reg <= kMaxRegister);
-  Emit(BC_CHECK_NOT_BACK_REF_NO_CASE, start_reg);
+  Emit(read_backward ? (unicode ? BC_CHECK_NOT_BACK_REF_NO_CASE_UNICODE_BACKWARD
+                                : BC_CHECK_NOT_BACK_REF_NO_CASE_BACKWARD)
+                     : (unicode ? BC_CHECK_NOT_BACK_REF_NO_CASE_UNICODE
+                                : BC_CHECK_NOT_BACK_REF_NO_CASE),
+       start_reg);
   EmitOrLink(on_not_equal);
 }
 
@@ -419,23 +428,22 @@ static intptr_t Prepare(const RegExp& regexp,
 
   if (regexp.bytecode(is_one_byte, sticky) == TypedData::null()) {
     const String& pattern = String::Handle(zone, regexp.pattern());
-#if !defined(PRODUCT)
-    TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
-                              "CompileIrregexpBytecode");
-    if (tds.enabled()) {
-      tds.SetNumArguments(1);
-      tds.CopyArgument(0, "pattern", pattern.ToCString());
+#if defined(SUPPORT_TIMELINE)
+    TimelineBeginEndScope tbes(Thread::Current(), Timeline::GetCompilerStream(),
+                               "CompileIrregexpBytecode");
+    if (tbes.enabled()) {
+      tbes.SetNumArguments(1);
+      tbes.CopyArgument(0, "pattern", pattern.ToCString());
     }
 #endif  // !defined(PRODUCT)
 
-    const bool multiline = regexp.is_multi_line();
     RegExpCompileData* compile_data = new (zone) RegExpCompileData();
-    if (!RegExpParser::ParseRegExp(pattern, multiline, compile_data)) {
-      // Parsing failures are handled in the RegExp factory constructor.
-      UNREACHABLE();
-    }
+
+    // Parsing failures are handled in the RegExp factory constructor.
+    RegExpParser::ParseRegExp(pattern, regexp.flags(), compile_data);
 
     regexp.set_num_bracket_expressions(compile_data->capture_count);
+    regexp.set_capture_name_map(compile_data->capture_name_map);
     if (compile_data->simple) {
       regexp.set_is_simple();
     } else {
@@ -445,15 +453,15 @@ static intptr_t Prepare(const RegExp& regexp,
     RegExpEngine::CompilationResult result = RegExpEngine::CompileBytecode(
         compile_data, regexp, is_one_byte, sticky, zone);
     ASSERT(result.bytecode != NULL);
-    ASSERT((regexp.num_registers() == -1) ||
-           (regexp.num_registers() == result.num_registers));
-    regexp.set_num_registers(result.num_registers);
+    ASSERT(regexp.num_registers(is_one_byte) == -1 ||
+           regexp.num_registers(is_one_byte) == result.num_registers);
+    regexp.set_num_registers(is_one_byte, result.num_registers);
     regexp.set_bytecode(is_one_byte, sticky, *(result.bytecode));
   }
 
-  ASSERT(regexp.num_registers() != -1);
+  ASSERT(regexp.num_registers(is_one_byte) != -1);
 
-  return regexp.num_registers() +
+  return regexp.num_registers(is_one_byte) +
          (Smi::Value(regexp.num_bracket_expressions()) + 1) * 2;
 }
 

@@ -5,12 +5,14 @@
 part of repositories;
 
 class EvalRepository extends M.EvalRepository {
-  Future<M.ObjectRef> evaluate(M.IsolateRef i, M.ObjectRef o, String e) async {
+  Future<M.ObjectRef> evaluate(M.IsolateRef i, M.ObjectRef o, String e,
+      {bool disableBreakpoints: false}) async {
     S.Isolate isolate = i as S.Isolate;
     S.ServiceObject object = o as S.HeapObject;
     assert(isolate != null);
     assert(object != null);
     assert(e != null);
-    return (await isolate.eval(object, e)) as M.ObjectRef;
+    return await isolate.eval(object, e,
+        disableBreakpoints: disableBreakpoints);
   }
 }

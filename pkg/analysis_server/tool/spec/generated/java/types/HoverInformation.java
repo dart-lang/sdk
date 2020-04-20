@@ -1,17 +1,9 @@
 /*
- * Copyright (c) 2015, the Dart project authors.
+ * Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+ * for details. All rights reserved. Use of this source code is governed by a
+ * BSD-style license that can be found in the LICENSE file.
  *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
- *
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
- *
- * This file has been automatically generated.  Please do not edit it manually.
+ * This file has been automatically generated. Please do not edit it manually.
  * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
  */
 package org.dartlang.analysis.server.protocol;
@@ -63,8 +55,9 @@ public class HoverInformation {
   private final String containingLibraryPath;
 
   /**
-   * The name of the library in which the referenced element is declared. This data is omitted if
-   * there is no referenced element, or if the element is declared inside an HTML file.
+   * The URI of the containing library, examples here include "dart:core", "package:.." and file uris
+   * represented by the path on disk, "/..". The data is omitted if the element is declared inside an
+   * HTML file.
    */
   private final String containingLibraryName;
 
@@ -193,8 +186,9 @@ public class HoverInformation {
   }
 
   /**
-   * The name of the library in which the referenced element is declared. This data is omitted if
-   * there is no referenced element, or if the element is declared inside an HTML file.
+   * The URI of the containing library, examples here include "dart:core", "package:.." and file uris
+   * represented by the path on disk, "/..". The data is omitted if the element is declared inside an
+   * HTML file.
    */
   public String getContainingLibraryName() {
     return containingLibraryName;

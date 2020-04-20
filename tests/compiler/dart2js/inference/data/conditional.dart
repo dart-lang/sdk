@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+// @dart = 2.7
+
+/*member: main:[null]*/
 main() {
   simpleConditional();
   simpleConditionalTrue();
@@ -19,10 +21,10 @@ main() {
 /// Simple conditional with unknown condition value.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _simpleConditional:Union of [[exact=JSString], [exact=JSUInt31]]*/
+/*member: _simpleConditional:Union([exact=JSString], [exact=JSUInt31])*/
 _simpleConditional(/*[exact=JSBool]*/ c) => c ? '' : 0;
 
-/*element: simpleConditional:[null]*/
+/*member: simpleConditional:[null]*/
 simpleConditional() {
   _simpleConditional(true);
   _simpleConditional(false);
@@ -32,11 +34,10 @@ simpleConditional() {
 /// Simple conditional with unknown condition value.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _simpleConditionalTrue:Union of [[exact=JSString], [exact=JSUInt31]]*/
-_simpleConditionalTrue(/*Value mask: [true] type: [exact=JSBool]*/ c) =>
-    c ? '' : 0;
+/*member: _simpleConditionalTrue:Union([exact=JSString], [exact=JSUInt31])*/
+_simpleConditionalTrue(/*Value([exact=JSBool], value: true)*/ c) => c ? '' : 0;
 
-/*element: simpleConditionalTrue:[null]*/
+/*member: simpleConditionalTrue:[null]*/
 simpleConditionalTrue() {
   _simpleConditionalTrue(true);
 }
@@ -45,11 +46,11 @@ simpleConditionalTrue() {
 /// Simple conditional with unknown condition value.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _simpleConditionalFalse:Union of [[exact=JSString], [exact=JSUInt31]]*/
-_simpleConditionalFalse(/*Value mask: [false] type: [exact=JSBool]*/ c) =>
+/*member: _simpleConditionalFalse:Union([exact=JSString], [exact=JSUInt31])*/
+_simpleConditionalFalse(/*Value([exact=JSBool], value: false)*/ c) =>
     c ? '' : 0;
 
-/*element: simpleConditionalFalse:[null]*/
+/*member: simpleConditionalFalse:[null]*/
 simpleConditionalFalse() {
   _simpleConditionalFalse(false);
 }
@@ -57,11 +58,11 @@ simpleConditionalFalse() {
 ////////////////////////////////////////////////////////////////////////////////
 /// Conditional with an is test.
 ////////////////////////////////////////////////////////////////////////////////
-/*element: _conditionalIs:Union of [[exact=JSString], [subclass=JSPositiveInt]]*/
+/*member: _conditionalIs:Union([exact=JSString], [subclass=JSPositiveInt])*/
 _conditionalIs(/*[null|exact=JSUInt31]*/ o) =>
     o is int ? o. /*invoke: [exact=JSUInt31]*/ abs() : '';
 
-/*element: conditionalIs:[null]*/
+/*member: conditionalIs:[null]*/
 conditionalIs() {
   _conditionalIs(null);
   _conditionalIs(1);
@@ -70,11 +71,11 @@ conditionalIs() {
 ////////////////////////////////////////////////////////////////////////////////
 /// Conditional with an is `int` test known to be true.
 ////////////////////////////////////////////////////////////////////////////////
-/*element: _conditionalIsInt:Union of [[exact=JSString], [subclass=JSPositiveInt]]*/
+/*member: _conditionalIsInt:Union([exact=JSString], [subclass=JSPositiveInt])*/
 _conditionalIsInt(/*[exact=JSUInt31]*/ o) =>
     o is int ? o. /*invoke: [exact=JSUInt31]*/ abs() : '';
 
-/*element: conditionalIsInt:[null]*/
+/*member: conditionalIsInt:[null]*/
 conditionalIsInt() {
   _conditionalIsInt(1);
 }
@@ -82,11 +83,11 @@ conditionalIsInt() {
 ////////////////////////////////////////////////////////////////////////////////
 /// Conditional with an is-not test.
 ////////////////////////////////////////////////////////////////////////////////
-/*element: _conditionalIsNot:Union of [[exact=JSString], [subclass=JSPositiveInt]]*/
+/*member: _conditionalIsNot:Union([exact=JSString], [subclass=JSPositiveInt])*/
 _conditionalIsNot(/*[null|exact=JSUInt31]*/ o) =>
     o is! int ? '' : o. /*invoke: [exact=JSUInt31]*/ abs();
 
-/*element: conditionalIsNot:[null]*/
+/*member: conditionalIsNot:[null]*/
 conditionalIsNot() {
   _conditionalIsNot(null);
   _conditionalIsNot(1);
@@ -95,11 +96,11 @@ conditionalIsNot() {
 ////////////////////////////////////////////////////////////////////////////////
 /// Conditional with an is-not `int` test known to be false.
 ////////////////////////////////////////////////////////////////////////////////
-/*element: _conditionalIsNotInt:Union of [[exact=JSString], [subclass=JSPositiveInt]]*/
+/*member: _conditionalIsNotInt:Union([exact=JSString], [subclass=JSPositiveInt])*/
 _conditionalIsNotInt(/*[exact=JSUInt31]*/ o) =>
     o is! int ? '' : o. /*invoke: [exact=JSUInt31]*/ abs();
 
-/*element: conditionalIsNotInt:[null]*/
+/*member: conditionalIsNotInt:[null]*/
 conditionalIsNotInt() {
   _conditionalIsNotInt(1);
 }
@@ -107,11 +108,11 @@ conditionalIsNotInt() {
 ////////////////////////////////////////////////////////////////////////////////
 /// Conditional with an is test.
 ////////////////////////////////////////////////////////////////////////////////
-/*element: _conditionalNull:Union of [[exact=JSString], [subclass=JSPositiveInt]]*/
+/*member: _conditionalNull:Union([exact=JSString], [subclass=JSPositiveInt])*/
 _conditionalNull(/*[null|exact=JSUInt31]*/ o) =>
     o == null ? '' : o. /*invoke: [exact=JSUInt31]*/ abs();
 
-/*element: conditionalNull:[null]*/
+/*member: conditionalNull:[null]*/
 conditionalNull() {
   _conditionalNull(null);
   _conditionalNull(1);
@@ -120,11 +121,11 @@ conditionalNull() {
 ////////////////////////////////////////////////////////////////////////////////
 /// Conditional with an is `int` test known to be true.
 ////////////////////////////////////////////////////////////////////////////////
-/*element: _conditionalNotNull:Union of [[exact=JSString], [subclass=JSPositiveInt]]*/
+/*member: _conditionalNotNull:Union([exact=JSString], [subclass=JSPositiveInt])*/
 _conditionalNotNull(/*[null|exact=JSUInt31]*/ o) =>
     o != null ? o. /*invoke: [exact=JSUInt31]*/ abs() : '';
 
-/*element: conditionalNotNull:[null]*/
+/*member: conditionalNotNull:[null]*/
 conditionalNotNull() {
   _conditionalNotNull(null);
   _conditionalNotNull(1);

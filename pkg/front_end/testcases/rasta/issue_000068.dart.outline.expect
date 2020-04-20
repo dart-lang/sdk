@@ -2,20 +2,22 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class G<T extends core::Object> extends core::Object {
-  default constructor •() → void
+import "package:expect/expect.dart";
+
+class G<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::G<self::G::T*>*
     ;
 }
 class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::A*
     ;
 }
 class B extends self::A {
-  default constructor •() → void
+  synthetic constructor •() → self::B*
     ;
 }
 class C extends self::B {
-  default constructor •() → void
+  synthetic constructor •() → self::C*
     ;
 }
 static method main() → dynamic

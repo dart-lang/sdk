@@ -8,7 +8,7 @@ library test;
 import 'dart:math' as math;
 
 class Trace {
-  List<Frame> frames = /*@typeArgs=Frame*/ [];
+  List<Frame> frames = /*@ typeArgs=Frame* */ [];
 }
 
 class Frame {
@@ -16,15 +16,15 @@ class Frame {
 }
 
 main() {
-  List<Trace> traces = /*@typeArgs=Trace*/ [];
-  var /*@type=int*/ longest =
-      traces. /*@typeArgs=int*/ /*@target=Iterable::map*/ map(
-          /*@returnType=int*/ (/*@type=Trace*/ trace) {
+  List<Trace> traces = /*@ typeArgs=Trace* */ [];
+  var /*@ type=int* */ longest =
+      traces. /*@ typeArgs=int* */ /*@target=Iterable::map*/ map(
+          /*@ returnType=int* */ (/*@ type=Trace* */ trace) {
     return trace. /*@target=Trace::frames*/ frames
-        . /*@typeArgs=int*/ /*@target=Iterable::map*/ map(
-            /*@returnType=int*/ (/*@type=Frame*/ frame) => frame
+        . /*@ typeArgs=int* */ /*@target=Iterable::map*/ map(
+            /*@ returnType=int* */ (/*@ type=Frame* */ frame) => frame
                 . /*@target=Frame::location*/ location
                 . /*@target=String::length*/ length)
-        . /*@typeArgs=int*/ /*@target=Iterable::fold*/ fold(0, math.max);
-  }). /*@typeArgs=int*/ /*@target=Iterable::fold*/ fold(0, math.max);
+        . /*@ typeArgs=int* */ /*@target=Iterable::fold*/ fold(0, math.max);
+  }). /*@ typeArgs=int* */ /*@target=Iterable::fold*/ fold(0, math.max);
 }

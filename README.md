@@ -1,15 +1,43 @@
 # Dart
 
-[Dart][website] is an open-source, scalable programming language, with robust
-libraries and runtimes, for building web, server, and mobile apps.
+## A client-optimized language for fast apps on any platform
+
+Dart is:
+
+  * **Optimized for UI**:
+  Develop with a programming language specialized around the needs of user interface creation
+  
+  * **Productive**:
+  Make changes iteratively: use hot reload to see the result instantly in your running app
+  
+  * **Fast on all platforms**:
+  Compile to ARM & x64 machine code for mobile,  desktop, and backend. Or compile to JavaScript for the web
+
+Dart's flexible compiler technology lets you run Dart code in different ways,
+depending on your target platform and goals:
+
+  * **Dart Native**: For programs targeting devices (mobile, desktop, server, and more),
+  Dart Native includes both a Dart VM with JIT (just-in-time) compilation and an
+  AOT (ahead-of-time) compiler for producing machine code.
+  
+  * **Dart Web**: For programs targeting the web, Dart Web includes both a development time
+  compiler (dartdevc) and a production time compiler (dart2js).  
+
+![Dart platforms illustration](docs/assets/Dart-platforms.svg)
+
+## License & patents
+
+Dart is free and open source.
+
+See [LICENSE][license] and [PATENT_GRANT][patent_grant].
 
 ## Using Dart
 
-Visit the [dartlang.org][website] to learn more about the
+Visit the [dart.dev][website] to learn more about the
 [language][lang], [tools][tools],
 [getting started][codelab], and more.
 
-Browse [pub.dartlang.org][pubsite] for more packages and libraries contributed
+Browse [pub.dev][pubsite] for more packages and libraries contributed
 by the community and the Dart team.
 
 ## Building Dart
@@ -26,18 +54,13 @@ The easiest way to contribute to Dart is to [file issues][dartbug].
 
 You can also contribute patches, as described in [Contributing][contrib].
 
-## License & patents
-
-See [LICENSE][license] and [PATENTS][patents].
-
-[website]: https://www.dartlang.org
+[website]: https://dart.dev
 [license]: https://github.com/dart-lang/sdk/blob/master/LICENSE
 [repo]: https://github.com/dart-lang/sdk
 [lang]: https://www.dartlang.org/docs/dart-up-and-running/ch02.html
 [tools]: https://www.dartlang.org/tools/
-[codelab]: https://www.dartlang.org/codelabs/darrrt/
+[codelab]: https://dart.dev/codelabs
 [dartbug]: http://dartbug.com
-[contrib]: https://github.com/dart-lang/sdk/wiki/Contributing
-[pubsite]: https://pub.dartlang.org
-[patents]: https://github.com/dart-lang/sdk/blob/master/PATENTS
-
+[contrib]: https://github.com/dart-lang/sdk/blob/master/CONTRIBUTING.md
+[pubsite]: https://pub.dev
+[patent_grant]: https://github.com/dart-lang/sdk/blob/master/PATENT_GRANT

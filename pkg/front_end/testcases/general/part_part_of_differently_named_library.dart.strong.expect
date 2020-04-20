@@ -1,0 +1,29 @@
+library foo;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/part_part_of_differently_named_library.dart:10:6: Error: Using 'pkg/front_end/testcases/general/part_part_of_differently_named_library_lib1.dart' as part of 'foo' but its 'part of' declaration says 'bar'.
+// part 'part_part_of_differently_named_library_lib1.dart';
+//      ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///part_part_of_differently_named_library_lib2.dart";
+
+@#C1
+part part_part_of_differently_named_library_lib1.dart;
+static method main() → dynamic {}
+
+library bar;
+import self as self2;
+
+part part_part_of_differently_named_library_lib1.dart;
+static method /* from org-dartlang-testcase:///part_part_of_differently_named_library_lib1.dart */ methodFromLib1() → dynamic {}
+static method methodFromLib2() → dynamic {
+  self2::methodFromLib1();
+}
+
+constants  {
+  #C1 = core::_Override {}
+}

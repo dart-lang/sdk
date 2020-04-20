@@ -3,82 +3,82 @@ import self as self;
 import "dart:core" as core;
 
 abstract class Test1 extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::Test1*
     ;
-  abstract operator [](core::String s) → core::int;
-  abstract operator []=(core::String s, core::int v) → void;
+  abstract operator [](core::String* s) → core::int*;
+  abstract operator []=(core::String* s, core::int* v) → void;
   method test() → void
     ;
 }
 abstract class Test2 extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::Test2*
     ;
-  abstract operator [](core::String s) → core::int;
-  abstract operator []=(core::String s, core::num v) → void;
+  abstract operator [](core::String* s) → core::int*;
+  abstract operator []=(core::String* s, core::num* v) → void;
   method test() → void
     ;
 }
 abstract class Test3 extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::Test3*
     ;
-  abstract operator [](core::String s) → core::int;
-  abstract operator []=(core::String s, core::double v) → void;
+  abstract operator [](core::String* s) → core::int*;
+  abstract operator []=(core::String* s, core::double* v) → void;
   method test() → void
     ;
 }
 abstract class Test4 extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::Test4*
     ;
-  abstract operator [](core::String s) → core::num;
-  abstract operator []=(core::String s, core::int v) → void;
+  abstract operator [](core::String* s) → core::num*;
+  abstract operator []=(core::String* s, core::int* v) → void;
   method test() → void
     ;
 }
 abstract class Test5 extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::Test5*
     ;
-  abstract operator [](core::String s) → core::num;
-  abstract operator []=(core::String s, core::num v) → void;
+  abstract operator [](core::String* s) → core::num*;
+  abstract operator []=(core::String* s, core::num* v) → void;
   method test() → void
     ;
 }
 abstract class Test6 extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::Test6*
     ;
-  abstract operator [](core::String s) → core::num;
-  abstract operator []=(core::String s, core::double v) → void;
+  abstract operator [](core::String* s) → core::num*;
+  abstract operator []=(core::String* s, core::double* v) → void;
   method test() → void
     ;
 }
 abstract class Test7 extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::Test7*
     ;
-  abstract operator [](core::String s) → core::double;
-  abstract operator []=(core::String s, core::int v) → void;
+  abstract operator [](core::String* s) → core::double*;
+  abstract operator []=(core::String* s, core::int* v) → void;
   method test() → void
     ;
 }
 abstract class Test8 extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::Test8*
     ;
-  abstract operator [](core::String s) → core::double;
-  abstract operator []=(core::String s, core::num v) → void;
+  abstract operator [](core::String* s) → core::double*;
+  abstract operator []=(core::String* s, core::num* v) → void;
   method test() → void
     ;
 }
 abstract class Test9 extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::Test9*
     ;
-  abstract operator [](core::String s) → core::double;
-  abstract operator []=(core::String s, core::double v) → void;
+  abstract operator [](core::String* s) → core::double*;
+  abstract operator []=(core::String* s, core::double* v) → void;
   method test() → void
     ;
 }
-static method getInt() → core::int
+static method getInt() → core::int*
   ;
-static method getNum() → core::num
+static method getNum() → core::num*
   ;
-static method getDouble() → core::double
+static method getDouble() → core::double*
   ;
 static method main() → dynamic
   ;

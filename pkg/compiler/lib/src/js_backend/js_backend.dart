@@ -7,8 +7,6 @@ library js_backend;
 export 'backend.dart';
 export 'checked_mode_helpers.dart';
 export 'constant_emitter.dart';
-export 'constant_handler_javascript.dart';
 export 'custom_elements_analysis.dart';
 export 'namer.dart';
 export 'no_such_method_registry.dart';
-export 'type_variable_handler.dart';

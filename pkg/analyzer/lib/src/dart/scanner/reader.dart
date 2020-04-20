@@ -1,12 +1,10 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.dart.scanner.reader;
+import 'package:_fe_analyzer_shared/src/scanner/reader.dart';
 
-import 'package:front_end/src/scanner/reader.dart';
-
-export 'package:front_end/src/scanner/reader.dart'
+export 'package:_fe_analyzer_shared/src/scanner/reader.dart'
     show CharacterReader, CharSequenceReader, SubSequenceReader;
 
 /**
@@ -41,7 +39,7 @@ class CharacterRangeReader extends CharacterReader {
   int get offset => baseReader.offset;
 
   @override
-  void set offset(int offset) {
+  set offset(int offset) {
     baseReader.offset = offset;
   }
 

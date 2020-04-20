@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static field core::String* color;
+static field core::String* thing;
+static field core::String* phrase;
+static field core::String* adjacent;
+static field core::String* linebreaks;
+static field core::String* other;
+static method main() → dynamic
+  ;

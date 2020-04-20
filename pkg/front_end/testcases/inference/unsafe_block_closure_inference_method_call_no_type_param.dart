@@ -6,10 +6,10 @@
 library test;
 
 class C {
-  double f(/*@topType=dynamic*/ x) => 1.0;
+  double f(x) => 1.0;
 }
 
-var /*@topType=double*/ v = new C(). /*@target=C::f*/ f(/*@returnType=int*/ () {
+var v = new C(). /*@target=C::f*/ f(/*@ returnType=int* */ () {
   return 1;
 });
 

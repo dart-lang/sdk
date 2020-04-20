@@ -12,7 +12,7 @@ class Class {}
 
 main() {
   ClassMirror cm = reflectClass(Class);
-  LibraryMirror lm = cm.owner;
+  LibraryMirror lm = cm.owner as LibraryMirror;
 
   Expect.equals('Class', MirrorSystem.getName(cm.simpleName));
   Expect.equals('.Class', MirrorSystem.getName(cm.qualifiedName));

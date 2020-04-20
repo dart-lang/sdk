@@ -10,7 +10,7 @@ import 'dart:io' show exitCode, stderr;
 
 import 'dart:isolate' show ReceivePort;
 
-Future withErrorHandling(Future f()) async {
+Future<T> withErrorHandling<T>(Future<T> f()) async {
   final ReceivePort port = new ReceivePort();
   try {
     return await f();
@@ -20,6 +20,7 @@ Future withErrorHandling(Future f()) async {
     if (trace != null) {
       stderr.writeln(trace);
     }
+    return null;
   } finally {
     port.close();
   }

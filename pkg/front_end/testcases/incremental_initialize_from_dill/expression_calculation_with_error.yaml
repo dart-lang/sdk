@@ -1,0 +1,27 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile a application.
+# Perform an expression calculation on it, where the expression gives a compile
+# time error.
+# Ask to compile again, and make sure we don't see the expression compilation
+# error.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        main() {
+          print("hello");
+        }
+    expectedLibraryCount: 1
+    expressionCompilation:
+      uri: main.dart
+      expression: foo()
+      errors: true
+  - entry: main.dart
+    expectInitializeFromDill: false
+    worldType: updated
+    expectedLibraryCount: 1

@@ -4,6 +4,7 @@
 
 #include "vm/growable_array.h"
 #include "platform/assert.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -91,7 +92,7 @@ TEST_CASE(GrowableArraySort) {
   EXPECT_EQ(4, g.Last());
 }
 
-TEST_CASE(GrowableHandlePtr) {
+ISOLATE_UNIT_TEST_CASE(GrowableHandlePtr) {
   Zone* zone = Thread::Current()->zone();
   GrowableHandlePtrArray<const String> test1(zone, 1);
   EXPECT_EQ(0, test1.length());
@@ -104,6 +105,37 @@ TEST_CASE(GrowableHandlePtr) {
   test2->Add(Symbols::GetterPrefix());
   EXPECT((*test2)[0].raw() == Symbols::GetterPrefix().raw());
   EXPECT_EQ(1, test2->length());
+}
+
+TEST_CASE(GrowableArrayMoveCtor) {
+  GrowableArray<int> a;
+  a.Add(4);
+  a.Add(5);
+  int* a_data = a.data();
+
+  GrowableArray<int> b(std::move(a));
+
+  EXPECT_EQ(0, a.length());
+  EXPECT_EQ((int*)nullptr, a.data());
+  EXPECT_EQ(2, b.length());
+  EXPECT_EQ(a_data, b.data());
+}
+
+TEST_CASE(GrowableArrayMoveAssign) {
+  GrowableArray<int> a, b;
+  a.Add(1);
+  a.Add(2);
+  a.Add(3);
+  b.Add(7);
+  int* a_data = a.data();
+  int* b_data = b.data();
+
+  a = std::move(b);
+
+  EXPECT_EQ(1, a.length());
+  EXPECT_EQ(b_data, a.data());
+  EXPECT_EQ(3, b.length());
+  EXPECT_EQ(a_data, b.data());
 }
 
 }  // namespace dart

@@ -9,7 +9,7 @@ import 'core_types.dart';
 import 'type_algebra.dart';
 import 'type_environment.dart';
 
-/// Performs strong-mode type checking on the kernel IR.
+/// Performs type checking on the kernel IR.
 ///
 /// A concrete subclass of [TypeChecker] must implement [checkAssignable] and
 /// [fail] in order to deal with subtyping requirements and error handling.
@@ -18,15 +18,14 @@ abstract class TypeChecker {
   final ClassHierarchy hierarchy;
   final bool ignoreSdk;
   TypeEnvironment environment;
+  Library currentLibrary;
+  InterfaceType currentThisType;
 
-  TypeChecker(this.coreTypes, this.hierarchy,
-      {bool strongMode: false, this.ignoreSdk: true}) {
-    environment =
-        new TypeEnvironment(coreTypes, hierarchy, strongMode: strongMode);
-  }
+  TypeChecker(this.coreTypes, this.hierarchy, {this.ignoreSdk: true})
+      : environment = new TypeEnvironment(coreTypes, hierarchy);
 
-  void checkProgram(Program program) {
-    for (var library in program.libraries) {
+  void checkComponent(Component component) {
+    for (var library in component.libraries) {
       if (ignoreSdk && library.importUri.scheme == 'dart') continue;
       for (var class_ in library.classes) {
         hierarchy.forEachOverridePair(class_,
@@ -35,11 +34,13 @@ abstract class TypeChecker {
         });
       }
     }
-    var visitor = new TypeCheckingVisitor(this, environment);
-    for (var library in program.libraries) {
+    var visitor = new TypeCheckingVisitor(this, environment, hierarchy);
+    for (var library in component.libraries) {
+      currentLibrary = library;
       if (ignoreSdk && library.importUri.scheme == 'dart') continue;
       for (var class_ in library.classes) {
-        environment.thisType = class_.thisType;
+        currentThisType = coreTypes.thisInterfaceType(
+            class_, class_.enclosingLibrary.nonNullable);
         for (var field in class_.fields) {
           visitor.visitField(field);
         }
@@ -50,13 +51,14 @@ abstract class TypeChecker {
           visitor.visitProcedure(procedure);
         }
       }
-      environment.thisType = null;
+      currentThisType = null;
       for (var procedure in library.procedures) {
         visitor.visitProcedure(procedure);
       }
       for (var field in library.fields) {
         visitor.visitField(field);
       }
+      currentLibrary = null;
     }
   }
 
@@ -117,12 +119,18 @@ class TypeCheckingVisitor
         InitializerVisitor<Null> {
   final TypeChecker checker;
   final TypeEnvironment environment;
+  final ClassHierarchy hierarchy;
 
   CoreTypes get coreTypes => environment.coreTypes;
-  ClassHierarchy get hierarchy => environment.hierarchy;
-  Class get currentClass => environment.thisType.classNode;
+  Library get currentLibrary => checker.currentLibrary;
+  Class get currentClass => checker.currentThisType.classNode;
+  InterfaceType get currentThisType => checker.currentThisType;
 
-  TypeCheckingVisitor(this.checker, this.environment);
+  DartType currentReturnType;
+  DartType currentYieldType;
+  AsyncMarker currentAsyncMarker = AsyncMarker.Sync;
+
+  TypeCheckingVisitor(this.checker, this.environment, this.hierarchy);
 
   void checkAssignable(TreeNode where, DartType from, DartType to) {
     checker.checkAssignable(where, from, to);
@@ -184,21 +192,26 @@ class TypeCheckingVisitor
   }
 
   visitConstructor(Constructor node) {
-    environment.returnType = null;
-    environment.yieldType = null;
+    currentReturnType = null;
+    currentYieldType = null;
     node.initializers.forEach(visitInitializer);
     handleFunctionNode(node.function);
   }
 
   visitProcedure(Procedure node) {
-    environment.returnType = _getInternalReturnType(node.function);
-    environment.yieldType = _getYieldType(node.function);
+    currentReturnType = _getInternalReturnType(node.function);
+    currentYieldType = _getYieldType(node.function);
     handleFunctionNode(node.function);
   }
 
+  visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+    currentReturnType = null;
+    currentYieldType = null;
+  }
+
   void handleFunctionNode(FunctionNode node) {
-    var oldAsyncMarker = environment.currentAsyncMarker;
-    environment.currentAsyncMarker = node.asyncMarker;
+    var oldAsyncMarker = currentAsyncMarker;
+    currentAsyncMarker = node.asyncMarker;
     node.positionalParameters
         .skip(node.requiredParameterCount)
         .forEach(handleOptionalParameter);
@@ -206,17 +219,17 @@ class TypeCheckingVisitor
     if (node.body != null) {
       visitStatement(node.body);
     }
-    environment.currentAsyncMarker = oldAsyncMarker;
+    currentAsyncMarker = oldAsyncMarker;
   }
 
   void handleNestedFunctionNode(FunctionNode node) {
-    var oldReturn = environment.returnType;
-    var oldYield = environment.yieldType;
-    environment.returnType = _getInternalReturnType(node);
-    environment.yieldType = _getYieldType(node);
+    var oldReturn = currentReturnType;
+    var oldYield = currentYieldType;
+    currentReturnType = _getInternalReturnType(node);
+    currentYieldType = _getYieldType(node);
     handleFunctionNode(node);
-    environment.returnType = oldReturn;
-    environment.yieldType = oldYield;
+    currentReturnType = oldReturn;
+    currentYieldType = oldYield;
   }
 
   void handleOptionalParameter(VariableDeclaration parameter) {
@@ -242,9 +255,11 @@ class TypeCheckingVisitor
     }
     if (type is InterfaceType) {
       // The receiver type should implement the interface declaring the member.
-      var upcastType = hierarchy.getTypeAsInstanceOf(type, superclass);
-      if (upcastType != null) {
-        return Substitution.fromInterfaceType(upcastType);
+      List<DartType> upcastTypeArguments =
+          hierarchy.getTypeArgumentsAsInstanceOf(type, superclass);
+      if (upcastTypeArguments != null) {
+        return Substitution.fromPairs(
+            superclass.typeParameters, upcastTypeArguments);
       }
     }
     if (type is FunctionType && superclass == coreTypes.functionClass) {
@@ -276,18 +291,14 @@ class TypeCheckingVisitor
         fail(arguments, 'Too many positional arguments');
         return const BottomType();
       }
-      if (arguments.types.length != typeParameters.length) {
+      var typeArguments = arguments.types;
+      if (typeArguments.length != typeParameters.length) {
         fail(arguments, 'Wrong number of type arguments');
         return const BottomType();
       }
-      var instantiation =
-          Substitution.fromPairs(typeParameters, arguments.types);
-      var substitution = Substitution.combine(receiver, instantiation);
-      for (int i = 0; i < typeParameters.length; ++i) {
-        var argument = arguments.types[i];
-        var bound = substitution.substituteType(typeParameters[i].bound);
-        checkAssignable(arguments, argument, bound);
-      }
+      Substitution substitution = _instantiateFunction(
+          typeParameters, typeArguments, arguments,
+          receiverSubstitution: receiver);
       for (int i = 0; i < arguments.positional.length; ++i) {
         var expectedType = substitution.substituteType(
             functionType.positionalParameters[i],
@@ -346,7 +357,7 @@ class TypeCheckingVisitor
         }
         final enclosingFunction = parent as FunctionNode;
         if (enclosingFunction.dartAsyncMarker == AsyncMarker.SyncStar) {
-          return coreTypes.boolClass.rawType;
+          return coreTypes.boolLegacyRawType;
         }
         return null;
 
@@ -380,6 +391,21 @@ class TypeCheckingVisitor
     }
   }
 
+  Substitution _instantiateFunction(List<TypeParameter> typeParameters,
+      List<DartType> typeArguments, TreeNode where,
+      {Substitution receiverSubstitution}) {
+    var instantiation = Substitution.fromPairs(typeParameters, typeArguments);
+    var substitution = receiverSubstitution == null
+        ? instantiation
+        : Substitution.combine(receiverSubstitution, instantiation);
+    for (int i = 0; i < typeParameters.length; ++i) {
+      var argument = typeArguments[i];
+      var bound = substitution.substituteType(typeParameters[i].bound);
+      checkAssignable(where, argument, bound);
+    }
+    return substitution;
+  }
+
   @override
   DartType visitAsExpression(AsExpression node) {
     visitExpression(node.operand);
@@ -393,13 +419,13 @@ class TypeCheckingVisitor
 
   @override
   DartType visitBoolLiteral(BoolLiteral node) {
-    return environment.boolType;
+    return environment.coreTypes.boolLegacyRawType;
   }
 
   @override
   DartType visitConditionalExpression(ConditionalExpression node) {
-    node.condition =
-        checkAndDowncastExpression(node.condition, environment.boolType);
+    node.condition = checkAndDowncastExpression(
+        node.condition, environment.coreTypes.boolLegacyRawType);
     node.then = checkAndDowncastExpression(node.then, node.staticType);
     node.otherwise =
         checkAndDowncastExpression(node.otherwise, node.staticType);
@@ -411,9 +437,13 @@ class TypeCheckingVisitor
     Constructor target = node.target;
     Arguments arguments = node.arguments;
     Class class_ = target.enclosingClass;
-    handleCall(arguments, target.function.functionType,
+    handleCall(
+        arguments,
+        target.function
+            .computeThisFunctionType(class_.enclosingLibrary.nonNullable),
         typeParameters: class_.typeParameters);
-    return new InterfaceType(target.enclosingClass, arguments.types);
+    return new InterfaceType(
+        target.enclosingClass, currentLibrary.nonNullable, arguments.types);
   }
 
   @override
@@ -439,29 +469,29 @@ class TypeCheckingVisitor
 
   @override
   DartType visitDoubleLiteral(DoubleLiteral node) {
-    return environment.doubleType;
+    return environment.coreTypes.doubleLegacyRawType;
   }
 
   @override
   DartType visitFunctionExpression(FunctionExpression node) {
     handleNestedFunctionNode(node.function);
-    return node.function.functionType;
+    return node.function.computeThisFunctionType(currentLibrary.nonNullable);
   }
 
   @override
   DartType visitIntLiteral(IntLiteral node) {
-    return environment.intType;
+    return environment.coreTypes.intLegacyRawType;
   }
 
   @override
   DartType visitInvalidExpression(InvalidExpression node) {
-    return const BottomType();
+    return const DynamicType();
   }
 
   @override
   DartType visitIsExpression(IsExpression node) {
     visitExpression(node.operand);
-    return environment.boolType;
+    return environment.coreTypes.boolLegacyRawType;
   }
 
   @override
@@ -474,19 +504,53 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitBlockExpression(BlockExpression node) {
+    visitStatement(node.body);
+    return visitExpression(node.value);
+  }
+
+  @override
+  DartType visitInstantiation(Instantiation node) {
+    DartType type = visitExpression(node.expression);
+    if (type is! FunctionType) {
+      fail(node, 'Not a function type: $type');
+      return const BottomType();
+    }
+    FunctionType functionType = type;
+    if (functionType.typeParameters.length != node.typeArguments.length) {
+      fail(node, 'Wrong number of type arguments');
+      return const BottomType();
+    }
+    return _instantiateFunction(
+            functionType.typeParameters, node.typeArguments, node)
+        .substituteType(functionType.withoutTypeParameters);
+  }
+
+  @override
   DartType visitListLiteral(ListLiteral node) {
     for (int i = 0; i < node.expressions.length; ++i) {
       node.expressions[i] =
           checkAndDowncastExpression(node.expressions[i], node.typeArgument);
     }
-    return environment.literalListType(node.typeArgument);
+    return environment.listType(node.typeArgument, currentLibrary.nonNullable);
+  }
+
+  @override
+  DartType visitSetLiteral(SetLiteral node) {
+    for (int i = 0; i < node.expressions.length; ++i) {
+      node.expressions[i] =
+          checkAndDowncastExpression(node.expressions[i], node.typeArgument);
+    }
+    return environment.setType(node.typeArgument, currentLibrary.nonNullable);
   }
 
   @override
   DartType visitLogicalExpression(LogicalExpression node) {
-    node.left = checkAndDowncastExpression(node.left, environment.boolType);
-    node.right = checkAndDowncastExpression(node.right, environment.boolType);
-    return environment.boolType;
+    node.left = checkAndDowncastExpression(
+        node.left, environment.coreTypes.boolLegacyRawType);
+    node.right = checkAndDowncastExpression(
+        node.right, environment.coreTypes.boolLegacyRawType);
+    return environment.coreTypes.boolLegacyRawType;
   }
 
   @override
@@ -495,7 +559,8 @@ class TypeCheckingVisitor
       entry.key = checkAndDowncastExpression(entry.key, node.keyType);
       entry.value = checkAndDowncastExpression(entry.value, node.valueType);
     }
-    return environment.literalMapType(node.keyType, node.valueType);
+    return environment.mapType(
+        node.keyType, node.valueType, currentLibrary.nonNullable);
   }
 
   DartType handleDynamicCall(DartType receiver, Arguments arguments) {
@@ -550,7 +615,7 @@ class TypeCheckingVisitor
       var receiver = visitExpression(node.receiver);
       if (node.name.name == '==') {
         visitExpression(node.arguments.positional.single);
-        return environment.boolType;
+        return environment.coreTypes.boolLegacyRawType;
       }
       if (node.name.name == 'call' && receiver is FunctionType) {
         return handleFunctionCall(node, receiver, node.arguments);
@@ -601,7 +666,13 @@ class TypeCheckingVisitor
   @override
   DartType visitNot(Not node) {
     visitExpression(node.operand);
-    return environment.boolType;
+    return environment.coreTypes.boolLegacyRawType;
+  }
+
+  @override
+  DartType visitNullCheck(NullCheck node) {
+    // TODO(johnniwinther): Return `NonNull(visitExpression(types))`.
+    return visitExpression(node.operand);
   }
 
   @override
@@ -634,19 +705,70 @@ class TypeCheckingVisitor
   @override
   DartType visitStringConcatenation(StringConcatenation node) {
     node.expressions.forEach(visitExpression);
-    return environment.stringType;
+    return environment.coreTypes.stringLegacyRawType;
+  }
+
+  @override
+  DartType visitListConcatenation(ListConcatenation node) {
+    DartType type =
+        environment.listType(node.typeArgument, currentLibrary.nonNullable);
+    for (Expression part in node.lists) {
+      DartType partType = visitExpression(part);
+      checkAssignable(node, type, partType);
+    }
+    return type;
+  }
+
+  @override
+  DartType visitSetConcatenation(SetConcatenation node) {
+    DartType type =
+        environment.setType(node.typeArgument, currentLibrary.nonNullable);
+    for (Expression part in node.sets) {
+      DartType partType = visitExpression(part);
+      checkAssignable(node, type, partType);
+    }
+    return type;
+  }
+
+  @override
+  DartType visitMapConcatenation(MapConcatenation node) {
+    DartType type = environment.mapType(
+        node.keyType, node.valueType, currentLibrary.nonNullable);
+    for (Expression part in node.maps) {
+      DartType partType = visitExpression(part);
+      checkAssignable(node, type, partType);
+    }
+    return type;
+  }
+
+  @override
+  DartType visitInstanceCreation(InstanceCreation node) {
+    Substitution substitution = Substitution.fromPairs(
+        node.classNode.typeParameters, node.typeArguments);
+    node.fieldValues.forEach((Reference fieldRef, Expression value) {
+      DartType fieldType = substitution.substituteType(fieldRef.asField.type);
+      DartType valueType = visitExpression(value);
+      checkAssignable(node, fieldType, valueType);
+    });
+    return new InterfaceType(
+        node.classNode, currentLibrary.nonNullable, node.typeArguments);
+  }
+
+  @override
+  DartType visitFileUriExpression(FileUriExpression node) {
+    return visitExpression(node.expression);
   }
 
   @override
   DartType visitStringLiteral(StringLiteral node) {
-    return environment.stringType;
+    return environment.coreTypes.stringLegacyRawType;
   }
 
   @override
   DartType visitSuperMethodInvocation(SuperMethodInvocation node) {
     if (node.interfaceTarget == null) {
-      checkUnresolvedInvocation(environment.thisType, node);
-      return handleDynamicCall(environment.thisType, node.arguments);
+      checkUnresolvedInvocation(currentThisType, node);
+      return handleDynamicCall(currentThisType, node.arguments);
     } else {
       return handleCall(node.arguments, node.interfaceTarget.getterType,
           receiver: getSuperReceiverType(node.interfaceTarget));
@@ -656,7 +778,7 @@ class TypeCheckingVisitor
   @override
   DartType visitSuperPropertyGet(SuperPropertyGet node) {
     if (node.interfaceTarget == null) {
-      checkUnresolvedInvocation(environment.thisType, node);
+      checkUnresolvedInvocation(currentThisType, node);
       return const DynamicType();
     } else {
       var receiver = getSuperReceiverType(node.interfaceTarget);
@@ -675,19 +797,19 @@ class TypeCheckingVisitor
           receiver.substituteType(node.interfaceTarget.setterType,
               contravariant: true));
     } else {
-      checkUnresolvedInvocation(environment.thisType, node);
+      checkUnresolvedInvocation(currentThisType, node);
     }
     return value;
   }
 
   @override
   DartType visitSymbolLiteral(SymbolLiteral node) {
-    return environment.symbolType;
+    return environment.coreTypes.symbolLegacyRawType;
   }
 
   @override
   DartType visitThisExpression(ThisExpression node) {
-    return environment.thisType;
+    return currentThisType;
   }
 
   @override
@@ -698,7 +820,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitTypeLiteral(TypeLiteral node) {
-    return environment.typeType;
+    return environment.coreTypes.typeLegacyRawType;
   }
 
   @override
@@ -715,65 +837,18 @@ class TypeCheckingVisitor
 
   @override
   DartType visitLoadLibrary(LoadLibrary node) {
-    return environment.futureType(const DynamicType());
+    return environment.futureType(
+        const DynamicType(), currentLibrary.nonNullable);
   }
 
   @override
   DartType visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
-    return environment.objectType;
+    return environment.coreTypes.objectLegacyRawType;
   }
 
   @override
-  DartType visitVectorCreation(VectorCreation node) {
-    return const VectorType();
-  }
-
-  @override
-  DartType visitVectorGet(VectorGet node) {
-    var type = visitExpression(node.vectorExpression);
-    if (type is! VectorType) {
-      fail(
-          node.vectorExpression,
-          'The type of vector-expression in vector-get node is expected to be '
-          'VectorType, but $type found');
-    }
-    return const DynamicType();
-  }
-
-  @override
-  visitVectorSet(VectorSet node) {
-    var type = visitExpression(node.vectorExpression);
-    if (type is! VectorType) {
-      fail(
-          node.vectorExpression,
-          'The type of vector-expression in vector-set node is expected to be '
-          'VectorType, but $type found');
-    }
-    return visitExpression(node.value);
-  }
-
-  @override
-  visitVectorCopy(VectorCopy node) {
-    var type = visitExpression(node.vectorExpression);
-    if (type is! VectorType) {
-      fail(
-          node.vectorExpression,
-          'The type of vector-expression in vector-copy node is exected to be '
-          'VectorType, but $type found');
-    }
-    return const VectorType();
-  }
-
-  @override
-  visitClosureCreation(ClosureCreation node) {
-    var contextType = visitExpression(node.contextVector);
-    if (contextType is! VectorType) {
-      fail(
-          node.contextVector,
-          "The second child of 'ClosureConversion' node is supposed to be a "
-          "Vector, but $contextType found.");
-    }
-    return node.functionType;
+  visitConstantExpression(ConstantExpression node) {
+    return node.type;
   }
 
   @override
@@ -790,6 +865,11 @@ class TypeCheckingVisitor
   }
 
   @override
+  visitAssertBlock(AssertBlock node) {
+    node.statements.forEach(visitStatement);
+  }
+
+  @override
   visitBreakStatement(BreakStatement node) {}
 
   @override
@@ -798,8 +878,8 @@ class TypeCheckingVisitor
   @override
   visitDoStatement(DoStatement node) {
     visitStatement(node.body);
-    node.condition =
-        checkAndDowncastExpression(node.condition, environment.boolType);
+    node.condition = checkAndDowncastExpression(
+        node.condition, environment.coreTypes.boolLegacyRawType);
   }
 
   @override
@@ -832,19 +912,23 @@ class TypeCheckingVisitor
       var iteratorGetter =
           hierarchy.getInterfaceMember(iterable.classNode, iteratorName);
       if (iteratorGetter == null) return const DynamicType();
-      var castedIterable = hierarchy.getTypeAsInstanceOf(
-          iterable, iteratorGetter.enclosingClass);
-      var iteratorType = Substitution
-          .fromInterfaceType(castedIterable)
+      List<DartType> castedIterableArguments =
+          hierarchy.getTypeArgumentsAsInstanceOf(
+              iterable, iteratorGetter.enclosingClass);
+      DartType iteratorType = Substitution.fromPairs(
+              iteratorGetter.enclosingClass.typeParameters,
+              castedIterableArguments)
           .substituteType(iteratorGetter.getterType);
       if (iteratorType is InterfaceType) {
         var currentGetter =
             hierarchy.getInterfaceMember(iteratorType.classNode, currentName);
         if (currentGetter == null) return const DynamicType();
-        var castedIteratorType = hierarchy.getTypeAsInstanceOf(
-            iteratorType, currentGetter.enclosingClass);
-        return Substitution
-            .fromInterfaceType(castedIteratorType)
+        List<DartType> castedIteratorTypeArguments =
+            hierarchy.getTypeArgumentsAsInstanceOf(
+                iteratorType, currentGetter.enclosingClass);
+        return Substitution.fromPairs(
+                currentGetter.enclosingClass.typeParameters,
+                castedIteratorTypeArguments)
             .substituteType(currentGetter.getterType);
       }
     }
@@ -853,10 +937,10 @@ class TypeCheckingVisitor
 
   DartType getStreamElementType(DartType stream) {
     if (stream is InterfaceType) {
-      var asStream =
-          hierarchy.getTypeAsInstanceOf(stream, coreTypes.streamClass);
-      if (asStream == null) return const DynamicType();
-      return asStream.typeArguments.single;
+      List<DartType> asStreamArguments =
+          hierarchy.getTypeArgumentsAsInstanceOf(stream, coreTypes.streamClass);
+      if (asStreamArguments == null) return const DynamicType();
+      return asStreamArguments.single;
     }
     return const DynamicType();
   }
@@ -865,8 +949,8 @@ class TypeCheckingVisitor
   visitForStatement(ForStatement node) {
     node.variables.forEach(visitVariableDeclaration);
     if (node.condition != null) {
-      node.condition =
-          checkAndDowncastExpression(node.condition, environment.boolType);
+      node.condition = checkAndDowncastExpression(
+          node.condition, environment.coreTypes.boolLegacyRawType);
     }
     node.updates.forEach(visitExpression);
     visitStatement(node.body);
@@ -879,16 +963,13 @@ class TypeCheckingVisitor
 
   @override
   visitIfStatement(IfStatement node) {
-    node.condition =
-        checkAndDowncastExpression(node.condition, environment.boolType);
+    node.condition = checkAndDowncastExpression(
+        node.condition, environment.coreTypes.boolLegacyRawType);
     visitStatement(node.then);
     if (node.otherwise != null) {
       visitStatement(node.otherwise);
     }
   }
-
-  @override
-  visitInvalidStatement(InvalidStatement node) {}
 
   @override
   visitLabeledStatement(LabeledStatement node) {
@@ -898,14 +979,14 @@ class TypeCheckingVisitor
   @override
   visitReturnStatement(ReturnStatement node) {
     if (node.expression != null) {
-      if (environment.returnType == null) {
+      if (currentReturnType == null) {
         fail(node, 'Return of a value from void method');
       } else {
         var type = visitExpression(node.expression);
-        if (environment.currentAsyncMarker == AsyncMarker.Async) {
+        if (currentAsyncMarker == AsyncMarker.Async) {
           type = environment.unfutureType(type);
         }
-        checkAssignable(node.expression, type, environment.returnType);
+        checkAssignable(node.expression, type, currentReturnType);
       }
     }
   }
@@ -943,30 +1024,30 @@ class TypeCheckingVisitor
 
   @override
   visitWhileStatement(WhileStatement node) {
-    node.condition =
-        checkAndDowncastExpression(node.condition, environment.boolType);
+    node.condition = checkAndDowncastExpression(
+        node.condition, environment.coreTypes.boolLegacyRawType);
     visitStatement(node.body);
   }
 
   @override
   visitYieldStatement(YieldStatement node) {
     if (node.isYieldStar) {
-      Class container = environment.currentAsyncMarker == AsyncMarker.AsyncStar
+      Class container = currentAsyncMarker == AsyncMarker.AsyncStar
           ? coreTypes.streamClass
           : coreTypes.iterableClass;
-      var type = visitExpression(node.expression);
-      var asContainer = type is InterfaceType
-          ? hierarchy.getTypeAsInstanceOf(type, container)
+      DartType type = visitExpression(node.expression);
+      List<DartType> asContainerArguments = type is InterfaceType
+          ? hierarchy.getTypeArgumentsAsInstanceOf(type, container)
           : null;
-      if (asContainer != null) {
-        checkAssignable(node.expression, asContainer.typeArguments[0],
-            environment.yieldType);
+      if (asContainerArguments != null) {
+        checkAssignable(
+            node.expression, asContainerArguments[0], currentYieldType);
       } else {
         fail(node.expression, '$type is not an instance of $container');
       }
     } else {
       node.expression =
-          checkAndDowncastExpression(node.expression, environment.yieldType);
+          checkAndDowncastExpression(node.expression, currentYieldType);
     }
   }
 
@@ -991,6 +1072,11 @@ class TypeCheckingVisitor
   @override
   visitLocalInitializer(LocalInitializer node) {
     visitVariableDeclaration(node.variable);
+  }
+
+  @override
+  visitAssertInitializer(AssertInitializer node) {
+    visitAssertStatement(node.statement);
   }
 
   @override

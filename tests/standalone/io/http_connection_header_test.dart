@@ -8,9 +8,9 @@ import "dart:isolate";
 import "dart:io";
 
 void setConnectionHeaders(HttpHeaders headers) {
-  headers.add(HttpHeaders.CONNECTION, "my-connection-header1");
+  headers.add(HttpHeaders.connectionHeader, "my-connection-header1");
   headers.add("My-Connection-Header1", "some-value1");
-  headers.add(HttpHeaders.CONNECTION, "my-connection-header2");
+  headers.add(HttpHeaders.connectionHeader, "my-connection-header2");
   headers.add("My-Connection-Header2", "some-value2");
 }
 
@@ -18,15 +18,15 @@ void checkExpectedConnectionHeaders(
     HttpHeaders headers, bool persistentConnection) {
   Expect.equals("some-value1", headers.value("My-Connection-Header1"));
   Expect.equals("some-value2", headers.value("My-Connection-Header2"));
-  Expect.isTrue(headers[HttpHeaders.CONNECTION]
+  Expect.isTrue(headers[HttpHeaders.connectionHeader]!
       .any((value) => value.toLowerCase() == "my-connection-header1"));
-  Expect.isTrue(headers[HttpHeaders.CONNECTION]
+  Expect.isTrue(headers[HttpHeaders.connectionHeader]!
       .any((value) => value.toLowerCase() == "my-connection-header2"));
   if (persistentConnection) {
-    Expect.equals(2, headers[HttpHeaders.CONNECTION].length);
+    Expect.equals(2, headers[HttpHeaders.connectionHeader]!.length);
   } else {
-    Expect.equals(3, headers[HttpHeaders.CONNECTION].length);
-    Expect.isTrue(headers[HttpHeaders.CONNECTION]
+    Expect.equals(3, headers[HttpHeaders.connectionHeader]!.length);
+    Expect.isTrue(headers[HttpHeaders.connectionHeader]!
         .any((value) => value.toLowerCase() == "close"));
   }
 }

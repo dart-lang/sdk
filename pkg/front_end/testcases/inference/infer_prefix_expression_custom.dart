@@ -11,9 +11,9 @@ class A {
   double operator -() => 2.0;
 }
 
-var /*@topType=A*/ a = new A();
-var /*@topType=int*/ v_complement = /*@target=A::~*/ ~a;
-var /*@topType=double*/ v_negate = /*@target=A::unary-*/ -a;
+var a = new A();
+var v_complement = /*@target=A::~*/ ~a;
+var v_negate = /*@target=A::unary-*/ -a;
 
 main() {
   a;

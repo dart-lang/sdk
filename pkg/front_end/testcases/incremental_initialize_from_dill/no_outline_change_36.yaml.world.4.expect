@@ -1,0 +1,31 @@
+main = <No Member>;
+library from "org-dartlang-test:///file1.dart" as fil {
+
+  import "org-dartlang-test:///file2.dart";
+
+  class Class2 extends fil2::Class3 {
+    field fil2::Class3* foo = null;
+    synthetic constructor •() → fil::Class2*
+      : super fil2::Class3::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///file2.dart" as fil2 {
+
+  abstract class Class3 extends dart.core::Object {
+    field fil2::Class3* foo = null;
+    synthetic constructor •() → fil2::Class3*
+      : super dart.core::Object::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///file1.dart";
+
+  class Class1 extends fil::Class2 {
+    synthetic constructor •() → main::Class1*
+      : super fil::Class2::•()
+      ;
+  }
+}

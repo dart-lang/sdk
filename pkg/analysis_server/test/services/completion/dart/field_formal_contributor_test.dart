@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion_contributor_util.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FieldFormalContributorTest);
   });
@@ -19,10 +19,21 @@ main() {
 class FieldFormalContributorTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
-    return new FieldFormalContributor();
+    return FieldFormalContributor();
   }
 
-  test_ThisExpression_constructor_param() async {
+  /// https://github.com/dart-lang/sdk/issues/39028
+  Future<void> test_mixin_constructor() async {
+    addTestSource('''
+mixin M {
+  M(this.^);
+}
+''');
+    await computeSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
+  Future<void> test_ThisExpression_constructor_param() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
         main() { }
@@ -58,7 +69,7 @@ class FieldFormalContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('==');
   }
 
-  test_ThisExpression_constructor_param2() async {
+  Future<void> test_ThisExpression_constructor_param2() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
         main() { }
@@ -93,7 +104,7 @@ class FieldFormalContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('==');
   }
 
-  test_ThisExpression_constructor_param3() async {
+  Future<void> test_ThisExpression_constructor_param3() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
         main() { }
@@ -128,7 +139,7 @@ class FieldFormalContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('==');
   }
 
-  test_ThisExpression_constructor_param4() async {
+  Future<void> test_ThisExpression_constructor_param4() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
         main() { }
@@ -163,7 +174,7 @@ class FieldFormalContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('==');
   }
 
-  test_ThisExpression_constructor_param_optional() async {
+  Future<void> test_ThisExpression_constructor_param_optional() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
         main() { }
@@ -179,7 +190,7 @@ class FieldFormalContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('x');
   }
 
-  test_ThisExpression_constructor_param_positional() async {
+  Future<void> test_ThisExpression_constructor_param_positional() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
         main() { }

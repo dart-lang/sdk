@@ -1,0 +1,15 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/malformed_function.dart:7:8: Error: Can't assign to a parenthesized expression.
+//   (null) = null;
+//        ^
+//
+import self as self;
+
+static method main() → dynamic {
+  invalid-expression "pkg/front_end/testcases/rasta/malformed_function.dart:7:8: Error: Can't assign to a parenthesized expression.
+  (null) = null;
+       ^";
+}

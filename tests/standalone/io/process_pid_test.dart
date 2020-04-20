@@ -13,7 +13,7 @@ import "package:expect/expect.dart";
 main() {
   asyncStart();
   Expect.isTrue(pid > 0);
-  var futures = [];
+  var futures = <Future>[];
   futures.add(Process.start(Platform.executable, ['--version']));
   futures.add(Process.run(Platform.executable, ['--version']));
   Future.wait(futures).then((results) {

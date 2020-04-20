@@ -66,7 +66,7 @@ _resumeMainIsolateIfPaused() async {
 Future _sendMessage(String method, [Map args = const {}]) {
   var id = _requestId++;
   _pendingResponses[id] = new Completer();
-  socket.add(JSON.encode({
+  socket.add(jsonEncode({
     'jsonrpc': '2.0',
     'id': '$id',
     'method': '$method',
@@ -77,7 +77,7 @@ Future _sendMessage(String method, [Map args = const {}]) {
 
 /// Handle all responses
 void _handleResponse(Object s) {
-  var json = JSON.decode(s);
+  var json = jsonDecode(s);
   if (json['method'] != 'streamNotify') {
     var id = json['id'];
     if (id is String) id = int.parse(id);
@@ -172,9 +172,9 @@ _writeNumber(sb, before, now, {color: false}) {
   if (now < 1024) {
     string = ' ${now}b';
   } else if (now < mega) {
-    string = ' ${(now/1024).toStringAsFixed(0)}K';
+    string = ' ${(now / 1024).toStringAsFixed(0)}K';
   } else {
-    string = ' ${(now/mega).toStringAsFixed(1)}M';
+    string = ' ${(now / mega).toStringAsFixed(1)}M';
   }
   if (string.length < 10) string = '${' ' * (8 - string.length)}$string';
   sb.write(string);

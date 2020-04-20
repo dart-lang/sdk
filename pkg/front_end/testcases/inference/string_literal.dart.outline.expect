@@ -1,9 +1,10 @@
 library test;
 import self as self;
+import "dart:core" as core;
 
-static field dynamic x;
-static field dynamic a;
-static field dynamic b;
-static field dynamic c;
+static field core::int* x;
+static field core::String* a;
+static field core::String* b;
+static field core::String* c;
 static method main() → dynamic
   ;

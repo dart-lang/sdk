@@ -1,0 +1,15 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/malformed_function_type.dart:5:16: Error: The typedef 'Handle' has a reference to itself.
+// typedef Handle Handle(String command);
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef Handle = (core::String*) →* invalid-type;
+static method main() → dynamic {
+  (core::String*) →* invalid-type h;
+}

@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_CHA_H_
 #define RUNTIME_VM_COMPILER_CHA_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
 #include "vm/thread.h"
@@ -12,25 +16,16 @@
 namespace dart {
 
 class Class;
+class CompileType;
 class Function;
 template <typename T>
 class ZoneGrowableArray;
 class String;
 
-class CHA : public StackResource {
+class CHA : public ValueObject {
  public:
   explicit CHA(Thread* thread)
-      : StackResource(thread),
-        thread_(thread),
-        guarded_classes_(thread->zone(), 1),
-        previous_(thread->cha()) {
-    thread->set_cha(this);
-  }
-
-  ~CHA() {
-    ASSERT(thread_->cha() == this);
-    thread_->set_cha(previous_);
-  }
+      : thread_(thread), guarded_classes_(thread->zone(), 1) {}
 
   // Returns true if the class has subclasses.
   static bool HasSubclasses(const Class& cls);
@@ -39,7 +34,8 @@ class CHA : public StackResource {
   // Collect the concrete subclasses of 'cls' into 'class_ids'. Return true if
   // the result is valid (may be invalid because we don't track the subclasses
   // of classes allocated in the VM isolate or class Object).
-  bool ConcreteSubclasses(const Class& cls, GrowableArray<intptr_t>* class_ids);
+  static bool ConcreteSubclasses(const Class& cls,
+                                 GrowableArray<intptr_t>* class_ids);
 
   // Return true if the class is implemented by some other class.
   static bool IsImplemented(const Class& cls);
@@ -81,7 +77,6 @@ class CHA : public StackResource {
   };
 
   GrowableArray<GuardedClassInfo> guarded_classes_;
-  CHA* previous_;
 };
 
 }  // namespace dart

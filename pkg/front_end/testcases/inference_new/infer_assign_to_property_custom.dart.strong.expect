@@ -1,24 +1,59 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:17:39: Error: A value of type 'int' can't be assigned to a variable of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
+// var v_prefix_pp = (/*@ target=A::+ */ ++new /*@ type=B* */ B()
+//                                       ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:19:39: Error: A value of type 'double' can't be assigned to a variable of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
+// var v_prefix_mm = (/*@ target=A::- */ --new /*@ type=B* */ B()
+//                                       ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:23:43: Error: A value of type 'int' can't be assigned to a variable of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
+//     /*@ type=int* */ a /*@ target=A::+ */ ++);
+//                                           ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:26:46: Error: A value of type 'double' can't be assigned to a variable of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
+//     /*@ type=double* */ a /*@ target=A::- */ --);
+//                                              ^
+//
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
-  operator +(dynamic other) → core::int
+  operator +(dynamic other) → core::int*
     return 1;
-  operator -(dynamic other) → core::double
+  operator -(dynamic other) → core::double*
     return 2.0;
 }
 class B extends core::Object {
-  field self::A a = null;
-  default constructor •() → void
+  field self::A* a = null;
+  synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
 }
-static field core::int v_prefix_pp = let final self::B #t1 = new self::B::•() in #t1.{self::B::a} = #t1.{self::B::a}.{self::A::+}(1);
-static field core::double v_prefix_mm = let final self::B #t2 = new self::B::•() in #t2.{self::B::a} = #t2.{self::B::a}.{self::A::-}(1);
-static field self::A v_postfix_pp = let final self::B #t3 = new self::B::•() in let final self::A #t4 = #t3.{self::B::a} in let final core::int #t5 = #t3.{self::B::a} = #t4.{self::A::+}(1) in #t4;
-static field self::A v_postfix_mm = let final self::B #t6 = new self::B::•() in let final self::A #t7 = #t6.{self::B::a} in let final core::double #t8 = #t6.{self::B::a} = #t7.{self::A::-}(1) in #t7;
+static field core::int* v_prefix_pp = let final self::B* #t1 = new self::B::•() in #t1.{self::B::a} = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:17:39: Error: A value of type 'int' can't be assigned to a variable of type 'A'.
+ - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
+var v_prefix_pp = (/*@ target=A::+ */ ++new /*@ type=B* */ B()
+                                      ^" in #t1.{self::B::a}.{self::A::+}(1) as{TypeError} self::A*;
+static field core::double* v_prefix_mm = let final self::B* #t3 = new self::B::•() in #t3.{self::B::a} = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:19:39: Error: A value of type 'double' can't be assigned to a variable of type 'A'.
+ - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
+var v_prefix_mm = (/*@ target=A::- */ --new /*@ type=B* */ B()
+                                      ^" in #t3.{self::B::a}.{self::A::-}(1) as{TypeError} self::A*;
+static field self::A* v_postfix_pp = let final self::B* #t5 = new self::B::•() in let final self::A* #t6 = #t5.{self::B::a} in let final core::int* #t7 = #t5.{self::B::a} = let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:23:43: Error: A value of type 'int' can't be assigned to a variable of type 'A'.
+ - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
+    /*@ type=int* */ a /*@ target=A::+ */ ++);
+                                          ^" in #t6.{self::A::+}(1) as{TypeError} self::A* in #t6;
+static field self::A* v_postfix_mm = let final self::B* #t9 = new self::B::•() in let final self::A* #t10 = #t9.{self::B::a} in let final core::double* #t11 = #t9.{self::B::a} = let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:26:46: Error: A value of type 'double' can't be assigned to a variable of type 'A'.
+ - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
+    /*@ type=double* */ a /*@ target=A::- */ --);
+                                             ^" in #t10.{self::A::-}(1) as{TypeError} self::A* in #t10;
 static method main() → dynamic {}

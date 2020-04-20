@@ -6,7 +6,6 @@ import "package:expect/expect.dart";
 
 void main() {
   testOutOfRange();
-  testIllegalArgument();
   testConcat();
   testIndex();
   testCodeUnitAt();
@@ -38,21 +37,6 @@ void testOutOfRange() {
   try {
     var c = a[20]; // Throw exception.
   } on RangeError catch (e) {
-    exception_caught = true;
-  }
-  Expect.isTrue(exception_caught);
-}
-
-void testIllegalArgument() {
-  String a = "Hello";
-  bool exception_caught = false;
-  try {
-    var c = a[2.2]; // Throw exception.
-    Expect.fail("Accepting double as index");
-  } on ArgumentError catch (e) {
-    exception_caught = true;
-  } on TypeError catch (e) {
-    // Thrown in checked mode only.
     exception_caught = true;
   }
   Expect.isTrue(exception_caught);

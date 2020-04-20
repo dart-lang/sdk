@@ -1,5 +1,0 @@
-library;
-import self as self;
-
-static method main() → invalid-type
-  return null;

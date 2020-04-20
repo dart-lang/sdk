@@ -6,7 +6,6 @@
 #define RUNTIME_VM_COMPILATION_TRACE_H_
 
 #include "platform/assert.h"
-#include "vm/compiler/jit/compiler.h"
 #include "vm/object.h"
 #include "vm/program_visitor.h"
 #include "vm/zone_text_buffer.h"
@@ -16,7 +15,7 @@ namespace dart {
 class CompilationTraceSaver : public FunctionVisitor {
  public:
   explicit CompilationTraceSaver(Zone* zone);
-  void Visit(const Function& function);
+  void VisitFunction(const Function& function);
 
   void StealBuffer(uint8_t** buffer, intptr_t* buffer_length) {
     *buffer = reinterpret_cast<uint8_t*>(buf_.buffer());
@@ -43,7 +42,7 @@ class CompilationTraceLoader : public ValueObject {
                            const char* cls_cstr,
                            const char* func_cstr);
   RawObject* CompileFunction(const Function& function);
-  RawObject* EvaluateInitializer(const Field& field);
+  void SpeculateInstanceCallTargets(const Function& function);
 
   Thread* thread_;
   Zone* zone_;
@@ -56,6 +55,79 @@ class CompilationTraceLoader : public ValueObject {
   Function& function_;
   Function& function2_;
   Field& field_;
+  Array& sites_;
+  ICData& site_;
+  AbstractType& static_type_;
+  Class& receiver_cls_;
+  Function& target_;
+  String& selector_;
+  Array& args_desc_;
+  Object& error_;
+};
+
+class TypeFeedbackSaver : public FunctionVisitor {
+ public:
+  explicit TypeFeedbackSaver(WriteStream* stream);
+
+  void WriteHeader();
+  void SaveClasses();
+  void SaveFields();
+  void VisitFunction(const Function& function);
+
+ private:
+  void WriteClassByName(const Class& cls);
+  void WriteString(const String& value);
+  void WriteInt(intptr_t value) { stream_->Write(static_cast<int32_t>(value)); }
+
+  WriteStream* const stream_;
+  Class& cls_;
+  Library& lib_;
+  String& str_;
+  Array& fields_;
+  Field& field_;
+  Code& code_;
+  Array& call_sites_;
+  ICData& call_site_;
+};
+
+class TypeFeedbackLoader : public ValueObject {
+ public:
+  explicit TypeFeedbackLoader(Thread* thread);
+  ~TypeFeedbackLoader();
+
+  RawObject* LoadFeedback(ReadStream* stream);
+
+ private:
+  RawObject* CheckHeader();
+  RawObject* LoadClasses();
+  RawObject* LoadFields();
+  RawObject* LoadFunction();
+  RawFunction* FindFunction(RawFunction::Kind kind, intptr_t token_pos);
+
+  RawClass* ReadClassByName();
+  RawString* ReadString();
+  intptr_t ReadInt() { return stream_->Read<int32_t>(); }
+
+  Thread* thread_;
+  Zone* zone_;
+  ReadStream* stream_;
+  intptr_t num_cids_;
+  intptr_t* cid_map_;
+  String& uri_;
+  Library& lib_;
+  String& cls_name_;
+  Class& cls_;
+  String& field_name_;
+  Array& fields_;
+  Field& field_;
+  String& func_name_;
+  Function& func_;
+  Array& call_sites_;
+  ICData& call_site_;
+  String& target_name_;
+  Function& target_;
+  Array& args_desc_;
+  GrowableObjectArray& functions_to_compile_;
   Object& error_;
 };
 

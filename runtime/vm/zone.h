@@ -8,9 +8,8 @@
 #include "platform/utils.h"
 #include "vm/allocation.h"
 #include "vm/handles.h"
-#include "vm/json_stream.h"
 #include "vm/memory_region.h"
-#include "vm/thread.h"
+#include "vm/thread_state.h"
 
 namespace dart {
 
@@ -75,12 +74,23 @@ class Zone {
 
   Zone* previous() const { return previous_; }
 
- private:
-  Zone();
-  ~Zone();  // Delete all memory associated with the zone.
+  bool ContainsNestedZone(Zone* other) const {
+    while (other != NULL) {
+      if (this == other) return true;
+      other = other->previous_;
+    }
+    return false;
+  }
 
   // All pointers returned from AllocateUnsafe() and New() have this alignment.
   static const intptr_t kAlignment = kDoubleSize;
+
+  static void Init();
+  static void Cleanup();
+
+ private:
+  Zone();
+  ~Zone();  // Delete all memory associated with the zone.
 
   // Default initial chunk size.
   static const intptr_t kInitialChunkSize = 1 * KB;
@@ -112,7 +122,9 @@ class Zone {
   void Free(ElementType* old_array, intptr_t len) {
 #ifdef DEBUG
     if (len > 0) {
-      memset(old_array, kZapUninitializedByte, len * sizeof(ElementType));
+      ASSERT(old_array != nullptr);
+      memset(static_cast<void*>(old_array), kZapUninitializedByte,
+             len * sizeof(ElementType));
     }
 #endif
   }
@@ -167,22 +179,22 @@ class Zone {
 class StackZone : public StackResource {
  public:
   // Create an empty zone and set is at the current zone for the Thread.
-  explicit StackZone(Thread* thread);
+  explicit StackZone(ThreadState* thread);
 
   // Delete all memory associated with the zone.
-  ~StackZone();
+  virtual ~StackZone();
 
   // Compute the total size of this zone. This includes wasted space that is
   // due to internal fragmentation in the segments.
-  uintptr_t SizeInBytes() const { return zone_.SizeInBytes(); }
+  uintptr_t SizeInBytes() const { return zone_->SizeInBytes(); }
 
   // Computes the used space in the zone.
-  intptr_t CapacityInBytes() const { return zone_.CapacityInBytes(); }
+  intptr_t CapacityInBytes() const { return zone_->CapacityInBytes(); }
 
-  Zone* GetZone() { return &zone_; }
+  Zone* GetZone() { return zone_; }
 
  private:
-  Zone zone_;
+  Zone* zone_;
 
   template <typename T>
   friend class GrowableArray;

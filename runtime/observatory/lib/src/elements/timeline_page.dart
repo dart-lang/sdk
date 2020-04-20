@@ -18,7 +18,7 @@ import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 
-class TimelinePageElement extends HtmlElement implements Renderable {
+class TimelinePageElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<TimelinePageElement>('timeline-page', dependencies: const [
     NavTopMenuElement.tag,
@@ -50,8 +50,8 @@ class TimelinePageElement extends HtmlElement implements Renderable {
     assert(repository != null);
     assert(events != null);
     assert(notifications != null);
-    TimelinePageElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    TimelinePageElement e = new TimelinePageElement.created();
+    e._r = new RenderingScheduler<TimelinePageElement>(e, queue: queue);
     e._vm = vm;
     e._repository = repository;
     e._events = events;
@@ -59,42 +59,50 @@ class TimelinePageElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  TimelinePageElement.created() : super.created();
+  TimelinePageElement.created() : super.created(tag);
 
   @override
   attached() {
     super.attached();
     _r.enable();
-    _setupInitialState();
+    _updateRecorderUI();
   }
 
   @override
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   IFrameElement _frame;
   DivElement _content;
 
+  bool get usingVMRecorder =>
+      _recorder.name != "Fuchsia" &&
+      _recorder.name != "Systrace" &&
+      _recorder.name != "Macos";
+
   void render() {
     if (_frame == null) {
       _frame = new IFrameElement()..src = 'timeline.html';
+      _frame.onLoad.listen((event) {
+        _refresh();
+      });
     }
     if (_content == null) {
       _content = new DivElement()..classes = ['content-centered-big'];
     }
-    _content.children = [
+    _content.children = <Element>[
       new HeadingElement.h1()..text = 'Timeline settings',
       _recorder == null
           ? (new DivElement()..text = 'Loading...')
           : (new DivElement()
             ..classes = ['memberList']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'Recorder:',
@@ -104,7 +112,7 @@ class TimelinePageElement extends HtmlElement implements Renderable {
                 ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'Recorded Streams Profile:',
@@ -114,62 +122,123 @@ class TimelinePageElement extends HtmlElement implements Renderable {
                 ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'Recorded Streams:',
                   new DivElement()
                     ..classes = ['memberValue']
-                    ..children =
-                        _availableStreams.map(_makeStreamToggle).toList()
+                    ..children = _availableStreams
+                        .map<Element>(_makeStreamToggle)
+                        .toList()
                 ]
             ])
     ];
-    if (children.isEmpty) {
-      children = [
-        navBar([
-          new NavTopMenuElement(queue: _r.queue),
-          new NavVMMenuElement(vm, _events, queue: _r.queue),
-          navMenu('timeline', link: Uris.timeline()),
-          new NavRefreshElement(queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              await _refresh();
-              e.element.disabled = false;
-            }),
-          new NavRefreshElement(label: 'clear', queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              await _clear();
-              e.element.disabled = false;
-            }),
-          new NavRefreshElement(label: 'save', queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              await _save();
-              e.element.disabled = false;
-            }),
-          new NavRefreshElement(label: 'load', queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              await _load();
-              e.element.disabled = false;
-            }),
-          new NavNotifyElement(_notifications, queue: _r.queue)
-        ]),
-        _content,
-        new DivElement()
-          ..classes = ['iframe']
-          ..children = [_frame]
-      ];
+
+    children = <Element>[
+      navBar(<Element>[
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(vm, _events, queue: _r.queue).element,
+        navMenu('timeline', link: Uris.timeline()),
+        (new NavRefreshElement(queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                await _refresh();
+                e.element.disabled = !usingVMRecorder;
+              }))
+            .element,
+        (new NavRefreshElement(label: 'clear', queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                await _clear();
+                e.element.disabled = !usingVMRecorder;
+              }))
+            .element,
+        (new NavRefreshElement(label: 'save', queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                await _save();
+                e.element.disabled = !usingVMRecorder;
+              }))
+            .element,
+        (new NavRefreshElement(label: 'load', queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                await _load();
+                e.element.disabled = !usingVMRecorder;
+              }))
+            .element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
+      ]),
+      _content,
+      _createIFrameOrMessage(),
+    ];
+  }
+
+  HtmlElement _createIFrameOrMessage() {
+    if (_recorder == null) {
+      return new DivElement()
+        ..classes = ['content-centered-big']
+        ..text = 'Loading...';
     }
+
+    if (_recorder.name == "Fuchsia") {
+      return new DivElement()
+        ..classes = ['content-centered-big']
+        ..children = <Element>[
+          new BRElement(),
+          new SpanElement()
+            ..text =
+                "This VM is forwarding timeline events to Fuchsia's system tracing. See the ",
+          new AnchorElement()
+            ..text = "Fuchsia Tracing Usage Guide"
+            ..href = "https://fuchsia.dev/fuchsia-src/development/tracing",
+          new SpanElement()..text = ".",
+        ];
+    }
+
+    if (_recorder.name == "Systrace") {
+      return new DivElement()
+        ..classes = ['content-centered-big']
+        ..children = <Element>[
+          new BRElement(),
+          new SpanElement()
+            ..text =
+                "This VM is forwarding timeline events to Android's systrace. See the ",
+          new AnchorElement()
+            ..text = "systrace usage guide"
+            ..href =
+                "https://developer.android.com/studio/command-line/systrace",
+          new SpanElement()..text = ".",
+        ];
+    }
+
+    if (_recorder.name == "Macos") {
+      return new DivElement()
+        ..classes = ['content-centered-big']
+        ..children = <Element>[
+          new BRElement(),
+          new SpanElement()
+            ..text =
+                "This VM is forwarding timeline events to macOS's Unified Logging. "
+                    "To track these events, open 'Instruments' and add the 'os_signpost' Filter. See the ",
+          new AnchorElement()
+            ..text = "Instruments Usage Guide"
+            ..href = "https://help.apple.com/instruments",
+          new SpanElement()..text = ".",
+        ];
+    }
+
+    return new DivElement()
+      ..classes = ['iframe']
+      ..children = <Element>[_frame];
   }
 
   List<Element> _createProfileSelect() {
     return [
       new SpanElement()
         ..children = (_profiles.expand((profile) {
-          return [
+          return <Element>[
             new ButtonElement()
               ..text = profile.name
               ..onClick.listen((_) {
@@ -183,8 +252,9 @@ class TimelinePageElement extends HtmlElement implements Renderable {
   }
 
   Future _refresh() async {
-    final params = new Map.from(await _repository.getIFrameParams(vm));
-    return _postMessage('refresh', params);
+    _postMessage('loading');
+    final traceData = await _repository.getTimeline(vm);
+    return _postMessage('refresh', traceData);
   }
 
   Future _clear() async {
@@ -202,15 +272,13 @@ class TimelinePageElement extends HtmlElement implements Renderable {
 
   Future _postMessage(String method,
       [Map<String, dynamic> params = const <String, dynamic>{}]) async {
+    if (_frame.contentWindow == null) {
+      return null;
+    }
     var message = {'method': method, 'params': params};
     _frame.contentWindow
-        .postMessage(JSON.encode(message), window.location.href);
+        .postMessage(json.encode(message), window.location.href);
     return null;
-  }
-
-  Future _setupInitialState() async {
-    await _updateRecorderUI();
-    await _refresh();
   }
 
   void _applyPreset(M.TimelineProfile profile) {

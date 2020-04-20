@@ -17,8 +17,8 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
   Set gen(int from, int to) =>
       new Set.from(new Iterable.generate(to - from, (n) => n + from));
 
-  bool odd(int n) => (n & 1) == 1;
-  bool even(int n) => (n & 1) == 0;
+  bool odd(n) => (n & 1) == 1;
+  bool even(n) => (n & 1) == 0;
 
   {
     // Test growing to largish capacity.
@@ -300,8 +300,8 @@ void testIdentitySet(Set create()) {
 
   // All compile time constants are identical to themselves.
   var constants = [
-    double.INFINITY,
-    double.NAN, -0.0, //# 01: ok
+    double.infinity,
+    double.nan, -0.0, //# 01: ok
     0.0, 42, "", null, false, true, #bif, testIdentitySet
   ];
   set.addAll(constants);

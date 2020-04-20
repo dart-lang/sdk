@@ -19,7 +19,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class FunctionRefElement extends HtmlElement implements Renderable {
+class FunctionRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<FunctionRefElement>('function-ref');
 
   RenderingScheduler<FunctionRefElement> _r;
@@ -38,15 +38,15 @@ class FunctionRefElement extends HtmlElement implements Renderable {
       {bool qualified: true, RenderingQueue queue}) {
     assert(function != null);
     assert(qualified != null);
-    FunctionRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    FunctionRefElement e = new FunctionRefElement.created();
+    e._r = new RenderingScheduler<FunctionRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._function = function;
     e._qualified = qualified;
     return e;
   }
 
-  FunctionRefElement.created() : super.created();
+  FunctionRefElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -57,7 +57,7 @@ class FunctionRefElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     title = '';
     _r.disable(notify: true);
   }
@@ -87,7 +87,7 @@ class FunctionRefElement extends HtmlElement implements Renderable {
       if (owner is M.ClassRef) {
         content.addAll([
           new SpanElement()..text = '.',
-          new ClassRefElement(_isolate, owner, queue: _r.queue)
+          new ClassRefElement(_isolate, owner, queue: _r.queue).element
         ]);
       }
     }

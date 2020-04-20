@@ -9,8 +9,8 @@ void main() {
   // Test customized sets.
   // Regression test for issue http://dartbug.com/18109
 
-  hash(s) => s.toLowerCase().hashCode;
-  equals(a, b) => a.toLowerCase() == b.toLowerCase();
+  int hash(s) => s.toLowerCase().hashCode;
+  bool equals(a, b) => a.toLowerCase() == b.toLowerCase();
 
   for (var m in [
     new HashSet<String>(equals: equals, hashCode: hash),
@@ -27,8 +27,8 @@ void main() {
     }
   }
 
-  abshash(n) => n.abs();
-  abseq(a, b) => a.abs() == b.abs();
+  int abshash(n) => n.abs();
+  bool abseq(a, b) => a.abs() == b.abs();
   for (var m in [
     new HashSet<int>(equals: abseq, hashCode: abshash),
     new LinkedHashSet<int>(equals: abseq, hashCode: abshash),

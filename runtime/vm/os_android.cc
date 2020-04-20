@@ -8,7 +8,6 @@
 #include "vm/os.h"
 
 #include <android/log.h>   // NOLINT
-#include <endian.h>        // NOLINT
 #include <errno.h>         // NOLINT
 #include <limits.h>        // NOLINT
 #include <malloc.h>        // NOLINT
@@ -25,6 +24,12 @@
 #include "vm/zone.h"
 
 namespace dart {
+
+DEFINE_FLAG(bool,
+            android_log_to_stderr,
+            false,
+            "Send Dart VM logs to stdout and stderr instead of the Android "
+            "system logs.");
 
 // Android CodeObservers.
 
@@ -64,7 +69,8 @@ class PerfCodeObserver : public CodeObserver {
                       uword base,
                       uword prologue_offset,
                       uword size,
-                      bool optimized) {
+                      bool optimized,
+                      const CodeComments* comments) {
     Dart_FileWriteCallback file_write = Dart::file_write_callback();
     if ((file_write == NULL) || (out_file_ == NULL)) {
       return;
@@ -177,7 +183,7 @@ intptr_t OS::ActivationFrameAlignment() {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
     defined(TARGET_ARCH_ARM64)
   const int kMinimumAlignment = 16;
-#elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_DBC)
+#elif defined(TARGET_ARCH_ARM)
   const int kMinimumAlignment = 8;
 #else
 #error Unsupported architecture.
@@ -188,25 +194,6 @@ intptr_t OS::ActivationFrameAlignment() {
   // Flags::DebugIsInt("stackalign", &alignment);
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(alignment >= kMinimumAlignment);
-  return alignment;
-}
-
-intptr_t OS::PreferredCodeAlignment() {
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
-    defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_DBC)
-  const int kMinimumAlignment = 32;
-#elif defined(TARGET_ARCH_ARM)
-  const int kMinimumAlignment = 16;
-#else
-#error Unsupported architecture.
-#endif
-  intptr_t alignment = kMinimumAlignment;
-  // TODO(5411554): Allow overriding default code alignment for
-  // testing purposes.
-  // Flags::DebugIsInt("codealign", &alignment);
-  ASSERT(Utils::IsPowerOfTwo(alignment));
-  ASSERT(alignment >= kMinimumAlignment);
-  ASSERT(alignment <= OS::kMaxPreferredCodeAlignment);
   return alignment;
 }
 
@@ -243,70 +230,26 @@ void OS::DebugBreak() {
   __builtin_trap();
 }
 
-uintptr_t DART_NOINLINE OS::GetProgramCounter() {
+DART_NOINLINE uintptr_t OS::GetProgramCounter() {
   return reinterpret_cast<uintptr_t>(
       __builtin_extract_return_addr(__builtin_return_address(0)));
-}
-
-char* OS::StrNDup(const char* s, intptr_t n) {
-  return strndup(s, n);
-}
-
-intptr_t OS::StrNLen(const char* s, intptr_t n) {
-  return strnlen(s, n);
-}
-
-uint16_t HostToBigEndian16(uint16_t value) {
-  return htobe16(value);
-}
-
-uint32_t HostToBigEndian32(uint32_t value) {
-  return htobe32(value);
-}
-
-uint64_t HostToBigEndian64(uint64_t value) {
-  return htobe64(value);
-}
-
-uint16_t HostToLittleEndian16(uint16_t value) {
-  return htole16(value);
-}
-
-uint32_t HostToLittleEndian32(uint32_t value) {
-  return htole32(value);
-}
-
-uint64_t HostToLittleEndian64(uint64_t value) {
-  return htole64(value);
 }
 
 void OS::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  // Forward to the Android log for remote access.
-  __android_log_vprint(ANDROID_LOG_INFO, "DartVM", format, args);
+  if (FLAG_android_log_to_stderr) {
+    vfprintf(stderr, format, args);
+  } else {
+    // Forward to the Android log for remote access.
+    __android_log_vprint(ANDROID_LOG_INFO, "DartVM", format, args);
+  }
   va_end(args);
 }
 
 void OS::VFPrint(FILE* stream, const char* format, va_list args) {
   vfprintf(stream, format, args);
   fflush(stream);
-}
-
-int OS::SNPrint(char* str, size_t size, const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  int retval = VSNPrint(str, size, format, args);
-  va_end(args);
-  return retval;
-}
-
-int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
-  int retval = vsnprintf(str, size, format, args);
-  if (retval < 0) {
-    FATAL1("Fatal error in OS::VSNPrint with format '%s'", format);
-  }
-  return retval;
 }
 
 char* OS::SCreate(Zone* zone, const char* format, ...) {
@@ -321,7 +264,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer;
@@ -335,7 +278,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Print.
   va_list print_args;
   va_copy(print_args, args);
-  VSNPrint(buffer, len + 1, format, print_args);
+  Utils::VSNPrint(buffer, len + 1, format, print_args);
   va_end(print_args);
   return buffer;
 }
@@ -347,13 +290,21 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
   int i = 0;
   if (str[0] == '-') {
     i = 1;
+  } else if (str[0] == '+') {
+    i = 1;
   }
   if ((str[i] == '0') && (str[i + 1] == 'x' || str[i + 1] == 'X') &&
       (str[i + 2] != '\0')) {
     base = 16;
   }
   errno = 0;
-  *value = strtoll(str, &endptr, base);
+  if (base == 16) {
+    // Unsigned 64-bit hexadecimal integer literals are allowed but
+    // immediately interpreted as signed 64-bit integers.
+    *value = static_cast<int64_t>(strtoull(str, &endptr, base));
+  } else {
+    *value = strtoll(str, &endptr, base);
+  }
   return ((errno == 0) && (endptr != str) && (*endptr == 0));
 }
 
@@ -368,23 +319,23 @@ void OS::RegisterCodeObservers() {
 void OS::PrintErr(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  // Forward to the Android log for remote access.
-  __android_log_vprint(ANDROID_LOG_ERROR, "DartVM", format, args);
+  if (FLAG_android_log_to_stderr) {
+    vfprintf(stderr, format, args);
+  } else {
+    // Forward to the Android log for remote access.
+    __android_log_vprint(ANDROID_LOG_ERROR, "DartVM", format, args);
+  }
   va_end(args);
 }
 
-void OS::InitOnce() {
-  // TODO(5411554): For now we check that initonce is called only once,
-  // Once there is more formal mechanism to call InitOnce we can move
-  // this check there.
-  static bool init_once_called = false;
-  ASSERT(init_once_called == false);
-  init_once_called = true;
-}
+void OS::Init() {}
 
-void OS::Shutdown() {}
+void OS::Cleanup() {}
+
+void OS::PrepareToAbort() {}
 
 void OS::Abort() {
+  PrepareToAbort();
   abort();
 }
 

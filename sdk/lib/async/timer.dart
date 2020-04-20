@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.async;
 
 /**
@@ -17,19 +19,19 @@ part of dart.async;
  * Frequently the duration is either a constant or computed as in the
  * following example (taking advantage of the multiplication operator of
  * the [Duration] class):
+ * ```dart
+ * const timeout = const Duration(seconds: 3);
+ * const ms = const Duration(milliseconds: 1);
  *
- *     const TIMEOUT = const Duration(seconds: 3);
- *     const ms = const Duration(milliseconds: 1);
- *
- *     startTimeout([int milliseconds]) {
- *       var duration = milliseconds == null ? TIMEOUT : ms * milliseconds;
- *       return new Timer(duration, handleTimeout);
- *     }
- *     ...
- *     void handleTimeout() {  // callback function
- *       ...
- *     }
- *
+ * startTimeout([int milliseconds]) {
+ *   var duration = milliseconds == null ? timeout : ms * milliseconds;
+ *   return new Timer(duration, handleTimeout);
+ * }
+ * ...
+ * void handleTimeout() {  // callback function
+ *   ...
+ * }
+ * ```
  * Note: If Dart code using Timer is compiled to JavaScript, the finest
  * granularity available in the browser is 4 milliseconds.
  *
@@ -43,7 +45,7 @@ abstract class Timer {
    *
    */
   factory Timer(Duration duration, void callback()) {
-    if (Zone.current == Zone.ROOT) {
+    if (Zone.current == Zone.root) {
       // No need to bind the callback. We know that the root's timer will
       // be invoked in the root zone.
       return Zone.current.createTimer(duration, callback);
@@ -67,9 +69,11 @@ abstract class Timer {
    * a `duration` after either when the previous callback ended,
    * when the previous callback started, or when the previous callback was
    * scheduled for - even if the actual callback was delayed.
+   *
+   * [duration] must a non-negative [Duration].
    */
   factory Timer.periodic(Duration duration, void callback(Timer timer)) {
-    if (Zone.current == Zone.ROOT) {
+    if (Zone.current == Zone.root) {
       // No need to bind the callback. We know that the root's timer will
       // be invoked in the root zone.
       return Zone.current.createPeriodicTimer(duration, callback);
@@ -81,16 +85,35 @@ abstract class Timer {
   /**
    * Runs the given [callback] asynchronously as soon as possible.
    *
-   * This function is equivalent to `new Timer(Duration.ZERO, callback)`.
+   * This function is equivalent to `new Timer(Duration.zero, callback)`.
    */
   static void run(void callback()) {
-    new Timer(Duration.ZERO, callback);
+    new Timer(Duration.zero, callback);
   }
 
   /**
    * Cancels the timer.
+   *
+   * Once a [Timer] has been canceled, the callback function will not be called
+   * by the timer. Calling [cancel] more than once on a [Timer] is allowed, and
+   * will have no further effect.
    */
   void cancel();
+
+  /**
+   * The number of durations preceding the most recent timer event.
+   *
+   * The value starts at zero and is incremented each time a timer event
+   * occurs, so each callback will see a larger value than the previous one.
+   *
+   * If a periodic timer with a non-zero duration is delayed too much,
+   * so more than one tick should have happened,
+   * all but the last tick in the past are considered "missed",
+   * and no callback is invoked for them.
+   * The [tick] count reflects the number of durations that have passed and
+   * not the number of callback invocations that have happened.
+   */
+  int get tick;
 
   /**
    * Returns whether the timer is still active.

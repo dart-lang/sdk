@@ -5,11 +5,8 @@
 import "package:expect/expect.dart";
 
 void main() {
-  // If handleError isn't an unary function, and it's called, it also throws
-  // (either TypeError in checked mode, or some failure in unchecked mode).
-
-  // These are compile time errors for strong mode.
-  Expect.throws(() => int.parse("9", radix: 8, onError: "not a function"));
-  Expect.throws(() => int.parse("9", radix: 8, onError: () => 42));
-  Expect.throws(() => int.parse("9", radix: 8, onError: (v1, v2) => 42));
+  // These are compile time errors for Dart 2.0.
+  Expect.throws(() => int.parse("9", radix: 8, /*@compile-error=unspecified*/ onError: "not a function"));
+  Expect.throws(() => int.parse("9", radix: 8, /*@compile-error=unspecified*/ onError: () => 42));
+  Expect.throws(() => int.parse("9", radix: 8, /*@compile-error=unspecified*/ onError: (v1, v2) => 42));
 }

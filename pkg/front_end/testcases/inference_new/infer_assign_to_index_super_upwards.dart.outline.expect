@@ -2,75 +2,75 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-abstract class Base<T extends core::Object, U extends core::Object> extends core::Object {
-  default constructor •() → void
+abstract class Base<T extends core::Object* = dynamic, U extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::Base<self::Base::T*, self::Base::U*>*
     ;
-  operator [](core::String s) → self::Base::T
+  operator [](core::String* s) → self::Base::T*
     ;
-  operator []=(core::String s, self::Base::U v) → void
+  operator []=(core::String* s, generic-covariant-impl self::Base::U* v) → void
     ;
-  abstract method getValue(core::String s) → self::Base::T;
-  abstract method setValue(core::String s, self::Base::U v) → void;
+  abstract method getValue(core::String* s) → self::Base::T*;
+  abstract method setValue(core::String* s, generic-covariant-impl self::Base::U* v) → void;
 }
-abstract class Test1 extends self::Base<core::int, core::int> {
-  default constructor •() → void
+abstract class Test1 extends self::Base<core::int*, core::int*> {
+  synthetic constructor •() → self::Test1*
     ;
   method test() → void
     ;
 }
-abstract class Test2 extends self::Base<core::int, core::num> {
-  default constructor •() → void
+abstract class Test2 extends self::Base<core::int*, core::num*> {
+  synthetic constructor •() → self::Test2*
     ;
   method test() → void
     ;
 }
-abstract class Test3 extends self::Base<core::int, core::double> {
-  default constructor •() → void
+abstract class Test3 extends self::Base<core::int*, core::double*> {
+  synthetic constructor •() → self::Test3*
     ;
   method test() → void
     ;
 }
-abstract class Test4 extends self::Base<core::num, core::int> {
-  default constructor •() → void
+abstract class Test4 extends self::Base<core::num*, core::int*> {
+  synthetic constructor •() → self::Test4*
     ;
   method test() → void
     ;
 }
-abstract class Test5 extends self::Base<core::num, core::num> {
-  default constructor •() → void
+abstract class Test5 extends self::Base<core::num*, core::num*> {
+  synthetic constructor •() → self::Test5*
     ;
   method test() → void
     ;
 }
-abstract class Test6 extends self::Base<core::num, core::double> {
-  default constructor •() → void
+abstract class Test6 extends self::Base<core::num*, core::double*> {
+  synthetic constructor •() → self::Test6*
     ;
   method test() → void
     ;
 }
-abstract class Test7 extends self::Base<core::double, core::int> {
-  default constructor •() → void
+abstract class Test7 extends self::Base<core::double*, core::int*> {
+  synthetic constructor •() → self::Test7*
     ;
   method test() → void
     ;
 }
-abstract class Test8 extends self::Base<core::double, core::num> {
-  default constructor •() → void
+abstract class Test8 extends self::Base<core::double*, core::num*> {
+  synthetic constructor •() → self::Test8*
     ;
   method test() → void
     ;
 }
-abstract class Test9 extends self::Base<core::double, core::double> {
-  default constructor •() → void
+abstract class Test9 extends self::Base<core::double*, core::double*> {
+  synthetic constructor •() → self::Test9*
     ;
   method test() → void
     ;
 }
-static method getInt() → core::int
+static method getInt() → core::int*
   ;
-static method getNum() → core::num
+static method getNum() → core::num*
   ;
-static method getDouble() → core::double
+static method getDouble() → core::double*
   ;
 static method main() → dynamic
   ;

@@ -41,8 +41,7 @@ void main() {
   shouldBe(regex0.firstMatch(input2), results);
   // Failers
   var input3 = "a\nb";
-  results = null;
-  shouldBe(regex0.firstMatch(input3), results);
+  shouldBe(regex0.firstMatch(input3), null);
 
   var regex1 = new RegExp(r"a(.{3})b");
   input0 = "a\u4000xyb";
@@ -56,11 +55,9 @@ void main() {
   shouldBe(regex1.firstMatch(input2), results);
   // Failers
   input3 = "a\u4000b";
-  results = null;
-  shouldBe(regex1.firstMatch(input3), results);
+  shouldBe(regex1.firstMatch(input3), null);
   var input4 = "ac\ncb";
-  results = null;
-  shouldBe(regex1.firstMatch(input4), results);
+  shouldBe(regex1.firstMatch(input4), null);
 
   var regex2 = new RegExp(r"a(.*?)(.)");
   input0 = "a\xc0\x88b";
@@ -124,11 +121,9 @@ void main() {
   shouldBe(regex12.firstMatch(input2), results);
   // Failers
   input3 = "a\u1234b";
-  results = null;
-  shouldBe(regex12.firstMatch(input3), results);
+  shouldBe(regex12.firstMatch(input3), null);
   input4 = "ac\ncb";
-  results = null;
-  shouldBe(regex12.firstMatch(input4), results);
+  shouldBe(regex12.firstMatch(input4), null);
 
   var regex13 = new RegExp(r"a(.{3,})b");
   input0 = "a\u1234xyb";
@@ -148,8 +143,7 @@ void main() {
   shouldBe(regex13.firstMatch(input4), results);
   // Failers
   var input5 = "a\u1234b";
-  results = null;
-  shouldBe(regex13.firstMatch(input5), results);
+  shouldBe(regex13.firstMatch(input5), null);
 
   var regex14 = new RegExp(r"a(.{3,}?)b");
   input0 = "a\u1234xyb";
@@ -169,8 +163,7 @@ void main() {
   shouldBe(regex14.firstMatch(input4), results);
   // Failers
   input5 = "a\u1234b";
-  results = null;
-  shouldBe(regex14.firstMatch(input5), results);
+  shouldBe(regex14.firstMatch(input5), null);
 
   var regex15 = new RegExp(r"a(.{3,5})b");
   input0 = "a\u1234xyb";
@@ -196,11 +189,9 @@ void main() {
   shouldBe(regex15.firstMatch(input6), results);
   // Failers
   var input7 = "a\u1234b";
-  results = null;
-  shouldBe(regex15.firstMatch(input7), results);
+  shouldBe(regex15.firstMatch(input7), null);
   var input8 = "axxxxxxbcdefghijb";
-  results = null;
-  shouldBe(regex15.firstMatch(input8), results);
+  shouldBe(regex15.firstMatch(input8), null);
 
   var regex16 = new RegExp(r"a(.{3,5}?)b");
   input0 = "a\u1234xyb";
@@ -226,17 +217,14 @@ void main() {
   shouldBe(regex16.firstMatch(input6), results);
   // Failers
   input7 = "a\u1234b";
-  results = null;
-  shouldBe(regex16.firstMatch(input7), results);
+  shouldBe(regex16.firstMatch(input7), null);
   input8 = "axxxxxxbcdefghijb";
-  results = null;
-  shouldBe(regex16.firstMatch(input8), results);
+  shouldBe(regex16.firstMatch(input8), null);
 
   var regex17 = new RegExp(r"^[a\u00c0]");
   // Failers
   input0 = "\u0100";
-  results = null;
-  shouldBe(regex17.firstMatch(input0), results);
+  shouldBe(regex17.firstMatch(input0), null);
 
   var regex21 = new RegExp(r"(?:\u0100){3}b");
   input0 = "\u0100\u0100\u0100b";
@@ -244,8 +232,7 @@ void main() {
   shouldBe(regex21.firstMatch(input0), results);
   // Failers
   input1 = "\u0100\u0100b";
-  results = null;
-  shouldBe(regex21.firstMatch(input1), results);
+  shouldBe(regex21.firstMatch(input1), null);
 
   var regex22 = new RegExp(r"\u00ab");
   input0 = "\u00ab";
@@ -256,8 +243,7 @@ void main() {
   shouldBe(regex22.firstMatch(input1), results);
   // Failers
   input2 = "\x00{ab}";
-  results = null;
-  shouldBe(regex22.firstMatch(input2), results);
+  shouldBe(regex22.firstMatch(input2), null);
 
   var regex30 = new RegExp(r"^[^a]{2}");
   input0 = "\u0100bc";
@@ -396,8 +382,7 @@ void main() {
   shouldBe(regex53.firstMatch(input0), results);
   // Failers
   input1 = "1234";
-  results = null;
-  shouldBe(regex53.firstMatch(input1), results);
+  shouldBe(regex53.firstMatch(input1), null);
 
   var regex54 = new RegExp(r"\D{2,3}");
   input0 = "12abcd34";
@@ -408,11 +393,9 @@ void main() {
   shouldBe(regex54.firstMatch(input1), results);
   // Failers
   input2 = "1234";
-  results = null;
-  shouldBe(regex54.firstMatch(input2), results);
+  shouldBe(regex54.firstMatch(input2), null);
   input3 = "12a34";
-  results = null;
-  shouldBe(regex54.firstMatch(input3), results);
+  shouldBe(regex54.firstMatch(input3), null);
 
   var regex55 = new RegExp(r"\D{2,3}?");
   input0 = "12abcd34";
@@ -423,11 +406,9 @@ void main() {
   shouldBe(regex55.firstMatch(input1), results);
   // Failers
   input2 = "1234";
-  results = null;
-  shouldBe(regex55.firstMatch(input2), results);
+  shouldBe(regex55.firstMatch(input2), null);
   input3 = "12a34";
-  results = null;
-  shouldBe(regex55.firstMatch(input3), results);
+  shouldBe(regex55.firstMatch(input3), null);
 
   var regex56 = new RegExp(r"\d+");
   input0 = "12abcd34";
@@ -443,8 +424,7 @@ void main() {
   shouldBe(regex57.firstMatch(input1), results);
   // Failers
   input2 = "1.4";
-  results = null;
-  shouldBe(regex57.firstMatch(input2), results);
+  shouldBe(regex57.firstMatch(input2), null);
 
   var regex58 = new RegExp(r"\d{2,3}?");
   input0 = "12abcd34";
@@ -455,8 +435,7 @@ void main() {
   shouldBe(regex58.firstMatch(input1), results);
   // Failers
   input2 = "1.4";
-  results = null;
-  shouldBe(regex58.firstMatch(input2), results);
+  shouldBe(regex58.firstMatch(input2), null);
 
   var regex59 = new RegExp(r"\S+");
   input0 = "12abcd34";
@@ -464,8 +443,7 @@ void main() {
   shouldBe(regex59.firstMatch(input0), results);
   // Failers
   input1 = "    ";
-  results = null;
-  shouldBe(regex59.firstMatch(input1), results);
+  shouldBe(regex59.firstMatch(input1), null);
 
   var regex60 = new RegExp(r"\S{2,3}");
   input0 = "12abcd34";
@@ -476,8 +454,7 @@ void main() {
   shouldBe(regex60.firstMatch(input1), results);
   // Failers
   input2 = "    ";
-  results = null;
-  shouldBe(regex60.firstMatch(input2), results);
+  shouldBe(regex60.firstMatch(input2), null);
 
   var regex61 = new RegExp(r"\S{2,3}?");
   input0 = "12abcd34";
@@ -488,8 +465,7 @@ void main() {
   shouldBe(regex61.firstMatch(input1), results);
   // Failers
   input2 = "    ";
-  results = null;
-  shouldBe(regex61.firstMatch(input2), results);
+  shouldBe(regex61.firstMatch(input2), null);
 
   var regex62 = new RegExp(r">\s+<");
   input0 = "12>      <34";
@@ -505,8 +481,7 @@ void main() {
   shouldBe(regex63.firstMatch(input1), results);
   // Failers
   input2 = "ab>    <cd";
-  results = null;
-  shouldBe(regex63.firstMatch(input2), results);
+  shouldBe(regex63.firstMatch(input2), null);
 
   var regex64 = new RegExp(r">\s{2,3}?<");
   input0 = "ab>  <cd";
@@ -517,8 +492,7 @@ void main() {
   shouldBe(regex64.firstMatch(input1), results);
   // Failers
   input2 = "ab>    <cd";
-  results = null;
-  shouldBe(regex64.firstMatch(input2), results);
+  shouldBe(regex64.firstMatch(input2), null);
 
   var regex65 = new RegExp(r"\w+");
   input0 = "12      34";
@@ -526,8 +500,7 @@ void main() {
   shouldBe(regex65.firstMatch(input0), results);
   // Failers
   input1 = "+++=*!";
-  results = null;
-  shouldBe(regex65.firstMatch(input1), results);
+  shouldBe(regex65.firstMatch(input1), null);
 
   var regex66 = new RegExp(r"\w{2,3}");
   input0 = "ab  cd";
@@ -538,8 +511,7 @@ void main() {
   shouldBe(regex66.firstMatch(input1), results);
   // Failers
   input2 = "a.b.c";
-  results = null;
-  shouldBe(regex66.firstMatch(input2), results);
+  shouldBe(regex66.firstMatch(input2), null);
 
   var regex67 = new RegExp(r"\w{2,3}?");
   input0 = "ab  cd";
@@ -550,8 +522,7 @@ void main() {
   shouldBe(regex67.firstMatch(input1), results);
   // Failers
   input2 = "a.b.c";
-  results = null;
-  shouldBe(regex67.firstMatch(input2), results);
+  shouldBe(regex67.firstMatch(input2), null);
 
   var regex68 = new RegExp(r"\W+");
   input0 = "12====34";
@@ -559,8 +530,7 @@ void main() {
   shouldBe(regex68.firstMatch(input0), results);
   // Failers
   input1 = "abcd";
-  results = null;
-  shouldBe(regex68.firstMatch(input1), results);
+  shouldBe(regex68.firstMatch(input1), null);
 
   var regex69 = new RegExp(r"\W{2,3}");
   input0 = "ab====cd";
@@ -571,8 +541,7 @@ void main() {
   shouldBe(regex69.firstMatch(input1), results);
   // Failers
   input2 = "a.b.c";
-  results = null;
-  shouldBe(regex69.firstMatch(input2), results);
+  shouldBe(regex69.firstMatch(input2), null);
 
   var regex70 = new RegExp(r"\W{2,3}?");
   input0 = "ab====cd";
@@ -583,8 +552,7 @@ void main() {
   shouldBe(regex70.firstMatch(input1), results);
   // Failers
   input2 = "a.b.c";
-  results = null;
-  shouldBe(regex70.firstMatch(input2), results);
+  shouldBe(regex70.firstMatch(input2), null);
 
   var regex71 = new RegExp(r"[\u0100]");
   input0 = "\u0100";
@@ -745,11 +713,9 @@ void main() {
   shouldBe(regex86.firstMatch(input2), results);
   // Failers
   input3 = "\u0100X";
-  results = null;
-  shouldBe(regex86.firstMatch(input3), results);
+  shouldBe(regex86.firstMatch(input3), null);
   input4 = "\u0200X";
-  results = null;
-  shouldBe(regex86.firstMatch(input4), results);
+  shouldBe(regex86.firstMatch(input4), null);
 
   var regex87 = new RegExp(r"[^Q\u0100\u0200]X");
   input0 = "AX";
@@ -763,14 +729,11 @@ void main() {
   shouldBe(regex87.firstMatch(input2), results);
   // Failers
   input3 = "\u0100X";
-  results = null;
-  shouldBe(regex87.firstMatch(input3), results);
+  shouldBe(regex87.firstMatch(input3), null);
   input4 = "\u0200X";
-  results = null;
-  shouldBe(regex87.firstMatch(input4), results);
+  shouldBe(regex87.firstMatch(input4), null);
   input5 = "QX";
-  results = null;
-  shouldBe(regex87.firstMatch(input5), results);
+  shouldBe(regex87.firstMatch(input5), null);
 
   var regex88 = new RegExp(r"[^\u0100-\u0200]X");
   input0 = "AX";
@@ -781,14 +744,11 @@ void main() {
   shouldBe(regex88.firstMatch(input1), results);
   // Failers
   input2 = "\u0100X";
-  results = null;
-  shouldBe(regex88.firstMatch(input2), results);
+  shouldBe(regex88.firstMatch(input2), null);
   input3 = "\u0150X";
-  results = null;
-  shouldBe(regex88.firstMatch(input3), results);
+  shouldBe(regex88.firstMatch(input3), null);
   input4 = "\u0200X";
-  results = null;
-  shouldBe(regex88.firstMatch(input4), results);
+  shouldBe(regex88.firstMatch(input4), null);
 
   var regex91 = new RegExp(r"[z-\u0100]", caseSensitive: false);
   input0 = "z";
@@ -802,11 +762,9 @@ void main() {
   shouldBe(regex91.firstMatch(input2), results);
   // Failers
   input3 = "\u0102";
-  results = null;
-  shouldBe(regex91.firstMatch(input3), results);
+  shouldBe(regex91.firstMatch(input3), null);
   input4 = "y";
-  results = null;
-  shouldBe(regex91.firstMatch(input4), results);
+  shouldBe(regex91.firstMatch(input4), null);
 
   var regex92 = new RegExp(r"[\xFF]");
   input0 = ">\xff<";
@@ -833,28 +791,23 @@ void main() {
 
   var regex96 = new RegExp(r"^[ac]*b");
   input0 = "xb";
-  results = null;
-  shouldBe(regex96.firstMatch(input0), results);
+  shouldBe(regex96.firstMatch(input0), null);
 
   var regex97 = new RegExp(r"^[ac\u0100]*b");
   input0 = "xb";
-  results = null;
-  shouldBe(regex97.firstMatch(input0), results);
+  shouldBe(regex97.firstMatch(input0), null);
 
   var regex98 = new RegExp(r"^[^x]*b", caseSensitive: false);
   input0 = "xb";
-  results = null;
-  shouldBe(regex98.firstMatch(input0), results);
+  shouldBe(regex98.firstMatch(input0), null);
 
   var regex99 = new RegExp(r"^[^x]*b");
   input0 = "xb";
-  results = null;
-  shouldBe(regex99.firstMatch(input0), results);
+  shouldBe(regex99.firstMatch(input0), null);
 
   var regex100 = new RegExp(r"^\d*b");
   input0 = "xb";
-  results = null;
-  shouldBe(regex100.firstMatch(input0), results);
+  shouldBe(regex100.firstMatch(input0), null);
 
   var regex102 = new RegExp(r"^\u0085$", caseSensitive: false);
   input0 = "\u0085";

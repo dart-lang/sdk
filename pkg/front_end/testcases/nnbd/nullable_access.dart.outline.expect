@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field self::A nonNullableField;
+  synthetic constructor •() → self::Class
+    ;
+  get nonNullableProperty() → self::A
+    ;
+  set nonNullableProperty(self::A value) → void
+    ;
+  method nonNullableMethod() → self::A
+    ;
+}
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A
+    : super core::Object::•()
+    ;
+  get nonNullableProperty() → self::A
+    ;
+}
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method throws(() → void f) → dynamic
+  ;

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.async;
 
 /**
@@ -16,7 +18,7 @@ class _EventSinkWrapper<T> implements EventSink<T> {
   }
 
   void addError(error, [StackTrace stackTrace]) {
-    _sink._addError(error, stackTrace);
+    _sink._addError(error, stackTrace ?? AsyncError.defaultStackTrace(error));
   }
 
   void close() {
@@ -123,7 +125,7 @@ class _SinkTransformerStreamSubscription<S, T>
     }
   }
 
-  void _handleError(error, [stackTrace]) {
+  void _handleError(error, [StackTrace stackTrace]) {
     try {
       _transformerSink.addError(error, stackTrace);
     } catch (e, s) {
@@ -155,7 +157,7 @@ typedef EventSink<S> _SinkMapper<S, T>(EventSink<T> output);
  *
  * Note that this class can be `const`.
  */
-class _StreamSinkTransformer<S, T> implements StreamTransformer<S, T> {
+class _StreamSinkTransformer<S, T> extends StreamTransformerBase<S, T> {
   final _SinkMapper<S, T> _sinkMapper;
   const _StreamSinkTransformer(this._sinkMapper);
 
@@ -220,17 +222,9 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
 
   bool get _isClosed => _sink == null;
 
-  _reportClosedSink() {
-    // TODO(29554): throw a StateError, and don't just report the problem.
-    Zone.ROOT
-      ..print("Sink is closed and adding to it is an error.")
-      ..print("  See http://dartbug.com/29554.")
-      ..print(StackTrace.current.toString());
-  }
-
   void add(S data) {
     if (_isClosed) {
-      _reportClosedSink();
+      throw StateError("Sink is closed");
     }
     if (_handleData != null) {
       _handleData(data, _sink);
@@ -240,10 +234,12 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
   }
 
   void addError(Object error, [StackTrace stackTrace]) {
+    ArgumentError.checkNotNull(error, "error");
     if (_isClosed) {
-      _reportClosedSink();
+      throw StateError("Sink is closed");
     }
     if (_handleError != null) {
+      stackTrace ??= AsyncError.defaultStackTrace(error);
       _handleError(error, stackTrace, _sink);
     } else {
       _sink.addError(error, stackTrace);
@@ -282,6 +278,16 @@ class _StreamHandlerTransformer<S, T> extends _StreamSinkTransformer<S, T> {
   }
 }
 
+/**
+ * A StreamTransformer that overrides [StreamTransformer.bind] with a callback.
+ */
+class _StreamBindTransformer<S, T> extends StreamTransformerBase<S, T> {
+  final Stream<T> Function(Stream<S>) _bind;
+  _StreamBindTransformer(this._bind);
+
+  Stream<T> bind(Stream<S> stream) => _bind(stream);
+}
+
 /// A closure mapping a stream and cancelOnError to a StreamSubscription.
 typedef StreamSubscription<T> _SubscriptionTransformer<S, T>(
     Stream<S> stream, bool cancelOnError);
@@ -298,7 +304,7 @@ typedef StreamSubscription<T> _SubscriptionTransformer<S, T>(
  * `StreamSubscription`. As such it can also act on `cancel` events, making it
  * fully general.
  */
-class _StreamSubscriptionTransformer<S, T> implements StreamTransformer<S, T> {
+class _StreamSubscriptionTransformer<S, T> extends StreamTransformerBase<S, T> {
   final _SubscriptionTransformer<S, T> _onListen;
 
   const _StreamSubscriptionTransformer(this._onListen);
@@ -317,6 +323,8 @@ class _StreamSubscriptionTransformer<S, T> implements StreamTransformer<S, T> {
 class _BoundSubscriptionStream<S, T> extends Stream<T> {
   final _SubscriptionTransformer<S, T> _onListen;
   final Stream<S> _stream;
+
+  bool get isBroadcast => _stream.isBroadcast;
 
   _BoundSubscriptionStream(this._stream, this._onListen);
 

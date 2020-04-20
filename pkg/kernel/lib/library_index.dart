@@ -20,9 +20,9 @@ class LibraryIndex {
   final Map<String, _ClassTable> _libraries = <String, _ClassTable>{};
 
   /// Indexes the libraries with the URIs given in [libraryUris].
-  LibraryIndex(Program program, Iterable<String> libraryUris) {
+  LibraryIndex(Component component, Iterable<String> libraryUris) {
     var libraryUriSet = libraryUris.toSet();
-    for (var library in program.libraries) {
+    for (var library in component.libraries) {
       var uri = '${library.importUri}';
       if (libraryUriSet.contains(uri)) {
         _libraries[uri] = new _ClassTable(library);
@@ -31,24 +31,24 @@ class LibraryIndex {
   }
 
   /// Indexes the libraries with the URIs given in [libraryUris].
-  LibraryIndex.byUri(Program program, Iterable<Uri> libraryUris)
-      : this(program, libraryUris.map((uri) => '$uri'));
+  LibraryIndex.byUri(Component component, Iterable<Uri> libraryUris)
+      : this(component, libraryUris.map((uri) => '$uri'));
 
   /// Indexes `dart:` libraries.
-  LibraryIndex.coreLibraries(Program program) {
-    for (var library in program.libraries) {
+  LibraryIndex.coreLibraries(Component component) {
+    for (var library in component.libraries) {
       if (library.importUri.scheme == 'dart') {
         _libraries['${library.importUri}'] = new _ClassTable(library);
       }
     }
   }
 
-  /// Indexes the entire program.
+  /// Indexes the entire component.
   ///
   /// Consider using another constructor to only index the libraries that
   /// are needed.
-  LibraryIndex.all(Program program) {
-    for (var library in program.libraries) {
+  LibraryIndex.all(Component component) {
+    for (var library in component.libraries) {
       _libraries['${library.importUri}'] = new _ClassTable(library);
     }
   }
@@ -139,20 +139,26 @@ class _ClassTable {
       _classes = <String, _MemberTable>{};
       _classes[LibraryIndex.topLevel] = new _MemberTable.topLevel(this);
       for (var class_ in library.classes) {
-        _classes[class_.name] = new _MemberTable(this, class_);
+        _classes[class_.name] = new _MemberTable.fromClass(this, class_);
+      }
+      for (var extension_ in library.extensions) {
+        _classes[extension_.name] =
+            new _MemberTable.fromExtension(this, extension_);
+      }
+      for (Reference reference in library.additionalExports) {
+        NamedNode node = reference.node;
+        if (node is Class) {
+          _classes[node.name] = new _MemberTable.fromClass(this, node);
+        } else if (node is Extension) {
+          _classes[node.name] = new _MemberTable.fromExtension(this, node);
+        }
       }
     }
     return _classes;
   }
 
   String get containerName {
-    // For useful error messages, it can be helpful to indicate if the library
-    // is external.  If a class or member was not found in an external library,
-    // it might be that it exists in the actual library, but its interface was
-    // not included in this build unit.
-    return library.isExternal
-        ? "external library '${library.importUri}'"
-        : "library '${library.importUri}'";
+    return "library '${library.importUri}'";
   }
 
   _MemberTable _getClassIndex(String name) {
@@ -182,14 +188,17 @@ class _ClassTable {
 
 class _MemberTable {
   final _ClassTable parent;
-  final Class class_; // Null for top-level.
+  final Class class_; // Null for top-level or extension.
+  final Extension extension_; // Null for top-level or class.
   Map<String, Member> _members;
 
   Library get library => parent.library;
 
-  _MemberTable(this.parent, this.class_);
-
-  _MemberTable.topLevel(this.parent) : class_ = null;
+  _MemberTable.fromClass(this.parent, this.class_) : extension_ = null;
+  _MemberTable.fromExtension(this.parent, this.extension_) : class_ = null;
+  _MemberTable.topLevel(this.parent)
+      : class_ = null,
+        extension_ = null;
 
   Map<String, Member> get members {
     if (_members == null) {
@@ -198,6 +207,8 @@ class _MemberTable {
         class_.procedures.forEach(addMember);
         class_.fields.forEach(addMember);
         class_.constructors.forEach(addMember);
+      } else if (extension_ != null) {
+        extension_.members.forEach(addExtensionMember);
       } else {
         library.procedures.forEach(addMember);
         library.fields.forEach(addMember);
@@ -223,11 +234,38 @@ class _MemberTable {
     _members[getDisambiguatedName(member)] = member;
   }
 
+  String getDisambiguatedExtensionName(
+      ExtensionMemberDescriptor extensionMember) {
+    if (extensionMember.kind == ExtensionMemberKind.TearOff)
+      return 'get#' + extensionMember.name.name;
+    if (extensionMember.kind == ExtensionMemberKind.Getter)
+      return LibraryIndex.getterPrefix + extensionMember.name.name;
+    if (extensionMember.kind == ExtensionMemberKind.Setter)
+      return LibraryIndex.setterPrefix + extensionMember.name.name;
+    return extensionMember.name.name;
+  }
+
+  void addExtensionMember(ExtensionMemberDescriptor extensionMember) {
+    final replacement = extensionMember.member.node;
+    if (replacement is! Member) return;
+    Member member = replacement;
+    if (member.name.isPrivate && member.name.library != library) {
+      // Members whose name is private to other libraries cannot currently
+      // be found with the LibraryIndex class.
+      return;
+    }
+
+    final name = getDisambiguatedExtensionName(extensionMember);
+    _members[name] = replacement;
+  }
+
   String get containerName {
-    if (class_ == null) {
-      return "top-level of ${parent.containerName}";
-    } else {
+    if (class_ != null) {
       return "class '${class_.name}' in ${parent.containerName}";
+    } else if (extension_ != null) {
+      return "extension '${extension_.name}' in ${parent.containerName}";
+    } else {
+      return "top-level of ${parent.containerName}";
     }
   }
 

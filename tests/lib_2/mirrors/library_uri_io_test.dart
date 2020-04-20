@@ -9,14 +9,14 @@ library MirrorsTest;
 import 'dart:io';
 import 'dart:mirrors';
 
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 class Class {}
 
 testLibraryUri(var value, Uri expectedUri) {
   var valueMirror = reflect(value);
   ClassMirror valueClass = valueMirror.type;
-  LibraryMirror valueLibrary = valueClass.owner;
+  LibraryMirror valueLibrary = valueClass.owner as LibraryMirror;
   expect(valueLibrary.uri, equals(expectedUri));
 }
 

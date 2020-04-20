@@ -3,21 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test correctness of side effects tracking used by load to load forwarding.
 
-// VMOptions=--optimization-counter-threshold=10 --no-use-osr --enable-inlining-annotations --no-background-compilation
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
 // Tests correct handling of redefinitions in aliasing computation.
 
 import "package:expect/expect.dart";
-
-const alwaysInline = "AlwaysInline";
-const noInline = "NeverInline";
 
 var H = true;
 
 class A {
   B bb;
 
-  @alwaysInline
+  @pragma('vm:prefer-inline')
   poly(p) {
     if (H) {
       bb = p;
@@ -31,16 +28,16 @@ class A {
 class B {
   int bval = -1;
 
-  @alwaysInline
+  @pragma('vm:prefer-inline')
   poly(p) {
     return bval;
   }
 }
 
-@alwaysInline
+@pragma('vm:prefer-inline')
 foo(obj, p) => obj.poly(p);
 
-@noInline
+@pragma('vm:never-inline')
 test() {
   A a = new A();
   B b = new B();

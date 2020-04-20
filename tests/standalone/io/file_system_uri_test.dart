@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import "dart:io";
+import "package:expect/expect.dart";
 
 testFile(String input) {
   if (Platform.isWindows) {
@@ -15,7 +15,7 @@ testFile(String input) {
   Expect.equals(file.path, file2.path, input);
 }
 
-testDirectory(String input, [String output]) {
+testDirectory(String input, [String? output]) {
   if (output == null) output = input;
   if (Platform.isWindows) {
     input = input.replaceAll('/', '\\');

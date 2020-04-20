@@ -14,16 +14,40 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
 /// Test metadata: to each node we attach a metadata that contains
-/// a reference to this node's parent and this node formatted as string.
+/// * node formatted as string
+/// * reference to its enclosing member
+/// * type representing the first type parameter of its enclosing function
 class Metadata {
-  final TreeNode parent;
-  final String self;
+  final String string;
+  final Reference _memberRef;
+  final DartType type;
+
+  Member get member => _memberRef?.asMember;
 
   Metadata.forNode(TreeNode n)
-      : parent = MetadataRepository.isSupported(n.parent) ? n.parent : null,
-        self = n.toString();
+      : this(n.leakingDebugToString(),
+            getMemberReference(getMemberForMetadata(n)), getTypeForMetadata(n));
 
-  Metadata(this.parent, this.self);
+  Metadata(this.string, this._memberRef, this.type);
+}
+
+Member getMemberForMetadata(TreeNode node) {
+  final parent = node.parent;
+  if (parent == null) return null;
+  if (parent is Member) return parent;
+  return getMemberForMetadata(parent);
+}
+
+DartType getTypeForMetadata(TreeNode node) {
+  final parent = node.parent;
+  if (parent == null) return const VoidType();
+  if (parent is FunctionNode) {
+    if (parent.typeParameters.isEmpty) {
+      return const VoidType();
+    }
+    return new TypeParameterType(parent.typeParameters[0], Nullability.legacy);
+  }
+  return getTypeForMetadata(parent);
 }
 
 class TestMetadataRepository extends MetadataRepository<Metadata> {
@@ -33,15 +57,21 @@ class TestMetadataRepository extends MetadataRepository<Metadata> {
 
   final Map<TreeNode, Metadata> mapping = <TreeNode, Metadata>{};
 
-  void writeToBinary(Metadata metadata, BinarySink sink) {
-    sink.writeNodeReference(metadata.parent);
-    sink.writeByteList(UTF8.encode(metadata.self));
+  void writeToBinary(Metadata metadata, Node node, BinarySink sink) {
+    expect(metadata, equals(mapping[node]));
+    sink.writeByteList(utf8.encode(metadata.string));
+    sink.writeStringReference(metadata.string);
+    sink.writeNullAllowedCanonicalNameReference(metadata.member?.canonicalName);
+    sink.writeDartType(metadata.type);
   }
 
-  Metadata readFromBinary(BinarySource source) {
-    final parent = source.readNodeReference();
-    final string = UTF8.decode(source.readByteList());
-    return new Metadata(parent, string);
+  Metadata readFromBinary(Node node, BinarySource source) {
+    final string1 = utf8.decode(source.readByteList());
+    final string2 = source.readStringReference();
+    final memberRef = source.readCanonicalNameReference()?.reference;
+    final type = source.readDartType();
+    expect(string1, equals(string2));
+    return new Metadata(string2, memberRef, type);
   }
 }
 
@@ -58,12 +88,12 @@ class BytesBuilderSink implements Sink<List<int>> {
 }
 
 /// Visitor that assigns [Metadata] object created with [Metadata.forNode] to
-/// each supported node in the program.
+/// each supported node in the component.
 class Annotator extends RecursiveVisitor<Null> {
   final TestMetadataRepository repository;
 
-  Annotator(Program program)
-      : repository = program.metadata[TestMetadataRepository.kTag];
+  Annotator(Component component)
+      : repository = component.metadata[TestMetadataRepository.kTag];
 
   defaultTreeNode(TreeNode node) {
     super.defaultTreeNode(node);
@@ -72,19 +102,19 @@ class Annotator extends RecursiveVisitor<Null> {
     }
   }
 
-  static void annotate(Program p) {
+  static void annotate(Component p) {
     globalDebuggingNames = new NameSystem();
     p.accept(new Annotator(p));
   }
 }
 
-/// Visitor that checks that each supported node in the program has correct
+/// Visitor that checks that each supported node in the component has correct
 /// metadata.
 class Validator extends RecursiveVisitor<Null> {
   final TestMetadataRepository repository;
 
-  Validator(Program program)
-      : repository = program.metadata[TestMetadataRepository.kTag];
+  Validator(Component component)
+      : repository = component.metadata[TestMetadataRepository.kTag];
 
   defaultTreeNode(TreeNode node) {
     super.defaultTreeNode(node);
@@ -92,43 +122,44 @@ class Validator extends RecursiveVisitor<Null> {
       final m = repository.mapping[node];
       final expected = new Metadata.forNode(node);
 
-      expect(m.parent, equals(expected.parent));
-      expect(m.self, equals(expected.self));
+      expect(m.string, equals(expected.string));
+      expect(m.member, equals(expected.member));
+      expect(m.type, equals(expected.type));
     }
   }
 
-  static void validate(Program p) {
+  static void validate(Component p) {
     globalDebuggingNames = new NameSystem();
     p.accept(new Validator(p));
   }
 }
 
-Program fromBinary(List<int> bytes) {
-  var program = new Program();
-  program.addMetadataRepository(new TestMetadataRepository());
-  new BinaryBuilderWithMetadata(bytes).readSingleFileProgram(program);
-  return program;
+Component fromBinary(List<int> bytes) {
+  var component = new Component();
+  component.addMetadataRepository(new TestMetadataRepository());
+  new BinaryBuilderWithMetadata(bytes).readSingleFileComponent(component);
+  return component;
 }
 
-List<int> toBinary(Program p) {
+List<int> toBinary(Component p) {
   final sink = new BytesBuilderSink();
-  new BinaryPrinter(sink).writeProgramFile(p);
+  new BinaryPrinter(sink).writeComponentFile(p);
   return sink.builder.takeBytes();
 }
 
 main() {
   test('annotate-serialize-deserialize-validate', () async {
-    final Uri platform =
-        computePlatformBinariesLocation().resolve("vm_platform.dill");
+    final Uri platform = computePlatformBinariesLocation(forceBuildDir: true)
+        .resolve("vm_platform_strong.dill");
     final List<int> platformBinary =
         await new File(platform.toFilePath()).readAsBytes();
 
-    final program = fromBinary(platformBinary);
-    Annotator.annotate(program);
-    Validator.validate(program);
+    final component = fromBinary(platformBinary);
+    Annotator.annotate(component);
+    Validator.validate(component);
 
-    final annotatedProgramBinary = toBinary(program);
-    final annotatedProgramFromBinary = fromBinary(annotatedProgramBinary);
-    Validator.validate(annotatedProgramFromBinary);
+    final annotatedComponentBinary = toBinary(component);
+    final annotatedComponentFromBinary = fromBinary(annotatedComponentBinary);
+    Validator.validate(annotatedComponentFromBinary);
   });
 }

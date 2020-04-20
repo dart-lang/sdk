@@ -1,3 +1,7 @@
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 import 'dart:io' show exitCode;
 
@@ -8,12 +12,12 @@ import 'package:test/test.dart';
 
 import 'utils.dart' show testDirectory;
 
-main() {
+void main() {
   group('--x-package-warnings-prefix', () {
     _Runner runner;
 
     setUp(() {
-      runner = new _Runner.setUp();
+      runner = _Runner.setUp();
     });
 
     tearDown(() {
@@ -23,9 +27,9 @@ main() {
 
     test('shows only the hint whose package matches the prefix', () async {
       await runner.run2([
-        "--packages",
+        '--packages',
         join(testDirectory, 'data', 'package_prefix', 'packagelist'),
-        "--x-package-warnings-prefix=f",
+        '--x-package-warnings-prefix=f',
         join(testDirectory, 'data', 'package_prefix', 'main.dart')
       ]);
       expect(runner.stdout, contains('1 hint found'));
@@ -38,8 +42,8 @@ main() {
 }
 
 class _Runner {
-  final _stdout = new StringBuffer();
-  final _stderr = new StringBuffer();
+  final _stdout = StringBuffer();
+  final _stderr = StringBuffer();
 
   final StringSink _savedOutSink;
   final StringSink _savedErrorSink;
@@ -60,10 +64,10 @@ class _Runner {
 
   String get stdout => _stdout.toString();
 
-  Future<Null> run2(List<String> args) async {
-    await new Driver(isTesting: true).start(args);
+  Future<void> run2(List<String> args) async {
+    await Driver(isTesting: true).start(args);
     if (stderr.isNotEmpty) {
-      fail("Unexpected output to stderr:\n$stderr");
+      fail('Unexpected output to stderr:\n$stderr');
     }
   }
 

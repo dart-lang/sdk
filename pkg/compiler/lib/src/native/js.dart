@@ -41,18 +41,21 @@ class SideEffectsVisitor extends js.BaseVisitor {
     node.accept(this);
   }
 
+  @override
   void visitLiteralExpression(js.LiteralExpression node) {
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
     node.visitChildren(this);
   }
 
+  @override
   void visitLiteralStatement(js.LiteralStatement node) {
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
     node.visitChildren(this);
   }
 
+  @override
   void visitAssignment(js.Assignment node) {
     sideEffects.setChangesStaticProperty();
     sideEffects.setChangesInstanceProperty();
@@ -60,32 +63,38 @@ class SideEffectsVisitor extends js.BaseVisitor {
     node.visitChildren(this);
   }
 
+  @override
   void visitVariableInitialization(js.VariableInitialization node) {
     node.visitChildren(this);
   }
 
+  @override
   void visitCall(js.Call node) {
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
     node.visitChildren(this);
   }
 
+  @override
   void visitBinary(js.Binary node) {
     node.visitChildren(this);
   }
 
+  @override
   void visitThrow(js.Throw node) {
     // TODO(ngeoffray): Incorporate a mayThrow flag in the
     // [SideEffects] class.
     sideEffects.setAllSideEffects();
   }
 
+  @override
   void visitNew(js.New node) {
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
     node.visitChildren(this);
   }
 
+  @override
   void visitPrefix(js.Prefix node) {
     if (node.op == 'delete') {
       sideEffects.setChangesStaticProperty();
@@ -95,14 +104,17 @@ class SideEffectsVisitor extends js.BaseVisitor {
     node.visitChildren(this);
   }
 
+  @override
   void visitVariableUse(js.VariableUse node) {
     sideEffects.setDependsOnStaticPropertyStore();
   }
 
+  @override
   void visitPostfix(js.Postfix node) {
     node.visitChildren(this);
   }
 
+  @override
   void visitAccess(js.PropertyAccess node) {
     sideEffects.setDependsOnIndexStore();
     sideEffects.setDependsOnInstancePropertyStore();
@@ -131,74 +143,93 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
     return visit(node);
   }
 
-  // TODO(sra): Add [sequence] functionality to NativeThrowBehavior.
   /// Returns the combined behavior of sequential execution of code having
   /// behavior [first] followed by code having behavior [second].
   static NativeThrowBehavior sequence(
       NativeThrowBehavior first, NativeThrowBehavior second) {
-    if (first == NativeThrowBehavior.MUST) return first;
-    if (second == NativeThrowBehavior.MUST) return second;
-    if (second == NativeThrowBehavior.NEVER) return first;
-    if (first == NativeThrowBehavior.NEVER) return second;
-    // Both are one of MAY or MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS.
-    return NativeThrowBehavior.MAY;
+    return first.then(second);
   }
 
-  // TODO(sra): Add [choice] functionality to NativeThrowBehavior.
   /// Returns the combined behavior of a choice between two paths with behaviors
   /// [first] and [second].
   static NativeThrowBehavior choice(
       NativeThrowBehavior first, NativeThrowBehavior second) {
-    if (first == second) return first; // Both paths have same behaviour.
-    return NativeThrowBehavior.MAY;
+    return first.or(second);
   }
 
   NativeThrowBehavior visit(js.Node node) {
     return node.accept(this);
   }
 
+  @override
   NativeThrowBehavior visitNode(js.Node node) {
     return NativeThrowBehavior.MAY;
   }
 
+  @override
   NativeThrowBehavior visitLiteral(js.Literal node) {
     return NativeThrowBehavior.NEVER;
   }
 
+  @override
   NativeThrowBehavior visitInterpolatedExpression(js.InterpolatedNode node) {
     return NativeThrowBehavior.NEVER;
   }
 
+  @override
   NativeThrowBehavior visitInterpolatedSelector(js.InterpolatedNode node) {
     return NativeThrowBehavior.NEVER;
   }
 
-  NativeThrowBehavior visitObjectInitializer(js.ObjectInitializer node) {
-    NativeThrowBehavior result = NativeThrowBehavior.NEVER;
-    for (js.Property property in node.properties) {
-      result = sequence(result, visit(property));
-    }
-    return result;
+  @override
+  NativeThrowBehavior visitArrayInitializer(js.ArrayInitializer node) {
+    return node.elements.map(visit).fold(NativeThrowBehavior.NEVER, sequence);
   }
 
+  @override
+  NativeThrowBehavior visitArrayHole(js.ArrayHole node) {
+    return NativeThrowBehavior.NEVER;
+  }
+
+  @override
+  NativeThrowBehavior visitObjectInitializer(js.ObjectInitializer node) {
+    return node.properties.map(visit).fold(NativeThrowBehavior.NEVER, sequence);
+  }
+
+  @override
   NativeThrowBehavior visitProperty(js.Property node) {
     return sequence(visit(node.name), visit(node.value));
   }
 
+  @override
   NativeThrowBehavior visitAssignment(js.Assignment node) {
     // TODO(sra): Can we make "#.p = #" be null(1)?
     return NativeThrowBehavior.MAY;
   }
 
+  @override
   NativeThrowBehavior visitCall(js.Call node) {
+    js.Expression target = node.target;
+    if (target is js.PropertyAccess && _isFirstInterpolatedProperty(target)) {
+      // #.f(...): Evaluate selector 'f', dereference, evaluate arguments, and
+      // finally call target.
+      NativeThrowBehavior result =
+          sequence(visit(target.selector), NativeThrowBehavior.NULL_NSM);
+      for (js.Expression argument in node.arguments) {
+        result = sequence(result, visit(argument));
+      }
+      return sequence(result, NativeThrowBehavior.MAY); // Target may throw.
+    }
     return NativeThrowBehavior.MAY;
   }
 
+  @override
   NativeThrowBehavior visitNew(js.New node) {
     // TODO(sra): `new Array(x)` where `x` is a small number.
     return NativeThrowBehavior.MAY;
   }
 
+  @override
   NativeThrowBehavior visitBinary(js.Binary node) {
     NativeThrowBehavior left = visit(node.left);
     NativeThrowBehavior right = visit(node.right);
@@ -241,10 +272,12 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
     }
   }
 
+  @override
   NativeThrowBehavior visitThrow(js.Throw node) {
-    return NativeThrowBehavior.MUST;
+    return sequence(visit(node.expression), NativeThrowBehavior.MAY);
   }
 
+  @override
   NativeThrowBehavior visitPrefix(js.Prefix node) {
     if (node.op == 'typeof' && node.argument is js.VariableUse)
       return NativeThrowBehavior.NEVER;
@@ -262,6 +295,7 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
     }
   }
 
+  @override
   NativeThrowBehavior visitVariableUse(js.VariableUse node) {
     // We could get a ReferenceError unless the variable is in scope. The AST
     // could distinguish in-scope and out-of scope references. For JS fragments,
@@ -269,6 +303,7 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
     // global names are almost certainly not reference errors, e.g 'Array'.
     switch (node.name) {
       case 'Array':
+      case 'Math':
       case 'Object':
         return NativeThrowBehavior.NEVER;
       default:
@@ -276,21 +311,28 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
     }
   }
 
+  @override
   NativeThrowBehavior visitAccess(js.PropertyAccess node) {
-    // TODO(sra): We need a representation where the nsm guard behaviour is
-    // maintained when combined with other throwing behaviour.
     js.Node receiver = node.receiver;
     NativeThrowBehavior first = visit(receiver);
     NativeThrowBehavior second = visit(node.selector);
 
-    if (receiver is js.InterpolatedExpression &&
-        receiver.isPositional &&
-        receiver.nameOrPosition == 0) {
-      first = NativeThrowBehavior.MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS;
+    if (_isFirstInterpolatedProperty(node)) {
+      first = NativeThrowBehavior.NULL_NSM;
     } else {
       first = NativeThrowBehavior.MAY;
     }
 
     return sequence(first, second);
+  }
+
+  bool _isFirstInterpolatedProperty(js.PropertyAccess node) {
+    js.Node receiver = node.receiver;
+    if (receiver is js.InterpolatedExpression &&
+        receiver.isPositional &&
+        receiver.nameOrPosition == 0) {
+      return true;
+    }
+    return false;
   }
 }

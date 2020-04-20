@@ -27,13 +27,12 @@ SecurityContext clientContext = new SecurityContext()
 
 void main() {
   asyncStart();
-  HttpServer
-      .bindSecure(HOST_NAME, 0, serverContext,
+  HttpServer.bindSecure(HOST_NAME, 0, serverContext,
           backlog: 5, requestClientCertificate: true)
       .then((server) {
     server.listen((HttpRequest request) {
       Expect.isNotNull(request.certificate);
-      Expect.equals('CN=localhost', request.certificate.subject);
+      Expect.equals('CN=localhost', request.certificate!.subject);
       request.response.write("Hello");
       request.response.close();
     });
@@ -43,9 +42,10 @@ void main() {
         .getUrl(Uri.parse("https://$HOST_NAME:${server.port}/"))
         .then((request) => request.close())
         .then((response) {
-      Expect.equals('CN=localhost', response.certificate.subject);
-      Expect.equals('CN=myauthority', response.certificate.issuer);
-      return response.fold(<int>[], (message, data) => message..addAll(data));
+      Expect.equals('CN=localhost', response.certificate!.subject);
+      Expect.equals('CN=myauthority', response.certificate!.issuer);
+      return response
+          .fold<List<int>>(<int>[], (message, data) => message..addAll(data));
     }).then((message) {
       String received = new String.fromCharCodes(message);
       Expect.equals(received, "Hello");

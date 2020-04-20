@@ -30,7 +30,7 @@ void main() {
 }
 
 void testDirectConversions() {
-  for (var codec in [LATIN1, new Latin1Codec()]) {
+  for (var codec in [latin1, new Latin1Codec()]) {
     for (var latin1String in latin1Strings) {
       List bytes = codec.encoder.convert(latin1String);
       Expect.listEquals(latin1String.codeUnits.toList(), bytes, latin1String);
@@ -99,7 +99,7 @@ void testDirectConversions() {
   Expect.equals("\x00\x01\xFF\uFFFD\x00", decoded);
   decoded = allowInvalidCodec.decoder.convert(invalidBytes);
   Expect.equals("\x00\x01\xFF\uFFFD\x00", decoded);
-  decoded = LATIN1.decode(invalidBytes, allowInvalid: true);
+  decoded = latin1.decode(invalidBytes, allowInvalid: true);
   Expect.equals("\x00\x01\xFF\uFFFD\x00", decoded);
 }
 
@@ -138,7 +138,7 @@ String decode(
 void testChunkedConversions() {
   // Check encoding.
   for (var converter in [
-    LATIN1.encoder,
+    latin1.encoder,
     new Latin1Codec().encoder,
     new Latin1Encoder()
   ]) {
@@ -157,7 +157,7 @@ void testChunkedConversions() {
   }
   // Check decoding.
   for (var converter in [
-    LATIN1.decoder,
+    latin1.decoder,
     new Latin1Codec().decoder,
     new Latin1Decoder()
   ]) {

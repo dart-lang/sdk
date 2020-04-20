@@ -1,0 +1,32 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class Mixin extends core::Object {
+  synthetic constructor •() → self::Mixin*
+    : super core::Object::•()
+    ;
+}
+class Base extends core::Object /*hasConstConstructor*/  {
+  final field core::int* x;
+  const constructor •(core::int* x) → self::Base*
+    : self::Base::x = x, super core::Object::•()
+    ;
+}
+class Application = self::Base with self::Mixin /*hasConstConstructor*/  {
+  const synthetic constructor •(core::int* x) → self::Application*
+    : super self::Base::•(x)
+    ;
+}
+static method main() → dynamic {
+  self::expect(42, (#C2).{self::Base::x});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = 42
+  #C2 = self::Application {x:#C1}
+}

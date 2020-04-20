@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::int* count = 0;
+  #L1:
+  for (core::int* a = 0; a.{core::num::<}(10); a = a.{core::num::+}(1)) {
+    for (core::int* b = 0; b.{core::num::<}(10); b = b.{core::num::+}(1)) {
+      count = count.{core::num::+}(1);
+      if(count.{core::num::==}(27))
+        break #L1;
+    }
+    count = count.{core::num::+}(1);
+  }
+  if(!count.{core::num::==}(27))
+    throw "failed: ${count}";
+}

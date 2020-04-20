@@ -1,6 +1,9 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+//
+// VMOptions=
+// VMOptions=--use_internal_hash_map
 
 // Tests of hash map behavior, with focus in iteration and concurrent
 // modification errors.
@@ -17,8 +20,8 @@ testMap(Map newMap(), Map newMapFrom(Map map)) {
     return map;
   }
 
-  bool odd(int n) => (n & 1) == 1;
-  bool even(int n) => (n & 1) == 0;
+  bool odd(dynamic n) => ((n as int) & 1) == 1;
+  bool even(dynamic n) => ((n as int) & 1) == 0;
   void addAll(Map toMap, Map fromMap) {
     fromMap.forEach((k, v) {
       toMap[k] = v;

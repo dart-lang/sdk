@@ -48,6 +48,8 @@ main() {
   var stream = controller.stream;
   var transformed = stream.transform(transformer);
 
+  Expect.isFalse(transformed.isBroadcast);
+
   var handleData = (String _) => 499;
   var handleError = (e, st) => 42;
   var handleDone = () => 99;
@@ -77,6 +79,19 @@ main() {
   controller = new StreamController(sync: true);
   stream = controller.stream;
   transformed = stream.transform(transformer);
+  subscription =
+      transformed.listen(null, onDone: handleDone, cancelOnError: true);
+
+  Expect.identical(stream, subscription.stream);
+  Expect.equals(true, subscription.cancelOnError);
+  Expect.identical(_defaultData, subscription.handleData);
+  Expect.identical(_defaultError, subscription.handleError);
+  Expect.identical(handleDone, subscription.handleDone);
+
+  controller = new StreamController.broadcast(sync: true);
+  stream = controller.stream;
+  transformed = stream.transform(transformer);
+  Expect.isTrue(transformed.isBroadcast);
   subscription =
       transformed.listen(null, onDone: handleDone, cancelOnError: true);
 

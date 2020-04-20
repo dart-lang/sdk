@@ -1,0 +1,25 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+import "dart:collection";
+
+class Element extends core::Object {
+  synthetic constructor •() → self::Element*
+    : super core::Object::•()
+    ;
+}
+class InheritedElement extends self::Element {
+[@vm.inferred-type.metadata=dart.collection::_InternalLinkedHashMap<InterfaceType(Element*), InterfaceType(Object*)>] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  final field core::Map<self::Element*, core::Object*>* _dependents = <self::Element*, core::Object*>{};
+  synthetic constructor •() → self::InheritedElement*
+    : super self::Element::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method setDependencies([@vm.inferred-type.metadata=!] self::Element* dependent, [@vm.inferred-type.metadata=dart.core::_Smi?] core::Object* value) → void {
+    [@vm.call-site-attributes.metadata=receiverType:InterfaceType(Map<Element*, Object*>*)] [@vm.direct-call.metadata=__InternalLinkedHashMap&_HashVMBase&MapMixin&_LinkedHashMapMixin::[]=] [@vm.inferred-type.metadata=!? (skip check)] [@vm.direct-call.metadata=InheritedElement::_dependents] [@vm.inferred-type.metadata=dart.collection::_InternalLinkedHashMap<InterfaceType(Element*), InterfaceType(Object*)>] this.{self::InheritedElement::_dependents}.{core::Map::[]=}(dependent, value);
+  }
+}
+static method main() → dynamic {
+  self::InheritedElement* ie = new self::InheritedElement::•();
+  [@vm.direct-call.metadata=InheritedElement::setDependencies] [@vm.inferred-type.metadata=!? (skip check)] ie.{self::InheritedElement::setDependencies}(ie, 0);
+  [@vm.direct-call.metadata=InheritedElement::setDependencies] [@vm.inferred-type.metadata=!? (skip check)] ie.{self::InheritedElement::setDependencies}(new self::Element::•(), null);
+}

@@ -13,11 +13,11 @@ class C<T> {
 
 void test(C<int> x) {
   switch (x) {
-    case const /*@typeArgs=int*/ C():
-      var /*@type=int*/ y = 0;
+    case const /*@ typeArgs=int* */ C():
+      var /*@ type=int* */ y = 0;
       break;
     default:
-      var /*@type=int*/ y = 0;
+      var /*@ type=int* */ y = 0;
       break;
   }
 }

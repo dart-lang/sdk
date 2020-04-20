@@ -91,7 +91,7 @@ void doTestSync() {
   Expect.isFalse(dir4.existsSync());
   // stat.
   FileStat dirstat = dir2.statSync();
-  Expect.equals(FileSystemEntityType.DIRECTORY, dirstat.type);
+  Expect.equals(FileSystemEntityType.directory, dirstat.type);
 }
 
 doTestAsync() async {
@@ -177,17 +177,7 @@ doTestAsync() async {
   Expect.isFalse(await dir4.exists());
   // stat.
   FileStat dirstat = await dir2.stat();
-  Expect.equals(FileSystemEntityType.DIRECTORY, dirstat.type);
-}
-
-List<String> packageOptions() {
-  if (Platform.packageRoot != null) {
-    return <String>["--package-root=${Platform.packageRoot}"];
-  } else if (Platform.packageConfig != null) {
-    return <String>["--packages=${Platform.packageConfig}"];
-  } else {
-    return <String>[];
-  }
+  Expect.equals(FileSystemEntityType.directory, dirstat.type);
 }
 
 void setupTest() {
@@ -202,7 +192,7 @@ void setupTest() {
       ..writeAsStringSync(file1str);
 
     // Run the test and capture stdout.
-    var args = packageOptions();
+    var args = <String>[]..addAll(Platform.executableArguments);
     args.addAll([
       "--namespace=${namespace.path}",
       Platform.script.toFilePath(),

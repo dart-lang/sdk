@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Regression test for http://dartbug.com/22776/
+// @dart = 2.7
+
+// Regression test for http://dartbug.com/22776
 
 import "package:expect/expect.dart";
 
@@ -17,6 +19,6 @@ main() {
   }
 }
 
-@AssumeDynamic()
-@NoInline()
+@pragma('dart2js:assumeDynamic')
+@pragma('dart2js:noInline')
 id(x) => x;

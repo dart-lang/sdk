@@ -1,15 +1,23 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference_new/infer_instance_field_ref_circular.dart:11:7: Error: Can't infer the type of 'b': circularity found during type inference.
+// Specify the type explicitly.
+//   var b = /*@ returnType=() ->* invalid-type */ () => x;
+//       ^
+//
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  field dynamic b;
-  field dynamic c;
-  default constructor •() → void
+  field invalid-type b;
+  field () →* () →* invalid-type c;
+  synthetic constructor •() → self::A*
     ;
 }
-static field dynamic a;
-static field dynamic x;
-static field dynamic y;
+static field self::A* a;
+static field () →* invalid-type x;
+static field () →* () →* () →* invalid-type y;
 static method main() → dynamic
   ;

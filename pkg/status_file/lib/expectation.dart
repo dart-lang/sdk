@@ -46,11 +46,21 @@ class Expectation {
   static final Expectation compileTimeError =
       new Expectation._('CompileTimeError', group: fail);
 
+  /// The test was parsed by the spec_parser, and there was a syntax error.
+  static final Expectation syntaxError =
+      new Expectation._('SyntaxError', group: fail);
+
   /// The test itself contains a comment with `@runtime-error` in it,
   /// indicating it should have produced a runtime error when run. But when it
   /// was run, the test completed without error.
   static final Expectation missingRuntimeError =
       new Expectation._('MissingRuntimeError', group: fail);
+
+  /// The test itself contains a comment with `@syntax-error` in it,
+  /// indicating it should have produced a syntax error when compiled. But when
+  /// it was compiled, no error was reported.
+  static final Expectation missingSyntaxError =
+      new Expectation._('MissingSyntaxError', group: fail);
 
   /// The test itself contains a comment with `@compile-error` in it,
   /// indicating it should have produced an error when compiled. But when it
@@ -112,6 +122,12 @@ class Expectation {
   /// Tells the test runner to increase the timeout when running it.
   static final Expectation slow = new Expectation._('Slow', isMeta: true);
 
+  /// A marker that indicates the test takes a lot longer to complete than most
+  /// tests.
+  /// Tells the test runner to increase the timeout when running it.
+  static final Expectation extraSlow =
+      new Expectation._('ExtraSlow', isMeta: true, group: skip);
+
   /// Tells the test runner to not attempt to run the test.
   ///
   /// This means the test runner does not compare the test's actual results with
@@ -166,12 +182,13 @@ class Expectation {
     dartkCompileTimeError,
     ok,
     slow,
+    extraSlow,
     skip,
     skipSlow,
     skipByDesign,
     ignore,
     verificationError,
-  ], key: (Expectation expectation) => expectation._name.toLowerCase());
+  ], key: (expectation) => expectation._name.toLowerCase());
 
   /// Looks up the expectation with [name].
   static Expectation find(String name) {

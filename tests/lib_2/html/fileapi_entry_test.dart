@@ -1,10 +1,10 @@
 library fileapi;
 
-import 'dart:html';
 import 'dart:async';
+import 'dart:html';
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
+import 'package:async_helper/async_helper.dart';
+import 'package:async_helper/async_minitest.dart';
 
 class FileAndDir {
   FileEntry file;
@@ -14,65 +14,61 @@ class FileAndDir {
 
 FileSystem fs;
 
-main() {
-  useHtmlIndividualConfiguration();
-
-  getFileSystem() {
-    return window.requestFileSystem(100).then((FileSystem fileSystem) {
+main() async {
+  getFileSystem() async {
+    return await window.requestFileSystem(100).then((FileSystem fileSystem) {
       fs = fileSystem;
     });
   }
 
   // Do the boilerplate to get several files and directories created to then
   // test the functions that use those items.
-  Future doDirSetup(String testName) {
-    return fs.root.createFile('file_$testName').then((Entry file) {
-      return fs.root
-          .createDirectory('dir_$testName')
-          .then((Entry dir) {
-        return new Future.value(new FileAndDir(file, dir));
-      });
-    });
+  Future doDirSetup(String testName) async {
+    await getFileSystem();
+
+    var file = await fs.root.createFile('file_$testName');
+    var dir = await fs.root.createDirectory('dir_$testName');
+    return new Future.value(new FileAndDir(file, dir));
   }
 
   if (FileSystem.supported) {
-    test('getFileSystem', getFileSystem);
+    test('copy_move', () async {
+      var fileAndDir = await doDirSetup('copyTo');
+      var entry = await fileAndDir.file.copyTo(fileAndDir.dir, name: 'copiedFile');
+      expect(entry.isFile, true, reason: "Expected File");
+      expect(entry.name, 'copiedFile');
 
-    test('copyTo', () {
-      return doDirSetup('copyTo').then((fileAndDir) {
-        return fileAndDir.file.copyTo(fileAndDir.dir, name: 'copiedFile');
-      }).then((entry) {
-        expect(entry.isFile, true);
-        expect(entry.name, 'copiedFile');
-      });
-    });
+      // getParent
+      fileAndDir = await doDirSetup('getParent');
+      entry = await fileAndDir.file.getParent();
+      expect(entry.name, '');
+      expect(entry.isDirectory, true, reason: "Expected Directory");
 
-    test('getParent', () {
-      return doDirSetup('getParent').then((fileAndDir) {
-        return fileAndDir.file.getParent();
-      }).then((entry) {
-        expect(entry.name, '');
-        expect(entry.isFile, false);
-      });
-    });
+      // moveTo
+      fileAndDir = await doDirSetup('moveTo');
+      entry = await fileAndDir.file.moveTo(fileAndDir.dir, name: 'movedFile');
+      expect(entry.name, 'movedFile');
+      expect(entry.fullPath, '/dir_moveTo/movedFile');
 
-    test('moveTo', () {
-      return doDirSetup('moveTo').then((fileAndDir) {
-        return fileAndDir.file.moveTo(fileAndDir.dir, name: 'movedFile');
-      }).then((entry) {
-        expect(entry.name, 'movedFile');
-        expect(entry.fullPath, '/dir_moveTo/movedFile');
-        return fs.root.getFile('file4');
-      }).catchError((error) {
-        expect(error.code, equals(FileError.NOT_FOUND_ERR));
-      }, test: (e) => e is FileError);
-    });
+      try {
+        entry = await fs.root.getFile('file4');
+        fail("File file4 should not exist.");
+      } catch (error) {
+        expect(error is DomException, true, reason: "Not DomException - not exist");
+        expect(DomException.NOT_FOUND, error.name);
+      }
 
-    test('remove', () {
-      return doDirSetup('remove').then((fileAndDir) {
-        return fileAndDir.file.remove().then((_) {});
-      });
+      // remove
+      fileAndDir = await doDirSetup('remove');
+      expect('file_remove', fileAndDir.file.name);
+      await fileAndDir.file.remove();
+      try {
+        var entry = await fileAndDir.dir.getFile(fileAndDir.file.name);
+        fail("file not removed");
+      } catch (error) {
+        expect(error is DomException, true, reason: "Not DomException - removed");
+        expect(DomException.NOT_FOUND, error.name);
+      }
     });
   }
 }
-

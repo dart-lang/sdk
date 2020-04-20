@@ -45,7 +45,7 @@ void testOpenNonExistent() {
   Expect.throws(
       () => file.openSync(), (e) => checkOpenNonExistentFileSystemException(e));
 
-  var openFuture = file.open(mode: FileMode.READ);
+  var openFuture = file.open(mode: FileMode.read);
   openFuture.then((raf) => Expect.fail("Unreachable code")).catchError((error) {
     checkOpenNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
@@ -176,7 +176,7 @@ void testReadAsTextNonExistent() {
   Expect.throws(() => file.readAsStringSync(),
       (e) => checkOpenNonExistentFileSystemException(e));
 
-  var readAsStringFuture = file.readAsString(encoding: ASCII);
+  var readAsStringFuture = file.readAsString(encoding: ascii);
   readAsStringFuture
       .then((data) => Expect.fail("Unreachable code"))
       .catchError((error) {
@@ -195,7 +195,7 @@ testReadAsLinesNonExistent() {
   Expect.throws(() => file.readAsLinesSync(),
       (e) => checkOpenNonExistentFileSystemException(e));
 
-  var readAsLinesFuture = file.readAsLines(encoding: ASCII);
+  var readAsLinesFuture = file.readAsLines(encoding: ascii);
   readAsLinesFuture
       .then((data) => Expect.fail("Unreachable code"))
       .catchError((error) {
@@ -228,7 +228,7 @@ createTestFile(callback) {
 
 testWriteByteToReadOnlyFile() {
   createTestFile((file, done) {
-    var openedFile = file.openSync(mode: FileMode.READ);
+    var openedFile = file.openSync(mode: FileMode.read);
 
     // Writing to read only file should throw an exception.
     Expect.throws(() => openedFile.writeByteSync(0),
@@ -244,7 +244,7 @@ testWriteByteToReadOnlyFile() {
 
 testWriteFromToReadOnlyFile() {
   createTestFile((file, done) {
-    var openedFile = file.openSync(mode: FileMode.READ);
+    var openedFile = file.openSync(mode: FileMode.read);
 
     List data = [0, 1, 2, 3];
     // Writing to read only file should throw an exception.
@@ -261,10 +261,10 @@ testWriteFromToReadOnlyFile() {
 
 testTruncateReadOnlyFile() {
   createTestFile((file, done) {
-    var openedFile = file.openSync(mode: FileMode.WRITE);
+    var openedFile = file.openSync(mode: FileMode.write);
     openedFile.writeByteSync(0);
     openedFile.closeSync();
-    openedFile = file.openSync(mode: FileMode.READ);
+    openedFile = file.openSync(mode: FileMode.read);
 
     // Truncating read only file should throw an exception.
     Expect.throws(() => openedFile.truncateSync(0),
@@ -289,7 +289,7 @@ bool checkFileClosedException(e) {
 
 testOperateOnClosedFile() {
   createTestFile((file, done) {
-    var openedFile = file.openSync(mode: FileMode.READ);
+    var openedFile = file.openSync(mode: FileMode.read);
     openedFile.closeSync();
 
     List data = [0, 1, 2, 3];
@@ -398,17 +398,6 @@ testRepeatedlyCloseFileSync() {
   });
 }
 
-testReadSyncBigInt() {
-  createTestFile((file, done) {
-    var bigint = 100000000000000000000000000000000000000000;
-    var openedFile = file.openSync();
-    Expect.throws(
-        () => openedFile.readSync(bigint), (e) => e is FileSystemException);
-    openedFile.closeSync();
-    done();
-  });
-}
-
 testReadSyncClosedFile() {
   createTestFile((file, done) {
     var openedFile = file.openSync();
@@ -434,6 +423,5 @@ main() {
   testOperateOnClosedFile();
   testRepeatedlyCloseFile();
   testRepeatedlyCloseFileSync();
-  testReadSyncBigInt();
   testReadSyncClosedFile();
 }

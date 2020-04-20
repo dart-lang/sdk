@@ -4,7 +4,6 @@
 
 library test.libraries_test;
 
-@MirrorsUsed(targets: "test.libraries_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -17,7 +16,7 @@ main() {
   Expect.isNotNull(libraries, 'libraries is null');
 
   Expect.isTrue(libraries.isNotEmpty);
-  LibraryMirror mirrorsLibrary = libraries[Uri.parse('dart:mirrors')];
+  LibraryMirror? mirrorsLibrary = libraries[Uri.parse('dart:mirrors')];
   if (mirrorsLibrary == null) {
     // In minified mode we don't preserve the URIs.
     mirrorsLibrary = libraries.values
@@ -28,7 +27,7 @@ main() {
     Expect.equals("/dart2js-stripped-uri", uri.path);
   }
 
-  ClassMirror cls = mirrorsLibrary.declarations[#LibraryMirror];
+  ClassMirror cls = mirrorsLibrary.declarations[#LibraryMirror] as ClassMirror;
   Expect.isNotNull(cls, 'cls is null');
 
   Expect.equals(#dart.mirrors.LibraryMirror, cls.qualifiedName);

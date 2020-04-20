@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+// @dart = 2.7
+
+/*member: main:[null]*/
 main() {
   simpleWhile();
   whileNull();
@@ -20,7 +22,7 @@ main() {
 /// Simple int based while loop.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: simpleWhile:[null]*/
+/*member: simpleWhile:[null]*/
 simpleWhile() {
   var i = 0;
   while (i /*invoke: [subclass=JSPositiveInt]*/ < 10) {
@@ -33,7 +35,7 @@ simpleWhile() {
 /// While loop with null test.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: whileNull:Value mask: ["null"] type: [null|exact=JSString]*/
+/*member: whileNull:Value([null|exact=JSString], value: "null")*/
 whileNull() {
   var o;
   while (o == null) {
@@ -46,10 +48,10 @@ whileNull() {
 /// While loop with not-null test.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: whileNotNull:[exact=JSString]*/
+/*member: whileNotNull:[exact=JSString]*/
 whileNotNull() {
   var o = '';
-  while (o != null) {
+  while (o /*invoke: [null|exact=JSString]*/ != null) {
     o = o. /*invoke: [exact=JSString]*/ toString();
   }
   return o;
@@ -59,10 +61,10 @@ whileNotNull() {
 /// While loop with null test with an unreachable body.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: whileNullUnreachable:[exact=JSString]*/
+/*member: whileNullUnreachable:[exact=JSString]*/
 whileNullUnreachable() {
   var o = '';
-  while (o == null) {
+  while (o /*invoke: [null|exact=JSString]*/ == null) {
     o = o. /*invoke: [null]*/ toString();
   }
   return o;
@@ -72,7 +74,7 @@ whileNullUnreachable() {
 /// While loop with not-null test with an unreachable body.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: whileNotNullUnreachable:[null]*/
+/*member: whileNotNullUnreachable:[null]*/
 whileNotNullUnreachable() {
   var o = null;
   while (o != null) {
@@ -86,27 +88,27 @@ whileNotNullUnreachable() {
 /// object to the [_whileUnion1] method.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class1.:[exact=Class1]*/
+/*member: Class1.:[exact=Class1]*/
 class Class1 {
-  /*element: Class1.field:[null|exact=Class2]*/
+  /*member: Class1.field:[null|exact=Class2]*/
   var field;
 }
 
-/*element: Class2.:[exact=Class2]*/
+/*member: Class2.:[exact=Class2]*/
 class Class2 {
-  /*element: Class2.field:[null|exact=Class1]*/
+  /*member: Class2.field:[null|exact=Class1]*/
   var field;
 }
 
-/*element: _whileUnion1:Union of [[exact=Class1], [null|exact=Class2]]*/
+/*member: _whileUnion1:Union(null, [exact=Class1], [exact=Class2])*/
 _whileUnion1(/*[exact=Class1]*/ o) {
   while (o != null) {
-    o = o. /*Union of [[exact=Class1], [exact=Class2]]*/ field;
+    o = o. /*Union([exact=Class1], [exact=Class2])*/ field;
   }
   return o;
 }
 
-/*element: whileUnion1:[null]*/
+/*member: whileUnion1:[null]*/
 whileUnion1() {
   var c1 = new Class1();
   var c2 = new Class2();
@@ -120,27 +122,27 @@ whileUnion1() {
 /// object to the [_whileUnion2] method.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class3.:[exact=Class3]*/
+/*member: Class3.:[exact=Class3]*/
 class Class3 {
-  /*element: Class3.field:[null|exact=Class4]*/
+  /*member: Class3.field:[null|exact=Class4]*/
   var field;
 }
 
-/*element: Class4.:[exact=Class4]*/
+/*member: Class4.:[exact=Class4]*/
 class Class4 {
-  /*element: Class4.field:[null|exact=Class3]*/
+  /*member: Class4.field:[null|exact=Class3]*/
   var field;
 }
 
-/*element: _whileUnion2:Union of [[exact=Class4], [null|exact=Class3]]*/
+/*member: _whileUnion2:Union(null, [exact=Class3], [exact=Class4])*/
 _whileUnion2(/*[exact=Class4]*/ o) {
   while (o != null) {
-    o = o. /*Union of [[exact=Class3], [exact=Class4]]*/ field;
+    o = o. /*Union([exact=Class3], [exact=Class4])*/ field;
   }
   return o;
 }
 
-/*element: whileUnion2:[null]*/
+/*member: whileUnion2:[null]*/
 whileUnion2() {
   var c1 = new Class3();
   var c2 = new Class4();
@@ -154,27 +156,27 @@ whileUnion2() {
 /// objects to the [_whileUnion3] method.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class5.:[exact=Class5]*/
+/*member: Class5.:[exact=Class5]*/
 class Class5 {
-  /*element: Class5.field:[null|exact=Class6]*/
+  /*member: Class5.field:[null|exact=Class6]*/
   var field;
 }
 
-/*element: Class6.:[exact=Class6]*/
+/*member: Class6.:[exact=Class6]*/
 class Class6 {
-  /*element: Class6.field:[null|exact=Class5]*/
+  /*member: Class6.field:[null|exact=Class5]*/
   var field;
 }
 
-/*element: _whileUnion3:Union of [[null|exact=Class5], [null|exact=Class6]]*/
-_whileUnion3(/*Union of [[exact=Class5], [exact=Class6]]*/ o) {
+/*member: _whileUnion3:Union(null, [exact=Class5], [exact=Class6])*/
+_whileUnion3(/*Union([exact=Class5], [exact=Class6])*/ o) {
   while (o != null) {
-    o = o. /*Union of [[exact=Class5], [exact=Class6]]*/ field;
+    o = o. /*Union([exact=Class5], [exact=Class6])*/ field;
   }
   return o;
 }
 
-/*element: whileUnion3:[null]*/
+/*member: whileUnion3:[null]*/
 whileUnion3() {
   var c1 = new Class5();
   var c2 = new Class6();
@@ -188,19 +190,19 @@ whileUnion3() {
 /// While loop with is test that mixes field accesses.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class7.:[exact=Class7]*/
+/*member: Class7.:[exact=Class7]*/
 class Class7 {
-  /*element: Class7.field:[null|exact=Class8]*/
+  /*member: Class7.field:[null|exact=Class8]*/
   var field;
 }
 
-/*element: Class8.:[exact=Class8]*/
+/*member: Class8.:[exact=Class8]*/
 class Class8 {
-  /*element: Class8.field:[null|exact=Class7]*/
+  /*member: Class8.field:[null|exact=Class7]*/
   var field;
 }
 
-/*element: _whileIs:Union of [[exact=Class7], [null|exact=Class8]]*/
+/*member: _whileIs:Union(null, [exact=Class7], [exact=Class8])*/
 _whileIs(/*[exact=Class7]*/ o) {
   while (o is Class7) {
     o = o. /*[exact=Class7]*/ field;
@@ -208,7 +210,7 @@ _whileIs(/*[exact=Class7]*/ o) {
   return o;
 }
 
-/*element: whileIs:[null]*/
+/*member: whileIs:[null]*/
 whileIs() {
   var c1 = new Class7();
   var c2 = new Class8();
@@ -221,27 +223,27 @@ whileIs() {
 /// While loop with is-not test that mixes field accesses.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class9.:[exact=Class9]*/
+/*member: Class9.:[exact=Class9]*/
 class Class9 {
-  /*element: Class9.field:[null|exact=Class10]*/
+  /*member: Class9.field:[null|exact=Class10]*/
   var field;
 }
 
-/*element: Class10.:[exact=Class10]*/
+/*member: Class10.:[exact=Class10]*/
 class Class10 {
-  /*element: Class10.field:[null|exact=Class9]*/
+  /*member: Class10.field:[null|exact=Class9]*/
   var field;
 }
 
-/*element: _whileIsNot:Union of [[exact=Class9], [null|exact=Class10]]*/
+/*member: _whileIsNot:Union(null, [exact=Class10], [exact=Class9])*/
 _whileIsNot(/*[exact=Class9]*/ o) {
   while (o is! Class10) {
-    o = o. /*Union of [[exact=Class9], [null|exact=Class10]]*/ field;
+    o = o. /*Union(null, [exact=Class10], [exact=Class9])*/ field;
   }
   return o;
 }
 
-/*element: whileIsNot:[null]*/
+/*member: whileIsNot:[null]*/
 whileIsNot() {
   var c1 = new Class9();
   var c2 = new Class10();

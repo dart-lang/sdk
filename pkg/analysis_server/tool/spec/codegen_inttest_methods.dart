@@ -1,14 +1,9 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Code generation for the file "integration_test_methods.dart".
- */
-import 'dart:convert';
-
-import 'package:analyzer/src/codegen/tools.dart';
-import 'package:front_end/src/codegen/tools.dart';
+/// Code generation for the file "integration_test_methods.dart".
+import 'package:analysis_tool/tools.dart';
 import 'package:path/path.dart' as path;
 
 import 'api.dart';
@@ -17,56 +12,45 @@ import 'from_html.dart';
 import 'to_html.dart';
 
 final GeneratedFile target =
-    new GeneratedFile('test/integration/support/integration_test_methods.dart',
+    GeneratedFile('test/integration/support/integration_test_methods.dart',
         (String pkgPath) async {
-  CodegenInttestMethodsVisitor visitor = new CodegenInttestMethodsVisitor(
-      path.basename(pkgPath), readApi(pkgPath));
+  var visitor =
+      CodegenInttestMethodsVisitor(path.basename(pkgPath), readApi(pkgPath));
   return visitor.collectCode(visitor.visitApi);
 });
 
-/**
- * Visitor that generates the code for integration_test_methods.dart
- */
+/// Visitor that generates the code for integration_test_methods.dart
 class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     with CodeGenerator {
-  /**
-   * The name of the package into which code is being generated.
-   */
+  /// The name of the package into which code is being generated.
   final String packageName;
 
-  /**
-   * Visitor used to produce doc comments.
-   */
+  /// Visitor used to produce doc comments.
   final ToHtmlVisitor toHtmlVisitor;
 
-  /**
-   * Code snippets concatenated to initialize all of the class fields.
-   */
+  /// Code snippets concatenated to initialize all of the class fields.
   List<String> fieldInitializationCode = <String>[];
 
-  /**
-   * Code snippets concatenated to produce the contents of the switch statement
-   * for dispatching notifications.
-   */
+  /// Code snippets concatenated to produce the contents of the switch statement
+  /// for dispatching notifications.
   List<String> notificationSwitchContents = <String>[];
 
   CodegenInttestMethodsVisitor(this.packageName, Api api)
-      : toHtmlVisitor = new ToHtmlVisitor(api),
+      : toHtmlVisitor = ToHtmlVisitor(api),
         super(api) {
     codeGeneratorSettings.commentLineLength = 79;
+    codeGeneratorSettings.docCommentStartMarker = null;
+    codeGeneratorSettings.docCommentLineLeader = '/// ';
+    codeGeneratorSettings.docCommentEndMarker = null;
     codeGeneratorSettings.languageName = 'dart';
   }
 
-  /**
-   * Generate a function argument for the given parameter field.
-   */
+  /// Generate a function argument for the given parameter field.
   String formatArgument(TypeObjectField field) =>
       '${dartType(field.type)} ${field.name}';
 
-  /**
-   * Figure out the appropriate Dart type for data having the given API
-   * protocol [type].
-   */
+  /// Figure out the appropriate Dart type for data having the given API
+  /// protocol [type].
   String jsonType(TypeDecl type) {
     type = resolveTypeReferenceChain(type);
     if (type is TypeEnum) {
@@ -87,22 +71,20 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
         case 'object':
           return 'Map<String, dynamic>';
         default:
-          throw new Exception(type.typeName);
+          throw Exception(type.typeName);
       }
     } else if (type is TypeUnion) {
       return 'Object';
     } else {
-      throw new Exception('Unexpected kind of TypeDecl');
+      throw Exception('Unexpected kind of TypeDecl');
     }
   }
 
   @override
-  visitApi() {
+  void visitApi() {
     outputHeader(year: '2017');
     writeln();
-    writeln('/**');
-    writeln(' * Convenience methods for running integration tests');
-    writeln(' */');
+    writeln('/// Convenience methods for running integration tests.');
     writeln("import 'dart:async';");
     writeln();
     writeln("import 'package:$packageName/protocol/protocol_generated.dart';");
@@ -112,15 +94,13 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     writeln();
     writeln("import 'integration_tests.dart';");
     writeln("import 'protocol_matchers.dart';");
-    for (String uri in api.types.importUris) {
+    for (var uri in api.types.importUris) {
       write("import '");
       write(uri);
       writeln("';");
     }
     writeln();
-    writeln('/**');
-    writeln(' * Convenience methods for running integration tests');
-    writeln(' */');
+    writeln('/// Convenience methods for running integration tests.');
     writeln('abstract class IntegrationTestMixin {');
     indent(() {
       writeln('Server get server;');
@@ -143,7 +123,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       }));
       writeln('void dispatchNotification(String event, params) {');
       indent(() {
-        writeln('ResponseDecoder decoder = new ResponseDecoder(null);');
+        writeln('var decoder = ResponseDecoder(null);');
         writeln('switch (event) {');
         indent(() {
           write(notificationSwitchContents.join());
@@ -161,10 +141,10 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
   }
 
   @override
-  visitNotification(Notification notification) {
-    String streamName =
+  void visitNotification(Notification notification) {
+    var streamName =
         camelJoin(['on', notification.domainName, notification.event]);
-    String className = camelJoin(
+    var className = camelJoin(
         [notification.domainName, notification.event, 'params'],
         doCapitalize: true);
     writeln();
@@ -179,21 +159,20 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     }));
     writeln('StreamController<$className> _$streamName;');
     fieldInitializationCode.add(collectCode(() {
-      writeln('_$streamName = new StreamController<$className>(sync: true);');
+      writeln('_$streamName = StreamController<$className>(sync: true);');
       writeln('$streamName = _$streamName.stream.asBroadcastStream();');
     }));
     notificationSwitchContents.add(collectCode(() {
-      writeln('case ${JSON.encode(notification.longEvent)}:');
+      writeln("case '${notification.longEvent}':");
       indent(() {
-        String paramsValidator = camelJoin(
+        var paramsValidator = camelJoin(
             ['is', notification.domainName, notification.event, 'params']);
         writeln('outOfTestExpect(params, $paramsValidator);');
         String constructorCall;
         if (notification.params == null) {
-          constructorCall = 'new $className()';
+          constructorCall = '$className()';
         } else {
-          constructorCall =
-              "new $className.fromJson(decoder, 'params', params)";
+          constructorCall = "$className.fromJson(decoder, 'params', params)";
         }
         writeln('_$streamName.add($constructorCall);');
         writeln('break;');
@@ -202,12 +181,12 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
   }
 
   @override
-  visitRequest(Request request) {
-    String methodName = camelJoin(['send', request.domainName, request.method]);
-    List<String> args = <String>[];
-    List<String> optionalArgs = <String>[];
+  void visitRequest(Request request) {
+    var methodName = camelJoin(['send', request.domainName, request.method]);
+    var args = <String>[];
+    var optionalArgs = <String>[];
     if (request.params != null) {
-      for (TypeObjectField field in request.params.fields) {
+      for (var field in request.params.fields) {
         if (field.optional) {
           optionalArgs.add(formatArgument(field));
         } else {
@@ -238,15 +217,15 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     }
     writeln('$futureClass $methodName(${args.join(', ')}) async {');
     indent(() {
-      String requestClass = camelJoin(
+      var requestClass = camelJoin(
           [request.domainName, request.method, 'params'],
           doCapitalize: true);
-      String paramsVar = 'null';
+      var paramsVar = 'null';
       if (request.params != null) {
         paramsVar = 'params';
-        List<String> args = <String>[];
-        List<String> optionalArgs = <String>[];
-        for (TypeObjectField field in request.params.fields) {
+        var args = <String>[];
+        var optionalArgs = <String>[];
+        for (var field in request.params.fields) {
           if (field.optional) {
             optionalArgs.add('${field.name}: ${field.name}');
           } else {
@@ -254,17 +233,17 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
           }
         }
         args.addAll(optionalArgs);
-        writeln('var params = new $requestClass(${args.join(', ')}).toJson();');
+        writeln('var params = $requestClass(${args.join(', ')}).toJson();');
       }
-      String methodJson = JSON.encode(request.longMethod);
+      var methodJson = "'${request.longMethod}'";
       writeln('var result = await server.send($methodJson, $paramsVar);');
       if (request.result != null) {
-        String kind = 'null';
+        var kind = 'null';
         if (requestClass == 'EditGetRefactoringParams') {
           kind = 'kind';
         }
-        writeln('ResponseDecoder decoder = new ResponseDecoder($kind);');
-        writeln("return new $resultClass.fromJson(decoder, 'result', result);");
+        writeln('var decoder = ResponseDecoder($kind);');
+        writeln("return $resultClass.fromJson(decoder, 'result', result);");
       } else {
         writeln('outOfTestExpect(result, isNull);');
         writeln('return null;');

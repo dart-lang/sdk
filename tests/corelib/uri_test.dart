@@ -10,12 +10,6 @@ import 'dart:convert';
 testUri(String uriText, bool isAbsolute) {
   var uri = Uri.parse(uriText);
 
-  // Test that parsing a substring works the same as parsing the string.
-  String wrapper = "://@[]:/%?#";
-  var embeddedUri = Uri.parse(
-      "$wrapper$uri$wrapper", wrapper.length, uriText.length + wrapper.length);
-
-  Expect.equals(uri, embeddedUri);
   Expect.equals(isAbsolute, uri.isAbsolute);
   Expect.stringEquals(uriText, uri.toString());
 
@@ -30,22 +24,6 @@ testUri(String uriText, bool isAbsolute) {
         uri.removeFragment());
   } else {
     Expect.equals(uri, Uri.parse(uriText + "#fragment").removeFragment());
-  }
-
-  Expect.isTrue(uri.isScheme(uri.scheme));
-  Expect.isTrue(uri.isScheme(uri.scheme.toLowerCase()));
-  Expect.isTrue(uri.isScheme(uri.scheme.toUpperCase()));
-  if (uri.hasScheme) {
-    // Capitalize
-    Expect.isTrue(
-        uri.isScheme(uri.scheme[0].toUpperCase() + uri.scheme.substring(1)));
-    Expect
-        .isFalse(uri.isScheme(uri.scheme.substring(0, uri.scheme.length - 1)));
-    Expect.isFalse(uri.isScheme(uri.scheme + ":"));
-    Expect.isFalse(uri.isScheme(uri.scheme + "\x00"));
-  } else {
-    Expect.isTrue(uri.isScheme(null));
-    Expect.isFalse(uri.isScheme(":"));
   }
 }
 
@@ -64,71 +42,42 @@ testEncodeDecodeComponent(String orig, String encoded) {
 }
 
 testEncodeDecodeQueryComponent(String orig, String encodedUTF8,
-    String encodedLatin1, String encodedAscii) {
+    String encodedLatin1, String? encodedAscii) {
   var e, d;
   e = Uri.encodeQueryComponent(orig);
   Expect.stringEquals(encodedUTF8, e);
   d = Uri.decodeQueryComponent(encodedUTF8);
   Expect.stringEquals(orig, d);
 
-  e = Uri.encodeQueryComponent(orig, encoding: UTF8);
+  e = Uri.encodeQueryComponent(orig, encoding: utf8);
   Expect.stringEquals(encodedUTF8, e);
-  d = Uri.decodeQueryComponent(encodedUTF8, encoding: UTF8);
+  d = Uri.decodeQueryComponent(encodedUTF8, encoding: utf8);
   Expect.stringEquals(orig, d);
 
-  e = Uri.encodeQueryComponent(orig, encoding: LATIN1);
+  e = Uri.encodeQueryComponent(orig, encoding: latin1);
   Expect.stringEquals(encodedLatin1, e);
-  d = Uri.decodeQueryComponent(encodedLatin1, encoding: LATIN1);
+  d = Uri.decodeQueryComponent(encodedLatin1, encoding: latin1);
   Expect.stringEquals(orig, d);
 
   if (encodedAscii != null) {
-    e = Uri.encodeQueryComponent(orig, encoding: ASCII);
+    e = Uri.encodeQueryComponent(orig, encoding: ascii);
     Expect.stringEquals(encodedAscii, e);
-    d = Uri.decodeQueryComponent(encodedAscii, encoding: ASCII);
+    d = Uri.decodeQueryComponent(encodedAscii, encoding: ascii);
     Expect.stringEquals(orig, d);
   } else {
-    Expect.throws(() => Uri.encodeQueryComponent(orig, encoding: ASCII),
-        (e) => e is ArgumentError);
+    Expect.throwsArgumentError(
+        () => Uri.encodeQueryComponent(orig, encoding: ascii));
   }
 }
 
 testUriPerRFCs() {
-  // Convert a Uri to a guaranteed "non simple" URI with the same content.
-  toComplex(Uri uri) {
-    Uri complex = new Uri(
-      scheme: uri.scheme,
-      userInfo: uri.hasAuthority ? uri.userInfo : null,
-      host: uri.hasAuthority ? uri.host : null,
-      port: uri.hasAuthority ? uri.port : null,
-      path: uri.path,
-      query: uri.hasQuery ? uri.query : null,
-      fragment: uri.hasFragment ? uri.fragment : null,
-    );
-    assert(complex.toString() == uri.toString());
-    return complex;
-  }
-
-  Uri base;
-  Uri complexBase;
-  // Sets the [base] and [complexBase] to the parse of the URI and a
-  // guaranteed non-simple version of the same URI.
-  setBase(String uri) {
-    base = Uri.parse(uri);
-    complexBase = toComplex(base);
-  }
-
+  final urisSample = "http://a/b/c/d;p?q";
+  Uri base = Uri.parse(urisSample);
   testResolve(expect, relative) {
-    String name = "$base << $relative";
-    Expect.stringEquals(expect, base.resolve(relative).toString(), name);
-
-    Expect.stringEquals(expect, complexBase.resolve(relative).toString(),
-        name + " (complex base)");
+    Expect.stringEquals(expect, base.resolve(relative).toString());
   }
 
   // From RFC 3986.
-  final urisSample = "http://a/b/c/d;p?q";
-  setBase(urisSample);
-
   testResolve("g:h", "g:h");
   testResolve("http://a/b/c/g", "g");
   testResolve("http://a/b/c/g", "./g");
@@ -175,249 +124,15 @@ testUriPerRFCs() {
   // Additional tests (not from RFC 3986).
   testResolve("http://a/b/g;p/h;s", "../g;p/h;s");
 
-  setBase("s:a/b");
-  testResolve("s:a/c", "c");
-  testResolve("s:/c", "../c");
-
-  setBase("S:a/b");
-  testResolve("s:a/c", "c");
-  testResolve("s:/c", "../c");
-
-  setBase("s:foo");
-  testResolve("s:bar", "bar");
-  testResolve("s:bar", "../bar");
-
-  setBase("S:foo");
-  testResolve("s:bar", "bar");
-  testResolve("s:bar", "../bar");
-
-  // Special-case (deliberate non-RFC behavior).
-  setBase("foo/bar");
-  testResolve("foo/baz", "baz");
-  testResolve("baz", "../baz");
-
-  setBase("s:/foo");
-  testResolve("s:/bar", "bar");
-  testResolve("s:/bar", "../bar");
-
-  setBase("S:/foo");
-  testResolve("s:/bar", "bar");
-  testResolve("s:/bar", "../bar");
-
   // Test non-URI base (no scheme, no authority, relative path).
-  setBase("a/b/c?_#_");
+  base = Uri.parse("a/b/c?_#_");
   testResolve("a/b/g?q#f", "g?q#f");
-  testResolve("./", "../..");
   testResolve("../", "../../..");
   testResolve("a/b/", ".");
-  testResolve("c", "../../c"); // Deliberate non-RFC behavior.
-  setBase("../../a/b/c?_#_"); // Initial ".." in base url.
-  testResolve("../../a/d", "../d");
-  testResolve("../../d", "../../d");
-  testResolve("../../../d", "../../../d");
-  setBase("../../a/b");
-  testResolve("../../a/d", "d");
-  testResolve("../../d", "../d");
-  testResolve("../../../d", "../../d");
-  setBase("../../a");
-  testResolve("../../d", "d");
-  testResolve("../../../d", "../d");
-  testResolve("../../../../d", "../../d");
+  testResolve("c", "../../c");
 
-  // Absolute path, not scheme or authority.
-  setBase("/a");
-  testResolve("/b", "b");
-  testResolve("/b", "../b");
-  testResolve("/b", "../../b");
-  setBase("/a/b");
-  testResolve("/a/c", "c");
-  testResolve("/c", "../c");
-  testResolve("/c", "../../c");
-
-  setBase("s://h/p?q#f"); // A simple base.
-  // Simple references:
-  testResolve("s2://h2/P?Q#F", "s2://h2/P?Q#F");
-  testResolve("s://h2/P?Q#F", "//h2/P?Q#F");
-  testResolve("s://h/P?Q#F", "/P?Q#F");
-  testResolve("s://h/p?Q#F", "?Q#F");
-  testResolve("s://h/p?q#F", "#F");
-  testResolve("s://h/p?q", "");
-  // Non-simple references:
-  testResolve("s2://I@h2/P?Q#F%20", "s2://I@h2/P?Q#F%20");
-  testResolve("s://I@h2/P?Q#F%20", "//I@h2/P?Q#F%20");
-  testResolve("s://h2/P?Q#F%20", "//h2/P?Q#F%20");
-  testResolve("s://h/P?Q#F%20", "/P?Q#F%20");
-  testResolve("s://h/p?Q#F%20", "?Q#F%20");
-  testResolve("s://h/p?q#F%20", "#F%20");
-
-  setBase("s://h/p1/p2/p3"); // A simple base with a path.
-  testResolve("s://h/p1/p2/", ".");
-  testResolve("s://h/p1/p2/", "./");
-  testResolve("s://h/p1/", "..");
-  testResolve("s://h/p1/", "../");
-  testResolve("s://h/", "../..");
-  testResolve("s://h/", "../../");
-  testResolve("s://h/p1/%20", "../%20");
-  testResolve("s://h/", "../../../..");
-  testResolve("s://h/", "../../../../");
-
-  setBase("s://h/p?q#f%20"); // A non-simpe base.
-  // Simple references:
-  testResolve("s2://h2/P?Q#F", "s2://h2/P?Q#F");
-  testResolve("s://h2/P?Q#F", "//h2/P?Q#F");
-  testResolve("s://h/P?Q#F", "/P?Q#F");
-  testResolve("s://h/p?Q#F", "?Q#F");
-  testResolve("s://h/p?q#F", "#F");
-  testResolve("s://h/p?q", "");
-  // Non-simple references:
-  testResolve("s2://I@h2/P?Q#F%20", "s2://I@h2/P?Q#F%20");
-  testResolve("s://I@h2/P?Q#F%20", "//I@h2/P?Q#F%20");
-  testResolve("s://h2/P?Q#F%20", "//h2/P?Q#F%20");
-  testResolve("s://h/P?Q#F%20", "/P?Q#F%20");
-  testResolve("s://h/p?Q#F%20", "?Q#F%20");
-  testResolve("s://h/p?q#F%20", "#F%20");
-
-  setBase("S://h/p1/p2/p3"); // A non-simple base with a path.
-  testResolve("s://h/p1/p2/", ".");
-  testResolve("s://h/p1/p2/", "./");
-  testResolve("s://h/p1/", "..");
-  testResolve("s://h/p1/", "../");
-  testResolve("s://h/", "../..");
-  testResolve("s://h/", "../../");
-  testResolve("s://h/p1/%20", "../%20");
-  testResolve("s://h/", "../../../..");
-  testResolve("s://h/", "../../../../");
-
-  setBase("../../../"); // A simple relative path.
-  testResolve("../../../a", "a");
-  testResolve("../../../../a", "../a");
-  testResolve("../../../a%20", "a%20");
-  testResolve("../../../../a%20", "../a%20");
-
-  // Tests covering the branches of the merge algorithm in RFC 3986
-  // with both simple and complex base URIs.
-  for (var b in ["s://a/pa/pb?q#f", "s://a/pa/pb?q#f%20"]) {
-    setBase(b);
-
-    // if defined(R.scheme) then ...
-    testResolve("s2://a2/p2?q2#f2", "s2://a2/p2?q2#f2");
-    // else, if defined(R.authority) then ...
-    testResolve("s://a2/p2?q2#f2", "//a2/p2?q2#f2");
-    testResolve("s://a2/?q2#f2", "//a2/../?q2#f2");
-    testResolve("s://a2?q2#f2", "//a2?q2#f2");
-    testResolve("s://a2#f2", "//a2#f2");
-    testResolve("s://a2", "//a2");
-    // else, if (R.path == "") then ...
-    //   if defined(R.query) then
-    testResolve("s://a/pa/pb?q2#f2", "?q2#f2");
-    testResolve("s://a/pa/pb?q2", "?q2");
-    //   else
-    testResolve("s://a/pa/pb?q#f2", "#f2");
-    testResolve("s://a/pa/pb?q", "");
-    // else, if (R.path starts-with "/") then ...
-    testResolve("s://a/p2?q2#f2", "/p2?q2#f2");
-    testResolve("s://a/?q2#f2", "/?q2#f2");
-    testResolve("s://a/#f2", "/#f2");
-    testResolve("s://a/", "/");
-    testResolve("s://a/", "/../");
-    // else ... T.path = merge(Base.path, R.path)
-    // ... remove-dot-fragments(T.path) ...
-    // (Cover the merge function and the remove-dot-fragments functions too).
-
-    // If base has authority and empty path ...
-    var emptyPathBase = b.replaceFirst("/pa/pb", "");
-    setBase(emptyPathBase);
-    testResolve("s://a/p2?q2#f2", "p2?q2#f2");
-    testResolve("s://a/p2#f2", "p2#f2");
-    testResolve("s://a/p2", "p2");
-
-    setBase(b);
-    // otherwise
-    // (Cover both no authority and non-empty path and both).
-    var noAuthEmptyPathBase = b.replaceFirst("//a/pa/pb", "");
-    var noAuthAbsPathBase = b.replaceFirst("//a", "");
-    var noAuthRelPathBase = b.replaceFirst("//a/", "");
-    var noAuthRelSinglePathBase = b.replaceFirst("//a/pa/", "");
-
-    testResolve("s://a/pa/p2?q2#f2", "p2?q2#f2");
-    testResolve("s://a/pa/p2#f2", "p2#f2");
-    testResolve("s://a/pa/p2", "p2");
-
-    setBase(noAuthEmptyPathBase);
-    testResolve("s:p2?q2#f2", "p2?q2#f2");
-    testResolve("s:p2#f2", "p2#f2");
-    testResolve("s:p2", "p2");
-
-    setBase(noAuthAbsPathBase);
-    testResolve("s:/pa/p2?q2#f2", "p2?q2#f2");
-    testResolve("s:/pa/p2#f2", "p2#f2");
-    testResolve("s:/pa/p2", "p2");
-
-    setBase(noAuthRelPathBase);
-    testResolve("s:pa/p2?q2#f2", "p2?q2#f2");
-    testResolve("s:pa/p2#f2", "p2#f2");
-    testResolve("s:pa/p2", "p2");
-
-    setBase(noAuthRelSinglePathBase);
-    testResolve("s:p2?q2#f2", "p2?q2#f2");
-    testResolve("s:p2#f2", "p2#f2");
-    testResolve("s:p2", "p2");
-
-    // Then remove dot segments.
-
-    // A. if input buffer starts with "../" or "./".
-    // This only happens if base has only a single (may be empty) segment and
-    // no slash.
-    setBase(emptyPathBase);
-    testResolve("s://a/p2", "../p2");
-    testResolve("s://a/", "../");
-    testResolve("s://a/", "..");
-    testResolve("s://a/p2", "./p2");
-    testResolve("s://a/", "./");
-    testResolve("s://a/", ".");
-    testResolve("s://a/p2", "../../p2");
-    testResolve("s://a/p2", "../../././p2");
-
-    setBase(noAuthRelSinglePathBase);
-    testResolve("s:p2", "../p2");
-    testResolve("s:", "../");
-    testResolve("s:", "..");
-    testResolve("s:p2", "./p2");
-    testResolve("s:", "./");
-    testResolve("s:", ".");
-    testResolve("s:p2", "../../p2");
-    testResolve("s:p2", "../../././p2");
-
-    // B. if input buffer starts with "/./" or is "/.". replace with "/".
-    // (The URI implementation removes the "." path segments when parsing,
-    // so this case isn't handled by merge).
-    setBase(b);
-    testResolve("s://a/pa/p2", "./p2");
-
-    // C. if input buffer starts with "/../" or is "/..", replace with "/"
-    // and remove preceeding segment.
-    testResolve("s://a/p2", "../p2");
-    var longPathBase = b.replaceFirst("/pb", "/pb/pc/pd");
-    setBase(longPathBase);
-    testResolve("s://a/pa/pb/p2", "../p2");
-    testResolve("s://a/pa/p2", "../../p2");
-    testResolve("s://a/p2", "../../../p2");
-    testResolve("s://a/p2", "../../../../p2");
-    var noAuthRelLongPathBase = b.replaceFirst("//a/pa/pb", "pa/pb/pc/pd");
-    setBase(noAuthRelLongPathBase);
-    testResolve("s:pa/pb/p2", "../p2");
-    testResolve("s:pa/p2", "../../p2");
-    testResolve("s:/p2", "../../../p2");
-    testResolve("s:/p2", "../../../../p2");
-
-    // D. if the input buffer contains only ".." or ".", remove it.
-    setBase(noAuthEmptyPathBase);
-    testResolve("s:", "..");
-    testResolve("s:", ".");
-    setBase(noAuthRelSinglePathBase);
-    testResolve("s:", "..");
-    testResolve("s:", ".");
-  }
+  base = Uri.parse("s:a/b");
+  testResolve("s:/c", "../c");
 }
 
 void testResolvePath(String expected, String path) {
@@ -527,20 +242,20 @@ void testInvalidUrls() {
   // the input would cause them to be valid (normalization happens after
   // validation).
   var invalidCharsAndReplacements = [
-    "\xe7", "%C3%A7", //            Arbitrary non-ASCII letter
-    " ", "%20", //                  Space, not allowed anywhere.
-    '"', "%22", //                  Quote, not allowed anywhere
-    "<>", "%3C%3E", //              Less/greater-than, not allowed anywhere.
-    "\x7f", "%7F", //               DEL, not allowed anywhere
-    "\xdf", "%C3%9F", //            German lower-case scharf-S.
+    "\xe7", "%C3%A7", //       Arbitrary non-ASCII letter
+    " ", "%20", //          Space, not allowed anywhere.
+    '"', "%22", //          Quote, not allowed anywhere
+    "<>", "%3C%3E", //       Less/greater-than, not allowed anywhere.
+    "\x7f", "%7F", //          DEL, not allowed anywhere
+    "\xdf", "%C3%9F", //       German lower-case scharf-S.
     //                              Becomes ASCII when upper-cased.
-    "\u0130", "%C4%B0", //          Latin capital dotted I,
+    "\u0130", "%C4%B0", //       Latin capital dotted I,
     //                              becomes ASCII lower-case in Turkish.
-    "%\uFB03", "%25%EF%AC%83", //   % + Ligature ffi,
+    "%\uFB03", "%25%EF%AC%83", // % + Ligature ffi,
     //                              becomes ASCII when upper-cased,
     //                              should not be read as "%FFI".
-    "\u212a", "%E2%84%AA", //       Kelvin sign. Becomes ASCII when lower-cased.
-    "%1g", "%251g", //              Invalid escape.
+    "\u212a", "%E2%84%AA", //    Kelvin sign. Becomes ASCII when lower-cased.
+    "%1g", "%251g", //        Invalid escape.
     "\u{10000}", "%F0%90%80%80", // Non-BMP character as surrogate pair.
   ];
   for (int i = 0; i < invalidCharsAndReplacements.length; i += 2) {
@@ -565,19 +280,10 @@ void testInvalidUrls() {
   checkInvalid("s://x@x:x/");
   // At most one port.
   checkInvalid("s://x@x:9:9/");
-  // At most one #.
-  checkInvalid("s://x/x#foo#bar");
   // @ not allowed in scheme.
   checkInvalid("s@://x:9/x?x#x");
   // ] not allowed alone in host.
   checkInvalid("s://xx]/");
-  // ] not allowed anywhere except in host.
-  checkInvalid("s://xx/]");
-  checkInvalid("s://xx/?]");
-  checkInvalid("s://xx/#]");
-  checkInvalid("s:/]");
-  checkInvalid("s:/?]");
-  checkInvalid("s:/#]");
   // IPv6 must be enclosed in [ and ] for Uri.parse.
   // It is allowed un-enclosed as argument to `Uri(host:...)` because we don't
   // need to delimit.
@@ -608,13 +314,6 @@ void testNormalization() {
     uri = Uri.parse("s://xX${escape}xX@yY${escape}yY/zZ${escape}zZ"
         "?vV${escape}vV#wW${escape}wW");
     Expect.equals("xX${char}xX", uri.userInfo);
-    Expect.equals("yY${char}yY".toLowerCase(), uri.host);
-    Expect.equals("/zZ${char}zZ", uri.path);
-    Expect.equals("vV${char}vV", uri.query);
-    Expect.equals("wW${char}wW", uri.fragment);
-
-    uri = Uri.parse("s://yY${escape}yY/zZ${escape}zZ"
-        "?vV${escape}vV#wW${escape}wW");
     Expect.equals("yY${char}yY".toLowerCase(), uri.host);
     Expect.equals("/zZ${char}zZ", uri.path);
     Expect.equals("vV${char}vV", uri.query);
@@ -679,17 +378,25 @@ void testNormalization() {
       "scheme:///#",
       new Uri(scheme: "scheme", host: "", path: "/", query: "", fragment: "")
           .toString());
+
+  // We allow, and escape, general delimiters in paths, queries and fragments.
+  // Allow `[` and `]` in path:
+  Expect.equals("s:/%5B%5D", Uri.parse("s:/[]").toString());
+  Expect.equals("s:%5B%5D", Uri.parse("s:[]").toString());
+  Expect.equals("%5B%5D", Uri.parse("[]").toString());
+  // Allow `[`, `]` and `?` in query (anything after *first* `?`).
+  // The `?` is not escaped.
+  Expect.equals("s://xx/?%5B%5D?", Uri.parse("s://xx/?[]?").toString());
+  // Allow `[`, `]`, `?` and `#` in fragment (anything after *first* `#`).
+  // The `?` is not escaped.
+  Expect.equals("s://xx/#%5B%5D%23?", Uri.parse("s://xx/#[]#?").toString());
 }
 
 void testReplace() {
   var uris = [
     Uri.parse(""),
     Uri.parse("a://@:/?#"),
-    Uri.parse("a://:/?#"), // Parsed as simple URI.
     Uri.parse("a://b@c:4/e/f?g#h"),
-    Uri.parse("a://c:4/e/f?g#h"), // Parsed as simple URI.
-    Uri.parse("$SCHEMECHAR://$REGNAMECHAR:$DIGIT/$PCHAR/$PCHAR"
-        "?$QUERYCHAR#$QUERYCHAR"), // Parsed as simple URI.
     Uri.parse("$SCHEMECHAR://$USERINFOCHAR@$REGNAMECHAR:$DIGIT/$PCHAR/$PCHAR"
         "?$QUERYCHAR#$QUERYCHAR"),
   ];
@@ -765,37 +472,6 @@ void testReplace() {
   Expect.equals(2, params.length);
   Expect.listEquals(["42", "37"], params["x"]);
   Expect.listEquals(["43", "38"], params["y"]);
-
-  // Test replacing with empty strings.
-  uri = Uri.parse("s://a:1/b/c?d#e");
-  Expect.equals("s://a:1/b/c?d#", uri.replace(fragment: "").toString());
-  Expect.equals("s://a:1/b/c?#e", uri.replace(query: "").toString());
-  Expect.equals("s://a:1?d#e", uri.replace(path: "").toString());
-  Expect.equals("s://:1/b/c?d#e", uri.replace(host: "").toString());
-
-  // Test uri.replace on uri with fragment
-  uri = Uri.parse('http://hello.com/fake#fragment');
-  uri = uri.replace(path: "D/E/E");
-  Expect.stringEquals('http://hello.com/D/E/E#fragment', uri.toString());
-}
-
-void testRegression28359() {
-  var uri = new Uri(path: "//");
-  // This is an invalid path for a URI reference with no authority
-  // since it looks like an authority.
-  // Normalized to have an authority.
-  Expect.equals("////", "$uri");
-  Expect.equals("//", uri.path);
-  Expect.isTrue(uri.hasAuthority, "$uri has authority");
-
-  uri = new Uri(path: "file:///wat");
-  // This is an invalid path for a URI reference with no authority or scheme
-  // since the path looks like it starts with a scheme.
-  // Normalized by escaping the ":".
-  Expect.equals("file%3A///wat", uri.path);
-  Expect.equals("file%3A///wat", "$uri");
-  Expect.isFalse(uri.hasAuthority);
-  Expect.isFalse(uri.hasScheme);
 }
 
 main() {
@@ -828,11 +504,6 @@ main() {
               fragment: null)
           .toString());
   Expect.stringEquals("file:///", Uri.parse("file:").toString());
-  Expect.stringEquals("file:///", Uri.parse("file:/").toString());
-  Expect.stringEquals("file:///", Uri.parse("file:").toString());
-  Expect.stringEquals("file:///foo", Uri.parse("file:foo").toString());
-  Expect.stringEquals("file:///foo", Uri.parse("file:/foo").toString());
-  Expect.stringEquals("file://foo/", Uri.parse("file://foo").toString());
 
   testResolvePath("/a/g", "/a/b/c/./../../g");
   testResolvePath("/a/g", "/a/b/c/./../../g");
@@ -856,10 +527,9 @@ main() {
       Uri.parse("http://example.com:1234/a/b/c").origin);
   Expect.stringEquals("https://example.com:1234",
       Uri.parse("https://example.com:1234/a/b/c").origin);
-  Expect.throws(() => Uri.parse("http:").origin, (e) {
-    return e is StateError;
-  }, "origin for URI with empty host should fail");
-  Expect.throws(
+  Expect.throwsStateError(() => Uri.parse("http:").origin,
+      "origin for uri with empty host should fail");
+  Expect.throwsStateError(
       () => new Uri(
               scheme: "http",
               userInfo: null,
@@ -868,10 +538,9 @@ main() {
               path: "/a/b/c",
               query: "query",
               fragment: "fragment")
-          .origin, (e) {
-    return e is StateError;
-  }, "origin for URI with empty host should fail");
-  Expect.throws(
+          .origin,
+      "origin for uri with empty host should fail");
+  Expect.throwsStateError(
       () => new Uri(
               scheme: null,
               userInfo: null,
@@ -880,10 +549,9 @@ main() {
               path: "/a/b/c",
               query: "query",
               fragment: "fragment")
-          .origin, (e) {
-    return e is StateError;
-  }, "origin for URI with empty scheme should fail");
-  Expect.throws(
+          .origin,
+      "origin for uri with empty scheme should fail");
+  Expect.throwsStateError(
       () => new Uri(
               scheme: "http",
               userInfo: null,
@@ -892,19 +560,16 @@ main() {
               path: "/a/b/c",
               query: "query",
               fragment: "fragment")
-          .origin, (e) {
-    return e is StateError;
-  }, "origin for URI with empty host should fail");
-  Expect.throws(() => Uri.parse("http://:80").origin, (e) {
-    return e is StateError;
-  }, "origin for URI with empty host should fail");
-  Expect.throws(() => Uri.parse("file://localhost/test.txt").origin, (e) {
-    return e is StateError;
-  }, "origin for non-http/https uri should fail");
+          .origin,
+      "origin for uri with empty host should fail");
+  Expect.throwsStateError(() => Uri.parse("http://:80").origin,
+      "origin for uri with empty host should fail");
+  Expect.throwsStateError(() => Uri.parse("file://localhost/test.txt").origin,
+      "origin for non-http/https uri should fail");
 
   // URI encode tests
   // Create a string with code point 0x10000 encoded as a surrogate pair.
-  var s = UTF8.decode([0xf0, 0x90, 0x80, 0x80]);
+  var s = utf8.decode([0xf0, 0x90, 0x80, 0x80]);
 
   Expect.stringEquals("\u{10000}", s);
 
@@ -953,14 +618,13 @@ main() {
   testEncodeDecodeComponent(nonAscii, nonAsciiEncoding);
 
   // Invalid URI - : and @ is swapped, port ("host") should be numeric.
-  Expect.throws(() => Uri.parse("file://user@password:host/path"),
-      (e) => e is FormatException);
+  Expect.throwsFormatException(
+      () => Uri.parse("file://user@password:host/path"));
 
   testValidCharacters();
   testInvalidUrls();
   testNormalization();
   testReplace();
-  testRegression28359();
 }
 
 String dump(Uri uri) {

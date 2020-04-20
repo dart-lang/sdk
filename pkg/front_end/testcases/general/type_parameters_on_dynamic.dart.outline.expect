@@ -1,0 +1,14 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/type_parameters_on_dynamic.dart:1:1: Error: Expected 0 type arguments.
+// dynamic<int> f() {}
+// ^
+//
+import self as self;
+
+static method f() → invalid-type
+  ;
+static method main() → dynamic
+  ;

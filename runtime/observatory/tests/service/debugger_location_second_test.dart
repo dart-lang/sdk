@@ -1,19 +1,18 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
 import 'package:observatory/debugger.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 import 'dart:async';
 import 'dart:developer';
 
-const int LINE_A = 22;
+const int LINE_A = 21;
 const int LINE_B = 110;
-const int LINE_C = 12;
+const int LINE_C = 11;
 
 void testFunction() {
   int i = 0;
@@ -53,7 +52,7 @@ Future<Debugger> initDebugger(Isolate isolate) {
   });
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
 
 // Load the isolate's libraries
@@ -170,8 +169,8 @@ var tests = [
             ' debugger_location_second_test.dart:${LINE_B + 4}:,'
             ' debugger_location_second_test.dart:${LINE_B + 5} ,'
             ' debugger_location_second_test.dart:${LINE_B + 5}:,'
-            ' debugger_location_second_test.dart:${LINE_B + 6} ,'
-            ' debugger_location_second_test.dart:${LINE_B + 6}:,'
+            ' debugger_location_second_test.dart:${LINE_B + 8} ,'
+            ' debugger_location_second_test.dart:${LINE_B + 8}:,'
             ' debugger_location_second_test.dart:${LINE_B + 9} ,'
             ' debugger_location_second_test.dart:${LINE_B + 9}:]'));
   },

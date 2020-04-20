@@ -1,0 +1,18 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field ({required s: core::String}) → void f;
+  constructor •({required core::int x}) → self::A
+    ;
+  method foo({required core::int y}) → dynamic
+    ;
+}
+static field ({required s: core::String}) → void g;
+static method foo({required core::String s}) → void
+  ;
+static method bar() → dynamic
+  ;
+static method main() → dynamic
+  ;

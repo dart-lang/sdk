@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 import 'native_testing.dart';
 
 class A {
@@ -12,7 +14,7 @@ class B extends A {
   int b;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 escape(v) {
   g = v;
 }

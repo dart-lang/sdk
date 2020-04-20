@@ -36,7 +36,7 @@ class InlineTable extends SortedTable {
   InlineTable(columns) : super(columns);
 }
 
-class CodeViewElement extends HtmlElement implements Renderable {
+class CodeViewElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<CodeViewElement>('code-view', dependencies: const [
     CurlyBlockElement.tag,
@@ -97,8 +97,8 @@ class CodeViewElement extends HtmlElement implements Renderable {
     assert(reachableSizes != null);
     assert(references != null);
     assert(retainingPaths != null);
-    CodeViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    CodeViewElement e = new CodeViewElement.created();
+    e._r = new RenderingScheduler<CodeViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -112,7 +112,7 @@ class CodeViewElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  CodeViewElement.created() : super.created() {
+  CodeViewElement.created() : super.created(tag) {
     var columns = [
       new SortedTableColumn('Address'),
       new SortedTableColumn('Inclusive'),
@@ -140,7 +140,7 @@ class CodeViewElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   TableElement _disassemblyTable;
@@ -151,9 +151,9 @@ class CodeViewElement extends HtmlElement implements Renderable {
   void render() {
     if (_inlineRangeTable == null) {
       _inlineRangeTable = new TableElement()..classes = ['table'];
-      _inlineRangeTable.createTHead().children = [
+      _inlineRangeTable.createTHead().children = <Element>[
         new TableRowElement()
-          ..children = [
+          ..children = <Element>[
             document.createElement('th')
               ..classes = ['address']
               ..text = 'Address Range',
@@ -171,9 +171,9 @@ class CodeViewElement extends HtmlElement implements Renderable {
     }
     if (_disassemblyTable == null) {
       _disassemblyTable = new TableElement()..classes = ['table'];
-      _disassemblyTable.createTHead().children = [
+      _disassemblyTable.createTHead().children = <Element>[
         new TableRowElement()
-          ..children = [
+          ..children = <Element>[
             document.createElement('th')
               ..classes = ['address']
               ..text = 'Address Range',
@@ -198,42 +198,45 @@ class CodeViewElement extends HtmlElement implements Renderable {
     }
     final inlinedFunctions = _code.inlinedFunctions.toList();
     final S.Code code = _code as S.Code;
-    children = [
-      navBar([
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+    children = <Element>[
+      navBar(<Element>[
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
         navMenu(_code.name),
-        new NavRefreshElement(queue: _r.queue)
-          ..onRefresh.listen((e) async {
-            e.element.disabled = true;
-            _refresh();
-          }),
-        new NavRefreshElement(label: 'refresh ticks', queue: _r.queue)
-          ..onRefresh.listen((e) async {
-            e.element.disabled = true;
-            _refreshTicks();
-          }),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        (new NavRefreshElement(queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                _refresh();
+              }))
+            .element,
+        (new NavRefreshElement(label: 'refresh ticks', queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                _refreshTicks();
+              }))
+            .element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h1()
             ..text = (M.isDartCode(_code.kind) && _code.isOptimized)
                 ? 'Optimized code for ${_code.name}'
                 : 'Code for ${_code.name}',
           new HRElement(),
           new ObjectCommonElement(_isolate, _code, _retainedSizes,
-              _reachableSizes, _references, _retainingPaths, _objects,
-              queue: _r.queue),
+                  _reachableSizes, _references, _retainingPaths, _objects,
+                  queue: _r.queue)
+              .element,
           new BRElement(),
           new DivElement()
             ..classes = ['memberList']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'Kind',
@@ -255,15 +258,16 @@ class CodeViewElement extends HtmlElement implements Renderable {
                       ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'Function',
                   new DivElement()
                     ..classes = ['memberValue']
-                    ..children = [
+                    ..children = <Element>[
                       new FunctionRefElement(_isolate, _code.function,
-                          queue: _r.queue)
+                              queue: _r.queue)
+                          .element
                     ]
                 ],
               new DivElement()
@@ -292,15 +296,16 @@ class CodeViewElement extends HtmlElement implements Renderable {
                       ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'Object pool',
                   new DivElement()
                     ..classes = ['memberValue']
-                    ..children = [
+                    ..children = <Element>[
                       new ObjectPoolRefElement(_isolate, _code.objectPool,
-                          queue: _r.queue)
+                              queue: _r.queue)
+                          .element
                     ]
                 ],
               new DivElement()
@@ -314,15 +319,17 @@ class CodeViewElement extends HtmlElement implements Renderable {
                               'inlined functions (${inlinedFunctions.length})',
                         new DivElement()
                           ..classes = ['memberValue']
-                          ..children = [
-                            new CurlyBlockElement(
-                                expanded: inlinedFunctions.length < 8,
-                                queue: _r.queue)
-                              ..content = inlinedFunctions
-                                  .map((f) => new FunctionRefElement(
-                                      _isolate, f,
-                                      queue: _r.queue))
-                                  .toList()
+                          ..children = <Element>[
+                            (new CurlyBlockElement(
+                                    expanded: inlinedFunctions.length < 8,
+                                    queue: _r.queue)
+                                  ..content = inlinedFunctions
+                                      .map<Element>((f) =>
+                                          new FunctionRefElement(_isolate, f,
+                                                  queue: _r.queue)
+                                              .element)
+                                      .toList())
+                                .element
                           ]
                       ]
             ],
@@ -476,7 +483,9 @@ class CodeViewElement extends HtmlElement implements Renderable {
       final cell = tr.children[i];
       final content = row.values[i];
       if (content is S.HeapObject) {
-        cell.children = [anyRef(_isolate, content, _objects, queue: _r.queue)];
+        cell.children = <Element>[
+          anyRef(_isolate, content, _objects, queue: _r.queue)
+        ];
       } else if (content != null) {
         String text = '$content';
         if (i == kDisassemblyColumnIndex) {
@@ -591,7 +600,7 @@ class CodeViewElement extends HtmlElement implements Renderable {
     functionsCell.children.clear();
     for (var func in functions) {
       functionsCell.children
-          .add(new FunctionRefElement(_isolate, func, queue: _r.queue));
+          .add(new FunctionRefElement(_isolate, func, queue: _r.queue).element);
       var gap = new SpanElement();
       gap.style.minWidth = '1em';
       gap.text = ' ';

@@ -35,10 +35,10 @@ void testWithModification(List list) {
 }
 
 main() {
-  List fixedLengthList = new List(10);
+  List fixedLengthList = new List.filled(10, null);
   for (int i = 0; i < 10; i++) fixedLengthList[i] = i + 1;
 
-  List growableList = new List();
+  List growableList = [];
   growableList.length = 10;
   for (int i = 0; i < 10; i++) growableList[i] = i + 1;
 

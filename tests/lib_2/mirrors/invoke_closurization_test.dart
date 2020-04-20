@@ -29,7 +29,7 @@ testSync() {
   Expect.isTrue(result.reflectee is Function, "Should be closure");
   Expect.equals("A-B-C", result.reflectee('A', 'B', 'C'));
 
-  LibraryMirror lm = cm.owner;
+  LibraryMirror lm = cm.owner as LibraryMirror;
   result = lm.getField(#libraryFunction);
   Expect.isTrue(result.reflectee is Function, "Should be closure");
   Expect.equals("A:B:C", result.reflectee('A', 'B', 'C'));

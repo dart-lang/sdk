@@ -4,6 +4,7 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:kernel/kernel.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 import 'package:args/args.dart';
 import 'class_hierarchy_basic.dart';
 import 'dart:io';
@@ -22,7 +23,7 @@ Options:
 ${argParser.usage}
 """;
 
-/// Builds N copies of the class hierarchy for the given program.
+/// Builds N copies of the class hierarchy for the given component.
 /// Pass --print-metrics to the Dart VM to measure the memory use.
 main(List<String> args) {
   if (args.length == 0) {
@@ -36,14 +37,15 @@ main(List<String> args) {
   }
   String filename = options.rest.single;
 
-  Program program = loadProgramFromBinary(filename);
+  Component component = loadComponentFromBinary(filename);
+  CoreTypes coreTypes = new CoreTypes(component);
 
   int copyCount = int.parse(options['count']);
 
   ClassHierarchy buildHierarchy() {
     return options['basic']
-        ? new BasicClassHierarchy(program)
-        : new ClosedWorldClassHierarchy(program);
+        ? new BasicClassHierarchy(component)
+        : new ClassHierarchy(component, coreTypes);
   }
 
   List<ClosedWorldClassHierarchy> keepAlive = <ClosedWorldClassHierarchy>[];

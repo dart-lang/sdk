@@ -6,11 +6,14 @@ library fasta.dill_target;
 
 import 'dart:async' show Future;
 
-import 'package:kernel/ast.dart' show Class;
+import 'package:front_end/src/fasta/builder/library_builder.dart'
+    show LibraryBuilder;
+
+import 'package:kernel/ast.dart' show Library;
 
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../kernel/kernel_builder.dart' show ClassBuilder;
+import '../builder/class_builder.dart';
 
 import '../problems.dart' show unsupported;
 
@@ -25,7 +28,11 @@ import 'dill_library_builder.dart' show DillLibraryBuilder;
 import 'dill_loader.dart' show DillLoader;
 
 class DillTarget extends TargetImplementation {
+  final Map<Uri, DillLibraryBuilder> libraryBuilders =
+      <Uri, DillLibraryBuilder>{};
+
   bool isLoaded = false;
+
   DillLoader loader;
 
   DillTarget(Ticker ticker, UriTranslator uriTranslator, Target backendTarget)
@@ -33,41 +40,50 @@ class DillTarget extends TargetImplementation {
     loader = new DillLoader(this);
   }
 
+  @override
   void addSourceInformation(
-      Uri uri, List<int> lineStarts, List<int> sourceCode) {
+      Uri importUri, Uri fileUri, List<int> lineStarts, List<int> sourceCode) {
     unsupported("addSourceInformation", -1, null);
   }
 
-  void read(Uri uri) {
-    unsupported("read", -1, null);
+  @override
+  Future<Null> buildComponent() {
+    return new Future<Null>.sync(() => unsupported("buildComponent", -1, null));
   }
 
   @override
-  Future<Null> buildProgram() {
-    return new Future<Null>.sync(() => unsupported("buildProgram", -1, null));
-  }
-
-  @override
-  Future<Null> buildOutlines() async {
+  Future<Null> buildOutlines({bool suppressFinalizationErrors: false}) async {
     if (loader.libraries.isNotEmpty) {
       await loader.buildOutlines();
-      loader.finalizeExports();
+      loader.finalizeExports(
+          suppressFinalizationErrors: suppressFinalizationErrors);
     }
     isLoaded = true;
   }
 
-  DillLibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri, origin) {
+  @override
+  DillLibraryBuilder createLibraryBuilder(
+      Uri uri,
+      Uri fileUri,
+      LibraryBuilder origin,
+      Library referencesFrom,
+      bool referenceIsPartOwner) {
     assert(origin == null);
-    return new DillLibraryBuilder(uri, loader);
+    assert(referencesFrom == null);
+    DillLibraryBuilder libraryBuilder = libraryBuilders.remove(uri);
+    assert(libraryBuilder != null, "No library found for $uri.");
+    return libraryBuilder;
   }
 
-  void addDirectSupertype(ClassBuilder cls, Set<ClassBuilder> set) {}
-
-  List<ClassBuilder> collectAllClasses() {
-    return null;
-  }
-
+  @override
   void breakCycle(ClassBuilder cls) {}
 
-  Class get objectClass => loader.coreLibrary["Object"].target;
+  void addLibrary(Library library) {
+    libraryBuilders[library.importUri] =
+        new DillLibraryBuilder(library, loader);
+  }
+
+  void releaseAncillaryResources() {
+    libraryBuilders.clear();
+  }
 }

@@ -13,7 +13,7 @@ testForkedZone(Zone forked) {
     return 499;
   });
   Expect.equals(499, result);
-  Expect.identical(Zone.ROOT, Zone.current);
+  Expect.identical(Zone.root, Zone.current);
 
   result = forked.runUnary((x) {
     Expect.equals(42, x);
@@ -21,14 +21,14 @@ testForkedZone(Zone forked) {
     return -499;
   }, 42);
   Expect.equals(-499, result);
-  Expect.identical(Zone.ROOT, Zone.current);
+  Expect.identical(Zone.root, Zone.current);
 
   bool runGuardedDidRun = false;
   forked.runGuarded(() {
     runGuardedDidRun = true;
     Expect.identical(forked, Zone.current);
   });
-  Expect.identical(Zone.ROOT, Zone.current);
+  Expect.identical(Zone.root, Zone.current);
   Expect.isTrue(runGuardedDidRun);
 
   runGuardedDidRun = false;
@@ -37,16 +37,16 @@ testForkedZone(Zone forked) {
     Expect.equals(42, x);
     Expect.identical(forked, Zone.current);
   }, 42);
-  Expect.identical(Zone.ROOT, Zone.current);
+  Expect.identical(Zone.root, Zone.current);
   Expect.isTrue(runGuardedDidRun);
 
   var callback = () => 499;
   Expect.identical(callback, forked.registerCallback(callback));
-  Expect.identical(Zone.ROOT, Zone.current);
+  Expect.identical(Zone.root, Zone.current);
 
   var callback1 = (x) => 42 + x;
   Expect.identical(callback1, forked.registerUnaryCallback(callback1));
-  Expect.identical(Zone.ROOT, Zone.current);
+  Expect.identical(Zone.root, Zone.current);
 
   asyncStart();
   bool asyncDidRun = false;
@@ -56,7 +56,7 @@ testForkedZone(Zone forked) {
     asyncEnd();
   });
   Expect.isFalse(asyncDidRun);
-  Expect.identical(Zone.ROOT, Zone.current);
+  Expect.identical(Zone.root, Zone.current);
 
   asyncStart();
   bool timerDidRun = false;
@@ -65,13 +65,13 @@ testForkedZone(Zone forked) {
     timerDidRun = true;
     asyncEnd();
   });
-  Expect.identical(Zone.ROOT, Zone.current);
+  Expect.identical(Zone.root, Zone.current);
 }
 
 main() {
-  Expect.identical(Zone.ROOT, Zone.current);
+  Expect.identical(Zone.root, Zone.current);
   Zone forked = Zone.current.fork();
-  Expect.isFalse(identical(Zone.ROOT, forked));
+  Expect.isFalse(identical(Zone.root, forked));
   testForkedZone(forked);
   Zone forkedChild = forked.fork();
   testForkedZone(forkedChild);

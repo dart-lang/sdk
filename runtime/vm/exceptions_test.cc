@@ -14,11 +14,15 @@ namespace dart {
 
 void FUNCTION_NAME(Unhandled_equals)(Dart_NativeArguments args) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  const Instance& expected = Instance::CheckedHandle(arguments->NativeArgAt(0));
-  const Instance& actual = Instance::CheckedHandle(arguments->NativeArgAt(1));
+  TransitionNativeToVM transition(arguments->thread());
+  Zone* zone = arguments->thread()->zone();
+  const Instance& expected =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Instance& actual =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
   if (!expected.CanonicalizeEquals(actual)) {
-    OS::Print("expected: '%s' actual: '%s'\n", expected.ToCString(),
-              actual.ToCString());
+    OS::PrintErr("expected: '%s' actual: '%s'\n", expected.ToCString(),
+                 actual.ToCString());
     FATAL("Unhandled_equals fails.\n");
   }
 }
@@ -64,6 +68,7 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
                                          bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
   *auto_setup_scope = true;
+  TransitionNativeToVM transition(Thread::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(name));
   ASSERT(obj.IsString());
   const char* function_name = obj.ToCString();
@@ -71,7 +76,7 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
   int num_entries = sizeof(BuiltinEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
     struct NativeEntries* entry = &(BuiltinEntries[i]);
-    if (!strcmp(function_name, entry->name_) &&
+    if ((strcmp(function_name, entry->name_) == 0) &&
         (argument_count == entry->argument_count_)) {
       return reinterpret_cast<Dart_NativeFunction>(entry->function_);
     }

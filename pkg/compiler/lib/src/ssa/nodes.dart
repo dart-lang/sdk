@@ -2,36 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
+
 import '../closure.dart';
 import '../common.dart';
-import '../common_elements.dart' show CommonElements;
-import '../compiler.dart' show Compiler;
-import '../constants/constant_system.dart';
+import '../common_elements.dart';
+import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
+import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
-import '../js_backend/js_backend.dart';
-import '../native/native.dart' as native;
-import '../types/constants.dart' show computeTypeMask;
-import '../types/types.dart';
+import '../js_backend/specialized_checks.dart' show IsTestSpecialization;
+import '../js_model/type_recipe.dart'
+    show TypeEnvironmentStructure, TypeRecipe, TypeExpressionRecipe;
+import '../native/behavior.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'invoke_dynamic_specializers.dart';
 import 'validate.dart';
 
 abstract class HVisitor<R> {
+  R visitAbs(HAbs node);
   R visitAdd(HAdd node);
   R visitAwait(HAwait node);
   R visitBitAnd(HBitAnd node);
   R visitBitNot(HBitNot node);
   R visitBitOr(HBitOr node);
   R visitBitXor(HBitXor node);
-  R visitBoolify(HBoolify node);
   R visitBoundsCheck(HBoundsCheck node);
   R visitBreak(HBreak node);
   R visitConstant(HConstant node);
@@ -43,6 +45,7 @@ abstract class HVisitor<R> {
   R visitExitTry(HExitTry node);
   R visitFieldGet(HFieldGet node);
   R visitFieldSet(HFieldSet node);
+  R visitInvokeExternal(HInvokeExternal node);
   R visitForeignCode(HForeignCode node);
   R visitGetLength(HGetLength node);
   R visitGoto(HGoto node);
@@ -60,8 +63,10 @@ abstract class HVisitor<R> {
   R visitInvokeStatic(HInvokeStatic node);
   R visitInvokeSuper(HInvokeSuper node);
   R visitInvokeConstructorBody(HInvokeConstructorBody node);
+  R visitInvokeGeneratorBody(HInvokeGeneratorBody node);
   R visitIs(HIs node);
   R visitIsViaInterceptor(HIsViaInterceptor node);
+  R visitLateValue(HLateValue node);
   R visitLazyStatic(HLazyStatic node);
   R visitLess(HLess node);
   R visitLessEqual(HLessEqual node);
@@ -95,12 +100,26 @@ abstract class HVisitor<R> {
   R visitTruncatingDivide(HTruncatingDivide node);
   R visitTry(HTry node);
   R visitTypeConversion(HTypeConversion node);
+  R visitPrimitiveCheck(HPrimitiveCheck node);
+  R visitBoolConversion(HBoolConversion node);
+  R visitNullCheck(HNullCheck node);
   R visitTypeKnown(HTypeKnown node);
   R visitYield(HYield node);
 
   R visitTypeInfoReadRaw(HTypeInfoReadRaw node);
   R visitTypeInfoReadVariable(HTypeInfoReadVariable node);
   R visitTypeInfoExpression(HTypeInfoExpression node);
+
+  // Instructions for 'dart:_rti'.
+  R visitIsTest(HIsTest node);
+  R visitIsTestSimple(HIsTestSimple node);
+  R visitAsCheck(HAsCheck node);
+  R visitAsCheckSimple(HAsCheckSimple node);
+  R visitSubtypeCheck(HSubtypeCheck node);
+  R visitLoadType(HLoadType node);
+  R visitInstanceEnvironment(HInstanceEnvironment node);
+  R visitTypeEval(HTypeEval node);
+  R visitTypeBind(HTypeBind node);
 }
 
 abstract class HGraphVisitor {
@@ -184,6 +203,7 @@ abstract class HInstructionVisitor extends HGraphVisitor {
 
   visitInstruction(HInstruction node);
 
+  @override
   visitBasicBlock(HBasicBlock node) {
     void visitInstructionList(HInstructionList list) {
       HInstruction instruction = list.first;
@@ -200,16 +220,25 @@ abstract class HInstructionVisitor extends HGraphVisitor {
 }
 
 class HGraph {
-  // TODO(johnniwinther): Maybe this should be [MemberLike].
-  Entity element; // Used for debug printing.
+  MemberEntity element; // Used for debug printing.
   HBasicBlock entry;
   HBasicBlock exit;
   HThis thisInstruction;
+
+  /// `true` if this graph should be transformed by a sync*/async/async*
+  /// rewrite.
+  bool needsAsyncRewrite = false;
+
+  /// If this function requires an async rewrite, this is the element type of
+  /// the generator.
+  DartType asyncElementType;
 
   /// Receiver parameter, set for methods using interceptor calling convention.
   HParameterValue explicitReceiverParameter;
   bool isRecursiveMethod = false;
   bool calledInLoop = false;
+  bool isLazyInitializer = false;
+
   final List<HBasicBlock> blocks = <HBasicBlock>[];
 
   /// Nodes containing list allocations for which there is a known fixed length.
@@ -250,7 +279,7 @@ class HGraph {
     return result;
   }
 
-  HConstant addConstant(ConstantValue constant, ClosedWorld closedWorld,
+  HConstant addConstant(ConstantValue constant, JClosedWorld closedWorld,
       {SourceInformation sourceInformation}) {
     HConstant result = constants[constant];
     // TODO(johnniwinther): Support source information per constant reference.
@@ -259,7 +288,8 @@ class HGraph {
         // We use `null` as the value for invalid constant expressions.
         constant = const NullConstantValue();
       }
-      TypeMask type = computeTypeMask(closedWorld, constant);
+      AbstractValue type = closedWorld.abstractValueDomain
+          .computeAbstractValueForConstant(constant);
       result = new HConstant.internal(constant, type)
         ..sourceInformation = sourceInformation;
       entry.addAtExit(result);
@@ -271,62 +301,53 @@ class HGraph {
     return result;
   }
 
-  HConstant addDeferredConstant(
-      ConstantValue constant,
-      Entity prefix,
-      SourceInformation sourceInformation,
-      Compiler compiler,
-      ClosedWorld closedWorld) {
-    // TODO(sigurdm,johnniwinther): These deferred constants should be created
-    // by the constant evaluator.
-    ConstantValue wrapper = new DeferredConstantValue(constant, prefix);
-    compiler.deferredLoadTask.registerConstantDeferredUse(wrapper, prefix);
-    return addConstant(wrapper, closedWorld,
+  HConstant addDeferredConstant(DeferredGlobalConstantValue constant,
+      SourceInformation sourceInformation, JClosedWorld closedWorld) {
+    return addConstant(constant, closedWorld,
         sourceInformation: sourceInformation);
   }
 
-  HConstant addConstantInt(int i, ClosedWorld closedWorld) {
-    return addConstant(closedWorld.constantSystem.createInt(i), closedWorld);
+  HConstant addConstantInt(int i, JClosedWorld closedWorld) {
+    return addConstant(constant_system.createIntFromInt(i), closedWorld);
   }
 
-  HConstant addConstantDouble(double d, ClosedWorld closedWorld) {
-    return addConstant(closedWorld.constantSystem.createDouble(d), closedWorld);
-  }
-
-  HConstant addConstantString(String str, ClosedWorld closedWorld) {
+  HConstant addConstantIntAsUnsigned(int i, JClosedWorld closedWorld) {
     return addConstant(
-        closedWorld.constantSystem.createString(str), closedWorld);
-  }
-
-  HConstant addConstantStringFromName(js.Name name, ClosedWorld closedWorld) {
-    return addConstant(
-        new SyntheticConstantValue(
-            SyntheticConstantKind.NAME, js.quoteName(name)),
+        constant_system.createInt(new BigInt.from(i).toUnsigned(64)),
         closedWorld);
   }
 
-  HConstant addConstantBool(bool value, ClosedWorld closedWorld) {
+  HConstant addConstantDouble(double d, JClosedWorld closedWorld) {
+    return addConstant(constant_system.createDouble(d), closedWorld);
+  }
+
+  HConstant addConstantString(String str, JClosedWorld closedWorld) {
+    return addConstant(constant_system.createString(str), closedWorld);
+  }
+
+  HConstant addConstantStringFromName(js.Name name, JClosedWorld closedWorld) {
     return addConstant(
-        closedWorld.constantSystem.createBool(value), closedWorld);
+        new JsNameConstantValue(js.quoteName(name)), closedWorld);
   }
 
-  HConstant addConstantNull(ClosedWorld closedWorld) {
-    return addConstant(closedWorld.constantSystem.createNull(), closedWorld);
+  HConstant addConstantBool(bool value, JClosedWorld closedWorld) {
+    return addConstant(constant_system.createBool(value), closedWorld);
   }
 
-  HConstant addConstantUnreachable(ClosedWorld closedWorld) {
+  HConstant addConstantNull(JClosedWorld closedWorld) {
+    return addConstant(constant_system.createNull(), closedWorld);
+  }
+
+  HConstant addConstantUnreachable(JClosedWorld closedWorld) {
     // A constant with an empty type used as the HInstruction of an expression
     // in an unreachable context.
-    return addConstant(
-        new SyntheticConstantValue(
-            SyntheticConstantKind.EMPTY_VALUE, const TypeMask.nonNullEmpty()),
-        closedWorld);
+    return addConstant(const UnreachableConstantValue(), closedWorld);
   }
 
-  void finalize() {
+  void finalize(AbstractValueDomain domain) {
     addBlock(exit);
     exit.open();
-    exit.close(new HExit());
+    exit.close(new HExit(domain));
     assignDominators();
   }
 
@@ -345,6 +366,35 @@ class HGraph {
         }
       }
     }
+    assignDominatorRanges();
+  }
+
+  void assignDominatorRanges() {
+    // DFS walk of dominator tree to assign dfs-in and dfs-out numbers to basic
+    // blocks. A dominator has a dfs-in..dfs-out range that includes the range
+    // of the dominated block. See [HGraphVisitor.visitDominatorTree] for
+    // recursion-free schema.
+    _Frame frame = new _Frame(null);
+    frame.block = entry;
+    frame.index = 0;
+
+    int dfsNumber = 0;
+    frame.block.dominatorDfsIn = dfsNumber;
+
+    while (frame != null) {
+      HBasicBlock block = frame.block;
+      int index = frame.index;
+      if (index < block.dominatedBlocks.length) {
+        frame.index = index + 1;
+        frame = frame.next ??= new _Frame(frame);
+        frame.block = block.dominatedBlocks[index];
+        frame.index = 0;
+        frame.block.dominatorDfsIn = ++dfsNumber;
+        continue;
+      }
+      block.dominatorDfsOut = dfsNumber;
+      frame = frame.previous;
+    }
   }
 
   bool isValid() {
@@ -353,12 +403,14 @@ class HGraph {
     return validator.isValid;
   }
 
+  @override
   toString() => 'HGraph($element)';
 }
 
 class HBaseVisitor extends HGraphVisitor implements HVisitor {
   HBasicBlock currentBlock;
 
+  @override
   visitBasicBlock(HBasicBlock node) {
     currentBlock = node;
 
@@ -383,90 +435,198 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitFieldAccess(HFieldAccess node) => visitInstruction(node);
   visitRelational(HRelational node) => visitInvokeBinary(node);
 
+  @override
+  visitAbs(HAbs node) => visitInvokeUnary(node);
+  @override
   visitAdd(HAdd node) => visitBinaryArithmetic(node);
+  @override
   visitBitAnd(HBitAnd node) => visitBinaryBitOp(node);
+  @override
   visitBitNot(HBitNot node) => visitInvokeUnary(node);
+  @override
   visitBitOr(HBitOr node) => visitBinaryBitOp(node);
+  @override
   visitBitXor(HBitXor node) => visitBinaryBitOp(node);
-  visitBoolify(HBoolify node) => visitInstruction(node);
+  @override
   visitBoundsCheck(HBoundsCheck node) => visitCheck(node);
+  @override
   visitBreak(HBreak node) => visitJump(node);
+  @override
   visitContinue(HContinue node) => visitJump(node);
   visitCheck(HCheck node) => visitInstruction(node);
+  @override
   visitConstant(HConstant node) => visitInstruction(node);
+  @override
   visitCreate(HCreate node) => visitInstruction(node);
+  @override
   visitCreateBox(HCreateBox node) => visitInstruction(node);
+  @override
   visitDivide(HDivide node) => visitBinaryArithmetic(node);
+  @override
   visitExit(HExit node) => visitControlFlow(node);
+  @override
   visitExitTry(HExitTry node) => visitControlFlow(node);
+  @override
   visitFieldGet(HFieldGet node) => visitFieldAccess(node);
+  @override
   visitFieldSet(HFieldSet node) => visitFieldAccess(node);
+  @override
+  visitInvokeExternal(HInvokeExternal node) => visitInstruction(node);
+  @override
   visitForeignCode(HForeignCode node) => visitInstruction(node);
+  @override
   visitGetLength(HGetLength node) => visitInstruction(node);
+  @override
   visitGoto(HGoto node) => visitControlFlow(node);
+  @override
   visitGreater(HGreater node) => visitRelational(node);
+  @override
   visitGreaterEqual(HGreaterEqual node) => visitRelational(node);
+  @override
   visitIdentity(HIdentity node) => visitRelational(node);
+  @override
   visitIf(HIf node) => visitConditionalBranch(node);
+  @override
   visitIndex(HIndex node) => visitInstruction(node);
+  @override
   visitIndexAssign(HIndexAssign node) => visitInstruction(node);
+  @override
   visitInterceptor(HInterceptor node) => visitInstruction(node);
+  @override
   visitInvokeClosure(HInvokeClosure node) => visitInvokeDynamic(node);
+  @override
   visitInvokeConstructorBody(HInvokeConstructorBody node) =>
       visitInvokeStatic(node);
+  @override
+  visitInvokeGeneratorBody(HInvokeGeneratorBody node) =>
+      visitInvokeStatic(node);
+  @override
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) =>
       visitInvokeDynamic(node);
+  @override
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) =>
       visitInvokeDynamicField(node);
+  @override
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) =>
       visitInvokeDynamicField(node);
+  @override
   visitInvokeStatic(HInvokeStatic node) => visitInvoke(node);
+  @override
   visitInvokeSuper(HInvokeSuper node) => visitInvokeStatic(node);
   visitJump(HJump node) => visitControlFlow(node);
+  @override
   visitLazyStatic(HLazyStatic node) => visitInstruction(node);
+  @override
   visitLess(HLess node) => visitRelational(node);
+  @override
   visitLessEqual(HLessEqual node) => visitRelational(node);
+  @override
   visitLiteralList(HLiteralList node) => visitInstruction(node);
   visitLocalAccess(HLocalAccess node) => visitInstruction(node);
+  @override
   visitLocalGet(HLocalGet node) => visitLocalAccess(node);
+  @override
   visitLocalSet(HLocalSet node) => visitLocalAccess(node);
+  @override
   visitLocalValue(HLocalValue node) => visitInstruction(node);
+  @override
   visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
+  @override
   visitNegate(HNegate node) => visitInvokeUnary(node);
+  @override
   visitNot(HNot node) => visitInstruction(node);
+  @override
   visitOneShotInterceptor(HOneShotInterceptor node) => visitInvokeDynamic(node);
+  @override
   visitPhi(HPhi node) => visitInstruction(node);
+  @override
   visitMultiply(HMultiply node) => visitBinaryArithmetic(node);
+  @override
   visitParameterValue(HParameterValue node) => visitLocalValue(node);
+  @override
   visitRangeConversion(HRangeConversion node) => visitCheck(node);
+  @override
   visitReadModifyWrite(HReadModifyWrite node) => visitInstruction(node);
+  @override
   visitRef(HRef node) => node.value.accept(this);
+  @override
   visitRemainder(HRemainder node) => visitBinaryArithmetic(node);
+  @override
   visitReturn(HReturn node) => visitControlFlow(node);
+  @override
   visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
+  @override
   visitShiftRight(HShiftRight node) => visitBinaryBitOp(node);
+  @override
   visitSubtract(HSubtract node) => visitBinaryArithmetic(node);
+  @override
   visitSwitch(HSwitch node) => visitControlFlow(node);
+  @override
   visitStatic(HStatic node) => visitInstruction(node);
+  @override
   visitStaticStore(HStaticStore node) => visitInstruction(node);
+  @override
   visitStringConcat(HStringConcat node) => visitInstruction(node);
+  @override
   visitStringify(HStringify node) => visitInstruction(node);
+  @override
   visitThis(HThis node) => visitParameterValue(node);
+  @override
   visitThrow(HThrow node) => visitControlFlow(node);
+  @override
   visitThrowExpression(HThrowExpression node) => visitInstruction(node);
+  @override
   visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
+  @override
   visitTry(HTry node) => visitControlFlow(node);
+  @override
   visitIs(HIs node) => visitInstruction(node);
+  @override
+  visitLateValue(HLateValue node) => visitInstruction(node);
+  @override
   visitIsViaInterceptor(HIsViaInterceptor node) => visitInstruction(node);
+  @override
   visitTypeConversion(HTypeConversion node) => visitCheck(node);
+  @override
+  visitBoolConversion(HBoolConversion node) => visitCheck(node);
+  @override
+  visitNullCheck(HNullCheck node) => visitCheck(node);
+  @override
+  visitPrimitiveCheck(HPrimitiveCheck node) => visitCheck(node);
+  @override
   visitTypeKnown(HTypeKnown node) => visitCheck(node);
+  @override
   visitAwait(HAwait node) => visitInstruction(node);
+  @override
   visitYield(HYield node) => visitInstruction(node);
 
+  @override
   visitTypeInfoReadRaw(HTypeInfoReadRaw node) => visitInstruction(node);
+  @override
   visitTypeInfoReadVariable(HTypeInfoReadVariable node) =>
       visitInstruction(node);
+
+  @override
   visitTypeInfoExpression(HTypeInfoExpression node) => visitInstruction(node);
+
+  @override
+  visitIsTest(HIsTest node) => visitInstruction(node);
+  @override
+  visitIsTestSimple(HIsTestSimple node) => visitInstruction(node);
+  @override
+  visitAsCheck(HAsCheck node) => visitCheck(node);
+  @override
+  visitAsCheckSimple(HAsCheckSimple node) => visitCheck(node);
+  @override
+  visitSubtypeCheck(HSubtypeCheck node) => visitCheck(node);
+  @override
+  visitLoadType(HLoadType node) => visitInstruction(node);
+  @override
+  visitInstanceEnvironment(HInstanceEnvironment node) => visitInstruction(node);
+  @override
+  visitTypeEval(HTypeEval node) => visitInstruction(node);
+  @override
+  visitTypeBind(HTypeBind node) => visitInstruction(node);
 }
 
 class SubGraph {
@@ -487,7 +647,7 @@ class SubGraph {
 class SubExpression extends SubGraph {
   const SubExpression(HBasicBlock start, HBasicBlock end) : super(start, end);
 
-  /** Find the condition expression if this sub-expression is a condition. */
+  /// Find the condition expression if this sub-expression is a condition.
   HInstruction get conditionExpression {
     HInstruction last = end.last;
     if (last is HConditionalBranch || last is HSwitch) return last.inputs[0];
@@ -536,7 +696,7 @@ class HInstructionList {
   }
 
   void detach(HInstruction instruction) {
-    assert(contains(instruction));
+    assert(_truncatedContainsForAssert(instruction));
     assert(instruction.isInBasicBlock());
     if (instruction.previous == null) {
       first = instruction.next;
@@ -557,13 +717,33 @@ class HInstructionList {
     detach(instruction);
   }
 
-  /** Linear search for [instruction]. */
+  /// Linear search for [instruction].
   bool contains(HInstruction instruction) {
     HInstruction cursor = first;
     while (cursor != null) {
       if (identical(cursor, instruction)) return true;
       cursor = cursor.next;
     }
+
+    return false;
+  }
+
+  /// Linear search for [instruction], up to a limit of 100. Returns whether
+  /// the instruction is found or the list is too big.
+  ///
+  /// This is used for assertions only: some tests have pathological cases where
+  /// the basic blocks are huge (50K nodes!), and we found that checking for
+  /// [contains] within our assertions made compilation really slow.
+  bool _truncatedContainsForAssert(HInstruction instruction) {
+    HInstruction cursor = first;
+    int count = 0;
+    while (cursor != null) {
+      count++;
+      if (count > 100) return true;
+      if (identical(cursor, instruction)) return true;
+      cursor = cursor.next;
+    }
+
     return false;
   }
 }
@@ -590,6 +770,8 @@ class HBasicBlock extends HInstructionList {
 
   HBasicBlock dominator = null;
   final List<HBasicBlock> dominatedBlocks;
+  int dominatorDfsIn;
+  int dominatorDfsOut;
 
   HBasicBlock() : this.withId(null);
   HBasicBlock.withId(this.id)
@@ -598,6 +780,7 @@ class HBasicBlock extends HInstructionList {
         successors = const <HBasicBlock>[],
         dominatedBlocks = <HBasicBlock>[];
 
+  @override
   int get hashCode => id;
 
   bool isNew() => status == STATUS_NEW;
@@ -691,6 +874,7 @@ class HBasicBlock extends HInstructionList {
     instruction.notifyAddedToBlock(this);
   }
 
+  @override
   void remove(HInstruction instruction) {
     assert(isOpen() || isClosed());
     assert(instruction is! HPhi);
@@ -717,10 +901,8 @@ class HBasicBlock extends HInstructionList {
     }
   }
 
-  /**
-   * Rewrites all uses of the [from] instruction to using the [to]
-   * instruction instead.
-   */
+  /// Rewrites all uses of the [from] instruction to using the [to]
+  /// instruction instead.
   void rewrite(HInstruction from, HInstruction to) {
     for (HInstruction use in from.usedBy) {
       use.rewriteInput(from, to);
@@ -729,11 +911,9 @@ class HBasicBlock extends HInstructionList {
     from.usedBy.clear();
   }
 
-  /**
-   * Rewrites all uses of the [from] instruction to using either the
-   * [to] instruction, or a [HCheck] instruction that has better type
-   * information on [to], and that dominates the user.
-   */
+  /// Rewrites all uses of the [from] instruction to using either the
+  /// [to] instruction, or a [HCheck] instruction that has better type
+  /// information on [to], and that dominates the user.
   void rewriteWithBetterUser(HInstruction from, HInstruction to) {
     // BUG(11841): Turn this method into a phase to be run after GVN phases.
     Link<HCheck> better = const Link<HCheck>();
@@ -852,22 +1032,12 @@ class HBasicBlock extends HInstructionList {
     return validator.isValid;
   }
 
-  Map<HBasicBlock, bool> dominatesCache;
-
   bool dominates(HBasicBlock other) {
-    if (dominatesCache == null) {
-      dominatesCache = new Map<HBasicBlock, bool>();
-    } else {
-      bool res = dominatesCache[other];
-      if (res != null) return res;
-    }
-    do {
-      if (identical(this, other)) return dominatesCache[other] = true;
-      other = other.dominator;
-    } while (other != null && other.id >= id);
-    return dominatesCache[other] = false;
+    return this.dominatorDfsIn <= other.dominatorDfsIn &&
+        other.dominatorDfsOut <= this.dominatorDfsOut;
   }
 
+  @override
   toString() => 'HBasicBlock($id)';
 }
 
@@ -875,11 +1045,11 @@ abstract class HInstruction implements Spannable {
   Entity sourceElement;
   SourceInformation sourceInformation;
 
-  final int id;
+  final int id = idCounter++;
   static int idCounter;
 
   final List<HInstruction> inputs;
-  final List<HInstruction> usedBy;
+  final List<HInstruction> usedBy = [];
 
   HBasicBlock block;
   HInstruction previous = null;
@@ -890,7 +1060,6 @@ abstract class HInstruction implements Spannable {
 
   // Type codes.
   static const int UNDEFINED_TYPECODE = -1;
-  static const int BOOLIFY_TYPECODE = 0;
   static const int TYPE_GUARD_TYPECODE = 1;
   static const int BOUNDS_CHECK_TYPECODE = 2;
   static const int INTEGER_CHECK_TYPECODE = 3;
@@ -929,16 +1098,30 @@ abstract class HInstruction implements Spannable {
   static const int TYPE_INFO_READ_VARIABLE_TYPECODE = 39;
   static const int TYPE_INFO_EXPRESSION_TYPECODE = 40;
 
-  static const int FOREIGN_CODE_TYPECODE = 41;
-  static const int REMAINDER_TYPECODE = 42;
-  static const int GET_LENGTH_TYPECODE = 43;
+  static const int INVOKE_EXTERNAL_TYPECODE = 41;
+  static const int FOREIGN_CODE_TYPECODE = 42;
+  static const int REMAINDER_TYPECODE = 43;
+  static const int GET_LENGTH_TYPECODE = 44;
+  static const int ABS_TYPECODE = 45;
+  static const int BOOL_CONVERSION_TYPECODE = 46;
+  static const int NULL_CHECK_TYPECODE = 47;
+  static const int PRIMITIVE_CHECK_TYPECODE = 48;
 
-  HInstruction(this.inputs, this.instructionType)
-      : id = idCounter++,
-        usedBy = <HInstruction>[] {
-    assert(inputs.every((e) => e != null));
+  static const int IS_TEST_TYPECODE = 49;
+  static const int IS_TEST_SIMPLE_TYPECODE = 50;
+  static const int AS_CHECK_TYPECODE = 51;
+  static const int AS_CHECK_SIMPLE_TYPECODE = 52;
+  static const int SUBTYPE_CHECK_TYPECODE = 53;
+  static const int LOAD_TYPE_TYPECODE = 54;
+  static const int INSTANCE_ENVIRONMENT_TYPECODE = 55;
+  static const int TYPE_EVAL_TYPECODE = 56;
+  static const int TYPE_BIND_TYPECODE = 57;
+
+  HInstruction(this.inputs, this.instructionType) {
+    assert(inputs.every((e) => e != null), "inputs: $inputs");
   }
 
+  @override
   int get hashCode => id;
 
   bool useGvn() => _useGvn;
@@ -948,233 +1131,121 @@ abstract class HInstruction implements Spannable {
 
   bool get isMovable => useGvn();
 
-  /**
-   * A pure instruction is an instruction that does not have any side
-   * effect, nor any dependency. They can be moved anywhere in the
-   * graph.
-   */
-  bool isPure() {
+  /// A pure instruction is an instruction that does not have any side
+  /// effect, nor any dependency. They can be moved anywhere in the
+  /// graph.
+  bool isPure(AbstractValueDomain domain) {
     return !sideEffects.hasSideEffects() &&
         !sideEffects.dependsOnSomething() &&
-        !canThrow();
+        !canThrow(domain);
   }
 
   /// An instruction is an 'allocation' is it is the sole alias for an object.
-  /// This applies to to instructions that allocate new objects and can be
-  /// extended to methods that return other allocations without escaping them.
-  bool get isAllocation => false;
+  /// This applies to instructions that allocate new objects and can be extended
+  /// to methods that return other allocations without escaping them.
+  bool isAllocation(AbstractValueDomain domain) => false;
 
   /// Overridden by [HCheck] to return the actual non-[HCheck]
   /// instruction it checks against.
   HInstruction nonCheck() => this;
 
   /// Can this node throw an exception?
-  bool canThrow() => false;
+  bool canThrow(AbstractValueDomain domain) => false;
 
   /// Does this node potentially affect control flow.
   bool isControlFlow() => false;
 
-  bool isExact() => instructionType.isExact || isNull();
+  bool isValue(AbstractValueDomain domain) =>
+      domain.isPrimitiveValue(instructionType);
 
-  bool isValue() => instructionType.isValue;
+  AbstractBool isNull(AbstractValueDomain domain) =>
+      domain.isNull(instructionType);
 
-  bool canBeNull() => instructionType.isNullable;
+  AbstractBool isConflicting(AbstractValueDomain domain) =>
+      domain.isEmpty(instructionType);
 
-  bool isNull() => instructionType.isNull;
+  AbstractBool isPrimitive(AbstractValueDomain domain) =>
+      domain.isPrimitive(instructionType);
 
-  bool isConflicting() => instructionType.isEmpty;
+  AbstractBool isPrimitiveNumber(AbstractValueDomain domain) =>
+      domain.isPrimitiveNumber(instructionType);
 
-  /// Returns `true` if [typeMask] contains [cls].
-  static bool containsType(
-      TypeMask typeMask, ClassEntity cls, ClosedWorld closedWorld) {
-    return closedWorld.isInstantiated(cls) &&
-        typeMask.contains(cls, closedWorld);
-  }
+  AbstractBool isPrimitiveBoolean(AbstractValueDomain domain) =>
+      domain.isPrimitiveBoolean(instructionType);
 
-  /// Returns `true` if [typeMask] contains only [cls].
-  static bool containsOnlyType(
-      TypeMask typeMask, ClassEntity cls, ClosedWorld closedWorld) {
-    return closedWorld.isInstantiated(cls) && typeMask.containsOnly(cls);
-  }
+  AbstractBool isPrimitiveArray(AbstractValueDomain domain) =>
+      domain.isPrimitiveArray(instructionType);
 
-  /// Returns `true` if [typeMask] is an instance of [cls].
-  static bool isInstanceOf(
-      TypeMask typeMask, ClassEntity cls, ClosedWorld closedWorld) {
-    return closedWorld.isImplemented(cls) &&
-        typeMask.satisfies(cls, closedWorld);
-  }
+  AbstractBool isIndexablePrimitive(AbstractValueDomain domain) =>
+      domain.isIndexablePrimitive(instructionType);
 
-  bool canBePrimitive(ClosedWorld closedWorld) {
-    return canBePrimitiveNumber(closedWorld) ||
-        canBePrimitiveArray(closedWorld) ||
-        canBePrimitiveBoolean(closedWorld) ||
-        canBePrimitiveString(closedWorld) ||
-        isNull();
-  }
+  AbstractBool isFixedArray(AbstractValueDomain domain) =>
+      domain.isFixedArray(instructionType);
 
-  bool canBePrimitiveNumber(ClosedWorld closedWorld) {
-    CommonElements commonElements = closedWorld.commonElements;
-    // TODO(sra): It should be possible to test only jsDoubleClass and
-    // jsUInt31Class, since all others are superclasses of these two.
-    return containsType(
-            instructionType, commonElements.jsNumberClass, closedWorld) ||
-        containsType(instructionType, commonElements.jsIntClass, closedWorld) ||
-        containsType(
-            instructionType, commonElements.jsPositiveIntClass, closedWorld) ||
-        containsType(
-            instructionType, commonElements.jsUInt32Class, closedWorld) ||
-        containsType(
-            instructionType, commonElements.jsUInt31Class, closedWorld) ||
-        containsType(
-            instructionType, commonElements.jsDoubleClass, closedWorld);
-  }
+  AbstractBool isExtendableArray(AbstractValueDomain domain) =>
+      domain.isExtendableArray(instructionType);
 
-  bool canBePrimitiveBoolean(ClosedWorld closedWorld) {
-    return containsType(
-        instructionType, closedWorld.commonElements.jsBoolClass, closedWorld);
-  }
+  AbstractBool isMutableArray(AbstractValueDomain domain) =>
+      domain.isMutableArray(instructionType);
 
-  bool canBePrimitiveArray(ClosedWorld closedWorld) {
-    CommonElements commonElements = closedWorld.commonElements;
-    return containsType(
-            instructionType, commonElements.jsArrayClass, closedWorld) ||
-        containsType(
-            instructionType, commonElements.jsFixedArrayClass, closedWorld) ||
-        containsType(instructionType, commonElements.jsExtendableArrayClass,
-            closedWorld) ||
-        containsType(instructionType, commonElements.jsUnmodifiableArrayClass,
-            closedWorld);
-  }
+  AbstractBool isMutableIndexable(AbstractValueDomain domain) =>
+      domain.isMutableIndexable(instructionType);
 
-  bool isIndexablePrimitive(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyString(closedWorld) ||
-        isInstanceOf(instructionType,
-            closedWorld.commonElements.jsIndexableClass, closedWorld);
-  }
+  AbstractBool isArray(AbstractValueDomain domain) =>
+      domain.isArray(instructionType);
 
-  bool isFixedArray(ClosedWorld closedWorld) {
-    CommonElements commonElements = closedWorld.commonElements;
-    // TODO(sra): Recognize the union of these types as well.
-    return containsOnlyType(
-            instructionType, commonElements.jsFixedArrayClass, closedWorld) ||
-        containsOnlyType(instructionType,
-            commonElements.jsUnmodifiableArrayClass, closedWorld);
-  }
+  AbstractBool isPrimitiveString(AbstractValueDomain domain) =>
+      domain.isPrimitiveString(instructionType);
 
-  bool isExtendableArray(ClosedWorld closedWorld) {
-    return containsOnlyType(instructionType,
-        closedWorld.commonElements.jsExtendableArrayClass, closedWorld);
-  }
+  AbstractBool isInteger(AbstractValueDomain domain) =>
+      domain.isInteger(instructionType);
 
-  bool isMutableArray(ClosedWorld closedWorld) {
-    return isInstanceOf(instructionType,
-        closedWorld.commonElements.jsMutableArrayClass, closedWorld);
-  }
+  AbstractBool isUInt32(AbstractValueDomain domain) =>
+      domain.isUInt32(instructionType);
 
-  bool isReadableArray(ClosedWorld closedWorld) {
-    return isInstanceOf(
-        instructionType, closedWorld.commonElements.jsArrayClass, closedWorld);
-  }
+  AbstractBool isUInt31(AbstractValueDomain domain) =>
+      domain.isUInt31(instructionType);
 
-  bool isMutableIndexable(ClosedWorld closedWorld) {
-    return isInstanceOf(instructionType,
-        closedWorld.commonElements.jsMutableIndexableClass, closedWorld);
-  }
+  AbstractBool isPositiveInteger(AbstractValueDomain domain) =>
+      domain.isPositiveInteger(instructionType);
 
-  bool isArray(ClosedWorld closedWorld) => isReadableArray(closedWorld);
+  AbstractBool isPositiveIntegerOrNull(AbstractValueDomain domain) =>
+      domain.isPositiveIntegerOrNull(instructionType);
 
-  bool canBePrimitiveString(ClosedWorld closedWorld) {
-    return containsType(
-        instructionType, closedWorld.commonElements.jsStringClass, closedWorld);
-  }
+  AbstractBool isIntegerOrNull(AbstractValueDomain domain) =>
+      domain.isIntegerOrNull(instructionType);
 
-  bool isInteger(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyInt(closedWorld) &&
-        !instructionType.isNullable;
-  }
+  AbstractBool isNumber(AbstractValueDomain domain) =>
+      domain.isNumber(instructionType);
 
-  bool isUInt32(ClosedWorld closedWorld) {
-    return !instructionType.isNullable &&
-        isInstanceOf(instructionType, closedWorld.commonElements.jsUInt32Class,
-            closedWorld);
-  }
+  AbstractBool isNumberOrNull(AbstractValueDomain domain) =>
+      domain.isNumberOrNull(instructionType);
 
-  bool isUInt31(ClosedWorld closedWorld) {
-    return !instructionType.isNullable &&
-        isInstanceOf(instructionType, closedWorld.commonElements.jsUInt31Class,
-            closedWorld);
-  }
+  AbstractBool isDouble(AbstractValueDomain domain) =>
+      domain.isDouble(instructionType);
 
-  bool isPositiveInteger(ClosedWorld closedWorld) {
-    return !instructionType.isNullable &&
-        isInstanceOf(instructionType,
-            closedWorld.commonElements.jsPositiveIntClass, closedWorld);
-  }
+  AbstractBool isDoubleOrNull(AbstractValueDomain domain) =>
+      domain.isDoubleOrNull(instructionType);
 
-  bool isPositiveIntegerOrNull(ClosedWorld closedWorld) {
-    return isInstanceOf(instructionType,
-        closedWorld.commonElements.jsPositiveIntClass, closedWorld);
-  }
+  AbstractBool isBoolean(AbstractValueDomain domain) =>
+      domain.isBoolean(instructionType);
 
-  bool isIntegerOrNull(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyInt(closedWorld);
-  }
+  AbstractBool isBooleanOrNull(AbstractValueDomain domain) =>
+      domain.isBooleanOrNull(instructionType);
 
-  bool isNumber(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyNum(closedWorld) &&
-        !instructionType.isNullable;
-  }
+  AbstractBool isString(AbstractValueDomain domain) =>
+      domain.isString(instructionType);
 
-  bool isNumberOrNull(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyNum(closedWorld);
-  }
+  AbstractBool isStringOrNull(AbstractValueDomain domain) =>
+      domain.isStringOrNull(instructionType);
 
-  bool isDouble(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyDouble(closedWorld) &&
-        !instructionType.isNullable;
-  }
+  AbstractBool isPrimitiveOrNull(AbstractValueDomain domain) =>
+      domain.isPrimitiveOrNull(instructionType);
 
-  bool isDoubleOrNull(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyDouble(closedWorld);
-  }
+  /// Type of the instruction.
+  AbstractValue instructionType;
 
-  bool isBoolean(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyBool(closedWorld) &&
-        !instructionType.isNullable;
-  }
-
-  bool isBooleanOrNull(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyBool(closedWorld);
-  }
-
-  bool isString(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyString(closedWorld) &&
-        !instructionType.isNullable;
-  }
-
-  bool isStringOrNull(ClosedWorld closedWorld) {
-    return instructionType.containsOnlyString(closedWorld);
-  }
-
-  bool isPrimitive(ClosedWorld closedWorld) {
-    return (isPrimitiveOrNull(closedWorld) && !instructionType.isNullable) ||
-        isNull();
-  }
-
-  bool isPrimitiveOrNull(ClosedWorld closedWorld) {
-    return isIndexablePrimitive(closedWorld) ||
-        isNumberOrNull(closedWorld) ||
-        isBooleanOrNull(closedWorld) ||
-        isNull();
-  }
-
-  /**
-   * Type of the instruction.
-   */
-  TypeMask instructionType;
-
-  Selector get selector => null;
-  HInstruction getDartReceiver(ClosedWorld closedWorld) => null;
+  HInstruction getDartReceiver(JClosedWorld closedWorld) => null;
   bool onlyThrowsNSM() => false;
 
   bool isInBasicBlock() => block != null;
@@ -1248,7 +1319,7 @@ abstract class HInstruction implements Spannable {
     }
   }
 
-  /** Removes all occurrences of [instruction] from [list]. */
+  /// Removes all occurrences of [instruction] from [list].
   void removeFromList(List<HInstruction> list, HInstruction instruction) {
     int length = list.length;
     int i = 0;
@@ -1263,7 +1334,7 @@ abstract class HInstruction implements Spannable {
     list.length = length;
   }
 
-  /** Removes all occurrences of [user] from [usedBy]. */
+  /// Removes all occurrences of [user] from [usedBy].
   void removeUser(HInstruction user) {
     removeFromList(usedBy, user);
   }
@@ -1306,7 +1377,7 @@ abstract class HInstruction implements Spannable {
   bool isConstantFalse() => false;
   bool isConstantTrue() => false;
 
-  bool isInterceptor(ClosedWorld closedWorld) => false;
+  bool isInterceptor(JClosedWorld closedWorld) => false;
 
   bool isValid() {
     HValidator validator = new HValidator();
@@ -1332,43 +1403,38 @@ abstract class HInstruction implements Spannable {
     return false;
   }
 
-  HInstruction convertType(ClosedWorld closedWorld, DartType type, int kind) {
+  HInstruction convertType(JClosedWorld closedWorld, DartType type, int kind) {
     if (type == null) return this;
-    type = type.unaliased;
     // Only the builder knows how to create [HTypeConversion]
     // instructions with generics. It has the generic type context
     // available.
-    assert(!type.isTypeVariable);
-    assert(type.treatAsRaw || type.isFunctionType);
-    if (type.isDynamic) return this;
-    if (type.isVoid) return this;
-    if (type == closedWorld.commonElements.objectType) return this;
-    if (type.isFunctionType || type.isMalformed) {
-      return new HTypeConversion(
-          type, kind, closedWorld.commonMasks.dynamicType, this);
+    assert(type is! TypeVariableType);
+    assert(closedWorld.dartTypes.treatAsRawType(type) || type is FunctionType);
+    if (closedWorld.dartTypes.isTopType(type)) return this;
+    if (type is FunctionType || type is FutureOrType) {
+      return new HTypeConversion(type, kind,
+          closedWorld.abstractValueDomain.dynamicType, this, sourceInformation);
     }
-    assert(type.isInterfaceType);
-    if (kind == HTypeConversion.BOOLEAN_CONVERSION_CHECK) {
-      // Boolean conversion checks work on non-nullable booleans.
-      return new HTypeConversion(
-          type, kind, closedWorld.commonMasks.boolType, this);
-    } else if (kind == HTypeConversion.CHECKED_MODE_CHECK && !type.treatAsRaw) {
+    assert(type is InterfaceType);
+    if (kind == HTypeConversion.TYPE_CHECK &&
+        !closedWorld.dartTypes.treatAsRawType(type)) {
       throw 'creating compound check to $type (this = ${this})';
     } else {
       InterfaceType interfaceType = type;
-      TypeMask subtype =
-          new TypeMask.subtype(interfaceType.element, closedWorld);
-      return new HTypeConversion(type, kind, subtype, this);
+      AbstractValue subtype = closedWorld.abstractValueDomain
+          .createNullableSubtype(interfaceType.element);
+      return new HTypeConversion(type, kind, subtype, this, sourceInformation);
     }
   }
 
-  /**
-   * Return whether the instructions do not belong to a loop or
-   * belong to the same loop.
-   */
+  /// Return whether the instructions do not belong to a loop or
+  /// belong to the same loop.
   bool hasSameLoopHeaderAs(HInstruction other) {
     return block.enclosingLoopHeader == other.block.enclosingLoopHeader;
   }
+
+  @override
+  String toString() => '${this.runtimeType}()';
 }
 
 /// The set of uses of [source] that are dominated by [dominator].
@@ -1392,7 +1458,7 @@ class DominatedUses {
   /// dominated block. (There can be many such edges on a single phi at the exit
   /// of a loop with many break statements).  If [excludePhiOutEdges] is `true`
   /// then these edge uses are not included.
-  static of(HInstruction source, HInstruction dominator,
+  static DominatedUses of(HInstruction source, HInstruction dominator,
       {bool excludeDominator: false, bool excludePhiOutEdges: false}) {
     return new DominatedUses._(source)
       .._compute(source, dominator, excludeDominator, excludePhiOutEdges);
@@ -1400,6 +1466,7 @@ class DominatedUses {
 
   bool get isEmpty => _instructions.isEmpty;
   bool get isNotEmpty => !isEmpty;
+  int get length => _instructions.length;
 
   /// Changes all the uses in the set to [newInstruction].
   void replaceWith(HInstruction newInstruction) {
@@ -1422,6 +1489,8 @@ class DominatedUses {
   bool get isSingleton => _instructions.length == 1;
 
   HInstruction get single => _instructions.single;
+
+  Iterable<HInstruction> get instructions => _instructions;
 
   void _addUse(HInstruction user, int inputIndex) {
     _instructions.add(user);
@@ -1515,7 +1584,7 @@ class HRef extends HInstruction {
   HInstruction get value => inputs[0];
 
   @override
-  HInstruction convertType(ClosedWorld closedWorld, DartType type, int kind) {
+  HInstruction convertType(JClosedWorld closedWorld, DartType type, int kind) {
     HInstruction converted = value.convertType(closedWorld, type, kind);
     if (converted == value) return this;
     HTypeConversion conversion = converted;
@@ -1526,46 +1595,33 @@ class HRef extends HInstruction {
   @override
   accept(HVisitor visitor) => visitor.visitRef(this);
 
+  @override
   String toString() => 'HRef(${value})';
 }
 
-/**
- * Late instructions are used after the main optimization phases.  They capture
- * codegen decisions just prior to generating JavaScript.
- */
+/// Late instructions are used after the main optimization phases.  They capture
+/// codegen decisions just prior to generating JavaScript.
 abstract class HLateInstruction extends HInstruction {
-  HLateInstruction(List<HInstruction> inputs, TypeMask type)
+  HLateInstruction(List<HInstruction> inputs, AbstractValue type)
       : super(inputs, type);
 }
 
-class HBoolify extends HInstruction {
-  HBoolify(HInstruction value, TypeMask type)
-      : super(<HInstruction>[value], type) {
-    setUseGvn();
-    sourceInformation = value.sourceInformation;
-  }
-
-  accept(HVisitor visitor) => visitor.visitBoolify(this);
-  int typeCode() => HInstruction.BOOLIFY_TYPECODE;
-  bool typeEquals(other) => other is HBoolify;
-  bool dataEquals(HInstruction other) => true;
-}
-
-/**
- * A [HCheck] instruction is an instruction that might do a dynamic
- * check at runtime on another instruction. To have proper instruction
- * dependencies in the graph, instructions that depend on the check
- * being done reference the [HCheck] instruction instead of the
- * instruction itself.
- */
+/// A [HCheck] instruction is an instruction that might do a dynamic
+/// check at runtime on another instruction. To have proper instruction
+/// dependencies in the graph, instructions that depend on the check
+/// being done reference the [HCheck] instruction instead of the
+/// instruction itself.
 abstract class HCheck extends HInstruction {
   HCheck(inputs, type) : super(inputs, type) {
     setUseGvn();
   }
   HInstruction get checkedInput => inputs[0];
+  @override
   bool isJsStatement() => true;
-  bool canThrow() => true;
+  @override
+  bool canThrow(AbstractValueDomain domain) => true;
 
+  @override
   HInstruction nonCheck() => checkedInput.nonCheck();
 }
 
@@ -1575,10 +1631,9 @@ class HBoundsCheck extends HCheck {
   static const int ALWAYS_ABOVE_ZERO = 2;
   static const int ALWAYS_BELOW_LENGTH = 3;
   static const int ALWAYS_TRUE = 4;
-  /**
-   * Details which tests have been done statically during compilation.
-   * Default is that all checks must be performed dynamically.
-   */
+
+  /// Details which tests have been done statically during compilation.
+  /// Default is that all checks must be performed dynamically.
   int staticChecks = FULL_CHECK;
 
   HBoundsCheck(length, index, array, type)
@@ -1590,24 +1645,36 @@ class HBoundsCheck extends HCheck {
   // There can be an additional fourth input which is the index to report to
   // [ioore]. This is used by the expansion of [JSArray.removeLast].
   HInstruction get reportedIndex => inputs.length > 3 ? inputs[3] : index;
+  @override
   bool isControlFlow() => true;
 
+  @override
   accept(HVisitor visitor) => visitor.visitBoundsCheck(this);
+  @override
   int typeCode() => HInstruction.BOUNDS_CHECK_TYPECODE;
+  @override
   bool typeEquals(other) => other is HBoundsCheck;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 abstract class HConditionalBranch extends HControlFlow {
-  HConditionalBranch(inputs) : super(inputs);
+  HConditionalBranch(AbstractValueDomain domain, List<HInstruction> inputs)
+      : super(domain, inputs);
   HInstruction get condition => inputs[0];
   HBasicBlock get trueBranch => block.successors[0];
   HBasicBlock get falseBranch => block.successors[1];
 }
 
 abstract class HControlFlow extends HInstruction {
-  HControlFlow(inputs) : super(inputs, const TypeMask.nonNullEmpty());
+  HControlFlow(AbstractValueDomain domain, List<HInstruction> inputs)
+      // TODO(johnniwinther): May only expression-like [HInstruction]s should
+      // have an `instructionType`, or statement-like [HInstruction]s should
+      // have a throwing getter.
+      : super(inputs, domain.emptyType);
+  @override
   bool isControlFlow() => true;
+  @override
   bool isJsStatement() => true;
 }
 
@@ -1622,196 +1689,341 @@ class HCreate extends HInstruction {
   /// we have to register the instantiated type in the code generator. The
   /// [instructionType] of this node is not enough, because we also need the
   /// type arguments. See also [SsaFromAstMixin.currentInlinedInstantiations].
-  List<DartType> instantiatedTypes;
+  List<InterfaceType> instantiatedTypes;
 
   /// If this node creates a closure class, [callMethod] is the call method of
   /// the closure class.
   FunctionEntity callMethod;
 
-  HCreate(this.element, List<HInstruction> inputs, TypeMask type,
+  HCreate(this.element, List<HInstruction> inputs, AbstractValue type,
+      SourceInformation sourceInformation,
       {this.instantiatedTypes, this.hasRtiInput: false, this.callMethod})
-      : super(inputs, type);
+      : super(inputs, type) {
+    this.sourceInformation = sourceInformation;
+  }
 
-  bool get isAllocation => true;
+  @override
+  bool isAllocation(AbstractValueDomain domain) => true;
 
   HInstruction get rtiInput {
     assert(hasRtiInput);
     return inputs.last;
   }
 
+  @override
   accept(HVisitor visitor) => visitor.visitCreate(this);
 
+  @override
   String toString() => 'HCreate($element, ${instantiatedTypes})';
 }
 
 // Allocates a box to hold mutated captured variables.
 class HCreateBox extends HInstruction {
-  HCreateBox(TypeMask type) : super(<HInstruction>[], type);
+  HCreateBox(AbstractValue type) : super(<HInstruction>[], type);
 
-  bool get isAllocation => true;
+  @override
+  bool isAllocation(AbstractValueDomain domain) => true;
 
+  @override
   accept(HVisitor visitor) => visitor.visitCreateBox(this);
 
+  @override
   String toString() => 'HCreateBox()';
 }
 
 abstract class HInvoke extends HInstruction {
-  /**
-    * The first argument must be the target: either an [HStatic] node, or
-    * the receiver of a method-call. The remaining inputs are the arguments
-    * to the invocation.
-    */
-  HInvoke(List<HInstruction> inputs, type) : super(inputs, type) {
+  bool _isAllocation = false;
+
+  /// [isInterceptedCall] is true if this invocation uses the interceptor
+  /// calling convention where the first input is the methods and the second
+  /// input is the Dart receiver.
+  bool isInterceptedCall = false;
+
+  HInvoke(List<HInstruction> inputs, AbstractValue resultType)
+      : super(inputs, resultType) {
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
   }
   static const int ARGUMENTS_OFFSET = 1;
-  bool canThrow() => true;
 
-  /**
-   * Returns whether this call is on an intercepted method.
-   */
-  bool get isInterceptedCall {
-    // We know it's a selector call if it follows the interceptor
-    // calling convention, which adds the actual receiver as a
-    // parameter to the call.
-    return (selector != null) && (inputs.length - 2 == selector.argumentCount);
+  @override
+  bool canThrow(AbstractValueDomain domain) => true;
+
+  @override
+  bool isAllocation(AbstractValueDomain domain) => _isAllocation;
+
+  void setAllocation(bool value) {
+    _isAllocation = value;
   }
 }
 
 abstract class HInvokeDynamic extends HInvoke {
   final InvokeDynamicSpecializer specializer;
-  Selector selector;
-  TypeMask mask;
+
+  Selector _selector;
+  AbstractValue _receiverType;
+  final AbstractValue _originalReceiverType;
+
+  // Cached target when non-nullable receiver type and selector determine a
+  // single target. This is in effect a direct call (except for a possible
+  // `null` receiver). The element should only be set if the inputs are correct
+  // for a direct call. These constraints exclude caching a target when the call
+  // needs defaulted arguments, is `noSuchMethod` (legacy), or is a call-through
+  // stub.
   MemberEntity element;
 
-  HInvokeDynamic(Selector selector, this.mask, this.element,
-      List<HInstruction> inputs, TypeMask type,
-      [bool isIntercepted = false])
-      : this.selector = selector,
+  HInvokeDynamic(Selector selector, this._receiverType, this.element,
+      List<HInstruction> inputs, bool isIntercepted, AbstractValue resultType)
+      : this._selector = selector,
+        this._originalReceiverType = _receiverType,
         specializer = isIntercepted
             ? InvokeDynamicSpecializer.lookupSpecializer(selector)
             : const InvokeDynamicSpecializer(),
-        super(inputs, type);
-  toString() => 'invoke dynamic: selector=$selector, mask=$mask';
+        super(inputs, resultType) {
+    assert(isIntercepted != null);
+    assert(_receiverType != null);
+    isInterceptedCall = isIntercepted;
+  }
+
+  Selector get selector => _selector;
+
+  set selector(Selector selector) {
+    _selector = selector;
+    element = null; // Cached element would no longer match new selector.
+  }
+
+  AbstractValue get receiverType => _receiverType;
+
+  void updateReceiverType(
+      AbstractValueDomain abstractValueDomain, AbstractValue value) {
+    _receiverType =
+        abstractValueDomain.intersection(_originalReceiverType, value);
+  }
+
+  @override
+  String toString() => 'invoke dynamic: selector=$selector, mask=$receiverType';
+
   HInstruction get receiver => inputs[0];
-  HInstruction getDartReceiver(ClosedWorld closedWorld) {
+
+  @override
+  HInstruction getDartReceiver(JClosedWorld closedWorld) {
     return isCallOnInterceptor(closedWorld) ? inputs[1] : inputs[0];
   }
 
-  /**
-   * Returns whether this call is on an interceptor object.
-   */
-  bool isCallOnInterceptor(ClosedWorld closedWorld) {
+  /// The type arguments passed in this dynamic invocation.
+  List<DartType> get typeArguments;
+
+  /// Returns whether this call is on an interceptor object.
+  bool isCallOnInterceptor(JClosedWorld closedWorld) {
     return isInterceptedCall && receiver.isInterceptor(closedWorld);
   }
 
+  @override
   int typeCode() => HInstruction.INVOKE_DYNAMIC_TYPECODE;
+
+  @override
   bool typeEquals(other) => other is HInvokeDynamic;
+
+  @override
   bool dataEquals(HInvokeDynamic other) {
     // Use the name and the kind instead of [Selector.operator==]
     // because we don't need to check the arity (already checked in
     // [gvnEquals]), and the receiver types may not be in sync.
+    // TODO(sra): If we GVN calls with named (optional) arguments then the
+    // selector needs a deeper check for the same subset of named arguments.
     return selector.name == other.selector.name &&
         selector.kind == other.selector.kind;
   }
 }
 
 class HInvokeClosure extends HInvokeDynamic {
-  HInvokeClosure(Selector selector, List<HInstruction> inputs, TypeMask type)
-      : super(selector, null, null, inputs, type) {
+  @override
+  final List<DartType> typeArguments;
+
+  HInvokeClosure(Selector selector, AbstractValue receiverType,
+      List<HInstruction> inputs, AbstractValue resultType, this.typeArguments)
+      : super(selector, receiverType, null, inputs, false, resultType) {
     assert(selector.isClosureCall);
+    assert(selector.callStructure.typeArgumentCount == typeArguments.length);
+    assert(!isInterceptedCall);
   }
+  @override
   accept(HVisitor visitor) => visitor.visitInvokeClosure(this);
 }
 
 class HInvokeDynamicMethod extends HInvokeDynamic {
-  HInvokeDynamicMethod(Selector selector, TypeMask mask,
-      List<HInstruction> inputs, TypeMask type,
-      [bool isIntercepted = false])
-      : super(selector, mask, null, inputs, type, isIntercepted);
+  @override
+  final List<DartType> typeArguments;
 
-  String toString() => 'invoke dynamic method: selector=$selector, mask=$mask';
+  HInvokeDynamicMethod(
+      Selector selector,
+      AbstractValue receiverType,
+      List<HInstruction> inputs,
+      AbstractValue resultType,
+      this.typeArguments,
+      SourceInformation sourceInformation,
+      {bool isIntercepted: false})
+      : super(selector, receiverType, null, inputs, isIntercepted, resultType) {
+    this.sourceInformation = sourceInformation;
+    assert(selector.callStructure.typeArgumentCount == typeArguments.length);
+  }
+
+  @override
+  String toString() =>
+      'invoke dynamic method: selector=$selector, mask=$receiverType';
+  @override
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
 }
 
 abstract class HInvokeDynamicField extends HInvokeDynamic {
-  HInvokeDynamicField(Selector selector, TypeMask mask, MemberEntity element,
-      List<HInstruction> inputs, TypeMask type)
-      : super(selector, mask, element, inputs, type);
-  toString() => 'invoke dynamic field: selector=$selector, mask=$mask';
+  HInvokeDynamicField(
+      Selector selector,
+      AbstractValue receiverType,
+      MemberEntity element,
+      List<HInstruction> inputs,
+      bool isIntercepted,
+      AbstractValue resultType)
+      : super(
+            selector, receiverType, element, inputs, isIntercepted, resultType);
+
+  @override
+  String toString() =>
+      'invoke dynamic field: selector=$selector, mask=$receiverType';
 }
 
 class HInvokeDynamicGetter extends HInvokeDynamicField {
-  HInvokeDynamicGetter(Selector selector, TypeMask mask, MemberEntity element,
-      List<HInstruction> inputs, TypeMask type)
-      : super(selector, mask, element, inputs, type);
-  toString() => 'invoke dynamic getter: selector=$selector, mask=$mask';
+  HInvokeDynamicGetter(
+      Selector selector,
+      AbstractValue receiverType,
+      MemberEntity element,
+      List<HInstruction> inputs,
+      bool isIntercepted,
+      AbstractValue resultType,
+      SourceInformation sourceInformation)
+      : super(selector, receiverType, element, inputs, isIntercepted,
+            resultType) {
+    this.sourceInformation = sourceInformation;
+  }
+
+  @override
   accept(HVisitor visitor) => visitor.visitInvokeDynamicGetter(this);
 
   bool get isTearOff => element != null && element.isFunction;
 
+  @override
+  List<DartType> get typeArguments => const <DartType>[];
+
   // There might be an interceptor input, so `inputs.last` is the dart receiver.
-  bool canThrow() => isTearOff ? inputs.last.canBeNull() : super.canThrow();
+  @override
+  bool canThrow(AbstractValueDomain domain) => isTearOff
+      ? inputs.last.isNull(domain).isPotentiallyTrue
+      : super.canThrow(domain);
+
+  @override
+  String toString() =>
+      'invoke dynamic getter: selector=$selector, mask=$receiverType';
 }
 
 class HInvokeDynamicSetter extends HInvokeDynamicField {
-  HInvokeDynamicSetter(Selector selector, TypeMask mask, MemberEntity element,
-      List<HInstruction> inputs, TypeMask type)
-      : super(selector, mask, element, inputs, type);
-  toString() => 'invoke dynamic setter: selector=$selector, mask=$mask';
+  /// If `true` a call to the setter is needed for checking the type even
+  /// though the target field is known.
+  bool needsCheck = false;
+
+  HInvokeDynamicSetter(
+      Selector selector,
+      AbstractValue receiverType,
+      MemberEntity element,
+      List<HInstruction> inputs,
+      bool isIntercepted,
+      // TODO(johnniwinther): The result type for a setter should be the empty
+      // type.
+      AbstractValue resultType,
+      SourceInformation sourceInformation)
+      : super(selector, receiverType, element, inputs, isIntercepted,
+            resultType) {
+    this.sourceInformation = sourceInformation;
+  }
+
+  @override
   accept(HVisitor visitor) => visitor.visitInvokeDynamicSetter(this);
+
+  @override
+  List<DartType> get typeArguments => const <DartType>[];
+
+  @override
+  String toString() =>
+      'invoke dynamic setter: selector=$selector, mask=$receiverType, element=$element';
 }
 
 class HInvokeStatic extends HInvoke {
   final MemberEntity element;
 
+  /// The type arguments passed in this static invocation.
+  final List<DartType> typeArguments;
+
   final bool targetCanThrow;
 
-  bool canThrow() => targetCanThrow;
+  @override
+  bool canThrow(AbstractValueDomain domain) => targetCanThrow;
 
   /// If this instruction is a call to a constructor, [instantiatedTypes]
   /// contains the type(s) used in the (Dart) `New` expression(s). The
   /// [instructionType] of this node is not enough, because we also need the
   /// type arguments. See also [SsaFromAstMixin.currentInlinedInstantiations].
-  List<DartType> instantiatedTypes;
+  List<InterfaceType> instantiatedTypes;
 
-  /** The first input must be the target. */
-  HInvokeStatic(this.element, inputs, TypeMask type,
-      {this.targetCanThrow: true})
-      : super(inputs, type);
+  /// The first input must be the target.
+  HInvokeStatic(this.element, inputs, AbstractValue type, this.typeArguments,
+      {this.targetCanThrow: true, bool isIntercepted: false})
+      : super(inputs, type) {
+    isInterceptedCall = isIntercepted;
+  }
 
-  toString() => 'invoke static: $element';
+  @override
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
+
+  @override
   int typeCode() => HInstruction.INVOKE_STATIC_TYPECODE;
+
+  @override
+  String toString() => 'invoke static: $element';
 }
 
 class HInvokeSuper extends HInvokeStatic {
-  /** The class where the call to super is being done. */
+  /// The class where the call to super is being done.
   final ClassEntity caller;
   final bool isSetter;
   final Selector selector;
 
-  HInvokeSuper(MemberEntity element, this.caller, this.selector, inputs, type,
+  HInvokeSuper(
+      MemberEntity element,
+      this.caller,
+      this.selector,
+      List<HInstruction> inputs,
+      bool isIntercepted,
+      AbstractValue type,
+      List<DartType> typeArguments,
       SourceInformation sourceInformation,
       {this.isSetter})
-      : super(element, inputs, type) {
+      : super(element, inputs, type, typeArguments,
+            isIntercepted: isIntercepted) {
     this.sourceInformation = sourceInformation;
   }
 
   HInstruction get receiver => inputs[0];
-  HInstruction getDartReceiver(ClosedWorld closedWorld) {
+  @override
+  HInstruction getDartReceiver(JClosedWorld closedWorld) {
     return isCallOnInterceptor(closedWorld) ? inputs[1] : inputs[0];
   }
 
-  /**
-   * Returns whether this call is on an interceptor object.
-   */
-  bool isCallOnInterceptor(ClosedWorld closedWorld) {
+  /// Returns whether this call is on an interceptor object.
+  bool isCallOnInterceptor(JClosedWorld closedWorld) {
     return isInterceptedCall && receiver.isInterceptor(closedWorld);
   }
 
+  @override
   toString() => 'invoke super: $element';
+  @override
   accept(HVisitor visitor) => visitor.visitInvokeSuper(this);
 
   HInstruction get value {
@@ -1825,16 +2037,46 @@ class HInvokeConstructorBody extends HInvokeStatic {
   // The 'inputs' are
   //     [receiver, arg1, ..., argN] or
   //     [interceptor, receiver, arg1, ... argN].
-  HInvokeConstructorBody(element, inputs, type) : super(element, inputs, type);
+  HInvokeConstructorBody(
+      ConstructorBodyEntity element,
+      List<HInstruction> inputs,
+      AbstractValue type,
+      SourceInformation sourceInformation)
+      : super(element, inputs, type, const <DartType>[]) {
+    this.sourceInformation = sourceInformation;
+  }
 
+  @override
   String toString() => 'invoke constructor body: ${element.name}';
+  @override
   accept(HVisitor visitor) => visitor.visitInvokeConstructorBody(this);
+}
+
+class HInvokeGeneratorBody extends HInvokeStatic {
+  // Directly call the JGeneratorBody method. The generator body can be a static
+  // method or a member. The target is directly called.
+  // The 'inputs' are
+  //     [arg1, ..., argN] or
+  //     [receiver, arg1, ..., argN] or
+  //     [interceptor, receiver, arg1, ... argN].
+  // The 'inputs' may or may not have an additional type argument used for
+  // creating the generator (T for new Completer<T>() inside the body).
+  HInvokeGeneratorBody(FunctionEntity element, List<HInstruction> inputs,
+      AbstractValue type, SourceInformation sourceInformation)
+      : super(element, inputs, type, const <DartType>[]) {
+    this.sourceInformation = sourceInformation;
+  }
+
+  @override
+  String toString() => 'HInvokeGeneratorBody(${element.name})';
+  @override
+  accept(HVisitor visitor) => visitor.visitInvokeGeneratorBody(this);
 }
 
 abstract class HFieldAccess extends HInstruction {
   final FieldEntity element;
 
-  HFieldAccess(this.element, List<HInstruction> inputs, TypeMask type)
+  HFieldAccess(this.element, List<HInstruction> inputs, AbstractValue type)
       : super(inputs, type);
 
   HInstruction get receiver => inputs[0];
@@ -1843,11 +2085,13 @@ abstract class HFieldAccess extends HInstruction {
 class HFieldGet extends HFieldAccess {
   final bool isAssignable;
 
-  HFieldGet(FieldEntity element, HInstruction receiver, TypeMask type,
+  HFieldGet(FieldEntity element, HInstruction receiver, AbstractValue type,
+      SourceInformation sourceInformation,
       {bool isAssignable})
       : this.isAssignable =
             (isAssignable != null) ? isAssignable : element.isAssignable,
         super(element, <HInstruction>[receiver], type) {
+    this.sourceInformation = sourceInformation;
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     setUseGvn();
@@ -1856,7 +2100,8 @@ class HFieldGet extends HFieldAccess {
     }
   }
 
-  bool isInterceptor(ClosedWorld closedWorld) {
+  @override
+  bool isInterceptor(JClosedWorld closedWorld) {
     if (sourceElement == null) return false;
     // In case of a closure inside an interceptor class, [:this:] is
     // stored in the generated closure class, and accessed through a
@@ -1869,44 +2114,62 @@ class HFieldGet extends HFieldAccess {
     return false;
   }
 
-  bool canThrow() => receiver.canBeNull();
+  @override
+  bool canThrow(AbstractValueDomain domain) =>
+      receiver.isNull(domain).isPotentiallyTrue;
 
-  HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
+  @override
+  HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
+  @override
   bool onlyThrowsNSM() => true;
-  bool get isNullCheck => element == null;
 
+  @override
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
 
+  @override
   int typeCode() => HInstruction.FIELD_GET_TYPECODE;
+  @override
   bool typeEquals(other) => other is HFieldGet;
+  @override
   bool dataEquals(HFieldGet other) => element == other.element;
-  String toString() => "FieldGet $element";
+  @override
+  String toString() => "FieldGet(element=$element,type=$instructionType)";
 }
 
 class HFieldSet extends HFieldAccess {
-  HFieldSet(FieldEntity element, HInstruction receiver, HInstruction value)
-      : super(element, <HInstruction>[receiver, value],
-            const TypeMask.nonNullEmpty()) {
+  HFieldSet(AbstractValueDomain domain, FieldEntity element,
+      HInstruction receiver, HInstruction value)
+      : super(element, <HInstruction>[receiver, value], domain.emptyType) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     sideEffects.setChangesInstanceProperty();
   }
 
-  bool canThrow() => receiver.canBeNull();
+  @override
+  bool canThrow(AbstractValueDomain domain) =>
+      receiver.isNull(domain).isPotentiallyTrue;
 
-  HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
+  @override
+  HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
+  @override
   bool onlyThrowsNSM() => true;
 
   HInstruction get value => inputs[1];
+  @override
   accept(HVisitor visitor) => visitor.visitFieldSet(this);
 
-  bool isJsStatement() => true;
-  String toString() => "FieldSet $element";
+  // HFieldSet is an expression if it has a user.
+  @override
+  bool isJsStatement() => usedBy.isEmpty;
+
+  @override
+  String toString() => "FieldSet(element=$element,type=$instructionType)";
 }
 
 class HGetLength extends HInstruction {
   final bool isAssignable;
-  HGetLength(HInstruction receiver, TypeMask type, {bool this.isAssignable})
+  HGetLength(HInstruction receiver, AbstractValue type,
+      {bool this.isAssignable})
       : super(<HInstruction>[receiver], type) {
     assert(isAssignable != null);
     sideEffects.clearAllSideEffects();
@@ -1919,23 +2182,30 @@ class HGetLength extends HInstruction {
 
   HInstruction get receiver => inputs.single;
 
-  bool canThrow() => receiver.canBeNull();
+  @override
+  bool canThrow(AbstractValueDomain domain) =>
+      receiver.isNull(domain).isPotentiallyTrue;
 
-  HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
+  @override
+  HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
+  @override
   bool onlyThrowsNSM() => true;
 
+  @override
   accept(HVisitor visitor) => visitor.visitGetLength(this);
 
+  @override
   int typeCode() => HInstruction.GET_LENGTH_TYPECODE;
+  @override
   bool typeEquals(other) => other is HGetLength;
+  @override
   bool dataEquals(HGetLength other) => true;
+  @override
   String toString() => "GetLength()";
 }
 
-/**
- * HReadModifyWrite is a late stage instruction for a field (property) update
- * via an assignment operation or pre- or post-increment.
- */
+/// HReadModifyWrite is a late stage instruction for a field (property) update
+/// via an assignment operation or pre- or post-increment.
 class HReadModifyWrite extends HLateInstruction {
   static const ASSIGN_OP = 0;
   static const PRE_OP = 1;
@@ -1945,7 +2215,7 @@ class HReadModifyWrite extends HLateInstruction {
   final int opKind;
 
   HReadModifyWrite._(this.element, this.jsOp, this.opKind,
-      List<HInstruction> inputs, TypeMask type)
+      List<HInstruction> inputs, AbstractValue type)
       : super(inputs, type) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
@@ -1954,16 +2224,16 @@ class HReadModifyWrite extends HLateInstruction {
   }
 
   HReadModifyWrite.assignOp(FieldEntity element, String jsOp,
-      HInstruction receiver, HInstruction operand, TypeMask type)
+      HInstruction receiver, HInstruction operand, AbstractValue type)
       : this._(
             element, jsOp, ASSIGN_OP, <HInstruction>[receiver, operand], type);
 
-  HReadModifyWrite.preOp(
-      FieldEntity element, String jsOp, HInstruction receiver, TypeMask type)
+  HReadModifyWrite.preOp(FieldEntity element, String jsOp,
+      HInstruction receiver, AbstractValue type)
       : this._(element, jsOp, PRE_OP, <HInstruction>[receiver], type);
 
-  HReadModifyWrite.postOp(
-      FieldEntity element, String jsOp, HInstruction receiver, TypeMask type)
+  HReadModifyWrite.postOp(FieldEntity element, String jsOp,
+      HInstruction receiver, AbstractValue type)
       : this._(element, jsOp, POST_OP, <HInstruction>[receiver], type);
 
   HInstruction get receiver => inputs[0];
@@ -1972,22 +2242,29 @@ class HReadModifyWrite extends HLateInstruction {
   bool get isPostOp => opKind == POST_OP;
   bool get isAssignOp => opKind == ASSIGN_OP;
 
-  bool canThrow() => receiver.canBeNull();
+  @override
+  bool canThrow(AbstractValueDomain domain) =>
+      receiver.isNull(domain).isPotentiallyTrue;
 
-  HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
+  @override
+  HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
+  @override
   bool onlyThrowsNSM() => true;
 
   HInstruction get value => inputs[1];
+  @override
   accept(HVisitor visitor) => visitor.visitReadModifyWrite(this);
 
+  @override
   bool isJsStatement() => isAssignOp;
+  @override
   String toString() => "ReadModifyWrite $jsOp $opKind $element";
 }
 
 abstract class HLocalAccess extends HInstruction {
   final Local variable;
 
-  HLocalAccess(this.variable, List<HInstruction> inputs, TypeMask type)
+  HLocalAccess(this.variable, List<HInstruction> inputs, AbstractValue type)
       : super(inputs, type);
 
   HInstruction get receiver => inputs[0];
@@ -1996,52 +2273,152 @@ abstract class HLocalAccess extends HInstruction {
 class HLocalGet extends HLocalAccess {
   // No need to use GVN for a [HLocalGet], it is just a local
   // access.
-  HLocalGet(Local variable, HLocalValue local, TypeMask type,
+  HLocalGet(Local variable, HLocalValue local, AbstractValue type,
       SourceInformation sourceInformation)
       : super(variable, <HInstruction>[local], type) {
     this.sourceInformation = sourceInformation;
   }
 
+  @override
   accept(HVisitor visitor) => visitor.visitLocalGet(this);
 
   HLocalValue get local => inputs[0];
 }
 
 class HLocalSet extends HLocalAccess {
-  HLocalSet(Local variable, HLocalValue local, HInstruction value)
-      : super(variable, <HInstruction>[local, value],
-            const TypeMask.nonNullEmpty());
+  HLocalSet(AbstractValueDomain domain, Local variable, HLocalValue local,
+      HInstruction value)
+      : super(variable, <HInstruction>[local, value], domain.emptyType);
 
+  @override
   accept(HVisitor visitor) => visitor.visitLocalSet(this);
 
   HLocalValue get local => inputs[0];
   HInstruction get value => inputs[1];
+  @override
   bool isJsStatement() => true;
 }
 
+/// Invocation of a native or JS-interop method.
+///
+/// Includes various invocations where the JavaScript form is similar to the
+/// Dart form:
+///
+///     receiver.property          // An instance getter
+///     receiver.property = value  // An instance setter
+///     receiver.method(arg)       // An instance method
+///
+///     Class.property             // A static getter
+///     Class.property = value     // A static setter
+///     Class.method(arg)          // A static method
+///     new Class(arg)             // A constructor
+///
+/// HInvokeDynamicMethod can be lowered to HInvokeExternal with the same
+/// [element]. The difference is a HInvokeDynamicMethod is a call to a
+/// Dart-calling-convention stub identifed by [element] that contains a call to
+/// the external method, whereas a HInvokeExternal instruction is a direct
+/// JavaScript call to the external method identified by [element].
+class HInvokeExternal extends HInvoke {
+  final FunctionEntity element;
+
+  // The following fields are functions of [element] that are extracted for
+  // convenience.
+  final NativeBehavior nativeBehavior;
+  final NativeThrowBehavior throwBehavior;
+
+  HInvokeExternal(this.element, List<HInstruction> inputs, AbstractValue type,
+      this.nativeBehavior,
+      {SourceInformation sourceInformation})
+      : throwBehavior =
+            nativeBehavior?.throwBehavior ?? NativeThrowBehavior.MAY,
+        super(inputs, type) {
+    if (nativeBehavior == null) {
+      sideEffects.setAllSideEffects();
+      sideEffects.setDependsOnSomething();
+    } else {
+      sideEffects.add(nativeBehavior.sideEffects);
+    }
+    if (nativeBehavior != null && nativeBehavior.useGvn) {
+      setUseGvn();
+    }
+    this.sourceInformation = sourceInformation;
+  }
+
+  @override
+  accept(HVisitor visitor) => visitor.visitInvokeExternal(this);
+
+  @override
+  bool isJsStatement() => false;
+
+  @override
+  bool canThrow(AbstractValueDomain domain) {
+    if (element.isInstanceMember) {
+      if (inputs.length > 0) {
+        return inputs.first.isNull(domain).isPotentiallyTrue
+            ? throwBehavior.canThrow
+            : throwBehavior.onNonNull.canThrow;
+      }
+    }
+    return throwBehavior.canThrow;
+  }
+
+  @override
+  bool onlyThrowsNSM() => throwBehavior.isOnlyNullNSMGuard;
+
+  @override
+  bool isAllocation(AbstractValueDomain domain) =>
+      nativeBehavior != null &&
+      nativeBehavior.isAllocation &&
+      this.isNull(domain).isDefinitelyFalse;
+
+  /// Returns `true` if the call will throw an NoSuchMethod error if [receiver]
+  /// is `null` before having any other side-effects.
+  bool isNullGuardFor(HInstruction receiver) {
+    if (!element.isInstanceMember) return false;
+    if (inputs.length < 1) return false;
+    if (inputs.first.nonCheck() != receiver.nonCheck()) return false;
+    return true;
+  }
+
+  @override
+  int typeCode() => HInstruction.INVOKE_EXTERNAL_TYPECODE;
+  @override
+  bool typeEquals(other) => other is HInvokeExternal;
+  @override
+  bool dataEquals(HInvokeExternal other) {
+    return element == other.element;
+  }
+
+  @override
+  String toString() => 'HInvokeExternal($element)';
+}
+
 abstract class HForeign extends HInstruction {
-  HForeign(TypeMask type, List<HInstruction> inputs) : super(inputs, type);
+  HForeign(AbstractValue type, List<HInstruction> inputs) : super(inputs, type);
 
   bool get isStatement => false;
-  native.NativeBehavior get nativeBehavior => null;
+  NativeBehavior get nativeBehavior => null;
 
-  bool canThrow() {
+  @override
+  bool canThrow(AbstractValueDomain domain) {
     return sideEffects.hasSideEffects() || sideEffects.dependsOnSomething();
   }
 }
 
 class HForeignCode extends HForeign {
   final js.Template codeTemplate;
+  @override
   final bool isStatement;
-  final native.NativeBehavior nativeBehavior;
-  native.NativeThrowBehavior throwBehavior;
+  @override
+  final NativeBehavior nativeBehavior;
+  NativeThrowBehavior throwBehavior;
   final FunctionEntity foreignFunction;
 
-  HForeignCode(this.codeTemplate, TypeMask type, List<HInstruction> inputs,
+  HForeignCode(this.codeTemplate, AbstractValue type, List<HInstruction> inputs,
       {this.isStatement: false,
       SideEffects effects,
-      native.NativeBehavior nativeBehavior,
-      native.NativeThrowBehavior throwBehavior,
+      NativeBehavior nativeBehavior,
+      NativeThrowBehavior throwBehavior,
       this.foreignFunction})
       : this.nativeBehavior = nativeBehavior,
         this.throwBehavior = throwBehavior,
@@ -2052,7 +2429,7 @@ class HForeignCode extends HForeign {
     }
     if (this.throwBehavior == null) {
       this.throwBehavior = (nativeBehavior == null)
-          ? native.NativeThrowBehavior.MAY
+          ? NativeThrowBehavior.MAY
           : nativeBehavior.throwBehavior;
     }
     assert(this.throwBehavior != null);
@@ -2064,43 +2441,63 @@ class HForeignCode extends HForeign {
   }
 
   HForeignCode.statement(js.Template codeTemplate, List<HInstruction> inputs,
-      SideEffects effects, native.NativeBehavior nativeBehavior, TypeMask type)
+      SideEffects effects, NativeBehavior nativeBehavior, AbstractValue type)
       : this(codeTemplate, type, inputs,
             isStatement: true,
             effects: effects,
             nativeBehavior: nativeBehavior);
 
+  @override
   accept(HVisitor visitor) => visitor.visitForeignCode(this);
 
+  @override
   bool isJsStatement() => isStatement;
-  bool canThrow() {
+  @override
+  bool canThrow(AbstractValueDomain domain) {
     if (inputs.length > 0) {
-      return inputs.first.canBeNull()
+      return inputs.first.isNull(domain).isPotentiallyTrue
           ? throwBehavior.canThrow
           : throwBehavior.onNonNull.canThrow;
     }
     return throwBehavior.canThrow;
   }
 
+  @override
   bool onlyThrowsNSM() => throwBehavior.isOnlyNullNSMGuard;
 
-  bool get isAllocation =>
-      nativeBehavior != null && nativeBehavior.isAllocation && !canBeNull();
+  @override
+  bool isAllocation(AbstractValueDomain domain) =>
+      nativeBehavior != null &&
+      nativeBehavior.isAllocation &&
+      isNull(domain).isDefinitelyFalse;
 
+  /// Returns `true` if the template will throw an NoSuchMethod error if
+  /// [receiver] is `null` before having any other side-effects.
+  bool isNullGuardFor(HInstruction receiver) {
+    if (!throwBehavior.isNullNSMGuard) return false;
+    if (inputs.length < 1) return false;
+    if (inputs.first.nonCheck() != receiver.nonCheck()) return false;
+    return true;
+  }
+
+  @override
   int typeCode() => HInstruction.FOREIGN_CODE_TYPECODE;
+  @override
   bool typeEquals(other) => other is HForeignCode;
+  @override
   bool dataEquals(HForeignCode other) {
     return codeTemplate.source != null &&
         codeTemplate.source == other.codeTemplate.source;
   }
 
+  @override
   String toString() => 'HForeignCode("${codeTemplate.source}")';
 }
 
 abstract class HInvokeBinary extends HInstruction {
   final Selector selector;
   HInvokeBinary(
-      HInstruction left, HInstruction right, this.selector, TypeMask type)
+      HInstruction left, HInstruction right, this.selector, AbstractValue type)
       : super(<HInstruction>[left, right], type) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
@@ -2110,183 +2507,230 @@ abstract class HInvokeBinary extends HInstruction {
   HInstruction get left => inputs[0];
   HInstruction get right => inputs[1];
 
-  BinaryOperation operation(ConstantSystem constantSystem);
+  constant_system.BinaryOperation operation();
 }
 
 abstract class HBinaryArithmetic extends HInvokeBinary {
-  HBinaryArithmetic(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+  HBinaryArithmetic(HInstruction left, HInstruction right, Selector selector,
+      AbstractValue type)
       : super(left, right, selector, type);
-  BinaryOperation operation(ConstantSystem constantSystem);
+  @override
+  constant_system.BinaryOperation operation();
 }
 
 class HAdd extends HBinaryArithmetic {
-  HAdd(HInstruction left, HInstruction right, Selector selector, TypeMask type)
+  HAdd(HInstruction left, HInstruction right, Selector selector,
+      AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitAdd(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.add;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.add;
+  @override
   int typeCode() => HInstruction.ADD_TYPECODE;
+  @override
   bool typeEquals(other) => other is HAdd;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HDivide extends HBinaryArithmetic {
-  HDivide(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+  HDivide(HInstruction left, HInstruction right, Selector selector,
+      AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitDivide(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.divide;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.divide;
+  @override
   int typeCode() => HInstruction.DIVIDE_TYPECODE;
+  @override
   bool typeEquals(other) => other is HDivide;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HMultiply extends HBinaryArithmetic {
-  HMultiply(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+  HMultiply(HInstruction left, HInstruction right, Selector selector,
+      AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitMultiply(this);
 
-  BinaryOperation operation(ConstantSystem operations) => operations.multiply;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.multiply;
+  @override
   int typeCode() => HInstruction.MULTIPLY_TYPECODE;
+  @override
   bool typeEquals(other) => other is HMultiply;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HSubtract extends HBinaryArithmetic {
-  HSubtract(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+  HSubtract(HInstruction left, HInstruction right, Selector selector,
+      AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitSubtract(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.subtract;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.subtract;
+  @override
   int typeCode() => HInstruction.SUBTRACT_TYPECODE;
+  @override
   bool typeEquals(other) => other is HSubtract;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HTruncatingDivide extends HBinaryArithmetic {
-  HTruncatingDivide(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+  HTruncatingDivide(HInstruction left, HInstruction right, Selector selector,
+      AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.truncatingDivide;
+  @override
+  constant_system.BinaryOperation operation() =>
+      constant_system.truncatingDivide;
+  @override
   int typeCode() => HInstruction.TRUNCATING_DIVIDE_TYPECODE;
+  @override
   bool typeEquals(other) => other is HTruncatingDivide;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HRemainder extends HBinaryArithmetic {
-  HRemainder(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+  HRemainder(HInstruction left, HInstruction right, Selector selector,
+      AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitRemainder(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.remainder;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.remainder;
+  @override
   int typeCode() => HInstruction.REMAINDER_TYPECODE;
+  @override
   bool typeEquals(other) => other is HRemainder;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
-/**
- * An [HSwitch] instruction has one input for the incoming
- * value, and one input per constant that it can switch on.
- * Its block has one successor per constant, and one for the default.
- */
+/// An [HSwitch] instruction has one input for the incoming
+/// value, and one input per constant that it can switch on.
+/// Its block has one successor per constant, and one for the default.
 class HSwitch extends HControlFlow {
-  HSwitch(List<HInstruction> inputs) : super(inputs);
+  HSwitch(AbstractValueDomain domain, List<HInstruction> inputs)
+      : super(domain, inputs);
 
   HConstant constant(int index) => inputs[index + 1];
   HInstruction get expression => inputs[0];
 
-  /**
-   * Provides the target to jump to if none of the constants match
-   * the expression. If the switch had no default case, this is the
-   * following join-block.
-   */
+  /// Provides the target to jump to if none of the constants match
+  /// the expression. If the switch had no default case, this is the
+  /// following join-block.
   HBasicBlock get defaultTarget => block.successors.last;
 
+  @override
   accept(HVisitor visitor) => visitor.visitSwitch(this);
 
+  @override
   String toString() => "HSwitch cases = $inputs";
 }
 
 abstract class HBinaryBitOp extends HInvokeBinary {
-  HBinaryBitOp(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+  HBinaryBitOp(HInstruction left, HInstruction right, Selector selector,
+      AbstractValue type)
       : super(left, right, selector, type);
 }
 
 class HShiftLeft extends HBinaryBitOp {
-  HShiftLeft(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+  HShiftLeft(HInstruction left, HInstruction right, Selector selector,
+      AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitShiftLeft(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.shiftLeft;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.shiftLeft;
+  @override
   int typeCode() => HInstruction.SHIFT_LEFT_TYPECODE;
+  @override
   bool typeEquals(other) => other is HShiftLeft;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HShiftRight extends HBinaryBitOp {
-  HShiftRight(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+  HShiftRight(HInstruction left, HInstruction right, Selector selector,
+      AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitShiftRight(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.shiftRight;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.shiftRight;
+  @override
   int typeCode() => HInstruction.SHIFT_RIGHT_TYPECODE;
+  @override
   bool typeEquals(other) => other is HShiftRight;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HBitOr extends HBinaryBitOp {
-  HBitOr(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+  HBitOr(HInstruction left, HInstruction right, Selector selector,
+      AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitBitOr(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.bitOr;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.bitOr;
+  @override
   int typeCode() => HInstruction.BIT_OR_TYPECODE;
+  @override
   bool typeEquals(other) => other is HBitOr;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HBitAnd extends HBinaryBitOp {
-  HBitAnd(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+  HBitAnd(HInstruction left, HInstruction right, Selector selector,
+      AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitBitAnd(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.bitAnd;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.bitAnd;
+  @override
   int typeCode() => HInstruction.BIT_AND_TYPECODE;
+  @override
   bool typeEquals(other) => other is HBitAnd;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HBitXor extends HBinaryBitOp {
-  HBitXor(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+  HBitXor(HInstruction left, HInstruction right, Selector selector,
+      AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitBitXor(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.bitXor;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.bitXor;
+  @override
   int typeCode() => HInstruction.BIT_XOR_TYPECODE;
+  @override
   bool typeEquals(other) => other is HBitXor;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
@@ -2301,55 +2745,89 @@ abstract class HInvokeUnary extends HInstruction {
 
   HInstruction get operand => inputs[0];
 
-  UnaryOperation operation(ConstantSystem constantSystem);
+  constant_system.UnaryOperation operation();
 }
 
 class HNegate extends HInvokeUnary {
-  HNegate(HInstruction input, Selector selector, TypeMask type)
+  HNegate(HInstruction input, Selector selector, AbstractValue type)
       : super(input, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitNegate(this);
 
-  UnaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.negate;
+  @override
+  constant_system.UnaryOperation operation() => constant_system.negate;
+  @override
   int typeCode() => HInstruction.NEGATE_TYPECODE;
+  @override
   bool typeEquals(other) => other is HNegate;
+  @override
+  bool dataEquals(HInstruction other) => true;
+}
+
+class HAbs extends HInvokeUnary {
+  HAbs(HInstruction input, Selector selector, AbstractValue type)
+      : super(input, selector, type);
+  @override
+  accept(HVisitor visitor) => visitor.visitAbs(this);
+
+  @override
+  constant_system.UnaryOperation operation() => constant_system.abs;
+  @override
+  int typeCode() => HInstruction.ABS_TYPECODE;
+  @override
+  bool typeEquals(other) => other is HAbs;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HBitNot extends HInvokeUnary {
-  HBitNot(HInstruction input, Selector selector, TypeMask type)
+  HBitNot(HInstruction input, Selector selector, AbstractValue type)
       : super(input, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitBitNot(this);
 
-  UnaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.bitNot;
+  @override
+  constant_system.UnaryOperation operation() => constant_system.bitNot;
+  @override
   int typeCode() => HInstruction.BIT_NOT_TYPECODE;
+  @override
   bool typeEquals(other) => other is HBitNot;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HExit extends HControlFlow {
-  HExit() : super(const <HInstruction>[]);
+  HExit(AbstractValueDomain domain) : super(domain, const <HInstruction>[]);
+  @override
   toString() => 'exit';
+  @override
   accept(HVisitor visitor) => visitor.visitExit(this);
 }
 
 class HGoto extends HControlFlow {
-  HGoto() : super(const <HInstruction>[]);
+  HGoto(AbstractValueDomain domain) : super(domain, const <HInstruction>[]);
+  @override
   toString() => 'goto';
+  @override
   accept(HVisitor visitor) => visitor.visitGoto(this);
 }
 
 abstract class HJump extends HControlFlow {
   final JumpTarget target;
   final LabelDefinition label;
-  HJump(this.target)
+  HJump(AbstractValueDomain domain, this.target,
+      SourceInformation sourceInformation)
       : label = null,
-        super(const <HInstruction>[]);
-  HJump.toLabel(LabelDefinition label)
+        super(domain, const <HInstruction>[]) {
+    this.sourceInformation = sourceInformation;
+  }
+  HJump.toLabel(AbstractValueDomain domain, LabelDefinition label,
+      SourceInformation sourceInformation)
       : label = label,
         target = label.target,
-        super(const <HInstruction>[]);
+        super(domain, const <HInstruction>[]) {
+    this.sourceInformation = sourceInformation;
+  }
 }
 
 class HBreak extends HJump {
@@ -2357,19 +2835,38 @@ class HBreak extends HJump {
   /// generated for a switch statement with continue statements. See
   /// [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
   final bool breakSwitchContinueLoop;
-  HBreak(JumpTarget target, {bool this.breakSwitchContinueLoop: false})
-      : super(target);
-  HBreak.toLabel(LabelDefinition label)
+
+  HBreak(AbstractValueDomain domain, JumpTarget target,
+      SourceInformation sourceInformation,
+      {bool this.breakSwitchContinueLoop: false})
+      : super(domain, target, sourceInformation);
+
+  HBreak.toLabel(AbstractValueDomain domain, LabelDefinition label,
+      SourceInformation sourceInformation)
       : breakSwitchContinueLoop = false,
-        super.toLabel(label);
-  toString() => (label != null) ? 'break ${label.labelName}' : 'break';
+        super.toLabel(domain, label, sourceInformation);
+
+  @override
+  String toString() => (label != null) ? 'break ${label.labelName}' : 'break';
+
+  @override
   accept(HVisitor visitor) => visitor.visitBreak(this);
 }
 
 class HContinue extends HJump {
-  HContinue(JumpTarget target) : super(target);
-  HContinue.toLabel(LabelDefinition label) : super.toLabel(label);
-  toString() => (label != null) ? 'continue ${label.labelName}' : 'continue';
+  HContinue(AbstractValueDomain domain, JumpTarget target,
+      SourceInformation sourceInformation)
+      : super(domain, target, sourceInformation);
+
+  HContinue.toLabel(AbstractValueDomain domain, LabelDefinition label,
+      SourceInformation sourceInformation)
+      : super.toLabel(domain, label, sourceInformation);
+
+  @override
+  String toString() =>
+      (label != null) ? 'continue ${label.labelName}' : 'continue';
+
+  @override
   accept(HVisitor visitor) => visitor.visitContinue(this);
 }
 
@@ -2377,8 +2874,10 @@ class HTry extends HControlFlow {
   HLocalValue exception;
   HBasicBlock catchBlock;
   HBasicBlock finallyBlock;
-  HTry() : super(const <HInstruction>[]);
+  HTry(AbstractValueDomain domain) : super(domain, const <HInstruction>[]);
+  @override
   toString() => 'try';
+  @override
   accept(HVisitor visitor) => visitor.visitTry(this);
   HBasicBlock get joinBlock => this.block.successors.last;
 }
@@ -2389,16 +2888,21 @@ class HTry extends HControlFlow {
 // leads to one of this instruction a predecessor of catch and
 // finally.
 class HExitTry extends HControlFlow {
-  HExitTry() : super(const <HInstruction>[]);
+  HExitTry(AbstractValueDomain domain) : super(domain, const <HInstruction>[]);
+  @override
   toString() => 'exit try';
+  @override
   accept(HVisitor visitor) => visitor.visitExitTry(this);
   HBasicBlock get bodyTrySuccessor => block.successors[0];
 }
 
 class HIf extends HConditionalBranch {
   HBlockFlow blockInformation = null;
-  HIf(HInstruction condition) : super(<HInstruction>[condition]);
+  HIf(AbstractValueDomain domain, HInstruction condition)
+      : super(domain, <HInstruction>[condition]);
+  @override
   toString() => 'if';
+  @override
   accept(HVisitor visitor) => visitor.visitIf(this);
 
   HBasicBlock get thenBlock {
@@ -2419,36 +2923,54 @@ class HLoopBranch extends HConditionalBranch {
   static const int DO_WHILE_LOOP = 1;
 
   final int kind;
-  HLoopBranch(HInstruction condition, [this.kind = CONDITION_FIRST_LOOP])
-      : super(<HInstruction>[condition]);
+  HLoopBranch(AbstractValueDomain domain, HInstruction condition,
+      [this.kind = CONDITION_FIRST_LOOP])
+      : super(domain, <HInstruction>[condition]);
+  @override
   toString() => 'loop-branch';
+  @override
   accept(HVisitor visitor) => visitor.visitLoopBranch(this);
 }
 
 class HConstant extends HInstruction {
   final ConstantValue constant;
-  HConstant.internal(this.constant, TypeMask constantType)
+  HConstant.internal(this.constant, AbstractValue constantType)
       : super(<HInstruction>[], constantType);
 
-  toString() => 'literal: ${constant.toStructuredText()}';
+  @override
+  toString() => 'literal: ${constant.toStructuredText(null)}';
+  @override
   accept(HVisitor visitor) => visitor.visitConstant(this);
 
+  @override
   bool isConstant() => true;
+  @override
   bool isConstantBoolean() => constant.isBool;
+  @override
   bool isConstantNull() => constant.isNull;
+  @override
   bool isConstantNumber() => constant.isNum;
+  @override
   bool isConstantInteger() => constant.isInt;
+  @override
   bool isConstantString() => constant.isString;
+  @override
   bool isConstantList() => constant.isList;
+  @override
   bool isConstantMap() => constant.isMap;
+  @override
   bool isConstantFalse() => constant.isFalse;
+  @override
   bool isConstantTrue() => constant.isTrue;
 
-  bool isInterceptor(ClosedWorld closedWorld) => constant.isInterceptor;
+  @override
+  bool isInterceptor(JClosedWorld closedWorld) => constant.isInterceptor;
 
   // Maybe avoid this if the literal is big?
+  @override
   bool isCodeMotionInvariant() => true;
 
+  @override
   set instructionType(type) {
     // Only lists can be specialized. The SSA builder uses the
     // inferrer for finding the type of a constant list. We should
@@ -2459,65 +2981,93 @@ class HConstant extends HInstruction {
 }
 
 class HNot extends HInstruction {
-  HNot(HInstruction value, TypeMask type) : super(<HInstruction>[value], type) {
+  HNot(HInstruction value, AbstractValue type)
+      : super(<HInstruction>[value], type) {
     setUseGvn();
   }
 
+  @override
   accept(HVisitor visitor) => visitor.visitNot(this);
+  @override
   int typeCode() => HInstruction.NOT_TYPECODE;
+  @override
   bool typeEquals(other) => other is HNot;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
-/**
-  * An [HLocalValue] represents a local. Unlike [HParameterValue]s its
-  * first use must be in an HLocalSet. That is, [HParameterValue]s have a
-  * value from the start, whereas [HLocalValue]s need to be initialized first.
-  */
+/// An [HLocalValue] represents a local. Unlike [HParameterValue]s its
+/// first use must be in an HLocalSet. That is, [HParameterValue]s have a
+/// value from the start, whereas [HLocalValue]s need to be initialized first.
 class HLocalValue extends HInstruction {
-  HLocalValue(Entity variable, TypeMask type) : super(<HInstruction>[], type) {
+  HLocalValue(Entity variable, AbstractValue type)
+      : super(<HInstruction>[], type) {
     sourceElement = variable;
   }
 
+  @override
   toString() => 'local ${sourceElement.name}';
+  @override
   accept(HVisitor visitor) => visitor.visitLocalValue(this);
 }
 
 class HParameterValue extends HLocalValue {
-  HParameterValue(Entity variable, type) : super(variable, type);
+  bool _potentiallyUsedAsVariable = true;
+
+  HParameterValue(Entity variable, AbstractValue type) : super(variable, type);
 
   // [HParameterValue]s are either the value of the parameter (in fully SSA
   // converted code), or the mutable variable containing the value (in
   // incompletely SSA converted code, e.g. methods containing exceptions).
   bool usedAsVariable() {
-    for (HInstruction user in usedBy) {
-      if (user is HLocalGet) return true;
-      if (user is HLocalSet && user.local == this) return true;
+    if (_potentiallyUsedAsVariable) {
+      // If the HParameterValue is used as a variable, all of the uses should be
+      // HLocalGet or HLocalSet, so this loop exits fast.
+      for (HInstruction user in usedBy) {
+        if (user is HLocalGet) return true;
+        if (user is HLocalSet && user.local == this) return true;
+      }
+      // An 'ssa-conversion' optimization can make the HParameterValue change
+      // from a variable to a value, but there is no transformation that
+      // re-introduces the variable.
+      // TODO(sra): The builder knows that most parameters are not variables to
+      // begin with, so could initialize [_potentiallyUsedAsVariable] to
+      // `false`.
+      _potentiallyUsedAsVariable = false;
     }
     return false;
   }
 
+  @override
   toString() => 'parameter ${sourceElement.name}';
+  @override
   accept(HVisitor visitor) => visitor.visitParameterValue(this);
 }
 
 class HThis extends HParameterValue {
-  HThis(ThisLocal element, TypeMask type) : super(element, type);
+  HThis(ThisLocal element, AbstractValue type) : super(element, type);
 
+  @override
   ThisLocal get sourceElement => super.sourceElement;
+
+  @override
   void set sourceElement(covariant ThisLocal local) {
     super.sourceElement = local;
   }
 
+  @override
   accept(HVisitor visitor) => visitor.visitThis(this);
 
+  @override
   bool isCodeMotionInvariant() => true;
 
-  bool isInterceptor(ClosedWorld closedWorld) {
+  @override
+  bool isInterceptor(JClosedWorld closedWorld) {
     return closedWorld.interceptorData
         .isInterceptedClass(sourceElement.enclosingClass);
   }
 
+  @override
   String toString() => 'this';
 }
 
@@ -2531,15 +3081,15 @@ class HPhi extends HInstruction {
   // The order of the [inputs] must correspond to the order of the
   // predecessor-edges. That is if an input comes from the first predecessor
   // of the surrounding block, then the input must be the first in the [HPhi].
-  HPhi(Local variable, List<HInstruction> inputs, TypeMask type)
+  HPhi(Local variable, List<HInstruction> inputs, AbstractValue type)
       : super(inputs, type) {
     sourceElement = variable;
   }
-  HPhi.noInputs(Local variable, TypeMask type)
+  HPhi.noInputs(Local variable, AbstractValue type)
       : this(variable, <HInstruction>[], type);
-  HPhi.singleInput(Local variable, HInstruction input, TypeMask type)
+  HPhi.singleInput(Local variable, HInstruction input, AbstractValue type)
       : this(variable, <HInstruction>[input], type);
-  HPhi.manyInputs(Local variable, List<HInstruction> inputs, TypeMask type)
+  HPhi.manyInputs(Local variable, List<HInstruction> inputs, AbstractValue type)
       : this(variable, inputs, type);
 
   void addInput(HInstruction input) {
@@ -2549,7 +3099,9 @@ class HPhi extends HInstruction {
     input.usedBy.add(this);
   }
 
+  @override
   toString() => 'phi $id';
+  @override
   accept(HVisitor visitor) => visitor.visitPhi(this);
 }
 
@@ -2563,113 +3115,160 @@ class HIdentity extends HRelational {
   String singleComparisonOp; // null, '===', '=='
 
   HIdentity(left, right, selector, type) : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitIdentity(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.identity;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.identity;
+  @override
   int typeCode() => HInstruction.IDENTITY_TYPECODE;
+  @override
   bool typeEquals(other) => other is HIdentity;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HGreater extends HRelational {
   HGreater(left, right, selector, type) : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitGreater(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.greater;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.greater;
+  @override
   int typeCode() => HInstruction.GREATER_TYPECODE;
+  @override
   bool typeEquals(other) => other is HGreater;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HGreaterEqual extends HRelational {
   HGreaterEqual(left, right, selector, type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitGreaterEqual(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.greaterEqual;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.greaterEqual;
+  @override
   int typeCode() => HInstruction.GREATER_EQUAL_TYPECODE;
+  @override
   bool typeEquals(other) => other is HGreaterEqual;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HLess extends HRelational {
   HLess(left, right, selector, type) : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitLess(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.less;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.less;
+  @override
   int typeCode() => HInstruction.LESS_TYPECODE;
+  @override
   bool typeEquals(other) => other is HLess;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HLessEqual extends HRelational {
   HLessEqual(left, right, selector, type) : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitLessEqual(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.lessEqual;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.lessEqual;
+  @override
   int typeCode() => HInstruction.LESS_EQUAL_TYPECODE;
+  @override
   bool typeEquals(other) => other is HLessEqual;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
+/// Return statement, either with or without a value.
 class HReturn extends HControlFlow {
-  HReturn(HInstruction value, SourceInformation sourceInformation)
-      : super(<HInstruction>[value]) {
+  HReturn(AbstractValueDomain domain, HInstruction /*?*/ value,
+      SourceInformation sourceInformation)
+      : super(domain, [if (value != null) value]) {
     this.sourceInformation = sourceInformation;
   }
+  @override
   toString() => 'return';
+  @override
   accept(HVisitor visitor) => visitor.visitReturn(this);
 }
 
 class HThrowExpression extends HInstruction {
-  HThrowExpression(HInstruction value, SourceInformation sourceInformation)
-      : super(<HInstruction>[value], const TypeMask.nonNullEmpty()) {
+  HThrowExpression(AbstractValueDomain domain, HInstruction value,
+      SourceInformation sourceInformation)
+      : super(<HInstruction>[value], domain.emptyType) {
     this.sourceInformation = sourceInformation;
   }
+  @override
   toString() => 'throw expression';
+  @override
   accept(HVisitor visitor) => visitor.visitThrowExpression(this);
-  bool canThrow() => true;
+  @override
+  bool canThrow(AbstractValueDomain domain) => true;
 }
 
 class HAwait extends HInstruction {
-  HAwait(HInstruction value, TypeMask type)
+  HAwait(HInstruction value, AbstractValue type)
       : super(<HInstruction>[value], type);
+  @override
   toString() => 'await';
+  @override
   accept(HVisitor visitor) => visitor.visitAwait(this);
   // An await will throw if its argument is not a real future.
-  bool canThrow() => true;
+  @override
+  bool canThrow(AbstractValueDomain domain) => true;
+  @override
   SideEffects sideEffects = new SideEffects();
 }
 
 class HYield extends HInstruction {
-  HYield(HInstruction value, this.hasStar)
-      : super(<HInstruction>[value], const TypeMask.nonNullEmpty());
+  HYield(AbstractValueDomain domain, HInstruction value, this.hasStar,
+      SourceInformation sourceInformation)
+      : super(<HInstruction>[value], domain.emptyType) {
+    this.sourceInformation = sourceInformation;
+  }
   bool hasStar;
+  @override
   toString() => 'yield';
+  @override
   accept(HVisitor visitor) => visitor.visitYield(this);
-  bool canThrow() => false;
+  @override
+  bool canThrow(AbstractValueDomain domain) => false;
+  @override
   SideEffects sideEffects = new SideEffects();
 }
 
 class HThrow extends HControlFlow {
   final bool isRethrow;
-  HThrow(HInstruction value, SourceInformation sourceInformation,
+  HThrow(AbstractValueDomain domain, HInstruction value,
+      SourceInformation sourceInformation,
       {this.isRethrow: false})
-      : super(<HInstruction>[value]) {
+      : super(domain, <HInstruction>[value]) {
     this.sourceInformation = sourceInformation;
   }
+  @override
   toString() => 'throw';
+  @override
   accept(HVisitor visitor) => visitor.visitThrow(this);
 }
 
+// TODO(johnniwinther): Change this to a "HStaticLoad" of a field when we use
+// CFE constants. It has been used for static tear-offs even though these should
+// have been constants.
 class HStatic extends HInstruction {
   final MemberEntity element;
-  HStatic(this.element, type) : super(<HInstruction>[], type) {
+
+  HStatic(this.element, AbstractValue type, SourceInformation sourceInformation)
+      : super(<HInstruction>[], type) {
     assert(element != null);
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
@@ -2677,14 +3276,22 @@ class HStatic extends HInstruction {
       sideEffects.setDependsOnStaticPropertyStore();
     }
     setUseGvn();
+    this.sourceInformation = sourceInformation;
   }
+  @override
   toString() => 'static ${element.name}';
+  @override
   accept(HVisitor visitor) => visitor.visitStatic(this);
 
+  @override
   int gvnHashCode() => super.gvnHashCode() ^ element.hashCode;
+  @override
   int typeCode() => HInstruction.STATIC_TYPECODE;
+  @override
   bool typeEquals(other) => other is HStatic;
+  @override
   bool dataEquals(HStatic other) => element == other.element;
+  @override
   bool isCodeMotionInvariant() => !element.isAssignable;
 }
 
@@ -2702,7 +3309,7 @@ class HInterceptor extends HInstruction {
   //     (a && C.JSArray_methods).get$first(a)
   //
 
-  HInterceptor(HInstruction receiver, TypeMask type)
+  HInterceptor(HInstruction receiver, AbstractValue type)
       : super(<HInstruction>[receiver], type) {
     this.sourceInformation = receiver.sourceInformation;
     sideEffects.clearAllSideEffects();
@@ -2710,7 +3317,9 @@ class HInterceptor extends HInstruction {
     setUseGvn();
   }
 
+  @override
   String toString() => 'interceptor on $interceptedClasses';
+  @override
   accept(HVisitor visitor) => visitor.visitInterceptor(this);
   HInstruction get receiver => inputs[0];
 
@@ -2721,10 +3330,14 @@ class HInterceptor extends HInstruction {
     inputs.add(constant);
   }
 
-  bool isInterceptor(ClosedWorld closedWorld) => true;
+  @override
+  bool isInterceptor(JClosedWorld closedWorld) => true;
 
+  @override
   int typeCode() => HInstruction.INTERCEPTOR_TYPECODE;
+  @override
   bool typeEquals(other) => other is HInterceptor;
+  @override
   bool dataEquals(HInterceptor other) {
     return interceptedClasses == other.interceptedClasses ||
         (interceptedClasses.length == other.interceptedClasses.length &&
@@ -2732,81 +3345,112 @@ class HInterceptor extends HInstruction {
   }
 }
 
-/**
- * A "one-shot" interceptor is a call to a synthetized method that
- * will fetch the interceptor of its first parameter, and make a call
- * on a given selector with the remaining parameters.
- *
- * In order to share the same optimizations with regular interceptor
- * calls, this class extends [HInvokeDynamic] and also has the null
- * constant as the first input.
- */
+/// A "one-shot" interceptor is a call to a synthetized method that
+/// will fetch the interceptor of its first parameter, and make a call
+/// on a given selector with the remaining parameters.
+///
+/// In order to share the same optimizations with regular interceptor
+/// calls, this class extends [HInvokeDynamic] and also has the null
+/// constant as the first input.
 class HOneShotInterceptor extends HInvokeDynamic {
+  @override
+  List<DartType> typeArguments;
   Set<ClassEntity> interceptedClasses;
-  HOneShotInterceptor(Selector selector, TypeMask mask,
-      List<HInstruction> inputs, TypeMask type, this.interceptedClasses)
-      : super(selector, mask, null, inputs, type, true) {
-    assert(inputs[0] is HConstant);
-    assert(inputs[0].isNull());
-  }
-  bool isCallOnInterceptor(ClosedWorld closedWorld) => true;
 
-  String toString() => 'one shot interceptor: selector=$selector, mask=$mask';
+  HOneShotInterceptor(
+      AbstractValueDomain domain,
+      Selector selector,
+      AbstractValue receiverType,
+      List<HInstruction> inputs,
+      AbstractValue resultType,
+      this.typeArguments,
+      this.interceptedClasses)
+      : super(selector, receiverType, null, inputs, true, resultType) {
+    assert(inputs[0] is HConstant);
+    assert(inputs[0].instructionType == domain.nullType);
+    assert(selector.callStructure.typeArgumentCount == typeArguments.length);
+  }
+  @override
+  bool isCallOnInterceptor(JClosedWorld closedWorld) => true;
+
+  @override
+  String toString() =>
+      'one shot interceptor: selector=$selector, mask=$receiverType';
+  @override
   accept(HVisitor visitor) => visitor.visitOneShotInterceptor(this);
 }
 
-/** An [HLazyStatic] is a static that is initialized lazily at first read. */
+/// An [HLazyStatic] is a static that is initialized lazily at first read.
 class HLazyStatic extends HInstruction {
   final FieldEntity element;
-  HLazyStatic(this.element, type) : super(<HInstruction>[], type) {
+
+  HLazyStatic(
+      this.element, AbstractValue type, SourceInformation sourceInformation)
+      : super(<HInstruction>[], type) {
     // TODO(4931): The first access has side-effects, but we afterwards we
     // should be able to GVN.
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
+    this.sourceInformation = sourceInformation;
   }
 
+  @override
   toString() => 'lazy static ${element.name}';
+  @override
   accept(HVisitor visitor) => visitor.visitLazyStatic(this);
 
+  @override
   int typeCode() => 30;
   // TODO(4931): can we do better here?
+  @override
   bool isCodeMotionInvariant() => false;
-  bool canThrow() => true;
+  @override
+  bool canThrow(AbstractValueDomain domain) => true;
 }
 
 class HStaticStore extends HInstruction {
   MemberEntity element;
-  HStaticStore(this.element, HInstruction value)
-      : super(<HInstruction>[value], const TypeMask.nonNullEmpty()) {
+  HStaticStore(AbstractValueDomain domain, this.element, HInstruction value)
+      : super(<HInstruction>[value], domain.emptyType) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     sideEffects.setChangesStaticProperty();
   }
+  @override
   toString() => 'static store ${element.name}';
+  @override
   accept(HVisitor visitor) => visitor.visitStaticStore(this);
 
+  HInstruction get value => inputs.single;
+
+  @override
   int typeCode() => HInstruction.STATIC_STORE_TYPECODE;
+  @override
   bool typeEquals(other) => other is HStaticStore;
+  @override
   bool dataEquals(HStaticStore other) => element == other.element;
-  bool isJsStatement() => true;
+  @override
+  bool isJsStatement() => usedBy.isEmpty;
 }
 
 class HLiteralList extends HInstruction {
-  HLiteralList(List<HInstruction> inputs, TypeMask type) : super(inputs, type);
+  HLiteralList(List<HInstruction> inputs, AbstractValue type)
+      : super(inputs, type);
+  @override
   toString() => 'literal list';
+  @override
   accept(HVisitor visitor) => visitor.visitLiteralList(this);
 
-  bool get isAllocation => true;
+  @override
+  bool isAllocation(AbstractValueDomain domain) => true;
 }
 
-/**
- * The primitive array indexing operation. Note that this instruction
- * does not throw because we generate the checks explicitly.
- */
+/// The primitive array indexing operation. Note that this instruction
+/// does not throw because we generate the checks explicitly.
 class HIndex extends HInstruction {
   final Selector selector;
-  HIndex(
-      HInstruction receiver, HInstruction index, this.selector, TypeMask type)
+  HIndex(HInstruction receiver, HInstruction index, this.selector,
+      AbstractValue type)
       : super(<HInstruction>[receiver, index], type) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
@@ -2814,7 +3458,9 @@ class HIndex extends HInstruction {
     setUseGvn();
   }
 
+  @override
   String toString() => 'index operator';
+  @override
   accept(HVisitor visitor) => visitor.visitIndex(this);
 
   HInstruction get receiver => inputs[0];
@@ -2822,32 +3468,39 @@ class HIndex extends HInstruction {
 
   // Implicit dependency on HBoundsCheck or constraints on index.
   // TODO(27272): Make HIndex dependent on bounds checking.
+  @override
   bool get isMovable => false;
 
-  HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
+  @override
+  HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
+  @override
   bool onlyThrowsNSM() => true;
-  bool canThrow() => receiver.canBeNull();
+  @override
+  bool canThrow(AbstractValueDomain domain) =>
+      receiver.isNull(domain).isPotentiallyTrue;
 
+  @override
   int typeCode() => HInstruction.INDEX_TYPECODE;
+  @override
   bool typeEquals(HInstruction other) => other is HIndex;
+  @override
   bool dataEquals(HIndex other) => true;
 }
 
-/**
- * The primitive array assignment operation. Note that this instruction
- * does not throw because we generate the checks explicitly.
- */
+/// The primitive array assignment operation. Note that this instruction
+/// does not throw because we generate the checks explicitly.
 class HIndexAssign extends HInstruction {
   final Selector selector;
-  HIndexAssign(HInstruction receiver, HInstruction index, HInstruction value,
-      this.selector)
-      : super(<HInstruction>[receiver, index, value],
-            const TypeMask.nonNullEmpty()) {
+  HIndexAssign(AbstractValueDomain domain, HInstruction receiver,
+      HInstruction index, HInstruction value, this.selector)
+      : super(<HInstruction>[receiver, index, value], domain.emptyType) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     sideEffects.setChangesIndex();
   }
+  @override
   String toString() => 'index assign operator';
+  @override
   accept(HVisitor visitor) => visitor.visitIndexAssign(this);
 
   HInstruction get receiver => inputs[0];
@@ -2856,13 +3509,19 @@ class HIndexAssign extends HInstruction {
 
   // Implicit dependency on HBoundsCheck or constraints on index.
   // TODO(27272): Make HIndex dependent on bounds checking.
+  @override
   bool get isMovable => false;
 
-  HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
+  @override
+  HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
+  @override
   bool onlyThrowsNSM() => true;
-  bool canThrow() => receiver.canBeNull();
+  @override
+  bool canThrow(AbstractValueDomain domain) =>
+      receiver.isNull(domain).isPotentiallyTrue;
 }
 
+/// Is-test using legacy constructor based typ representation.
 class HIs extends HInstruction {
   /// A check against a raw type: 'o is int', 'o is A'.
   static const int RAW_CHECK = 0;
@@ -2877,34 +3536,58 @@ class HIs extends HInstruction {
   final int kind;
   final bool useInstanceOf;
 
-  HIs.direct(DartType typeExpression, HInstruction expression, TypeMask type)
-      : this.internal(typeExpression, [expression], RAW_CHECK, type);
+  HIs.direct(DartType typeExpression, HInstruction expression,
+      AbstractValue type, SourceInformation sourceInformation)
+      : this.internal(
+            typeExpression, [expression], RAW_CHECK, type, sourceInformation);
 
   // Pre-verified that the check can be done using 'instanceof'.
-  HIs.instanceOf(
-      DartType typeExpression, HInstruction expression, TypeMask type)
-      : this.internal(typeExpression, [expression], RAW_CHECK, type,
+  HIs.instanceOf(DartType typeExpression, HInstruction expression,
+      AbstractValue type, SourceInformation sourceInformation)
+      : this.internal(
+            typeExpression, [expression], RAW_CHECK, type, sourceInformation,
             useInstanceOf: true);
 
-  HIs.raw(DartType typeExpression, HInstruction expression,
-      HInterceptor interceptor, TypeMask type)
-      : this.internal(
-            typeExpression, [expression, interceptor], RAW_CHECK, type);
+  factory HIs.raw(
+      DartType typeExpression,
+      HInstruction expression,
+      HInterceptor interceptor,
+      AbstractValue type,
+      SourceInformation sourceInformation) {
+    // TODO(sigmund): re-add `&& typeExpression.treatAsRaw` or something
+    // equivalent (which started failing once we allowed typeExpressions that
+    // contain type parameters matching the original bounds of the type).
+    assert((typeExpression is FunctionType || typeExpression is InterfaceType),
+        "Unexpected raw is-test type: $typeExpression");
+    return new HIs.internal(typeExpression, [expression, interceptor],
+        RAW_CHECK, type, sourceInformation);
+  }
 
-  HIs.compound(DartType typeExpression, HInstruction expression,
-      HInstruction call, TypeMask type)
-      : this.internal(typeExpression, [expression, call], COMPOUND_CHECK, type);
+  HIs.compound(
+      DartType typeExpression,
+      HInstruction expression,
+      HInstruction call,
+      AbstractValue type,
+      SourceInformation sourceInformation)
+      : this.internal(typeExpression, [expression, call], COMPOUND_CHECK, type,
+            sourceInformation);
 
-  HIs.variable(DartType typeExpression, HInstruction expression,
-      HInstruction call, TypeMask type)
-      : this.internal(typeExpression, [expression, call], VARIABLE_CHECK, type);
+  HIs.variable(
+      DartType typeExpression,
+      HInstruction expression,
+      HInstruction call,
+      AbstractValue type,
+      SourceInformation sourceInformation)
+      : this.internal(typeExpression, [expression, call], VARIABLE_CHECK, type,
+            sourceInformation);
 
-  HIs.internal(
-      this.typeExpression, List<HInstruction> inputs, this.kind, TypeMask type,
+  HIs.internal(this.typeExpression, List<HInstruction> inputs, this.kind,
+      AbstractValue type, SourceInformation sourceInformation,
       {bool this.useInstanceOf: false})
       : super(inputs, type) {
     assert(kind >= RAW_CHECK && kind <= VARIABLE_CHECK);
     setUseGvn();
+    this.sourceInformation = sourceInformation;
   }
 
   HInstruction get expression => inputs[0];
@@ -2923,53 +3606,199 @@ class HIs extends HInstruction {
   bool get isVariableCheck => kind == VARIABLE_CHECK;
   bool get isCompoundCheck => kind == COMPOUND_CHECK;
 
+  @override
   accept(HVisitor visitor) => visitor.visitIs(this);
 
+  @override
   toString() => "$expression is $typeExpression";
 
+  @override
   int typeCode() => HInstruction.IS_TYPECODE;
 
+  @override
   bool typeEquals(HInstruction other) => other is HIs;
 
+  @override
   bool dataEquals(HIs other) {
     return typeExpression == other.typeExpression && kind == other.kind;
   }
 }
 
-/**
- * HIsViaInterceptor is a late-stage instruction for a type test that can be
- * done entirely on an interceptor.  It is not a HCheck because the checked
- * input is not one of the inputs.
- */
+/// HIsViaInterceptor is a late-stage instruction for a type test that can be
+/// done entirely on an interceptor.  It is not a HCheck because the checked
+/// input is not one of the inputs.
 class HIsViaInterceptor extends HLateInstruction {
   final DartType typeExpression;
   HIsViaInterceptor(
-      this.typeExpression, HInstruction interceptor, TypeMask type)
+      this.typeExpression, HInstruction interceptor, AbstractValue type)
       : super(<HInstruction>[interceptor], type) {
     setUseGvn();
   }
 
   HInstruction get interceptor => inputs[0];
 
+  @override
   accept(HVisitor visitor) => visitor.visitIsViaInterceptor(this);
+  @override
   toString() => "$interceptor is $typeExpression";
+  @override
   int typeCode() => HInstruction.IS_VIA_INTERCEPTOR_TYPECODE;
+  @override
   bool typeEquals(HInstruction other) => other is HIsViaInterceptor;
+  @override
   bool dataEquals(HIs other) {
     return typeExpression == other.typeExpression;
   }
 }
 
+/// HLateValue is a late-stage instruction that can be used to force a value
+/// into a temporary.
+///
+/// HLateValue is useful for naming values that would otherwise be generated at
+/// use site, for example, if 'this' is used many times, replacing uses of
+/// 'this' with HLateValue(HThis) will have the effect of copying 'this' to a
+/// temporary will reduce the size of minified code.
+class HLateValue extends HLateInstruction {
+  HLateValue(HInstruction target) : super([target], target.instructionType);
+
+  HInstruction get target => inputs.single;
+
+  @override
+  accept(HVisitor visitor) => visitor.visitLateValue(this);
+  @override
+  toString() => 'HLateValue($target)';
+}
+
+/// Type check or cast using legacy constructor-based type representation.
 class HTypeConversion extends HCheck {
   // Values for [kind].
-  static const int CHECKED_MODE_CHECK = 0;
-  static const int ARGUMENT_TYPE_CHECK = 1;
-  static const int CAST_TYPE_CHECK = 2;
-  static const int BOOLEAN_CONVERSION_CHECK = 3;
-  static const int RECEIVER_TYPE_CHECK = 4;
+  static const int TYPE_CHECK = 0;
+  static const int CAST_CHECK = 1;
 
   final DartType typeExpression;
   final int kind;
+
+  AbstractValue checkedType; // Not final because we refine it.
+
+  HTypeConversion(this.typeExpression, this.kind, AbstractValue type,
+      HInstruction input, SourceInformation sourceInformation)
+      : checkedType = type,
+        super(<HInstruction>[input], type) {
+    this.sourceElement = input.sourceElement;
+    this.sourceInformation = sourceInformation;
+  }
+
+  HTypeConversion.withTypeRepresentation(this.typeExpression, this.kind,
+      AbstractValue type, HInstruction input, HInstruction typeRepresentation)
+      : checkedType = type,
+        super(<HInstruction>[input, typeRepresentation], type) {
+    sourceElement = input.sourceElement;
+  }
+
+  bool get hasTypeRepresentation {
+    return typeExpression != null &&
+        typeExpression is InterfaceType &&
+        inputs.length > 1;
+  }
+
+  HInstruction get typeRepresentation => inputs[1];
+
+  @override
+  HInstruction get checkedInput => super.checkedInput;
+
+  @override
+  HInstruction convertType(JClosedWorld closedWorld, DartType type, int kind) {
+    if (typeExpression == type) {
+      return this;
+    }
+    return super.convertType(closedWorld, type, kind);
+  }
+
+  bool get isTypeCheck => kind == TYPE_CHECK;
+  bool get isCastCheck => kind == CAST_CHECK;
+
+  @override
+  accept(HVisitor visitor) => visitor.visitTypeConversion(this);
+
+  @override
+  bool isJsStatement() => isControlFlow();
+  @override
+  bool isControlFlow() => false;
+
+  @override
+  int typeCode() => HInstruction.TYPE_CONVERSION_TYPECODE;
+  @override
+  bool typeEquals(HInstruction other) => other is HTypeConversion;
+  @override
+  bool isCodeMotionInvariant() => false;
+
+  @override
+  bool dataEquals(HTypeConversion other) {
+    return kind == other.kind &&
+        typeExpression == other.typeExpression &&
+        checkedType == other.checkedType;
+  }
+
+  bool isRedundant(JClosedWorld closedWorld) {
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    DartType type = typeExpression;
+    if (type != null) {
+      if (type is TypeVariableType) {
+        return false;
+      }
+      if (type is FutureOrType) {
+        // `null` always passes type conversion.
+        if (checkedInput.isNull(abstractValueDomain).isDefinitelyTrue) {
+          return true;
+        }
+        // TODO(johnniwinther): Optimize FutureOr type conversions.
+        return false;
+      }
+      if (!closedWorld.dartTypes.treatAsRawType(type)) {
+        // `null` always passes type conversion.
+        if (checkedInput.isNull(abstractValueDomain).isDefinitelyTrue) {
+          return true;
+        }
+        return false;
+      }
+      if (type is FunctionType) {
+        // `null` always passes type conversion.
+        if (checkedInput.isNull(abstractValueDomain).isDefinitelyTrue) {
+          return true;
+        }
+        // TODO(johnniwinther): Optimize function type conversions.
+        return false;
+      }
+    }
+    // Type is refined from `dynamic`, so it might become non-redundant.
+    if (abstractValueDomain.containsAll(checkedType).isPotentiallyTrue) {
+      return false;
+    }
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain.isIn(inputType, checkedType).isDefinitelyTrue;
+  }
+
+  @override
+  String toString() => 'HTypeConversion(type=$typeExpression, kind=$kind, '
+      '${hasTypeRepresentation ? 'representation=$typeRepresentation, ' : ''}'
+      'checkedInput=$checkedInput)';
+}
+
+/// Check for receiver or argument type when lowering operation to a primitive,
+/// e.g. lowering `+` to [HAdd].
+///
+/// After NNBD, `a + b` will require `a` and `b` are non-nullable and these
+/// checks will become explicit in the source (e.g. `a! + b!`). At that time,
+/// this check should be removed.  If needed, the `!` check can be optimized
+/// give the same signals to the JavaScript VM.
+class HPrimitiveCheck extends HCheck {
+  // Values for [kind].
+  static const int ARGUMENT_TYPE_CHECK = 1;
+  static const int RECEIVER_TYPE_CHECK = 3;
+
+  final DartType typeExpression;
+  final int kind;
+
   // [receiverTypeCheckSelector] is the selector used for a receiver type check
   // on open-coded operators, e.g. the not-null check on `x` in `x + 1` would be
   // compiled to the following, for which we need the selector `$add`.
@@ -2978,119 +3807,204 @@ class HTypeConversion extends HCheck {
   //
   final Selector receiverTypeCheckSelector;
 
-  TypeMask checkedType; // Not final because we refine it.
-  TypeMask inputType; // Holds input type for codegen after HTypeKnown removal.
+  AbstractValue checkedType; // Not final because we refine it.
 
-  HTypeConversion(
-      this.typeExpression, this.kind, TypeMask type, HInstruction input,
+  HPrimitiveCheck(this.typeExpression, this.kind, AbstractValue type,
+      HInstruction input, SourceInformation sourceInformation,
       {this.receiverTypeCheckSelector})
       : checkedType = type,
         super(<HInstruction>[input], type) {
-    assert(!isReceiverTypeCheck || receiverTypeCheckSelector != null);
-    assert(typeExpression == null || !typeExpression.isTypedef);
-    sourceElement = input.sourceElement;
+    assert(isReceiverTypeCheck == (receiverTypeCheckSelector != null));
+    this.sourceElement = input.sourceElement;
+    this.sourceInformation = sourceInformation;
   }
 
-  HTypeConversion.withTypeRepresentation(this.typeExpression, this.kind,
-      TypeMask type, HInstruction input, HInstruction typeRepresentation)
-      : checkedType = type,
-        receiverTypeCheckSelector = null,
-        super(<HInstruction>[input, typeRepresentation], type) {
-    assert(!typeExpression.isTypedef);
-    sourceElement = input.sourceElement;
-  }
-
-  HTypeConversion.viaMethodOnType(this.typeExpression, this.kind, TypeMask type,
-      HInstruction reifiedType, HInstruction input)
-      : checkedType = type,
-        receiverTypeCheckSelector = null,
-        super(<HInstruction>[reifiedType, input], type) {
-    // This form is currently used only for function types.
-    assert(typeExpression.isFunctionType);
-    assert(kind == CHECKED_MODE_CHECK || kind == CAST_TYPE_CHECK);
-    sourceElement = input.sourceElement;
-  }
-
-  bool get hasTypeRepresentation {
-    return typeExpression.isInterfaceType && inputs.length > 1;
-  }
-
-  HInstruction get typeRepresentation => inputs[1];
-
-  HInstruction get checkedInput => super.checkedInput;
-
-  HInstruction convertType(ClosedWorld closedWorld, DartType type, int kind) {
+  @override
+  HInstruction convertType(JClosedWorld closedWorld, DartType type, int kind) {
     if (typeExpression == type) {
-      // Don't omit a boolean conversion (which doesn't allow `null`) unless
-      // this type conversion is already a boolean conversion.
-      if (kind != BOOLEAN_CONVERSION_CHECK || isBooleanConversionCheck) {
-        return this;
-      }
+      return this;
     }
     return super.convertType(closedWorld, type, kind);
   }
 
-  bool get isCheckedModeCheck {
-    return kind == CHECKED_MODE_CHECK || kind == BOOLEAN_CONVERSION_CHECK;
-  }
-
   bool get isArgumentTypeCheck => kind == ARGUMENT_TYPE_CHECK;
   bool get isReceiverTypeCheck => kind == RECEIVER_TYPE_CHECK;
-  bool get isCastTypeCheck => kind == CAST_TYPE_CHECK;
-  bool get isBooleanConversionCheck => kind == BOOLEAN_CONVERSION_CHECK;
 
-  accept(HVisitor visitor) => visitor.visitTypeConversion(this);
+  @override
+  accept(HVisitor visitor) => visitor.visitPrimitiveCheck(this);
 
-  bool isJsStatement() => isControlFlow();
-  bool isControlFlow() => isArgumentTypeCheck || isReceiverTypeCheck;
+  @override
+  bool isJsStatement() => true;
+  @override
+  bool isControlFlow() => true;
 
-  int typeCode() => HInstruction.TYPE_CONVERSION_TYPECODE;
-  bool typeEquals(HInstruction other) => other is HTypeConversion;
+  @override
+  int typeCode() => HInstruction.PRIMITIVE_CHECK_TYPECODE;
+  @override
+  bool typeEquals(HInstruction other) => other is HPrimitiveCheck;
+  @override
   bool isCodeMotionInvariant() => false;
 
-  bool dataEquals(HTypeConversion other) {
+  @override
+  bool dataEquals(HPrimitiveCheck other) {
     return kind == other.kind &&
-        typeExpression == other.typeExpression &&
         checkedType == other.checkedType &&
         receiverTypeCheckSelector == other.receiverTypeCheckSelector;
+  }
+
+  bool isRedundant(JClosedWorld closedWorld) {
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    // Type is refined from `dynamic`, so it might become non-redundant.
+    if (abstractValueDomain.containsAll(checkedType).isPotentiallyTrue) {
+      return false;
+    }
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain.isIn(inputType, checkedType).isDefinitelyTrue;
+  }
+
+  @override
+  String toString() => 'HPrimitiveCheck(checkedType=$checkedType, kind=$kind, '
+      'checkedInput=$checkedInput)';
+}
+
+/// A check that the input to a condition (if, ?:, while, etc) is non-null. The
+/// front-end generates 'as bool' checks, but until the transition to NNBD is
+/// complete, this allows `null` to be passed to the condition.
+///
+// TODO(sra): Once NNDB is far enough along that the front-end can generate `as
+// bool!` checks and the backend checks them correctly, this instruction will
+// become unnecessary and should be removed.
+class HBoolConversion extends HCheck {
+  HBoolConversion(HInstruction input, AbstractValue type)
+      : super(<HInstruction>[input], type);
+
+  @override
+  bool isJsStatement() => false;
+
+  @override
+  bool isCodeMotionInvariant() => false;
+
+  @override
+  accept(HVisitor visitor) => visitor.visitBoolConversion(this);
+
+  @override
+  int typeCode() => HInstruction.BOOL_CONVERSION_TYPECODE;
+  @override
+  bool typeEquals(HInstruction other) => other is HBoolConversion;
+  @override
+  bool dataEquals(HBoolConversion other) => true;
+
+  bool isRedundant(JClosedWorld closedWorld) {
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain
+        .isIn(inputType, instructionType)
+        .isDefinitelyTrue;
+  }
+
+  @override
+  toString() => 'HBoolConversion($checkedInput)';
+}
+
+/// A check that the input is not null. This corresponds to the postfix
+/// null-check operator '!'.
+///
+/// A null check is inserted on the receiver when inlining an instance method or
+/// field getter or setter when the receiver might be null. In these cases, the
+/// [selector] and [field] members are assigned.
+class HNullCheck extends HCheck {
+  Selector selector;
+  FieldEntity field;
+
+  HNullCheck(HInstruction input, AbstractValue type)
+      : super(<HInstruction>[input], type);
+
+  @override
+  bool isControlFlow() => true;
+  @override
+  bool isJsStatement() => true;
+
+  @override
+  bool isCodeMotionInvariant() => false;
+
+  @override
+  accept(HVisitor visitor) => visitor.visitNullCheck(this);
+
+  @override
+  int typeCode() => HInstruction.NULL_CHECK_TYPECODE;
+  @override
+  bool typeEquals(HInstruction other) => other is HNullCheck;
+  @override
+  bool dataEquals(HNullCheck other) => true;
+
+  bool isRedundant(JClosedWorld closedWorld) {
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain.isNull(inputType).isDefinitelyFalse;
+  }
+
+  @override
+  toString() {
+    String fieldString = field == null ? '' : ', $field';
+    String selectorString = selector == null ? '' : ', $selector';
+    return 'HNullCheck($checkedInput$fieldString$selectorString)';
   }
 }
 
 /// The [HTypeKnown] instruction marks a value with a refined type.
 class HTypeKnown extends HCheck {
-  TypeMask knownType;
+  AbstractValue knownType;
   final bool _isMovable;
 
-  HTypeKnown.pinned(TypeMask knownType, HInstruction input)
+  HTypeKnown.pinned(AbstractValue knownType, HInstruction input)
       : this.knownType = knownType,
         this._isMovable = false,
         super(<HInstruction>[input], knownType);
 
   HTypeKnown.witnessed(
-      TypeMask knownType, HInstruction input, HInstruction witness)
+      AbstractValue knownType, HInstruction input, HInstruction witness)
       : this.knownType = knownType,
         this._isMovable = true,
         super(<HInstruction>[input, witness], knownType);
 
+  @override
   toString() => 'TypeKnown $knownType';
+  @override
   accept(HVisitor visitor) => visitor.visitTypeKnown(this);
 
+  @override
   bool isJsStatement() => false;
+  @override
   bool isControlFlow() => false;
-  bool canThrow() => false;
+  @override
+  bool canThrow(AbstractValueDomain domain) => false;
 
   bool get isPinned => inputs.length == 1;
 
   HInstruction get witness => inputs.length == 2 ? inputs[1] : null;
 
+  @override
   int typeCode() => HInstruction.TYPE_KNOWN_TYPECODE;
+  @override
   bool typeEquals(HInstruction other) => other is HTypeKnown;
+  @override
   bool isCodeMotionInvariant() => true;
+  @override
   bool get isMovable => _isMovable && useGvn();
 
+  @override
   bool dataEquals(HTypeKnown other) {
     return knownType == other.knownType &&
         instructionType == other.instructionType;
+  }
+
+  bool isRedundant(JClosedWorld closedWorld) {
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    if (abstractValueDomain.containsAll(knownType).isPotentiallyTrue) {
+      return false;
+    }
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain.isIn(inputType, knownType).isDefinitelyTrue;
   }
 }
 
@@ -3100,13 +4014,15 @@ class HRangeConversion extends HCheck {
     sourceElement = input.sourceElement;
   }
 
+  @override
   bool get isMovable => false;
 
+  @override
   accept(HVisitor visitor) => visitor.visitRangeConversion(this);
 }
 
 class HStringConcat extends HInstruction {
-  HStringConcat(HInstruction left, HInstruction right, TypeMask type)
+  HStringConcat(HInstruction left, HInstruction right, AbstractValue type)
       : super(<HInstruction>[left, right], type) {
     // TODO(sra): Until Issue 9293 is fixed, this false dependency keeps the
     // concats bunched with stringified inputs for much better looking code with
@@ -3117,26 +4033,28 @@ class HStringConcat extends HInstruction {
   HInstruction get left => inputs[0];
   HInstruction get right => inputs[1];
 
+  @override
   accept(HVisitor visitor) => visitor.visitStringConcat(this);
+  @override
   toString() => "string concat";
 }
 
-/**
- * The part of string interpolation which converts and interpolated expression
- * into a String value.
- */
+/// The part of string interpolation which converts and interpolated expression
+/// into a String value.
 class HStringify extends HInstruction {
-  HStringify(HInstruction input, TypeMask type)
-      : super(<HInstruction>[input], type) {
+  HStringify(HInstruction input, AbstractValue resultType)
+      : super(<HInstruction>[input], resultType) {
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
   }
 
+  @override
   accept(HVisitor visitor) => visitor.visitStringify(this);
+  @override
   toString() => "stringify";
 }
 
-/** Non-block-based (aka. traditional) loop information. */
+/// Non-block-based (aka. traditional) loop information.
 class HLoopInformation {
   final HBasicBlock header;
   final List<HBasicBlock> blocks;
@@ -3144,7 +4062,7 @@ class HLoopInformation {
   final List<LabelDefinition> labels;
   final JumpTarget target;
 
-  /** Corresponding block information for the loop. */
+  /// Corresponding block information for the loop.
   HLoopBlockInformation loopBlockInformation;
 
   HLoopInformation(this.header, this.target, this.labels)
@@ -3177,38 +4095,32 @@ class HLoopInformation {
   }
 }
 
-/**
- * Embedding of a [HBlockInformation] for block-structure based traversal
- * in a dominator based flow traversal by attaching it to a basic block.
- * To go back to dominator-based traversal, a [HSubGraphBlockInformation]
- * structure can be added in the block structure.
- */
+/// Embedding of a [HBlockInformation] for block-structure based traversal
+/// in a dominator based flow traversal by attaching it to a basic block.
+/// To go back to dominator-based traversal, a [HSubGraphBlockInformation]
+/// structure can be added in the block structure.
 class HBlockFlow {
   final HBlockInformation body;
   final HBasicBlock continuation;
   HBlockFlow(this.body, this.continuation);
 }
 
-/**
- * Information about a syntactic-like structure.
- */
+/// Information about a syntactic-like structure.
 abstract class HBlockInformation {
   HBasicBlock get start;
   HBasicBlock get end;
   bool accept(HBlockInformationVisitor visitor);
 }
 
-/**
- * Information about a statement-like structure.
- */
+/// Information about a statement-like structure.
 abstract class HStatementInformation extends HBlockInformation {
+  @override
   bool accept(HStatementInformationVisitor visitor);
 }
 
-/**
- * Information about an expression-like structure.
- */
+/// Information about an expression-like structure.
 abstract class HExpressionInformation extends HBlockInformation {
+  @override
   bool accept(HExpressionInformationVisitor visitor);
   HInstruction get conditionExpression;
 }
@@ -3233,46 +4145,52 @@ abstract class HExpressionInformationVisitor {
 abstract class HBlockInformationVisitor
     implements HStatementInformationVisitor, HExpressionInformationVisitor {}
 
-/**
- * Generic class wrapping a [SubGraph] as a block-information until
- * all structures are handled properly.
- */
+/// Generic class wrapping a [SubGraph] as a block-information until
+/// all structures are handled properly.
 class HSubGraphBlockInformation implements HStatementInformation {
   final SubGraph subGraph;
   HSubGraphBlockInformation(this.subGraph);
 
+  @override
   HBasicBlock get start => subGraph.start;
+  @override
   HBasicBlock get end => subGraph.end;
 
+  @override
   bool accept(HStatementInformationVisitor visitor) =>
       visitor.visitSubGraphInfo(this);
 }
 
-/**
- * Generic class wrapping a [SubExpression] as a block-information until
- * expressions structures are handled properly.
- */
+/// Generic class wrapping a [SubExpression] as a block-information until
+/// expressions structures are handled properly.
 class HSubExpressionBlockInformation implements HExpressionInformation {
   final SubExpression subExpression;
   HSubExpressionBlockInformation(this.subExpression);
 
+  @override
   HBasicBlock get start => subExpression.start;
+  @override
   HBasicBlock get end => subExpression.end;
 
+  @override
   HInstruction get conditionExpression => subExpression.conditionExpression;
 
+  @override
   bool accept(HExpressionInformationVisitor visitor) =>
       visitor.visitSubExpressionInfo(this);
 }
 
-/** A sequence of separate statements. */
+/// A sequence of separate statements.
 class HStatementSequenceInformation implements HStatementInformation {
   final List<HStatementInformation> statements;
   HStatementSequenceInformation(this.statements);
 
+  @override
   HBasicBlock get start => statements[0].start;
+  @override
   HBasicBlock get end => statements.last.end;
 
+  @override
   bool accept(HStatementInformationVisitor visitor) =>
       visitor.visitSequenceInfo(this);
 }
@@ -3292,9 +4210,12 @@ class HLabeledBlockInformation implements HStatementInformation {
       {this.isContinue: false})
       : this.labels = const <LabelDefinition>[];
 
+  @override
   HBasicBlock get start => body.start;
+  @override
   HBasicBlock get end => body.end;
 
+  @override
   bool accept(HStatementInformationVisitor visitor) =>
       visitor.visitLabeledBlockInfo(this);
 }
@@ -3322,6 +4243,7 @@ class HLoopBlockInformation implements HStatementInformation {
         (kind == DO_WHILE_LOOP ? body.start : condition.start).isLoopHeader());
   }
 
+  @override
   HBasicBlock get start {
     if (initializer != null) return initializer.start;
     if (kind == DO_WHILE_LOOP) {
@@ -3334,6 +4256,7 @@ class HLoopBlockInformation implements HStatementInformation {
     return kind == DO_WHILE_LOOP ? body.start : condition.start;
   }
 
+  @override
   HBasicBlock get end {
     if (updates != null) return updates.end;
     if (kind == DO_WHILE_LOOP && condition != null) {
@@ -3342,6 +4265,7 @@ class HLoopBlockInformation implements HStatementInformation {
     return body.end;
   }
 
+  @override
   bool accept(HStatementInformationVisitor visitor) =>
       visitor.visitLoopInfo(this);
 }
@@ -3352,9 +4276,12 @@ class HIfBlockInformation implements HStatementInformation {
   final HStatementInformation elseGraph;
   HIfBlockInformation(this.condition, this.thenGraph, this.elseGraph);
 
+  @override
   HBasicBlock get start => condition.start;
+  @override
   HBasicBlock get end => elseGraph == null ? thenGraph.end : elseGraph.end;
 
+  @override
   bool accept(HStatementInformationVisitor visitor) =>
       visitor.visitIfInfo(this);
 }
@@ -3365,14 +4292,18 @@ class HAndOrBlockInformation implements HExpressionInformation {
   final HExpressionInformation right;
   HAndOrBlockInformation(this.isAnd, this.left, this.right);
 
+  @override
   HBasicBlock get start => left.start;
+  @override
   HBasicBlock get end => right.end;
 
   // We don't currently use HAndOrBlockInformation.
+  @override
   HInstruction get conditionExpression {
     return null;
   }
 
+  @override
   bool accept(HExpressionInformationVisitor visitor) =>
       visitor.visitAndOrInfo(this);
 }
@@ -3385,10 +4316,13 @@ class HTryBlockInformation implements HStatementInformation {
   HTryBlockInformation(
       this.body, this.catchVariable, this.catchBlock, this.finallyBlock);
 
+  @override
   HBasicBlock get start => body.start;
+  @override
   HBasicBlock get end =>
       finallyBlock == null ? catchBlock.end : finallyBlock.end;
 
+  @override
   bool accept(HStatementInformationVisitor visitor) =>
       visitor.visitTryInfo(this);
 }
@@ -3398,65 +4332,95 @@ class HSwitchBlockInformation implements HStatementInformation {
   final List<HStatementInformation> statements;
   final JumpTarget target;
   final List<LabelDefinition> labels;
+  final SourceInformation sourceInformation;
 
-  HSwitchBlockInformation(
-      this.expression, this.statements, this.target, this.labels);
+  HSwitchBlockInformation(this.expression, this.statements, this.target,
+      this.labels, this.sourceInformation);
 
+  @override
   HBasicBlock get start => expression.start;
+  @override
   HBasicBlock get end {
     // We don't create a switch block if there are no cases.
     assert(!statements.isEmpty);
     return statements.last.end;
   }
 
+  @override
   bool accept(HStatementInformationVisitor visitor) =>
       visitor.visitSwitchInfo(this);
 }
 
 /// Reads raw reified type info from an object.
 class HTypeInfoReadRaw extends HInstruction {
-  HTypeInfoReadRaw(HInstruction receiver, TypeMask instructionType)
+  HTypeInfoReadRaw(HInstruction receiver, AbstractValue instructionType)
       : super(<HInstruction>[receiver], instructionType) {
     setUseGvn();
   }
 
+  @override
   accept(HVisitor visitor) => visitor.visitTypeInfoReadRaw(this);
 
-  bool canThrow() => false;
+  @override
+  bool canThrow(AbstractValueDomain domain) => false;
 
+  @override
   int typeCode() => HInstruction.TYPE_INFO_READ_RAW_TYPECODE;
+  @override
   bool typeEquals(HInstruction other) => other is HTypeInfoReadRaw;
 
+  @override
   bool dataEquals(HTypeInfoReadRaw other) {
     return true;
   }
 }
 
 /// Reads a type variable from an object. The read may be a simple indexing of
-/// the type parameters or it may require 'substitution'.
+/// the type parameters or it may require 'substitution'. There may be an
+/// interceptor argument to access the substitution of native classes.
 class HTypeInfoReadVariable extends HInstruction {
   /// The type variable being read.
   final TypeVariableType variable;
+  final bool isIntercepted;
 
-  HTypeInfoReadVariable(
-      this.variable, HInstruction receiver, TypeMask instructionType)
-      : super(<HInstruction>[receiver], instructionType) {
+  HTypeInfoReadVariable.intercepted(this.variable, HInstruction interceptor,
+      HInstruction receiver, AbstractValue instructionType)
+      : isIntercepted = true,
+        super(<HInstruction>[interceptor, receiver], instructionType) {
     setUseGvn();
   }
 
-  HInstruction get object => inputs.single;
+  HTypeInfoReadVariable.noInterceptor(
+      this.variable, HInstruction receiver, AbstractValue instructionType)
+      : isIntercepted = false,
+        super(<HInstruction>[receiver], instructionType) {
+    setUseGvn();
+  }
 
+  HInstruction get interceptor {
+    assert(isIntercepted);
+    return inputs.first;
+  }
+
+  HInstruction get object => inputs.last;
+
+  @override
   accept(HVisitor visitor) => visitor.visitTypeInfoReadVariable(this);
 
-  bool canThrow() => false;
+  @override
+  bool canThrow(AbstractValueDomain domain) => false;
 
+  @override
   int typeCode() => HInstruction.TYPE_INFO_READ_VARIABLE_TYPECODE;
+  @override
   bool typeEquals(HInstruction other) => other is HTypeInfoReadVariable;
 
+  @override
   bool dataEquals(HTypeInfoReadVariable other) {
     return variable == other.variable;
   }
 
+  @override
   String toString() => 'HTypeInfoReadVariable($variable)';
 }
 
@@ -3515,23 +4479,34 @@ enum TypeInfoExpressionKind { COMPLETE, INSTANCE }
 class HTypeInfoExpression extends HInstruction {
   final TypeInfoExpressionKind kind;
   final DartType dartType;
+
+  /// `true` if this
+  final bool isTypeVariableReplacement;
+
   HTypeInfoExpression(this.kind, this.dartType, List<HInstruction> inputs,
-      TypeMask instructionType)
+      AbstractValue instructionType,
+      {this.isTypeVariableReplacement: false})
       : super(inputs, instructionType) {
     setUseGvn();
   }
 
+  @override
   accept(HVisitor visitor) => visitor.visitTypeInfoExpression(this);
 
-  bool canThrow() => false;
+  @override
+  bool canThrow(AbstractValueDomain domain) => false;
 
+  @override
   int typeCode() => HInstruction.TYPE_INFO_EXPRESSION_TYPECODE;
+  @override
   bool typeEquals(HInstruction other) => other is HTypeInfoExpression;
 
+  @override
   bool dataEquals(HTypeInfoExpression other) {
     return kind == other.kind && dartType == other.dartType;
   }
 
+  @override
   String toString() => 'HTypeInfoExpression($kindAsString, $dartType)';
 
   // ignore: MISSING_RETURN
@@ -3543,4 +4518,433 @@ class HTypeInfoExpression extends HInstruction {
         return 'INSTANCE';
     }
   }
+}
+
+// -----------------------------------------------------------------------------
+
+/// Is-test using Rti form of type expression.
+///
+/// This instruction can be used for any type. Tests for simple types are
+/// lowered to other instructions, so this instruction remains for types that
+/// depend on type variables and complex types.
+class HIsTest extends HInstruction {
+  final AbstractValueWithPrecision checkedAbstractValue;
+  final DartType dartType;
+
+  HIsTest(this.dartType, this.checkedAbstractValue, HInstruction checked,
+      HInstruction rti, AbstractValue type)
+      : super([rti, checked], type) {
+    setUseGvn();
+  }
+
+  // The type input is first to facilitate the `type.is(value)` codegen pattern.
+  HInstruction get typeInput => inputs[0];
+  HInstruction get checkedInput => inputs[1];
+
+  AbstractBool evaluate(JClosedWorld closedWorld, bool useNullSafety) =>
+      _isTestResult(checkedInput, dartType, checkedAbstractValue, closedWorld,
+          useNullSafety);
+
+  @override
+  accept(HVisitor visitor) => visitor.visitIsTest(this);
+
+  @override
+  int typeCode() => HInstruction.IS_TEST_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HIsTest;
+
+  @override
+  bool dataEquals(HIsTest other) => true;
+
+  @override
+  String toString() => 'HIsTest()';
+}
+
+/// Simple is-test for a known type that can be achieved without reference to an
+/// Rti describing the type.
+class HIsTestSimple extends HInstruction {
+  final DartType dartType;
+  final AbstractValueWithPrecision checkedAbstractValue;
+  final IsTestSpecialization specialization;
+
+  HIsTestSimple(this.dartType, this.checkedAbstractValue, this.specialization,
+      HInstruction checked, AbstractValue type)
+      : super([checked], type) {
+    setUseGvn();
+  }
+
+  HInstruction get checkedInput => inputs[0];
+
+  AbstractBool evaluate(JClosedWorld closedWorld, bool useNullSafety) =>
+      _isTestResult(checkedInput, dartType, checkedAbstractValue, closedWorld,
+          useNullSafety);
+
+  @override
+  accept(HVisitor visitor) => visitor.visitIsTestSimple(this);
+
+  @override
+  int typeCode() => HInstruction.IS_TEST_SIMPLE_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HIsTestSimple;
+
+  @override
+  bool dataEquals(HIsTestSimple other) => dartType == other.dartType;
+
+  @override
+  String toString() => 'HIsTestSimple()';
+}
+
+AbstractBool _isTestResult(
+    HInstruction expression,
+    DartType dartType,
+    AbstractValueWithPrecision checkedAbstractValue,
+    JClosedWorld closedWorld,
+    bool useNullSafety) {
+  AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+  AbstractValue subsetType = expression.instructionType;
+  AbstractValue supersetType = checkedAbstractValue.abstractValue;
+
+  if (useNullSafety &&
+      expression.isNull(abstractValueDomain).isDefinitelyTrue) {
+    if (closedWorld.dartTypes.isTopType(dartType) ||
+        dartType is NullableType ||
+        dartType.isNull) {
+      return AbstractBool.True;
+    }
+    if (dartType is TypeVariableType || dartType is FunctionTypeVariable) {
+      return AbstractBool.Maybe;
+    }
+    if (dartType is LegacyType) {
+      DartType baseType = dartType.baseType;
+      if (baseType is NeverType) return AbstractBool.True;
+      if (baseType is TypeVariableType || baseType is FunctionTypeVariable) {
+        return AbstractBool.Maybe;
+      }
+    }
+    return AbstractBool.False;
+  }
+
+  if (checkedAbstractValue.isPrecise &&
+      abstractValueDomain.isIn(subsetType, supersetType).isDefinitelyTrue) {
+    return AbstractBool.True;
+  }
+
+  // TODO(39287): Let the abstract value domain fully handle this.
+  // Currently, the abstract value domain cannot (soundly) state that an is-test
+  // is definitely false, so we reuse some of the case-by-case logic from the
+  // old [HIs] optimization.
+  if (closedWorld.dartTypes.isTopType(dartType)) return AbstractBool.True;
+
+  InterfaceType type;
+  if (dartType is InterfaceType) {
+    type = dartType;
+  } else if (dartType is LegacyType) {
+    DartType base = dartType.baseType;
+    if (base is! InterfaceType) return AbstractBool.Maybe;
+    assert(!base.isObject); // Top type handled above;
+    type = base;
+  } else {
+    return AbstractBool.Maybe;
+  }
+
+  ClassEntity element = type.element;
+  if (type.typeArguments.isNotEmpty) return AbstractBool.Maybe;
+  JCommonElements commonElements = closedWorld.commonElements;
+  if (expression.isInteger(abstractValueDomain).isDefinitelyTrue) {
+    if (element == commonElements.intClass ||
+        element == commonElements.numClass ||
+        commonElements.isNumberOrStringSupertype(element)) {
+      return AbstractBool.True;
+    }
+    if (element == commonElements.doubleClass) {
+      // We let the JS semantics decide for that check. Currently the code we
+      // emit will always return true.
+      return AbstractBool.Maybe;
+    }
+    return AbstractBool.False;
+  }
+  if (expression.isDouble(abstractValueDomain).isDefinitelyTrue) {
+    if (element == commonElements.doubleClass ||
+        element == commonElements.numClass ||
+        commonElements.isNumberOrStringSupertype(element)) {
+      return AbstractBool.True;
+    }
+    if (element == commonElements.intClass) {
+      // We let the JS semantics decide for that check. Currently the code we
+      // emit will return true for a double that can be represented as a 31-bit
+      // integer and for -0.0.
+      return AbstractBool.Maybe;
+    }
+    return AbstractBool.False;
+  }
+  if (expression.isNumber(abstractValueDomain).isDefinitelyTrue) {
+    if (element == commonElements.numClass) {
+      return AbstractBool.True;
+    }
+    // We cannot just return false, because the expression may be of type int or
+    // double.
+    return AbstractBool.Maybe;
+  }
+  if (expression.isPrimitiveNumber(abstractValueDomain).isPotentiallyTrue &&
+      element == commonElements.intClass) {
+    // We let the JS semantics decide for that check.
+    return AbstractBool.Maybe;
+  }
+  // We need the raw check because we don't have the notion of generics in the
+  // backend. For example, `this` in a class `A<T>` is currently always
+  // considered to have the raw type.
+  if (closedWorld.dartTypes.treatAsRawType(type)) {
+    return abstractValueDomain.isInstanceOf(subsetType, element);
+  }
+  return AbstractBool.Maybe;
+}
+
+/// Type cast or type check using Rti form of type expression.
+class HAsCheck extends HCheck {
+  final AbstractValueWithPrecision checkedType;
+  final DartType checkedTypeExpression;
+  final bool isTypeError;
+
+  HAsCheck(
+      HInstruction checked,
+      HInstruction rti,
+      this.checkedType,
+      this.checkedTypeExpression,
+      this.isTypeError,
+      AbstractValue instructionType)
+      : assert(isTypeError != null),
+        super([rti, checked], instructionType);
+
+  // The type input is first to facilitate the `type.as(value)` codegen pattern.
+  HInstruction get typeInput => inputs[0];
+  @override
+  HInstruction get checkedInput => inputs[1];
+
+  @override
+  bool isJsStatement() => false;
+
+  @override
+  accept(HVisitor visitor) => visitor.visitAsCheck(this);
+
+  @override
+  int typeCode() => HInstruction.AS_CHECK_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HAsCheck;
+
+  @override
+  bool dataEquals(HAsCheck other) {
+    return isTypeError == other.isTypeError;
+  }
+
+  bool isRedundant(JClosedWorld closedWorld) {
+    if (!checkedType.isPrecise) return false;
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain
+        .isIn(inputType, checkedType.abstractValue)
+        .isDefinitelyTrue;
+  }
+
+  @override
+  String toString() {
+    String error = isTypeError ? 'TypeError' : 'CastError';
+    return 'HAsCheck($error)';
+  }
+}
+
+/// Type cast or type check for simple known types that are achieved via a
+/// simple static call.
+class HAsCheckSimple extends HCheck {
+  final DartType dartType;
+  final AbstractValueWithPrecision checkedType;
+  final bool isTypeError;
+  final MemberEntity method;
+
+  HAsCheckSimple(HInstruction checked, this.dartType, this.checkedType,
+      this.isTypeError, this.method, AbstractValue type)
+      : assert(isTypeError != null),
+        super([checked], type);
+
+  @override
+  HInstruction get checkedInput => inputs[0];
+
+  @override
+  bool isJsStatement() => false;
+
+  @override
+  accept(HVisitor visitor) => visitor.visitAsCheckSimple(this);
+
+  bool isRedundant(JClosedWorld closedWorld) {
+    if (!checkedType.isPrecise) return false;
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain
+        .isIn(inputType, checkedType.abstractValue)
+        .isDefinitelyTrue;
+  }
+
+  @override
+  int typeCode() => HInstruction.AS_CHECK_SIMPLE_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HAsCheckSimple;
+
+  @override
+  bool dataEquals(HAsCheckSimple other) {
+    return isTypeError == other.isTypeError && dartType == other.dartType;
+  }
+
+  @override
+  String toString() {
+    String error = isTypeError ? 'TypeError' : 'CastError';
+    return 'HAsCheckSimple($error)';
+  }
+}
+
+/// Subtype check comparing two Rti types.
+class HSubtypeCheck extends HCheck {
+  HSubtypeCheck(
+      HInstruction subtype, HInstruction supertype, AbstractValue type)
+      : super([subtype, supertype], type) {
+    setUseGvn();
+  }
+
+  HInstruction get typeInput => inputs[1];
+
+  @override
+  accept(HVisitor visitor) => visitor.visitSubtypeCheck(this);
+
+  @override
+  int typeCode() => HInstruction.SUBTYPE_CHECK_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HSubtypeCheck;
+
+  @override
+  bool dataEquals(HSubtypeCheck other) => true;
+
+  @override
+  String toString() => 'HSubtypeCheck()';
+}
+
+/// Common superclass for instructions that generate Rti values.
+abstract class HRtiInstruction extends HInstruction {
+  HRtiInstruction(List<HInstruction> inputs, AbstractValue type)
+      : super(inputs, type);
+}
+
+/// Evaluates an Rti type recipe in the global environment.
+class HLoadType extends HRtiInstruction {
+  TypeRecipe typeExpression;
+
+  HLoadType(this.typeExpression, AbstractValue instructionType)
+      : super([], instructionType) {
+    setUseGvn();
+  }
+
+  HLoadType.type(DartType dartType, AbstractValue instructionType)
+      : this(TypeExpressionRecipe(dartType), instructionType);
+
+  @override
+  accept(HVisitor visitor) => visitor.visitLoadType(this);
+
+  @override
+  int typeCode() => HInstruction.LOAD_TYPE_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HLoadType;
+
+  @override
+  bool dataEquals(HLoadType other) {
+    return typeExpression == other.typeExpression;
+  }
+
+  @override
+  String toString() => 'HLoadType($typeExpression)';
+}
+
+/// The reified Rti environment stored on a class instance.
+///
+/// Classes with reified type arguments have the type environment stored on the
+/// instance. The reified environment is typically stored as the instance type,
+/// e.g. "UnmodifiableListView<int>".
+class HInstanceEnvironment extends HRtiInstruction {
+  AbstractValue codegenInputType; // Assigned in SsaTypeKnownRemover
+
+  HInstanceEnvironment(HInstruction instance, AbstractValue type)
+      : super([instance], type) {
+    setUseGvn();
+  }
+
+  @override
+  accept(HVisitor visitor) => visitor.visitInstanceEnvironment(this);
+
+  @override
+  int typeCode() => HInstruction.INSTANCE_ENVIRONMENT_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HInstanceEnvironment;
+
+  @override
+  bool dataEquals(HInstanceEnvironment other) => true;
+
+  @override
+  String toString() => 'HInstanceEnvironment()';
+}
+
+/// Evaluates an Rti type recipe in an Rti environment.
+class HTypeEval extends HRtiInstruction {
+  TypeEnvironmentStructure envStructure;
+  TypeRecipe typeExpression;
+
+  HTypeEval(HInstruction environment, this.envStructure, this.typeExpression,
+      AbstractValue type)
+      : super([environment], type) {
+    setUseGvn();
+  }
+
+  @override
+  accept(HVisitor visitor) => visitor.visitTypeEval(this);
+
+  @override
+  int typeCode() => HInstruction.TYPE_EVAL_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HTypeEval;
+
+  @override
+  bool dataEquals(HTypeEval other) {
+    return TypeRecipe.yieldsSameType(
+        typeExpression, envStructure, other.typeExpression, other.envStructure);
+  }
+
+  @override
+  String toString() => 'HTypeEval($typeExpression)';
+}
+
+/// Extends an Rti type environment with generic function types.
+class HTypeBind extends HRtiInstruction {
+  HTypeBind(
+      HInstruction environment, HInstruction typeArguments, AbstractValue type)
+      : super([environment, typeArguments], type) {
+    setUseGvn();
+  }
+
+  @override
+  accept(HVisitor visitor) => visitor.visitTypeBind(this);
+
+  @override
+  int typeCode() => HInstruction.TYPE_BIND_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HTypeBind;
+
+  @override
+  bool dataEquals(HTypeBind other) => true;
+
+  @override
+  String toString() => 'HTypeBind()';
 }

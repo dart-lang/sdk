@@ -69,9 +69,7 @@ abstract class Tagging<N> implements Indentation {
     return tag;
   }
 
-  /**
-   * Adds given string to result string.
-   */
+  /// Adds given string to result string.
   void add(String string) {
     sb.write(string);
   }
@@ -79,12 +77,10 @@ abstract class Tagging<N> implements Indentation {
   /// Adds default parameters for [node] into [params].
   void addDefaultParameters(N node, Map params) {}
 
-  /**
-   * Adds given node type to result string.
-   * The method "opens" the node, meaning that all output after calling
-   * this method and before calling closeNode() will represent contents
-   * of given node.
-   */
+  /// Adds given node type to result string.
+  /// The method "opens" the node, meaning that all output after calling
+  /// this method and before calling closeNode() will represent contents
+  /// of given node.
   void openNode(N node, String type, [Map params]) {
     if (params == null) params = new Map();
     addCurrentIndent();
@@ -95,9 +91,7 @@ abstract class Tagging<N> implements Indentation {
     pushTag(type);
   }
 
-  /**
-   * Adds given node to result string.
-   */
+  /// Adds given node to result string.
   void openAndCloseNode(N node, String type, [Map params]) {
     if (params == null) params = {};
     addCurrentIndent();
@@ -107,9 +101,7 @@ abstract class Tagging<N> implements Indentation {
     sb.write("/>\n");
   }
 
-  /**
-   * Closes current node type.
-   */
+  /// Closes current node type.
   void closeNode() {
     String tag = popTag();
     addCurrentIndent();

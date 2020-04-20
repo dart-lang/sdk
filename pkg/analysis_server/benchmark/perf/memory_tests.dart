@@ -1,61 +1,53 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
+import 'dart:convert' show jsonDecode, jsonEncode;
 import 'dart:io';
-import 'dart:math';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 
 import '../../test/integration/support/integration_tests.dart';
 
-void printMemoryResults(String id, String description, List<int> sizes) {
-  int minMemory = sizes.fold(sizes.first, min);
-  int maxMemory = sizes.fold(sizes.first, max);
-  String now = new DateTime.now().toUtc().toIso8601String();
-  print('$now ========== $id');
-  print('memory: $sizes');
-  print('min_memory: $minMemory');
-  print('max_memory: $maxMemory');
-  print(description.trim());
-  print('--------------------');
-  print('');
-  print('');
-}
-
-/**
- * Base class for analysis server memory usage tests.
- */
+/// Base class for analysis server memory usage tests.
 class AnalysisServerMemoryUsageTest
     extends AbstractAnalysisServerIntegrationTest {
-  static const int vmServicePort = 12345;
+  int _vmServicePort;
 
-  int getMemoryUsage() {
-    ProcessResult result = _run('curl', <String>[
-      'localhost:$vmServicePort/_getAllocationProfile\?isolateId=isolates/root\&gc=full'
-    ]);
-    Map json = JSON.decode(result.stdout);
-    Map heaps = json['result']['heaps'];
-    int newSpace = heaps['new']['used'];
-    int oldSpace = heaps['old']['used'];
-    return newSpace + oldSpace;
+  Future<int> getMemoryUsage() async {
+    var uri = Uri.parse('ws://127.0.0.1:$_vmServicePort/ws');
+    var service = await ServiceProtocol.connect(uri);
+    var vm = await service.call('getVM');
+
+    var total = 0;
+
+    List isolateRefs = vm['isolates'];
+    for (Map isolateRef in isolateRefs) {
+      var isolate =
+          await service.call('getIsolate', {'isolateId': isolateRef['id']});
+
+      Map _heaps = isolate['_heaps'];
+      total += _heaps['new']['used'] + _heaps['new']['external'];
+      total += _heaps['old']['used'] + _heaps['old']['external'];
+    }
+
+    service.dispose();
+
+    return total;
   }
 
-  /**
-   * Send the server an 'analysis.setAnalysisRoots' command directing it to
-   * analyze [sourceDirectory].
-   */
+  /// Send the server an 'analysis.setAnalysisRoots' command directing it to
+  /// analyze [sourceDirectory].
   Future setAnalysisRoot() =>
       sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
 
-  /**
-   * The server is automatically started before every test.
-   */
+  /// The server is automatically started before every test.
   @override
-  Future setUp() {
+  Future setUp() async {
+    _vmServicePort = await _findAvailableSocketPort();
+
     onAnalysisErrors.listen((AnalysisErrorsParams params) {
       currentAnalysisErrors[params.file] = params.errors;
     });
@@ -63,12 +55,12 @@ class AnalysisServerMemoryUsageTest
       // A server error should never happen during an integration test.
       fail('${params.message}\n${params.stackTrace}');
     });
-    Completer serverConnected = new Completer();
+    var serverConnected = Completer();
     onServerConnected.listen((_) {
       outOfTestExpect(serverConnected.isCompleted, isFalse);
       serverConnected.complete();
     });
-    return startServer(servicesPort: vmServicePort).then((_) {
+    return startServer(servicesPort: _vmServicePort).then((_) {
       server.listenToOutput(dispatchNotification);
       server.exitCode.then((_) {
         skipShutdown = true;
@@ -77,54 +69,67 @@ class AnalysisServerMemoryUsageTest
     });
   }
 
-  /**
-   * After every test, the server is stopped.
-   */
+  /// After every test, the server is stopped.
   Future shutdown() async => await shutdownIfNeeded();
 
-  /**
-   * Enable [ServerService.STATUS] notifications so that [analysisFinished]
-   * can be used.
-   */
+  /// Enable [ServerService.STATUS] notifications so that [analysisFinished]
+  /// can be used.
   Future subscribeToStatusNotifications() async {
     await sendServerSetSubscriptions([ServerService.STATUS]);
   }
 
-  /**
-   * Synchronously run the given [executable] with the given [arguments]. Return
-   * the result of running the process.
-   */
-  ProcessResult _run(String executable, List<String> arguments) {
-    return Process.runSync(executable, arguments,
-        stderrEncoding: UTF8, stdoutEncoding: UTF8);
+  static Future<int> _findAvailableSocketPort() async {
+    var socket = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+    try {
+      return socket.port;
+    } finally {
+      await socket.close();
+    }
+  }
+}
+
+class ServiceProtocol {
+  final WebSocket socket;
+
+  int _id = 0;
+  final Map<String, Completer<Map>> _completers = {};
+
+  ServiceProtocol._(this.socket) {
+    socket.listen(_handleMessage);
   }
 
-  /**
-   *  1. Start Analysis Server.
-   *  2. Set the analysis [roots].
-   *  3. Wait for analysis to complete.
-   *  4. Record the heap size after analysis is finished.
-   *  5. Shutdown.
-   *  6. Go to (1).
-   */
-  static Future<List<int>> start_waitInitialAnalysis_shutdown(
-      {List<String> roots, int numOfRepeats}) async {
-    outOfTestExpect(roots, isNotNull, reason: 'roots');
-    outOfTestExpect(numOfRepeats, isNotNull, reason: 'numOfRepeats');
-    // Repeat.
-    List<int> sizes = <int>[];
-    for (int i = 0; i < numOfRepeats; i++) {
-      AnalysisServerMemoryUsageTest test = new AnalysisServerMemoryUsageTest();
-      // Initialize Analysis Server.
-      await test.setUp();
-      await test.subscribeToStatusNotifications();
-      // Set roots and analyze.
-      await test.sendAnalysisSetAnalysisRoots(roots, []);
-      await test.analysisFinished;
-      sizes.add(test.getMemoryUsage());
-      // Stop the server.
-      await test.shutdown();
+  Future<Map> call(String method, [Map args]) {
+    var id = '${++_id}';
+    var completer = Completer<Map>();
+    _completers[id] = completer;
+    var m = <String, dynamic>{'id': id, 'method': method};
+    if (args != null) m['params'] = args;
+    var message = jsonEncode(m);
+    socket.add(message);
+    return completer.future;
+  }
+
+  Future dispose() => socket.close();
+
+  void _handleMessage(dynamic message) {
+    if (message is! String) {
+      return;
     }
-    return sizes;
+
+    try {
+      dynamic json = jsonDecode(message);
+      if (json.containsKey('id')) {
+        dynamic id = json['id'];
+        _completers[id]?.complete(json['result']);
+        _completers.remove(id);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  static Future<ServiceProtocol> connect(Uri uri) async {
+    var socket = await WebSocket.connect(uri.toString());
+    return ServiceProtocol._(socket);
   }
 }

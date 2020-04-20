@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new ReturnStatementTest().buildAll();
+  ReturnStatementTest().buildAll();
 }
 
 class ReturnStatementTest extends PartialCodeTest {
@@ -15,10 +15,10 @@ class ReturnStatementTest extends PartialCodeTest {
     buildTests(
         'return_statement',
         [
-          new TestDescriptor(
+          TestDescriptor(
               'keyword', 'return', [ParserErrorCode.EXPECTED_TOKEN], "return;",
               allFailing: true),
-          new TestDescriptor('expression', 'return a',
+          TestDescriptor('expression', 'return a',
               [ParserErrorCode.EXPECTED_TOKEN], "return a;"),
         ],
         PartialCodeTest.statementSuffixes,

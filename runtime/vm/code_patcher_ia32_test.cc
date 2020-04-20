@@ -35,18 +35,19 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   const String& target_name = String::Handle(String::New("targetFunction"));
   const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 1;
-  const Array& args_descriptor = Array::Handle(
-      ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs, Object::null_array()));
+  const Array& args_descriptor = Array::Handle(ArgumentsDescriptor::NewBoxed(
+      kTypeArgsLen, kNumArgs, Object::null_array()));
   const ICData& ic_data = ICData::ZoneHandle(ICData::New(
       function, target_name, args_descriptor, 15, 1, ICData::kInstance));
 
   __ LoadObject(ECX, ic_data);
-  __ Call(*StubCode::OneArgCheckInlineCache_entry());
+  __ Call(StubCode::OneArgCheckInlineCache());
   __ ret();
 }
 
 ASSEMBLER_TEST_RUN(IcDataAccess, test) {
-  uword return_address = test->entry() + CodePatcher::InstanceCallSizeInBytes();
+  uword end = test->payload_start() + test->code().Size();
+  uword return_address = end - 1;  // sizeof(ret)
   ICData& ic_data = ICData::Handle();
   CodePatcher::GetInstanceCallAt(return_address, test->code(), &ic_data);
   EXPECT_STREQ("targetFunction",

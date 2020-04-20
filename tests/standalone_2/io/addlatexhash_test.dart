@@ -9,7 +9,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import '../../../tools/addlatexhash.dart';
 
-final execDir = path.dirname(path.fromUri(Platform.executable));
+final execDir = path.dirname(Platform.resolvedExecutable);
 final dartRootDir = path.dirname(path.dirname(execDir));
 final dartRootPath = dartRootDir.toString();
 
@@ -92,7 +92,7 @@ testSameHash(String tmpDirPath) {
 
   // actions to take
   runAddHash() {
-    var args = packageOptions();
+    var args = <String>[]..addAll(Platform.executableArguments);
     args.addAll([
       path.join(dartRootPath, "tools", "addlatexhash.dart"),
       tmpPar8timesPath,
@@ -185,7 +185,7 @@ testSameDVI(String tmpDirPath) {
   var renewLMHashCmd = r"\renewcommand{\LMHash}[1]{\OriginalLMHash{xxxx}}";
   new File(styPath)
       .copySync(tmpStyPath)
-      .writeAsStringSync(renewLMHashCmd, mode: FileMode.APPEND);
+      .writeAsStringSync(renewLMHashCmd, mode: FileMode.append);
   new File(specPath).copySync(tmpSpecPath);
 
   checkAction(runAddHash(), "addlatexhash.dart failed");

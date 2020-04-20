@@ -5,13 +5,12 @@
 import "package:expect/expect.dart";
 
 class ExpandoTest {
-  static Expando<int> visits;
+  static Expando<int> visits = Expando('visits');
 
   static testMain() {
-    visits = new Expando<int>('visits');
     var legal = [
       new Object(),
-      new List(),
+      new List.filled(0, null),
       [1, 2, 3],
       const [1, 2, 3],
       new Map(),
@@ -32,7 +31,7 @@ class ExpandoTest {
   }
 
   static visit(object) {
-    int count = visits[object];
+    int? count = visits[object];
     count = (count == null) ? 1 : count + 1;
     visits[object] = count;
   }
@@ -71,20 +70,11 @@ class ExpandoTest {
 
   static testIllegal() {
     Expando<int> expando = new Expando<int>();
-    Expect.throws(
-        () => expando[null], (exception) => exception is ArgumentError, "null");
-    Expect.throws(() => expando['string'],
-        (exception) => exception is ArgumentError, "'string'");
-    Expect.throws(() => expando['string'],
-        (exception) => exception is ArgumentError, "'string'");
-    Expect.throws(
-        () => expando[42], (exception) => exception is ArgumentError, "42");
-    Expect.throws(() => expando[42.87],
-        (exception) => exception is ArgumentError, "42.87");
-    Expect.throws(
-        () => expando[true], (exception) => exception is ArgumentError, "true");
-    Expect.throws(() => expando[false],
-        (exception) => exception is ArgumentError, "false");
+    Expect.throwsArgumentError(() => expando['string'], "'string'");
+    Expect.throwsArgumentError(() => expando[42], "42");
+    Expect.throwsArgumentError(() => expando[42.87], "42.87");
+    Expect.throwsArgumentError(() => expando[true], "true");
+    Expect.throwsArgumentError(() => expando[false], "false");
   }
 
   static testIdentity() {

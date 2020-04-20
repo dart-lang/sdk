@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_REDUNDANCY_ELIMINATION_H_
 #define RUNTIME_VM_COMPILER_BACKEND_REDUNDANCY_ELIMINATION_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
 
@@ -64,7 +68,7 @@ class AllocationSinking : public ZoneAllocated {
 
   void CreateMaterializationAt(Instruction* exit,
                                Definition* alloc,
-                               const ZoneGrowableArray<const Object*>& fields);
+                               const ZoneGrowableArray<const Slot*>& fields);
 
   void EliminateAllocation(Definition* alloc);
 
@@ -100,15 +104,23 @@ class DeadStoreElimination : public AllStatic {
 
 class DeadCodeElimination : public AllStatic {
  public:
+  // Discover phis that have no real (non-phi) uses and don't escape into
+  // deoptimization environments and eliminate them.
   static void EliminateDeadPhis(FlowGraph* graph);
+
+  // Remove phis that are not marked alive from the graph.
+  static void RemoveDeadAndRedundantPhisFromTheGraph(FlowGraph* graph);
+
+  // Remove instructions which do not have any effect.
+  static void EliminateDeadCode(FlowGraph* graph);
 };
 
 // Optimize spill stores inside try-blocks by identifying values that always
 // contain a single known constant at catch block entry.
-class TryCatchAnalyzer : public AllStatic {
- public:
-  static void Optimize(FlowGraph* flow_graph);
-};
+// If is_aot is passed then this optimization can assume that no deoptimization
+// can occur and environments assigned to instructions are only used to
+// compute try/catch sync moves.
+void OptimizeCatchEntryStates(FlowGraph* flow_graph, bool is_aot);
 
 // Loop invariant code motion.
 class LICM : public ValueObject {
@@ -131,6 +143,12 @@ class LICM : public ValueObject {
                            BlockEntryInstr* pre_header);
 
   FlowGraph* const flow_graph_;
+};
+
+class CheckStackOverflowElimination : public AllStatic {
+ public:
+  // For leaf functions with only a single [StackOverflowInstr] we remove it.
+  static void EliminateStackOverflow(FlowGraph* graph);
 };
 
 }  // namespace dart

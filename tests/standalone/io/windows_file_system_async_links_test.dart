@@ -39,12 +39,12 @@ Future testJunctionTypeDelete() {
         .then((_) => FutureExpect.isTrue(FileSystemEntity.isDirectory(y)))
         .then((_) => FutureExpect.isTrue(FileSystemEntity.isDirectory(x)))
         .then((_) => FutureExpect.equals(
-            FileSystemEntityType.DIRECTORY, FileSystemEntity.type(y)))
+            FileSystemEntityType.directory, FileSystemEntity.type(y)))
         .then((_) => FutureExpect.equals(
-            FileSystemEntityType.DIRECTORY, FileSystemEntity.type(x)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.LINK,
+            FileSystemEntityType.directory, FileSystemEntity.type(x)))
+        .then((_) => FutureExpect.equals(FileSystemEntityType.link,
             FileSystemEntity.type(y, followLinks: false)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.DIRECTORY,
+        .then((_) => FutureExpect.equals(FileSystemEntityType.directory,
             FileSystemEntity.type(x, followLinks: false)))
         .then((_) => FutureExpect.equals(x, new Link(y).target()))
 
@@ -57,12 +57,12 @@ Future testJunctionTypeDelete() {
         .then((_) => FutureExpect.isFalse(FileSystemEntity.isDirectory(y)))
         .then((_) => FutureExpect.isFalse(FileSystemEntity.isDirectory(x)))
         .then((_) => FutureExpect.equals(
-            FileSystemEntityType.LINK, FileSystemEntity.type(y)))
+            FileSystemEntityType.link, FileSystemEntity.type(y)))
         .then((_) => FutureExpect.equals(
-            FileSystemEntityType.NOT_FOUND, FileSystemEntity.type(x)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.LINK,
+            FileSystemEntityType.notFound, FileSystemEntity.type(x)))
+        .then((_) => FutureExpect.equals(FileSystemEntityType.link,
             FileSystemEntity.type(y, followLinks: false)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.NOT_FOUND,
+        .then((_) => FutureExpect.equals(FileSystemEntityType.notFound,
             FileSystemEntity.type(x, followLinks: false)))
         .then((_) => FutureExpect.equals(x, new Link(y).target()))
 
@@ -70,26 +70,25 @@ Future testJunctionTypeDelete() {
         .then((_) => new Link(y).delete())
         .then((_) => FutureExpect.isFalse(FileSystemEntity.isLink(y)))
         .then((_) => FutureExpect.equals(
-            FileSystemEntityType.NOT_FOUND, FileSystemEntity.type(y)))
+            FileSystemEntityType.notFound, FileSystemEntity.type(y)))
         .then((_) => FutureExpect.throws(new Link(y).target()))
         .then((_) => new Directory(x).create())
         .then((_) => new Link(y).create(x))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.LINK,
+        .then((_) => FutureExpect.equals(FileSystemEntityType.link,
             FileSystemEntity.type(y, followLinks: false)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.DIRECTORY,
+        .then((_) => FutureExpect.equals(FileSystemEntityType.directory,
             FileSystemEntity.type(x, followLinks: false)))
         .then((_) => FutureExpect.equals(x, new Link(y).target()))
 
         // Delete Junction pointing to an existing directory.
         .then((_) => new Directory(y).delete())
         .then((_) => FutureExpect.equals(
-            FileSystemEntityType.NOT_FOUND, FileSystemEntity.type(y)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.NOT_FOUND,
+            FileSystemEntityType.notFound, FileSystemEntity.type(y)))
+        .then((_) => FutureExpect.equals(FileSystemEntityType.notFound,
             FileSystemEntity.type(y, followLinks: false)))
-        .then((_) => FutureExpect.equals(
-            FileSystemEntityType.DIRECTORY, FileSystemEntity.type(x)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.DIRECTORY,
-            FileSystemEntity.type(x, followLinks: false)))
+        .then((_) =>
+            FutureExpect.equals(FileSystemEntityType.directory, FileSystemEntity.type(x)))
+        .then((_) => FutureExpect.equals(FileSystemEntityType.directory, FileSystemEntity.type(x, followLinks: false)))
         .then((_) => FutureExpect.throws(new Link(y).target()))
         .then((_) => temp.delete(recursive: true));
   });

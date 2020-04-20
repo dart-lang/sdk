@@ -1,0 +1,49 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "issue41436c_lib.dart" as iss;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue41436c_lib.dart";
+
+class C extends iss::B {
+  synthetic constructor •() → self::C
+    : super iss::B::•()
+    ;
+  no-such-method-forwarder get /* from org-dartlang-testcase:///issue41436c_lib.dart */ _#A#x() → core::int?
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int?;
+  no-such-method-forwarder set /* from org-dartlang-testcase:///issue41436c_lib.dart */ _#A#x(core::int? value) → void
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+}
+static method main() → dynamic {
+  new self::C::•();
+}
+
+library /*isNonNullableByDefault*/;
+import self as iss;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+abstract class A extends core::Object {
+  field core::int? _#A#x = null;
+  synthetic constructor •() → iss::A
+    : super core::Object::•()
+    ;
+  get x() → core::int
+    return let final core::int? #t1 = this.{iss::A::_#A#x} in #t1.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'x' has not been initialized.") : #t1{core::int};
+  set x(core::int #t2) → void
+    this.{iss::A::_#A#x} = #t2;
+}
+class B extends core::Object implements iss::A {
+  field core::int x = 3;
+  synthetic constructor •() → iss::B
+    : super core::Object::•()
+    ;
+}
+
+constants  {
+  #C1 = #org-dartlang-testcase:///issue41436c.dart::_#A#x
+  #C2 = <core::Type*>[]
+  #C3 = <dynamic>[]
+  #C4 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C3}
+  #C5 = #org-dartlang-testcase:///issue41436c.dart::_#A#x=
+}

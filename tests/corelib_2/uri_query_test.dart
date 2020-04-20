@@ -105,7 +105,7 @@ void testQueryParameters() {
   test("a=$encodedStr", {"a": unencodedStr});
   test("a=$encodedStr&b=$encodedStr", {"a": unencodedStr, "b": unencodedStr});
 
-  var map = new Map();
+  var map = <String, String>{};
   map[unencodedStr] = unencodedStr;
   test("$encodedStr=$encodedStr", map);
   test("$encodedStr=$allEncoded", map, "$encodedStr=$encodedStr");

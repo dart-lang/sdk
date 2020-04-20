@@ -5,11 +5,12 @@
 // Test merging streams.
 library dart.test.stream_from_iterable;
 
-import "dart:async";
-import 'package:unittest/unittest.dart';
+import 'dart:async';
+
+import 'package:async_helper/async_minitest.dart';
 
 void runTest(period, maxElapsed, pauseDuration) {
-  Function done = expectAsync(() {});
+  void Function() done = expectAsync(() {});
 
   Stopwatch watch = new Stopwatch()..start();
   Stream stream = new Stream.periodic(period, (x) => x);

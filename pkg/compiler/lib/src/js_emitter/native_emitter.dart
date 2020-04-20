@@ -5,7 +5,7 @@
 library dart2js.js_emitter.native_emitter;
 
 import '../common.dart';
-import '../common_elements.dart' show CommonElements;
+import '../common_elements.dart' show JCommonElements, JElementEnvironment;
 import '../elements/types.dart' show DartType, FunctionType;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
@@ -13,16 +13,14 @@ import '../js/js.dart' show js;
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../native/enqueue.dart' show NativeCodegenEnqueuer;
-import '../universe/world_builder.dart' show CodegenWorldBuilder;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 
 import 'code_emitter_task.dart' show CodeEmitterTask;
 import 'model.dart';
 
 class NativeEmitter {
   final CodeEmitterTask _emitterTask;
-  final ClosedWorld _closedWorld;
-  final CodegenWorldBuilder _worldBuilder;
+  final JClosedWorld _closedWorld;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
 
   // Whether the application contains native classes.
@@ -39,47 +37,52 @@ class NativeEmitter {
   // Caches the methods that have a native body.
   Set<FunctionEntity> nativeMethods = new Set<FunctionEntity>();
 
-  NativeEmitter(this._emitterTask, this._closedWorld, this._worldBuilder,
-      this._nativeCodegenEnqueuer);
+  // Type metadata redirections, where the key is the class being redirected to
+  // and the value is the list of classes being redirected.
+  final Map<Class, List<Class>> typeRedirections = {};
 
-  CommonElements get _commonElements => _closedWorld.commonElements;
+  NativeEmitter(
+      this._emitterTask, this._closedWorld, this._nativeCodegenEnqueuer);
+
+  JCommonElements get _commonElements => _closedWorld.commonElements;
+  JElementEnvironment get _elementEnvironment =>
+      _closedWorld.elementEnvironment;
   NativeData get _nativeData => _closedWorld.nativeData;
   InterceptorData get _interceptorData => _closedWorld.interceptorData;
 
-  /**
-   * Prepares native classes for emission. Returns the unneeded classes.
-   *
-   * Removes trivial classes (that can be represented by a super type) and
-   * generates properties that have to be added to classes (native or not).
-   *
-   * Updates the `nativeLeafTags`, `nativeNonLeafTags` and `nativeExtensions`
-   * fields of the given classes. This data must be emitted with the
-   * corresponding classes.
-   *
-   * The interceptors are filtered to avoid emitting trivial interceptors.  For
-   * example, if the program contains no code that can distinguish between the
-   * numerous subclasses of `Element` then we can pretend that `Element` is a
-   * leaf class, and all instances of subclasses of `Element` are instances of
-   * `Element`.
-   *
-   * There is also a performance benefit (in addition to the obvious code size
-   * benefit), due to how [getNativeInterceptor] works.  Finding the interceptor
-   * of a leaf class in the hierarchy is more efficient that a non-leaf, so it
-   * improves performance when more classes can be treated as leaves.
-   *
-   * [classes] contains native classes, mixin applications, and user subclasses
-   * of native classes.
-   *
-   * [interceptorClassesNeededByConstants] contains the interceptors that are
-   * referenced by constants.
-   *
-   * [classesModifiedByEmitRTISupport] contains the list of classes that must
-   * exist, because runtime-type support adds information to the class.
-   */
+  /// Prepares native classes for emission. Returns the unneeded classes.
+  ///
+  /// Removes trivial classes (that can be represented by a super type) and
+  /// generates properties that have to be added to classes (native or not).
+  ///
+  /// Updates the `nativeLeafTags`, `nativeNonLeafTags` and `nativeExtensions`
+  /// fields of the given classes. This data must be emitted with the
+  /// corresponding classes.
+  ///
+  /// The interceptors are filtered to avoid emitting trivial interceptors.  For
+  /// example, if the program contains no code that can distinguish between the
+  /// numerous subclasses of `Element` then we can pretend that `Element` is a
+  /// leaf class, and all instances of subclasses of `Element` are instances of
+  /// `Element`.
+  ///
+  /// There is also a performance benefit (in addition to the obvious code size
+  /// benefit), due to how [getNativeInterceptor] works.  Finding the
+  /// interceptor of a leaf class in the hierarchy is more efficient that a
+  /// non-leaf, so it improves performance when more classes can be treated as
+  /// leaves.
+  ///
+  /// [classes] contains native classes, mixin applications, and user subclasses
+  /// of native classes.
+  ///
+  /// [interceptorClassesNeededByConstants] contains the interceptors that are
+  /// referenced by constants.
+  ///
+  /// [classesModifiedByEmitRTISupport] contains the list of classes that must
+  /// exist, because runtime-type support adds information to the class.
   Set<Class> prepareNativeClasses(
       List<Class> classes,
       Set<ClassEntity> interceptorClassesNeededByConstants,
-      Set<ClassEntity> classesModifiedByEmitRTISupport) {
+      Iterable<ClassEntity> classesNeededForRti) {
     assert(classes.every((Class cls) => cls != null));
 
     hasNativeClasses = classes.isNotEmpty;
@@ -113,6 +116,7 @@ class NativeEmitter {
     // Find which classes are needed and which are non-leaf classes.  Any class
     // that is not needed can be treated as a leaf class equivalent to some
     // needed class.
+    // We may still need to include type metadata for some unneeded classes.
 
     Set<Class> neededClasses = new Set<Class>();
     Set<Class> nonLeafClasses = new Set<Class>();
@@ -136,9 +140,7 @@ class NativeEmitter {
         needed = true;
       } else if (interceptorClassesNeededByConstants.contains(classElement)) {
         needed = true;
-      } else if (classesModifiedByEmitRTISupport.contains(classElement)) {
-        // TODO(9556): Remove this test when [emitRuntimeTypeSupport] no longer
-        // adds information to a class prototype or constructor.
+      } else if (classesNeededForRti.contains(classElement)) {
         needed = true;
       } else if (extensionPoints.containsKey(cls)) {
         needed = true;
@@ -155,6 +157,19 @@ class NativeEmitter {
         neededClasses.add(cls);
         neededClasses.add(cls.superclass);
         nonLeafClasses.add(cls.superclass);
+      } else if (!cls.isTriviallyChecked(_commonElements) ||
+          cls.namedTypeVariablesNewRti.isNotEmpty) {
+        // The class is not marked 'needed', but we still need it in the type
+        // metadata.
+
+        // Redirect this class (and all classes which would have redirected to
+        // this class) to its superclass. Because we have a post-order visit,
+        // this eventually causes all such native classes to redirect to their
+        // leaf interceptors.
+        List<Class> redirectedClasses = typeRedirections[cls] ?? [];
+        redirectedClasses.add(cls);
+        typeRedirections[cls.superclass] = redirectedClasses;
+        typeRedirections.remove(cls);
       }
     }
 
@@ -221,11 +236,9 @@ class NativeEmitter {
         .toSet();
   }
 
-  /**
-   * Computes the native classes that are extended (subclassed) by non-native
-   * classes and the set non-mative classes that extend them.  (A List is used
-   * instead of a Set for out stability).
-   */
+  /// Computes the native classes that are extended (subclassed) by non-native
+  /// classes and the set non-mative classes that extend them.  (A List is used
+  /// instead of a Set for out stability).
   Map<Class, List<Class>> computeExtensionPoints(List<Class> classes) {
     Class nativeSuperclassOf(Class cls) {
       if (cls == null) return null;
@@ -259,26 +272,28 @@ class NativeEmitter {
     return cls.methods.isEmpty &&
         cls.isChecks.isEmpty &&
         cls.callStubs.isEmpty &&
-        !cls.superclass.isMixinApplication &&
+        !cls.superclass.isSimpleMixinApplication &&
         !cls.fields.any(needsAccessor);
   }
 
   void potentiallyConvertDartClosuresToJs(List<jsAst.Statement> statements,
       FunctionEntity member, List<jsAst.Parameter> stubParameters) {
-    FunctionEntity converter = _commonElements.closureConverter;
-    jsAst.Expression closureConverter =
-        _emitterTask.staticFunctionAccess(converter);
-    _worldBuilder.forEachParameter(member, (DartType type, String name, _) {
+    jsAst.Expression closureConverter;
+    _elementEnvironment.forEachParameter(member,
+        (DartType type, String name, _) {
+      type = type.withoutNullability;
+
       // If [name] is not in [stubParameters], then the parameter is an optional
       // parameter that was not provided for this stub.
       for (jsAst.Parameter stubParameter in stubParameters) {
         if (stubParameter.name == name) {
-          type = type.unaliased;
-          if (type.isFunctionType) {
+          if (type is FunctionType) {
+            closureConverter ??= _emitterTask.emitter
+                .staticFunctionAccess(_commonElements.closureConverter);
+
             // The parameter type is a function type either directly or through
             // typedef(s).
-            FunctionType functionType = type;
-            int arity = functionType.parameterTypes.length;
+            int arity = type.parameterTypes.length;
             statements.add(js
                 .statement('# = #(#, $arity)', [name, closureConverter, name]));
             break;

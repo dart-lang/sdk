@@ -1,0 +1,75 @@
+main = #lib::main;
+ [@vm.bytecode=
+BytecodeMetadata {
+Bytecode (version: stable)
+Main library: #lib
+Library '#lib'
+    name '#lib'
+    script '#lib'
+
+Class '', script = '#lib'
+
+
+Function 'callDeferred', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  PushNull
+  DirectCall           CP#0, 1
+  PopLocal             r0
+  DirectCall           CP#2, 0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:async::Future::value (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = DirectCall '#pkg/vm/testcases/bytecode/hello.dart::main', ArgDesc num-args 0, num-type-args 0, names []
+  [3] = Reserved
+}
+
+
+Function 'testLoadLibrary', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushNull
+  DirectCall           CP#0, 1
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:async::Future::value (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+}
+
+
+}
+]library #lib from "#lib" as #lib {
+
+  import "#pkg/vm/testcases/bytecode/hello.dart" deferred as lib;
+
+  static method callDeferred() → dynamic
+    return let final dynamic #t1 = CheckLibraryIsLoaded(lib) in #lib1::main();
+  static method testLoadLibrary() → dynamic
+    return LoadLibrary(lib);
+  static method main() → dynamic {}
+}

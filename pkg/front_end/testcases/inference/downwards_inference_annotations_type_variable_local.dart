@@ -10,9 +10,9 @@ class Foo {
 }
 
 void test() {
-  void f<@Foo(/*@typeArgs=String*/ const []) T>() {}
-  var /*@type=<T extends Object>() -> Null*/ x =
-      <@Foo(/*@typeArgs=String*/ const []) T> /*@returnType=Null*/ () {};
+  void f<@Foo(/*@ typeArgs=String* */ const []) T>() {}
+  var /*@ type=<T extends Object* = dynamic>() ->* Null? */ x =
+      <@Foo(/*@ typeArgs=String* */ const []) T> /*@ returnType=Null? */ () {};
 }
 
 main() {}

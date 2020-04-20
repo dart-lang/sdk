@@ -20,7 +20,7 @@ main() {
         // If a SIGTERM is sent before the child-process's main is invoked,
         // there is a change that the SIGTERM is ignore on Mac OS X. Use
         // SIGKILL to get around the issue.
-        p.kill(ProcessSignal.SIGKILL);
+        p.kill(ProcessSignal.sigkill);
         p.exitCode.then((_) => exit(0));
       });
       // Close stdout. If handles are incorrectly inherited this will

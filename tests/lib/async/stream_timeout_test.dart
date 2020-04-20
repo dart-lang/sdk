@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:async";
-import "package:unittest/unittest.dart";
+import 'dart:async';
+
+import 'package:async_helper/async_minitest.dart';
 
 main() {
   const ms5 = const Duration(milliseconds: 5);
@@ -15,7 +16,7 @@ main() {
     expect(tos.isBroadcast, false);
     tos.handleError(expectAsync((e, s) {
       expect(e, new isInstanceOf<TimeoutException>());
-      expect(s, null);
+      expect(s, StackTrace.empty);
     })).listen((v) {
       fail("Unexpected event");
     });
@@ -76,7 +77,7 @@ main() {
     expect(tos.isBroadcast, true);
     tos.handleError(expectAsync((e, s) {
       expect(e, new isInstanceOf<TimeoutException>());
-      expect(s, null);
+      expect(s, StackTrace.empty);
     })).listen((v) {
       fail("Unexpected event");
     });
@@ -88,7 +89,7 @@ main() {
     expect(tos.isBroadcast, true);
     tos.handleError(expectAsync((e, s) {
       expect(e, new isInstanceOf<TimeoutException>());
-      expect(s, null);
+      expect(s, StackTrace.empty);
     })).listen((v) {
       fail("Unexpected event");
     });
@@ -100,7 +101,7 @@ main() {
     expect(tos.isBroadcast, false);
     tos.handleError(expectAsync((e, s) {
       expect(e, new isInstanceOf<TimeoutException>());
-      expect(s, null);
+      expect(s, StackTrace.empty);
     })).listen((v) {
       fail("Unexpected event");
     });

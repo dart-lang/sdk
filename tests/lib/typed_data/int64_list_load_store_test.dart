@@ -6,6 +6,8 @@
 // Test that the compiler's load elimination phase sees interfering writes to
 // the array's buffer.
 
+// This test is not compatible with dart2js: Int64List is not supported.
+
 import "dart:typed_data";
 import 'package:expect/expect.dart';
 

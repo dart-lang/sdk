@@ -7,47 +7,56 @@
 
 #include "bin/stdio.h"
 
+#include <errno.h>
+
+#include "platform/signal_blocker.h"
+
 namespace dart {
 namespace bin {
 
-bool Stdin::ReadByte(int* byte) {
-  UNIMPLEMENTED();
+bool Stdin::ReadByte(intptr_t fd, int* byte) {
+  unsigned char b;
+  ssize_t s = TEMP_FAILURE_RETRY(read(fd, &b, 1));
+  if (s < 0) {
+    return false;
+  }
+  *byte = (s == 0) ? -1 : b;
+  return true;
+}
+
+bool Stdin::GetEchoMode(intptr_t fd, bool* enabled) {
+  errno = ENOSYS;
   return false;
 }
 
-bool Stdin::GetEchoMode(bool* enabled) {
-  UNIMPLEMENTED();
+bool Stdin::SetEchoMode(intptr_t fd, bool enabled) {
+  errno = ENOSYS;
   return false;
 }
 
-bool Stdin::SetEchoMode(bool enabled) {
-  UNIMPLEMENTED();
+bool Stdin::GetLineMode(intptr_t fd, bool* enabled) {
+  errno = ENOSYS;
   return false;
 }
 
-bool Stdin::GetLineMode(bool* enabled) {
-  UNIMPLEMENTED();
+bool Stdin::SetLineMode(intptr_t fd, bool enabled) {
+  errno = ENOSYS;
   return false;
 }
 
-bool Stdin::SetLineMode(bool enabled) {
-  UNIMPLEMENTED();
-  return false;
-}
-
-bool Stdin::AnsiSupported(bool* supported) {
-  UNIMPLEMENTED();
-  return false;
+bool Stdin::AnsiSupported(intptr_t fd, bool* supported) {
+  *supported = false;
+  return true;
 }
 
 bool Stdout::GetTerminalSize(intptr_t fd, int size[2]) {
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 
 bool Stdout::AnsiSupported(intptr_t fd, bool* supported) {
-  UNIMPLEMENTED();
-  return false;
+  *supported = false;
+  return true;
 }
 
 }  // namespace bin

@@ -9,7 +9,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class TypeArgumentsRefElement extends HtmlElement implements Renderable {
+class TypeArgumentsRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<TypeArgumentsRefElement>('type-arguments-ref');
 
   RenderingScheduler<TypeArgumentsRefElement> _r;
@@ -27,14 +27,14 @@ class TypeArgumentsRefElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(args != null);
-    TypeArgumentsRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    TypeArgumentsRefElement e = new TypeArgumentsRefElement.created();
+    e._r = new RenderingScheduler<TypeArgumentsRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._arguments = args;
     return e;
   }
 
-  TypeArgumentsRefElement.created() : super.created();
+  TypeArgumentsRefElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -46,14 +46,14 @@ class TypeArgumentsRefElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
     final text = (_arguments.name == null || _arguments.name == '')
         ? 'TypeArguments'
         : _arguments.name;
-    children = [
+    children = <Element>[
       new AnchorElement(href: Uris.inspect(_isolate, object: _arguments))
         ..text = text
     ];
