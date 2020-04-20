@@ -274,6 +274,16 @@ class EditPlanTest extends AbstractSingleUnitTest {
         'f() => 0 /* zero */ + 1;');
   }
 
+  Future<void> test_addCommentPostfix_informative() async {
+    await analyze('f() => 0.isEven;');
+    checkPlan(
+        planner.addCommentPostfix(
+            planner.passThrough(findNode.integerLiteral('0')), '/* zero */',
+            isInformative: true),
+        'f() => 0.isEven;',
+        expectedIncludingInformative: 'f() => 0 /* zero */ .isEven;');
+  }
+
   Future<void> test_addUnaryPostfix_inner_precedence_add_parens() async {
     await analyze('f(x) => -x;');
     checkPlan(

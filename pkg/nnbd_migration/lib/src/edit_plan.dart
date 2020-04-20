@@ -273,11 +273,11 @@ class EditPlanner {
       {AtomicEditInfo info, bool isInformative = false}) {
     var end = innerPlan.end;
     return surround(innerPlan, suffix: [
-      AtomicEdit.insert(' '),
+      AtomicEdit.insert(' ', isInformative: isInformative),
       AtomicEdit.insert(comment, info: info, isInformative: isInformative),
       if (!_isJustBefore(end, const [')', ']', '}', ';']) &&
           !_isJustBeforeWhitespace(end))
-        AtomicEdit.insert(' ')
+        AtomicEdit.insert(' ', isInformative: isInformative)
     ]);
   }
 
