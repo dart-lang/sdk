@@ -44,7 +44,7 @@ prebuilt_dart_action("generate_summary_strong") {
   inputs = sdk_lib_files + analyzer_files
   output = "$root_gen_dir/strong.sum"
   outputs = [ output ]
-  if (use_nnbd) {
+  if (!dont_use_nnbd) {
     args = [
       "build-non-nullable",
       rebase_path(output),

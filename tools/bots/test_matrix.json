@@ -17,9 +17,9 @@
       "third_party/pkg_tested/",
       "tools/",
       "out/ReleaseX64/dart-sdk/",
-      "out/ReleaseX64NNBD/dart-sdk/",
+      "out/ReleaseX64/dart-sdk/",
       "xcodebuild/ReleaseX64/dart-sdk/",
-      "xcodebuild/ReleaseX64NNBD/dart-sdk/"
+      "xcodebuild/ReleaseX64/dart-sdk/"
     ],
     "dart2js": [
       ".packages",
@@ -31,7 +31,7 @@
       "runtime/tests/",
       "samples-dev/",
       "samples/",
-      "sdk/",
+      "sdk_nnbd/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
       "tests/co19_2/co19_2-analyzer.status",
@@ -64,9 +64,9 @@
     "dart2js_nnbd": [
       ".packages",
       ".dart_tool/package_config.json",
-      "out/ReleaseIA32NNBD/dart-sdk/",
-      "out/ReleaseX64NNBD/dart-sdk/",
-      "out/ReleaseX64NNBD/gen/utils/dartdevc/",
+      "out/ReleaseIA32/dart-sdk/",
+      "out/ReleaseX64/dart-sdk/",
+      "out/ReleaseX64/gen/utils/dartdevc/",
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
@@ -74,35 +74,24 @@
       "sdk_nnbd/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
-      "tests/co19_2/co19_2-analyzer.status",
-      "tests/co19_2/co19_2-co19.status",
-      "tests/co19_2/co19_2-dart2js.status",
-      "tests/co19_2/co19_2-dartdevc.status",
-      "tests/co19_2/co19_2-kernel.status",
-      "tests/co19_2/co19_2-runtime.status",
       "tests/compiler/",
-      "tests/corelib_2/",
       "tests/corelib/",
       "tests/dart/",
       "tests/kernel/",
-      "tests/language_2/",
       "tests/language/",
-      "tests/lib_2/",
       "tests/lib/",
       "tests/light_unittest.dart",
       "tests/search/",
-      "tests/standalone_2/",
       "tests/ffi/",
-      "tests/ffi_2/",
       "third_party/babel/babel.min.js",
       "third_party/d8/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
-      "xcodebuild/ReleaseIA32NNBD/dart-sdk/",
-      "xcodebuild/ReleaseX64NNBD/dart-sdk/",
-      "xcodebuild/ReleaseX64NNBD/gen/utils/dartdevc/"
+      "xcodebuild/ReleaseIA32/dart-sdk/",
+      "xcodebuild/ReleaseX64/dart-sdk/",
+      "xcodebuild/ReleaseX64/gen/utils/dartdevc/"
     ],
     "dart2js_hostasserts": [
       ".packages",
@@ -152,9 +141,9 @@
     "dart2js_hostasserts_nnbd": [
       ".packages",
       ".dart_tool/package_config.json",
-      "out/ReleaseX64NNBD/dart",
-      "out/ReleaseX64NNBD/dart2js_platform.dill",
-      "out/ReleaseX64NNBD/dart2js_platform_strong.dill",
+      "out/ReleaseX64/dart",
+      "out/ReleaseX64/dart2js_platform.dill",
+      "out/ReleaseX64/dart2js_platform_strong.dill",
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
@@ -163,37 +152,27 @@
       "sdk_nnbd/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
-      "tests/co19_2/co19_2-analyzer.status",
-      "tests/co19_2/co19_2-co19.status",
-      "tests/co19_2/co19_2-dart2js.status",
-      "tests/co19_2/co19_2-dartdevc.status",
-      "tests/co19_2/co19_2-kernel.status",
-      "tests/co19_2/co19_2-runtime.status",
       "tests/compiler/",
-      "tests/corelib_2/",
       "tests/dart/",
       "tests/kernel/",
-      "tests/language_2/",
-      "tests/lib_2/",
       "tests/light_unittest.dart",
       "tests/search/",
-      "tests/standalone_2/",
       "tests/ffi/",
       "third_party/d8/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
-      "xcodebuild/ReleaseX64NNBD/dart",
-      "xcodebuild/ReleaseX64NNBD/dart2js_platform.dill",
-      "xcodebuild/ReleaseX64NNBD/dart2js_platform_strong.dill"
+      "xcodebuild/ReleaseX64/dart",
+      "xcodebuild/ReleaseX64/dart2js_platform.dill",
+      "xcodebuild/ReleaseX64/dart2js_platform_strong.dill"
     ],
     "front-end": [
       ".packages",
       ".dart_tool/package_config.json",
       "out/ReleaseIA32/",
       "out/ReleaseX64/",
-      "out/ReleaseX64NNBD/",
+      "out/ReleaseX64/",
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
@@ -341,45 +320,46 @@
       "pkg/vm/",
       "runtime/",
       "sdk/",
+      "sdk_nnbd/",
       ".dart_tool/package_config.json",
       ".packages",
       ".vpython"
     ],
     "vm-kernel-nnbd": [
       "benchmarks/",
-      "out/DebugIA32NNBD/",
-      "out/DebugX64NNBD/",
-      "out/DebugSIMARMNNBD/",
-      "out/DebugSIMARM64NNBD/",
-      "out/DebugSIMARM_X64NNBD/",
-      "out/DebugAndroidARMNNBD/",
-      "out/DebugAndroidARM_X64NNBD/",
-      "out/DebugAndroidARM64NNBD/",
-      "out/ReleaseIA32NNBD/",
-      "out/ReleaseX64NNBD/",
-      "out/ReleaseSIMARMNNBD/",
-      "out/ReleaseSIMARM64NNBD/",
-      "out/ReleaseSIMARM_X64NNBD/",
-      "out/ReleaseAndroidARMNNBD/",
-      "out/ReleaseAndroidARM_X64NNBD/",
-      "out/ReleaseAndroidARM64NNBD/",
-      "out/ReleaseXARM64NNBD/",
-      "out/ProductIA32NNBD/",
-      "out/ProductX64NNBD/",
-      "out/ProductSIMARMNNBD/",
-      "out/ProductSIMARM64NNBD/",
-      "out/ProductSIMARM_X64NNBD/",
-      "out/ProductAndroidARMNNBD/",
-      "out/ProductAndroidARM64NNBD/",
-      "xcodebuild/DebugIA32NNBD/",
-      "xcodebuild/DebugSIMARMNNBD/",
-      "xcodebuild/DebugSIMARM64NNBD/",
-      "xcodebuild/DebugX64NNBD/",
-      "xcodebuild/ProductX64NNBD/",
-      "xcodebuild/ReleaseIA32NNBD/",
-      "xcodebuild/ReleaseSIMARMNNBD/",
-      "xcodebuild/ReleaseSIMARM64NNBD/",
-      "xcodebuild/ReleaseX64NNBD/",
+      "out/DebugIA32/",
+      "out/DebugX64/",
+      "out/DebugSIMARM/",
+      "out/DebugSIMARM64/",
+      "out/DebugSIMARM_X64/",
+      "out/DebugAndroidARM/",
+      "out/DebugAndroidARM_X64/",
+      "out/DebugAndroidARM64/",
+      "out/ReleaseIA32/",
+      "out/ReleaseX64/",
+      "out/ReleaseSIMARM/",
+      "out/ReleaseSIMARM64/",
+      "out/ReleaseSIMARM_X64/",
+      "out/ReleaseAndroidARM/",
+      "out/ReleaseAndroidARM_X64/",
+      "out/ReleaseAndroidARM64/",
+      "out/ReleaseXARM64/",
+      "out/ProductIA32/",
+      "out/ProductX64/",
+      "out/ProductSIMARM/",
+      "out/ProductSIMARM64/",
+      "out/ProductSIMARM_X64/",
+      "out/ProductAndroidARM/",
+      "out/ProductAndroidARM64/",
+      "xcodebuild/DebugIA32/",
+      "xcodebuild/DebugSIMARM/",
+      "xcodebuild/DebugSIMARM64/",
+      "xcodebuild/DebugX64/",
+      "xcodebuild/ProductX64/",
+      "xcodebuild/ReleaseIA32/",
+      "xcodebuild/ReleaseSIMARM/",
+      "xcodebuild/ReleaseSIMARM64/",
+      "xcodebuild/ReleaseX64/",
       "samples/",
       "samples-dev/",
       "tools/",
@@ -390,23 +370,12 @@
       "third_party/pkg_tested/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
-      "tests/co19_2/co19_2-analyzer.status",
-      "tests/co19_2/co19_2-co19.status",
-      "tests/co19_2/co19_2-dart2js.status",
-      "tests/co19_2/co19_2-dartdevc.status",
-      "tests/co19_2/co19_2-kernel.status",
-      "tests/co19_2/co19_2-runtime.status",
       "tests/compiler/",
-      "tests/corelib_2/",
       "tests/dart/",
       "tests/kernel/",
-      "tests/language_2/",
-      "tests/lib_2/",
       "tests/light_unittest.dart",
       "tests/search/",
-      "tests/standalone_2/",
       "tests/ffi/",
-      "tests/ffi_2/",
       "pkg/_fe_analyzer_shared/",
       "pkg/async_helper/",
       "pkg/build_integration/",
@@ -630,7 +599,7 @@
         "dart2js-options": [
           "--no-null-safety",
           "--libraries-spec=sdk_nnbd/lib/libraries.json",
-          "--platform-binaries=out/ReleaseX64NNBD/"
+          "--platform-binaries=out/ReleaseX64/"
         ],
         "timeout": 240,
         "host-checked": true
@@ -645,7 +614,7 @@
         "dart2js-options": [
           "--no-null-safety",
           "--libraries-spec=sdk_nnbd/lib/libraries.json",
-          "--platform-binaries=xcodebuild/ReleaseX64NNBD/"
+          "--platform-binaries=xcodebuild/ReleaseX64/"
         ],
         "timeout": 240,
         "host-checked": true
@@ -1111,29 +1080,11 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--nnbd",
             "create_sdk",
             "dartdevc_test",
             "kernel_platform_files",
             "runtime_kernel"
           ]
-        },
-        {
-          "name": "legacy sdk tests",
-          "arguments": [
-            "-ncfe-weak-${system}"
-          ],
-          "fileset": "front-end",
-          "shards": 5
-        },
-        {
-          "name": "legacy co19_2 tests",
-          "arguments": [
-            "-ncfe-weak-${system}",
-            "co19_2"
-          ],
-          "fileset": "front-end",
-          "shards": 6
         },
         {
           "name": "weak sdk tests",
@@ -1378,27 +1329,9 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--nnbd",
             "runtime_kernel",
             "dart_precompiled_runtime"
           ]
-        },
-        {
-          "name": "vm legacy tests in weak mode with asserts",
-          "arguments": [
-            "-ndartkp-weak-asserts-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm-kernel-nnbd",
-          "shards": 6
-        },
-        {
-          "name": "vm legacy tests(co19_2) in weak mode with asserts",
-          "arguments": [
-            "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
-            "co19_2"
-          ],
-          "fileset": "vm-kernel-nnbd",
-          "shards": 10
         },
         {
           "name": "vm nnbd tests in weak mode with asserts",
@@ -1741,27 +1674,9 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--nnbd",
             "create_sdk",
             "runtime_kernel"
           ]
-        },
-        {
-          "name": "vm legacy tests in weak mode with asserts",
-          "arguments": [
-            "-ndartk-weak-asserts-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm-kernel-nnbd",
-          "shards": 6
-        },
-        {
-          "name": "vm legacy tests(co19_2) in weak mode with asserts",
-          "arguments": [
-            "-ndartk-weak-asserts-${system}-${mode}-${arch}",
-            "co19_2"
-          ],
-          "fileset": "vm-kernel-nnbd",
-          "shards": 6
         },
         {
           "name": "vm nnbd test in weak mode with asserts",
@@ -2038,13 +1953,12 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--nnbd",
             "dartdevc_test"
           ]
         },
         {
           "name": "check dart nnbd sdk for static errors",
-          "script": "out/ReleaseX64NNBD/dart-sdk/bin/dart",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "--enable-experiment=non-nullable",
             "pkg/dev_compiler/tool/check_nnbd_sdk.dart"
@@ -2052,7 +1966,7 @@
         },
         {
           "name": "ddc weak modular tests",
-          "script": "out/ReleaseX64NNBD/dart-sdk/bin/dart",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
             "pkg/dev_compiler/test/modular_suite_nnbd.dart",
@@ -2069,26 +1983,6 @@
             "corelib",
             "lib",
             "dartdevc_native"
-          ],
-          "shards": 6,
-          "fileset": "dart2js_nnbd"
-        },
-        {
-          "name": "ddc legacy weak tests",
-          "arguments": [
-            "-ndartdevk-weak-linux-release-chrome",
-            "language_2",
-            "corelib_2",
-            "lib_2"
-          ],
-          "shards": 6,
-          "fileset": "dart2js_nnbd"
-        },
-        {
-          "name": "ddc legacy weak co19 tests",
-          "arguments": [
-            "-ndartdevk-weak-linux-release-chrome",
-            "co19_2"
           ],
           "shards": 6,
           "fileset": "dart2js_nnbd"
@@ -2618,14 +2512,13 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--nnbd",
             "create_sdk",
             "dart2js_bot"
           ]
         },
         {
           "name": "check dart nnbd sdk for static errors",
-          "script": "out/ReleaseX64NNBD/dart-sdk/bin/dart",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "--enable-experiment=non-nullable",
             "pkg/dev_compiler/tool/check_nnbd_sdk.dart",
@@ -2638,8 +2531,6 @@
           "arguments": [
             "-ndart2js-hostasserts-weak-linux-x64-d8",
             "--dart2js-batch",
-            "language_2",
-            "corelib_2",
             "dart2js_extra",
             "dart2js_native",
             "kernel"
@@ -3006,7 +2897,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--nnbd",
             "create_sdk"
           ]
         },
@@ -3030,19 +2920,6 @@
             "language",
             "lib",
             "standalone"
-          ]
-        },
-        {
-          "name": "analyze nnbd legacy weak tests enable-asserts",
-          "arguments": [
-            "-nanalyzer-asserts-weak-${system}"
-          ]
-        },
-        {
-          "name": "analyze nnbd legacy weak tests enable-asserts co19_2",
-          "arguments": [
-            "-nanalyzer-asserts-weak-${system}",
-            "co19_2"
           ]
         },
         {
