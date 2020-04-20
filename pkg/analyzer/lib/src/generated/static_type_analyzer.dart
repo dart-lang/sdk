@@ -174,12 +174,34 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   /**
+   * Record that the static type of the given node is the given type.
+   *
+   * @param expression the node whose type is to be recorded
+   * @param type the static type of the node
+   */
+  void recordStaticType(Expression expression, DartType type) {
+    if (_migrationResolutionHooks != null) {
+      type = _migrationResolutionHooks.modifyExpressionType(
+          expression, type ?? _dynamicType);
+    }
+
+    if (type == null) {
+      expression.staticType = _dynamicType;
+    } else {
+      expression.staticType = type;
+      if (identical(type, NeverTypeImpl.instance)) {
+        _flowAnalysis?.flow?.handleExit();
+      }
+    }
+  }
+
+  /**
    * The Dart Language Specification, 12.5: <blockquote>The static type of a string literal is
    * `String`.</blockquote>
    */
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
-    _recordStaticType(node, _nonNullable(_typeProvider.stringType));
+    recordStaticType(node, _nonNullable(_typeProvider.stringType));
   }
 
   /**
@@ -192,7 +214,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitAsExpression(AsExpression node) {
-    _recordStaticType(node, _getType(node.type));
+    recordStaticType(node, _getType(node.type));
   }
 
   /**
@@ -205,7 +227,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void visitAwaitExpression(AwaitExpression node) {
     DartType resultType = _getStaticType(node.expression);
     if (resultType != null) resultType = _typeSystem.flatten(resultType);
-    _recordStaticType(node, resultType);
+    recordStaticType(node, resultType);
   }
 
   /**
@@ -214,7 +236,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
-    _recordStaticType(node, _nonNullable(_typeProvider.boolType));
+    recordStaticType(node, _nonNullable(_typeProvider.boolType));
   }
 
   /**
@@ -224,7 +246,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitCascadeExpression(CascadeExpression node) {
-    _recordStaticType(node, _getStaticType(node.target));
+    recordStaticType(node, _getStaticType(node.target));
   }
 
   /**
@@ -247,7 +269,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
-    _recordStaticType(node, _nonNullable(_typeProvider.doubleType));
+    recordStaticType(node, _nonNullable(_typeProvider.doubleType));
   }
 
   @override
@@ -270,7 +292,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       functionElement.returnType =
           _computeStaticReturnTypeOfFunctionDeclaration(node);
     }
-    _recordStaticType(function, functionElement.type);
+    recordStaticType(function, functionElement.type);
   }
 
   /**
@@ -321,7 +343,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     if (identical(node.realTarget.staticType, NeverTypeImpl.instance)) {
-      _recordStaticType(node, NeverTypeImpl.instance);
+      recordStaticType(node, NeverTypeImpl.instance);
     } else {
       DartType type;
       if (node.inSetterContext()) {
@@ -335,7 +357,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
       type ??= _dynamicType;
 
-      _recordStaticType(node, type);
+      recordStaticType(node, type);
     }
 
     _resolver.nullShortingTermination(node);
@@ -353,7 +375,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     _inferInstanceCreationExpression(node);
-    _recordStaticType(node, node.constructorName.type.type);
+    recordStaticType(node, node.constructorName.type.type);
   }
 
   /**
@@ -381,9 +403,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     if (context == null ||
         _typeSystem.isAssignableTo2(_typeProvider.intType, context) ||
         !_typeSystem.isAssignableTo2(_typeProvider.doubleType, context)) {
-      _recordStaticType(node, _nonNullable(_typeProvider.intType));
+      recordStaticType(node, _nonNullable(_typeProvider.intType));
     } else {
-      _recordStaticType(node, _nonNullable(_typeProvider.doubleType));
+      recordStaticType(node, _nonNullable(_typeProvider.doubleType));
     }
   }
 
@@ -395,7 +417,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitIsExpression(IsExpression node) {
-    _recordStaticType(node, _nonNullable(_typeProvider.boolType));
+    recordStaticType(node, _nonNullable(_typeProvider.boolType));
   }
 
   @override
@@ -406,7 +428,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitNamedExpression(NamedExpression node) {
     Expression expression = node.expression;
-    _recordStaticType(node, _getStaticType(expression));
+    recordStaticType(node, _getStaticType(expression));
   }
 
   /**
@@ -415,13 +437,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitNullLiteral(NullLiteral node) {
-    _recordStaticType(node, _typeProvider.nullType);
+    recordStaticType(node, _typeProvider.nullType);
   }
 
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     Expression expression = node.expression;
-    _recordStaticType(node, _getStaticType(expression));
+    recordStaticType(node, _getStaticType(expression));
   }
 
   /**
@@ -438,8 +460,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     }
 
     if (identical(node.prefix.staticType, NeverTypeImpl.instance)) {
-      _recordStaticType(prefixedIdentifier, NeverTypeImpl.instance);
-      _recordStaticType(node, NeverTypeImpl.instance);
+      recordStaticType(prefixedIdentifier, NeverTypeImpl.instance);
+      recordStaticType(node, NeverTypeImpl.instance);
       return;
     }
 
@@ -477,8 +499,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
     staticType = _inferTearOff(node, node.identifier, staticType);
     if (!_inferObjectAccess(node, staticType, prefixedIdentifier)) {
-      _recordStaticType(prefixedIdentifier, staticType);
-      _recordStaticType(node, staticType);
+      recordStaticType(prefixedIdentifier, staticType);
+      recordStaticType(node, staticType);
     }
   }
 
@@ -539,8 +561,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     staticType = _inferTearOff(node, node.propertyName, staticType);
 
     if (!_inferObjectAccess(node, staticType, propertyName)) {
-      _recordStaticType(propertyName, staticType);
-      _recordStaticType(node, staticType);
+      recordStaticType(propertyName, staticType);
+      recordStaticType(node, staticType);
       _resolver.nullShortingTermination(node);
     }
   }
@@ -551,7 +573,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitRethrowExpression(RethrowExpression node) {
-    _recordStaticType(node, _typeProvider.bottomType);
+    recordStaticType(node, _typeProvider.bottomType);
   }
 
   /**
@@ -637,7 +659,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       staticType = _dynamicType;
     }
     staticType = _inferTearOff(node, node, staticType);
-    _recordStaticType(node, staticType);
+    recordStaticType(node, staticType);
   }
 
   /**
@@ -646,7 +668,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
-    _recordStaticType(node, _nonNullable(_typeProvider.stringType));
+    recordStaticType(node, _nonNullable(_typeProvider.stringType));
   }
 
   /**
@@ -655,7 +677,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitStringInterpolation(StringInterpolation node) {
-    _recordStaticType(node, _nonNullable(_typeProvider.stringType));
+    recordStaticType(node, _nonNullable(_typeProvider.stringType));
   }
 
   @override
@@ -664,15 +686,15 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         node.thisOrAncestorOfType<ExtensionDeclaration>() != null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
       // reported.
-      _recordStaticType(node, _dynamicType);
+      recordStaticType(node, _dynamicType);
     } else {
-      _recordStaticType(node, _resolver.thisType);
+      recordStaticType(node, _resolver.thisType);
     }
   }
 
   @override
   void visitSymbolLiteral(SymbolLiteral node) {
-    _recordStaticType(node, _nonNullable(_typeProvider.symbolType));
+    recordStaticType(node, _nonNullable(_typeProvider.symbolType));
   }
 
   /**
@@ -684,9 +706,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     if (_resolver.thisType == null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
       // reported.
-      _recordStaticType(node, _dynamicType);
+      recordStaticType(node, _dynamicType);
     } else {
-      _recordStaticType(node, _resolver.thisType);
+      recordStaticType(node, _resolver.thisType);
     }
   }
 
@@ -696,7 +718,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitThrowExpression(ThrowExpression node) {
-    _recordStaticType(node, _typeProvider.bottomType);
+    recordStaticType(node, _typeProvider.bottomType);
   }
 
   @override
@@ -739,7 +761,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
     staticType = _resolver.toLegacyTypeIfOptOut(staticType);
 
-    _recordStaticType(node, staticType);
+    recordStaticType(node, staticType);
   }
 
   /**
@@ -942,7 +964,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
     computedType = _computeReturnTypeOfFunction(body, computedType);
     functionElement.returnType = computedType;
-    _recordStaticType(node, functionElement.type);
+    recordStaticType(node, functionElement.type);
   }
 
   /**
@@ -1007,8 +1029,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         nodeType.isDynamic &&
         inferredType is InterfaceType &&
         _typeProvider.nonSubtypableClasses.contains(inferredType.element)) {
-      _recordStaticType(id, inferredType);
-      _recordStaticType(node, inferredType);
+      recordStaticType(id, inferredType);
+      recordStaticType(node, inferredType);
       return true;
     }
     return false;
@@ -1073,28 +1095,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return _typeSystem.promoteToNonNull(type);
     }
     return type;
-  }
-
-  /**
-   * Record that the static type of the given node is the given type.
-   *
-   * @param expression the node whose type is to be recorded
-   * @param type the static type of the node
-   */
-  void _recordStaticType(Expression expression, DartType type) {
-    if (_migrationResolutionHooks != null) {
-      type = _migrationResolutionHooks.modifyExpressionType(
-          expression, type ?? _dynamicType);
-    }
-
-    if (type == null) {
-      expression.staticType = _dynamicType;
-    } else {
-      expression.staticType = type;
-      if (identical(type, NeverTypeImpl.instance)) {
-        _flowAnalysis?.flow?.handleExit();
-      }
-    }
   }
 
   void _setExtensionIdentifierType(Identifier node) {
