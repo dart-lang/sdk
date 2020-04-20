@@ -320,7 +320,6 @@ mixin NodeChangeForConditional<N extends AstNode> on NodeChange<N> {
       AstNode conditionNode, AstNode thenNode, AstNode elseNode) {
     if (conditionValue == null) return null;
     if (aggregator._warnOnWeakCode) {
-      List<EditPlan> innerPlans = [];
       var conditionPlan = aggregator.innerPlanForNode(conditionNode);
       var info = AtomicEditInfo(
           conditionValue
@@ -330,12 +329,11 @@ mixin NodeChangeForConditional<N extends AstNode> on NodeChange<N> {
       var commentedConditionPlan = aggregator.planner.addCommentPostfix(
           conditionPlan, '/* == $conditionValue */',
           info: info, isInformative: true);
-      innerPlans.add(commentedConditionPlan);
-      innerPlans.addAll(aggregator.innerPlansForNode(thenNode));
-      if (elseNode != null) {
-        innerPlans.addAll(aggregator.innerPlansForNode(elseNode));
-      }
-      return aggregator.planner.passThrough(node, innerPlans: innerPlans);
+      return aggregator.planner.passThrough(node, innerPlans: [
+        commentedConditionPlan,
+        aggregator.planForNode(thenNode),
+        if (elseNode != null) aggregator.planForNode(elseNode)
+      ]);
     }
     AstNode nodeToKeep;
     NullabilityFixDescription descriptionBefore, descriptionAfter;

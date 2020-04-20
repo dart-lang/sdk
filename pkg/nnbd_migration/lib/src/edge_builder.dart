@@ -591,6 +591,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       try {
         thenType = _dispatch(node.thenExpression);
+        if (trueGuard != null) {
+          thenType = thenType
+              .withNode(_nullabilityNodeForGLB(node, thenType.node, trueGuard));
+        }
       } finally {
         if (trueGuard != null) {
           _guards.removeLast();
@@ -602,6 +606,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       try {
         elseType = _dispatch(node.elseExpression);
+        if (falseGuard != null) {
+          elseType = elseType.withNode(
+              _nullabilityNodeForGLB(node, elseType.node, falseGuard));
+        }
       } finally {
         if (falseGuard != null) {
           _guards.removeLast();
@@ -609,9 +617,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       _flowAnalysis.conditional_end(node, node.elseExpression);
     });
-
-    // TODO(paulberry): apply guards to thenType and elseType.
-    // See https://github.com/dart-lang/sdk/issues/41551.
 
     var overallType = _decorateUpperOrLowerBound(
         node, node.staticType, thenType, elseType, true);

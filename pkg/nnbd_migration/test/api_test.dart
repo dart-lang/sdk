@@ -548,11 +548,16 @@ void f(String s, int x) {
     await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/41551')
-  Future<void> test_conditional_expression_guard_value() async {
+  Future<void> test_conditional_expression_guard_value_ifFalse() async {
+    var content = 'int f(String s) => s != null ? s.length : null;';
+    var expected = 'int f(String s) => s != null ? s.length : null!;';
+    await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
+  }
+
+  Future<void> test_conditional_expression_guard_value_ifTrue() async {
     var content = 'int f(String s) => s == null ? null : s.length;';
     var expected = 'int f(String s) => s == null ? null! : s.length;';
-    await _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
   }
 
   Future<void>
