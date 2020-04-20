@@ -4688,6 +4688,7 @@ DispatchTableCallInstr* DispatchTableCallInstr::FromCall(
     Zone* zone,
     const InstanceCallBaseInstr* call,
     Value* cid,
+    const Function& interface_target,
     const compiler::TableSelector* selector) {
   InputsArray* args = new (zone) InputsArray(zone, call->ArgumentCount() + 1);
   for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
@@ -4695,7 +4696,7 @@ DispatchTableCallInstr* DispatchTableCallInstr::FromCall(
   }
   args->Add(cid);
   auto dispatch_table_call = new (zone) DispatchTableCallInstr(
-      call->token_pos(), call->interface_target(), selector, args,
+      call->token_pos(), interface_target, selector, args,
       call->type_args_len(), call->argument_names());
   if (call->has_inlining_id()) {
     dispatch_table_call->set_inlining_id(call->inlining_id());

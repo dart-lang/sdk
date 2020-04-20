@@ -1227,17 +1227,22 @@ void InstanceCallBaseInstr::AddExtraInfoToSExpression(
     sexp->AddExtra("interface_target", target);
   }
 
+  if (auto const target = s->DartValueToSExp(tearoff_interface_target())) {
+    sexp->AddExtra("tearoff_interface_target", target);
+  }
+
   if (HasICData()) {
     sexp->AddExtra("ic_data", s->ICDataToSExp(ic_data()));
   }
 
   if (function_name().IsNull()) {
-    if (!interface_target().IsNull()) {
+    if (!interface_target().IsNull() || !tearoff_interface_target().IsNull()) {
       s->AddExtraSymbol(sexp, "function_name", "null");
     }
   } else {
     if (interface_target().IsNull() ||
-        function_name().raw() != interface_target().name()) {
+        (function_name().raw() != interface_target().name() &&
+         function_name().raw() != tearoff_interface_target().name())) {
       s->AddExtraString(sexp, "function_name", function_name().ToCString());
     }
   }

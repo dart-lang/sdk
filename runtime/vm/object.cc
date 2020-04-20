@@ -9126,17 +9126,11 @@ bool Function::NeedsMonomorphicCheckedEntry(Zone* zone) const {
     return true;
   }
 
-  // Method extractors are always called dynamically (for now).
-  // See dartbug.com/40188.
-  if (IsMethodExtractor()) {
-    return true;
-  }
-
   // Use the results of TFA to determine whether this function is ever
   // called dynamically, i.e. using switchable calls.
   kernel::ProcedureAttributesMetadata metadata;
   metadata = kernel::ProcedureAttributesOf(*this, zone);
-  if (IsGetterFunction() || IsImplicitGetterFunction()) {
+  if (IsGetterFunction() || IsImplicitGetterFunction() || IsMethodExtractor()) {
     return metadata.getter_called_dynamically;
   } else {
     return metadata.method_or_setter_called_dynamically;

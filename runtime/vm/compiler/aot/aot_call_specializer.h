@@ -56,6 +56,7 @@ class AotCallSpecializer : public CallSpecializer {
   // If a call can be dispatched through the global dispatch table, replace
   // it by a dispatch table call.
   void TryReplaceWithDispatchTableCall(InstanceCallBaseInstr* call);
+  const Function& InterfaceTargetForTableDispatch(InstanceCallBaseInstr* call);
 
   // Try to replace a call with a more specialized instruction working on
   // integers (e.g. BinaryInt64OpInstr, CheckedSmiComparisonInstr,

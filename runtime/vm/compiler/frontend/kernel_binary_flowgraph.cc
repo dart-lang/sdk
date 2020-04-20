@@ -1764,9 +1764,9 @@ Fragment StreamingFlowGraphBuilder::InstanceCall(
     intptr_t argument_count,
     intptr_t checked_argument_count) {
   const intptr_t kTypeArgsLen = 0;
-  return flow_graph_builder_->InstanceCall(
-      position, name, kind, kTypeArgsLen, argument_count, Array::null_array(),
-      checked_argument_count, Function::null_function());
+  return flow_graph_builder_->InstanceCall(position, name, kind, kTypeArgsLen,
+                                           argument_count, Array::null_array(),
+                                           checked_argument_count);
 }
 
 Fragment StreamingFlowGraphBuilder::InstanceCall(
@@ -1778,14 +1778,15 @@ Fragment StreamingFlowGraphBuilder::InstanceCall(
     const Array& argument_names,
     intptr_t checked_argument_count,
     const Function& interface_target,
+    const Function& tearoff_interface_target,
     const InferredTypeMetadata* result_type,
     bool use_unchecked_entry,
     const CallSiteAttributesMetadata* call_site_attrs,
     bool receiver_is_not_smi) {
   return flow_graph_builder_->InstanceCall(
       position, name, kind, type_args_len, argument_count, argument_names,
-      checked_argument_count, interface_target, result_type,
-      use_unchecked_entry, call_site_attrs, receiver_is_not_smi);
+      checked_argument_count, interface_target, tearoff_interface_target,
+      result_type, use_unchecked_entry, call_site_attrs, receiver_is_not_smi);
 }
 
 Fragment StreamingFlowGraphBuilder::ThrowException(TokenPosition position) {
@@ -2330,6 +2331,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
   const String& getter_name = ReadNameAsGetterName();  // read name.
 
   const Function* interface_target = &Function::null_function();
+  const Function* tearoff_interface_target = &Function::null_function();
   const NameIndex itarget_name =
       ReadCanonicalNameReference();  // read interface_target_reference.
   if (!H.IsRoot(itarget_name) &&
@@ -2338,6 +2340,10 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
         Z,
         H.LookupMethodByMember(itarget_name, H.DartGetterName(itarget_name)));
     ASSERT(getter_name.raw() == interface_target->name());
+  } else if (!H.IsRoot(itarget_name) && H.IsMethod(itarget_name)) {
+    tearoff_interface_target = &Function::ZoneHandle(
+        Z,
+        H.LookupMethodByMember(itarget_name, H.DartMethodName(itarget_name)));
   }
 
   if (direct_call.check_receiver_for_null_) {
@@ -2352,9 +2358,10 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
   } else {
     const intptr_t kTypeArgsLen = 0;
     const intptr_t kNumArgsChecked = 1;
-    instructions += InstanceCall(
-        position, getter_name, Token::kGET, kTypeArgsLen, 1,
-        Array::null_array(), kNumArgsChecked, *interface_target, &result_type);
+    instructions +=
+        InstanceCall(position, getter_name, Token::kGET, kTypeArgsLen, 1,
+                     Array::null_array(), kNumArgsChecked, *interface_target,
+                     *tearoff_interface_target, &result_type);
   }
 
   if (direct_call.check_receiver_for_null_) {
@@ -2445,6 +2452,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
     instructions += InstanceCall(
         position, *mangled_name, Token::kSET, kTypeArgsLen, 2,
         Array::null_array(), kNumArgsChecked, *interface_target,
+        Function::null_function(),
         /*result_type=*/nullptr,
         /*use_unchecked_entry=*/is_unchecked_call, &call_site_attributes);
   }
@@ -3030,11 +3038,12 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
                    argument_names, ICData::kNoRebind, &result_type,
                    type_args_len, /*use_unchecked_entry=*/is_unchecked_call);
   } else {
-    instructions += InstanceCall(
-        position, *mangled_name, token_kind, type_args_len, argument_count,
-        argument_names, checked_argument_count, *interface_target, &result_type,
-        /*use_unchecked_entry=*/is_unchecked_call, &call_site_attributes,
-        result_type.ReceiverNotInt());
+    instructions +=
+        InstanceCall(position, *mangled_name, token_kind, type_args_len,
+                     argument_count, argument_names, checked_argument_count,
+                     *interface_target, Function::null_function(), &result_type,
+                     /*use_unchecked_entry=*/is_unchecked_call,
+                     &call_site_attributes, result_type.ReceiverNotInt());
   }
 
   // Drop temporaries preserving result on the top of the stack.

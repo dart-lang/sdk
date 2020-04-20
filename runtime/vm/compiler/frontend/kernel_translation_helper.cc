@@ -1854,7 +1854,9 @@ TableSelectorMetadata* TableSelectorMetadataHelper::GetTableSelectorMetadata(
 void TableSelectorMetadataHelper::ReadTableSelectorInfo(
     TableSelectorInfo* info) {
   info->call_count = helper_->ReadUInt();
-  info->called_on_null = helper_->ReadByte() != 0;
+  uint8_t flags = helper_->ReadByte();
+  info->called_on_null = (flags & kCalledOnNullBit) != 0;
+  info->torn_off = (flags & kTornOffBit) != 0;
 }
 
 UnboxingInfoMetadataHelper::UnboxingInfoMetadataHelper(

@@ -366,7 +366,8 @@ int32_t SelectorMap::SelectorId(const Function& interface_target) const {
   kernel::ProcedureAttributesMetadata metadata;
   metadata = kernel::ProcedureAttributesOf(interface_target, Z);
   return interface_target.IsGetterFunction() ||
-                 interface_target.IsImplicitGetterFunction()
+                 interface_target.IsImplicitGetterFunction() ||
+                 interface_target.IsMethodExtractor()
              ? metadata.getter_selector_id
              : metadata.method_or_setter_selector_id;
 }
@@ -381,10 +382,12 @@ const TableSelector* SelectorMap::GetSelector(
   return selector;
 }
 
-void SelectorMap::AddSelector(int32_t call_count, bool called_on_null) {
+void SelectorMap::AddSelector(int32_t call_count,
+                              bool called_on_null,
+                              bool torn_off) {
   const int32_t added_sid = selectors_.length();
   selectors_.Add(TableSelector(added_sid, call_count, kInvalidSelectorOffset,
-                               called_on_null));
+                               called_on_null, torn_off));
 }
 
 void SelectorMap::SetSelectorProperties(int32_t sid,
@@ -421,7 +424,8 @@ void DispatchTableGenerator::ReadTableSelectorInfo() {
   RELEASE_ASSERT(metadata != nullptr);
   for (intptr_t i = 0; i < metadata->selectors.length(); i++) {
     const kernel::TableSelectorInfo* info = &metadata->selectors[i];
-    selector_map_.AddSelector(info->call_count, info->called_on_null);
+    selector_map_.AddSelector(info->call_count, info->called_on_null,
+                              info->torn_off);
   }
 }
 
@@ -562,13 +566,29 @@ void DispatchTableGenerator::SetupSelectorRows() {
             const int32_t sid = selector_map_.SelectorId(function);
 
             if (sid != SelectorMap::kInvalidSelectorId) {
-              // Make a function handle that survives until the table is built.
-              auto& function_handle = Function::ZoneHandle(Z, function.raw());
+              auto MakeIntervals = [&](const Function& function, int32_t sid) {
+                // A function handle that survives until the table is built.
+                auto& function_handle = Function::ZoneHandle(Z, function.raw());
 
-              for (intptr_t i = 0; i < subclasss_cid_ranges.length(); i++) {
-                Interval& subclass_cid_range = subclasss_cid_ranges[i];
-                selector_rows[sid].DefineSelectorImplementationForInterval(
-                    cid, depth, subclass_cid_range, &function_handle);
+                for (intptr_t i = 0; i < subclasss_cid_ranges.length(); i++) {
+                  Interval& subclass_cid_range = subclasss_cid_ranges[i];
+                  selector_rows[sid].DefineSelectorImplementationForInterval(
+                      cid, depth, subclass_cid_range, &function_handle);
+                }
+              };
+              MakeIntervals(function, sid);
+
+              if (selector_map_.selectors_[sid].torn_off) {
+                const String& method_name = String::Handle(Z, function.name());
+                const String& getter_name =
+                    String::Handle(Z, Field::GetterName(method_name));
+                const Function& tearoff = Function::Handle(
+                    Z, function.GetMethodExtractor(getter_name));
+                const int32_t tearoff_sid = selector_map_.SelectorId(tearoff);
+
+                if (tearoff_sid != SelectorMap::kInvalidSelectorId) {
+                  MakeIntervals(tearoff, tearoff_sid);
+                }
               }
             }
           }

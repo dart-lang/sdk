@@ -332,16 +332,17 @@ Fragment FlowGraphBuilder::InstanceCall(
     const Array& argument_names,
     intptr_t checked_argument_count,
     const Function& interface_target,
+    const Function& tearoff_interface_target,
     const InferredTypeMetadata* result_type,
     bool use_unchecked_entry,
     const CallSiteAttributesMetadata* call_site_attrs,
     bool receiver_is_not_smi) {
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
   InputsArray* arguments = GetArguments(total_count);
-  InstanceCallInstr* call = new (Z)
-      InstanceCallInstr(position, name, kind, arguments, type_args_len,
-                        argument_names, checked_argument_count, ic_data_array_,
-                        GetNextDeoptId(), interface_target);
+  InstanceCallInstr* call = new (Z) InstanceCallInstr(
+      position, name, kind, arguments, type_args_len, argument_names,
+      checked_argument_count, ic_data_array_, GetNextDeoptId(),
+      interface_target, tearoff_interface_target);
   if ((result_type != NULL) && !result_type->IsTrivial()) {
     call->SetResultType(Z, result_type->ToCompileType(Z));
   }
@@ -2019,8 +2020,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
     const intptr_t kTypeArgsLen = 0;
     const intptr_t kNumArgsChecked = 1;
     body += InstanceCall(TokenPosition::kMinSource, getter_name, Token::kGET,
-                         kTypeArgsLen, 1, Array::null_array(), kNumArgsChecked,
-                         Function::null_function());
+                         kTypeArgsLen, 1, Array::null_array(), kNumArgsChecked);
   }
 
   // Push all arguments onto the stack.
@@ -2040,8 +2040,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
     const intptr_t kNumArgsChecked = 1;
     body += InstanceCall(TokenPosition::kMinSource, Symbols::Call(),
                          Token::kILLEGAL, descriptor.TypeArgsLen(),
-                         descriptor.Count(), argument_names, kNumArgsChecked,
-                         Function::null_function());
+                         descriptor.Count(), argument_names, kNumArgsChecked);
   }
 
   body += Return(TokenPosition::kNoSource);
@@ -2301,7 +2300,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     body += InstanceCall(
         TokenPosition::kNoSource, Symbols::NoSuchMethod(), Token::kILLEGAL,
         /*type_args_len=*/0, /*argument_count=*/2, Array::null_array(),
-        /*checked_argument_count=*/1, Function::null_function());
+        /*checked_argument_count=*/1);
   }
   body += StoreLocal(TokenPosition::kNoSource, result);
   body += Drop();
