@@ -63,7 +63,9 @@ class ForResolver {
         : null;
 
     if (iteratedType != null) {
-      return iteratedType.typeArguments.single;
+      var elementType = iteratedType.typeArguments.single;
+      elementType = _resolver.toLegacyTypeIfOptOut(elementType);
+      return elementType;
     } else {
       return null;
     }
