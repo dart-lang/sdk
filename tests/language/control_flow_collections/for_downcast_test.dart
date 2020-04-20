@@ -117,14 +117,14 @@ void testNullIterable() {
   Iterable<int>? nullIterable = null;
   var a = <int>[for (var i in nullIterable) 1];
   //                          ^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_NULLABLE_VALUE
+  // [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
   // [cfe] The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
   var b = {for (var i in nullIterable) 1: 1};
   //                     ^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_NULLABLE_VALUE
+  // [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
   // [cfe] The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
   var c = <int>{for (var i in nullIterable) 1};
   //                          ^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_NULLABLE_VALUE
+  // [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
   // [cfe] The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
 }
