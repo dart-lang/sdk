@@ -442,6 +442,53 @@ class Foo {}
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_code_inside_switch_does_not_imply_non_null_intent() async {
+    var content = '''
+int f(int i, int j) {
+  switch (i) {
+    case 0:
+      return j + 1;
+    default:
+      return 0;
+  }
+}
+int g(int i, int j) {
+  if (i == 0) {
+    return f(i, j);
+  } else {
+    return 0;
+  }
+}
+main() {
+  g(0, null);
+}
+''';
+    var expected = '''
+int f(int i, int? j) {
+  switch (i) {
+    case 0:
+      return j! + 1;
+    default:
+      return 0;
+  }
+}
+int g(int i, int? j) {
+  if (i == 0) {
+    return f(i, j);
+  } else {
+    return 0;
+  }
+}
+main() {
+  g(0, null);
+}
+''';
+    // Note: prior to the fix for https://github.com/dart-lang/sdk/issues/41407,
+    // we would consider the use of `j` in `f` to establish non-null intent, so
+    // the null check would be erroneously placed in `g`'s call to `f`.
+    await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
+  }
+
   Future<void> test_comment_bang_implies_non_null_intent() async {
     var content = '''
 void f(int/*!*/ i) {}

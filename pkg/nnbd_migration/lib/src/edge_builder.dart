@@ -1536,14 +1536,16 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _flowAnalysis.switchStatement_expressionEnd(node);
     var hasDefault = false;
     for (var member in node.members) {
-      var hasLabel = member.labels.isNotEmpty;
-      _flowAnalysis.switchStatement_beginCase(hasLabel, node);
-      if (member is SwitchCase) {
-        _dispatch(member.expression);
-      } else {
-        hasDefault = true;
-      }
-      _dispatchList(member.statements);
+      _postDominatedLocals.doScoped(action: () {
+        var hasLabel = member.labels.isNotEmpty;
+        _flowAnalysis.switchStatement_beginCase(hasLabel, node);
+        if (member is SwitchCase) {
+          _dispatch(member.expression);
+        } else {
+          hasDefault = true;
+        }
+        _dispatchList(member.statements);
+      });
     }
     _flowAnalysis.switchStatement_end(hasDefault);
     return null;
