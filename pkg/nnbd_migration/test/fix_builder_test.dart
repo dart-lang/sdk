@@ -1337,7 +1337,7 @@ _f(int x, int/*?*/ y) {
 ''');
     var ifStatement = findNode.statement('if');
     visitStatement(ifStatement,
-        changes: {ifStatement: isEliminateDeadIf(true)});
+        changes: {ifStatement: isConditionalWithKnownValue(true)});
   }
 
   Future<void> test_ifStatement_dead_then() async {
@@ -1352,7 +1352,7 @@ _f(int x, int/*?*/ y) {
 ''');
     var ifStatement = findNode.statement('if');
     visitStatement(ifStatement,
-        changes: {ifStatement: isEliminateDeadIf(false)});
+        changes: {ifStatement: isConditionalWithKnownValue(false)});
   }
 
   Future<void> test_ifStatement_flow_promote_in_else() async {
@@ -1513,7 +1513,7 @@ int/*!*/ g(int/*!*/ y) => y;
 double/*!*/ h(int/*!*/ y) => y.toDouble();
 ''');
     visitSubexpression(findNode.listLiteral('['), 'List<int>', changes: {
-      findNode.ifElement('null'): isEliminateDeadIf(true),
+      findNode.ifElement('null'): isConditionalWithKnownValue(true),
       findNode.simple('y) else'): isNullCheck
     });
   }
@@ -1524,7 +1524,7 @@ _f(int x, int/*?*/ y) => [if (x != null) g(y)];
 int/*!*/ g(int/*!*/ y) => y;
 ''');
     visitSubexpression(findNode.listLiteral('['), 'List<int>', changes: {
-      findNode.ifElement('null'): isEliminateDeadIf(true),
+      findNode.ifElement('null'): isConditionalWithKnownValue(true),
       findNode.simple('y)]'): isNullCheck
     });
   }
@@ -1536,7 +1536,7 @@ int/*!*/ g(int/*!*/ y) => y;
 double/*!*/ h(int/*!*/ y) => y.toDouble();
 ''');
     visitSubexpression(findNode.listLiteral('['), 'List<int>', changes: {
-      findNode.ifElement('null'): isEliminateDeadIf(false),
+      findNode.ifElement('null'): isConditionalWithKnownValue(false),
       findNode.simple('y)]'): isNullCheck
     });
   }
@@ -1549,8 +1549,9 @@ double/*!*/ h(int/*!*/ y) => y.toDouble();
 _f(int x, int/*?*/ y) => [if (x == null) h(y)];
 double/*!*/ h(int/*!*/ y) => y.toDouble();
 ''');
-    visitSubexpression(findNode.listLiteral('['), 'List<dynamic>',
-        changes: {findNode.ifElement('null'): isEliminateDeadIf(false)});
+    visitSubexpression(findNode.listLiteral('['), 'List<dynamic>', changes: {
+      findNode.ifElement('null'): isConditionalWithKnownValue(false)
+    });
   }
 
   Future<void> test_list_make_explicit_type_nullable() async {
@@ -1615,7 +1616,7 @@ double/*!*/ h(int/*!*/ y) => y.toDouble();
 ''');
     visitSubexpression(findNode.setOrMapLiteral('{'), 'Map<int, int>',
         changes: {
-          findNode.ifElement('null'): isEliminateDeadIf(true),
+          findNode.ifElement('null'): isConditionalWithKnownValue(true),
           findNode.simple('y) else'): isNullCheck
         });
   }
@@ -1627,7 +1628,7 @@ int/*!*/ g(int/*!*/ y) => y;
 ''');
     visitSubexpression(findNode.setOrMapLiteral('{'), 'Map<int, int>',
         changes: {
-          findNode.ifElement('null'): isEliminateDeadIf(true),
+          findNode.ifElement('null'): isConditionalWithKnownValue(true),
           findNode.simple('y)}'): isNullCheck
         });
   }
@@ -1640,7 +1641,7 @@ double/*!*/ h(int/*!*/ y) => y.toDouble();
 ''');
     visitSubexpression(findNode.setOrMapLiteral('{'), 'Map<int, int>',
         changes: {
-          findNode.ifElement('null'): isEliminateDeadIf(false),
+          findNode.ifElement('null'): isConditionalWithKnownValue(false),
           findNode.simple('y)}'): isNullCheck
         });
   }
@@ -1654,7 +1655,9 @@ _f(int x, int/*?*/ y) => {if (x == null) 0: h(y)};
 double/*!*/ h(int/*!*/ y) => y.toDouble();
 ''');
     visitSubexpression(findNode.setOrMapLiteral('{'), 'Map<dynamic, dynamic>',
-        changes: {findNode.ifElement('null'): isEliminateDeadIf(false)});
+        changes: {
+          findNode.ifElement('null'): isConditionalWithKnownValue(false)
+        });
   }
 
   Future<void> test_map_make_explicit_key_type_nullable() async {
@@ -2460,7 +2463,7 @@ int/*!*/ g(int/*!*/ y) => y;
 double/*!*/ h(int/*!*/ y) => y.toDouble();
 ''');
     visitSubexpression(findNode.setOrMapLiteral('{'), 'Set<int>', changes: {
-      findNode.ifElement('null'): isEliminateDeadIf(true),
+      findNode.ifElement('null'): isConditionalWithKnownValue(true),
       findNode.simple('y) else'): isNullCheck
     });
   }
@@ -2471,7 +2474,7 @@ _f(int x, int/*?*/ y) => {if (x != null) g(y)};
 int/*!*/ g(int/*!*/ y) => y;
 ''');
     visitSubexpression(findNode.setOrMapLiteral('{'), 'Set<int>', changes: {
-      findNode.ifElement('null'): isEliminateDeadIf(true),
+      findNode.ifElement('null'): isConditionalWithKnownValue(true),
       findNode.simple('y)}'): isNullCheck
     });
   }
@@ -2483,7 +2486,7 @@ int/*!*/ g(int/*!*/ y) => y;
 double/*!*/ h(int/*!*/ y) => y.toDouble();
 ''');
     visitSubexpression(findNode.setOrMapLiteral('{'), 'Set<int>', changes: {
-      findNode.ifElement('null'): isEliminateDeadIf(false),
+      findNode.ifElement('null'): isConditionalWithKnownValue(false),
       findNode.simple('y)}'): isNullCheck
     });
   }
@@ -2497,7 +2500,9 @@ _f(int x, int/*?*/ y) => {if (x == null) h(y)};
 double/*!*/ h(int/*!*/ y) => y.toDouble();
 ''');
     visitSubexpression(findNode.setOrMapLiteral('{'), 'Map<dynamic, dynamic>',
-        changes: {findNode.ifElement('null'): isEliminateDeadIf(false)});
+        changes: {
+          findNode.ifElement('null'): isConditionalWithKnownValue(false)
+        });
   }
 
   Future<void> test_set_make_explicit_type_nullable() async {
@@ -2892,7 +2897,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
         null;
   }
 
-  static Matcher isEliminateDeadIf(bool knownValue) =>
+  static Matcher isConditionalWithKnownValue(bool knownValue) =>
       TypeMatcher<NodeChangeForConditional>()
           .having((c) => c.conditionValue, 'conditionValue', knownValue);
 }
