@@ -48,7 +48,7 @@ main() {
       outputDill(),
       '$sdkDir/$mainScript',
     ]);
-  });
+  }, timeout: Timeout.none);
 
   test('compile-multi-root', () async {
     await testCompile([
@@ -64,7 +64,7 @@ main() {
       outputDill(),
       'test-filesystem-scheme:///$mainScript',
     ]);
-  });
+  }, timeout: Timeout.none);
 
   test('compile-multi-root-with-package-uri-main', () async {
     await testCompile([
@@ -80,7 +80,7 @@ main() {
       outputDill(),
       '$mainScriptPackageUri',
     ]);
-  });
+  }, timeout: Timeout.none);
 
   test('compile-package-split', () async {
     await testCompile([
@@ -93,7 +93,7 @@ main() {
       '--split-output-by-packages',
       '$sdkDir/$mainScript',
     ]);
-  });
+  }, timeout: Timeout.none);
 
   test('compile-bytecode', () async {
     await testCompile([
@@ -107,7 +107,7 @@ main() {
       '--drop-ast',
       '$sdkDir/$mainScript',
     ]);
-  });
+  }, timeout: Timeout.none);
 
   test('compile-bytecode-package-split', () async {
     await testCompile([
@@ -122,5 +122,5 @@ main() {
       '--split-output-by-packages',
       '$sdkDir/$mainScript',
     ]);
-  });
+  }, timeout: Timeout.none);
 }

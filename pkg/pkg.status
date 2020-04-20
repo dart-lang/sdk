@@ -55,7 +55,6 @@ front_end/tool/incremental_perf_test: Slow, Pass
 kernel/test/closures_test: Slow, Pass
 kernel/testcases/*: Skip # These are not tests but input for tests.
 vm/test/frontend_server_test: Slow, Pass
-vm/test/kernel_front_end_test: Skip # Issue http://dartbug.com/41489
 vm/test/transformations/type_flow/transformer_test: Slow, Pass
 vm/testcases/*: SkipByDesign # These are not tests but input for tests.
 
