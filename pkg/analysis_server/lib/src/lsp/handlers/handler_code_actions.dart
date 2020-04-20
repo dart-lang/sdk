@@ -99,7 +99,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   Either2<Command, CodeAction> _createAssistAction(Assist assist) {
     return Either2<Command, CodeAction>.t2(CodeAction(
       assist.change.message,
-      CodeActionKind.Refactor,
+      toCodeActionKind(assist.change.id, CodeActionKind.Refactor),
       const [],
       createWorkspaceEdit(server, assist.change.edits),
       null,
@@ -114,7 +114,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       Fix fix, Diagnostic diagnostic) {
     return Either2<Command, CodeAction>.t2(CodeAction(
       fix.change.message,
-      CodeActionKind.QuickFix,
+      toCodeActionKind(fix.change.id, CodeActionKind.QuickFix),
       [diagnostic],
       createWorkspaceEdit(server, fix.change.edits),
       null,

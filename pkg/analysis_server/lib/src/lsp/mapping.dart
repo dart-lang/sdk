@@ -605,6 +605,20 @@ lsp.ClosingLabel toClosingLabel(
     lsp.ClosingLabel(
         toRange(lineInfo, label.offset, label.length), label.label);
 
+CodeActionKind toCodeActionKind(String id, lsp.CodeActionKind fallback) {
+  if (id == null) {
+    return fallback;
+  }
+  // Dart fixes and assists start with "dart.assist." and "dart.fix." but in LSP
+  // we want to use the predefined prefixes for CodeActions.
+  final newId = id
+      .replaceAll('dart.assist', CodeActionKind.Refactor.toString())
+      .replaceAll('dart.fix', CodeActionKind.QuickFix.toString())
+      .replaceAll('analysisOptions.assist', CodeActionKind.Refactor.toString())
+      .replaceAll('analysisOptions.fix', CodeActionKind.QuickFix.toString());
+  return CodeActionKind(newId);
+}
+
 lsp.CompletionItem toCompletionItem(
   lsp.TextDocumentClientCapabilitiesCompletion completionCapabilities,
   HashSet<lsp.CompletionItemKind> supportedCompletionItemKinds,

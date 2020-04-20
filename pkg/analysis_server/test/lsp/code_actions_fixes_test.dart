@@ -40,8 +40,8 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
-    final fixAction = findEditAction(
-        codeActions, CodeActionKind.QuickFix, 'Remove unused import');
+    final fixAction = findEditAction(codeActions,
+        CodeActionKind('quickfix.remove.unusedImport'), 'Remove unused import');
 
     // Ensure the edit came back, and using documentChanges.
     expect(fixAction, isNotNull);
@@ -78,8 +78,8 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
-    final fixAction = findEditAction(
-        codeActions, CodeActionKind.QuickFix, 'Remove unused import');
+    final fixAction = findEditAction(codeActions,
+        CodeActionKind('quickfix.remove.unusedImport'), 'Remove unused import');
 
     // Ensure the edit came back, and using changes.
     expect(fixAction, isNotNull);
