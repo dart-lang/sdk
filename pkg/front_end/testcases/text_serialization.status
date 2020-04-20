@@ -1310,6 +1310,12 @@ nnbd/issue41180: TextSerializationFailure
 nnbd/issue41210a/issue41210: TextSerializationFailure
 nnbd/issue41210b: TextSerializationFailure
 nnbd/issue41273: TextSerializationFailure
+nnbd/issue41496: TextSerializationFailure
+nnbd/issue41496b: TextSerializationFailure
+nnbd/issue41498: TextSerializationFailure
+nnbd/issue41498b: TextSerializationFailure
+nnbd/issue41499: TextSerializationFailure
+nnbd/issue41499b: TextSerializationFailure
 nnbd/issue_39286: TextSerializationFailure
 nnbd/issue_39286_2: TextSerializationFailure
 nnbd/late: TextSerializationFailure
@@ -1403,6 +1409,7 @@ no_such_method_forwarders/private_same: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/same: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/setter_not_shadowed_by_method: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/subst_on_forwarder: TextSerializationFailure # Was: Pass
+nonfunction_type_aliases/issue41501: TextSerializationFailure
 rasta/abstract_constructor: TextSerializationFailure # Was: RuntimeError
 rasta/bad_constructor_redirection: TextSerializationFailure # Was: RuntimeError
 rasta/bad_continue: TextSerializationFailure # Was: RuntimeError

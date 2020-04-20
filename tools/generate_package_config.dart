@@ -34,6 +34,7 @@ void main(List<String> args) {
     packageDirectory('pkg/front_end/testcases/general_nnbd_opt_out/'),
     packageDirectory('pkg/front_end/testcases/late_lowering/'),
     packageDirectory('pkg/front_end/testcases/nnbd/'),
+    packageDirectory('pkg/front_end/testcases/nonfunction_type_aliases/'),
   ];
 
   var packages = [
