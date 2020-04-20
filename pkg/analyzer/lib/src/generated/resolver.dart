@@ -2056,6 +2056,21 @@ class ResolverVisitorForMigration extends ResolverVisitor {
             migrationResolutionHooks);
 
   @override
+  void visitConditionalExpression(ConditionalExpression node) {
+    var conditionalKnownValue =
+        _migrationResolutionHooks.getConditionalKnownValue(node);
+    if (conditionalKnownValue == null) {
+      super.visitConditionalExpression(node);
+      return;
+    } else {
+      var subexpressionToKeep =
+          conditionalKnownValue ? node.thenExpression : node.elseExpression;
+      subexpressionToKeep.accept(this);
+      typeAnalyzer.recordStaticType(node, subexpressionToKeep.staticType);
+    }
+  }
+
+  @override
   void visitIfElement(IfElement node) {
     var conditionalKnownValue =
         _migrationResolutionHooks.getConditionalKnownValue(node);

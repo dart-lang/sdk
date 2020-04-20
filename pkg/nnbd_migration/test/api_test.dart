@@ -534,7 +534,6 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/41551')
   Future<void> test_conditional_expression_guard_subexpression() async {
     var content = '''
 void f(String s, int x) {
@@ -546,7 +545,7 @@ void f(String s, int x) {
   s == null ? (x = null!) : (x = s.length);
 }
 ''';
-    await _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/41551')

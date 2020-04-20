@@ -280,7 +280,26 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
             replacement: ''));
   }
 
-  Future<void> test_conditionFalseInStrongMode() async {
+  Future<void> test_conditionFalseInStrongMode_expression() async {
+    var unit = await buildInfoForSingleTestFile(
+        'int f(String s) => s == null ? 0 : s.length;',
+        migratedContent:
+            'int  f(String  s) => s == null /* == false */ ? 0 : s.length;',
+        warnOnWeakCode: true);
+    var insertedComment = '/* == false */';
+    var insertedCommentOffset = unit.content.indexOf(insertedComment);
+    var region = unit.regions
+        .where((region) => region.offset == insertedCommentOffset)
+        .single;
+    assertRegion(
+        region: region,
+        length: insertedComment.length,
+        explanation: 'Condition will always be false in strong checking mode',
+        kind: NullabilityFixKind.conditionFalseInStrongMode,
+        edits: isEmpty);
+  }
+
+  Future<void> test_conditionFalseInStrongMode_if() async {
     var unit = await buildInfoForSingleTestFile('''
 int f(String s) {
   if (s == null) {
@@ -311,7 +330,26 @@ int  f(String  s) {
         edits: isEmpty);
   }
 
-  Future<void> test_conditionTrueInStrongMode() async {
+  Future<void> test_conditionTrueInStrongMode_expression() async {
+    var unit = await buildInfoForSingleTestFile(
+        'int f(String s) => s != null ? s.length : 0;',
+        migratedContent:
+            'int  f(String  s) => s != null /* == true */ ? s.length : 0;',
+        warnOnWeakCode: true);
+    var insertedComment = '/* == true */';
+    var insertedCommentOffset = unit.content.indexOf(insertedComment);
+    var region = unit.regions
+        .where((region) => region.offset == insertedCommentOffset)
+        .single;
+    assertRegion(
+        region: region,
+        length: insertedComment.length,
+        explanation: 'Condition will always be true in strong checking mode',
+        kind: NullabilityFixKind.conditionTrueInStrongMode,
+        edits: isEmpty);
+  }
+
+  Future<void> test_conditionTrueInStrongMode_if() async {
     var unit = await buildInfoForSingleTestFile('''
 int f(String s) {
   if (s != null) {

@@ -762,6 +762,10 @@ class _NodeChangeVisitor extends GeneralizingAstVisitor<NodeChange<AstNode>> {
       NodeChangeForCompilationUnit();
 
   @override
+  NodeChange visitConditionalExpression(ConditionalExpression node) =>
+      NodeChangeForConditionalExpression();
+
+  @override
   NodeChange visitDefaultFormalParameter(DefaultFormalParameter node) =>
       NodeChangeForDefaultFormalParameter();
 

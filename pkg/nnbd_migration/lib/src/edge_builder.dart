@@ -569,23 +569,49 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitConditionalExpression(ConditionalExpression node) {
     _checkExpressionNotNull(node.condition);
+    NullabilityNode trueGuard;
+    NullabilityNode falseGuard;
+    if (identical(_conditionInfo?.condition, node.condition)) {
+      trueGuard = _conditionInfo.trueGuard;
+      falseGuard = _conditionInfo.falseGuard;
+      _variables.recordConditionalDiscard(source, node,
+          ConditionalDiscard(trueGuard, falseGuard, _conditionInfo.isPure));
+    }
 
     DecoratedType thenType;
     DecoratedType elseType;
-
-    // TODO(paulberry): guard anything inside the true and false branches.
-    // See https://github.com/dart-lang/sdk/issues/41551.
 
     // Post-dominators diverge as we branch in the conditional.
     // Note: we don't have to create a scope for each branch because they can't
     // define variables.
     _postDominatedLocals.doScoped(action: () {
       _flowAnalysis.conditional_thenBegin(node.condition);
-      thenType = _dispatch(node.thenExpression);
+      if (trueGuard != null) {
+        _guards.add(trueGuard);
+      }
+      try {
+        thenType = _dispatch(node.thenExpression);
+      } finally {
+        if (trueGuard != null) {
+          _guards.removeLast();
+        }
+      }
       _flowAnalysis.conditional_elseBegin(node.thenExpression);
-      elseType = _dispatch(node.elseExpression);
+      if (falseGuard != null) {
+        _guards.add(falseGuard);
+      }
+      try {
+        elseType = _dispatch(node.elseExpression);
+      } finally {
+        if (falseGuard != null) {
+          _guards.removeLast();
+        }
+      }
       _flowAnalysis.conditional_end(node, node.elseExpression);
     });
+
+    // TODO(paulberry): apply guards to thenType and elseType.
+    // See https://github.com/dart-lang/sdk/issues/41551.
 
     var overallType = _decorateUpperOrLowerBound(
         node, node.staticType, thenType, elseType, true);

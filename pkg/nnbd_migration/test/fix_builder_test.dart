@@ -1038,6 +1038,38 @@ f() => true;
     visitSubexpression(findNode.booleanLiteral('true'), 'bool');
   }
 
+  Future<void> test_conditionalExpression_dead_else_remove() async {
+    await analyze('_f(int x, int/*?*/ y) => x != null ? x + 1 : y + 1.0;');
+    var expression = findNode.conditionalExpression('x != null');
+    visitSubexpression(expression, 'int',
+        changes: {expression: isConditionalWithKnownValue(true)});
+  }
+
+  Future<void> test_conditionalExpression_dead_else_warn() async {
+    await analyze('_f(int x, int/*?*/ y) => x != null ? x + 1 : y + 1.0;');
+    var expression = findNode.conditionalExpression('x != null');
+    visitSubexpression(expression, 'num', warnOnWeakCode: true, changes: {
+      expression: isConditionalWithKnownValue(true),
+      findNode.simple('y +'): isNullCheck
+    });
+  }
+
+  Future<void> test_conditionalExpression_dead_then_remove() async {
+    await analyze('_f(int x, int/*?*/ y) => x == null ? y + 1.0 : x + 1;');
+    var expression = findNode.conditionalExpression('x == null');
+    visitSubexpression(expression, 'int',
+        changes: {expression: isConditionalWithKnownValue(false)});
+  }
+
+  Future<void> test_conditionalExpression_dead_then_warn() async {
+    await analyze('_f(int x, int/*?*/ y) => x == null ? y + 1.0 : x + 1;');
+    var expression = findNode.conditionalExpression('x == null');
+    visitSubexpression(expression, 'num', warnOnWeakCode: true, changes: {
+      expression: isConditionalWithKnownValue(false),
+      findNode.simple('y +'): isNullCheck
+    });
+  }
+
   Future<void> test_conditionalExpression_flow_as_condition() async {
     await analyze('''
 _f(bool x, int/*?*/ y) => (x ? y != null : y != null) ? y + 1 : 0;
@@ -2837,8 +2869,9 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
 
   void visitSubexpression(Expression node, String expectedType,
       {Map<AstNode, Matcher> changes = const <Expression, Matcher>{},
-      Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
-    var fixBuilder = _createFixBuilder(node);
+      Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{},
+      bool warnOnWeakCode = false}) {
+    var fixBuilder = _createFixBuilder(node, warnOnWeakCode: warnOnWeakCode);
     fixBuilder.visitAll();
     var type = node.staticType;
     expect(type.getDisplayString(withNullability: true), expectedType);
@@ -2876,7 +2909,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
     }
   }
 
-  FixBuilder _createFixBuilder(AstNode scope) {
+  FixBuilder _createFixBuilder(AstNode scope, {bool warnOnWeakCode = false}) {
     var unit = scope.thisOrAncestorOfType<CompilationUnit>();
     var definingLibrary = unit.declaredElement.library;
     return FixBuilder(
@@ -2888,7 +2921,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
         definingLibrary,
         null,
         scope.thisOrAncestorOfType<CompilationUnit>(),
-        false);
+        warnOnWeakCode);
   }
 
   bool _isInScope(AstNode node, AstNode scope) {
