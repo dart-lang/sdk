@@ -23,6 +23,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_where_ty
 import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_question_mark.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_eight_digit_hex.dart';
@@ -4499,12 +4500,24 @@ class FixProcessor extends BaseProcessor {
     }
 
     var errorCode = error.errorCode;
-    if (errorCode == HintCode.UNUSED_ELEMENT) {
+    if (errorCode == HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE) {
+      await compute(RemoveQuestionMark());
+    } else if (errorCode == HintCode.UNUSED_ELEMENT) {
       await compute(RemoveUnusedElement());
     } else if (errorCode == HintCode.UNUSED_FIELD) {
       await compute(RemoveUnusedField());
     } else if (errorCode == HintCode.UNUSED_LOCAL_VARIABLE) {
       await compute(RemoveUnusedLocalVariable());
+    } else if (errorCode ==
+        CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE) {
+      await compute(RemoveQuestionMark());
+    } else if (errorCode ==
+        CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE) {
+      await compute(RemoveQuestionMark());
+    } else if (errorCode == CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE) {
+      await compute(RemoveQuestionMark());
+    } else if (errorCode == CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE) {
+      await compute(RemoveQuestionMark());
     } else if (errorCode == StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE) {
       await compute(WrapInText());
     } else if (errorCode == StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION) {

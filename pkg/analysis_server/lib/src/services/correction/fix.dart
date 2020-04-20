@@ -354,6 +354,8 @@ class DartFixKind {
       'dart.fix.remove.parenthesisInGetterInvocation',
       50,
       'Remove parentheses in getter invocation');
+  static const REMOVE_QUESTION_MARK =
+      FixKind('dart.fix.remove.questionMark', 50, "Remove the '?'");
   static const REMOVE_THIS_EXPRESSION =
       FixKind('dart.fix.remove.thisExpression', 50, 'Remove this expression');
   static const REMOVE_TYPE_ANNOTATION =
