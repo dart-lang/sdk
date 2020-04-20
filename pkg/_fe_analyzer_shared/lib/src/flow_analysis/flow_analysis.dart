@@ -517,6 +517,13 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
   /// state.
   bool isUnassigned(Variable variable);
 
+  /// Call this method before visiting a labeled statement.
+  /// Call [labeledStatement_end] after visiting the statement.
+  void labeledStatement_begin(Node node);
+
+  /// Call this method after visiting a labeled statement.
+  void labeledStatement_end();
+
   /// Call this method after visiting the RHS of a logical binary operation
   /// ("||" or "&&").
   /// [wholeExpression] should be the whole logical binary expression.
@@ -935,6 +942,18 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
   bool isUnassigned(Variable variable) {
     return _wrap('isUnassigned($variable)', () => _wrapped.isAssigned(variable),
         isQuery: true);
+  }
+
+  @override
+  void labeledStatement_begin(Node node) {
+    return _wrap('labeledStatement_begin($node)',
+        () => _wrapped.labeledStatement_begin(node));
+  }
+
+  @override
+  void labeledStatement_end() {
+    return _wrap(
+        'labeledStatement_end()', () => _wrapped.labeledStatement_end());
   }
 
   @override
@@ -2440,6 +2459,21 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   @override
   bool isUnassigned(Variable variable) {
     return _current.infoFor(variable).unassigned;
+  }
+
+  @override
+  void labeledStatement_begin(Node node) {
+    _BranchTargetContext<Variable, Type> context =
+        new _BranchTargetContext<Variable, Type>();
+    _stack.add(context);
+    _statementToContext[node] = context;
+  }
+
+  @override
+  void labeledStatement_end() {
+    _BranchTargetContext<Variable, Type> context =
+        _stack.removeLast() as _BranchTargetContext<Variable, Type>;
+    _current = _join(_current, context._breakModel);
   }
 
   @override

@@ -856,6 +856,41 @@ main() {
       });
     });
 
+    test('labeledBlock without break', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      var block = _Statement();
+      h.run((flow) {
+        h.declare(x, initialized: true);
+
+        h.ifIsNotType(x, 'int', () {
+          h.labeledBlock(block, () {
+            flow.handleExit();
+          });
+        });
+        expect(flow.promotedType(x).type, 'int');
+      });
+    });
+
+    test('labeledBlock with break joins', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      var block = _Statement();
+      h.run((flow) {
+        h.declare(x, initialized: true);
+
+        h.ifIsNotType(x, 'int', () {
+          h.labeledBlock(block, () {
+            h.if_(h.expr, () {
+              flow.handleBreak(block);
+            });
+            flow.handleExit();
+          });
+        });
+        expect(flow.promotedType(x), isNull);
+      });
+    });
+
     test('logicalBinaryOp_rightBegin(isAnd: true) promotes in RHS', () {
       var h = _Harness();
       var x = h.addVar('x', 'int?');
@@ -3150,6 +3185,11 @@ class _Harness implements TypeOperations<_Var, _Type> {
     _flow.ifStatement_end(true);
   }
 
+  /// Equivalent for `if (variable is! type) { ifTrue; }`
+  void ifIsNotType(_Var variable, String type, void ifTrue()) {
+    if_(isNotType(variableRead(variable), type), ifTrue);
+  }
+
   /// Creates a [LazyExpression] representing an `is!` check, checking whether
   /// [subExpression] has the given [type].
   LazyExpression isNotType(LazyExpression subExpression, String type) {
@@ -3180,6 +3220,13 @@ class _Harness implements TypeOperations<_Var, _Type> {
       _flow.isExpression_end(expr, subExpression(), false, _Type(type));
       return expr;
     };
+  }
+
+  /// Invokes flow analysis of a labeled block.
+  void labeledBlock(_Statement node, void body()) {
+    _flow.labeledStatement_begin(node);
+    body();
+    _flow.labeledStatement_end();
   }
 
   /// Creates a [LazyExpression] representing an equality check between two
@@ -3230,7 +3277,7 @@ class _Harness implements TypeOperations<_Var, _Type> {
 
   /// Causes [variable] to be promoted to [type].
   void promote(_Var variable, String type) {
-    if_(isNotType(variableRead(variable), type), _flow.handleExit);
+    ifIsNotType(variable, type, _flow.handleExit);
   }
 
   @override

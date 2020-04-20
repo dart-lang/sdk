@@ -1322,6 +1322,13 @@ class ResolverVisitor extends ScopedVisitor {
   void visitLabel(Label node) {}
 
   @override
+  void visitLabeledStatement(LabeledStatement node) {
+    _flowAnalysis?.labeledStatement_enter(node);
+    super.visitLabeledStatement(node);
+    _flowAnalysis?.labeledStatement_exit(node);
+  }
+
+  @override
   void visitLibraryIdentifier(LibraryIdentifier node) {}
 
   @override
