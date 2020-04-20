@@ -126,6 +126,7 @@ provide_deprecation_message: 0.1.82
 public_member_api_docs: 0.1.11
 package_names: 0.1.31
 recursive_getters: 0.1.30
+sized_box_for_whitespace : 0.1.115
 slash_for_doc_comments: 0.1.1
 sort_child_properties_last: 0.1.88
 sort_constructors_first: 0.1.11
