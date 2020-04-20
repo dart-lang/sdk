@@ -1927,6 +1927,54 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_field_formal_parameters_do_not_promote() async {
+    var content = '''
+class A {}
+
+class B extends A {}
+
+class C extends A {}
+
+abstract class D {
+  final A x;
+  D(this.x) {
+    if (x is B) {
+      visitB(x);
+    } else {
+      visitC(x as C);
+    }
+  }
+
+  void visitB(B b);
+
+  void visitC(C c);
+}
+''';
+    var expected = '''
+class A {}
+
+class B extends A {}
+
+class C extends A {}
+
+abstract class D {
+  final A x;
+  D(this.x) {
+    if (x is B) {
+      visitB(x as B);
+    } else {
+      visitC(x as C);
+    }
+  }
+
+  void visitB(B b);
+
+  void visitC(C c);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_field_initialized_at_declaration_site() async {
     var content = '''
 class C {

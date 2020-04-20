@@ -103,6 +103,8 @@ class FixBuilder {
 
   final bool warnOnWeakCode;
 
+  final NullabilityGraph _graph;
+
   factory FixBuilder(
       Source source,
       DecoratedClassHierarchy decoratedClassHierarchy,
@@ -112,7 +114,8 @@ class FixBuilder {
       LibraryElement definingLibrary,
       NullabilityMigrationListener listener,
       CompilationUnit unit,
-      bool warnOnWeakCode) {
+      bool warnOnWeakCode,
+      NullabilityGraph graph) {
     var migrationResolutionHooks = MigrationResolutionHooksImpl();
     return FixBuilder._(
         decoratedClassHierarchy,
@@ -126,7 +129,8 @@ class FixBuilder {
         listener,
         unit,
         migrationResolutionHooks,
-        warnOnWeakCode);
+        warnOnWeakCode,
+        graph);
   }
 
   FixBuilder._(
@@ -138,7 +142,8 @@ class FixBuilder {
       this.listener,
       this.unit,
       this.migrationResolutionHooks,
-      this.warnOnWeakCode)
+      this.warnOnWeakCode,
+      this._graph)
       : typeProvider = _typeSystem.typeProvider {
     migrationResolutionHooks._fixBuilder = this;
     // TODO(paulberry): make use of decoratedClassHierarchy
@@ -316,8 +321,20 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
       });
 
   @override
-  List<ParameterElement> getExecutableParameters(ExecutableElement element) =>
-      getExecutableType(element as ElementImplWithFunctionType).parameters;
+  List<ParameterElement> getExecutableParameters(
+      ExecutableElementImpl element) {
+    if (_fixBuilder._graph.isBeingMigrated(element.library.source)) {
+      // The element is part of a library that's being migrated, so its
+      // parameters all have been visited (and thus have their own final
+      // types).  So we don't need to do anything.
+      return const ElementTypeProvider().getExecutableParameters(element);
+    } else {
+      // The element is not part of a library that's being migrated, so its
+      // parameters probably haven't been visited; we need to get the parameters
+      // from the final function type.
+      return getExecutableType(element).parameters;
+    }
+  }
 
   @override
   DartType getExecutableReturnType(Element element) =>

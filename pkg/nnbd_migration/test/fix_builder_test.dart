@@ -2921,7 +2921,8 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
         definingLibrary,
         null,
         scope.thisOrAncestorOfType<CompilationUnit>(),
-        warnOnWeakCode);
+        warnOnWeakCode,
+        graph);
   }
 
   bool _isInScope(AstNode node, AstNode scope) {

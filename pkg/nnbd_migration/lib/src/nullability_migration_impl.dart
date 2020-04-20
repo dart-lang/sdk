@@ -106,7 +106,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         library,
         _permissive ? listener : null,
         unit,
-        warnOnWeakCode);
+        warnOnWeakCode,
+        _graph);
     try {
       DecoratedTypeParameterBounds.current = _decoratedTypeParameterBounds;
       fixBuilder.visitAll();
