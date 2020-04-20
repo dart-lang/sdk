@@ -23543,16 +23543,11 @@ RawStackTrace* StackTrace::New(const Array& code_array,
 
 #if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
 static void PrintStackTraceFrameBodyFromDSO(ZoneTextBuffer* buffer,
-                                            uword call_addr,
-                                            bool print_virtual_address) {
+                                            uword call_addr) {
   uword dso_base;
   char* dso_name;
   if (NativeSymbolResolver::LookupSharedObject(call_addr, &dso_base,
                                                &dso_name)) {
-    uword dso_offset = call_addr - dso_base;
-    if (print_virtual_address) {
-      buffer->Printf(" virt %" Pp "", dso_offset);
-    }
     uword symbol_start;
     if (auto const symbol_name =
             NativeSymbolResolver::LookupSymbolName(call_addr, &symbol_start)) {
@@ -23662,8 +23657,7 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
           if (function.IsNull()) {
 #if defined(DART_PRECOMPILED_RUNTIME)
             PrintStackTraceFrameIndex(&buffer, frame_index);
-            PrintStackTraceFrameBodyFromDSO(&buffer, pc - 1,
-                                            /*print_virtual_address=*/false);
+            PrintStackTraceFrameBodyFromDSO(&buffer, pc - 1);
             frame_index++;
 #else
             UNREACHABLE();
@@ -23767,8 +23761,7 @@ const char* StackTrace::ToDwarfCString(const StackTrace& stack_trace_in) {
         uword return_addr = start + pc_offset;
         uword call_addr = return_addr - 1;
         buffer.Printf("    #%02" Pd " abs %" Pp "", frame_index, call_addr);
-        PrintStackTraceFrameBodyFromDSO(&buffer, call_addr,
-                                        /*print_virtual_address=*/true);
+        PrintStackTraceFrameBodyFromDSO(&buffer, call_addr);
         frame_index++;
       }
     }
