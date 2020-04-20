@@ -1363,6 +1363,10 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     }
   }
 
+  Procedure _cachedUnsafeCast;
+  Procedure get unsafeCast => _cachedUnsafeCast ??= _environment.coreTypes.index
+      .getTopLevelMember('dart:_internal', 'unsafeCast');
+
   @override
   defaultTreeNode(TreeNode node) =>
       throw 'Unexpected node ${node.runtimeType}: $node at ${node.location}';
@@ -1754,7 +1758,17 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         passTypeArguments: node.target.isFactory);
     final target = node.target;
     assertx((target is! Field) && !target.isGetter && !target.isSetter);
-    return _makeCall(node, new DirectSelector(target), args);
+    TypeExpr result = _makeCall(node, new DirectSelector(target), args);
+    if (target == unsafeCast) {
+      // Async transformation inserts unsafeCasts to make sure
+      // kernel is correctly typed. Instead of using the result of unsafeCast
+      // (which is an opaque native function), we can use its argument narrowed
+      // by the casted type.
+      final arg = args.values.single;
+      result = _makeNarrow(
+          arg, _typesBuilder.fromStaticType(node.arguments.types.single, true));
+    }
+    return result;
   }
 
   @override
