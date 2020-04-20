@@ -23794,11 +23794,11 @@ static void DwarfStackTracesHandler(bool value) {
 
 DEFINE_FLAG_HANDLER(DwarfStackTracesHandler,
                     dwarf_stack_traces,
-                    "Emit DWARF line number and inlining info in dylib "
-                    "snapshots and don't symbolize stack traces.");
+                    "Omit CodeSourceMaps in precompiled snapshots and don't "
+                    "symbolize stack traces in the precompiled runtime.");
 
 const char* StackTrace::ToCString() const {
-#if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_dwarf_stack_traces_mode) {
     return ToDwarfCString(*this);
   }

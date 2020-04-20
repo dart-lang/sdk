@@ -1522,7 +1522,7 @@ class CodeSerializationCluster : public SerializationCluster {
     s->Push(code->ptr()->pc_descriptors_);
     s->Push(code->ptr()->catch_entry_);
     s->Push(code->ptr()->compressed_stackmaps_);
-    if (!FLAG_dwarf_stack_traces_mode) {
+    if (!FLAG_precompiled_mode || !FLAG_dwarf_stack_traces_mode) {
       s->Push(code->ptr()->inlined_id_to_function_);
       s->Push(code->ptr()->code_source_map_);
     }
@@ -1619,7 +1619,7 @@ class CodeSerializationCluster : public SerializationCluster {
       WriteField(code, pc_descriptors_);
       WriteField(code, catch_entry_);
       WriteField(code, compressed_stackmaps_);
-      if (FLAG_dwarf_stack_traces_mode) {
+      if (FLAG_precompiled_mode && FLAG_dwarf_stack_traces_mode) {
         WriteFieldValue(inlined_id_to_function_, Array::null());
         WriteFieldValue(code_source_map_, CodeSourceMap::null());
       } else {
