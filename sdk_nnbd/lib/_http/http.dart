@@ -1926,8 +1926,7 @@ abstract class HttpClientRequest implements IOSink {
    *
    * The default value is `true`.
    */
-  bool get persistentConnection;
-  void set persistentConnection(bool persistentConnection);
+  bool persistentConnection = true;
 
   /**
    * Whether to follow redirects automatically.
