@@ -2727,6 +2727,64 @@ double f() {
     assertNoUpstreamNullability(decoratedTypeAnnotation('double').node);
   }
 
+  Future<void> test_dummyNode_fromEqualityComparison_left() async {
+    await analyze('''
+f() {
+  int i;
+  if (i == 7) {}
+}
+''');
+    var nullable_i = decoratedTypeAnnotation('int i').node;
+    assertDummyEdge(nullable_i);
+  }
+
+  Future<void> test_dummyNode_fromEqualityComparison_right() async {
+    await analyze('''
+f() {
+  int i;
+  if (7 == i) {}
+}
+''');
+    var nullable_i = decoratedTypeAnnotation('int i').node;
+    assertDummyEdge(nullable_i);
+  }
+
+  Future<void> test_dummyNode_fromExpressionStatement() async {
+    await analyze('''
+f() {
+  int i;
+  i;
+}
+''');
+    var nullable_i = decoratedTypeAnnotation('int i').node;
+    assertDummyEdge(nullable_i);
+  }
+
+  Future<void> test_dummyNode_fromForLoopUpdaters() async {
+    await analyze('''
+f() {
+  int i;
+  int j;
+  for (;; i, j) {}
+}
+''');
+    var nullable_i = decoratedTypeAnnotation('int i').node;
+    var nullable_j = decoratedTypeAnnotation('int j').node;
+    assertDummyEdge(nullable_i);
+    assertDummyEdge(nullable_j);
+  }
+
+  Future<void> test_dummyNode_fromForLoopVariables() async {
+    await analyze('''
+f() {
+  int i;
+  for (i;;) {}
+}
+''');
+    var nullable_i = decoratedTypeAnnotation('int i').node;
+    assertDummyEdge(nullable_i);
+  }
+
   Future<void> test_edgeOrigin_call_from_function() async {
     await analyze('''
 void f(int i) {}

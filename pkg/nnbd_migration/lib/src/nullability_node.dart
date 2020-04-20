@@ -158,6 +158,9 @@ class NullabilityEdge implements EdgeInfo {
       case _NullabilityEdgeKind.union:
         json['kind'] = 'union';
         break;
+      case _NullabilityEdgeKind.dummy:
+        json['kind'] = 'dummy';
+        break;
     }
     if (codeReference != null) json['code'] = codeReference.toJson();
     if (description != null) json['description'] = description;
@@ -182,6 +185,9 @@ class NullabilityEdge implements EdgeInfo {
         break;
       case _NullabilityEdgeKind.union:
         edgeDecorations.add('union');
+        break;
+      case _NullabilityEdgeKind.dummy:
+        edgeDecorations.add('dummy');
         break;
     }
     edgeDecorations.addAll(guards);
@@ -270,6 +276,11 @@ class NullabilityGraph {
             : _NullabilityEdgeKind.uncheckable;
     return _connect(upstreamNodes, destinationNode, kind, origin);
   }
+
+  /// Records that [sourceNode] is immediately upstream from [always], via a
+  /// dummy edge.
+  NullabilityEdge connectDummy(NullabilityNode sourceNode, EdgeOrigin origin) =>
+      _connect([sourceNode], always, _NullabilityEdgeKind.dummy, origin);
 
   /// Prints out a representation of the graph nodes.  Useful in debugging
   /// broken tests.
@@ -1238,6 +1249,10 @@ enum _NullabilityEdgeKind {
   /// Union edge.  Indicates that two nodes should have exactly the same
   /// nullability.
   union,
+
+  /// Dummy edge.  Indicates that two edges are connected in a way that should
+  /// not propagate (non-)nullability in either direction.
+  dummy,
 }
 
 class _NullabilityNodeImmutable extends NullabilityNode {

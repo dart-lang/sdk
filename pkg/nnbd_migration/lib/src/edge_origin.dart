@@ -472,6 +472,18 @@ class OptionalFormalParameterOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.optionalFormalParameter;
 }
 
+/// Edge origin resulting from the use of an element which does not affect the
+/// nullability graph in other ways.
+class DummyOrigin extends EdgeOrigin {
+  DummyOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'dummy';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.dummy;
+}
+
 /// Edge origin resulting from an inheritance relationship between two method
 /// parameters.
 class ParameterInheritanceOrigin extends EdgeOrigin {

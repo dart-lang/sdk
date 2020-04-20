@@ -223,6 +223,8 @@ enum EdgeOriginKind {
   alreadyMigratedType,
   alwaysNullableType,
   compoundAssignment,
+  // See [DummyOrigin].
+  dummy,
   dynamicAssignment,
   enumValue,
   expressionChecks,
