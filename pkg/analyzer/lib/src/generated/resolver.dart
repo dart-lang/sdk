@@ -38,6 +38,7 @@ import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/dart/resolver/yield_statement_resolver.dart';
 import 'package:analyzer/src/error/bool_expression_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
@@ -222,6 +223,8 @@ class ResolverVisitor extends ScopedVisitor {
   PrefixExpressionResolver _prefixExpressionResolver;
   YieldStatementResolver _yieldStatementResolver;
 
+  NullSafetyDeadCodeVerifier nullSafetyDeadCodeVerifier;
+
   InvocationInferenceHelper inferenceHelper;
 
   /// The object used to resolve the element associated with the current node.
@@ -388,6 +391,11 @@ class ResolverVisitor extends ScopedVisitor {
     this._yieldStatementResolver = YieldStatementResolver(
       resolver: this,
     );
+    this.nullSafetyDeadCodeVerifier = NullSafetyDeadCodeVerifier(
+      typeSystem,
+      errorReporter,
+      _flowAnalysis,
+    );
     this.elementResolver = ElementResolver(this,
         reportConstEvaluationErrors: reportConstEvaluationErrors,
         migratableAstInfoProvider: _migratableAstInfoProvider);
@@ -430,6 +438,10 @@ class ResolverVisitor extends ScopedVisitor {
   /// Return `true` if NNBD is enabled for this compilation unit.
   bool get _isNonNullableByDefault =>
       _featureSet.isEnabled(Feature.non_nullable);
+
+  void checkUnreachableNode(AstNode node) {
+    nullSafetyDeadCodeVerifier.visitNode(node);
+  }
 
   /// Return the static element associated with the given expression whose type
   /// can be overridden, or `null` if there is no element whose type can be
@@ -819,9 +831,10 @@ class ResolverVisitor extends ScopedVisitor {
     if (_flowAnalysis != null) {
       if (flow != null) {
         flow.conditional_thenBegin(condition);
-        _flowAnalysis.checkUnreachableNode(thenExpression);
+        checkUnreachableNode(thenExpression);
       }
       thenExpression.accept(this);
+      nullSafetyDeadCodeVerifier?.flowEnd(thenExpression);
     } else {
       _promoteManager.visitConditionalExpression_then(
         condition,
@@ -837,9 +850,10 @@ class ResolverVisitor extends ScopedVisitor {
 
     if (flow != null) {
       flow.conditional_elseBegin(thenExpression);
-      _flowAnalysis.checkUnreachableNode(elseExpression);
+      checkUnreachableNode(elseExpression);
       elseExpression.accept(this);
       flow.conditional_end(node, elseExpression);
+      nullSafetyDeadCodeVerifier?.flowEnd(elseExpression);
     } else {
       elseExpression.accept(this);
     }
@@ -939,7 +953,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitDoStatementInScope(DoStatement node) {
-    _flowAnalysis?.checkUnreachableNode(node);
+    checkUnreachableNode(node);
 
     var body = node.body;
     var condition = node.condition;
@@ -1061,6 +1075,7 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitForStatementInScope(ForStatement node) {
     _forResolver.resolveStatement(node);
+    nullSafetyDeadCodeVerifier?.flowEnd(node.body);
   }
 
   @override
@@ -1110,6 +1125,7 @@ class ResolverVisitor extends ScopedVisitor {
       } else {
         _flowAnalysis.topLevelDeclaration_exit();
       }
+      nullSafetyDeadCodeVerifier?.flowEnd(node);
     } else {
       _promoteManager.exitFunctionBody();
     }
@@ -1163,6 +1179,7 @@ class ResolverVisitor extends ScopedVisitor {
           errorNode: body,
         );
         _flowAnalysis.flow?.functionExpression_end();
+        nullSafetyDeadCodeVerifier?.flowEnd(node);
       }
     } else {
       _promoteManager.exitFunctionBody();
@@ -1245,7 +1262,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitIfStatement(IfStatement node) {
-    _flowAnalysis?.checkUnreachableNode(node);
+    checkUnreachableNode(node);
 
     Expression condition = node.condition;
 
@@ -1260,6 +1277,7 @@ class ResolverVisitor extends ScopedVisitor {
     if (_flowAnalysis != null) {
       _flowAnalysis.flow.ifStatement_thenBegin(condition);
       visitStatementInScope(thenStatement);
+      nullSafetyDeadCodeVerifier?.flowEnd(thenStatement);
     } else {
       _promoteManager.visitIfStatement_thenStatement(
         condition,
@@ -1274,6 +1292,7 @@ class ResolverVisitor extends ScopedVisitor {
     if (elseStatement != null) {
       _flowAnalysis?.flow?.ifStatement_elseBegin();
       visitStatementInScope(elseStatement);
+      nullSafetyDeadCodeVerifier?.flowEnd(elseStatement);
     }
 
     _flowAnalysis?.flow?.ifStatement_end(elseStatement != null);
@@ -1333,7 +1352,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitListLiteral(ListLiteral node) {
-    _flowAnalysis?.checkUnreachableNode(node);
+    checkUnreachableNode(node);
     _typedLiteralResolver.resolveListLiteral(node);
   }
 
@@ -1364,6 +1383,7 @@ class ResolverVisitor extends ScopedVisitor {
       );
       _flowAnalysis.executableDeclaration_exit(node.body, false);
       _flowAnalysis.topLevelDeclaration_exit();
+      nullSafetyDeadCodeVerifier?.flowEnd(node);
     } else {
       _promoteManager.exitFunctionBody();
     }
@@ -1428,7 +1448,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitNode(AstNode node) {
-    _flowAnalysis?.checkUnreachableNode(node);
+    checkUnreachableNode(node);
     node.visitChildren(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -1522,7 +1542,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    _flowAnalysis?.checkUnreachableNode(node);
+    checkUnreachableNode(node);
     _typedLiteralResolver.resolveSetOrMapLiteral(node);
   }
 
@@ -1580,7 +1600,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitSwitchCase(SwitchCase node) {
-    _flowAnalysis?.checkUnreachableNode(node);
+    checkUnreachableNode(node);
 
     InferenceContext.setType(
         node.expression, _enclosingSwitchStatementExpressionType);
@@ -1596,11 +1616,19 @@ class ResolverVisitor extends ScopedVisitor {
         );
       }
     }
+
+    nullSafetyDeadCodeVerifier?.flowEnd(node);
+  }
+
+  @override
+  void visitSwitchDefault(SwitchDefault node) {
+    super.visitSwitchDefault(node);
+    nullSafetyDeadCodeVerifier?.flowEnd(node);
   }
 
   @override
   void visitSwitchStatementInScope(SwitchStatement node) {
-    _flowAnalysis?.checkUnreachableNode(node);
+    checkUnreachableNode(node);
 
     var previousExpressionType = _enclosingSwitchStatementExpressionType;
     try {
@@ -1646,7 +1674,7 @@ class ResolverVisitor extends ScopedVisitor {
       return super.visitTryStatement(node);
     }
 
-    _flowAnalysis.checkUnreachableNode(node);
+    checkUnreachableNode(node);
     var flow = _flowAnalysis.flow;
 
     var body = node.body;
@@ -1663,18 +1691,23 @@ class ResolverVisitor extends ScopedVisitor {
     body.accept(this);
     if (catchClauses.isNotEmpty) {
       flow.tryCatchStatement_bodyEnd(body);
+      nullSafetyDeadCodeVerifier.tryStatementEnter(node);
 
       var catchLength = catchClauses.length;
       for (var i = 0; i < catchLength; ++i) {
         var catchClause = catchClauses[i];
+        nullSafetyDeadCodeVerifier.verifyCatchClause(catchClause);
         flow.tryCatchStatement_catchBegin(
-            catchClause.exceptionParameter?.staticElement,
-            catchClause.stackTraceParameter?.staticElement);
+          catchClause.exceptionParameter?.staticElement,
+          catchClause.stackTraceParameter?.staticElement,
+        );
         catchClause.accept(this);
         flow.tryCatchStatement_catchEnd();
+        nullSafetyDeadCodeVerifier?.flowEnd(catchClause.body);
       }
 
       flow.tryCatchStatement_end();
+      nullSafetyDeadCodeVerifier.tryStatementExit(node);
     }
 
     if (finallyBlock != null) {
@@ -1728,7 +1761,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitWhileStatement(WhileStatement node) {
-    _flowAnalysis?.checkUnreachableNode(node);
+    checkUnreachableNode(node);
 
     // Note: since we don't call the base class, we have to maintain
     // _implicitLabelScope ourselves.
@@ -1749,6 +1782,7 @@ class ResolverVisitor extends ScopedVisitor {
         _flowAnalysis?.flow?.whileStatement_bodyBegin(node, condition);
         visitStatementInScope(body);
         _flowAnalysis?.flow?.whileStatement_end();
+        nullSafetyDeadCodeVerifier?.flowEnd(node.body);
       }
     } finally {
       _implicitLabelScope = outerImplicitScope;

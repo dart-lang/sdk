@@ -35,6 +35,7 @@ void main(Never x) {
 }
 ''', [
       error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
+      error(HintCode.DEAD_CODE, 28, 6),
     ]);
 
     assertBinaryExpression(
@@ -53,6 +54,7 @@ void main(Never x) {
 }
 ''', [
       error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
+      error(HintCode.DEAD_CODE, 27, 8),
     ]);
 
     assertBinaryExpression(
@@ -141,6 +143,7 @@ void main(Never x) {
 }
 ''', [
       error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
+      error(HintCode.DEAD_CODE, 25, 3),
     ]);
 
     assertIndexExpression(
@@ -158,6 +161,7 @@ void main(Never x) {
 }
 ''', [
       error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
+      error(HintCode.DEAD_CODE, 25, 12),
     ]);
 
     assertIndexExpression(
@@ -177,6 +181,7 @@ void main(Never x) {
 }
 ''', [
       error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
+      error(HintCode.DEAD_CODE, 25, 11),
     ]);
 
     assertIndexExpression(
@@ -263,6 +268,7 @@ void main(Never x) {
 }
 ''', [
       error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
+      error(HintCode.DEAD_CODE, 28, 8),
     ]);
 
     assertMethodInvocation(
@@ -283,6 +289,7 @@ void main(Never x) {
 }
 ''', [
       error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
+      error(HintCode.DEAD_CODE, 33, 8),
     ]);
 
     assertMethodInvocation(
@@ -410,11 +417,13 @@ void main(Never x) {
   }
 
   test_propertyAccess_never_readWrite() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void main(Never x) {
   x.foo += 0;
 }
-''');
+''', [
+      error(HintCode.DEAD_CODE, 32, 2),
+    ]);
 
     assertSimpleIdentifier(
       findNode.simple('foo'),
@@ -444,11 +453,13 @@ void main(Never x) {
   }
 
   test_propertyAccess_never_write() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void main(Never x) {
   x.foo = 0;
 }
-''');
+''', [
+      error(HintCode.DEAD_CODE, 31, 2),
+    ]);
 
     assertSimpleIdentifier(
       findNode.simple('foo'),

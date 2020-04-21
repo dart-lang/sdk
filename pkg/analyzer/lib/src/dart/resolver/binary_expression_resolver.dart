@@ -276,11 +276,12 @@ class BinaryExpressionResolver {
 
     if (_flowAnalysis != null) {
       flow?.logicalBinaryOp_rightBegin(left, isAnd: true);
-      _flowAnalysis.checkUnreachableNode(right);
+      _resolver.checkUnreachableNode(right);
 
       right.accept(_resolver);
       right = node.rightOperand;
 
+      _resolver.nullSafetyDeadCodeVerifier?.flowEnd(right);
       flow?.logicalBinaryOp_end(node, right, isAnd: true);
     } else {
       _promoteManager.visitBinaryExpression_and_rhs(
@@ -302,7 +303,7 @@ class BinaryExpressionResolver {
 
   void _resolveLogicalOr(BinaryExpressionImpl node) {
     var left = node.leftOperand;
-    Expression right = node.rightOperand;
+    var right = node.rightOperand;
     var flow = _flowAnalysis?.flow;
 
     InferenceContext.setType(left, _typeProvider.boolType);
@@ -313,11 +314,12 @@ class BinaryExpressionResolver {
     left = node.leftOperand;
 
     flow?.logicalBinaryOp_rightBegin(left, isAnd: false);
-    _flowAnalysis?.checkUnreachableNode(right);
+    _resolver.checkUnreachableNode(right);
 
     right.accept(_resolver);
     right = node.rightOperand;
 
+    _resolver.nullSafetyDeadCodeVerifier?.flowEnd(right);
     flow?.logicalBinaryOp_end(node, right, isAnd: false);
 
     _checkNonBoolOperand(left, '||');
