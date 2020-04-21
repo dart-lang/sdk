@@ -452,6 +452,18 @@
         "use-sdk": true
       }
     },
+    "unittest-weak-asserts-no-sdk-(linux|mac|win)": {
+       "options": {
+         "compiler": "dartk",
+         "enable-asserts": true,
+         "mode": "release",
+         "runtime": "vm",
+         "timeout": 240,
+         "enable-experiment": [
+           "non-nullable"
+         ]
+       }
+    },
     "analyzer-unittest-asserts-(debug|product|release)-(linux|mac|win)": {
       "options": {
         "compiler": "dartk",
@@ -2700,6 +2712,14 @@
           ],
           "shards": 6,
           "fileset": "dart2js_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js nnbd unit tests",
+          "arguments": [
+            "-nunittest-weak-asserts-no-sdk-linux",
+            "dart2js",
+            "pkg//compiler/"
+          ]
         }
       ]
     },
