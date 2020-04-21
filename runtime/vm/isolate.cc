@@ -419,6 +419,8 @@ Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
     os_thread->set_thread(thread);
     Thread::SetCurrent(thread);
     os_thread->EnableThreadInterrupts();
+
+    thread->heap()->new_space()->TryAcquireCachedTLAB(thread);
   }
   return thread;
 }
@@ -427,10 +429,11 @@ void IsolateGroup::UnscheduleThreadLocked(MonitorLocker* ml,
                                           Thread* thread,
                                           bool is_mutator,
                                           bool bypass_safepoint) {
+  thread->heap()->new_space()->ReleaseAndCacheTLAB(thread);
+
   // Clear since GC will not visit the thread once it is unscheduled. Do this
   // under the thread lock to prevent races with the GC visiting thread roots.
   if (!is_mutator) {
-    thread->heap()->new_space()->AbandonRemainingTLAB(thread);
     thread->ClearReusableHandles();
   }
 
@@ -2396,12 +2399,6 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   // From this point on the isolate is no longer visited by GC (which is ok,
   // since we're just going to delete it anyway).
   isolate_group->UnregisterIsolate(isolate);
-
-  // Since the death of this isolate is not the death of the heap, we have to
-  // leave the new space iterable (e.g. for old space marking) by abanoning the
-  // TLAB.
-  isolate->group()->heap()->new_space()->AbandonRemainingTLAB(
-      Thread::Current());
 
   // From this point on the isolate doesn't participate in safepointing
   // requests anymore.

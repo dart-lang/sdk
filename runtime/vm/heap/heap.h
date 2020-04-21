@@ -116,8 +116,8 @@ class Heap {
   // Returns null object if nothing is found.
   RawInstructions* FindObjectInCodeSpace(FindObjectVisitor* visitor) const;
   RawObject* FindOldObject(FindObjectVisitor* visitor) const;
-  RawObject* FindNewObject(FindObjectVisitor* visitor) const;
-  RawObject* FindObject(FindObjectVisitor* visitor) const;
+  RawObject* FindNewObject(FindObjectVisitor* visitor);
+  RawObject* FindObject(FindObjectVisitor* visitor);
 
   void NotifyIdle(int64_t deadline);
   void NotifyLowMemory();
@@ -173,7 +173,7 @@ class Heap {
   static const char* RegionName(Space space);
 
   // Verify that all pointers in the heap point to the heap.
-  bool Verify(MarkExpectation mark_expectation = kForbidMarked) const;
+  bool Verify(MarkExpectation mark_expectation = kForbidMarked);
 
   // Print heap sizes.
   void PrintSizes() const;
@@ -192,7 +192,7 @@ class Heap {
   intptr_t Collections(Space space) const;
 
   ObjectSet* CreateAllocatedObjectSet(Zone* zone,
-                                      MarkExpectation mark_expectation) const;
+                                      MarkExpectation mark_expectation);
 
   static const char* GCTypeToString(GCType type);
   static const char* GCReasonToString(GCReason reason);
@@ -352,17 +352,17 @@ class Heap {
 
   // Visit all pointers. Caller must ensure concurrent sweeper is not running,
   // and the visitor must not allocate.
-  void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   // Visit all objects, including FreeListElement "objects". Caller must ensure
   // concurrent sweeper is not running, and the visitor must not allocate.
-  void VisitObjects(ObjectVisitor* visitor) const;
-  void VisitObjectsNoImagePages(ObjectVisitor* visitor) const;
+  void VisitObjects(ObjectVisitor* visitor);
+  void VisitObjectsNoImagePages(ObjectVisitor* visitor);
   void VisitObjectsImagePages(ObjectVisitor* visitor) const;
 
   // Like Verify, but does not wait for concurrent sweeper, so caller must
   // ensure thread-safety.
-  bool VerifyGC(MarkExpectation mark_expectation = kForbidMarked) const;
+  bool VerifyGC(MarkExpectation mark_expectation = kForbidMarked);
 
   // Helper functions for garbage collection.
   void CollectNewSpaceGarbage(Thread* thread, GCReason reason);
