@@ -7,6 +7,9 @@ import 'dart:typed_data' show Uint8List;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show LanguageVersionToken, Scanner, ScannerConfiguration, scan;
 
+import 'package:kernel/ast.dart' show Version;
+export 'package:kernel/ast.dart' show Version;
+
 import 'package:package_config/package_config.dart'
     show InvalidLanguageVersion, Package;
 
@@ -27,8 +30,7 @@ import 'file_system.dart' show FileSystem, FileSystemException;
 /// specifies a language version that's too high).
 ///
 /// The language version returned is valid though.
-Future<LanguageVersionForUri> languageVersionForUri(
-    Uri uri, CompilerOptions options) async {
+Future<Version> languageVersionForUri(Uri uri, CompilerOptions options) async {
   return await CompilerContext.runWithOptions(
       new ProcessedOptions(options: options, inputs: [uri]), (context) async {
     // Get largest valid version / default version.
@@ -96,7 +98,7 @@ Future<LanguageVersionForUri> languageVersionForUri(
     }
     if (major != null && minor != null) {
       // The file decided. Return result.
-      return new LanguageVersionForUri(major, minor);
+      return new Version(major, minor);
     }
 
     // Check package.
@@ -113,18 +115,10 @@ Future<LanguageVersionForUri> languageVersionForUri(
     }
     if (major != null && minor != null) {
       // The package decided. Return result.
-      return new LanguageVersionForUri(major, minor);
+      return new Version(major, minor);
     }
 
     // Return default.
-    return new LanguageVersionForUri(
-        currentSdkVersionMajor, currentSdkVersionMinor);
+    return new Version(currentSdkVersionMajor, currentSdkVersionMinor);
   });
-}
-
-class LanguageVersionForUri {
-  final int major;
-  final int minor;
-
-  LanguageVersionForUri(this.major, this.minor);
 }

@@ -42,7 +42,8 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         Reference,
         Supertype,
-        TreeNode;
+        TreeNode,
+        Version;
 
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, HandleAmbiguousSupertypes;
@@ -258,7 +259,7 @@ class SourceLoader extends Loader {
             enableNonNullable: library.isNonNullableByDefault),
         languageVersionChanged:
             (Scanner scanner, LanguageVersionToken version) {
-      library.setLanguageVersion(version.major, version.minor,
+      library.setLanguageVersion(new Version(version.major, version.minor),
           offset: version.offset, length: version.length, explicit: true);
       scanner.configuration = new ScannerConfiguration(
           enableTripleShift: target.enableTripleShift,

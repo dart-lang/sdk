@@ -20,7 +20,7 @@ import 'package:front_end/src/testing/id_testing_helper.dart'
         onFailure,
         runTestFor;
 
-import 'package:kernel/ast.dart' show Component, Library;
+import 'package:kernel/ast.dart' show Component, Library, Version;
 
 main(List<String> args) async {
   // Fix default/max major and minor version so we can test it.
@@ -76,19 +76,16 @@ class LanguageVersioningDataComputer extends DataComputer<String> {
   Future<void> inspectComponent(Component component) async {
     for (Library library in component.libraries) {
       if (library.importUri.scheme == "dart") continue;
-      lv.LanguageVersionForUri lvFile =
+      Version lvFile =
           await lv.languageVersionForUri(library.fileUri, stashedOptions);
-      lv.LanguageVersionForUri lvImportUri =
+      Version lvImportUri =
           await lv.languageVersionForUri(library.importUri, stashedOptions);
-      if ((lvFile.major != lvImportUri.major ||
-              lvFile.major != library.languageVersionMajor) ||
-          (lvFile.minor != lvImportUri.minor ||
-              lvFile.minor != library.languageVersionMinor)) {
+      if ((lvFile != lvImportUri || lvFile != library.languageVersion)) {
         throw """
 Language version disagreement:
-Library: ${library.languageVersionMajor}.${library.languageVersionMinor}
-Language version API (file URI): ${lvFile.major}.${lvFile.minor}
-Language version API (import URI): ${lvImportUri.major}.${lvImportUri.minor}
+Library: ${library.languageVersion}
+Language version API (file URI): ${lvFile}
+Language version API (import URI): ${lvImportUri}
 """;
       }
     }
@@ -123,9 +120,8 @@ class LanguageVersioningDataExtractor extends CfeDataExtractor<String> {
 
   @override
   String computeLibraryValue(Id id, Library library) {
-    return "languageVersion="
-        "${library.languageVersionMajor}"
+    return "languageVersion=${library.languageVersion.major}"
         "."
-        "${library.languageVersionMinor}";
+        "${library.languageVersion.minor}";
   }
 }

@@ -955,8 +955,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     libraryOffsets.add(getBufferOffset());
     writeByte(node.flags);
 
-    writeUInt30(node.languageVersionMajor);
-    writeUInt30(node.languageVersionMinor);
+    writeUInt30(node.languageVersion.major);
+    writeUInt30(node.languageVersion.minor);
 
     writeNonNullCanonicalNameReference(getCanonicalNameOfLibrary(node));
     writeStringReference(node.name ?? '');
