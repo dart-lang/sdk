@@ -1226,12 +1226,38 @@ class B extends A {
   int bar(int a) => 0;
 }
 ''');
-    _assertGetMember(
+    _assertGetMember2(
       className: 'B',
       name: 'foo',
       expected: 'A.foo: int* Function(int*, int*)*',
     );
-    _assertGetMember(
+
+    _assertGetMember2(
+      className: 'B',
+      name: 'bar',
+      expected: 'B.bar: int* Function(int*)*',
+    );
+  }
+
+  test_getMember_optOut_mixesOptIn() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  int foo(int a, int? b) => 0;
+}
+''');
+    await resolveTestCode('''
+// @dart = 2.6
+import 'a.dart';
+class B with A {
+  int bar(int a) => 0;
+}
+''');
+    _assertGetMember2(
+      className: 'B',
+      name: 'foo',
+      expected: 'A.foo: int* Function(int*, int*)*',
+    );
+    _assertGetMember2(
       className: 'B',
       name: 'bar',
       expected: 'B.bar: int* Function(int*)*',
