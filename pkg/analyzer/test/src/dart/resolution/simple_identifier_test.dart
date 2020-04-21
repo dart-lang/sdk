@@ -124,6 +124,32 @@ class SimpleIdentifierResolutionWithNnbdTest
   @override
   bool get typeToStringWithNullability => true;
 
+  test_functionReference() async {
+    await assertErrorsInCode('''
+// @dart = 2.7
+import 'dart:math';
+
+class A {
+  const A(_);
+}
+
+@A([min])
+main() {}
+''', [
+      error(StrongModeCode.COULD_NOT_INFER, 66, 5),
+    ]);
+
+    var identifier = findNode.simple('min]');
+    assertElement(
+      identifier,
+      elementMatcher(
+        findElement.importFind('dart:math').topFunction('min'),
+        isLegacy: true,
+      ),
+    );
+    assertType(identifier, 'T* Function<T extends num*>(T*, T*)*');
+  }
+
   test_implicitCall_tearOff_nullable() async {
     await assertErrorsInCode('''
 class A {
