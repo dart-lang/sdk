@@ -10,10 +10,12 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:meta/meta.dart';
 
 /// The cache that can be reuse for across multiple completion request.
 ///
@@ -29,11 +31,46 @@ class CiderCompletionComputer {
   final FileResolver _fileResolver;
 
   DartCompletionRequestImpl _dartCompletionRequest;
+  final List<String> _computedImportedLibraries = [];
 
   CiderCompletionComputer(this._logger, this._cache, this._fileResolver);
 
+  @deprecated
   Future<List<CompletionSuggestion>> compute(String path, int offset) async {
+    var file = _fileResolver.resourceProvider.getFile(path);
+    var content = file.readAsStringSync();
+
+    var lineInfo = LineInfo.fromContent(content);
+    var location = lineInfo.getLocation(offset);
+
+    var result = await compute2(
+      path: path,
+      line: location.lineNumber - 1,
+      character: location.columnNumber - 1,
+    );
+
+    return result.suggestions;
+  }
+
+  /// Return completion suggestions for the file and position.
+  ///
+  /// The [path] must be the absolute and normalized path of the file.
+  ///
+  /// The content of the file has already been updated.
+  ///
+  /// The [line] and [character] are zero based.
+  Future<CiderCompletionResult> compute2({
+    @required String path,
+    @required int line,
+    @required int character,
+  }) async {
+    var file = _fileResolver.resourceProvider.getFile(path);
+    var content = file.readAsStringSync();
+
     var resolvedUnit = _fileResolver.resolve(path);
+
+    var lineInfo = LineInfo.fromContent(content);
+    var offset = lineInfo.getOffsetOfLine(line) + character;
 
     var completionRequest = CompletionRequestImpl(
       resolvedUnit,
@@ -71,7 +108,10 @@ class CiderCompletionComputer {
       );
     });
 
-    return suggestions;
+    return CiderCompletionResult._(
+      suggestions,
+      _computedImportedLibraries,
+    );
   }
 
   /// Return suggestions from libraries imported into the [target].
@@ -99,6 +139,7 @@ class CiderCompletionComputer {
 
     var cacheEntry = _cache._importedLibraries[path];
     if (cacheEntry == null || cacheEntry.signature != signature) {
+      _computedImportedLibraries.add(path);
       var suggestions = _librarySuggestions(element);
       cacheEntry = _CiderImportedLibrarySuggestions(
         signature,
@@ -124,7 +165,16 @@ class CiderCompletionComputer {
 class CiderCompletionResult {
   final List<CompletionSuggestion> suggestions;
 
-  CiderCompletionResult(this.suggestions);
+  /// Paths of imported libraries for which suggestions were (re)computed
+  /// during processing of this request. Does not include libraries that were
+  /// processed during previous requests, and reused from the cache now.
+  @visibleForTesting
+  final List<String> computedImportedLibraries;
+
+  CiderCompletionResult._(
+    this.suggestions,
+    this.computedImportedLibraries,
+  );
 }
 
 class _CiderImportedLibrarySuggestions {
