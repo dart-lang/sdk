@@ -220,6 +220,7 @@ vm_sources = [
   "pointer_tagging.h",
   "port.cc",
   "port.h",
+  "port_set.h",
   "proccpuinfo.cc",
   "proccpuinfo.h",
   "profiler.cc",
