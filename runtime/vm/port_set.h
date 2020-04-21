@@ -108,6 +108,8 @@ class PortSet {
     map_ = nullptr;
   }
 
+  bool IsEmpty() const { return used_ == 0; }
+
   DART_FORCE_INLINE Iterator begin() {
     for (intptr_t i = 0; i < capacity_; ++i) {
       auto& entry = map_[i];

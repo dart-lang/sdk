@@ -94,11 +94,20 @@ Dart_Port PortMap::CreatePort(MessageHandler* handler) {
   handler->CheckAccess();
 #endif
 
+  const Dart_Port port = AllocatePort();
+
+  // The MessageHandler::ports_ is only accessed by [PortMap], it is guarded
+  // by the [PortMap::mutex_] we already hold.
+  MessageHandler::PortSetEntry isolate_entry;
+  isolate_entry.port = port;
+  handler->ports_.Insert(isolate_entry);
+
   Entry entry;
-  entry.port = AllocatePort();
+  entry.port = port;
   entry.handler = handler;
   entry.state = kNewPort;
   ports_->Insert(entry);
+
   if (FLAG_trace_isolates) {
     OS::PrintErr(
         "[+] Opening port: \n"
@@ -134,6 +143,13 @@ bool PortMap::ClosePort(Dart_Port port) {
     // while flushing the messages below.
     it.Delete();
     ports_->Rebalance();
+
+    // The MessageHandler::ports_ is only accessed by [PortMap], it is guarded
+    // by the [PortMap::mutex_] we already hold.
+    auto isolate_it = handler->ports_.TryLookup(port);
+    ASSERT(isolate_it != handler->ports_.end());
+    isolate_it.Delete();
+    handler->ports_.Rebalance();
   }
   handler->ClosePort(port);
   if (!handler->HasLivePorts() && handler->OwnedByPortMap()) {
@@ -146,15 +162,22 @@ bool PortMap::ClosePort(Dart_Port port) {
 void PortMap::ClosePorts(MessageHandler* handler) {
   {
     MutexLocker ml(mutex_);
-    for (auto it = ports_->begin(); it != ports_->end(); ++it) {
-      const auto& entry = *it;
-      if (entry.handler == handler) {
-        if (entry.state == kLivePort) {
-          handler->decrement_live_ports();
-        }
-        it.Delete();
+    // The MessageHandler::ports_ is only accessed by [PortMap], it is guarded
+    // by the [PortMap::mutex_] we already hold.
+    for (auto isolate_it = handler->ports_.begin();
+         isolate_it != handler->ports_.end(); ++isolate_it) {
+      auto it = ports_->TryLookup((*isolate_it).port);
+      ASSERT(it != ports_->end());
+      Entry entry = *it;
+      ASSERT(entry.port == (*isolate_it).port);
+      ASSERT(entry.handler == handler);
+      if (entry.state == kLivePort) {
+        handler->decrement_live_ports();
       }
+      it.Delete();
+      isolate_it.Delete();
     }
+    ASSERT(handler->ports_.IsEmpty());
     ports_->Rebalance();
   }
   handler->CloseAllPorts();

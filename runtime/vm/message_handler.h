@@ -11,6 +11,7 @@
 #include "vm/lockers.h"
 #include "vm/message.h"
 #include "vm/os_thread.h"
+#include "vm/port_set.h"
 #include "vm/thread_pool.h"
 
 namespace dart {
@@ -211,6 +212,8 @@ class MessageHandler {
   friend class MessageHandlerTestPeer;
   friend class MessageHandlerTask;
 
+  struct PortSetEntry : public PortSet<PortSetEntry>::Entry {};
+
   // Called by MessageHandlerTask to process our task queue.
   void TaskCallback();
 
@@ -248,6 +251,8 @@ class MessageHandler {
   // thread.
   bool oob_message_handling_allowed_;
   bool paused_for_messages_;
+  PortSet<PortSetEntry>
+      ports_;  // Only accessed by [PortMap], protected by [PortMap]s lock.
   intptr_t live_ports_;  // The number of open ports, including control ports.
   intptr_t paused_;      // The number of pause messages received.
 #if !defined(PRODUCT)
