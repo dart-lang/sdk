@@ -5439,7 +5439,7 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
         element_count_(element_count),
         representation_(kTagged) {
     ASSERT(element_count == 1 || element_count == 2 || element_count == 4);
-    ASSERT(RawObject::IsStringClassId(class_id));
+    ASSERT(IsStringClassId(class_id));
     SetInputAt(0, str);
     SetInputAt(1, index);
   }

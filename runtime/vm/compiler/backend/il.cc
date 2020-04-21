@@ -2631,8 +2631,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
 }
 
 bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
-  if (RawObject::IsTypedDataClassId(cid) ||
-      RawObject::IsExternalTypedDataClassId(cid)) {
+  if (IsTypedDataClassId(cid) || IsExternalTypedDataClassId(cid)) {
     return true;
   }
 
@@ -4864,8 +4863,8 @@ RawType* PolymorphicInstanceCallInstr::ComputeRuntimeType(
     const intptr_t start = targets[i].cid_start;
     const intptr_t end = targets[i].cid_end;
     for (intptr_t cid = start; cid <= end; cid++) {
-      is_string = is_string && RawObject::IsStringClassId(cid);
-      is_integer = is_integer && RawObject::IsIntegerClassId(cid);
+      is_string = is_string && IsStringClassId(cid);
+      is_integer = is_integer && IsIntegerClassId(cid);
       is_double = is_double && (cid == kDoubleCid);
     }
   }
@@ -5508,9 +5507,8 @@ Definition* CheckArrayBoundInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
-  if (RawObject::IsTypedDataClassId(class_id) ||
-      RawObject::IsTypedDataViewClassId(class_id) ||
-      RawObject::IsExternalTypedDataClassId(class_id)) {
+  if (IsTypedDataClassId(class_id) || IsTypedDataViewClassId(class_id) ||
+      IsExternalTypedDataClassId(class_id)) {
     return compiler::target::TypedDataBase::length_offset();
   }
 

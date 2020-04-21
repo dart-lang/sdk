@@ -2546,7 +2546,7 @@ void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
   } else {
     uword initial_value;
     bool needs_init;
-    if (RawObject::IsTypedDataBaseClassId(class_id)) {
+    if (IsTypedDataBaseClassId(class_id)) {
       initial_value = 0;
       // If the size is greater than both kNewAllocatableSize and
       // kAllocatablePageSize, the object must have been allocated to a new
@@ -4424,7 +4424,7 @@ RawClass* Class::NewStringClass(intptr_t class_id, Isolate* isolate) {
 }
 
 RawClass* Class::NewTypedDataClass(intptr_t class_id, Isolate* isolate) {
-  ASSERT(RawObject::IsTypedDataClassId(class_id));
+  ASSERT(IsTypedDataClassId(class_id));
   const intptr_t host_instance_size = TypedData::InstanceSize();
   const intptr_t target_instance_size =
       compiler::target::RoundedAllocationSize(RTN::TypedData::InstanceSize());
@@ -4442,7 +4442,7 @@ RawClass* Class::NewTypedDataClass(intptr_t class_id, Isolate* isolate) {
 }
 
 RawClass* Class::NewTypedDataViewClass(intptr_t class_id, Isolate* isolate) {
-  ASSERT(RawObject::IsTypedDataViewClassId(class_id));
+  ASSERT(IsTypedDataViewClassId(class_id));
   const intptr_t host_instance_size = TypedDataView::InstanceSize();
   const intptr_t target_instance_size = compiler::target::RoundedAllocationSize(
       RTN::TypedDataView::InstanceSize());
@@ -4462,7 +4462,7 @@ RawClass* Class::NewTypedDataViewClass(intptr_t class_id, Isolate* isolate) {
 
 RawClass* Class::NewExternalTypedDataClass(intptr_t class_id,
                                            Isolate* isolate) {
-  ASSERT(RawObject::IsExternalTypedDataClassId(class_id));
+  ASSERT(IsExternalTypedDataClassId(class_id));
   const intptr_t host_instance_size = ExternalTypedData::InstanceSize();
   const intptr_t target_instance_size = compiler::target::RoundedAllocationSize(
       RTN::ExternalTypedData::InstanceSize());
@@ -4481,7 +4481,7 @@ RawClass* Class::NewExternalTypedDataClass(intptr_t class_id,
 }
 
 RawClass* Class::NewPointerClass(intptr_t class_id, Isolate* isolate) {
-  ASSERT(RawObject::IsFfiPointerClassId(class_id));
+  ASSERT(IsFfiPointerClassId(class_id));
   intptr_t host_instance_size = Pointer::InstanceSize();
   intptr_t target_instance_size =
       compiler::target::RoundedAllocationSize(RTN::Pointer::InstanceSize());
@@ -7175,7 +7175,7 @@ void Function::SetRegExpData(const RegExp& regexp,
                              intptr_t string_specialization_cid,
                              bool sticky) const {
   ASSERT(kind() == RawFunction::kIrregexpFunction);
-  ASSERT(RawObject::IsStringClassId(string_specialization_cid));
+  ASSERT(IsStringClassId(string_specialization_cid));
   ASSERT(raw_ptr()->data_ == Object::null());
   const Array& pair = Array::Handle(Array::New(2, Heap::kOld));
   pair.SetAt(0, regexp);
@@ -10004,9 +10004,8 @@ static intptr_t GetListLength(const Object& value) {
 }
 
 static intptr_t GetListLengthOffset(intptr_t cid) {
-  if (RawObject::IsTypedDataClassId(cid) ||
-      RawObject::IsTypedDataViewClassId(cid) ||
-      RawObject::IsExternalTypedDataClassId(cid)) {
+  if (IsTypedDataClassId(cid) || IsTypedDataViewClassId(cid) ||
+      IsExternalTypedDataClassId(cid)) {
     return TypedData::length_offset();
   } else if (cid == kArrayCid || cid == kImmutableArrayCid) {
     return Array::length_offset();
@@ -10037,8 +10036,7 @@ const char* Field::GuardedPropertiesAsCString() const {
       Class::Handle(Isolate::Current()->class_table()->At(guarded_cid()));
   const char* class_name = String::Handle(cls.Name()).ToCString();
 
-  if (RawObject::IsBuiltinListClassId(guarded_cid()) && !is_nullable() &&
-      is_final()) {
+  if (IsBuiltinListClassId(guarded_cid()) && !is_nullable() && is_final()) {
     ASSERT(guarded_list_length() != kUnknownFixedLength);
     if (guarded_list_length() == kNoFixedLength) {
       return zone->PrintToString("<%s [*]%s>", class_name, exactness);
@@ -18154,9 +18152,8 @@ bool Instance::IsValidFieldOffset(intptr_t offset) const {
 }
 
 intptr_t Instance::ElementSizeFor(intptr_t cid) {
-  if (RawObject::IsExternalTypedDataClassId(cid) ||
-      RawObject::IsTypedDataClassId(cid) ||
-      RawObject::IsTypedDataViewClassId(cid)) {
+  if (IsExternalTypedDataClassId(cid) || IsTypedDataClassId(cid) ||
+      IsTypedDataViewClassId(cid)) {
     return TypedDataBase::ElementSizeInBytes(cid);
   }
   switch (cid) {
@@ -18178,12 +18175,11 @@ intptr_t Instance::ElementSizeFor(intptr_t cid) {
 }
 
 intptr_t Instance::DataOffsetFor(intptr_t cid) {
-  if (RawObject::IsExternalTypedDataClassId(cid) ||
-      RawObject::IsExternalStringClassId(cid)) {
+  if (IsExternalTypedDataClassId(cid) || IsExternalStringClassId(cid)) {
     // Elements start at offset 0 of the external data.
     return 0;
   }
-  if (RawObject::IsTypedDataClassId(cid)) {
+  if (IsTypedDataClassId(cid)) {
     return TypedData::data_offset();
   }
   switch (cid) {
@@ -20970,7 +20966,7 @@ intptr_t String::Hash(const int32_t* characters, intptr_t len) {
 
 uint16_t String::CharAt(intptr_t index) const {
   intptr_t class_id = raw()->GetClassId();
-  ASSERT(RawObject::IsStringClassId(class_id));
+  ASSERT(IsStringClassId(class_id));
   if (class_id == kOneByteStringCid) {
     return OneByteString::CharAt(*this, index);
   }
@@ -23221,7 +23217,7 @@ RawDynamicLibrary* DynamicLibrary::New(void* handle, Heap::Space space) {
 }
 
 bool Pointer::IsPointer(const Instance& obj) {
-  return RawObject::IsFfiPointerClassId(obj.raw()->GetClassId());
+  return IsFfiPointerClassId(obj.raw()->GetClassId());
 }
 
 bool Instance::IsPointer() const {

@@ -647,7 +647,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
       }
       UNREACHABLE();
     }
-    if (RawObject::IsErrorClassId(result_cid)) {
+    if (IsErrorClassId(result_cid)) {
       // Unwind to entry frame.
       fp_ = *FP;
       pc_ = SavedCallerPC(fp_);

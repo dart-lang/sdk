@@ -890,11 +890,11 @@ class Pass2Visitor : public ObjectVisitor,
     } else if (cid == kObjectPoolCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(static_cast<RawObjectPool*>(obj)->ptr()->length_);
-    } else if (RawObject::IsTypedDataClassId(cid)) {
+    } else if (IsTypedDataClassId(cid)) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(
           Smi::Value(static_cast<RawTypedData*>(obj)->ptr()->length_));
-    } else if (RawObject::IsExternalTypedDataClassId(cid)) {
+    } else if (IsExternalTypedDataClassId(cid)) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(
           Smi::Value(static_cast<RawExternalTypedData*>(obj)->ptr()->length_));

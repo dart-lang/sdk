@@ -3372,7 +3372,7 @@ class Function : public Object {
     if (is_native() && kind() == RawFunction::kConstructor) {
       // This is a native factory constructor.
       const Class& klass = Class::Handle(Owner());
-      return RawObject::IsTypedDataViewClassId(klass.id());
+      return IsTypedDataViewClassId(klass.id());
     }
     return false;
   }
@@ -8590,7 +8590,7 @@ class String : public Instance {
   }
 
   bool IsExternal() const {
-    return RawObject::IsExternalStringClassId(raw()->GetClassId());
+    return IsExternalStringClassId(raw()->GetClassId());
   }
 
   void* GetPeer() const;
@@ -9713,16 +9713,16 @@ class TypedDataBase : public PointerBase {
   static TypedDataElementType ElementType(classid_t cid) {
     if (cid == kByteDataViewCid) {
       return kUint8ArrayElement;
-    } else if (RawObject::IsTypedDataClassId(cid)) {
+    } else if (IsTypedDataClassId(cid)) {
       const intptr_t index =
           (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderInternal) / 3;
       return static_cast<TypedDataElementType>(index);
-    } else if (RawObject::IsTypedDataViewClassId(cid)) {
+    } else if (IsTypedDataViewClassId(cid)) {
       const intptr_t index =
           (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderView) / 3;
       return static_cast<TypedDataElementType>(index);
     } else {
-      ASSERT(RawObject::IsExternalTypedDataClassId(cid));
+      ASSERT(IsExternalTypedDataClassId(cid));
       const intptr_t index =
           (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderExternal) / 3;
       return static_cast<TypedDataElementType>(index);
@@ -9813,12 +9813,12 @@ class TypedData : public TypedDataBase {
   }
 
   static intptr_t MaxElements(intptr_t class_id) {
-    ASSERT(RawObject::IsTypedDataClassId(class_id));
+    ASSERT(IsTypedDataClassId(class_id));
     return (kSmiMax / ElementSizeInBytes(class_id));
   }
 
   static intptr_t MaxNewSpaceElements(intptr_t class_id) {
-    ASSERT(RawObject::IsTypedDataClassId(class_id));
+    ASSERT(IsTypedDataClassId(class_id));
     return (Heap::kNewAllocatableSize - sizeof(RawTypedData)) /
            ElementSizeInBytes(class_id);
   }
@@ -9877,7 +9877,7 @@ class TypedData : public TypedDataBase {
   static bool IsTypedData(const Instance& obj) {
     ASSERT(!obj.IsNull());
     intptr_t cid = obj.raw()->GetClassId();
-    return RawObject::IsTypedDataClassId(cid);
+    return IsTypedDataClassId(cid);
   }
 
  protected:
@@ -9946,7 +9946,7 @@ class ExternalTypedData : public TypedDataBase {
   }
 
   static intptr_t MaxElements(intptr_t class_id) {
-    ASSERT(RawObject::IsExternalTypedDataClassId(class_id));
+    ASSERT(IsExternalTypedDataClassId(class_id));
     return (kSmiMax / ElementSizeInBytes(class_id));
   }
 
@@ -9962,7 +9962,7 @@ class ExternalTypedData : public TypedDataBase {
   static bool IsExternalTypedData(const Instance& obj) {
     ASSERT(!obj.IsNull());
     intptr_t cid = obj.raw()->GetClassId();
-    return RawObject::IsExternalTypedDataClassId(cid);
+    return IsExternalTypedDataClassId(cid);
   }
 
  protected:
@@ -10009,9 +10009,8 @@ class TypedDataView : public TypedDataBase {
   static bool IsExternalTypedDataView(const TypedDataView& view_obj) {
     const auto& data = Instance::Handle(Data(view_obj));
     intptr_t cid = data.raw()->GetClassId();
-    ASSERT(RawObject::IsTypedDataClassId(cid) ||
-           RawObject::IsExternalTypedDataClassId(cid));
-    return RawObject::IsExternalTypedDataClassId(cid);
+    ASSERT(IsTypedDataClassId(cid) || IsExternalTypedDataClassId(cid));
+    return IsExternalTypedDataClassId(cid);
   }
 
   static intptr_t data_offset() {
@@ -10028,8 +10027,7 @@ class TypedDataView : public TypedDataBase {
                       intptr_t offset_in_bytes,
                       intptr_t length) {
     const classid_t cid = typed_data.GetClassId();
-    ASSERT(RawObject::IsTypedDataClassId(cid) ||
-           RawObject::IsExternalTypedDataClassId(cid));
+    ASSERT(IsTypedDataClassId(cid) || IsExternalTypedDataClassId(cid));
     StorePointer(&raw_ptr()->typed_data_, typed_data.raw());
     StoreSmi(&raw_ptr()->length_, Smi::New(length));
     StoreSmi(&raw_ptr()->offset_in_bytes_, Smi::New(offset_in_bytes));
@@ -10130,7 +10128,7 @@ class DynamicLibrary : public Instance {
   static bool IsDynamicLibrary(const Instance& obj) {
     ASSERT(!obj.IsNull());
     intptr_t cid = obj.raw()->GetClassId();
-    return RawObject::IsFfiDynamicLibraryClassId(cid);
+    return IsFfiDynamicLibraryClassId(cid);
   }
 
   void* GetHandle() const {

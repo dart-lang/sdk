@@ -133,7 +133,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     const uword view_header =
         *reinterpret_cast<uword*>(RawObject::ToAddr(view));
     ASSERT(!IsForwarding(view_header) || view->IsOldObject());
-    ASSERT(RawObject::IsTypedDataViewClassId(view->GetClassIdMayBeSmi()));
+    ASSERT(IsTypedDataViewClassId(view->GetClassIdMayBeSmi()));
 
     // Validate that the backing store is not a forwarding word.
     RawTypedDataBase* td = view->ptr()->typed_data_;
@@ -146,12 +146,12 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
 
     // If we have external typed data we can simply return since the backing
     // store lives in C-heap and will not move.
-    if (RawObject::IsExternalTypedDataClassId(cid)) {
+    if (IsExternalTypedDataClassId(cid)) {
       return;
     }
 
     // Now we update the inner pointer.
-    ASSERT(RawObject::IsTypedDataClassId(cid));
+    ASSERT(IsTypedDataClassId(cid));
     view->RecomputeDataFieldForInternalTypedData();
   }
 
@@ -331,7 +331,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       }
 
       intptr_t cid = RawObject::ClassIdTag::decode(header);
-      if (RawObject::IsTypedDataClassId(cid)) {
+      if (IsTypedDataClassId(cid)) {
         reinterpret_cast<RawTypedData*>(new_obj)->RecomputeDataField();
       }
 

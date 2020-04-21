@@ -2769,7 +2769,7 @@ void LoadIndexedInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 }
 
 void LoadCodeUnitsInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  ASSERT(RawObject::IsStringClassId(class_id()));
+  ASSERT(IsStringClassId(class_id()));
   RangeBoundary zero = RangeBoundary::FromConstant(0);
   // Take the number of loaded characters into account when determining the
   // range of the result.

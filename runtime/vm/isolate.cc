@@ -679,7 +679,7 @@ void Isolate::RehashConstants() {
         !class_table()->HasValidClassAt(cid)) {
       continue;
     }
-    if ((cid == kTypeArgumentsCid) || RawObject::IsStringClassId(cid)) {
+    if ((cid == kTypeArgumentsCid) || IsStringClassId(cid)) {
       // TypeArguments and Symbols have special tables for canonical objects
       // that aren't based on address.
       continue;

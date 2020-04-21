@@ -324,7 +324,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
         cls->ptr()->binary_declaration_ = d->Read<uint32_t>();
       }
 #endif
-      if (!RawObject::IsInternalVMdefinedClassId(class_id)) {
+      if (!IsInternalVMdefinedClassId(class_id)) {
         cls->ptr()->host_instance_size_in_words_ = d->Read<int32_t>();
         cls->ptr()->host_next_field_offset_in_words_ = d->Read<int32_t>();
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -4808,13 +4808,13 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
     Push(isolate()->class_table()->At(cid));
     return new (Z) InstanceSerializationCluster(cid);
   }
-  if (RawObject::IsTypedDataViewClassId(cid)) {
+  if (IsTypedDataViewClassId(cid)) {
     return new (Z) TypedDataViewSerializationCluster(cid);
   }
-  if (RawObject::IsExternalTypedDataClassId(cid)) {
+  if (IsExternalTypedDataClassId(cid)) {
     return new (Z) ExternalTypedDataSerializationCluster(cid);
   }
-  if (RawObject::IsTypedDataClassId(cid)) {
+  if (IsTypedDataClassId(cid)) {
     return new (Z) TypedDataSerializationCluster(cid);
   }
 
@@ -5674,13 +5674,13 @@ DeserializationCluster* Deserializer::ReadCluster() {
   if (cid >= kNumPredefinedCids || cid == kInstanceCid) {
     return new (Z) InstanceDeserializationCluster(cid);
   }
-  if (RawObject::IsTypedDataViewClassId(cid)) {
+  if (IsTypedDataViewClassId(cid)) {
     return new (Z) TypedDataViewDeserializationCluster(cid);
   }
-  if (RawObject::IsExternalTypedDataClassId(cid)) {
+  if (IsExternalTypedDataClassId(cid)) {
     return new (Z) ExternalTypedDataDeserializationCluster(cid);
   }
-  if (RawObject::IsTypedDataClassId(cid)) {
+  if (IsTypedDataClassId(cid)) {
     return new (Z) TypedDataDeserializationCluster(cid);
   }
 

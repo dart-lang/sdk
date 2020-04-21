@@ -33,14 +33,13 @@ namespace dart {
 // throw ArgumentExceptions.
 
 static bool IsPointerType(const AbstractType& type) {
-  return RawObject::IsFfiPointerClassId(type.type_class_id());
+  return IsFfiPointerClassId(type.type_class_id());
 }
 
 static void CheckSized(const AbstractType& type_arg) {
   const classid_t type_cid = type_arg.type_class_id();
-  if (RawObject::IsFfiNativeTypeTypeClassId(type_cid) ||
-      RawObject::IsFfiTypeVoidClassId(type_cid) ||
-      RawObject::IsFfiTypeNativeFunctionClassId(type_cid)) {
+  if (IsFfiNativeTypeTypeClassId(type_cid) || IsFfiTypeVoidClassId(type_cid) ||
+      IsFfiTypeNativeFunctionClassId(type_cid)) {
     const String& error = String::Handle(String::NewFormatted(
         "%s does not have a predefined size (@unsized). "
         "Unsized NativeTypes do not support [sizeOf] because their size "
@@ -77,7 +76,7 @@ static const Double& AsDouble(const Instance& instance) {
 // You must check [IsConcreteNativeType] and [CheckSized] first to verify that
 // this type has a defined size.
 static size_t SizeOf(const AbstractType& type, Zone* zone) {
-  if (RawObject::IsFfiTypeClassId(type.type_class_id())) {
+  if (IsFfiTypeClassId(type.type_class_id())) {
     return compiler::ffi::NativeType::FromAbstractType(type, zone)
         .SizeInBytes();
   } else {

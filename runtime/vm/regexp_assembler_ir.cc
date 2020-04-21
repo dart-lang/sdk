@@ -1752,7 +1752,7 @@ Value* IRRegExpMacroAssembler::LoadCodeUnitsAt(LocalVariable* index,
                                                intptr_t characters) {
   // Bind the pattern as the load receiver.
   Value* pattern_val = BindLoadLocal(*string_param_);
-  if (RawObject::IsExternalStringClassId(specialization_cid_)) {
+  if (IsExternalStringClassId(specialization_cid_)) {
     // The data of an external string is stored through one indirection.
     intptr_t external_offset = 0;
     if (specialization_cid_ == kExternalOneByteStringCid) {

@@ -430,7 +430,7 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 0, 3) {
       Exceptions::ThrowArgumentError(end_obj);
     }
     return TwoByteString::New(array, start * sizeof(uint16_t), length, space);
-  } else if (RawObject::IsTypedDataViewClassId(list.GetClassId())) {
+  } else if (IsTypedDataViewClassId(list.GetClassId())) {
     const auto& view = TypedDataView::Cast(list);
     const intptr_t cid = list.GetClassId();
     if (cid != kTypedDataUint16ArrayViewCid) {
