@@ -31,6 +31,7 @@ CodeRelocator::CodeRelocator(Thread* thread,
                              GrowableArray<RawCode*>* code_objects,
                              GrowableArray<ImageWriterCommand>* commands)
     : StackResource(thread),
+      thread_(thread),
       code_objects_(code_objects),
       commands_(commands),
       kind_type_and_offset_(Smi::Handle(thread->zone())),
@@ -103,7 +104,7 @@ void CodeRelocator::Relocate(bool is_vm_isolate) {
 }
 
 void CodeRelocator::FindInstructionAndCallLimits() {
-  Zone* zone = Thread::Current()->zone();
+  auto zone = thread_->zone();
   auto& current_caller = Code::Handle(zone);
   auto& call_targets = Array::Handle(zone);
 
@@ -131,19 +132,14 @@ void CodeRelocator::FindInstructionAndCallLimits() {
         if (kind == Code::kCallViaCode) {
           continue;
         }
-        num_calls++;
 
-        // The precompiler should have already replaced all function entries
-        // with code entries.
-        ASSERT(call.Get<Code::kSCallTableFunctionTarget>() == Function::null());
-        target_ = call.Get<Code::kSCallTableCodeTarget>();
-        ASSERT(target_.IsCode());
-        destination_ = Code::Cast(target_).raw();
+        destination_ = GetTarget(call);
+        num_calls++;
 
         // A call site can decide to jump not to the beginning of a function but
         // rather jump into it at a certain (positive) offset.
         int32_t offset_into_target = 0;
-        if (kind == Code::kPcRelativeCall) {
+        if (kind == Code::kPcRelativeCall || kind == Code::kPcRelativeTTSCall) {
           const intptr_t call_instruction_offset =
               return_pc_offset - PcRelativeCallPattern::kLengthInBytes;
           PcRelativeCallPattern call(current_caller.PayloadStart() +
@@ -251,19 +247,14 @@ void CodeRelocator::ScanCallTargets(const Code& code,
       continue;
     }
 
-    // The precompiler should have already replaced all function entries
-    // with code entries.
-    ASSERT(call.Get<Code::kSCallTableFunctionTarget>() == Function::null());
-    target_ = call.Get<Code::kSCallTableCodeTarget>();
-    ASSERT(target_.IsCode());
-    destination_ = Code::Cast(target_).raw();
+    destination_ = GetTarget(call);
 
     // A call site can decide to jump not to the beginning of a function but
     // rather jump into it at a certain offset.
     int32_t offset_into_target = 0;
     bool is_tail_call;
     intptr_t call_instruction_offset;
-    if (kind == Code::kPcRelativeCall) {
+    if (kind == Code::kPcRelativeCall || kind == Code::kPcRelativeTTSCall) {
       call_instruction_offset =
           return_pc_offset - PcRelativeCallPattern::kLengthInBytes;
       PcRelativeCallPattern call(code.PayloadStart() + call_instruction_offset);
@@ -429,6 +420,51 @@ bool CodeRelocator::IsTargetInRangeFor(UnresolvedCall* unresolved_call,
     return PcRelativeCallPattern::kLowerCallingRange < forward_distance &&
            forward_distance < PcRelativeCallPattern::kUpperCallingRange;
   }
+}
+
+RawCode* CodeRelocator::GetTarget(const StaticCallsTableEntry& call) {
+  // The precompiler should have already replaced all function entries
+  // with code entries.
+  ASSERT(call.Get<Code::kSCallTableFunctionTarget>() == Function::null());
+
+  target_ = call.Get<Code::kSCallTableCodeOrTypeTarget>();
+  if (target_.IsAbstractType()) {
+    target_ = AbstractType::Cast(target_).type_test_stub();
+    destination_ = Code::Cast(target_).raw();
+
+    // The AssertAssignableInstr will emit pc-relative calls to the TTS iff
+    // dst_type is instantiated. If we happened to not install an optimized
+    // TTS but rather a default one, it will live in the vm-isolate (to
+    // which we cannot make pc-relative calls).
+    // Though we have "equivalent" isolate-specific stubs we can use as
+    // targets instead.
+    //
+    // (We could make the AOT compiler install isolate-specific stubs
+    // into the types directly, but that does not work for types which
+    // live in the "vm-isolate" - such as `Type::dynamic_type()`).
+    if (destination_.InVMIsolateHeap()) {
+      auto object_store = thread_->isolate()->object_store();
+      if (destination_.raw() == StubCode::DefaultTypeTest().raw()) {
+        destination_ = object_store->default_tts_stub();
+      } else if (destination_.raw() ==
+                 StubCode::DefaultNullableTypeTest().raw()) {
+        destination_ = object_store->default_nullable_tts_stub();
+      } else if (destination_.raw() == StubCode::TopTypeTypeTest().raw()) {
+        destination_ = object_store->top_type_tts_stub();
+      } else if (destination_.raw() == StubCode::UnreachableTypeTest().raw()) {
+        destination_ = object_store->unreachable_tts_stub();
+      } else if (destination_.raw() == StubCode::SlowTypeTest().raw()) {
+        destination_ = object_store->slow_tts_stub();
+      } else {
+        UNREACHABLE();
+      }
+    }
+  } else {
+    ASSERT(target_.IsCode());
+    destination_ = Code::Cast(target_).raw();
+  }
+  ASSERT(!destination_.InVMIsolateHeap());
+  return destination_.raw();
 }
 
 static void MarkAsFreeListElement(uint8_t* trampoline_bytes,

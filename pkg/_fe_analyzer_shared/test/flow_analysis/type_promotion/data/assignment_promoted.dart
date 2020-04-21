@@ -16,12 +16,29 @@ typeOfInterest_is(Object x) {
   /*int*/ x;
 }
 
+typeOfInterest_is_nullable(Object? x) {
+  if (x is int?) {
+  } else {
+    x = 1;
+    /*int*/ x;
+  }
+  x;
+}
+
 typeOfInterest_isNot(Object x) {
   if (x is! int) {
     x = 1;
     /*int*/ x;
   }
   /*int*/ x;
+}
+
+typeOfInterest_isNot_nullable(Object? x) {
+  if (x is! int?) {
+    x = 1;
+    /*int*/ x;
+  }
+  x;
 }
 
 notATypeOfInterest_nullability(Object? x) {

@@ -79,7 +79,7 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
   bool get fromDill => false;
 
   Typedef build(SourceLibraryBuilder libraryBuilder) {
-    typedef..type ??= buildThisType(libraryBuilder);
+    typedef..type ??= buildThisType();
 
     TypeBuilder type = this.type;
     if (type is FunctionTypeBuilder) {
@@ -146,7 +146,7 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
     return result;
   }
 
-  DartType buildThisType(LibraryBuilder library) {
+  DartType buildThisType() {
     if (thisType != null) {
       if (identical(thisType, cyclicTypeAliasMarker)) {
         library.addProblem(templateCyclicTypedef.withArguments(name),
@@ -181,7 +181,7 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
   /// [arguments] have already been built.
   DartType buildTypesWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments) {
-    DartType thisType = buildThisType(library);
+    DartType thisType = buildThisType();
     if (const DynamicType() == thisType) return thisType;
     Nullability adjustedNullability =
         isNullAlias ? Nullability.nullable : nullability;
@@ -248,26 +248,32 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
   DartType buildType(LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
       [bool notInstanceContext]) {
-    DartType thisType = buildThisType(library);
+    DartType thisType = buildThisType();
     if (thisType is InvalidType) return thisType;
     // TODO(dmitryas): Remove the following comment when FutureOr has its own
     // encoding and isn't represented as an InterfaceType.
 
     // The following won't work if the right-hand side of the typedef is a
     // FutureOr.
-    Nullability rhsNullability = thisType.nullability;
+    Nullability nullability;
+    if (isNullAlias) {
+      // Null is always nullable.
+      nullability = Nullability.nullable;
+    } else if (!parent.isNonNullableByDefault ||
+        !library.isNonNullableByDefault) {
+      // The typedef is defined or used in an opt-out library so the nullability
+      // is based on the use site alone.
+      nullability = nullabilityBuilder.build(library);
+    } else {
+      nullability = uniteNullabilities(
+          thisType.nullability, nullabilityBuilder.build(library));
+    }
     if (typedef.typeParameters.isEmpty && arguments == null) {
-      Nullability nullability = isNullAlias
-          ? Nullability.nullable
-          : nullabilityBuilder.build(library);
-      return thisType
-          .withNullability(uniteNullabilities(rhsNullability, nullability));
+      return thisType.withNullability(nullability);
     }
     // Otherwise, substitute.
     return buildTypesWithBuiltArguments(
-        library,
-        uniteNullabilities(rhsNullability, nullabilityBuilder.build(library)),
-        buildTypeArguments(library, arguments));
+        library, nullability, buildTypeArguments(library, arguments));
   }
 
   TypeDeclarationBuilder _cachedUnaliasedDeclaration;

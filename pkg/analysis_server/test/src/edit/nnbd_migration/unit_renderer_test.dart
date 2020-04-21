@@ -36,6 +36,60 @@ class UnitRendererTest extends NnbdMigrationTestBase {
     return contents;
   }
 
+  void test_conditionFalseInStrongMode() async {
+    await buildInfoForSingleTestFile('''
+int f(String s) {
+  if (s == null) {
+    return 0;
+  } else {
+    return s.length;
+  }
+}
+''', migratedContent: '''
+int  f(String  s) {
+  if (s == null /* == false */) {
+    return 0;
+  } else {
+    return s.length;
+  }
+}
+''', warnOnWeakCode: true);
+    var output = renderUnits()[0];
+    expect(
+        _stripDataAttributes(output.regions),
+        contains(
+            '<span class="region informative-region">/* == false */</span>'));
+    expect(output.edits.keys,
+        contains('1 condition will be false in strong checking mode'));
+  }
+
+  void test_conditionTrueInStrongMode() async {
+    await buildInfoForSingleTestFile('''
+int f(String s) {
+  if (s != null) {
+    return s.length;
+  } else {
+    return 0;
+  }
+}
+''', migratedContent: '''
+int  f(String  s) {
+  if (s != null /* == true */) {
+    return s.length;
+  } else {
+    return 0;
+  }
+}
+''', warnOnWeakCode: true);
+    var output = renderUnits()[0];
+    expect(
+        _stripDataAttributes(output.regions),
+        contains(
+            '<span class="region informative-region">/* == true */</span>'));
+    expect(output.edits.keys,
+        contains('1 condition will be true in strong checking mode'));
+  }
+
   Future<void> test_editList_containsCount() async {
     await buildInfoForSingleTestFile('''
 int a = null;
@@ -205,6 +259,21 @@ class <span id="...">C</span> {
         contains(r'<a href="..." class="nav-link">List</a>'
             r'&lt;<a href="..." class="nav-link">String</a> &gt;? '
             r'<span id="o13">a</span> = null;'));
+  }
+
+  void test_nullAwarenessUnnecessaryInStrongMode() async {
+    await buildInfoForSingleTestFile('''
+int f(String s) => s?.length;
+''', migratedContent: '''
+int  f(String  s) => s?.length;
+''', warnOnWeakCode: true);
+    var output = renderUnits()[0];
+    expect(_stripDataAttributes(output.regions),
+        contains('s<span class="region informative-region">?</span>.length'));
+    expect(
+        output.edits.keys,
+        contains(
+            '1 null-aware access will be unnecessary in strong checking mode'));
   }
 
   Future<void> test_outputContains_addedType() async {

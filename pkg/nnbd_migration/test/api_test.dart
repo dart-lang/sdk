@@ -50,7 +50,9 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     }
     var listener = new TestMigrationListener();
     var migration = NullabilityMigration(listener,
-        permissive: _usePermissiveMode, removeViaComments: removeViaComments);
+        permissive: _usePermissiveMode,
+        removeViaComments: removeViaComments,
+        warnOnWeakCode: false);
     for (var path in input.keys) {
       if (!(await session.getFile(path)).isPart) {
         for (var unit in (await session.getResolvedLibrary(path)).units) {
@@ -525,6 +527,28 @@ main() {
   g(false, null);
 }
 ''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/41551')
+  Future<void> test_conditional_expression_guard_subexpression() async {
+    var content = '''
+void f(String s, int x) {
+  s == null ? (x = null) : (x = s.length);
+}
+''';
+    var expected = '''
+void f(String s, int x) {
+  s == null ? (x = null!) : (x = s.length);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/41551')
+  Future<void> test_conditional_expression_guard_value() async {
+    var content = 'int f(String s) => s == null ? null : s.length;';
+    var expected = 'int f(String s) => s == null ? null! : s.length;';
     await _checkSingleFileChanges(content, expected);
   }
 

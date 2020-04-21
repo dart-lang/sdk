@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_RELOCATION_H_
 #define RUNTIME_VM_COMPILER_RELOCATION_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/allocation.h"
 #include "vm/image_snapshot.h"
 #include "vm/intrusive_dlist.h"
@@ -189,9 +193,12 @@ class CodeRelocator : public StackResource {
   bool IsTargetInRangeFor(UnresolvedCall* unresolved_call,
                           intptr_t target_text_offset);
 
+  RawCode* GetTarget(const StaticCallsTableEntry& entry);
+
   // The code relocation happens during AOT snapshot writing and operates on raw
   // objects. No allocations can be done.
   NoSafepointScope no_savepoint_scope_;
+  Thread* thread_;
 
   const GrowableArray<RawCode*>* code_objects_;
   GrowableArray<ImageWriterCommand>* commands_;

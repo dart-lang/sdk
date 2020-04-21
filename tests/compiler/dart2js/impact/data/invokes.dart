@@ -117,13 +117,144 @@ testTopLevelInvoke() {
   topLevelFunction3(15, c: 16, b: 17);
 }
 
-/*member: topLevelFunction1Typed:static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),findType(1),instanceType(1)],type=[inst:Closure,inst:JSBool,param:int]*/
+/*member: topLevelFunction1Typed:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  param:int]
+*/
 void topLevelFunction1Typed(int a) {}
 
-/*member: topLevelFunction2Typed:static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),findType(1),instanceType(1)],type=[inst:Closure,inst:JSBool,inst:JSNull,param:String,param:double,param:num]*/
+/*member: topLevelFunction2Typed:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:String,
+  param:double,
+  param:num]
+*/
 int topLevelFunction2Typed(String a, [num b, double c]) => null;
 
-/*member: topLevelFunction3Typed:static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),checkSubtype(4),findType(1),getRuntimeTypeArgument(3),getRuntimeTypeArgumentIntercepted(4),getRuntimeTypeInfo(1),getTypeArgumentByIndex(2),instanceType(1),setRuntimeTypeInfo(2)],type=[inst:Closure,inst:JSArray<dynamic>,inst:JSBool,inst:JSExtendableArray<dynamic>,inst:JSFixedArray<dynamic>,inst:JSMutableArray<dynamic>,inst:JSNull,inst:JSUnmodifiableArray<dynamic>,param:List<int>,param:Map<String,bool>,param:bool]*/
+/*member: topLevelFunction3Typed:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSNull,
+  inst:JSUnmodifiableArray<dynamic>,
+  param:List<int>,
+  param:Map<String,bool>,
+  param:bool]
+*/
 double topLevelFunction3Typed(bool a, {List<int> b, Map<String, bool> c}) {
   return null;
 }
@@ -164,16 +295,212 @@ testTopLevelInvokeTyped() {
   topLevelFunction3Typed(false, c: {'16': false}, b: [17]);
 }
 
-/*member: topLevelFunctionTyped1:static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),checkSubtype(4),findType(1),getRuntimeTypeArgument(3),getRuntimeTypeArgumentIntercepted(4),getRuntimeTypeInfo(1),getTypeArgumentByIndex(2),instanceType(1),setRuntimeTypeInfo(2)],type=[inst:Closure,inst:JSArray<dynamic>,inst:JSBool,inst:JSExtendableArray<dynamic>,inst:JSFixedArray<dynamic>,inst:JSMutableArray<dynamic>,inst:JSUnmodifiableArray<dynamic>,param:void Function(num)]*/
+/*member: topLevelFunctionTyped1:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSUnmodifiableArray<dynamic>,
+  param:void Function(num)]
+*/
 topLevelFunctionTyped1(void a(num b)) {}
 
-/*member: topLevelFunctionTyped2:static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),checkSubtype(4),findType(1),getRuntimeTypeArgument(3),getRuntimeTypeArgumentIntercepted(4),getRuntimeTypeInfo(1),getTypeArgumentByIndex(2),instanceType(1),setRuntimeTypeInfo(2)],type=[inst:Closure,inst:JSArray<dynamic>,inst:JSBool,inst:JSExtendableArray<dynamic>,inst:JSFixedArray<dynamic>,inst:JSMutableArray<dynamic>,inst:JSUnmodifiableArray<dynamic>,param:void Function(num,[String])]*/
+/*member: topLevelFunctionTyped2:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSUnmodifiableArray<dynamic>,
+  param:void Function(num,[String])]
+*/
 topLevelFunctionTyped2(void a(num b, [String c])) {}
 
-/*member: topLevelFunctionTyped3:static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),checkSubtype(4),findType(1),getRuntimeTypeArgument(3),getRuntimeTypeArgumentIntercepted(4),getRuntimeTypeInfo(1),getTypeArgumentByIndex(2),instanceType(1),setRuntimeTypeInfo(2)],type=[inst:Closure,inst:JSArray<dynamic>,inst:JSBool,inst:JSExtendableArray<dynamic>,inst:JSFixedArray<dynamic>,inst:JSMutableArray<dynamic>,inst:JSUnmodifiableArray<dynamic>,param:void Function(num,{String c,int d})]*/
+/*member: topLevelFunctionTyped3:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSUnmodifiableArray<dynamic>,
+  param:void Function(num,{String c,int d})]
+*/
 topLevelFunctionTyped3(void a(num b, {String c, int d})) {}
 
-/*member: topLevelFunctionTyped4:static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),checkSubtype(4),findType(1),getRuntimeTypeArgument(3),getRuntimeTypeArgumentIntercepted(4),getRuntimeTypeInfo(1),getTypeArgumentByIndex(2),instanceType(1),setRuntimeTypeInfo(2)],type=[inst:Closure,inst:JSArray<dynamic>,inst:JSBool,inst:JSExtendableArray<dynamic>,inst:JSFixedArray<dynamic>,inst:JSMutableArray<dynamic>,inst:JSUnmodifiableArray<dynamic>,param:void Function(num,{int c,String d})]*/
+/*member: topLevelFunctionTyped4:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSUnmodifiableArray<dynamic>,
+  param:void Function(num,{int c,String d})]
+*/
 topLevelFunctionTyped4(void a(num b, {String d, int c})) {}
 
 /*member: testTopLevelFunctionTyped:
@@ -212,7 +539,45 @@ set topLevelSetter(_) {}
 /*member: testTopLevelSetterSet:static=[set:topLevelSetter],type=[inst:JSNull]*/
 testTopLevelSetterSet() => topLevelSetter = null;
 
-/*member: topLevelSetterTyped=:static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),findType(1),instanceType(1)],type=[inst:Closure,inst:JSBool,param:int]*/
+/*member: topLevelSetterTyped=:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  param:int]
+*/
 void set topLevelSetterTyped(int value) {}
 
 /*member: testTopLevelSetterSetTyped:static=[set:topLevelSetterTyped],type=[inst:JSNull]*/
@@ -241,25 +606,192 @@ final topLevelFieldFinal = topLevelFunction1(null);
 /*member: testTopLevelFieldFinal:static=[topLevelFieldFinal]*/
 testTopLevelFieldFinal() => topLevelFieldFinal;
 
-/*member: topLevelFieldTyped:static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),findType(1),instanceType(1)],type=[inst:Closure,inst:JSBool,inst:JSNull,param:int]*/
+/*member: topLevelFieldTyped:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:int]
+*/
 int topLevelFieldTyped;
 
 /*member: testTopLevelFieldTyped:static=[topLevelFieldTyped]*/
 testTopLevelFieldTyped() => topLevelFieldTyped;
 
-/*member: topLevelFieldGeneric1:static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),findType(1),instanceType(1)],type=[inst:Closure,inst:JSBool,inst:JSNull,param:GenericClass<dynamic,dynamic>]*/
+/*member: topLevelFieldGeneric1:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:GenericClass<dynamic,dynamic>]
+*/
 GenericClass topLevelFieldGeneric1;
 
 /*member: testTopLevelFieldGeneric1:static=[topLevelFieldGeneric1]*/
 testTopLevelFieldGeneric1() => topLevelFieldGeneric1;
 
-/*member: topLevelFieldGeneric2:static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),findType(1),instanceType(1)],type=[inst:Closure,inst:JSBool,inst:JSNull,param:GenericClass<dynamic,dynamic>]*/
+/*member: topLevelFieldGeneric2:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  findType(1),
+  instanceType(1)],
+ type=[
+  inst:Closure,
+  inst:JSBool,
+  inst:JSNull,
+  param:GenericClass<dynamic,dynamic>]
+*/
 GenericClass<dynamic, dynamic> topLevelFieldGeneric2;
 
 /*member: testTopLevelFieldGeneric2:static=[topLevelFieldGeneric2]*/
 testTopLevelFieldGeneric2() => topLevelFieldGeneric2;
 
-/*member: topLevelFieldGeneric3:static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),checkSubtype(4),findType(1),getRuntimeTypeArgument(3),getRuntimeTypeArgumentIntercepted(4),getRuntimeTypeInfo(1),getTypeArgumentByIndex(2),instanceType(1),setRuntimeTypeInfo(2)],type=[inst:Closure,inst:JSArray<dynamic>,inst:JSBool,inst:JSExtendableArray<dynamic>,inst:JSFixedArray<dynamic>,inst:JSMutableArray<dynamic>,inst:JSNull,inst:JSUnmodifiableArray<dynamic>,param:GenericClass<int,String>]*/
+/*member: topLevelFieldGeneric3:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  checkSubtype(4),
+  findType(1),
+  getRuntimeTypeArgument(3),
+  getRuntimeTypeArgumentIntercepted(4),
+  getRuntimeTypeInfo(1),
+  getTypeArgumentByIndex(2),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSNull,
+  inst:JSUnmodifiableArray<dynamic>,
+  param:GenericClass<int,String>]
+*/
 GenericClass<int, String> topLevelFieldGeneric3;
 
 /*member: testTopLevelFieldGeneric3:static=[topLevelFieldGeneric3]*/
@@ -384,7 +916,57 @@ testLocalFunction() {
   localFunction() {}
 }
 
-/*member: testLocalFunctionTyped:static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),computeSignature(3),def:localFunction,findType(1),getRuntimeTypeArguments(3),getRuntimeTypeInfo(1),instanceType(1),setRuntimeTypeInfo(2)],type=[inst:Closure,inst:Function,inst:JSArray<dynamic>,inst:JSBool,inst:JSExtendableArray<dynamic>,inst:JSFixedArray<dynamic>,inst:JSMutableArray<dynamic>,inst:JSNull,inst:JSUnmodifiableArray<dynamic>,param:String]*/
+/*member: testLocalFunctionTyped:
+ static=[
+  Rti._bind(1),
+  Rti._eval(1),
+  _arrayInstanceType(1),
+  _asBool(1),
+  _asBoolQ(1),
+  _asBoolS(1),
+  _asDouble(1),
+  _asDoubleQ(1),
+  _asDoubleS(1),
+  _asInt(1),
+  _asIntQ(1),
+  _asIntS(1),
+  _asNum(1),
+  _asNumQ(1),
+  _asNumS(1),
+  _asObject(1),
+  _asString(1),
+  _asStringQ(1),
+  _asStringS(1),
+  _asTop(1),
+  _generalAsCheckImplementation(1),
+  _generalIsTestImplementation(1),
+  _installSpecializedIsTest(1),
+  _instanceType(1),
+  _isBool(1),
+  _isInt(1),
+  _isNum(1),
+  _isObject(1),
+  _isString(1),
+  _isTop(1),
+  computeSignature(3),
+  def:localFunction,
+  findType(1),
+  getRuntimeTypeArguments(3),
+  getRuntimeTypeInfo(1),
+  instanceType(1),
+  setRuntimeTypeInfo(2)],
+ type=[
+  inst:Closure,
+  inst:Function,
+  inst:JSArray<dynamic>,
+  inst:JSBool,
+  inst:JSExtendableArray<dynamic>,
+  inst:JSFixedArray<dynamic>,
+  inst:JSMutableArray<dynamic>,
+  inst:JSNull,
+  inst:JSUnmodifiableArray<dynamic>,
+  param:String]
+*/
 testLocalFunctionTyped() {
   // ignore: UNUSED_ELEMENT
   int localFunction(String a) => null;

@@ -19,7 +19,7 @@ import '../../../protocol_server.dart'
 class LibraryMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     // Determine if the target looks like a library prefix.
     var targetId = request.dotTarget;
     if (targetId is SimpleIdentifier && !request.target.isCascade) {

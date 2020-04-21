@@ -118,13 +118,12 @@ final String _implCode = r'''
 
   Future get onDone => _onDoneCompleter.future;
 
-  Future<T> _call<T>(String method, [Map args]) {
+  Future<T> _call<T>(String method, [Map args = const {}]) {
     String id = '${++_id}';
     Completer<T> completer = Completer<T>();
     _completers[id] = completer;
     _methodCalls[id] = method;
-    Map m = {'id': id, 'method': method};
-    if (args != null) m['params'] = args;
+    Map m = {'jsonrpc': '2.0', 'id': id, 'method': method, 'params': args,};
     String message = jsonEncode(m);
     _onSend.add(message);
     _writeMessage(message);

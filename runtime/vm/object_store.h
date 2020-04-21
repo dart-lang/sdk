@@ -196,6 +196,11 @@ class ObjectPointerVisitor;
   RW(Code, instance_of_stub)                                                   \
   RW(Code, init_static_field_stub)                                             \
   RW(Code, call_closure_no_such_method_stub)                                   \
+  RW(Code, default_tts_stub)                                                   \
+  RW(Code, default_nullable_tts_stub)                                          \
+  RW(Code, top_type_tts_stub)                                                  \
+  RW(Code, unreachable_tts_stub)                                               \
+  RW(Code, slow_tts_stub)                                                      \
   R_(Code, megamorphic_call_miss_code)                                         \
   R_(Function, megamorphic_call_miss_function)                                 \
   RW(Array, dispatch_table_code_entries)                                       \
@@ -228,6 +233,11 @@ class ObjectPointerVisitor;
   DO(allocate_object_parametrized_stub, AllocateObjectParameterized)           \
   DO(clone_context_stub, CloneContext)                                         \
   DO(call_closure_no_such_method_stub, CallClosureNoSuchMethod)                \
+  DO(default_tts_stub, DefaultTypeTest)                                        \
+  DO(default_nullable_tts_stub, DefaultNullableTypeTest)                       \
+  DO(top_type_tts_stub, TopTypeTypeTest)                                       \
+  DO(unreachable_tts_stub, UnreachableTypeTest)                                \
+  DO(slow_tts_stub, SlowTypeTest)                                              \
   DO(write_barrier_wrappers_stub, WriteBarrierWrappers)                        \
   DO(array_write_barrier_stub, ArrayWriteBarrier)                              \
   DO(throw_stub, Throw)                                                        \

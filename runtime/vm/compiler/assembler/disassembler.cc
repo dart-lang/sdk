@@ -369,13 +369,22 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
     auto& cls = Class::Handle(zone);
     auto& kind_type_and_offset = Smi::Handle(zone);
     auto& function = Function::Handle(zone);
+    auto& object = Object::Handle(zone);
     auto& code = Code::Handle(zone);
+    auto& dst_type = AbstractType::Handle(zone);
     if (!table.IsNull()) {
       StaticCallsTable static_calls(table);
       for (auto& call : static_calls) {
         kind_type_and_offset = call.Get<Code::kSCallTableKindAndOffset>();
         function = call.Get<Code::kSCallTableFunctionTarget>();
-        code = call.Get<Code::kSCallTableCodeTarget>();
+        object = call.Get<Code::kSCallTableCodeOrTypeTarget>();
+
+        dst_type = AbstractType::null();
+        if (object.IsAbstractType()) {
+          dst_type = AbstractType::Cast(object).raw();
+        } else if (object.IsCode()) {
+          code = Code::Cast(object).raw();
+        }
 
         auto kind = Code::KindField::decode(kind_type_and_offset.Value());
         auto offset = Code::OffsetField::decode(kind_type_and_offset.Value());
@@ -389,6 +398,9 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
           case Code::kPcRelativeCall:
             skind = "pc-relative-call";
             break;
+          case Code::kPcRelativeTTSCall:
+            skind = "pc-relative-tts-call";
+            break;
           case Code::kPcRelativeTailCall:
             skind = "pc-relative-tail-call";
             break;
@@ -398,7 +410,10 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
           default:
             UNREACHABLE();
         }
-        if (function.IsNull()) {
+        if (!dst_type.IsNull()) {
+          THR_Print("  0x%" Px ": type testing stub %s, (%s)%s\n",
+                    base + offset, dst_type.ToCString(), skind, s_entry_point);
+        } else if (function.IsNull()) {
           cls ^= code.owner();
           if (cls.IsNull()) {
             THR_Print("  0x%" Px ": %s, (%s)%s\n", base + offset,

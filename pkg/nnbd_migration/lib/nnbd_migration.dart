@@ -17,20 +17,35 @@ export 'package:nnbd_migration/src/utilities/hint_utils.dart' show HintComment;
 
 /// Description of fixes that might be performed by nullability migration.
 class NullabilityFixDescription {
-  /// An if-test or conditional expression needs to have its condition and
-  /// "then" branch discarded.
-  static const discardThen = const NullabilityFixDescription._(
-    appliedMessage:
-        'Discarded a condition which is always false, and the "then" branch '
-        'that follows',
-    kind: NullabilityFixKind.removeDeadCode,
-  );
-
   /// A variable declaration needs to be marked as "late" due to the presence of
   /// a `/*late*/` hint.
   static const addLateDueToHint = const NullabilityFixDescription._(
       appliedMessage: 'Added a late keyword, due to a hint',
       kind: NullabilityFixKind.addLateDueToHint);
+
+  /// An expression's value needs to be null-checked.
+  static const checkExpression = const NullabilityFixDescription._(
+    appliedMessage: 'Added a non-null assertion to nullable expression',
+    kind: NullabilityFixKind.checkExpression,
+  );
+
+  /// An expression's value will be null-checked due to a hint.
+  static const checkExpressionDueToHint = const NullabilityFixDescription._(
+    appliedMessage: 'Accepted a null check hint',
+    kind: NullabilityFixKind.checkExpressionDueToHint,
+  );
+
+  /// Informative message: a condition of an if-test or conditional expression
+  /// will always evaluate to `false` in strong checking mode.
+  static const conditionFalseInStrongMode = const NullabilityFixDescription._(
+      appliedMessage: 'Condition will always be false in strong checking mode',
+      kind: NullabilityFixKind.conditionFalseInStrongMode);
+
+  /// Informative message: a condition of an if-test or conditional expression
+  /// will always evaluate to `true` in strong checking mode.
+  static const conditionTrueInStrongMode = const NullabilityFixDescription._(
+      appliedMessage: 'Condition will always be true in strong checking mode',
+      kind: NullabilityFixKind.conditionTrueInStrongMode);
 
   /// An if-test or conditional expression needs to have its condition
   /// discarded.
@@ -46,6 +61,15 @@ class NullabilityFixDescription {
     kind: NullabilityFixKind.removeDeadCode,
   );
 
+  /// An if-test or conditional expression needs to have its condition and
+  /// "then" branch discarded.
+  static const discardThen = const NullabilityFixDescription._(
+    appliedMessage:
+        'Discarded a condition which is always false, and the "then" branch '
+        'that follows',
+    kind: NullabilityFixKind.removeDeadCode,
+  );
+
   /// An if-test needs to be discarded completely.
   static const discardIf = const NullabilityFixDescription._(
     appliedMessage: 'Discarded an if-test with no effect',
@@ -57,21 +81,17 @@ class NullabilityFixDescription {
     kind: NullabilityFixKind.downcastExpression,
   );
 
+  /// Informative message: a null-aware access won't be necessary in strong
+  /// checking mode.
+  static const nullAwarenessUnnecessaryInStrongMode =
+      const NullabilityFixDescription._(
+          appliedMessage:
+              'Null-aware access will be unnecessary in strong checking mode',
+          kind: NullabilityFixKind.nullAwarenessUnnecessaryInStrongMode);
+
   static const otherCastExpression = const NullabilityFixDescription._(
     appliedMessage: 'Added a cast to an expression (non-downcast)',
     kind: NullabilityFixKind.otherCastExpression,
-  );
-
-  /// An expression's value needs to be null-checked.
-  static const checkExpression = const NullabilityFixDescription._(
-    appliedMessage: 'Added a non-null assertion to nullable expression',
-    kind: NullabilityFixKind.checkExpression,
-  );
-
-  /// An expression's value will be null-checked due to a hint.
-  static const checkExpressionDueToHint = const NullabilityFixDescription._(
-    appliedMessage: 'Accepted a null check hint',
-    kind: NullabilityFixKind.checkExpressionDueToHint,
   );
 
   /// An unnecessary downcast has been discarded.
@@ -182,12 +202,15 @@ class NullabilityFixDescription {
 enum NullabilityFixKind {
   addLateDueToHint,
   addRequired,
+  addType,
   checkExpression,
   checkExpressionDueToHint,
+  conditionFalseInStrongMode,
+  conditionTrueInStrongMode,
   downcastExpression,
-  addType,
   makeTypeNullable,
   makeTypeNullableDueToHint,
+  nullAwarenessUnnecessaryInStrongMode,
   otherCastExpression,
   removeAs,
   removeDeadCode,
@@ -211,12 +234,17 @@ abstract class NullabilityMigration {
   /// complete.  TODO(paulberry): remove this mode once the migration algorithm
   /// is fully implemented.
   ///
-  /// Optional parameter [removeViaComments] indicates whether dead code should
-  /// be removed in its entirety (the default) or removed by commenting it out.
+  /// Optional parameter [removeViaComments] indicates whether code that the
+  /// migration tool wishes to remove should instead be commenting it out.
+  ///
+  /// Optional parameter [warnOnWeakCode] indicates whether weak-only code
+  /// should be warned about or removed (in the way specified by
+  /// [removeViaComments]).
   factory NullabilityMigration(NullabilityMigrationListener listener,
       {bool permissive,
       NullabilityMigrationInstrumentation instrumentation,
-      bool removeViaComments}) = NullabilityMigrationImpl;
+      bool removeViaComments,
+      bool warnOnWeakCode}) = NullabilityMigrationImpl;
 
   /// Check if this migration is being run permissively.
   bool get isPermissive;

@@ -663,6 +663,8 @@ class Message {
   final CompilerOptions _options;
   bool get terse => _options?.terseDiagnostics ?? false;
   bool get _printLegacyStars => _options?.printLegacyStars ?? false;
+  bool get _useNullSafety => _options?.useNullSafety ?? true;
+  bool get _useLegacySubtyping => _options?.useLegacySubtyping ?? false;
   String message;
 
   Message(this.template, this.arguments, this._options) {
@@ -712,7 +714,10 @@ class Message {
 
   String convertToString(value) {
     if (value is DartType) {
-      value = value.toStructuredText(printLegacyStars: _printLegacyStars);
+      value = value.toStructuredText(
+          printLegacyStars: _printLegacyStars,
+          useNullSafety: _useNullSafety,
+          useLegacySubtyping: _useLegacySubtyping);
     } else if (value is ConstantValue) {
       value = value.toDartText();
     } else {

@@ -180,6 +180,7 @@ RawCode* TypeTestingStubGenerator::OptimizedCodeForType(
 
 RawCode* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   auto thread = Thread::Current();
+  auto zone = thread->zone();
   HierarchyInfo* hi = thread->hierarchy_info();
   ASSERT(hi != NULL);
 
@@ -191,9 +192,20 @@ RawCode* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   const Class& type_class = Class::Handle(type.type_class());
   ASSERT(!type_class.IsNull());
 
+  auto& slow_tts_stub = Code::ZoneHandle(zone);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    slow_tts_stub = thread->isolate()->object_store()->slow_tts_stub();
+  }
+
   // To use the already-defined __ Macro !
   compiler::Assembler assembler(nullptr);
-  BuildOptimizedTypeTestStub(&assembler, hi, type, type_class);
+  compiler::UnresolvedPcRelativeCalls unresolved_calls;
+  BuildOptimizedTypeTestStub(&assembler, &unresolved_calls, slow_tts_stub, hi,
+                             type, type_class);
+
+  const auto& static_calls_table =
+      Array::Handle(zone, compiler::StubCodeCompiler::BuildStaticCallsTable(
+                              zone, &unresolved_calls));
 
   const char* name = namer_.StubNameForType(type);
   const auto pool_attachment = FLAG_use_bare_instructions
@@ -204,6 +216,9 @@ RawCode* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   auto install_code_fun = [&]() {
     code = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
                               /*optimized=*/false, /*stats=*/nullptr);
+    if (!static_calls_table.IsNull()) {
+      code.set_static_calls_target_table(static_calls_table);
+    }
   };
 
   // We have to ensure no mutators are running, because:

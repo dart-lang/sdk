@@ -8,6 +8,7 @@ import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -33,7 +34,7 @@ class ArgListContributor extends DartCompletionContributor {
 
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     var executable = request.target.executableElement;
     if (executable == null) {
       return const <CompletionSuggestion>[];

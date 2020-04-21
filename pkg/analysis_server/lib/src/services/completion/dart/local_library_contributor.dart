@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
-    show createSuggestion, ElementSuggestionBuilder;
+    show createSuggestion, ElementSuggestionBuilder, SuggestionBuilder;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -23,6 +23,7 @@ import '../../../protocol_server.dart'
 /// the source in which the completions are being requested.
 class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
     with ElementSuggestionBuilder {
+  @override
   final DartCompletionRequest request;
 
   final OpType optype;
@@ -301,7 +302,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
 class LocalLibraryContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     if (!request.includeIdentifiers) {
       return const <CompletionSuggestion>[];
     }

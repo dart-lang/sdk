@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Class for intrinsifying functions.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/graph_intrinsifier.h"
 #include "vm/compiler/backend/block_builder.h"
 #include "vm/compiler/backend/flow_graph.h"
@@ -1074,5 +1072,3 @@ bool GraphIntrinsifier::Build_DoubleRound(FlowGraph* flow_graph) {
 
 }  // namespace compiler
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

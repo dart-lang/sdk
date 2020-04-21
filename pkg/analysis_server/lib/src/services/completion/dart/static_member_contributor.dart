@@ -22,7 +22,7 @@ import 'package:meta/meta.dart';
 class StaticMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     var targetId = request.dotTarget;
     if (targetId is Identifier && !request.target.isCascade) {
       var elem = targetId.staticElement;

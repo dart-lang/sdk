@@ -205,14 +205,21 @@ class UriSerializer extends TextSerializer<Uri> {
 // A tagged union of serializer/deserializers.
 class Case<T extends Node> extends TextSerializer<T> {
   final Tagger<T> tagger;
-  final List<String> tags;
-  final List<TextSerializer<T>> serializers;
+  final List<String> _tags;
+  final List<TextSerializer<T>> _serializers;
 
-  const Case(this.tagger, this.tags, this.serializers);
+  Case(this.tagger, Map<String, TextSerializer<T>> tagsAndSerializers)
+      : _tags = tagsAndSerializers.keys.toList(),
+        _serializers = tagsAndSerializers.values.toList();
 
   Case.uninitialized(this.tagger)
-      : tags = [],
-        serializers = [];
+      : _tags = [],
+        _serializers = [];
+
+  void registerTags(Map<String, TextSerializer<T>> tagsAndSerializers) {
+    _tags.addAll(tagsAndSerializers.keys);
+    _serializers.addAll(tagsAndSerializers.values);
+  }
 
   T readFrom(Iterator<Object> stream, DeserializationState state) {
     if (stream.current is! Iterator) {
@@ -224,10 +231,10 @@ class Case<T extends Node> extends TextSerializer<T> {
       throw StateError("expected atom, found list");
     }
     String tag = nested.current;
-    for (int i = 0; i < tags.length; ++i) {
-      if (tags[i] == tag) {
+    for (int i = 0; i < _tags.length; ++i) {
+      if (_tags[i] == tag) {
         nested.moveNext();
-        T result = serializers[i].readFrom(nested, state);
+        T result = _serializers[i].readFrom(nested, state);
         if (nested.moveNext()) {
           throw StateError("extra cruft in tagged '${tag}'");
         }
@@ -240,18 +247,18 @@ class Case<T extends Node> extends TextSerializer<T> {
 
   void writeTo(StringBuffer buffer, T object, SerializationState state) {
     String tag = tagger.tag(object);
-    for (int i = 0; i < tags.length; ++i) {
-      if (tags[i] == tag) {
+    for (int i = 0; i < _tags.length; ++i) {
+      if (_tags[i] == tag) {
         buffer.write("(${tag}");
-        if (!serializers[i].isEmpty) {
+        if (!_serializers[i].isEmpty) {
           buffer.write(" ");
         }
-        serializers[i].writeTo(buffer, object, state);
+        _serializers[i].writeTo(buffer, object, state);
         buffer.write(")");
         return;
       }
     }
-    throw StateError("unrecognized tag '${tag}");
+    throw StateError("unrecognized tag '${tag}'");
   }
 }
 

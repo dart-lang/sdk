@@ -898,17 +898,18 @@ class GenericFunctionType extends AbstractFunctionType {
         JS('', '#[2]', parts), JS('', '#[3]', parts));
   }
 
-  List instantiateTypeBounds(List typeArgs) {
+  List<Object> instantiateTypeBounds(List typeArgs) {
     if (!hasTypeBounds) {
-      // We ommit the a bound to represent Object*. Other bounds are explicitly
+      // We omit the a bound to represent Object*. Other bounds are explicitly
       // represented, including Object, Object? and dynamic.
       // TODO(nshahan) Revisit this representation when more libraries have
       // migrated to null safety.
-      return List.filled(formalCount, legacy(unwrapType(Object)));
+      return List<Object>.filled(formalCount, legacy(unwrapType(Object)));
     }
     // Bounds can be recursive or depend on other type parameters, so we need to
     // apply type arguments and return the resulting bounds.
-    return JS('List', '#.apply(null, #)', _instantiateTypeBounds, typeArgs);
+    return JS<List<Object>>(
+        '!', '#.apply(null, #)', _instantiateTypeBounds, typeArgs);
   }
 
   toString() {
@@ -934,10 +935,30 @@ class GenericFunctionType extends AbstractFunctionType {
   /// See the issue for the algorithm description:
   /// <https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397>
   List instantiateDefaultBounds() {
+    /// Returns `true` if the default value for the type bound should be
+    /// `dynamic`.
+    ///
+    /// Dart 2 with null safety uses dynamic as the default value for types
+    /// without explicit bounds.
+    ///
+    /// This is similar to [_isTop] but removes the check for `void` (it can't
+    /// be written as a bound) and adds a check of `Object*` in weak mode.
+    bool defaultsToDynamic(type) {
+      // Technically this is wrong, only implicit bounds of `Object?` and
+      // `Object*` should default to dynamic but code that observes the
+      // difference is rare.
+      if (_equalType(type, dynamic)) return true;
+      if (_jsInstanceOf(type, NullableType) ||
+          (!_strictSubtypeChecks && _jsInstanceOf(type, LegacyType))) {
+        return _equalType(JS('!', '#.type', type), Object);
+      }
+      return false;
+    }
+
     var typeFormals = this.typeFormals;
 
     // All type formals
-    var all = HashMap<Object, int>.identity();
+    var all = HashMap<TypeVariable, int>.identity();
     // ground types, by index.
     //
     // For each index, this will be a ground type for the corresponding type
@@ -953,8 +974,11 @@ class GenericFunctionType extends AbstractFunctionType {
       var typeFormal = typeFormals[i];
       var bound = typeBounds[i];
       all[typeFormal] = i;
-      if (identical(bound, _dynamic)) {
-        defaults[i] = bound;
+      if (defaultsToDynamic(bound)) {
+        // TODO(nshahan) Persist the actual default values into the runtime so
+        // they can be used here instead of using dynamic for all top types
+        // implicit or explicit.
+        defaults[i] = _dynamic;
       } else {
         defaults[i] = typeFormal;
         partials[typeFormal] = bound;
@@ -962,11 +986,12 @@ class GenericFunctionType extends AbstractFunctionType {
     }
 
     bool hasFreeFormal(t) {
+      if (partials.containsKey(t)) return true;
+
       // Ignore nullability wrappers.
       if (_jsInstanceOf(t, LegacyType) || _jsInstanceOf(t, NullableType)) {
         return hasFreeFormal(JS<Object>('!', '#.type', t));
       }
-      if (partials.containsKey(t)) return true;
       // Generic classes and typedefs.
       var typeArgs = getGenericArgs(t);
       if (typeArgs != null) return typeArgs.any(hasFreeFormal);

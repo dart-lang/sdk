@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_ARM_H_
 #define RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_ARM_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_H_
 #error Do not include assembler_arm.h directly; use assembler.h instead.
 #endif
@@ -814,7 +818,7 @@ class Assembler : public AssemblerBase {
   void LoadWordFromPoolOffset(Register rd,
                               int32_t offset,
                               Register pp,
-                              Condition cond);
+                              Condition cond = AL);
 
   void LoadObject(Register rd, const Object& object, Condition cond = AL);
   void LoadUniqueObject(Register rd, const Object& object, Condition cond = AL);

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"  // NOLINT
-#if defined(TARGET_ARCH_ARM) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(TARGET_ARCH_ARM)
 
 #define SHOULD_NOT_INCLUDE_RUNTIME
 
@@ -3805,4 +3805,4 @@ void Assembler::StoreWordUnaligned(Register src, Register addr, Register tmp) {
 }  // namespace compiler
 }  // namespace dart
 
-#endif  // defined(TARGET_ARCH_ARM) && !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(TARGET_ARCH_ARM)

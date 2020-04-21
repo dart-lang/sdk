@@ -221,8 +221,8 @@ class _SocketStatistic {
     final map = <String, dynamic>{
       'id': id,
     };
-    _setIfNotNull(map, 'startTime', startTime.toString());
-    _setIfNotNull(map, 'endTime', endTime.toString());
+    _setIfNotNull(map, 'startTime', startTime);
+    _setIfNotNull(map, 'endTime', endTime);
     _setIfNotNull(map, 'address', address);
     _setIfNotNull(map, 'port', port);
     _setIfNotNull(map, 'socketType', socketType);

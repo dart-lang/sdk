@@ -24,6 +24,9 @@ class UnitRenderer {
   @visibleForTesting
   static const List<NullabilityFixKind> kindPriorityOrder = [
     NullabilityFixKind.removeDeadCode,
+    NullabilityFixKind.conditionTrueInStrongMode,
+    NullabilityFixKind.conditionFalseInStrongMode,
+    NullabilityFixKind.nullAwarenessUnnecessaryInStrongMode,
     NullabilityFixKind.otherCastExpression,
     NullabilityFixKind.checkExpression,
     NullabilityFixKind.addRequired,
@@ -67,7 +70,7 @@ class UnitRenderer {
   /// Returns the list of edits, as JSON.
   Map<String, List<EditListItem>> _computeEditList() {
     var editListsByKind = <NullabilityFixKind, List<EditListItem>>{};
-    for (var region in unitInfo.fixRegions) {
+    for (var region in unitInfo.regions) {
       var kind = region.kind;
       if (kind != null && region.isCounted) {
         (editListsByKind[kind] ??= []).add(EditListItem(
@@ -240,11 +243,14 @@ class UnitRenderer {
 
   String _headerForKind(NullabilityFixKind kind, int count) {
     var s = count == 1 ? '' : 's';
+    var es = count == 1 ? '' : 'es';
     switch (kind) {
       case NullabilityFixKind.addLateDueToHint:
         return '$count late hint$s converted to late keyword$s';
       case NullabilityFixKind.addRequired:
         return '$count required keyword$s added';
+      case NullabilityFixKind.addType:
+        return '$count type$s added';
       case NullabilityFixKind.downcastExpression:
         return '$count downcast$s added';
       case NullabilityFixKind.otherCastExpression:
@@ -253,17 +259,22 @@ class UnitRenderer {
         return '$count null check$s added';
       case NullabilityFixKind.checkExpressionDueToHint:
         return '$count null check hint$s converted to null check$s';
-      case NullabilityFixKind.addType:
-        return '$count type$s added';
+      case NullabilityFixKind.conditionTrueInStrongMode:
+        return '$count condition$s will be true in strong checking mode';
+        break;
+      case NullabilityFixKind.conditionFalseInStrongMode:
+        return '$count condition$s will be false in strong checking mode';
+        break;
       case NullabilityFixKind.makeTypeNullable:
         return '$count type$s made nullable';
       case NullabilityFixKind.makeTypeNullableDueToHint:
         return '$count nullability hint$s converted to ?$s';
+      case NullabilityFixKind.nullAwarenessUnnecessaryInStrongMode:
+        return '$count null-aware access$es will be unnecessary in strong '
+            'checking mode';
       case NullabilityFixKind.removeAs:
         return '$count cast$s now unnecessary';
       case NullabilityFixKind.removeDeadCode:
-        // TODO(paulberry): when we change to not removing dead code, change
-        // this description string.
         return '$count dead code removal$s';
       case NullabilityFixKind.removeLanguageVersionComment:
         return '$count language version comment$s removed';

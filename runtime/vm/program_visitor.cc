@@ -87,7 +87,7 @@ class ProgramWalker : public ValueObject {
         class_code_(Code::Handle(zone)),
         function_code_(Code::Handle(zone)),
         static_calls_array_(Array::Handle(zone)),
-        static_call_code_(Code::Handle(zone)),
+        static_calls_table_entry_(Object::Handle(zone)),
         worklist_entry_(Object::Handle(zone)) {}
 
   ~ProgramWalker() { heap_->ResetObjectIdTable(); }
@@ -180,8 +180,10 @@ class ProgramWalker : public ValueObject {
     if (static_calls_array_.IsNull()) return;
     StaticCallsTable static_calls(static_calls_array_);
     for (auto& view : static_calls) {
-      static_call_code_ = view.Get<Code::kSCallTableCodeTarget>();
-      AddToWorklist(static_call_code_);
+      static_calls_table_entry_ = view.Get<Code::kSCallTableCodeOrTypeTarget>();
+      if (static_calls_table_entry_.IsCode()) {
+        AddToWorklist(Code::Cast(static_calls_table_entry_));
+      }
     }
   }
 
@@ -196,7 +198,7 @@ class ProgramWalker : public ValueObject {
   Code& class_code_;
   Code& function_code_;
   Array& static_calls_array_;
-  Code& static_call_code_;
+  Object& static_calls_table_entry_;
   Object& worklist_entry_;
 };
 
@@ -349,15 +351,17 @@ void ProgramVisitor::BindStaticCalls(Zone* zone, Isolate* isolate) {
         kind_and_offset_ = view.Get<Code::kSCallTableKindAndOffset>();
         auto const kind = Code::KindField::decode(kind_and_offset_.Value());
         if (kind != Code::kCallViaCode) {
-          ASSERT(!FLAG_precompiled_mode || kind == Code::kPcRelativeCall ||
-                 kind == Code::kPcRelativeTailCall);
+          ASSERT(kind == Code::kPcRelativeCall ||
+                 kind == Code::kPcRelativeTailCall ||
+                 kind == Code::kPcRelativeTTSCall);
           only_call_via_code = false;
           continue;
         }
 
         target_ = view.Get<Code::kSCallTableFunctionTarget>();
         if (target_.IsNull()) {
-          target_ = view.Get<Code::kSCallTableCodeTarget>();
+          target_ =
+              Code::RawCast(view.Get<Code::kSCallTableCodeOrTypeTarget>());
           ASSERT(!Code::Cast(target_).IsFunctionCode());
           // Allocation stub or AllocateContext or AllocateArray or ...
           continue;

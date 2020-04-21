@@ -6043,8 +6043,9 @@ class Code : public Object {
 
   enum CallKind {
     kPcRelativeCall = 1,
-    kPcRelativeTailCall = 2,
-    kCallViaCode = 3,
+    kPcRelativeTTSCall = 2,
+    kPcRelativeTailCall = 3,
+    kCallViaCode = 4,
   };
 
   enum CallEntryPoint {
@@ -6054,7 +6055,7 @@ class Code : public Object {
 
   enum SCallTableEntry {
     kSCallTableKindAndOffset = 0,
-    kSCallTableCodeTarget = 1,
+    kSCallTableCodeOrTypeTarget = 1,
     kSCallTableFunctionTarget = 2,
     kSCallTableEntryLength = 3,
   };
@@ -6064,11 +6065,11 @@ class Code : public Object {
     kNotAttachPool,
   };
 
-  class KindField : public BitField<intptr_t, CallKind, 0, 2> {};
+  class KindField : public BitField<intptr_t, CallKind, 0, 3> {};
   class EntryPointField
       : public BitField<intptr_t, CallEntryPoint, KindField::kNextBit, 1> {};
   class OffsetField
-      : public BitField<intptr_t, intptr_t, EntryPointField::kNextBit, 27> {};
+      : public BitField<intptr_t, intptr_t, EntryPointField::kNextBit, 26> {};
 
   void set_static_calls_target_table(const Array& value) const;
   RawArray* static_calls_target_table() const {
@@ -11189,7 +11190,9 @@ using InvocationDispatcherTable =
                       std::tuple<String, Array, Function>>;
 
 using StaticCallsTable =
-    ArrayOfTuplesView<Code::SCallTableEntry, std::tuple<Smi, Code, Function>>;
+    ArrayOfTuplesView<Code::SCallTableEntry, std::tuple<Smi, Object, Function>>;
+
+using StaticCallsTableEntry = StaticCallsTable::TupleView;
 
 using SubtypeTestCacheTable = ArrayOfTuplesView<SubtypeTestCache::Entries,
                                                 std::tuple<Object,

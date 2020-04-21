@@ -5,8 +5,6 @@
 #include "vm/compiler/frontend/kernel_fingerprints.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #define H (translation_helper_)
 #define I Isolate::Current()
 
@@ -880,5 +878,3 @@ uint32_t KernelSourceFingerprintHelper::CalculateFunctionFingerprint(
 
 }  // namespace kernel
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

@@ -11,7 +11,7 @@
 
 #include "vm/compiler/stub_code_compiler.h"
 
-#if defined(TARGET_ARCH_ARM64) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(TARGET_ARCH_ARM64)
 
 #include "vm/class_id.h"
 #include "vm/code_entry_kind.h"
@@ -1446,9 +1446,11 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 //   R3 : current thread.
 void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
     Assembler* assembler) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  __ Stop("Not using interpreter");
-#else
+  if (FLAG_precompiled_mode) {
+    __ Stop("Not using interpreter");
+    return;
+  }
+
   // Copy the C stack pointer (CSP/R31) into the stack pointer we'll actually
   // use to access the stack (SP/R15) and set the C stack pointer to near the
   // stack limit, loaded from the Thread held in R3, to prevent signal handlers
@@ -1576,7 +1578,6 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   __ Drop(1);
   __ RestoreCSP();
   __ ret();
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 // Helper to generate space allocation of context stub.
@@ -2841,9 +2842,11 @@ void StubCodeCompiler::GenerateLazyCompileStub(Assembler* assembler) {
 // R4: Arguments descriptor.
 // R0: Function.
 void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  __ Stop("Not using interpreter")
-#else
+  if (FLAG_precompiled_mode) {
+    __ Stop("Not using interpreter");
+    return;
+  }
+
   __ SetPrologueOffset();
   __ EnterStubFrame();
 
@@ -2919,7 +2922,6 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
 
   __ LeaveStubFrame();
   __ ret();
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 // R5: Contains an ICData.
@@ -3276,6 +3278,10 @@ void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
 void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   Label done, call_runtime;
 
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    __ ldr(CODE_REG,
+           Address(THR, target::Thread::slow_type_test_stub_offset()));
+  }
   __ EnterStubFrame();
 
   // If the subtype-cache is null, it needs to be lazily-created by the runtime.
@@ -3909,4 +3915,4 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
 
 }  // namespace dart
 
-#endif  // defined(TARGET_ARCH_ARM64) && !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(TARGET_ARCH_ARM64)

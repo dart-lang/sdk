@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_ARM64.
-#if defined(TARGET_ARCH_ARM64) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(TARGET_ARCH_ARM64)
 
 #include "vm/compiler/backend/flow_graph_compiler.h"
 
@@ -725,8 +725,16 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     const AbstractType& dst_type,
     const String& dst_name,
     LocationSummary* locs) {
+  // If the dst_type is instantiated we know the target TTS stub at
+  // compile-time and can therefore use a pc-relative call.
+  const bool use_pc_relative_call = dst_type.IsInstantiated() &&
+                                    FLAG_precompiled_mode &&
+                                    FLAG_use_bare_instructions;
+
   const Register kRegToCall =
-      dst_type.IsTypeParameter() ? R9 : TypeTestABI::kDstTypeReg;
+      use_pc_relative_call
+          ? kNoRegister
+          : (dst_type.IsTypeParameter() ? R9 : TypeTestABI::kDstTypeReg);
   const Register kScratchReg = R4;
 
   compiler::Label done;
@@ -749,12 +757,19 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   ASSERT((sub_type_cache_index + 1) == dst_name_index);
   ASSERT(__ constant_pool_allowed());
 
-  __ LoadField(
-      R9, compiler::FieldAddress(
-              kRegToCall, AbstractType::type_test_stub_entry_point_offset()));
-  __ LoadWordFromPoolOffset(TypeTestABI::kSubtypeTestCacheReg,
-                            sub_type_cache_offset);
-  __ blr(R9);
+  if (use_pc_relative_call) {
+    __ LoadWordFromPoolOffset(TypeTestABI::kSubtypeTestCacheReg,
+                              sub_type_cache_offset);
+    __ GenerateUnRelocatedPcRelativeCall();
+    AddPcRelativeTTSCallTypeTarget(dst_type);
+  } else {
+    __ LoadField(
+        R9, compiler::FieldAddress(
+                kRegToCall, AbstractType::type_test_stub_entry_point_offset()));
+    __ LoadWordFromPoolOffset(TypeTestABI::kSubtypeTestCacheReg,
+                              sub_type_cache_offset);
+    __ blr(R9);
+  }
   EmitCallsiteMetadata(token_pos, deopt_id, RawPcDescriptors::kOther, locs);
   __ Bind(&done);
 }
@@ -1794,4 +1809,4 @@ void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_ARCH_ARM64) && !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(TARGET_ARCH_ARM64)

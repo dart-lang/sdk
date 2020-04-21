@@ -17,7 +17,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 class FieldFormalContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     var node = request.target.containingNode;
     if (node is! FieldFormalParameter) {
       return const <CompletionSuggestion>[];

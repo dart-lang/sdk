@@ -242,6 +242,38 @@ class EditPlanTest extends AbstractSingleUnitTest {
         'f(x) => x = () => null;');
   }
 
+  Future<void> test_addCommentPostfix_before_closer() async {
+    await analyze('f(g) => g(0);');
+    checkPlan(
+        planner.addCommentPostfix(
+            planner.passThrough(findNode.integerLiteral('0')), '/* zero */'),
+        'f(g) => g(0 /* zero */);');
+  }
+
+  Future<void> test_addCommentPostfix_before_other() async {
+    await analyze('f() => 0.isEven;');
+    checkPlan(
+        planner.addCommentPostfix(
+            planner.passThrough(findNode.integerLiteral('0')), '/* zero */'),
+        'f() => 0 /* zero */ .isEven;');
+  }
+
+  Future<void> test_addCommentPostfix_before_semicolon() async {
+    await analyze('f() => 0;');
+    checkPlan(
+        planner.addCommentPostfix(
+            planner.passThrough(findNode.integerLiteral('0')), '/* zero */'),
+        'f() => 0 /* zero */;');
+  }
+
+  Future<void> test_addCommentPostfix_before_space() async {
+    await analyze('f() => 0 + 1;');
+    checkPlan(
+        planner.addCommentPostfix(
+            planner.passThrough(findNode.integerLiteral('0')), '/* zero */'),
+        'f() => 0 /* zero */ + 1;');
+  }
+
   Future<void> test_addUnaryPostfix_inner_precedence_add_parens() async {
     await analyze('f(x) => -x;');
     checkPlan(

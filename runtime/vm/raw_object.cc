@@ -358,6 +358,7 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
       break;
     }
     case kNullCid:
+    case kNeverCid:
       size = HeapSize();
       break;
     default:

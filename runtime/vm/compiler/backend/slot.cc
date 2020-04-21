@@ -4,8 +4,6 @@
 
 #include "vm/compiler/backend/slot.h"
 
-#ifndef DART_PRECOMPILED_RUNTIME
-
 #include "vm/compiler/compiler_state.h"
 #include "vm/hash_map.h"
 #include "vm/parser.h"
@@ -227,11 +225,6 @@ const Slot& Slot::Get(const Field& field,
     is_nullable = false;
   }
 
-  if (field.is_late()) {
-    // TODO(dartbug.com/40796): Extend CompileType to handle lateness.
-    is_nullable = true;
-  }
-
   const Slot& slot = SlotCache::Instance(thread).Canonicalize(Slot(
       Kind::kDartField,
       IsImmutableBit::encode((field.is_final() && !field.is_late()) ||
@@ -323,5 +316,3 @@ intptr_t Slot::Hashcode() const {
 }
 
 }  // namespace dart
-
-#endif  // DART_PRECOMPILED_RUNTIME

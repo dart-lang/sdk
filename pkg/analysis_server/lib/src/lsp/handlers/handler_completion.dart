@@ -148,6 +148,8 @@ class CompletionHandler
 
     try {
       CompletionContributor contributor = DartCompletionManager(
+        dartdocDirectiveInfo:
+            server.getDartdocDirectiveInfoFor(completionRequest.result),
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,

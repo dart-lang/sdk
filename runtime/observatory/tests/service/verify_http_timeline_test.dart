@@ -62,7 +62,7 @@ Uri randomlyAddRequestParams(Uri uri) {
 }
 
 Future<HttpServer> startServer() async {
-  final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8011);
+  final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
   server.listen((request) async {
     final response = request.response;
     randomlyAddCookie(response);

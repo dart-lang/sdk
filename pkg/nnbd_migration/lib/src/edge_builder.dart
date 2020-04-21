@@ -571,7 +571,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     DecoratedType thenType;
     DecoratedType elseType;
 
-    // TODO(paulberry): guard anything inside the true and false branches
+    // TODO(paulberry): guard anything inside the true and false branches.
+    // See https://github.com/dart-lang/sdk/issues/41551.
 
     // Post-dominators diverge as we branch in the conditional.
     // Note: we don't have to create a scope for each branch because they can't

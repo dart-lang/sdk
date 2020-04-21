@@ -128,7 +128,7 @@ bool StubCode::InJumpToFrameStub(uword pc) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-static RawArray* BuildStaticCallsTable(
+RawArray* compiler::StubCodeCompiler::BuildStaticCallsTable(
     Zone* zone,
     compiler::UnresolvedPcRelativeCalls* unresolved_calls) {
   if (unresolved_calls->length() == 0) {
@@ -150,7 +150,7 @@ static RawArray* BuildStaticCallsTable(
                  Code::OffsetField::encode(unresolved_call->offset()));
     auto view = entries[i];
     view.Set<Code::kSCallTableKindAndOffset>(kind_type_and_offset);
-    view.Set<Code::kSCallTableCodeTarget>(unresolved_call->target());
+    view.Set<Code::kSCallTableCodeOrTypeTarget>(unresolved_call->target());
   }
   return static_calls_table.raw();
 }
@@ -201,7 +201,8 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
         allocate_object_parametrized_stub);
 
     const auto& static_calls_table =
-        Array::Handle(zone, BuildStaticCallsTable(zone, &unresolved_calls));
+        Array::Handle(zone, compiler::StubCodeCompiler::BuildStaticCallsTable(
+                                zone, &unresolved_calls));
 
     auto mutator_fun = [&]() {
       stub = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
@@ -318,6 +319,14 @@ const char* StubCode::NameOfStub(uword entry_point) {
       return entries_[i].name;
     }
   }
+
+  auto object_store = Isolate::Current()->object_store();
+#define DO(member, name)                                                       \
+  if (entry_point == Code::EntryPointOf(object_store->member())) {             \
+    return "_iso_stub_" #name "Stub";                                          \
+  }
+  OBJECT_STORE_STUB_CODE_LIST(DO)
+#undef DO
   return nullptr;
 }
 

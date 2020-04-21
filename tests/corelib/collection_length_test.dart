@@ -71,6 +71,7 @@ main() {
   testCollection(new ListQueue(), N);
   testCollection(new DoubleLinkedQueue(), N);
   testList([]..length = N, N);
+  testList(new List.filled(0, null, growable: true)..length = N, N);
   testList(new List.filled(N, null), N);
   testString(N);
 }

@@ -28,6 +28,7 @@ import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:collection/collection.dart';
+import 'package:convert/convert.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
 /// depends on is computed.
@@ -429,6 +430,10 @@ class LibraryCycle {
   String cyclePathsHash;
 
   LibraryCycle();
+
+  String get signatureStr {
+    return hex.encode(signature);
+  }
 
   @override
   String toString() {

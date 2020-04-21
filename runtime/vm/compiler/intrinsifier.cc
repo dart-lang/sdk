@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Class for intrinsifying functions.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/intrinsifier.h"
 
 #include "vm/compiler/assembler/assembler.h"
@@ -76,7 +74,6 @@ bool Intrinsifier::CanIntrinsify(const Function& function) {
   return true;
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 struct IntrinsicDesc {
   const char* class_name;
   const char* function_name;
@@ -172,7 +169,6 @@ void Intrinsifier::InitializeState() {
   }
 #undef SETUP_FUNCTION
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 // Returns true if fall-through code can be omitted.
 bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
@@ -238,5 +234,3 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
 
 }  // namespace compiler
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

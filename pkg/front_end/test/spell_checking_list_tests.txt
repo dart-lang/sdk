@@ -276,6 +276,9 @@ isolate
 isolates
 issue41210b
 issue41436c
+issue41496b
+issue41498b
+issue41499b
 iter
 joo
 jumped

@@ -1114,6 +1114,58 @@ f({required int x}) {}
     });
     expect(previewInfo.applyTo(code), 'int x = 0;');
   }
+
+  Future<void> test_warnOnDeadIf_false() async {
+    await analyze('''
+f(int i) {
+  if (i == null) print(i);
+}
+''');
+    var previewInfo = run({
+      findNode.statement('if'): NodeChangeForIfStatement()
+        ..conditionValue = false
+    }, warnOnWeakCode: true);
+    expect(previewInfo.applyTo(code, includeInformative: true), '''
+f(int i) {
+  if (i == null /* == false */) print(i);
+}
+''');
+  }
+
+  Future<void> test_warnOnDeadIf_true() async {
+    await analyze('''
+f(int i) {
+  if (i != null) print(i);
+}
+''');
+    var previewInfo = run({
+      findNode.statement('if'): NodeChangeForIfStatement()
+        ..conditionValue = true
+    }, warnOnWeakCode: true);
+    expect(previewInfo.applyTo(code, includeInformative: true), '''
+f(int i) {
+  if (i != null /* == true */) print(i);
+}
+''');
+  }
+
+  Future<void> test_warnOnNullAwareAccess() async {
+    var content = '''
+f(int i) {
+  print(i?.isEven);
+}
+''';
+    await analyze(content);
+    var previewInfo = run({
+      findNode.propertyAccess('?.'): NodeChangeForPropertyAccess()
+        ..removeNullAwareness = true
+    }, warnOnWeakCode: true);
+    expect(previewInfo.applyTo(code), content);
+    expect(previewInfo, hasLength(1));
+    var edit = previewInfo[content.indexOf('?')].single;
+    expect(edit.isInformative, isTrue);
+    expect(edit.length, '?'.length);
+  }
 }
 
 class FixAggregatorTestBase extends AbstractSingleUnitTest {
@@ -1125,9 +1177,9 @@ class FixAggregatorTestBase extends AbstractSingleUnitTest {
   }
 
   Map<int, List<AtomicEdit>> run(Map<AstNode, NodeChange> changes,
-      {bool removeViaComments: false}) {
+      {bool removeViaComments = false, bool warnOnWeakCode = false}) {
     return FixAggregator.run(testUnit, testCode, changes,
-        removeViaComments: removeViaComments);
+        removeViaComments: removeViaComments, warnOnWeakCode: warnOnWeakCode);
   }
 }
 

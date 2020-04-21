@@ -6,6 +6,8 @@ import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
+    show SuggestionBuilder;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 
@@ -15,7 +17,7 @@ import '../../../protocol_server.dart' show CompletionSuggestion;
 class ImportedReferenceContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     if (!request.includeIdentifiers) {
       return const <CompletionSuggestion>[];
     }

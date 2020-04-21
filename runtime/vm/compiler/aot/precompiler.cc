@@ -4,8 +4,6 @@
 
 #include "vm/compiler/aot/precompiler.h"
 
-#ifndef DART_PRECOMPILED_RUNTIME
-
 #include "platform/unicode.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_patcher.h"
@@ -679,10 +677,10 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
     entry = view.Get<Code::kSCallTableFunctionTarget>();
     if (entry.IsFunction()) {
       AddFunction(Function::Cast(entry), FLAG_retain_function_objects);
-      ASSERT(view.Get<Code::kSCallTableCodeTarget>() == Code::null());
+      ASSERT(view.Get<Code::kSCallTableCodeOrTypeTarget>() == Code::null());
       continue;
     }
-    entry = view.Get<Code::kSCallTableCodeTarget>();
+    entry = view.Get<Code::kSCallTableCodeOrTypeTarget>();
     if (entry.IsCode() && Code::Cast(entry).IsAllocationStubCode()) {
       cls ^= Code::Cast(entry).owner();
       AddInstantiatedClass(cls);
@@ -896,6 +894,11 @@ void Precompiler::AddConstObject(const class Instance& instance) {
     return;
   }
 
+  if (instance.raw() == Object::sentinel().raw() ||
+      instance.raw() == Object::transition_sentinel().raw()) {
+    return;
+  }
+
   const Class& cls = Class::Handle(Z, instance.clazz());
   AddInstantiatedClass(cls);
 
@@ -973,14 +976,16 @@ void Precompiler::AddField(const Field& field) {
 
   if (field.is_static()) {
     const Object& value = Object::Handle(Z, field.StaticValue());
-    if (value.IsInstance()) {
+    // Should not be in the middle of initialization while precompiling.
+    ASSERT(value.raw() != Object::transition_sentinel().raw());
+
+    if (value.raw() != Object::sentinel().raw() &&
+        value.raw() != Object::null()) {
+      ASSERT(value.IsInstance());
       AddConstObject(Instance::Cast(value));
     }
 
     if (field.has_nontrivial_initializer()) {
-      // Should not be in the middle of initialization while precompiling.
-      ASSERT(value.raw() != Object::transition_sentinel().raw());
-
       if (!field.HasInitializerFunction() ||
           !Function::Handle(Z, field.InitializerFunction()).HasCode()) {
         if (FLAG_trace_precompiler) {
@@ -1579,11 +1584,11 @@ void Precompiler::ReplaceFunctionPCRelativeCallEntries() {
         target_function_ = view.Get<Code::kSCallTableFunctionTarget>();
         if (target_function_.IsNull()) continue;
 
-        ASSERT(view.Get<Code::kSCallTableCodeTarget>() == Code::null());
+        ASSERT(view.Get<Code::kSCallTableCodeOrTypeTarget>() == Code::null());
         ASSERT(target_function_.HasCode());
         target_code_ = target_function_.CurrentCode();
         ASSERT(!target_code_.IsStubCode());
-        view.Set<Code::kSCallTableCodeTarget>(target_code_);
+        view.Set<Code::kSCallTableCodeOrTypeTarget>(target_code_);
         view.Set<Code::kSCallTableFunctionTarget>(Object::null_function());
         if (FLAG_trace_precompiler) {
           THR_Print("Updated static call entry to %s in \"%s\"\n",
@@ -3127,5 +3132,3 @@ const char** Obfuscator::SerializeMap(Thread* thread) {
 #endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
 }  // namespace dart
-
-#endif  // DART_PRECOMPILED_RUNTIME

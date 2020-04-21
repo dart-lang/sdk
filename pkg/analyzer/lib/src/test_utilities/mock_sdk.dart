@@ -27,11 +27,11 @@ import 'dart:math';
 part 'stream.dart';
 
 abstract class Future<T> {
-  factory Future(computation()) {
+  factory Future(FutureOr<T> computation()) {
     throw 0;
   }
 
-  factory Future.delayed(Duration duration, [T computation()?]) {
+  factory Future.delayed(Duration duration, [FutureOr<T> computation()?]) {
     throw 0;
   }
 
@@ -250,6 +250,10 @@ const proxy = const _Proxy();
 external bool identical(Object? a, Object? b);
 
 void print(Object? object) {}
+
+class ArgumentError extends Error {
+  ArgumentError([message]);
+}
 
 abstract class bool extends Object {
   external const factory bool.fromEnvironment(String name,

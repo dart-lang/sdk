@@ -185,6 +185,13 @@ class InfoBuilder {
         edits.add(_removeHint('Remove /*!*/ hint'));
         edits.add(_changeHint('Change to /*?*/ hint', '/*?*/'));
         break;
+      case NullabilityFixKind.nullAwarenessUnnecessaryInStrongMode:
+      case NullabilityFixKind.conditionTrueInStrongMode:
+      case NullabilityFixKind.conditionFalseInStrongMode:
+        // We don't offer any edits around weak-only code.
+        // TODO(paulberry): offer edits to delete the code that would be dead in
+        // strong mode (https://github.com/dart-lang/sdk/issues/41554).
+        break;
     }
     return edits;
   }
@@ -324,19 +331,30 @@ class InfoBuilder {
         if (description != null) {
           var explanation = description.appliedMessage;
           var kind = description.kind;
-          if (edit.isInformative) {
-            regions.add(RegionInfo(RegionType.informative, offset,
-                replacement.length, lineNumber, explanation, kind, isCounted,
-                edits: edits, traces: traces));
-          } else if (edit.isInsertion) {
-            regions.add(RegionInfo(RegionType.add, offset, replacement.length,
-                lineNumber, explanation, kind, isCounted,
-                edits: edits, traces: traces));
+          if (edit.isInsertion) {
+            regions.add(RegionInfo(
+                edit.isInformative ? RegionType.informative : RegionType.add,
+                offset,
+                replacement.length,
+                lineNumber,
+                explanation,
+                kind,
+                isCounted,
+                edits: edits,
+                traces: traces));
           } else if (edit.isDeletion) {
-            regions.add(RegionInfo(RegionType.remove, offset, length,
-                lineNumber, explanation, kind, isCounted,
-                edits: edits, traces: traces));
+            regions.add(RegionInfo(
+                edit.isInformative ? RegionType.informative : RegionType.remove,
+                offset,
+                length,
+                lineNumber,
+                explanation,
+                kind,
+                isCounted,
+                edits: edits,
+                traces: traces));
           } else if (edit.isReplacement) {
+            assert(!edit.isInformative);
             regions.add(RegionInfo(RegionType.remove, offset, length,
                 lineNumber, explanation, kind, isCounted,
                 edits: edits, traces: traces));
@@ -373,7 +391,7 @@ class InfoBuilder {
         codeReference?.function,
         codeReference == null
             ? null
-            : NavigationTarget(codeReference.path, codeReference.column,
+            : NavigationTarget(codeReference.path, codeReference.offset,
                 codeReference.line, length));
   }
 

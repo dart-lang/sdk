@@ -4,7 +4,7 @@
 
 #include "platform/globals.h"
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_IA32.
-#if defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(TARGET_ARCH_IA32)
 
 #include "vm/compiler/backend/il.h"
 
@@ -6340,4 +6340,4 @@ void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 #undef __
 
-#endif  // defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(TARGET_ARCH_IA32)

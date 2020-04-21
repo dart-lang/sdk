@@ -991,18 +991,48 @@ bool _isBool(object) {
 
 /// Specialization for 'as bool?'.
 /// Called from generated code.
-bool /*?*/ _asBoolNullable(object) {
+bool _asBool(object) {
+  if (_isBool(object)) return _Utils.asBool(object);
+  throw _TypeError.forType(object, 'bool');
+}
+
+/// Specialization for 'as bool*'.
+/// Called from generated code.
+bool /*?*/ _asBoolS(object) {
   if (_isBool(object)) return _Utils.asBool(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'bool');
 }
 
-/// Specialization for 'as double?'.
+/// Specialization for 'as bool?'.
 /// Called from generated code.
-double /*?*/ _asDoubleNullable(object) {
+bool /*?*/ _asBoolQ(object) {
+  if (_isBool(object)) return _Utils.asBool(object);
+  if (object == null) return object;
+  throw _TypeError.forType(object, 'bool?');
+}
+
+/// Specialization for 'as double'.
+/// Called from generated code.
+double /*?*/ _asDouble(object) {
+  if (_isNum(object)) return _Utils.asDouble(object);
+  throw _TypeError.forType(object, 'double');
+}
+
+/// Specialization for 'as double*'.
+/// Called from generated code.
+double /*?*/ _asDoubleS(object) {
   if (_isNum(object)) return _Utils.asDouble(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'double');
+}
+
+/// Specialization for 'as double?'.
+/// Called from generated code.
+double /*?*/ _asDoubleQ(object) {
+  if (_isNum(object)) return _Utils.asDouble(object);
+  if (object == null) return object;
+  throw _TypeError.forType(object, 'double?');
 }
 
 /// Specialization for 'is int'.
@@ -1012,12 +1042,27 @@ bool _isInt(object) {
       JS('bool', 'Math.floor(#) === #', object, object);
 }
 
-/// Specialization for 'as int?'.
+/// Specialization for 'as int'.
 /// Called from generated code.
-int /*?*/ _asIntNullable(object) {
+int _asInt(object) {
+  if (_isInt(object)) return _Utils.asInt(object);
+  throw _TypeError.forType(object, 'int');
+}
+
+/// Specialization for 'as int*'.
+/// Called from generated code.
+int /*?*/ _asIntS(object) {
   if (_isInt(object)) return _Utils.asInt(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'int');
+}
+
+/// Specialization for 'as int?'.
+/// Called from generated code.
+int /*?*/ _asIntQ(object) {
+  if (_isInt(object)) return _Utils.asInt(object);
+  if (object == null) return object;
+  throw _TypeError.forType(object, 'int?');
 }
 
 /// Specialization for 'is num' and 'is double'.
@@ -1028,10 +1073,25 @@ bool _isNum(object) {
 
 /// Specialization for 'as num?'.
 /// Called from generated code.
-num /*?*/ _asNumNullable(object) {
+num _asNum(object) {
+  if (_isNum(object)) return _Utils.asNum(object);
+  throw _TypeError.forType(object, 'num');
+}
+
+/// Specialization for 'as num*'.
+/// Called from generated code.
+num /*?*/ _asNumS(object) {
   if (_isNum(object)) return _Utils.asNum(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'num');
+}
+
+/// Specialization for 'as num?'.
+/// Called from generated code.
+num /*?*/ _asNumQ(object) {
+  if (_isNum(object)) return _Utils.asNum(object);
+  if (object == null) return object;
+  throw _TypeError.forType(object, 'num?');
 }
 
 /// Specialization for 'is String'.
@@ -1040,12 +1100,27 @@ bool _isString(object) {
   return JS('bool', 'typeof # == "string"', object);
 }
 
-/// Specialization for 'as String?'.
+/// Specialization for 'as String'.
 /// Called from generated code.
-String /*?*/ _asStringNullable(object) {
+String _asString(object) {
+  if (_isString(object)) return _Utils.asString(object);
+  throw _TypeError.forType(object, 'String');
+}
+
+/// Specialization for 'as String*'.
+/// Called from generated code.
+String /*?*/ _asStringS(object) {
   if (_isString(object)) return _Utils.asString(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'String');
+}
+
+/// Specialization for 'as String?'.
+/// Called from generated code.
+String /*?*/ _asStringQ(object) {
+  if (_isString(object)) return _Utils.asString(object);
+  if (object == null) return object;
+  throw _TypeError.forType(object, 'String?');
 }
 
 String _rtiArrayToString(Object array, List<String> genericContext) {

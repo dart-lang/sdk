@@ -9,6 +9,7 @@ import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_listener
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:test/test.dart';
@@ -54,6 +55,8 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     if (offset != null) {
       expect(region.offset, offset);
       expect(region.length, length ?? 1);
+    } else if (length != null) {
+      expect(region.length, length);
     }
     expect(region.kind, kind);
     expect(region.edits, edits);
@@ -91,13 +94,28 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
         kind: kind);
   }
 
+  void assertTraceEntry(UnitInfo unit, TraceEntryInfo entryInfo,
+      String function, int offset, Object descriptionMatcher) {
+    assert(offset >= 0);
+    var lineInfo = LineInfo.fromContent(unit.content);
+    var expectedLocation = lineInfo.getLocation(offset);
+    expect(entryInfo.target.filePath, unit.path);
+    expect(entryInfo.target.line, expectedLocation.lineNumber);
+    expect(unit.offsetMapper.map(entryInfo.target.offset), offset);
+    expect(entryInfo.function, function);
+    expect(entryInfo.description, descriptionMatcher);
+  }
+
   /// Uses the InfoBuilder to build information for [testFile].
   ///
   /// The information is stored in [infos].
-  Future<void> buildInfo({bool removeViaComments = true}) async {
+  Future<void> buildInfo(
+      {bool removeViaComments = true, bool warnOnWeakCode = false}) async {
     var includedRoot = resourceProvider.pathContext.dirname(testFile);
     await _buildMigrationInfo([testFile],
-        includedRoot: includedRoot, removeViaComments: removeViaComments);
+        includedRoot: includedRoot,
+        removeViaComments: removeViaComments,
+        warnOnWeakCode: warnOnWeakCode);
   }
 
   /// Uses the InfoBuilder to build information for a single test file.
@@ -105,9 +123,12 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   /// Asserts that [originalContent] is migrated to [migratedContent]. Returns
   /// the singular UnitInfo which was built.
   Future<UnitInfo> buildInfoForSingleTestFile(String originalContent,
-      {@required String migratedContent, bool removeViaComments = true}) async {
+      {@required String migratedContent,
+      bool removeViaComments = true,
+      bool warnOnWeakCode = false}) async {
     addTestFile(originalContent);
-    await buildInfo(removeViaComments: removeViaComments);
+    await buildInfo(
+        removeViaComments: removeViaComments, warnOnWeakCode: warnOnWeakCode);
     // Ignore info for dart:core.
     var filteredInfos = [
       for (var info in infos) if (!info.path.contains('core.dart')) info
@@ -141,7 +162,9 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   /// Uses the InfoBuilder to build information for files at [testPaths], which
   /// should all share a common parent directory, [includedRoot].
   Future<void> _buildMigrationInfo(List<String> testPaths,
-      {String includedRoot, bool removeViaComments = true}) async {
+      {String includedRoot,
+      bool removeViaComments = true,
+      bool warnOnWeakCode = false}) async {
     // Compute the analysis results.
     server.setAnalysisRoots('0', [includedRoot], [], {});
     // Run the migration engine.
@@ -151,7 +174,8 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     var migration = NullabilityMigration(adapter,
         permissive: false,
         instrumentation: instrumentationListener,
-        removeViaComments: removeViaComments);
+        removeViaComments: removeViaComments,
+        warnOnWeakCode: warnOnWeakCode);
     Future<void> _forEachPath(
         void Function(ResolvedUnitResult) callback) async {
       for (var testPath in testPaths) {

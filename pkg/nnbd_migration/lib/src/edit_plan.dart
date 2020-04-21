@@ -80,10 +80,10 @@ class AtomicEdit {
   ///
   /// Optional argument [info] contains information about why the change was
   /// made.
-  const AtomicEdit.delete(this.length, {this.info})
+  const AtomicEdit.delete(this.length, {this.info, this.isInformative = false})
       : assert(length > 0),
-        replacement = '',
-        isInformative = false;
+        assert(isInformative is bool),
+        replacement = '';
 
   /// Initialize an edit to insert the [replacement] characters.
   ///
@@ -92,6 +92,7 @@ class AtomicEdit {
   const AtomicEdit.insert(this.replacement,
       {this.info, this.isInformative: false})
       : assert(replacement.length > 0),
+        assert(isInformative is bool),
         length = 0;
 
   /// Initialize an edit to replace [length] characters with the [replacement]
@@ -256,6 +257,28 @@ class EditPlanner {
         innerPrecedence: precedence,
         associative: isAssociative,
         allowCascade: allowCascade);
+  }
+
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// appending the given [comment]].
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  ///
+  /// Optional argument [isInformative] indicates whether the comment is simply
+  /// informative, or should actually be applied to the final output (the
+  /// default).
+  NodeProducingEditPlan addCommentPostfix(
+      NodeProducingEditPlan innerPlan, String comment,
+      {AtomicEditInfo info, bool isInformative = false}) {
+    var end = innerPlan.end;
+    return surround(innerPlan, suffix: [
+      AtomicEdit.insert(' '),
+      AtomicEdit.insert(comment, info: info, isInformative: isInformative),
+      if (!_isJustBefore(end, const [')', ']', '}', ';']) &&
+          !_isJustBeforeWhitespace(end))
+        AtomicEdit.insert(' ')
+    ]);
   }
 
   /// Creates a new edit plan that consists of executing [innerPlan], and then
@@ -504,7 +527,15 @@ class EditPlanner {
   ///
   /// The created edit plan should be inserted into the list of inner plans for
   /// a pass-through plan targeted at the source node.  See [passThrough].
-  EditPlan removeNullAwareness(Expression sourceNode, {AtomicEditInfo info}) {
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  ///
+  /// Optional argument [isInformative] indicates whether the comment is simply
+  /// informative, or should actually be applied to the final output (the
+  /// default).
+  EditPlan removeNullAwareness(Expression sourceNode,
+      {AtomicEditInfo info, bool isInformative = false}) {
     Token operator;
     if (sourceNode is MethodInvocation) {
       operator = sourceNode.operator;
@@ -517,7 +548,9 @@ class EditPlanner {
     }
     assert(operator.type == TokenType.QUESTION_PERIOD);
     return _TokenChangePlan(sourceNode, {
-      operator.offset: [AtomicEdit.delete(1, info: info)]
+      operator.offset: [
+        AtomicEdit.delete(1, info: info, isInformative: isInformative)
+      ]
     });
   }
 
@@ -710,16 +743,21 @@ class EditPlanner {
     return lineInfo.lineStarts[lineNumber];
   }
 
-  /// Determines whether the given source [offset] comes just after an opener
-  /// ('(', '[', or '{').
-  bool _isJustAfterOpener(int offset) =>
-      offset > 0 && const ['(', '[', '{'].contains(sourceText[offset - 1]);
+  /// Determines whether the given source [offset] comes just after one of the
+  /// characters in [characters].
+  bool _isJustAfter(int offset, List<String> characters) =>
+      offset > 0 && characters.contains(sourceText[offset - 1]);
 
-  /// Determines whether the given source [end] comes just before a closer
-  /// (')', ']', or '}').
-  bool _isJustBeforeCloser(int end) =>
-      end < sourceText.length &&
-      const [')', ']', '}'].contains(sourceText[end]);
+  /// Determines whether the given source [end] comes just before one of the
+  /// characters in [characters].
+  bool _isJustBefore(int end, List<String> characters) =>
+      end < sourceText.length && characters.contains(sourceText[end]);
+
+  /// Determines whether the given source [end] comes just before whitespace.
+  /// For the purpose of this check, the end of the file is considered
+  /// whitespace.
+  bool _isJustBeforeWhitespace(int end) =>
+      end >= sourceText.length || _isWhitespaceRange(end, end + 1);
 
   /// Determines if the characters between [offset] and [end] in the source text
   /// are all whitespace characters.
@@ -1351,10 +1389,12 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
         // that we're left with just `()`, `{}`, or `[]`.
         var candidateFirstRemovalOffset =
             planner._backAcrossWhitespace(firstRemovalOffset, node.offset);
-        if (planner._isJustAfterOpener(candidateFirstRemovalOffset)) {
+        if (planner
+            ._isJustAfter(candidateFirstRemovalOffset, const ['(', '[', '{'])) {
           var candidateLastRemovalEnd =
               planner._forwardAcrossWhitespace(lastRemovalEnd, node.end);
-          if (planner._isJustBeforeCloser(candidateLastRemovalEnd)) {
+          if (planner
+              ._isJustBefore(candidateLastRemovalEnd, const [')', ']', '}'])) {
             firstRemovalOffset = candidateFirstRemovalOffset;
             lastRemovalEnd = candidateLastRemovalEnd;
           }

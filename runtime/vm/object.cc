@@ -780,21 +780,21 @@ void Object::Init(Isolate* isolate) {
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
 
-  // Allocate and initialize the sentinel values of Null class.
+  // Allocate and initialize the sentinel values.
   {
     *sentinel_ ^=
-        Object::Allocate(kNullCid, Instance::InstanceSize(), Heap::kOld);
+        Object::Allocate(kNeverCid, Instance::InstanceSize(), Heap::kOld);
 
     *transition_sentinel_ ^=
-        Object::Allocate(kNullCid, Instance::InstanceSize(), Heap::kOld);
+        Object::Allocate(kNeverCid, Instance::InstanceSize(), Heap::kOld);
   }
 
   // Allocate and initialize optimizing compiler constants.
   {
     *unknown_constant_ ^=
-        Object::Allocate(kNullCid, Instance::InstanceSize(), Heap::kOld);
+        Object::Allocate(kNeverCid, Instance::InstanceSize(), Heap::kOld);
     *non_constant_ ^=
-        Object::Allocate(kNullCid, Instance::InstanceSize(), Heap::kOld);
+        Object::Allocate(kNeverCid, Instance::InstanceSize(), Heap::kOld);
   }
 
   // Allocate the remaining VM internal classes.
@@ -15717,7 +15717,7 @@ void Code::SetStaticCallTargetCodeAt(uword pc, const Code& code) const {
   StaticCallsTable entries(array);
   ASSERT(code.IsNull() ||
          (code.function() == entries[i].Get<kSCallTableFunctionTarget>()));
-  return entries[i].Set<kSCallTableCodeTarget>(code);
+  return entries[i].Set<kSCallTableCodeOrTypeTarget>(code);
 #endif
 }
 
@@ -15737,7 +15737,7 @@ void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
            (code.function() == entries[i].Get<kSCallTableFunctionTarget>()));
   }
 #endif
-  return entries[i].Set<kSCallTableCodeTarget>(code);
+  return entries[i].Set<kSCallTableCodeOrTypeTarget>(code);
 #endif
 }
 

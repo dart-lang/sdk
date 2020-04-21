@@ -9,6 +9,7 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequestImpl;
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
@@ -22,7 +23,7 @@ import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor
 class LabelContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     var optype = (request as DartCompletionRequestImpl).opType;
 
     // Collect suggestions from the specific child [AstNode] that contains

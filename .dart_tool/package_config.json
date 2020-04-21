@@ -263,6 +263,11 @@
       "packageUri": ".nonexisting/"
     },
     {
+      "name": "front_end_nonfunction_type_aliases",
+      "rootUri": "../pkg/front_end/testcases/nonfunction_type_aliases",
+      "packageUri": ".nonexisting/"
+    },
+    {
       "name": "frontend_server",
       "rootUri": "../pkg/frontend_server",
       "packageUri": "lib/",

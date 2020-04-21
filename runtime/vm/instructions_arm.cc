@@ -8,7 +8,6 @@
 #include "vm/instructions.h"
 #include "vm/instructions_arm.h"
 
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/constants.h"
 #include "vm/cpu.h"
 #include "vm/object.h"
@@ -452,13 +451,23 @@ bool PcRelativeTrampolineJumpPattern::IsValid() const {
 
 intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
   // Calls to the type testing stubs look like:
+  //   ldr R9, ...
   //   ldr R3, [PP+idx]
   //   blx R9
+  // or
+  //   ldr R3, [PP+idx]
+  //   blx pc+<offset>
 
   // Ensure the caller of the type testing stub (whose return address is [pc_])
-  // branched via the `blx R9` instruction.
-  ASSERT(*reinterpret_cast<uint32_t*>(pc_ - Instr::kInstrSize) == 0xe12fff39);
-  const uword load_instr_end = pc_ - Instr::kInstrSize;
+  // branched via `blx R9` or a pc-relative call.
+  uword pc = pc_ - Instr::kInstrSize;
+  const uword blx_r9 = 0xe12fff39;
+  if (*reinterpret_cast<uint32_t*>(pc) != blx_r9) {
+    PcRelativeCallPattern pattern(pc);
+    RELEASE_ASSERT(pattern.IsValid());
+  }
+
+  const uword load_instr_end = pc;
 
   Register reg;
   intptr_t pool_index = -1;

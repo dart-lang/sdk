@@ -14,12 +14,16 @@ Library libRoundTrip(Library lib) {
 
 List<Library> serializationRoundTrip(List<Library> libraries) {
   Component c = new Component(libraries: libraries);
+  List<int> bytes = serializeComponent(c);
+  Component c2 = loadComponentFromBytes(bytes);
+  return c2.libraries;
+}
+
+List<int> serializeComponent(Component c) {
   ByteSink byteSink = new ByteSink();
   BinaryPrinter printer = new BinaryPrinter(byteSink);
   printer.writeComponentFile(c);
-  List<int> bytes = byteSink.builder.takeBytes();
-  Component c2 = loadComponentFromBytes(bytes);
-  return c2.libraries;
+  return byteSink.builder.takeBytes();
 }
 
 /// A [Sink] that directly writes data into a byte builder.

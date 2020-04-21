@@ -9,6 +9,7 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/protocol_server.dart' as protocol
     hide CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -24,7 +25,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class OverrideContributor implements DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     var targetId = _getTargetId(request.target);
     if (targetId == null) {
       return const <CompletionSuggestion>[];

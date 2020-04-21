@@ -198,7 +198,9 @@ class Thread;
   V(uword, optimize_entry_, StubCode::OptimizeFunction().EntryPoint(), 0)      \
   V(uword, deoptimize_entry_, StubCode::Deoptimize().EntryPoint(), 0)          \
   V(uword, call_native_through_safepoint_entry_point_,                         \
-    StubCode::CallNativeThroughSafepoint().EntryPoint(), 0)
+    StubCode::CallNativeThroughSafepoint().EntryPoint(), 0)                    \
+  V(uword, slow_type_test_entry_point_, StubCode::SlowTypeTest().EntryPoint(), \
+    0)
 
 #define CACHED_ADDRESSES_LIST(V)                                               \
   CACHED_VM_STUBS_ADDRESSES_LIST(V)                                            \

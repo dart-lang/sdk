@@ -14,14 +14,10 @@
 
 namespace dart {
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 DECLARE_FLAG(bool, inline_alloc);
 DECLARE_FLAG(bool, use_slow_path);
-#endif
 
 namespace compiler {
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
 
 class DirectCallRelocation : public AssemblerFixup {
  public:
@@ -2793,8 +2789,6 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
                         target::Instance::DataOffsetFor(cid) + extra_disp);
   }
 }
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace compiler
 }  // namespace dart

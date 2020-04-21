@@ -26,6 +26,7 @@ void main() {
 
 @reflectiveTest
 class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
+  @override
   Future<void> performEdit(String path, int offset, String replacement) {
     final pathUri = Uri.file(path).path;
     return site
@@ -45,6 +46,33 @@ class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
       reranPaths = paths;
       return state;
     });
+  }
+
+  void test_apply_regress41391() async {
+    final path = convertPath('/test.dart');
+    final file = getFile(path);
+    final analysisOptionsPath = convertPath('/analysis_options.yaml');
+    final analysisOptions = getFile(analysisOptionsPath);
+    analysisOptions.writeAsStringSync('analyzer:');
+    final content = 'void main() {}';
+    file.writeAsStringSync(content);
+    site.unitInfoMap[path] = UnitInfo(path)..diskContent = content;
+    // Add a source change for analysis_options, which has no UnitInfo.
+    dartfixListener.addSourceChange(
+        'enable experiment',
+        Location(analysisOptionsPath, 9, 0, 1, 9),
+        SourceChange('enable experiment', edits: [
+          SourceFileEdit(analysisOptionsPath, 0, edits: [
+            SourceEdit(9, 0, '\n  enable-experiment:\n  - non-nullable')
+          ])
+        ]));
+    // This should not crash.
+    site.performApply();
+    expect(analysisOptions.readAsStringSync(), '''
+analyzer:
+  enable-experiment:
+  - non-nullable''');
+    expect(state.hasBeenApplied, true);
   }
 
   void test_applyChangesEmpty() {
@@ -221,6 +249,11 @@ int/*?*/? y = x;
         targets: targets,
         offset: unitInfo.content.indexOf('y'),
         offsetMapper: unitInfo.offsetMapper);
+    var trace = unitInfo.regions[1].traces[0];
+    assertTraceEntry(unitInfo, trace.entries[0], null,
+        unitInfo.content.indexOf('int/*?*/? y'), contains('explicit type'));
+    assertTraceEntry(unitInfo, trace.entries[1], 'y',
+        unitInfo.content.indexOf('= x;') + '= '.length, contains('data flow'));
     expect(state.hasBeenApplied, false);
     expect(state.needsRerun, true);
     expect(reranPaths, null);

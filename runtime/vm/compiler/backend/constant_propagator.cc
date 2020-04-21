@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/backend/constant_propagator.h"
 
 #include "vm/bit_vector.h"
@@ -596,7 +594,11 @@ void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
       const intptr_t right_cid = instr->right()->Type()->ToCid();
       // If exact classes (cids) are known and they differ, the result
       // of strict compare can be computed.
+      // The only exception is comparison with special sentinel value
+      // (used for lazy initialization) which can be compared to a
+      // value of any type. Sentinel value has kNeverCid.
       if ((left_cid != kDynamicCid) && (right_cid != kDynamicCid) &&
+          (left_cid != kNeverCid) && (right_cid != kNeverCid) &&
           (left_cid != right_cid)) {
         const bool result = (instr->kind() != Token::kEQ_STRICT);
         SetValue(instr, Bool::Get(result));
@@ -1674,5 +1676,3 @@ bool ConstantPropagator::TransformDefinition(Definition* defn) {
 }
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

@@ -1306,9 +1306,43 @@ class HintCode extends AnalyzerErrorCode {
           "as an operand of a logical operator.");
 
   /**
-   * If it is not allowed to throw a nullable expression, there is not
-   * need to catch it.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the type following `on` in a
+  // catch clause is a nullable type. It isn't valid to specify a nullable type
+  // because it isn't possible to catch `null` (because it's a runtime error to
+  // throw `null`).
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the exception type is
+  // specified to allow `null` when `null` can't be thrown:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f() {
+  //   try {
+  //     // ...
+  //   } on [!FormatException?!] {
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the question mark from the type:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f() {
+  //   try {
+  //     // ...
+  //   } on FormatException {
+  //   }
+  // }
+  // ```
   static const HintCode NULLABLE_TYPE_IN_CATCH_CLAUSE = HintCode(
       'NULLABLE_TYPE_IN_CATCH_CLAUSE',
       "A potentially nullable type can't be used in an 'on' clause because it "
@@ -2238,6 +2272,61 @@ class HintCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when it finds an equality comparison
+  // (either `==` or `!=`) with one operand of `null` and the other operand
+  // can't be `null`. Such comparisons are always either `true` or `false`, so
+  // they serve no purpose.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `x` can never be
+  // `null`, so the comparison always evaluates to `true`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(int x) {
+  //   if (x [!!= null!]) {
+  //     print(x);
+  //   }
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because `x` can never be
+  // `null`, so the comparison always evaluates to `false`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(int x) {
+  //   if (x [!== null!]) {
+  //     throw ArgumentError("x can't be null");
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the other operand should be able to be `null`, then change the type of
+  // the operand:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(int? x) {
+  //   if (x != null) {
+  //     print(x);
+  //   }
+  // }
+  // ```
+  //
+  // If the other operand really can't be `null`, then remove the condition:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(int x) {
+  //   print(x);
+  // }
+  // ```
   static const HintCode UNNECESSARY_NULL_COMPARISON_FALSE =
       HintCodeWithUniqueName(
           'UNNECESSARY_NULL_COMPARISON',

@@ -294,7 +294,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
         throw ConcurrentModificationError(this);
       }
     }
-    if (matchFound) return match!;
+    if (matchFound) return match as E;
     if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
@@ -488,15 +488,15 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     return -1;
   }
 
-  int lastIndexOf(Object? element, [int? _startIndex]) {
+  int lastIndexOf(Object? element, [int? startIndex]) {
     @notNull
-    int startIndex = _startIndex ?? this.length - 1;
-    if (startIndex >= this.length) {
-      startIndex = this.length - 1;
-    } else if (startIndex < 0) {
+    int start = startIndex ?? this.length - 1;
+    if (start >= this.length) {
+      start = this.length - 1;
+    } else if (start < 0) {
       return -1;
     }
-    for (int i = startIndex; i >= 0; i--) {
+    for (int i = start; i >= 0; i--) {
       if (this[i] == element) {
         return i;
       }

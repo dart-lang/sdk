@@ -28,7 +28,7 @@ import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor
 class LocalConstructorContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     var optype = (request as DartCompletionRequestImpl).opType;
 
     // Collect suggestions from the specific child [AstNode] that contains

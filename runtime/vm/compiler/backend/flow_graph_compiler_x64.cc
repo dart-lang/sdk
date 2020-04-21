@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_X64.
-#if defined(TARGET_ARCH_X64) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(TARGET_ARCH_X64)
 
 #include "vm/compiler/backend/flow_graph_compiler.h"
 
@@ -730,11 +730,17 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     const AbstractType& dst_type,
     const String& dst_name,
     LocationSummary* locs) {
-  compiler::Label done;
-
-  const Register kRegToCall =
+  // If the dst_type is instantiated we know the target TTS stub at
+  // compile-time and can therefore use a pc-relative call.
+  const bool use_pc_relative_call = dst_type.IsInstantiated() &&
+                                    FLAG_precompiled_mode &&
+                                    FLAG_use_bare_instructions;
+  const Register kScratchReg =
       dst_type.IsTypeParameter() ? RSI : TypeTestABI::kDstTypeReg;
-  const Register kScratchReg = kRegToCall;
+
+  const Register kRegToCall = use_pc_relative_call ? kNoRegister : kScratchReg;
+
+  compiler::Label done;
 
   GenerateAssertAssignableViaTypeTestingStub(receiver_type, dst_type, dst_name,
                                              kRegToCall, kScratchReg, &done);
@@ -756,8 +762,13 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
 
   __ movq(TypeTestABI::kSubtypeTestCacheReg,
           compiler::Address(PP, sub_type_cache_offset));
-  __ call(compiler::FieldAddress(
-      kRegToCall, AbstractType::type_test_stub_entry_point_offset()));
+  if (use_pc_relative_call) {
+    __ GenerateUnRelocatedPcRelativeCall();
+    AddPcRelativeTTSCallTypeTarget(dst_type);
+  } else {
+    __ call(compiler::FieldAddress(
+        kRegToCall, AbstractType::type_test_stub_entry_point_offset()));
+  }
   EmitCallsiteMetadata(token_pos, deopt_id, RawPcDescriptors::kOther, locs);
   __ Bind(&done);
 }
@@ -1763,4 +1774,4 @@ void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_ARCH_X64) && !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(TARGET_ARCH_X64)

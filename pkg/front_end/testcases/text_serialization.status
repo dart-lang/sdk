@@ -35,8 +35,8 @@ extensions/extension_call: TextSerializationFailure
 extensions/extension_constructor: TextSerializationFailure
 extensions/extension_field_with_type_parameter_usage: TextSerializationFailure
 extensions/extension_methods: TextSerializationFailure
-extensions/extension_setter_error: TypeCheckError
 extensions/extension_setter: TextSerializationFailure
+extensions/extension_setter_error: TypeCheckError
 extensions/generic_function_in_generic_extension: TextSerializationFailure
 extensions/getter_setter_conflict: TextSerializationFailure
 extensions/if_null: TextSerializationFailure
@@ -44,15 +44,14 @@ extensions/implicit_extension_inference: TextSerializationFailure
 extensions/implicit_this: TextSerializationFailure
 extensions/import_via_prefix: TextSerializationFailure
 extensions/index: TextSerializationFailure
-extensions/instance_access_of_static: TextSerializationFailure
 extensions/instance_access: TextSerializationFailure
+extensions/instance_access_of_static: TextSerializationFailure
 extensions/instance_members: TextSerializationFailure
 extensions/instance_tearoff: TextSerializationFailure
 extensions/internal_resolution: TextSerializationFailure
 extensions/invalid_explicit_access: TextSerializationFailure
 extensions/invalid_explicit_static_access: TextSerializationFailure
 extensions/issue38600: TextSerializationFailure
-extensions/issue38712: TextSerializationFailure
 extensions/issue38713: TextSerializationFailure
 extensions/issue38745: TextSerializationFailure
 extensions/issue38750: TextSerializationFailure
@@ -73,24 +72,343 @@ extensions/on_type_variable_inference: TextSerializationFailure
 extensions/operators: TextSerializationFailure
 extensions/other_kinds: TextSerializationFailure
 extensions/private_members: TextSerializationFailure
-extensions/static_access_of_instance: TextSerializationFailure
 extensions/static_access: TextSerializationFailure
+extensions/static_access_of_instance: TextSerializationFailure
 extensions/tear_offs: TextSerializationFailure
 extensions/type_variables: TextSerializationFailure
 extensions/unnamed_extensions: TextSerializationFailure
 extensions/use_this: TextSerializationFailure
+general/DeltaBlue: TextSerializationFailure # Was: Pass
+general/abstract_members: TypeCheckError
+general/abstract_overrides_concrete_with_no_such_method: TextSerializationFailure
+general/accessors: TextSerializationFailure # Was: RuntimeError
+general/all_variances: TextSerializationFailure
+general/ambiguous_exports: TextSerializationFailure # Was: RuntimeError # Expected, this file exports two main methods.
+general/annotation_on_enum_values: TextSerializationFailure # Was: Pass
+general/annotation_top: TextSerializationFailure # Was: Pass
+general/annotation_typedef_formals: TextSerializationFailure # Was: Pass
+general/annotation_typedef_formals_resolution: TextSerializationFailure # Was: Pass
+general/annotation_variable_declaration: TextSerializationFailure # Was: Pass
+general/argument: TextSerializationFailure # Was: Pass
+general/arithmetic: TextSerializationFailure # Was: Pass
+general/arrow_function: TextSerializationFailure # Was: Pass
+general/assign_to_initializing_formal: TextSerializationFailure
+general/async_function: TextSerializationFailure # Was: Pass
+general/async_nested: TextSerializationFailure # Was: Pass
+general/await_complex: TextSerializationFailure
+general/await_in_cascade: TextSerializationFailure
+general/await_in_non_async: RuntimeError
+general/await_in_non_async: TextSerializationFailure
+general/bad_setter_abstract: TextSerializationFailure # Was: Pass
+general/bad_store: TextSerializationFailure # Was: Pass
+general/bad_type_variable_uses_in_supertypes: TextSerializationFailure
+general/bounds_check_depends_on_inference: TextSerializationFailure # Was: Pass
+general/bug21938: TypeCheckError
+general/bug30695: TypeCheckError
+general/bug31124: TextSerializationFailure # Was: RuntimeError # Test has no main method (and we shouldn't add one).
+general/bug32414a: TextSerializationFailure # Was: Pass
+general/bug32414b: TextSerializationFailure # Was: Pass
+general/bug32426: TextSerializationFailure # Was: Pass
+general/bug32629: TextSerializationFailure
+general/bug32866: TextSerializationFailure # Was: Pass
+general/bug33099: TextSerializationFailure # Was: Pass
+general/bug33196: TextSerializationFailure # Was: Pass
+general/bug33206: TextSerializationFailure # Was: Pass
+general/bug33298: TextSerializationFailure # Was: Pass
+general/bug34511: TextSerializationFailure # Was: Pass
+general/bug35470: TextSerializationFailure # Was: Pass
+general/bug37476: TextSerializationFailure
+general/call: TypeCheckError
+general/candidate_found: TypeCheckError
+general/cascade: TextSerializationFailure # Was: RuntimeError
+general/casts: TextSerializationFailure # Was: Pass
+general/check_deferred_allocation: TextSerializationFailure # Was: Pass
+general/check_deferred_as_check: TextSerializationFailure # Was: Pass
+general/check_deferred_before_args2: TextSerializationFailure # Was: Pass
+general/check_deferred_before_args: TextSerializationFailure # Was: Pass
+general/check_deferred_before_call: TextSerializationFailure # Was: Pass
+general/check_deferred_before_write: TextSerializationFailure # Was: Pass
+general/check_deferred_is_check: TextSerializationFailure # Was: Pass
+general/check_deferred_read: TextSerializationFailure # Was: Pass
+general/check_deferred_read_static_field: TextSerializationFailure # Was: Pass
+general/check_deferred_read_type: TextSerializationFailure # Was: Pass
+general/check_deferred_static_method_call: TextSerializationFailure # Was: Pass
+general/check_deferred_type_declaration: TextSerializationFailure # Was: Pass
+general/circularity-via-initializing-formal: TextSerializationFailure # Was: Pass
+general/classes: TextSerializationFailure # Was: Pass
+general/clone_function_type: TextSerializationFailure # Was: Pass
+general/closure: TextSerializationFailure # Was: Pass
+general/co19_language_metadata_syntax_t04: TextSerializationFailure # Was: Pass
+general/complex_class_hierarchy: TextSerializationFailure
+general/compound_binary_implicit_as: TextSerializationFailure
+general/const_redirect_to_nonconst: TextSerializationFailure
+general/constant_truncate: TextSerializationFailure
+general/constructor_const_inference: TextSerializationFailure # Was: Pass
+general/constructor_cycle: TextSerializationFailure # Was: Pass
+general/constructor_function_types: TextSerializationFailure # Was: Pass
+general/constructor_initializer_invalid: TextSerializationFailure # Was: RuntimeError # Fails execution after recovery
+general/continue_inference_after_error: TextSerializationFailure # Was: Pass
+general/continue_inference_after_error_lib: TextSerializationFailure # Was: Pass
+general/control_flow_collection: TextSerializationFailure
+general/control_flow_collection_inference: TextSerializationFailure
+general/covariant_equals: TextSerializationFailure
+general/covariant_generic: TextSerializationFailure # Was: RuntimeError
+general/covariant_parameter_in_superclass_of_mixin_application: TextSerializationFailure
+general/cycles: TextSerializationFailure # Was: Pass
+general/default_values: TextSerializationFailure # Was: Pass
+general/deferred_lib: TextSerializationFailure # Was: Pass
+general/deferred_type_annotation: TextSerializationFailure # Was: Pass
+general/demote_closure_types: TextSerializationFailure
+general/duplicated_bad_prefix: TextSerializationFailure # Was: Pass
+general/duplicated_bad_prefix_lib1: TextSerializationFailure # Was: Pass
+general/duplicated_bad_prefix_lib2: TextSerializationFailure # Was: Pass
+general/duplicated_declarations: TypeCheckError
+general/duplicated_declarations_lib: TextSerializationFailure # Was: Pass
+general/duplicated_declarations_part: TextSerializationFailure # Was: Pass
+general/duplicated_field_initializer: TextSerializationFailure # Was: RuntimeError
+general/duplicated_named_args_3: TextSerializationFailure # Was: Pass
+general/error_locations/error_location_01: TextSerializationFailure
+general/error_locations/error_location_02: TextSerializationFailure
+general/error_locations/error_location_03: TextSerializationFailure
+general/error_locations/error_location_04: TextSerializationFailure
+general/error_locations/error_location_05: TextSerializationFailure
+general/error_locations/error_location_06: TextSerializationFailure
+general/error_recovery/await_not_in_async: TextSerializationFailure
+general/error_recovery/constructor_recovery_bad_name_general.crash: TextSerializationFailure
+general/error_recovery/constructor_recovery_bad_name_get.crash: TextSerializationFailure
+general/error_recovery/constructor_recovery_bad_name_return_type.crash: TextSerializationFailure
+general/error_recovery/constructor_recovery_bad_name_set.crash: TextSerializationFailure
+general/error_recovery/constructor_recovery_get: TextSerializationFailure
+general/error_recovery/constructor_recovery_ok: TextSerializationFailure
+general/error_recovery/constructor_recovery_operator.crash: TextSerializationFailure
+general/error_recovery/constructor_recovery_return_type: TextSerializationFailure
+general/error_recovery/constructor_recovery_set: TextSerializationFailure
+general/error_recovery/empty_await_for: TextSerializationFailure
+general/error_recovery/empty_for: TextSerializationFailure
+general/error_recovery/issue_38415.crash: RuntimeError
+general/error_recovery/issue_38415.crash: TextSerializationFailure
+general/error_recovery/issue_39024.crash: RuntimeError
+general/error_recovery/issue_39026.crash: TextSerializationFailure
+general/error_recovery/issue_39026_prime.crash: TextSerializationFailure
+general/error_recovery/issue_39033.crash: TextSerializationFailure
+general/error_recovery/issue_39058.crash: RuntimeError
+general/error_recovery/issue_39058_prime.crash: RuntimeError
+general/error_recovery/issue_39060: TextSerializationFailure
+general/error_recovery/issue_39202.crash: RuntimeError
+general/error_recovery/issue_39202.crash: TextSerializationFailure
+general/error_recovery/issue_39230.crash: TextSerializationFailure
+general/error_recovery/issue_39958_01: RuntimeError
+general/error_recovery/issue_39958_01: TextSerializationFailure
+general/error_recovery/issue_39958_02: RuntimeError
+general/error_recovery/issue_39958_02: TextSerializationFailure
+general/error_recovery/issue_39958_03: RuntimeError
+general/error_recovery/issue_39958_03: TextSerializationFailure
+general/error_recovery/issue_39958_04: RuntimeError
+general/error_recovery/issue_39958_04: TextSerializationFailure
+general/error_recovery/yield_not_in_generator: TextSerializationFailure
+general/escape: TextSerializationFailure # Was: Pass
+general/export_test: TextSerializationFailure # Was: Pass
+general/expressions: TextSerializationFailure # Was: RuntimeError
+general/extend_with_type_variable: TextSerializationFailure
+general/external: TextSerializationFailure # Was: Pass
+general/external_import: TextSerializationFailure # Was: RuntimeError # The native extension to import doesn't exist. This is ok.
+general/fallthrough: TextSerializationFailure
+general/ffi_sample: TextSerializationFailure
+general/fibonacci: TextSerializationFailure # Was: Pass
+general/for_in_scope: TextSerializationFailure # Was: Pass
+general/for_in_without_declaration: TextSerializationFailure
+general/forwarding_stub_for_operator: TextSerializationFailure
+general/function_in_field: TextSerializationFailure # Was: Pass
+general/function_type_assignments: TextSerializationFailure # Was: Pass
+general/function_type_is_check: TextSerializationFailure # Was: Pass
+general/function_type_recovery: TextSerializationFailure # Was: Pass
+general/functions: TextSerializationFailure # Was: Pass
+general/future_or_test: TextSerializationFailure # Was: Pass
+general/generic_function_type_in_message: TextSerializationFailure
+general/getter_call: TextSerializationFailure
+general/having_part_with_part_and_annotation: TextSerializationFailure
+general/having_part_with_parts_and_annotation: TextSerializationFailure
+general/if_null_in_cascade: TextSerializationFailure
+general/if_null_in_list_literal: TextSerializationFailure
+general/if_null_in_set_literal: TextSerializationFailure
+general/ignore_function: TextSerializationFailure
+general/illegal_named_function_expression: TextSerializationFailure # Was: Pass
+general/illegal_named_function_expression_scope: TextSerializationFailure # Was: Pass
+general/implicit_const_with_static_fields: TextSerializationFailure # Was: Pass
+general/implicit_new: TextSerializationFailure # Was: Pass
+general/implicit_scope_test: TextSerializationFailure # Was: Pass
+general/implicit_this: TextSerializationFailure # Was: Pass
+general/import_conflicting_getters: TextSerializationFailure
+general/import_conflicting_setters: TextSerializationFailure
+general/import_conflicting_type_member: TextSerializationFailure
+general/import_conflicting_types: TextSerializationFailure
+general/incomplete_field_formal_parameter: TextSerializationFailure # Was: RuntimeError
+general/infer_field_from_multiple: TypeCheckError
+general/infer_field_type: TextSerializationFailure
+general/infer_fixed_generic_return_type: TextSerializationFailure
+general/infer_map_literal_with_closure: TextSerializationFailure
+general/inherit_function: TextSerializationFailure
+general/interface_conflict: TextSerializationFailure
+general/interface_contravariant_from_class: TextSerializationFailure
+general/interface_covariantImpl_from_class: TextSerializationFailure
+general/interface_covariantInterface_from_class: TextSerializationFailure
+general/invalid_assignment: TextSerializationFailure # Was: Pass
+general/invalid_cast: TextSerializationFailure # Was: Pass
+general/invalid_operator2: TextSerializationFailure
+general/invalid_operator: TypeCheckError
+general/invalid_type: TextSerializationFailure
+general/invocations: TextSerializationFailure # Was: RuntimeError
+general/issue129167943: TextSerializationFailure
+general/issue34515: TextSerializationFailure
+general/issue34899: TextSerializationFailure
+general/issue35875: TextSerializationFailure
+general/issue37027: TextSerializationFailure
+general/issue37381: TextSerializationFailure
+general/issue37776: TextSerializationFailure
+general/issue38812: TextSerializationFailure
+general/issue38938: TextSerializationFailure
+general/issue38943: TextSerializationFailure
+general/issue38944: TextSerializationFailure
+general/issue38961: TextSerializationFailure
+general/issue39344: TextSerializationFailure
+general/issue39421: TextSerializationFailure
+general/issue39817: TextSerializationFailure
+general/issue40242: TextSerializationFailure
+general/issue40428: TextSerializationFailure
+general/issue40662: TextSerializationFailure
+general/issue40744: TextSerializationFailure
+general/issue41070: TextSerializationFailure
+general/issue41210a: TypeCheckError
+general/issue41210b/issue41210: TypeCheckError
+general/literals: TextSerializationFailure # Was: Pass
+general/local_generic_function: TextSerializationFailure # Was: Pass
+general/long_chain_of_typedefs: TextSerializationFailure
+general/magic_const: TextSerializationFailure # Was: Pass
+general/many_errors: TextSerializationFailure
+general/metadata_enum: TextSerializationFailure # Was: Pass
+general/metadata_named_mixin_application: TextSerializationFailure # Was: Pass
+general/micro: TextSerializationFailure # Was: RuntimeError
+general/missing_constructor: TextSerializationFailure # Was: Pass
+general/missing_toplevel: TextSerializationFailure
+general/mixin: TextSerializationFailure # Was: Pass
+general/mixin_application_inferred_parameter_type: TextSerializationFailure
+general/mixin_application_override: ExpectationFileMismatch
+general/mixin_application_override: TypeCheckError
+general/mixin_conflicts: TextSerializationFailure
+general/mixin_constructors_with_default_values: TextSerializationFailure # Was: Pass
+general/mixin_covariant: TextSerializationFailure
+general/mixin_inherited_setter_for_mixed_in_field: TextSerializationFailure # Was: Pass
+general/mixin_interface_conflict: TextSerializationFailure
+general/mixin_super_repeated: TextSerializationFailure # Was: Pass
+general/mixin_with_static_member: TextSerializationFailure
+general/named_function_scope: TextSerializationFailure # Was: Pass
+general/named_parameters: TextSerializationFailure # Was: Pass
+general/native_as_name: TextSerializationFailure # Was: Pass
+general/nested_implicit_const_with_env_var: TextSerializationFailure # Was: Pass
+general/nested_property_set: TextSerializationFailure
+general/nested_variable_set: TextSerializationFailure
+general/nested_variance: TextSerializationFailure
+general/no_such_method_private_setter: TextSerializationFailure # Was: Pass
+general/no_such_method_private_setter_lib: TextSerializationFailure # Was: Pass
+general/non_covariant_checks: TextSerializationFailure
+general/null_aware: TextSerializationFailure # Was: Pass
+general/null_aware_for_in: TextSerializationFailure
+general/null_aware_postfix: TextSerializationFailure
+general/null_aware_spread: TextSerializationFailure
+general/operator_method_not_found: TextSerializationFailure
+general/operators: TextSerializationFailure # Was: Pass
+general/optional: TypeCheckError
+general/override: TextSerializationFailure # Was: Pass
+general/override_check_accessor_after_inference: TypeCheckError # Issue #31620
+general/override_check_accessor_basic: TypeCheckError # Issue #31620
+general/override_check_accessor_with_covariant_modifier: TypeCheckError # Issue #31620
+general/override_check_after_inference: TypeCheckError # Issue #31620
+general/override_check_basic: TypeCheckError # Issue #31620
+general/override_check_generic_method_f_bounded: TextSerializationFailure # Was: Pass
+general/override_check_two_substitutions: TextSerializationFailure # Was: Pass
+general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
+general/override_inference_for_getters_and_setters: TextSerializationFailure
+general/override_inference_for_setters: TextSerializationFailure
+general/override_inference_named_parameters_ordering: TextSerializationFailure
+general/override_setter_with_field: TypeCheckError
+general/part_as_entry_point_lib: TextSerializationFailure # Was: Pass
+general/part_not_part_of: TextSerializationFailure
+general/part_not_part_of_same_named_library: TextSerializationFailure
+general/part_part_of_different_unnamed_library: TextSerializationFailure
+general/part_part_of_differently_named_library: TextSerializationFailure
+general/prefer_baseclass: TextSerializationFailure # Was: Pass
+general/private_method_tearoff: TextSerializationFailure # Was: Pass
+general/private_method_tearoff_lib: TextSerializationFailure # Was: Pass
+general/promoted_access: TextSerializationFailure
+general/promoted_null_aware_access: TextSerializationFailure
+general/public_method_tearoff: TextSerializationFailure # Was: Pass
+general/public_method_tearoff_lib: TextSerializationFailure # Was: Pass
+general/qualified: TextSerializationFailure # Was: Pass
+general/qualified_lib: TextSerializationFailure # Was: Pass
+general/qualified_part: TextSerializationFailure # Was: Pass
+general/redirecting_constructor: TextSerializationFailure # Was: Pass
+general/redirecting_factory: TextSerializationFailure # Was: Pass
+general/redirecting_factory_chain_test: TextSerializationFailure # Was: Pass
+general/redirecting_factory_const_inference: TextSerializationFailure # Was: Pass
+general/redirecting_factory_metadata: TextSerializationFailure # Was: Pass
+general/redirecting_factory_simple_test: TextSerializationFailure # Was: Pass
+general/redirecting_factory_typeargs_test: TextSerializationFailure # Was: Pass
+general/redirecting_factory_typeparam_test: TextSerializationFailure # Was: Pass
+general/redirecting_factory_typeparambounds_test: TextSerializationFailure # Was: Pass
+general/redirecting_initializer_arguments_assignable_test: TextSerializationFailure # Was: Pass
+general/redirecting_initializer_arguments_test: TextSerializationFailure # Was: Pass
+general/redirection_chain_type_arguments: TextSerializationFailure # Was: Pass
+general/redirection_chain_type_arguments_subst: TextSerializationFailure # Was: Pass
+general/redirection_type_arguments: TextSerializationFailure # Was: Pass
+general/reject_generic_function_types_in_bounds: TextSerializationFailure # Was: RuntimeError # Expected
+general/return_with_unknown_type_in_context: TextSerializationFailure # Was: Pass
+general/sdk_diagnostic: TextSerializationFailure
+general/spread_collection: TextSerializationFailure # Should be fixed as part of implementing spread collection support
+general/spread_collection_inference: TextSerializationFailure # Should be fixed as part of implementing spread collection support
+general/statements: Crash
+general/static_setter: TextSerializationFailure # Was: Pass
+general/store_load: TextSerializationFailure # Was: Pass
+general/stringliteral: TextSerializationFailure # Was: Pass
+general/super_call: TextSerializationFailure # Was: Pass
+general/super_nsm: TextSerializationFailure # Was: Pass
+general/this_field_call: TextSerializationFailure
+general/three_typedefs_loop: TextSerializationFailure
+general/top_level_accessors: TextSerializationFailure # Was: Pass
+general/top_level_accessors_part: TextSerializationFailure # Was: Pass
+general/type_literal_as_metadata: TextSerializationFailure
+general/type_of_null: TextSerializationFailure
+general/type_parameter_type_named_int: TextSerializationFailure
+general/type_parameter_usage_in_static_method_in_class: TextSerializationFailure
+general/type_parameter_usage_in_static_method_in_extension: TextSerializationFailure
+general/type_variable_as_super: TextSerializationFailure # Was: RuntimeError
+general/type_variable_bound_access: TypeCheckError
+general/type_variable_prefix: TextSerializationFailure # Was: RuntimeError
+general/type_variable_uses: TextSerializationFailure # Was: Pass
+general/typedef: TextSerializationFailure # Was: Pass
+general/undefined: TextSerializationFailure # Was: Pass
+general/undefined_getter_in_compound_assignment: TextSerializationFailure # Was: Pass
+general/uninitialized_fields: TextSerializationFailure # Was: Pass
+general/unsound_promotion: TypeCheckError
+general/unused_methods: TextSerializationFailure # Was: Pass
+general/var_as_type_name: TextSerializationFailure # Was: Pass
+general/vm_type_ops: TextSerializationFailure
+general/void_methods: TextSerializationFailure
+general/warn_unresolved_sends: TextSerializationFailure
+general/well_boundness_checks_in_outline: TextSerializationFailure
+general/with_dependencies/abstract_members_from_dill/main: TextSerializationFailure
+general/with_dependencies/extension_from_dill/extension_from_dill: TextSerializationFailure
+general/with_dependencies/variance_from_dill/variance_from_dill: TextSerializationFailure
+general_nnbd_opt_out/DeltaBlue: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/abstract_members: TypeCheckError
 general_nnbd_opt_out/abstract_overrides_concrete_with_no_such_method: TextSerializationFailure
 general_nnbd_opt_out/accessors: TextSerializationFailure # Was: RuntimeError
 general_nnbd_opt_out/all_variances: TextSerializationFailure
 general_nnbd_opt_out/ambiguous_exports: TextSerializationFailure # Was: RuntimeError # Expected, this file exports two main methods.
-general_nnbd_opt_out/annotation_eof: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/annotation_on_enum_values: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/annotation_top: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/annotation_typedef_formals_resolution: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/annotation_typedef_formals: TextSerializationFailure # Was: Pass
+general_nnbd_opt_out/annotation_typedef_formals_resolution: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/annotation_variable_declaration: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/argument_mismatch: TextSerializationFailure
 general_nnbd_opt_out/argument: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/arithmetic: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/arrow_function: TextSerializationFailure # Was: Pass
@@ -99,8 +417,8 @@ general_nnbd_opt_out/async_function: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/async_nested: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/await_complex: TextSerializationFailure
 general_nnbd_opt_out/await_in_cascade: TextSerializationFailure
+general_nnbd_opt_out/await_in_non_async: RuntimeError
 general_nnbd_opt_out/await_in_non_async: TextSerializationFailure
-general_nnbd_opt_out/await: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/bad_setter_abstract: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/bad_store: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/bad_type_variable_uses_in_supertypes: TextSerializationFailure
@@ -126,14 +444,14 @@ general_nnbd_opt_out/cascade: TextSerializationFailure # Was: RuntimeError
 general_nnbd_opt_out/casts: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/check_deferred_allocation: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/check_deferred_as_check: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/check_deferred_before_args: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/check_deferred_before_args2: TextSerializationFailure # Was: Pass
+general_nnbd_opt_out/check_deferred_before_args: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/check_deferred_before_call: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/check_deferred_before_write: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/check_deferred_is_check: TextSerializationFailure # Was: Pass
+general_nnbd_opt_out/check_deferred_read: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/check_deferred_read_static_field: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/check_deferred_read_type: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/check_deferred_read: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/check_deferred_static_method_call: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/check_deferred_type_declaration: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/circularity-via-initializing-formal: TextSerializationFailure # Was: Pass
@@ -148,10 +466,10 @@ general_nnbd_opt_out/constructor_const_inference: TextSerializationFailure # Was
 general_nnbd_opt_out/constructor_cycle: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/constructor_function_types: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/constructor_initializer_invalid: TextSerializationFailure # Was: RuntimeError # Fails execution after recovery
-general_nnbd_opt_out/continue_inference_after_error_lib: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/continue_inference_after_error: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/control_flow_collection_inference: TextSerializationFailure
+general_nnbd_opt_out/continue_inference_after_error_lib: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/control_flow_collection: TextSerializationFailure
+general_nnbd_opt_out/control_flow_collection_inference: TextSerializationFailure
 general_nnbd_opt_out/covariant_equals: TextSerializationFailure
 general_nnbd_opt_out/covariant_generic: TextSerializationFailure # Was: RuntimeError
 general_nnbd_opt_out/covariant_parameter_in_superclass_of_mixin_application: TextSerializationFailure
@@ -159,16 +477,14 @@ general_nnbd_opt_out/cycles: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/default_values: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/deferred_lib: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/deferred_type_annotation: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/DeltaBlue: TextSerializationFailure # Was: Pass
+general_nnbd_opt_out/duplicated_bad_prefix: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/duplicated_bad_prefix_lib1: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/duplicated_bad_prefix_lib2: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/duplicated_bad_prefix: TextSerializationFailure # Was: Pass
+general_nnbd_opt_out/duplicated_declarations: TypeCheckError
 general_nnbd_opt_out/duplicated_declarations_lib: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/duplicated_declarations_part: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/duplicated_declarations: TypeCheckError
 general_nnbd_opt_out/duplicated_field_initializer: TextSerializationFailure # Was: RuntimeError
 general_nnbd_opt_out/duplicated_named_args_3: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/dynamic_and_void: TextSerializationFailure
 general_nnbd_opt_out/error_locations/error_location_01: TextSerializationFailure
 general_nnbd_opt_out/error_locations/error_location_02: TextSerializationFailure
 general_nnbd_opt_out/error_locations/error_location_03: TextSerializationFailure
@@ -176,12 +492,11 @@ general_nnbd_opt_out/error_locations/error_location_04: TextSerializationFailure
 general_nnbd_opt_out/error_locations/error_location_05: TextSerializationFailure
 general_nnbd_opt_out/error_locations/error_location_06: TextSerializationFailure
 general_nnbd_opt_out/escape: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/export_main: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/export_test: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/expressions: TextSerializationFailure # Was: RuntimeError
 general_nnbd_opt_out/extend_with_type_variable: TextSerializationFailure
-general_nnbd_opt_out/external_import: TextSerializationFailure # Was: RuntimeError # The native extension to import doesn't exist. This is ok.
 general_nnbd_opt_out/external: TextSerializationFailure # Was: Pass
+general_nnbd_opt_out/external_import: TextSerializationFailure # Was: RuntimeError # The native extension to import doesn't exist. This is ok.
 general_nnbd_opt_out/fallthrough: TextSerializationFailure
 general_nnbd_opt_out/ffi_sample: TextSerializationFailure
 general_nnbd_opt_out/fibonacci: TextSerializationFailure # Was: Pass
@@ -190,7 +505,6 @@ general_nnbd_opt_out/for_in_without_declaration: TextSerializationFailure
 general_nnbd_opt_out/forwarding_stub_for_operator: TextSerializationFailure
 general_nnbd_opt_out/function_in_field: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/function_type_assignments: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/function_type_default_value: TextSerializationFailure
 general_nnbd_opt_out/function_type_is_check: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/function_type_recovery: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/functions: TextSerializationFailure # Was: Pass
@@ -198,13 +512,12 @@ general_nnbd_opt_out/future_or_test: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/generic_function_type_in_message: TextSerializationFailure
 general_nnbd_opt_out/having_part_with_part_and_annotation: TextSerializationFailure
 general_nnbd_opt_out/having_part_with_parts_and_annotation: TextSerializationFailure
-general_nnbd_opt_out/hello: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/if_null_in_cascade: TextSerializationFailure
 general_nnbd_opt_out/if_null_in_list_literal: TextSerializationFailure
 general_nnbd_opt_out/if_null_in_set_literal: TextSerializationFailure
 general_nnbd_opt_out/ignore_function: TextSerializationFailure
-general_nnbd_opt_out/illegal_named_function_expression_scope: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/illegal_named_function_expression: TextSerializationFailure # Was: Pass
+general_nnbd_opt_out/illegal_named_function_expression_scope: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/implicit_const_with_static_fields: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/implicit_new: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/implicit_scope_test: TextSerializationFailure # Was: Pass
@@ -241,13 +554,12 @@ general_nnbd_opt_out/local_generic_function: TextSerializationFailure # Was: Pas
 general_nnbd_opt_out/long_chain_of_typedefs: TextSerializationFailure
 general_nnbd_opt_out/magic_const: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/many_errors: TextSerializationFailure
-general_nnbd_opt_out/map: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/metadata_enum: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/metadata_named_mixin_application: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/micro: TextSerializationFailure # Was: RuntimeError
-general_nnbd_opt_out/minimum_int: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/missing_constructor: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/missing_toplevel: TextSerializationFailure
+general_nnbd_opt_out/mixin: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/mixin_application_inferred_parameter_type: TextSerializationFailure
 general_nnbd_opt_out/mixin_application_override: ExpectationFileMismatch
 general_nnbd_opt_out/mixin_application_override: TypeCheckError
@@ -256,7 +568,6 @@ general_nnbd_opt_out/mixin_constructors_with_default_values: TextSerializationFa
 general_nnbd_opt_out/mixin_inherited_setter_for_mixed_in_field: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/mixin_super_repeated: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/mixin_with_static_member: TextSerializationFailure
-general_nnbd_opt_out/mixin: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/named_function_scope: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/named_parameters: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/native_as_name: TextSerializationFailure # Was: Pass
@@ -264,16 +575,17 @@ general_nnbd_opt_out/nested_implicit_const_with_env_var: TextSerializationFailur
 general_nnbd_opt_out/nested_property_set: TextSerializationFailure
 general_nnbd_opt_out/nested_variable_set: TextSerializationFailure
 general_nnbd_opt_out/nested_variance: TextSerializationFailure
-general_nnbd_opt_out/no_such_method_private_setter_lib: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/no_such_method_private_setter: TextSerializationFailure # Was: Pass
+general_nnbd_opt_out/no_such_method_private_setter_lib: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/non_covariant_checks: TextSerializationFailure
+general_nnbd_opt_out/null_aware: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/null_aware_for_in: TextSerializationFailure
 general_nnbd_opt_out/null_aware_postfix: TextSerializationFailure
 general_nnbd_opt_out/null_aware_spread: TextSerializationFailure
-general_nnbd_opt_out/null_aware: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/operator_method_not_found: TextSerializationFailure
 general_nnbd_opt_out/operators: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/optional: TypeCheckError
+general_nnbd_opt_out/override: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/override_check_accessor_after_inference: TypeCheckError # Issue #31620
 general_nnbd_opt_out/override_check_accessor_basic: TypeCheckError # Issue #31620
 general_nnbd_opt_out/override_check_accessor_with_covariant_modifier: TypeCheckError # Issue #31620
@@ -285,24 +597,22 @@ general_nnbd_opt_out/override_check_with_covariant_modifier: TypeCheckError # Is
 general_nnbd_opt_out/override_inference_for_setters: TextSerializationFailure
 general_nnbd_opt_out/override_inference_named_parameters_ordering: TextSerializationFailure
 general_nnbd_opt_out/override_setter_with_field: TypeCheckError
-general_nnbd_opt_out/override: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/part_as_entry_point_lib: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/part_as_entry_point: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/part_not_part_of_same_named_library: TextSerializationFailure
 general_nnbd_opt_out/part_not_part_of: TextSerializationFailure
+general_nnbd_opt_out/part_not_part_of_same_named_library: TextSerializationFailure
 general_nnbd_opt_out/part_part_of_different_unnamed_library: TextSerializationFailure
 general_nnbd_opt_out/part_part_of_differently_named_library: TextSerializationFailure
-general_nnbd_opt_out/platform: TextSerializationFailure
 general_nnbd_opt_out/prefer_baseclass: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/private_method_tearoff_lib: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/private_method_tearoff: TextSerializationFailure # Was: Pass
+general_nnbd_opt_out/private_method_tearoff_lib: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/promoted_access: TextSerializationFailure
-general_nnbd_opt_out/public_method_tearoff_lib: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/public_method_tearoff: TextSerializationFailure # Was: Pass
+general_nnbd_opt_out/public_method_tearoff_lib: TextSerializationFailure # Was: Pass
+general_nnbd_opt_out/qualified: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/qualified_lib: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/qualified_part: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/qualified: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/redirecting_constructor: TextSerializationFailure # Was: Pass
+general_nnbd_opt_out/redirecting_factory: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/redirecting_factory_chain_test: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/redirecting_factory_const_inference: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/redirecting_factory_metadata: TextSerializationFailure # Was: Pass
@@ -310,28 +620,25 @@ general_nnbd_opt_out/redirecting_factory_simple_test: TextSerializationFailure #
 general_nnbd_opt_out/redirecting_factory_typeargs_test: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/redirecting_factory_typeparam_test: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/redirecting_factory_typeparambounds_test: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/redirecting_factory: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/redirecting_initializer_arguments_assignable_test: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/redirecting_initializer_arguments_test: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/redirection_chain_type_arguments_subst: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/redirection_chain_type_arguments: TextSerializationFailure # Was: Pass
+general_nnbd_opt_out/redirection_chain_type_arguments_subst: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/redirection_type_arguments: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/reject_generic_function_types_in_bounds: TextSerializationFailure # Was: RuntimeError # Expected
 general_nnbd_opt_out/return_with_unknown_type_in_context: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/sdk_diagnostic: TextSerializationFailure
-general_nnbd_opt_out/spread_collection_inference: TextSerializationFailure # Should be fixed as part of implementing spread collection support
 general_nnbd_opt_out/spread_collection: TextSerializationFailure # Should be fixed as part of implementing spread collection support
+general_nnbd_opt_out/spread_collection_inference: TextSerializationFailure # Should be fixed as part of implementing spread collection support
 general_nnbd_opt_out/statements: Crash
 general_nnbd_opt_out/static_setter: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/store_load: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/stringliteral: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/super_call: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/super_nsm: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/tabs: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/three_typedefs_loop: TextSerializationFailure
-general_nnbd_opt_out/top_level_accessors_part: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/top_level_accessors: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/top_level_library_method: TextSerializationFailure # Was: Pass
+general_nnbd_opt_out/top_level_accessors_part: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/type_literal_as_metadata: TextSerializationFailure
 general_nnbd_opt_out/type_of_null: TextSerializationFailure
 general_nnbd_opt_out/type_parameter_type_named_int: TextSerializationFailure
@@ -340,428 +647,36 @@ general_nnbd_opt_out/type_variable_bound_access: TypeCheckError
 general_nnbd_opt_out/type_variable_prefix: TextSerializationFailure # Was: RuntimeError
 general_nnbd_opt_out/type_variable_uses: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/typedef: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/undefined_getter_in_compound_assignment: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/undefined: TextSerializationFailure # Was: Pass
+general_nnbd_opt_out/undefined_getter_in_compound_assignment: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/uninitialized_fields: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/unsound_promotion: TypeCheckError
 general_nnbd_opt_out/unused_methods: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/var_as_type_name: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/void_methods: TextSerializationFailure
 general_nnbd_opt_out/warn_unresolved_sends: TextSerializationFailure
-general/abstract_members: TypeCheckError
-general/abstract_overrides_concrete_with_no_such_method: TextSerializationFailure
-general/accessors: TextSerializationFailure # Was: RuntimeError
-general/all_variances: TextSerializationFailure
-general/ambiguous_exports: TextSerializationFailure # Was: RuntimeError # Expected, this file exports two main methods.
-general/annotation_eof: TextSerializationFailure # Was: Pass
-general/annotation_on_enum_values: TextSerializationFailure # Was: Pass
-general/annotation_top: TextSerializationFailure # Was: Pass
-general/annotation_typedef_formals_resolution: TextSerializationFailure # Was: Pass
-general/annotation_typedef_formals: TextSerializationFailure # Was: Pass
-general/annotation_variable_declaration: TextSerializationFailure # Was: Pass
-general/argument_mismatch: TextSerializationFailure
-general/argument: TextSerializationFailure # Was: Pass
-general/arithmetic: TextSerializationFailure # Was: Pass
-general/arrow_function: TextSerializationFailure # Was: Pass
-general/assign_to_initializing_formal: TextSerializationFailure
-general/async_function: TextSerializationFailure # Was: Pass
-general/async_nested: TextSerializationFailure # Was: Pass
-general/await_complex: TextSerializationFailure
-general/await_in_cascade: TextSerializationFailure
-general/await_in_non_async: TextSerializationFailure
-general/await: TextSerializationFailure # Was: Pass
-general/bad_setter_abstract: TextSerializationFailure # Was: Pass
-general/bad_store: TextSerializationFailure # Was: Pass
-general/bad_type_variable_uses_in_supertypes: TextSerializationFailure
-general/bounds_check_depends_on_inference: TextSerializationFailure # Was: Pass
-general/bug21938: TypeCheckError
-general/bug30695: TypeCheckError
-general/bug31124: TextSerializationFailure # Was: RuntimeError # Test has no main method (and we shouldn't add one).
-general/bug32414a: TextSerializationFailure # Was: Pass
-general/bug32414b: TextSerializationFailure # Was: Pass
-general/bug32426: TextSerializationFailure # Was: Pass
-general/bug32629: TextSerializationFailure
-general/bug32866: TextSerializationFailure # Was: Pass
-general/bug33099: TextSerializationFailure # Was: Pass
-general/bug33196: TextSerializationFailure # Was: Pass
-general/bug33206: TextSerializationFailure # Was: Pass
-general/bug33298: TextSerializationFailure # Was: Pass
-general/bug34511: TextSerializationFailure # Was: Pass
-general/bug35470: TextSerializationFailure # Was: Pass
-general/bug37476: TextSerializationFailure
-general/call: TypeCheckError
-general/candidate_found: TypeCheckError
-general/cascade: TextSerializationFailure # Was: RuntimeError
-general/casts: TextSerializationFailure # Was: Pass
-general/check_deferred_allocation: TextSerializationFailure # Was: Pass
-general/check_deferred_as_check: TextSerializationFailure # Was: Pass
-general/check_deferred_before_args: TextSerializationFailure # Was: Pass
-general/check_deferred_before_args2: TextSerializationFailure # Was: Pass
-general/check_deferred_before_call: TextSerializationFailure # Was: Pass
-general/check_deferred_before_write: TextSerializationFailure # Was: Pass
-general/check_deferred_is_check: TextSerializationFailure # Was: Pass
-general/check_deferred_read_static_field: TextSerializationFailure # Was: Pass
-general/check_deferred_read_type: TextSerializationFailure # Was: Pass
-general/check_deferred_read: TextSerializationFailure # Was: Pass
-general/check_deferred_static_method_call: TextSerializationFailure # Was: Pass
-general/check_deferred_type_declaration: TextSerializationFailure # Was: Pass
-general/circularity-via-initializing-formal: TextSerializationFailure # Was: Pass
-general/classes: TextSerializationFailure # Was: Pass
-general/clone_function_type: TextSerializationFailure # Was: Pass
-general/closure: TextSerializationFailure # Was: Pass
-general/co19_language_metadata_syntax_t04: TextSerializationFailure # Was: Pass
-general/complex_class_hierarchy: TextSerializationFailure
-general/compound_binary_implicit_as: TextSerializationFailure
-general/const_redirect_to_nonconst: TextSerializationFailure
-general/constant_truncate: TextSerializationFailure
-general/constructor_const_inference: TextSerializationFailure # Was: Pass
-general/constructor_cycle: TextSerializationFailure # Was: Pass
-general/constructor_function_types: TextSerializationFailure # Was: Pass
-general/constructor_initializer_invalid: TextSerializationFailure # Was: RuntimeError # Fails execution after recovery
-general/continue_inference_after_error_lib: TextSerializationFailure # Was: Pass
-general/continue_inference_after_error: TextSerializationFailure # Was: Pass
-general/control_flow_collection_inference: TextSerializationFailure
-general/control_flow_collection: TextSerializationFailure
-general/covariant_equals: TextSerializationFailure
-general/covariant_generic: TextSerializationFailure # Was: RuntimeError
-general/covariant_parameter_in_superclass_of_mixin_application: TextSerializationFailure
-general/cycles: TextSerializationFailure # Was: Pass
-general/default_values: TextSerializationFailure # Was: Pass
-general/deferred_lib: TextSerializationFailure # Was: Pass
-general/deferred_type_annotation: TextSerializationFailure # Was: Pass
-general/DeltaBlue: TextSerializationFailure # Was: Pass
-general/demote_closure_types: TextSerializationFailure
-general/duplicated_bad_prefix_lib1: TextSerializationFailure # Was: Pass
-general/duplicated_bad_prefix_lib2: TextSerializationFailure # Was: Pass
-general/duplicated_bad_prefix: TextSerializationFailure # Was: Pass
-general/duplicated_declarations_lib: TextSerializationFailure # Was: Pass
-general/duplicated_declarations_part: TextSerializationFailure # Was: Pass
-general/duplicated_declarations: TypeCheckError
-general/duplicated_field_initializer: TextSerializationFailure # Was: RuntimeError
-general/duplicated_named_args_3: TextSerializationFailure # Was: Pass
-general/dynamic_and_void: TextSerializationFailure
-general/error_locations/error_location_01: TextSerializationFailure
-general/error_locations/error_location_02: TextSerializationFailure
-general/error_locations/error_location_03: TextSerializationFailure
-general/error_locations/error_location_04: TextSerializationFailure
-general/error_locations/error_location_05: TextSerializationFailure
-general/error_locations/error_location_06: TextSerializationFailure
-general/error_recovery/await_not_in_async: TextSerializationFailure
-general/error_recovery/constructor_recovery_bad_name_general.crash: TextSerializationFailure
-general/error_recovery/constructor_recovery_bad_name_get.crash: TextSerializationFailure
-general/error_recovery/constructor_recovery_bad_name_return_type.crash: TextSerializationFailure
-general/error_recovery/constructor_recovery_bad_name_set.crash: TextSerializationFailure
-general/error_recovery/constructor_recovery_get: TextSerializationFailure
-general/error_recovery/constructor_recovery_ok: TextSerializationFailure
-general/error_recovery/constructor_recovery_operator.crash: TextSerializationFailure
-general/error_recovery/constructor_recovery_return_type: TextSerializationFailure
-general/error_recovery/constructor_recovery_set: TextSerializationFailure
-general/error_recovery/empty_await_for: TextSerializationFailure
-general/error_recovery/empty_for: TextSerializationFailure
-general/error_recovery/issue_38415.crash: TextSerializationFailure
-general/error_recovery/issue_39024.crash: RuntimeError
-general/error_recovery/issue_39026_prime.crash: TextSerializationFailure
-general/error_recovery/issue_39026.crash: TextSerializationFailure
-general/error_recovery/issue_39033.crash: TextSerializationFailure
-general/error_recovery/issue_39058_prime.crash: RuntimeError
-general/error_recovery/issue_39058.crash: RuntimeError
-general/error_recovery/issue_39060: TextSerializationFailure
-general/error_recovery/issue_39202.crash: TextSerializationFailure
-general/error_recovery/issue_39230.crash: TextSerializationFailure
-general/error_recovery/issue_39958_01: TextSerializationFailure
-general/error_recovery/issue_39958_02: TextSerializationFailure
-general/error_recovery/issue_39958_03: TextSerializationFailure
-general/error_recovery/issue_39958_04: TextSerializationFailure
-general/error_recovery/yield_not_in_generator: TextSerializationFailure
-general/escape: TextSerializationFailure # Was: Pass
-general/export_main: TextSerializationFailure # Was: Pass
-general/export_test: TextSerializationFailure # Was: Pass
-general/expressions: TextSerializationFailure # Was: RuntimeError
-general/extend_with_type_variable: TextSerializationFailure
-general/external_import: TextSerializationFailure # Was: RuntimeError # The native extension to import doesn't exist. This is ok.
-general/external: TextSerializationFailure # Was: Pass
-general/fallthrough: TextSerializationFailure
-general/ffi_sample: TextSerializationFailure
-general/fibonacci: TextSerializationFailure # Was: Pass
-general/for_in_scope: TextSerializationFailure # Was: Pass
-general/for_in_without_declaration: TextSerializationFailure
-general/forwarding_stub_for_operator: TextSerializationFailure
-general/function_in_field: TextSerializationFailure # Was: Pass
-general/function_type_assignments: TextSerializationFailure # Was: Pass
-general/function_type_default_value: TextSerializationFailure
-general/function_type_is_check: TextSerializationFailure # Was: Pass
-general/function_type_recovery: TextSerializationFailure # Was: Pass
-general/functions: TextSerializationFailure # Was: Pass
-general/future_or_test: TextSerializationFailure # Was: Pass
-general/generic_function_type_in_message: TextSerializationFailure
-general/getter_call: TextSerializationFailure
-general/having_part_with_part_and_annotation: TextSerializationFailure
-general/having_part_with_parts_and_annotation: TextSerializationFailure
-general/hello: TextSerializationFailure # Was: Pass
-general/if_null_in_cascade: TextSerializationFailure
-general/if_null_in_list_literal: TextSerializationFailure
-general/if_null_in_set_literal: TextSerializationFailure
-general/ignore_function: TextSerializationFailure
-general/illegal_named_function_expression_scope: TextSerializationFailure # Was: Pass
-general/illegal_named_function_expression: TextSerializationFailure # Was: Pass
-general/implicit_const_with_static_fields: TextSerializationFailure # Was: Pass
-general/implicit_new: TextSerializationFailure # Was: Pass
-general/implicit_scope_test: TextSerializationFailure # Was: Pass
-general/implicit_this: TextSerializationFailure # Was: Pass
-general/import_conflicting_getters: TextSerializationFailure
-general/import_conflicting_setters: TextSerializationFailure
-general/import_conflicting_type_member: TextSerializationFailure
-general/import_conflicting_types: TextSerializationFailure
-general/incomplete_field_formal_parameter: TextSerializationFailure # Was: RuntimeError
-general/infer_field_from_multiple: TypeCheckError
-general/infer_field_type: TextSerializationFailure
-general/infer_fixed_generic_return_type: TextSerializationFailure
-general/infer_map_literal_with_closure: TextSerializationFailure
-general/inherit_function: TextSerializationFailure
-general/interface_conflict: TextSerializationFailure
-general/interface_contravariant_from_class: TextSerializationFailure
-general/interface_covariantImpl_from_class: TextSerializationFailure
-general/interface_covariantInterface_from_class: TextSerializationFailure
-general/invalid_assignment: TextSerializationFailure # Was: Pass
-general/invalid_cast: TextSerializationFailure # Was: Pass
-general/invalid_operator: TypeCheckError
-general/invalid_operator2: TextSerializationFailure
-general/invalid_type: TextSerializationFailure
-general/invocations: TextSerializationFailure # Was: RuntimeError
-general/issue129167943: TextSerializationFailure
-general/issue34515: TextSerializationFailure
-general/issue34899: TextSerializationFailure
-general/issue35875: TextSerializationFailure
-general/issue37027: TextSerializationFailure
-general/issue37381: TextSerializationFailure
-general/issue37776: TextSerializationFailure
-general/issue38812: TextSerializationFailure
-general/issue38938: TextSerializationFailure
-general/issue38943: TextSerializationFailure
-general/issue38944: TextSerializationFailure
-general/issue38961: TextSerializationFailure
-general/issue39344: TextSerializationFailure
-general/issue39421: TextSerializationFailure
-general/issue39817: TextSerializationFailure
-general/issue40242: TextSerializationFailure
-general/issue40428: TextSerializationFailure
-general/issue40662: TextSerializationFailure
-general/issue40744: TextSerializationFailure
-general/issue41070: TextSerializationFailure
-general/issue41210a: TypeCheckError
-general/issue41210b/issue41210: TypeCheckError
-general/literals: TextSerializationFailure # Was: Pass
-general/local_generic_function: TextSerializationFailure # Was: Pass
-general/long_chain_of_typedefs: TextSerializationFailure
-general/magic_const: TextSerializationFailure # Was: Pass
-general/many_errors: TextSerializationFailure
-general/map: TextSerializationFailure # Was: Pass
-general/metadata_enum: TextSerializationFailure # Was: Pass
-general/metadata_named_mixin_application: TextSerializationFailure # Was: Pass
-general/micro: TextSerializationFailure # Was: RuntimeError
-general/minimum_int: TextSerializationFailure # Was: Pass
-general/missing_constructor: TextSerializationFailure # Was: Pass
-general/missing_toplevel: TextSerializationFailure
-general/mixin_application_inferred_parameter_type: TextSerializationFailure
-general/mixin_application_override: ExpectationFileMismatch
-general/mixin_application_override: TypeCheckError
-general/mixin_conflicts: TextSerializationFailure
-general/mixin_constructors_with_default_values: TextSerializationFailure # Was: Pass
-general/mixin_covariant: TextSerializationFailure
-general/mixin_inherited_setter_for_mixed_in_field: TextSerializationFailure # Was: Pass
-general/mixin_interface_conflict: TextSerializationFailure
-general/mixin_super_repeated: TextSerializationFailure # Was: Pass
-general/mixin_with_static_member: TextSerializationFailure
-general/mixin: TextSerializationFailure # Was: Pass
-general/named_function_scope: TextSerializationFailure # Was: Pass
-general/named_parameters: TextSerializationFailure # Was: Pass
-general/native_as_name: TextSerializationFailure # Was: Pass
-general/nested_implicit_const_with_env_var: TextSerializationFailure # Was: Pass
-general/nested_property_set: TextSerializationFailure
-general/nested_variable_set: TextSerializationFailure
-general/nested_variance: TextSerializationFailure
-general/no_such_method_private_setter_lib: TextSerializationFailure # Was: Pass
-general/no_such_method_private_setter: TextSerializationFailure # Was: Pass
-general/non_covariant_checks: TextSerializationFailure
-general/null_aware_for_in: TextSerializationFailure
-general/null_aware_postfix: TextSerializationFailure
-general/null_aware_spread: TextSerializationFailure
-general/null_aware: TextSerializationFailure # Was: Pass
-general/operator_method_not_found: TextSerializationFailure
-general/operators: TextSerializationFailure # Was: Pass
-general/optional: TypeCheckError
-general/override_check_accessor_after_inference: TypeCheckError # Issue #31620
-general/override_check_accessor_basic: TypeCheckError # Issue #31620
-general/override_check_accessor_with_covariant_modifier: TypeCheckError # Issue #31620
-general/override_check_after_inference: TypeCheckError # Issue #31620
-general/override_check_basic: TypeCheckError # Issue #31620
-general/override_check_generic_method_f_bounded: TextSerializationFailure # Was: Pass
-general/override_check_two_substitutions: TextSerializationFailure # Was: Pass
-general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
-general/override_inference_for_getters_and_setters: TextSerializationFailure
-general/override_inference_for_setters: TextSerializationFailure
-general/override_inference_named_parameters_ordering: TextSerializationFailure
-general/override_setter_with_field: TypeCheckError
-general/override: TextSerializationFailure # Was: Pass
-general/part_as_entry_point_lib: TextSerializationFailure # Was: Pass
-general/part_as_entry_point: TextSerializationFailure # Was: Pass
-general/part_not_part_of_same_named_library: TextSerializationFailure
-general/part_not_part_of: TextSerializationFailure
-general/part_part_of_different_unnamed_library: TextSerializationFailure
-general/part_part_of_differently_named_library: TextSerializationFailure
-general/platform_invalid_uris/main: TextSerializationFailure
-general/platform: TextSerializationFailure
-general/prefer_baseclass: TextSerializationFailure # Was: Pass
-general/private_method_tearoff_lib: TextSerializationFailure # Was: Pass
-general/private_method_tearoff: TextSerializationFailure # Was: Pass
-general/promoted_access: TextSerializationFailure
-general/promoted_null_aware_access: TextSerializationFailure
-general/public_method_tearoff_lib: TextSerializationFailure # Was: Pass
-general/public_method_tearoff: TextSerializationFailure # Was: Pass
-general/qualified_lib: TextSerializationFailure # Was: Pass
-general/qualified_part: TextSerializationFailure # Was: Pass
-general/qualified: TextSerializationFailure # Was: Pass
-general/redirecting_constructor: TextSerializationFailure # Was: Pass
-general/redirecting_factory_chain_test: TextSerializationFailure # Was: Pass
-general/redirecting_factory_const_inference: TextSerializationFailure # Was: Pass
-general/redirecting_factory_metadata: TextSerializationFailure # Was: Pass
-general/redirecting_factory_simple_test: TextSerializationFailure # Was: Pass
-general/redirecting_factory_typeargs_test: TextSerializationFailure # Was: Pass
-general/redirecting_factory_typeparam_test: TextSerializationFailure # Was: Pass
-general/redirecting_factory_typeparambounds_test: TextSerializationFailure # Was: Pass
-general/redirecting_factory: TextSerializationFailure # Was: Pass
-general/redirecting_initializer_arguments_assignable_test: TextSerializationFailure # Was: Pass
-general/redirecting_initializer_arguments_test: TextSerializationFailure # Was: Pass
-general/redirection_chain_type_arguments_subst: TextSerializationFailure # Was: Pass
-general/redirection_chain_type_arguments: TextSerializationFailure # Was: Pass
-general/redirection_type_arguments: TextSerializationFailure # Was: Pass
-general/reject_generic_function_types_in_bounds: TextSerializationFailure # Was: RuntimeError # Expected
-general/return_with_unknown_type_in_context: TextSerializationFailure # Was: Pass
-general/sdk_diagnostic: TextSerializationFailure
-general/spread_collection_inference: TextSerializationFailure # Should be fixed as part of implementing spread collection support
-general/spread_collection: TextSerializationFailure # Should be fixed as part of implementing spread collection support
-general/statements: Crash
-general/static_setter: TextSerializationFailure # Was: Pass
-general/store_load: TextSerializationFailure # Was: Pass
-general/stringliteral: TextSerializationFailure # Was: Pass
-general/super_call: TextSerializationFailure # Was: Pass
-general/super_nsm: TextSerializationFailure # Was: Pass
-general/tabs: TextSerializationFailure # Was: Pass
-general/this_field_call: TextSerializationFailure
-general/three_typedefs_loop: TextSerializationFailure
-general/top_level_accessors_part: TextSerializationFailure # Was: Pass
-general/top_level_accessors: TextSerializationFailure # Was: Pass
-general/top_level_library_method: TextSerializationFailure # Was: Pass
-general/type_literal_as_metadata: TextSerializationFailure
-general/type_of_null: TextSerializationFailure
-general/type_parameter_type_named_int: TextSerializationFailure
-general/type_parameter_usage_in_static_method_in_class: TextSerializationFailure
-general/type_parameter_usage_in_static_method_in_extension: TextSerializationFailure
-general/type_parameters_on_dynamic: TextSerializationFailure
-general/type_parameters_on_void: TextSerializationFailure
-general/type_variable_as_super: TextSerializationFailure # Was: RuntimeError
-general/type_variable_bound_access: TypeCheckError
-general/type_variable_prefix: TextSerializationFailure # Was: RuntimeError
-general/type_variable_uses: TextSerializationFailure # Was: Pass
-general/typedef: TextSerializationFailure # Was: Pass
-general/undefined_getter_in_compound_assignment: TextSerializationFailure # Was: Pass
-general/undefined: TextSerializationFailure # Was: Pass
-general/uninitialized_fields: TextSerializationFailure # Was: Pass
-general/unsound_promotion: TypeCheckError
-general/unused_methods: TextSerializationFailure # Was: Pass
-general/var_as_type_name: TextSerializationFailure # Was: Pass
-general/vm_type_ops: TextSerializationFailure
-general/void_methods: TextSerializationFailure
-general/warn_unresolved_sends: TextSerializationFailure
-general/well_boundness_checks_in_outline: TextSerializationFailure
-general/with_dependencies/abstract_members_from_dill/main: TextSerializationFailure
-general/with_dependencies/extension_from_dill/extension_from_dill: TextSerializationFailure
-general/with_dependencies/variance_from_dill/variance_from_dill: TextSerializationFailure
 implicit_getter_calls/getter_call: TextSerializationFailure
 implicit_getter_calls/this_field_call: TextSerializationFailure
-inference_new/const_invocation: TextSerializationFailure # Was: Pass
-inference_new/dependency_only_if_generic_method: TextSerializationFailure # Was: Pass
-inference_new/dependency_only_if_overloaded: TextSerializationFailure # Was: Pass
-inference_new/dependency_only_if_overloaded: TypeCheckError
-inference_new/do_loop: TextSerializationFailure # Was: Pass
-inference_new/downwards_inference_inside_top_level_2: TextSerializationFailure # Was: Pass
-inference_new/downwards_inference_inside_top_level: TextSerializationFailure # Was: Pass
-inference_new/field_inference_circularity: TextSerializationFailure # Was: Pass
-inference_new/for_each_identifier_downwards: TextSerializationFailure # Was: Pass
-inference_new/for_each_invalid_iterable: TextSerializationFailure # Was: Pass
-inference_new/for_each_outer_var_type: TextSerializationFailure # Was: Pass
-inference_new/indexed_assign_combiner: TextSerializationFailure # Was: Pass
-inference_new/infer_assign_to_implicit_this_upwards: TextSerializationFailure # Was: Pass
-inference_new/infer_assign_to_implicit_this: TextSerializationFailure # Was: Pass
-inference_new/infer_assign_to_index_full: TextSerializationFailure # Was: Pass
-inference_new/infer_assign_to_index_set_vs_get: TextSerializationFailure # Was: Pass
-inference_new/infer_assign_to_index_super_upwards: TypeCheckError
-inference_new/infer_assign_to_index_super: TextSerializationFailure # Was: Pass
-inference_new/infer_assign_to_index_this_upwards: TypeCheckError
-inference_new/infer_assign_to_index_this: TextSerializationFailure # Was: Pass
-inference_new/infer_assign_to_index_upwards: TypeCheckError
-inference_new/infer_assign_to_index: TextSerializationFailure # Was: Pass
-inference_new/infer_assign_to_local_upwards: TextSerializationFailure # Was: Pass
-inference_new/infer_assign_to_local: TextSerializationFailure # Was: Pass
-inference_new/infer_assign_to_property_custom: TypeCheckError
-inference_new/infer_assign_to_property_full: TextSerializationFailure # Was: Pass
-inference_new/infer_assign_to_property_null_aware_upwards: TextSerializationFailure # Was: Pass
-inference_new/infer_assign_to_property_null_aware: TextSerializationFailure # Was: Pass
-inference_new/infer_assign_to_property_super_upwards: TextSerializationFailure # Was: Pass
-inference_new/infer_assign_to_property_super: TextSerializationFailure # Was: Pass
-inference_new/infer_assign_to_property_upwards: TextSerializationFailure # Was: Pass
-inference_new/infer_assign_to_property: TextSerializationFailure # Was: Pass
-inference_new/infer_assign_to_ref: TextSerializationFailure # Was: Pass
-inference_new/infer_assign_to_static_upwards: TextSerializationFailure # Was: Pass
-inference_new/infer_assign_to_static: TextSerializationFailure # Was: Pass
-inference_new/infer_field_getter_setter_mismatch: TextSerializationFailure
-inference_new/infer_field_override_accessors: TextSerializationFailure
-inference_new/infer_field_override_getter_overrides_setter: TextSerializationFailure
-inference_new/infer_field_override_setter_overrides_getter: TextSerializationFailure # Was: Pass
-inference_new/infer_instance_accessor_ref: TextSerializationFailure # Was: Pass
-inference_new/infer_instance_field_ref_circular: TextSerializationFailure # Was: Pass
-inference_new/infer_instance_field_ref: TextSerializationFailure # Was: Pass
-inference_new/infer_logical: TextSerializationFailure # Was: Pass
-inference_new/infer_use_of_void: TextSerializationFailure # Was: Pass
-inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
-inference_new/list_literals_can_infer_null_top_level: TextSerializationFailure # Was: Pass
-inference_new/map_literals_can_infer_null_top_level: TextSerializationFailure # Was: Pass
-inference_new/multiple_interface_inheritance: TextSerializationFailure # Was: Pass
-inference_new/null_aware_property_get: TextSerializationFailure
-inference_new/property_assign_combiner: TextSerializationFailure # Was: Pass
-inference_new/property_get_toplevel: TextSerializationFailure # Was: Pass
-inference_new/static_assign_combiner: TextSerializationFailure # Was: Pass
-inference_new/strongly_connected_component: TextSerializationFailure # Was: Pass
-inference_new/strongly_connected_component: TypeCheckError
-inference_new/super_index_get_substitution: TextSerializationFailure # Was: Pass
-inference_new/super_index_get: TextSerializationFailure # Was: Pass
-inference_new/switch: TextSerializationFailure # Was: Pass
-inference_new/top_level_field_depends_on_multiple_inheritance: ExpectationFileMismatch
-inference_new/top_level_field_depends_on_multiple_inheritance: TextSerializationFailure # Was: Pass
-inference_new/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: TextSerializationFailure # Was: Pass
-inference_new/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: TextSerializationFailure # Was: Pass
-inference_new/void_return_type_subtypes_dynamic: TextSerializationFailure # Was: Pass
-inference_new/while_loop: TextSerializationFailure # Was: Pass
 inference/abstract_class_instantiation: TextSerializationFailure
-inference/assert_initializer: TextSerializationFailure # Was: Pass
 inference/assert: TextSerializationFailure # Was: Pass
+inference/assert_initializer: TextSerializationFailure # Was: Pass
 inference/assign_local: TextSerializationFailure # Was: Pass
 inference/async_await: TextSerializationFailure # Was: Pass
 inference/async_closure_return_type_flatten: TextSerializationFailure # Was: Pass
-inference/async_closure_return_type_future_or: TextSerializationFailure # Was: Pass
 inference/async_closure_return_type_future: TextSerializationFailure # Was: Pass
+inference/async_closure_return_type_future_or: TextSerializationFailure # Was: Pass
 inference/block_bodied_lambdas_async_all_returns_are_futures: TextSerializationFailure # Was: Pass
 inference/block_bodied_lambdas_async_all_returns_are_values: TextSerializationFailure # Was: Pass
 inference/block_bodied_lambdas_async_mix_of_values_and_futures: TextSerializationFailure # Was: Pass
 inference/block_bodied_lambdas_async_star: TextSerializationFailure # Was: Pass
-inference/block_bodied_lambdas_basic_void: TextSerializationFailure # Was: Pass
 inference/block_bodied_lambdas_basic: TextSerializationFailure # Was: Pass
-inference/block_bodied_lambdas_downwards_incompatible_with_upwards_inference_top_level: TextSerializationFailure # Was: Pass
+inference/block_bodied_lambdas_basic_void: TextSerializationFailure # Was: Pass
 inference/block_bodied_lambdas_downwards_incompatible_with_upwards_inference: TextSerializationFailure # Was: Pass
-inference/block_bodied_lambdas_infer_bottom_async_star: TextSerializationFailure # Was: Pass
+inference/block_bodied_lambdas_downwards_incompatible_with_upwards_inference_top_level: TextSerializationFailure # Was: Pass
 inference/block_bodied_lambdas_infer_bottom_async: TextSerializationFailure # Was: Pass
-inference/block_bodied_lambdas_infer_bottom_sync_star: TextSerializationFailure # Was: Pass
+inference/block_bodied_lambdas_infer_bottom_async_star: TextSerializationFailure # Was: Pass
 inference/block_bodied_lambdas_infer_bottom_sync: TextSerializationFailure # Was: Pass
+inference/block_bodied_lambdas_infer_bottom_sync_star: TextSerializationFailure # Was: Pass
 inference/block_bodied_lambdas_lub: TextSerializationFailure # Was: Pass
 inference/block_bodied_lambdas_nested_lambdas: TextSerializationFailure # Was: Pass
 inference/block_bodied_lambdas_no_return: TextSerializationFailure # Was: Pass
@@ -769,12 +684,11 @@ inference/block_bodied_lambdas_returns: TextSerializationFailure # Was: Pass
 inference/block_bodied_lambdas_sync_star: TextSerializationFailure # Was: Pass
 inference/block_bodied_lambdas_void_context: TextSerializationFailure # Was: Pass
 inference/bottom_in_closure: TextSerializationFailure # Was: Pass
-inference/bottom: TextSerializationFailure # Was: Pass
 inference/bug30251: TextSerializationFailure # Was: Pass
+inference/bug30620: TextSerializationFailure # Was: Pass
 inference/bug30620_b: TextSerializationFailure # Was: Pass
 inference/bug30620_c: TextSerializationFailure # Was: Pass
 inference/bug30620_d: TextSerializationFailure # Was: Pass
-inference/bug30620: TextSerializationFailure # Was: Pass
 inference/bug30624: TextSerializationFailure # Was: Pass
 inference/bug31132: TextSerializationFailure # Was: Pass
 inference/bug31133: TextSerializationFailure # Was: Pass
@@ -784,29 +698,27 @@ inference/bug33324: TextSerializationFailure # Was: Pass
 inference/call_corner_cases: TextSerializationFailure # Was: Pass
 inference/callable_generic_class: TextSerializationFailure # Was: Pass
 inference/circular_method_inference: TextSerializationFailure # Was: Pass
-inference/circular_reference_via_closures_initializer_types: TextSerializationFailure # Was: Pass
-inference/circular_reference_via_closures: TextSerializationFailure # Was: Pass
 inference/closure_param_null_to_object: TextSerializationFailure # Was: Pass
 inference/coerce_bottom_and_null_types: TextSerializationFailure # Was: Pass
 inference/complex_predecrement: TextSerializationFailure # Was: Pass
 inference/conditional_lub: TextSerializationFailure # Was: Pass
 inference/conditional_upwards_inference: TextSerializationFailure # Was: Pass
 inference/conflicting_fields: TextSerializationFailure
-inference/conflicts_can_happen: TextSerializationFailure
 inference/conflicts_can_happen2: TextSerializationFailure
+inference/conflicts_can_happen: TextSerializationFailure
 inference/constructors_downwards_with_constraint: TextSerializationFailure # Was: Pass
-inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
-inference/constructors_infer_from_arguments_const_with_upper_bound: TextSerializationFailure # Was: Pass
-inference/constructors_infer_from_arguments_const: TextSerializationFailure # Was: Pass
-inference/constructors_infer_from_arguments_downwards_from_constructor: TextSerializationFailure
-inference/constructors_infer_from_arguments_factory_calls_constructor: TextSerializationFailure # Was: Pass
-inference/constructors_infer_from_arguments_factory: TextSerializationFailure # Was: Pass
-inference/constructors_infer_from_arguments_named_factory: TextSerializationFailure # Was: Pass
-inference/constructors_infer_from_arguments_named: TextSerializationFailure # Was: Pass
-inference/constructors_infer_from_arguments_redirecting_factory_to_factory: TextSerializationFailure # Was: Pass
-inference/constructors_infer_from_arguments_redirecting_factory: TextSerializationFailure # Was: Pass
-inference/constructors_infer_from_arguments_redirecting: TextSerializationFailure # Was: Pass
 inference/constructors_infer_from_arguments: TextSerializationFailure # Was: Pass
+inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
+inference/constructors_infer_from_arguments_const: TextSerializationFailure # Was: Pass
+inference/constructors_infer_from_arguments_const_with_upper_bound: TextSerializationFailure # Was: Pass
+inference/constructors_infer_from_arguments_downwards_from_constructor: TextSerializationFailure
+inference/constructors_infer_from_arguments_factory: TextSerializationFailure # Was: Pass
+inference/constructors_infer_from_arguments_factory_calls_constructor: TextSerializationFailure # Was: Pass
+inference/constructors_infer_from_arguments_named: TextSerializationFailure # Was: Pass
+inference/constructors_infer_from_arguments_named_factory: TextSerializationFailure # Was: Pass
+inference/constructors_infer_from_arguments_redirecting: TextSerializationFailure # Was: Pass
+inference/constructors_infer_from_arguments_redirecting_factory: TextSerializationFailure # Was: Pass
+inference/constructors_infer_from_arguments_redirecting_factory_to_factory: TextSerializationFailure # Was: Pass
 inference/constructors_inference_f_bounded: TextSerializationFailure # Was: Pass
 inference/constructors_reverse_type_parameters: TextSerializationFailure # Was: Pass
 inference/constructors_too_many_positional_arguments: TextSerializationFailure
@@ -817,22 +729,22 @@ inference/dont_infer_type_when_initializer_is_null: TextSerializationFailure # W
 inference/downward_inference_fixes_no_upwards_errors: TextSerializationFailure # Was: Pass
 inference/downward_inference_miscellaneous: TextSerializationFailure # Was: Pass
 inference/downwards_context_from_inferred_field_type: TextSerializationFailure # Was: Pass
+inference/downwards_inference_annotations: TextSerializationFailure # Was: Pass
 inference/downwards_inference_annotations_class_members: TextSerializationFailure # Was: Pass
 inference/downwards_inference_annotations_for_loop_variable: TextSerializationFailure # Was: Pass
-inference/downwards_inference_annotations_locals_referring_to_locals: TextSerializationFailure # Was: Pass
 inference/downwards_inference_annotations_locals: TextSerializationFailure # Was: Pass
-inference/downwards_inference_annotations_parameter_local: TextSerializationFailure # Was: Pass
+inference/downwards_inference_annotations_locals_referring_to_locals: TextSerializationFailure # Was: Pass
 inference/downwards_inference_annotations_parameter: TextSerializationFailure # Was: Pass
-inference/downwards_inference_annotations_type_variable_local: TextSerializationFailure # Was: Pass
+inference/downwards_inference_annotations_parameter_local: TextSerializationFailure # Was: Pass
 inference/downwards_inference_annotations_type_variable: TextSerializationFailure
+inference/downwards_inference_annotations_type_variable_local: TextSerializationFailure # Was: Pass
 inference/downwards_inference_annotations_typedef: TextSerializationFailure # Was: Pass
-inference/downwards_inference_annotations: TextSerializationFailure # Was: Pass
 inference/downwards_inference_assignment_statements: TextSerializationFailure # Was: Pass
 inference/downwards_inference_async_await: TextSerializationFailure # Was: Pass
 inference/downwards_inference_for_each: TextSerializationFailure # Was: Pass
 inference/downwards_inference_initializing_formal_default_formal: TextSerializationFailure # Was: Pass
-inference/downwards_inference_inside_top_level_2: TextSerializationFailure # Was: Pass
 inference/downwards_inference_inside_top_level: TextSerializationFailure # Was: Pass
+inference/downwards_inference_inside_top_level_2: TextSerializationFailure # Was: Pass
 inference/downwards_inference_on_constructor_arguments_infer_downwards: TextSerializationFailure # Was: Pass
 inference/downwards_inference_on_function_arguments_infer_downwards: TextSerializationFailure # Was: Pass
 inference/downwards_inference_on_function_expressions: TextSerializationFailure # Was: Pass
@@ -858,33 +770,33 @@ inference/for_loop_empty_condition: TextSerializationFailure # Was: Pass
 inference/for_loop_initializer_expression: TextSerializationFailure # Was: Pass
 inference/for_loop_promotion: TextSerializationFailure # Was: Pass
 inference/future_or_subtyping: TextSerializationFailure # Was: Pass
+inference/future_then: TextSerializationFailure # Was: Pass
 inference/future_then_2: TextSerializationFailure # Was: Pass
 inference/future_then_3: TextSerializationFailure # Was: Pass
 inference/future_then_4: TextSerializationFailure # Was: Pass
 inference/future_then_5: TextSerializationFailure # Was: Pass
 inference/future_then_6: TextSerializationFailure # Was: Pass
+inference/future_then_conditional: TextSerializationFailure # Was: Pass
 inference/future_then_conditional_2: TextSerializationFailure # Was: Pass
 inference/future_then_conditional_3: TextSerializationFailure # Was: Pass
 inference/future_then_conditional_4: TextSerializationFailure # Was: Pass
 inference/future_then_conditional_5: TextSerializationFailure # Was: Pass
 inference/future_then_conditional_6: TextSerializationFailure # Was: Pass
-inference/future_then_conditional: TextSerializationFailure # Was: Pass
 inference/future_then_downwards_method_target: TextSerializationFailure # Was: Pass
 inference/future_then_explicit_future: TextSerializationFailure
 inference/future_then_ifNull: TextSerializationFailure # Was: Pass
+inference/future_then_upwards: TextSerializationFailure # Was: RuntimeError
 inference/future_then_upwards_2: TextSerializationFailure # Was: RuntimeError
 inference/future_then_upwards_3: TextSerializationFailure # Was: Pass
 inference/future_then_upwards_from_block: TextSerializationFailure # Was: Pass
-inference/future_then_upwards: TextSerializationFailure # Was: RuntimeError
-inference/future_then: TextSerializationFailure # Was: Pass
-inference/future_union_async_conditional_2: TextSerializationFailure # Was: Pass
 inference/future_union_async_conditional: TextSerializationFailure # Was: Pass
+inference/future_union_async_conditional_2: TextSerializationFailure # Was: Pass
+inference/future_union_downwards: TextSerializationFailure # Was: Pass
 inference/future_union_downwards_2: TextSerializationFailure # Was: Pass
 inference/future_union_downwards_3: TextSerializationFailure # Was: Pass
 inference/future_union_downwards_4: TextSerializationFailure # Was: Pass
 inference/future_union_downwards_generic_method_with_future_return: TextSerializationFailure # Was: Pass
 inference/future_union_downwards_generic_method_with_generic_return: TextSerializationFailure # Was: Pass
-inference/future_union_downwards: TextSerializationFailure # Was: Pass
 inference/future_union_upwards_generic_methods: TextSerializationFailure # Was: Pass
 inference/generator_closure: TextSerializationFailure # Was: Pass
 inference/generic_functions_return_typedef: TextSerializationFailure
@@ -895,8 +807,8 @@ inference/generic_methods_do_not_infer_invalid_override_of_generic_method: TypeC
 inference/generic_methods_downwards_inference_affects_arguments: TextSerializationFailure # Was: Pass
 inference/generic_methods_downwards_inference_fold: TextSerializationFailure # Was: Pass
 inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheckError
-inference/generic_methods_infer_generic_function_parameter_type: TextSerializationFailure # Was: Pass
 inference/generic_methods_infer_generic_function_parameter_type2: TextSerializationFailure # Was: Pass
+inference/generic_methods_infer_generic_function_parameter_type: TextSerializationFailure # Was: Pass
 inference/generic_methods_infer_generic_function_return_type: TextSerializationFailure # Was: Pass
 inference/generic_methods_infer_generic_instantiation: TextSerializationFailure # Was: Pass
 inference/generic_methods_infer_generic_method_type: TextSerializationFailure # Was: Pass
@@ -907,34 +819,34 @@ inference/generic_methods_nested_generic_instantiation: TextSerializationFailure
 inference/generic_methods_uses_greatest_lower_bound: TextSerializationFailure # Was: Pass
 inference/greatest_closure_multiple_params: TextSerializationFailure # Was: Pass
 inference/inconsistent_overrides: TextSerializationFailure
-inference/index_assign_operator_return_type_2: TextSerializationFailure # Was: Pass
 inference/index_assign_operator_return_type: TextSerializationFailure # Was: Pass
+inference/index_assign_operator_return_type_2: TextSerializationFailure # Was: Pass
 inference/infer_accessor_from_later_inferred_field: TextSerializationFailure # Was: Pass
-inference/infer_assign_to_implicit_this_upwards: TextSerializationFailure # Was: Pass
 inference/infer_assign_to_implicit_this: TextSerializationFailure # Was: Pass
+inference/infer_assign_to_implicit_this_upwards: TextSerializationFailure # Was: Pass
 inference/infer_assign_to_index_full: TextSerializationFailure # Was: Pass
 inference/infer_assign_to_index_super: TextSerializationFailure # Was: Pass
 inference/infer_assign_to_index_this: TextSerializationFailure # Was: Pass
-inference/infer_assign_to_local_upwards: TextSerializationFailure # Was: Pass
 inference/infer_assign_to_local: TextSerializationFailure # Was: Pass
+inference/infer_assign_to_local_upwards: TextSerializationFailure # Was: Pass
 inference/infer_assign_to_property_full: TextSerializationFailure # Was: Pass
-inference/infer_assign_to_property_null_aware_upwards: TextSerializationFailure # Was: Pass
 inference/infer_assign_to_property_null_aware: TextSerializationFailure # Was: Pass
-inference/infer_assign_to_property_super_upwards: TextSerializationFailure # Was: Pass
+inference/infer_assign_to_property_null_aware_upwards: TextSerializationFailure # Was: Pass
 inference/infer_assign_to_property_super: TextSerializationFailure # Was: Pass
+inference/infer_assign_to_property_super_upwards: TextSerializationFailure # Was: Pass
 inference/infer_assign_to_property_upwards: TextSerializationFailure # Was: Pass
 inference/infer_assign_to_ref: TextSerializationFailure # Was: Pass
-inference/infer_assign_to_static_upwards: TextSerializationFailure # Was: Pass
 inference/infer_assign_to_static: TextSerializationFailure # Was: Pass
+inference/infer_assign_to_static_upwards: TextSerializationFailure # Was: Pass
 inference/infer_binary_custom: TextSerializationFailure # Was: Pass
 inference/infer_binary_double_double: TextSerializationFailure # Was: Pass
 inference/infer_binary_double_int: TextSerializationFailure # Was: Pass
 inference/infer_binary_int_double: TextSerializationFailure # Was: Pass
 inference/infer_binary_int_int: TextSerializationFailure # Was: Pass
 inference/infer_conditional: TextSerializationFailure # Was: Pass
+inference/infer_consts_transitively_2: TextSerializationFailure # Was: Pass
 inference/infer_consts_transitively_2_a: TextSerializationFailure # Was: Pass
 inference/infer_consts_transitively_2_b: TextSerializationFailure # Was: Pass
-inference/infer_consts_transitively_2: TextSerializationFailure # Was: Pass
 inference/infer_consts_transitively_b: TextSerializationFailure # Was: Pass
 inference/infer_correctly_on_multiple_variables_declared_together: TextSerializationFailure # Was: Pass
 inference/infer_field_from_later_inferred_field: TextSerializationFailure # Was: Pass
@@ -950,20 +862,20 @@ inference/infer_final_field_getter_and_setter: TextSerializationFailure # Was: P
 inference/infer_final_field_getter_only: TextSerializationFailure # Was: Pass
 inference/infer_final_field_setter_only: TextSerializationFailure # Was: Pass
 inference/infer_from_complex_expressions_if_outer_most_value_is_precise: TextSerializationFailure
-inference/infer_from_rhs_only_if_it_wont_conflict_with_overridden_fields: TextSerializationFailure # Was: Pass
 inference/infer_from_rhs_only_if_it_wont_conflict_with_overridden_fields2: TextSerializationFailure # Was: Pass
-inference/infer_from_variables_in_cycle_libs_when_flag_is_on_a: TextSerializationFailure # Was: Pass
-inference/infer_from_variables_in_cycle_libs_when_flag_is_on: TextSerializationFailure # Was: Pass
-inference/infer_from_variables_in_cycle_libs_when_flag_is_on2_a: TextSerializationFailure # Was: Pass
+inference/infer_from_rhs_only_if_it_wont_conflict_with_overridden_fields: TextSerializationFailure # Was: Pass
 inference/infer_from_variables_in_cycle_libs_when_flag_is_on2: TextSerializationFailure # Was: Pass
-inference/infer_from_variables_in_non_cycle_imports_with_flag_a: TextSerializationFailure # Was: Pass
-inference/infer_from_variables_in_non_cycle_imports_with_flag: TextSerializationFailure # Was: Pass
-inference/infer_from_variables_in_non_cycle_imports_with_flag2_a: TextSerializationFailure # Was: Pass
+inference/infer_from_variables_in_cycle_libs_when_flag_is_on2_a: TextSerializationFailure # Was: Pass
+inference/infer_from_variables_in_cycle_libs_when_flag_is_on: TextSerializationFailure # Was: Pass
+inference/infer_from_variables_in_cycle_libs_when_flag_is_on_a: TextSerializationFailure # Was: Pass
 inference/infer_from_variables_in_non_cycle_imports_with_flag2: TextSerializationFailure # Was: Pass
+inference/infer_from_variables_in_non_cycle_imports_with_flag2_a: TextSerializationFailure # Was: Pass
+inference/infer_from_variables_in_non_cycle_imports_with_flag: TextSerializationFailure # Was: Pass
+inference/infer_from_variables_in_non_cycle_imports_with_flag_a: TextSerializationFailure # Was: Pass
 inference/infer_generic_field_types: TextSerializationFailure
 inference/infer_generic_method_type_named: TextSerializationFailure # Was: Pass
-inference/infer_generic_method_type_positional: TextSerializationFailure # Was: Pass
 inference/infer_generic_method_type_positional2: TextSerializationFailure # Was: Pass
+inference/infer_generic_method_type_positional: TextSerializationFailure # Was: Pass
 inference/infer_generic_method_type_required: TextSerializationFailure # Was: Pass
 inference/infer_getter_cross_to_setter: TextSerializationFailure # Was: Pass
 inference/infer_getter_from_later_inferred_getter: TextSerializationFailure # Was: Pass
@@ -975,8 +887,8 @@ inference/infer_method_missing_params: ExpectationFileMismatch
 inference/infer_method_missing_params: TypeCheckError
 inference/infer_parameter_type_setter_from_field: TextSerializationFailure # Was: Pass
 inference/infer_parameter_type_setter_from_setter: TextSerializationFailure # Was: Pass
-inference/infer_prefix_expression_custom: TextSerializationFailure # Was: Pass
 inference/infer_prefix_expression: TextSerializationFailure # Was: Pass
+inference/infer_prefix_expression_custom: TextSerializationFailure # Was: Pass
 inference/infer_rethrow: TextSerializationFailure # Was: Pass
 inference/infer_return_of_statement_lambda: TextSerializationFailure # Was: Pass
 inference/infer_return_type_for_static_setter: TextSerializationFailure # Was: Pass
@@ -984,78 +896,77 @@ inference/infer_setter_cross_to_getter: TextSerializationFailure # Was: Pass
 inference/infer_setter_from_later_inferred_setter: TextSerializationFailure # Was: Pass
 inference/infer_setter_function_typed: TextSerializationFailure # Was: Pass
 inference/infer_setter_return_type_only: TextSerializationFailure # Was: Pass
+inference/infer_statics_transitively2: TextSerializationFailure # Was: Pass
+inference/infer_statics_transitively3: TextSerializationFailure # Was: Pass
+inference/infer_statics_transitively3_a: TextSerializationFailure # Was: Pass
+inference/infer_statics_transitively: TextSerializationFailure # Was: Pass
 inference/infer_statics_transitively_2_a: TextSerializationFailure # Was: Pass
 inference/infer_statics_transitively_a: TextSerializationFailure # Was: Pass
 inference/infer_statics_transitively_b: TextSerializationFailure # Was: Pass
-inference/infer_statics_transitively: TextSerializationFailure # Was: Pass
-inference/infer_statics_transitively2: TextSerializationFailure # Was: Pass
-inference/infer_statics_transitively3_a: TextSerializationFailure # Was: Pass
-inference/infer_statics_transitively3: TextSerializationFailure # Was: Pass
-inference/infer_statics_with_method_invocations_a: TextSerializationFailure # Was: Pass
 inference/infer_statics_with_method_invocations: TextSerializationFailure # Was: Pass
-inference/infer_throw_downwards: TextSerializationFailure # Was: Pass
+inference/infer_statics_with_method_invocations_a: TextSerializationFailure # Was: Pass
 inference/infer_throw: TextSerializationFailure # Was: Pass
+inference/infer_throw_downwards: TextSerializationFailure # Was: Pass
 inference/infer_type_on_overridden_fields2: TextSerializationFailure # Was: Pass
 inference/infer_type_on_overridden_fields4: TextSerializationFailure # Was: Pass
+inference/infer_type_on_var2: TextSerializationFailure # Was: Pass
+inference/infer_type_on_var: TextSerializationFailure # Was: Pass
 inference/infer_type_on_var_from_field: TextSerializationFailure # Was: Pass
 inference/infer_type_on_var_from_top_level: TextSerializationFailure # Was: Pass
-inference/infer_type_on_var: TextSerializationFailure # Was: Pass
-inference/infer_type_on_var2: TextSerializationFailure # Was: Pass
-inference/infer_type_regardless_of_declaration_order_or_cycles_b: TextSerializationFailure # Was: Pass
 inference/infer_type_regardless_of_declaration_order_or_cycles: TextSerializationFailure # Was: RuntimeError
+inference/infer_type_regardless_of_declaration_order_or_cycles_b: TextSerializationFailure # Was: Pass
 inference/infer_typed_map_literal: TextSerializationFailure # Was: Pass
 inference/infer_types_on_generic_instantiations_3: TextSerializationFailure # Was: Pass
 inference/infer_types_on_generic_instantiations_4: TextSerializationFailure # Was: RuntimeError
 inference/infer_types_on_generic_instantiations_5: TextSerializationFailure # Was: Pass
-inference/infer_types_on_generic_instantiations_in_library_cycle_a: TextSerializationFailure # Was: Pass
 inference/infer_types_on_generic_instantiations_in_library_cycle: TextSerializationFailure # Was: Pass
+inference/infer_types_on_generic_instantiations_in_library_cycle_a: TextSerializationFailure # Was: Pass
 inference/infer_types_on_generic_instantiations_infer: TypeCheckError
-inference/infer_types_on_loop_indices_for_each_loop_async: TextSerializationFailure # Was: Pass
 inference/infer_types_on_loop_indices_for_each_loop: TextSerializationFailure # Was: Pass
+inference/infer_types_on_loop_indices_for_each_loop_async: TextSerializationFailure # Was: Pass
 inference/infer_types_on_loop_indices_for_loop_with_inference: TextSerializationFailure # Was: Pass
 inference/infer_use_of_void_local: TextSerializationFailure # Was: Pass
-inference/infer_variable_void: TextSerializationFailure # Was: Pass
 inference/inferred_initializing_formal_checks_default_value: TextSerializationFailure # Was: Pass
 inference/inferred_nonstatic_field_depends_on_static_field_complex: TextSerializationFailure # Was: Pass
 inference/inferred_nonstatic_field_depends_on_top_level_var_simple: TextSerializationFailure # Was: Pass
-inference/inferred_type_block_closure_no_args_no_return_void_context: TextSerializationFailure # Was: Pass
 inference/inferred_type_block_closure_no_args_no_return: TextSerializationFailure # Was: Pass
+inference/inferred_type_block_closure_no_args_no_return_void_context: TextSerializationFailure # Was: Pass
 inference/inferred_type_cascade: TextSerializationFailure # Was: Pass
-inference/inferred_type_custom_binary_op_via_interface: TextSerializationFailure # Was: Pass
 inference/inferred_type_custom_binary_op: TextSerializationFailure # Was: Pass
-inference/inferred_type_custom_index_op_via_interface: TextSerializationFailure # Was: Pass
+inference/inferred_type_custom_binary_op_via_interface: TextSerializationFailure # Was: Pass
 inference/inferred_type_custom_index_op: TextSerializationFailure # Was: Pass
-inference/inferred_type_custom_unary_op_via_interface: TextSerializationFailure # Was: Pass
+inference/inferred_type_custom_index_op_via_interface: TextSerializationFailure # Was: Pass
 inference/inferred_type_custom_unary_op: TextSerializationFailure # Was: Pass
-inference/inferred_type_extract_method_tear_off_via_interface: TextSerializationFailure # Was: Pass
+inference/inferred_type_custom_unary_op_via_interface: TextSerializationFailure # Was: Pass
 inference/inferred_type_extract_method_tear_off: TextSerializationFailure # Was: Pass
+inference/inferred_type_extract_method_tear_off_via_interface: TextSerializationFailure # Was: Pass
 inference/inferred_type_from_top_level_executable_tear_off: TextSerializationFailure # Was: Pass
-inference/inferred_type_invoke_method_via_interface: TextSerializationFailure # Was: Pass
 inference/inferred_type_invoke_method: TextSerializationFailure # Was: Pass
-inference/inferred_type_is_enum_values: TextSerializationFailure # Was: Pass
+inference/inferred_type_invoke_method_via_interface: TextSerializationFailure # Was: Pass
 inference/inferred_type_is_enum: TextSerializationFailure # Was: Pass
-inference/inferred_type_is_typedef_parameterized: TextSerializationFailure # Was: Pass
+inference/inferred_type_is_enum_values: TextSerializationFailure # Was: Pass
 inference/inferred_type_is_typedef: TextSerializationFailure # Was: Pass
+inference/inferred_type_is_typedef_parameterized: TextSerializationFailure # Was: Pass
+inference/inferred_type_uses_synthetic_function_type: TextSerializationFailure # Was: Pass
 inference/inferred_type_uses_synthetic_function_type_function_typed_param: TextSerializationFailure # Was: Pass
 inference/inferred_type_uses_synthetic_function_type_named_param: TextSerializationFailure # Was: Pass
 inference/inferred_type_uses_synthetic_function_type_positional_param: TextSerializationFailure # Was: Pass
 inference/inferred_type_uses_synthetic_function_type_required_param: TextSerializationFailure # Was: Pass
-inference/inferred_type_uses_synthetic_function_type: TextSerializationFailure # Was: Pass
 inference/inferred_type_via_closure_multiple_levels_of_nesting: TextSerializationFailure # Was: Pass
 inference/inferred_type_via_closure_type_depends_on_args: TextSerializationFailure # Was: Pass
 inference/inferred_type_via_closure_type_independent_of_args_field: TextSerializationFailure # Was: Pass
 inference/inferred_type_via_closure_type_independent_of_args_top_level: TextSerializationFailure # Was: Pass
 inference/inheritance_does_not_imply_circularity: TextSerializationFailure # Was: Pass
 inference/instance_creation_downwards: TextSerializationFailure # Was: Pass
+inference/instantiate_tearoff: TextSerializationFailure # Was: Pass
 inference/instantiate_tearoff_after_contravariance_check: TextSerializationFailure # Was: Pass
 inference/instantiate_tearoff_of_call: TypeCheckError # Issue #31746
-inference/instantiate_tearoff: TextSerializationFailure # Was: Pass
-inference/instantiate_to_bounds_generic_has_bound_defined_after transform: RuntimeError
-inference/instantiate_to_bounds_generic_has_bound_defined_after: TextSerializationFailure # Was: Pass
-inference/instantiate_to_bounds_generic_has_bound_defined_before: TextSerializationFailure # Was: Pass
 inference/instantiate_to_bounds_generic2_has_bound_defined_after: TextSerializationFailure # Was: Pass
 inference/instantiate_to_bounds_generic2_has_bound_defined_before: TextSerializationFailure # Was: Pass
 inference/instantiate_to_bounds_generic2_no_bound: TextSerializationFailure # Was: Pass
+inference/instantiate_to_bounds_generic_has_bound_defined_after transform: RuntimeError
+inference/instantiate_to_bounds_generic_has_bound_defined_after: TextSerializationFailure # Was: Pass
+inference/instantiate_to_bounds_generic_has_bound_defined_before: TextSerializationFailure # Was: Pass
 inference/instantiate_to_bounds_invoke_constructor_no_bound: TextSerializationFailure # Was: Pass
 inference/instantiate_to_bounds_invoke_constructor_type_args_exact: TextSerializationFailure # Was: Pass
 inference/instantiate_to_bounds_not_generic: TextSerializationFailure # Was: Pass
@@ -1064,18 +975,18 @@ inference/lambda_does_not_have_propagated_type_hint: TextSerializationFailure # 
 inference/lambda_return_type: TextSerializationFailure # Was: Pass
 inference/lambda_void_context: TextSerializationFailure # Was: Pass
 inference/list_literal_typed: TextSerializationFailure # Was: Pass
+inference/list_literals: TextSerializationFailure # Was: Pass
 inference/list_literals_can_infer_null_bottom: TextSerializationFailure # Was: Pass
 inference/list_literals_top_level: TextSerializationFailure # Was: Pass
-inference/list_literals: TextSerializationFailure # Was: Pass
 inference/local_constructor_from_arguments: TextSerializationFailure # Was: Pass
 inference/local_reference_upwards_local: TextSerializationFailure # Was: Pass
 inference/local_return_and_yield: TextSerializationFailure # Was: Pass
 inference/logical_or_promotion: TextSerializationFailure # Was: Pass
+inference/map_literals: TextSerializationFailure # Was: Pass
 inference/map_literals_can_infer_null: TextSerializationFailure # Was: Pass
 inference/map_literals_top_level: TextSerializationFailure # Was: Pass
-inference/map_literals: TextSerializationFailure # Was: Pass
-inference/method_call_with_type_arguments_instance_method_identifier_sequence: TextSerializationFailure # Was: Pass
 inference/method_call_with_type_arguments_instance_method: TextSerializationFailure # Was: Pass
+inference/method_call_with_type_arguments_instance_method_identifier_sequence: TextSerializationFailure # Was: Pass
 inference/method_call_with_type_arguments_static_method: TextSerializationFailure # Was: Pass
 inference/method_call_with_type_arguments_top_level_function: TextSerializationFailure # Was: Pass
 inference/mixin_inference_instantiate_to_bounds_1: TextSerializationFailure # Was: Pass
@@ -1094,8 +1005,8 @@ inference/non_const_invocation: TextSerializationFailure # Was: Pass
 inference/non_inferrable_getter_setter: TextSerializationFailure # Was: Pass
 inference/null_aware_method_invocation: TextSerializationFailure # Was: Pass
 inference/null_aware_property_get: TextSerializationFailure # Was: Pass
-inference/null_coalescing_operator_2: TextSerializationFailure # Was: Pass
 inference/null_coalescing_operator: TextSerializationFailure # Was: Pass
+inference/null_coalescing_operator_2: TextSerializationFailure # Was: Pass
 inference/null_literal_should_not_infer_as_bottom: TextSerializationFailure # Was: Pass
 inference/overloaded_int_operators: TextSerializationFailure # Was: Pass
 inference/override_equals: TextSerializationFailure # Was: RuntimeError
@@ -1106,14 +1017,14 @@ inference/parameter_defaults_upwards: TextSerializationFailure # Was: Pass
 inference/promote_bounds: TextSerializationFailure # Was: Pass
 inference/promote_from_logical_rhs: TextSerializationFailure # Was: Pass
 inference/promotion_subtype_check: TextSerializationFailure # Was: Pass
-inference/propagate_inference_to_field_in_class_dynamic_warnings: TextSerializationFailure # Was: Pass
 inference/propagate_inference_to_field_in_class: TextSerializationFailure # Was: Pass
-inference/propagate_inference_transitively: TextSerializationFailure # Was: Pass
+inference/propagate_inference_to_field_in_class_dynamic_warnings: TextSerializationFailure # Was: Pass
 inference/propagate_inference_transitively2: TextSerializationFailure # Was: Pass
+inference/propagate_inference_transitively: TextSerializationFailure # Was: Pass
 inference/propagate_variable_get: TextSerializationFailure # Was: Pass
 inference/property_get_toplevel: TextSerializationFailure # Was: Pass
-inference/property_set_bad_setter: TextSerializationFailure # Was: Pass
 inference/property_set: TextSerializationFailure # Was: Pass
+inference/property_set_bad_setter: TextSerializationFailure # Was: Pass
 inference/recursive_generic_function: TextSerializationFailure # Was: Pass
 inference/reference_to_typedef: TextSerializationFailure # Was: Pass
 inference/refine_binary_expression_type_type_parameter_t_double: TextSerializationFailure # Was: Pass
@@ -1127,26 +1038,26 @@ inference/simple_literal_null: TextSerializationFailure
 inference/static_method_tear_off: TextSerializationFailure # Was: Pass
 inference/string_literal: TextSerializationFailure # Was: Pass
 inference/subexpressions_of_explicitly_typed_fields: TextSerializationFailure # Was: Pass
-inference/super_index_set_substitution: TextSerializationFailure # Was: Pass
 inference/super_index_set: TextSerializationFailure # Was: Pass
-inference/super_initializer_substitution: TextSerializationFailure # Was: Pass
+inference/super_index_set_substitution: TextSerializationFailure # Was: Pass
 inference/super_initializer: TextSerializationFailure # Was: Pass
-inference/super_method_invocation_substitution: TextSerializationFailure # Was: Pass
+inference/super_initializer_substitution: TextSerializationFailure # Was: Pass
 inference/super_method_invocation: TextSerializationFailure # Was: Pass
+inference/super_method_invocation_substitution: TextSerializationFailure # Was: Pass
+inference/super_property_get: TextSerializationFailure # Was: Pass
 inference/super_property_get_invoke_function_typed: TextSerializationFailure # Was: Pass
 inference/super_property_get_invoke_implicit_call: TextSerializationFailure # Was: Pass
 inference/super_property_get_substitution: TextSerializationFailure # Was: Pass
 inference/super_property_get_tearoff: TextSerializationFailure # Was: Pass
-inference/super_property_get: TextSerializationFailure # Was: Pass
 inference/super_property_set_substitution: TextSerializationFailure # Was: Pass
 inference/switch_continue: TextSerializationFailure # Was: Pass
 inference/symbol_literal: TextSerializationFailure # Was: Pass
 inference/this_reference: TextSerializationFailure # Was: Pass
 inference/top_level_return_and_yield: TextSerializationFailure # Was: Pass
 inference/toplevel_inference_toplevel_var: TextSerializationFailure # Was: Pass
+inference/try_catch: TextSerializationFailure # Was: Pass
 inference/try_catch_finally: TextSerializationFailure # Was: Pass
 inference/try_catch_promotion: TextSerializationFailure # Was: Pass
-inference/try_catch: TextSerializationFailure # Was: Pass
 inference/try_finally: TextSerializationFailure # Was: Pass
 inference/type_cast: TextSerializationFailure # Was: Pass
 inference/type_promotion_ignores_local_functions: TextSerializationFailure # Was: Pass
@@ -1161,16 +1072,16 @@ inference/unsafe_block_closure_inference_constructor_call_explicit_dynamic_param
 inference/unsafe_block_closure_inference_constructor_call_explicit_type_param: TextSerializationFailure # Was: Pass
 inference/unsafe_block_closure_inference_constructor_call_implicit_type_param: TextSerializationFailure # Was: Pass
 inference/unsafe_block_closure_inference_constructor_call_no_type_param: TextSerializationFailure # Was: Pass
+inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param: TextSerializationFailure # Was: Pass
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: TextSerializationFailure
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: TextSerializationFailure
-inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param: TextSerializationFailure # Was: Pass
+inference/unsafe_block_closure_inference_function_call_explicit_type_param: TextSerializationFailure # Was: Pass
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: TextSerializationFailure
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: TextSerializationFailure
-inference/unsafe_block_closure_inference_function_call_explicit_type_param: TextSerializationFailure # Was: Pass
-inference/unsafe_block_closure_inference_function_call_implicit_type_param_via_expr: TextSerializationFailure # Was: Pass
 inference/unsafe_block_closure_inference_function_call_implicit_type_param: TextSerializationFailure # Was: Pass
-inference/unsafe_block_closure_inference_function_call_no_type_param_via_expr: TextSerializationFailure # Was: Pass
+inference/unsafe_block_closure_inference_function_call_implicit_type_param_via_expr: TextSerializationFailure # Was: Pass
 inference/unsafe_block_closure_inference_function_call_no_type_param: TextSerializationFailure # Was: Pass
+inference/unsafe_block_closure_inference_function_call_no_type_param_via_expr: TextSerializationFailure # Was: Pass
 inference/unsafe_block_closure_inference_in_list_dynamic: TextSerializationFailure # Was: Pass
 inference/unsafe_block_closure_inference_in_list_typed: TextSerializationFailure # Was: Pass
 inference/unsafe_block_closure_inference_in_list_untyped: TextSerializationFailure # Was: Pass
@@ -1182,54 +1093,117 @@ inference/unsafe_block_closure_inference_method_call_explicit_type_param: TextSe
 inference/unsafe_block_closure_inference_method_call_implicit_type_param: TextSerializationFailure # Was: Pass
 inference/unsafe_block_closure_inference_method_call_no_type_param: TextSerializationFailure # Was: Pass
 inference/void_return_type_subtypes_dynamic: TextSerializationFailure # Was: Pass
+inference_new/const_invocation: TextSerializationFailure # Was: Pass
+inference_new/dependency_only_if_generic_method: TextSerializationFailure # Was: Pass
+inference_new/dependency_only_if_overloaded: TextSerializationFailure # Was: Pass
+inference_new/dependency_only_if_overloaded: TypeCheckError
+inference_new/do_loop: TextSerializationFailure # Was: Pass
+inference_new/downwards_inference_inside_top_level: TextSerializationFailure # Was: Pass
+inference_new/downwards_inference_inside_top_level_2: TextSerializationFailure # Was: Pass
+inference_new/field_inference_circularity: TextSerializationFailure # Was: Pass
+inference_new/for_each_identifier_downwards: TextSerializationFailure # Was: Pass
+inference_new/for_each_invalid_iterable: TextSerializationFailure # Was: Pass
+inference_new/for_each_outer_var_type: TextSerializationFailure # Was: Pass
+inference_new/indexed_assign_combiner: TextSerializationFailure # Was: Pass
+inference_new/infer_assign_to_implicit_this: TextSerializationFailure # Was: Pass
+inference_new/infer_assign_to_implicit_this_upwards: TextSerializationFailure # Was: Pass
+inference_new/infer_assign_to_index: TextSerializationFailure # Was: Pass
+inference_new/infer_assign_to_index_full: TextSerializationFailure # Was: Pass
+inference_new/infer_assign_to_index_set_vs_get: TextSerializationFailure # Was: Pass
+inference_new/infer_assign_to_index_super: TextSerializationFailure # Was: Pass
+inference_new/infer_assign_to_index_super_upwards: TypeCheckError
+inference_new/infer_assign_to_index_this: TextSerializationFailure # Was: Pass
+inference_new/infer_assign_to_index_this_upwards: TypeCheckError
+inference_new/infer_assign_to_index_upwards: TypeCheckError
+inference_new/infer_assign_to_local: TextSerializationFailure # Was: Pass
+inference_new/infer_assign_to_local_upwards: TextSerializationFailure # Was: Pass
+inference_new/infer_assign_to_property: TextSerializationFailure # Was: Pass
+inference_new/infer_assign_to_property_custom: TypeCheckError
+inference_new/infer_assign_to_property_full: TextSerializationFailure # Was: Pass
+inference_new/infer_assign_to_property_null_aware: TextSerializationFailure # Was: Pass
+inference_new/infer_assign_to_property_null_aware_upwards: TextSerializationFailure # Was: Pass
+inference_new/infer_assign_to_property_super: TextSerializationFailure # Was: Pass
+inference_new/infer_assign_to_property_super_upwards: TextSerializationFailure # Was: Pass
+inference_new/infer_assign_to_property_upwards: TextSerializationFailure # Was: Pass
+inference_new/infer_assign_to_ref: TextSerializationFailure # Was: Pass
+inference_new/infer_assign_to_static: TextSerializationFailure # Was: Pass
+inference_new/infer_assign_to_static_upwards: TextSerializationFailure # Was: Pass
+inference_new/infer_field_getter_setter_mismatch: TextSerializationFailure
+inference_new/infer_field_override_accessors: TextSerializationFailure
+inference_new/infer_field_override_getter_overrides_setter: TextSerializationFailure
+inference_new/infer_field_override_setter_overrides_getter: TextSerializationFailure # Was: Pass
+inference_new/infer_instance_accessor_ref: TextSerializationFailure # Was: Pass
+inference_new/infer_instance_field_ref: TextSerializationFailure # Was: Pass
+inference_new/infer_instance_field_ref_circular: TextSerializationFailure # Was: Pass
+inference_new/infer_logical: TextSerializationFailure # Was: Pass
+inference_new/infer_use_of_void: TextSerializationFailure # Was: Pass
+inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
+inference_new/list_literals_can_infer_null_top_level: TextSerializationFailure # Was: Pass
+inference_new/map_literals_can_infer_null_top_level: TextSerializationFailure # Was: Pass
+inference_new/multiple_interface_inheritance: TextSerializationFailure # Was: Pass
+inference_new/null_aware_property_get: TextSerializationFailure
+inference_new/property_assign_combiner: TextSerializationFailure # Was: Pass
+inference_new/property_get_toplevel: TextSerializationFailure # Was: Pass
+inference_new/static_assign_combiner: TextSerializationFailure # Was: Pass
+inference_new/strongly_connected_component: TextSerializationFailure # Was: Pass
+inference_new/strongly_connected_component: TypeCheckError
+inference_new/super_index_get: TextSerializationFailure # Was: Pass
+inference_new/super_index_get_substitution: TextSerializationFailure # Was: Pass
+inference_new/switch: TextSerializationFailure # Was: Pass
+inference_new/top_level_field_depends_on_multiple_inheritance: ExpectationFileMismatch
+inference_new/top_level_field_depends_on_multiple_inheritance: TextSerializationFailure # Was: Pass
+inference_new/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: TextSerializationFailure # Was: Pass
+inference_new/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: TextSerializationFailure # Was: Pass
+inference_new/void_return_type_subtypes_dynamic: TextSerializationFailure # Was: Pass
+inference_new/while_loop: TextSerializationFailure # Was: Pass
 instantiate_to_bound/all_steps: TextSerializationFailure # Was: Pass
 instantiate_to_bound/body_generic_classes_from_dill: TextSerializationFailure # Was: Pass
-instantiate_to_bound/body_literal_list_with_generic_argument: TextSerializationFailure # Was: Pass
 instantiate_to_bound/body_literal_list: TextSerializationFailure # Was: Pass
+instantiate_to_bound/body_literal_list_with_generic_argument: TextSerializationFailure # Was: Pass
 instantiate_to_bound/body_literal_map: TextSerializationFailure # Was: Pass
 instantiate_to_bound/body_omitted_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/body_super_bounded_type: TextSerializationFailure # Was: Pass
-instantiate_to_bound/body_typedef_literal_list_with_generic_argument: TextSerializationFailure # Was: Pass
 instantiate_to_bound/body_typedef_literal_list: TextSerializationFailure # Was: Pass
+instantiate_to_bound/body_typedef_literal_list_with_generic_argument: TextSerializationFailure # Was: Pass
 instantiate_to_bound/body_typedef_literal_map: TextSerializationFailure # Was: Pass
 instantiate_to_bound/body_typedef_omitted_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/body_typedef_super_bounded_type: TextSerializationFailure # Was: Pass
-instantiate_to_bound/contravariant_dependence_in_literals: TextSerializationFailure # Was: Pass
 instantiate_to_bound/contravariant_dependence: TextSerializationFailure # Was: Pass
-instantiate_to_bound/contravariant_mutual_dependence_in_literals: TextSerializationFailure # Was: Pass
+instantiate_to_bound/contravariant_dependence_in_literals: TextSerializationFailure # Was: Pass
 instantiate_to_bound/contravariant_mutual_dependence: TextSerializationFailure # Was: Pass
-instantiate_to_bound/covariant_dependence_in_literals: TextSerializationFailure # Was: Pass
+instantiate_to_bound/contravariant_mutual_dependence_in_literals: TextSerializationFailure # Was: Pass
 instantiate_to_bound/covariant_dependence: TextSerializationFailure # Was: Pass
-instantiate_to_bound/covariant_mutual_dependence_in_literals: TextSerializationFailure # Was: Pass
+instantiate_to_bound/covariant_dependence_in_literals: TextSerializationFailure # Was: Pass
 instantiate_to_bound/covariant_mutual_dependence: TextSerializationFailure # Was: Pass
-instantiate_to_bound/dependence_in_literals: TextSerializationFailure # Was: Pass
+instantiate_to_bound/covariant_mutual_dependence_in_literals: TextSerializationFailure # Was: Pass
 instantiate_to_bound/dependence: TextSerializationFailure # Was: Pass
+instantiate_to_bound/dependence_in_literals: TextSerializationFailure # Was: Pass
 instantiate_to_bound/generic_classes_from_dill: TextSerializationFailure # Was: Pass
 instantiate_to_bound/inference_constrained_by_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/inference_defaults_to_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/inference_gives_input: TextSerializationFailure # Was: Pass
 instantiate_to_bound/inference_super_bounded_rejected: TextSerializationFailure # Was: Pass
 instantiate_to_bound/instantiated_in_outline: TextSerializationFailure # Was: Pass
-instantiate_to_bound/literal_list_with_generic_argument: TextSerializationFailure # Was: Pass
 instantiate_to_bound/literal_list: TextSerializationFailure # Was: Pass
+instantiate_to_bound/literal_list_with_generic_argument: TextSerializationFailure # Was: Pass
 instantiate_to_bound/literal_map: TextSerializationFailure # Was: Pass
 instantiate_to_bound/multiple_strongly_connected: TextSerializationFailure # Was: Pass
-instantiate_to_bound/mutual_dependence_in_literals: TextSerializationFailure # Was: Pass
 instantiate_to_bound/mutual_dependence: TextSerializationFailure # Was: Pass
+instantiate_to_bound/mutual_dependence_in_literals: TextSerializationFailure # Was: Pass
 instantiate_to_bound/non_simple_bound_due_to_non_simple: TextSerializationFailure # Was: Pass
 instantiate_to_bound/non_simple_bound_due_to_variables: TextSerializationFailure # Was: Pass
 instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: TextSerializationFailure # Was: RuntimeError # Expected
 instantiate_to_bound/non_simple_class_typedef_cycle: TextSerializationFailure # Was: Pass
+instantiate_to_bound/non_simple_co_inductive: TextSerializationFailure # Was: Pass
 instantiate_to_bound/non_simple_co_inductive_for_each: TextSerializationFailure # Was: Pass
 instantiate_to_bound/non_simple_co_inductive_no_dup: TextSerializationFailure # Was: Pass
-instantiate_to_bound/non_simple_co_inductive: TextSerializationFailure # Was: Pass
 instantiate_to_bound/non_simple_folded_regress: TextSerializationFailure # Was: Pass
 instantiate_to_bound/non_simple_for_each: TextSerializationFailure # Was: Pass
 instantiate_to_bound/non_simple_from_compiled: TextSerializationFailure # Was: Pass
 instantiate_to_bound/non_simple_generic_function_in_bound_regress: TextSerializationFailure # Was: RuntimeError # Expected
-instantiate_to_bound/non_simple_many_libs_same_name_cycle_lib: TextSerializationFailure # Was: Pass
-instantiate_to_bound/non_simple_many_libs_same_name_cycle: TextSerializationFailure # Was: Pass
 instantiate_to_bound/non_simple_many: TextSerializationFailure # Was: Pass
+instantiate_to_bound/non_simple_many_libs_same_name_cycle: TextSerializationFailure # Was: Pass
+instantiate_to_bound/non_simple_many_libs_same_name_cycle_lib: TextSerializationFailure # Was: Pass
 instantiate_to_bound/non_simple_no_dup: TextSerializationFailure # Was: Pass
 instantiate_to_bound/non_simple_suppress_consequence: TextSerializationFailure # Was: Pass
 instantiate_to_bound/non_simple_variables_from_same: TextSerializationFailure # Was: Pass
@@ -1239,8 +1213,8 @@ instantiate_to_bound/super_bounded_in_bound: TextSerializationFailure
 instantiate_to_bound/super_bounded_type: TextSerializationFailure # Was: Pass
 instantiate_to_bound/supertypes: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_instantiated_in_outline: TextSerializationFailure # Was: Pass
-instantiate_to_bound/typedef_literal_list_with_generic_argument: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_literal_list: TextSerializationFailure # Was: Pass
+instantiate_to_bound/typedef_literal_list_with_generic_argument: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_literal_map: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_omitted_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_raw_in_bound: TextSerializationFailure # Was: Pass
@@ -1251,7 +1225,6 @@ late_lowering/definitely_unassigned: TextSerializationFailure
 late_lowering/infer_from_late_variable: TextSerializationFailure
 late_lowering/infer_late_field_type: TextSerializationFailure
 late_lowering/initializer_rewrite: TextSerializationFailure
-late_lowering/injected_late_field_checks/main: TextSerializationFailure
 late_lowering/instance_field_with_initializer: TextSerializationFailure
 late_lowering/instance_field_without_initializer: TextSerializationFailure
 late_lowering/instance_final_field_without_initializer: TextSerializationFailure
@@ -1285,8 +1258,8 @@ late_lowering/late_nullable_field_without_initializer: TextSerializationFailure
 late_lowering/late_nullable_local_with_initializer: TextSerializationFailure
 late_lowering/late_nullable_local_without_initializer: TextSerializationFailure
 late_lowering/later: TextSerializationFailure
-late_lowering/override_getter_setter: TextSerializationFailure
 late_lowering/override: TextSerializationFailure
+late_lowering/override_getter_setter: TextSerializationFailure
 late_lowering/return_late: TextSerializationFailure
 late_lowering/uninitialized_non_nullable_late_fields: TextSerializationFailure
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
@@ -1301,8 +1274,8 @@ nnbd/covariant_equals: TextSerializationFailure
 nnbd/covariant_nnbd_top_merge: TextSerializationFailure
 nnbd/definite_assignment_and_completion: TextSerializationFailure
 nnbd/definitely_assigned: TextSerializationFailure
-nnbd/definitely_unassigned_late_local_variables: TextSerializationFailure
 nnbd/definitely_unassigned: TextSerializationFailure
+nnbd/definitely_unassigned_late_local_variables: TextSerializationFailure
 nnbd/demote_closure_types: TextSerializationFailure
 nnbd/export_from_opt_out: TextSerializationFailure
 nnbd/forbidden_supers: TextSerializationFailure
@@ -1320,10 +1293,7 @@ nnbd/infer_in_legacy_from_opted_in: TextSerializationFailure
 nnbd/infer_method_types: TextSerializationFailure
 nnbd/inheritance_from_opt_in: TypeCheckError
 nnbd/inheritance_from_opt_out: TextSerializationFailure
-nnbd/injected_late_field_checks/main: TextSerializationFailure
 nnbd/intersection_types: TextSerializationFailure
-nnbd/issue_39286_2: TextSerializationFailure
-nnbd/issue_39286: TextSerializationFailure
 nnbd/issue39659: TextSerializationFailure
 nnbd/issue39822: TextSerializationFailure
 nnbd/issue40093: TextSerializationFailure
@@ -1340,6 +1310,14 @@ nnbd/issue41180: TextSerializationFailure
 nnbd/issue41210a/issue41210: TextSerializationFailure
 nnbd/issue41210b: TextSerializationFailure
 nnbd/issue41273: TextSerializationFailure
+nnbd/issue41496: TextSerializationFailure
+nnbd/issue41496b: TextSerializationFailure
+nnbd/issue41498: TextSerializationFailure
+nnbd/issue41498b: TextSerializationFailure
+nnbd/issue41499: TextSerializationFailure
+nnbd/issue41499b: TextSerializationFailure
+nnbd/issue_39286: TextSerializationFailure
+nnbd/issue_39286_2: TextSerializationFailure
 nnbd/late: TextSerializationFailure
 nnbd/later: TextSerializationFailure
 nnbd/lhs_of_if_null: TextSerializationFailure
@@ -1358,24 +1336,24 @@ nnbd/mixin_from_opt_out: TextSerializationFailure
 nnbd/never_bound: TextSerializationFailure
 nnbd/never_opt_out: TypeCheckError
 nnbd/never_receiver: TextSerializationFailure
-nnbd/nnbd_opt_out_language_version_try_to_trick: TextSerializationFailure
 nnbd/nnbd_opt_out_language_version: TextSerializationFailure
+nnbd/nnbd_opt_out_language_version_try_to_trick: TextSerializationFailure
+nnbd/no_null_shorting: TextSerializationFailure
 nnbd/no_null_shorting_explicit_extension: TextSerializationFailure
 nnbd/no_null_shorting_extension: TextSerializationFailure
-nnbd/no_null_shorting: TextSerializationFailure
 nnbd/non_nullable_field_initialization: TextSerializationFailure
 nnbd/non_nullable_optional: TextSerializationFailure
 nnbd/not_definitely_unassigned_late_local_variables: TextSerializationFailure
 nnbd/nsm_from_opt_in: TextSerializationFailure
 nnbd/null_access: TextSerializationFailure
 nnbd/null_aware_chain: TextSerializationFailure
-nnbd/null_check_context: TextSerializationFailure
 nnbd/null_check: TextSerializationFailure
+nnbd/null_check_context: TextSerializationFailure
+nnbd/null_shorting: TextSerializationFailure
 nnbd/null_shorting_cascade: TextSerializationFailure
 nnbd/null_shorting_explicit_extension: TextSerializationFailure
 nnbd/null_shorting_extension: TextSerializationFailure
 nnbd/null_shorting_index: TextSerializationFailure
-nnbd/null_shorting: TextSerializationFailure
 nnbd/nullable_access: TextSerializationFailure
 nnbd/nullable_null: TextSerializationFailure
 nnbd/nullable_object_access: TextSerializationFailure
@@ -1391,9 +1369,9 @@ nnbd/potentially_constant_type_as: TextSerializationFailure
 nnbd/potentially_constant_type_is: TextSerializationFailure
 nnbd/potentially_non_nullable_field: TextSerializationFailure
 nnbd/regress_null_aware: TextSerializationFailure
+nnbd/required: TextSerializationFailure
 nnbd/required_name_override: TextSerializationFailure
 nnbd/required_named_parameter: TextSerializationFailure
-nnbd/required: TextSerializationFailure
 nnbd/return_late: TextSerializationFailure
 nnbd/return_null: TextSerializationFailure
 nnbd/shorting_stop: TextSerializationFailure
@@ -1406,10 +1384,10 @@ nnbd/switch_redesign_types: TextSerializationFailure
 nnbd/tearoff_from_nullable_receiver: TextSerializationFailure
 nnbd/type_parameter_types: TextSerializationFailure
 nnbd/uninitialized_non_nullable_late_fields: TextSerializationFailure
+no_such_method_forwarders/abstract_accessors_from_field: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/abstract_accessors_from_field_arent_mixed_in: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/abstract_accessors_from_field_one_defined: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/abstract_accessors_from_field_with_substitution: TextSerializationFailure # Was: Pass
-no_such_method_forwarders/abstract_accessors_from_field: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/abstract_interface_nsm_inherited: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/abstract_override_abstract_different_type: TextSerializationFailure
 no_such_method_forwarders/abstract_override_with_different_signature: TextSerializationFailure
@@ -1421,26 +1399,27 @@ no_such_method_forwarders/forwarders_not_assumed_from_mixin: TextSerializationFa
 no_such_method_forwarders/interface_with_concrete: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/interface_with_nsm: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/multiple_abstract_setters: TextSerializationFailure
-no_such_method_forwarders/no_forwarders_for_abstract_classes_chain: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/no_forwarders_for_abstract_classes: TextSerializationFailure # Was: Pass
+no_such_method_forwarders/no_forwarders_for_abstract_classes_chain: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/nsm_inherited: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/nsm_mixed_in: TextSerializationFailure # Was: Pass
+no_such_method_forwarders/private: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/private_module: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/private_same: TextSerializationFailure # Was: Pass
-no_such_method_forwarders/private: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/same: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/setter_not_shadowed_by_method: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/subst_on_forwarder: TextSerializationFailure # Was: Pass
+nonfunction_type_aliases/issue41501: TextSerializationFailure
 rasta/abstract_constructor: TextSerializationFailure # Was: RuntimeError
 rasta/bad_constructor_redirection: TextSerializationFailure # Was: RuntimeError
 rasta/bad_continue: TextSerializationFailure # Was: RuntimeError
 rasta/bad_default_constructor: TextSerializationFailure
 rasta/bad_explicit_super_constructor: TextSerializationFailure # Was: RuntimeError
 rasta/bad_implicit_super_constructor: TextSerializationFailure # Was: RuntimeError
+rasta/bad_interpolation: RuntimeError
 rasta/bad_interpolation: TextSerializationFailure # Was: RuntimeError
 rasta/bad_redirection: TextSerializationFailure # Was: RuntimeError
 rasta/bad_setter_initializer: TextSerializationFailure # Was: RuntimeError
-rasta/bad_unicode: TextSerializationFailure # Was: Pass
 rasta/breaking_bad: TextSerializationFailure # Was: RuntimeError
 rasta/cascades: TextSerializationFailure # Was: Pass
 rasta/class_hierarchy: TextSerializationFailure # Was: RuntimeError
@@ -1450,13 +1429,13 @@ rasta/deferred_lib: TextSerializationFailure # Was: Pass
 rasta/deferred_load: TextSerializationFailure # Was: Pass
 rasta/duplicated_mixin: TextSerializationFailure # Was: RuntimeError # Expected, this file has no main method.
 rasta/enum: TextSerializationFailure # Was: Pass
+rasta/export: RuntimeError
 rasta/export: TextSerializationFailure # Was: RuntimeError # Expected, this file has no main method.
 rasta/external_factory_redirection: TextSerializationFailure # Was: Pass
+rasta/foo: RuntimeError
 rasta/foo: TextSerializationFailure # Was: RuntimeError # Expected, this file has no main method.
 rasta/for_loop: TextSerializationFailure # Was: Pass
 rasta/generic_factory: TextSerializationFailure # Was: RuntimeError
-rasta/hello: TextSerializationFailure # Was: Pass
-rasta/import_export: TextSerializationFailure # Was: Pass
 rasta/issue_000001: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000002: TextSerializationFailure # Was: Pass
 rasta/issue_000004: TextSerializationFailure # Was: Pass
@@ -1469,19 +1448,17 @@ rasta/issue_000025: TextSerializationFailure # Was: Pass
 rasta/issue_000026: TextSerializationFailure # Was: Pass
 rasta/issue_000031: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000032: TextSerializationFailure # Was: RuntimeError
-rasta/issue_000033: TextSerializationFailure
 rasta/issue_000034: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000035: TextSerializationFailure # Was: Pass
 rasta/issue_000035a: TextSerializationFailure # Was: Pass
+rasta/issue_000036: RuntimeError
 rasta/issue_000036: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000039: TextSerializationFailure
 rasta/issue_000041: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000042: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000043: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000044: TextSerializationFailure # Was: RuntimeError
-rasta/issue_000045: TextSerializationFailure
 rasta/issue_000046: TextSerializationFailure # Was: RuntimeError
-rasta/issue_000047: TextSerializationFailure
 rasta/issue_000048: TextSerializationFailure # Was: Pass
 rasta/issue_000052: TextSerializationFailure # Was: Pass
 rasta/issue_000053: TextSerializationFailure # Was: Pass
@@ -1492,18 +1469,19 @@ rasta/issue_000070: TextSerializationFailure # Was: Pass
 rasta/issue_000080: TextSerializationFailure # Was: Pass
 rasta/issue_000081: TextSerializationFailure # Was: RuntimeError
 rasta/malformed_const_constructor: TextSerializationFailure # Was: RuntimeError
-rasta/malformed_function_type: TextSerializationFailure # Was: Pass
+rasta/malformed_function: RuntimeError
 rasta/malformed_function: TextSerializationFailure # Was: RuntimeError
+rasta/malformed_function_type: TextSerializationFailure # Was: Pass
 rasta/mandatory_parameter_initializer: TextSerializationFailure
 rasta/mixin_library: TypeCheckError
 rasta/native_is_illegal: TextSerializationFailure # Was: RuntimeError
 rasta/parser_error: TextSerializationFailure # Was: RuntimeError
 rasta/previsit_deferred: TextSerializationFailure # Was: Pass
 rasta/static: TextSerializationFailure # Was: RuntimeError
+rasta/super: TypeCheckError
 rasta/super_initializer: TextSerializationFailure # Was: RuntimeError
 rasta/super_mixin: TypeCheckError
 rasta/super_operator: TypeCheckError
-rasta/super: TypeCheckError
 rasta/supports_reflection: TextSerializationFailure # Was: Pass
 rasta/switch_execution_case_t02: TextSerializationFailure # Was: Pass
 rasta/switch_fall_through: TextSerializationFailure # Was: Pass
@@ -1511,22 +1489,21 @@ rasta/this_invoke: TextSerializationFailure # Was: Pass
 rasta/try_label: TextSerializationFailure
 rasta/type_literals: TextSerializationFailure
 rasta/type_with_parse_error: TextSerializationFailure # Was: Pass
+rasta/typedef: RuntimeError
 rasta/typedef: TextSerializationFailure
+rasta/unresolved: RuntimeError
+rasta/unresolved: TextSerializationFailure # Was: RuntimeError
 rasta/unresolved_constructor: TextSerializationFailure # Was: RuntimeError
 rasta/unresolved_for_in: TextSerializationFailure # Was: RuntimeError
 rasta/unresolved_recovery: TypeCheckError
-rasta/unresolved: TextSerializationFailure # Was: RuntimeError
-rasta/unsupported_platform_library: TextSerializationFailure
 regress/issue_29937: TextSerializationFailure # Was: Pass
 regress/issue_29940: TextSerializationFailure # Was: Pass
 regress/issue_29941: TextSerializationFailure # Was: Pass
 regress/issue_29942: TextSerializationFailure # Was: Pass
-regress/issue_29943: TextSerializationFailure
 regress/issue_29944: TextSerializationFailure # Was: Pass
 regress/issue_29945: TextSerializationFailure
-regress/issue_29975: TextSerializationFailure
+regress/issue_29976: RuntimeError
 regress/issue_29976: TextSerializationFailure # Was:  RuntimeError # Tests runtime behavior of error recovery.
-regress/issue_29977: TextSerializationFailure
 regress/issue_29978: TextSerializationFailure # Was: Pass
 regress/issue_29979: TextSerializationFailure # Was: Pass
 regress/issue_29980: TextSerializationFailure
@@ -1534,25 +1511,17 @@ regress/issue_29981: TextSerializationFailure # Was: Pass
 regress/issue_29982: TextSerializationFailure # Was: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_29983: TextSerializationFailure # Was: Pass
 regress/issue_29984: TextSerializationFailure # Was: Pass
-regress/issue_29985: TextSerializationFailure
 regress/issue_29986: TextSerializationFailure
-regress/issue_29987: TextSerializationFailure
 regress/issue_30834: TextSerializationFailure # Was: Pass
 regress/issue_30836: TextSerializationFailure # Was: RuntimeError # Issue 30836.
 regress/issue_30838: TextSerializationFailure # Was: Pass
 regress/issue_30981: TextSerializationFailure # Was: Pass
-regress/issue_30994: TextSerializationFailure
 regress/issue_31155: TextSerializationFailure # Was: Pass
-regress/issue_31157: TextSerializationFailure
 regress/issue_31171: TextSerializationFailure # Was: Pass
-regress/issue_31180: TextSerializationFailure
 regress/issue_31181: TextSerializationFailure # Was: Pass
 regress/issue_31183: TextSerializationFailure # Was: Pass
 regress/issue_31184: TextSerializationFailure # Was: Pass
 regress/issue_31185: TextSerializationFailure # Was: Pass
-regress/issue_31186: TextSerializationFailure
-regress/issue_31187: TextSerializationFailure
-regress/issue_31188: TextSerializationFailure
 regress/issue_31190: TextSerializationFailure # Was: Pass
 regress/issue_31192: TextSerializationFailure # Was: Pass
 regress/issue_31198: TextSerializationFailure # Was: Pass
@@ -1569,12 +1538,12 @@ regress/issue_32972: TypeCheckError
 regress/issue_33452: TextSerializationFailure # Was: RuntimeError # Test has an intentional error
 regress/issue_33672: TextSerializationFailure # Was: Pass
 regress/issue_34225: TextSerializationFailure # Was: RuntimeError
-regress/issue_34291_lib: TextSerializationFailure # Was: Pass
 regress/issue_34291: TextSerializationFailure # Was: Pass
-regress/issue_34403_lib: TextSerializationFailure # Was: Pass
+regress/issue_34291_lib: TextSerializationFailure # Was: Pass
 regress/issue_34403: TextSerializationFailure # Was: Pass
-regress/issue_34498_lib: TextSerializationFailure # Was: Pass
+regress/issue_34403_lib: TextSerializationFailure # Was: Pass
 regress/issue_34498: TextSerializationFailure # Was: Pass
+regress/issue_34498_lib: TextSerializationFailure # Was: Pass
 regress/issue_34563: TextSerializationFailure # Was: RuntimeError # Test execution after recovery
 regress/issue_34610: TextSerializationFailure # Was: Pass
 regress/issue_34614: TextSerializationFailure # Was: Pass
@@ -1589,18 +1558,64 @@ regress/issue_35260: TextSerializationFailure # Was: RuntimeError # Expected
 regress/issue_35266: TextSerializationFailure # Was: RuntimeError # Expected
 regress/issue_35900: TextSerializationFailure
 regress/issue_36400: TextSerializationFailure
-regress/issue_36647_2: TextSerializationFailure
 regress/issue_36647: TextSerializationFailure
+regress/issue_36647_2: TextSerializationFailure
 regress/issue_36669: TextSerializationFailure
 regress/issue_36793: TextSerializationFailure
 regress/issue_37285: TextSerializationFailure
 regress/issue_37681: TextSerializationFailure
+regress/issue_39035.crash: RuntimeError
 regress/issue_39035.crash: TextSerializationFailure
 regress/issue_39040: TextSerializationFailure
 regress/issue_39091_1: RuntimeError
+regress/issue_39091_2: RuntimeError
 regress/issue_39091_2: TextSerializationFailure
 regress/issue_39682: TextSerializationFailure
 regress/issue_41265.crash: TextSerializationFailure
+runtime_checks/call_kinds: TextSerializationFailure # Was: Pass
+runtime_checks/call_kinds_get: TextSerializationFailure # Was: Pass
+runtime_checks/call_kinds_set: TextSerializationFailure # Was: Pass
+runtime_checks/call_method_implicit_tear_off: TextSerializationFailure # Was: Pass
+runtime_checks/call_method_implicit_tear_off_future_or: TextSerializationFailure # Was: Pass
+runtime_checks/contravariant_field: TextSerializationFailure # Was: Pass
+runtime_checks/contravariant_generic_method_type_parameter: TextSerializationFailure # Was: Pass
+runtime_checks/contravariant_generic_return: TextSerializationFailure # Was: Pass
+runtime_checks/contravariant_generic_return_null_aware: TextSerializationFailure # Was: Pass
+runtime_checks/contravariant_generic_return_tear_off: TextSerializationFailure # Was: Pass
+runtime_checks/contravariant_getter: TextSerializationFailure # Was: Pass
+runtime_checks/contravariant_getter_return: TextSerializationFailure # Was: Pass
+runtime_checks/contravariant_getter_return_null_aware: TextSerializationFailure # Was: Pass
+runtime_checks/covariant_generic_method_type_parameter: TextSerializationFailure # Was: Pass
+runtime_checks/covariant_generic_parameter: TextSerializationFailure # Was: Pass
+runtime_checks/covariant_generic_parameter_complex: TextSerializationFailure # Was: Pass
+runtime_checks/covariant_generic_parameter_in_interface: TextSerializationFailure # Was: Pass
+runtime_checks/covariant_generic_parameter_in_interface_mixin: TextSerializationFailure # Was: Pass
+runtime_checks/covariant_generic_parameter_in_interface_super: TextSerializationFailure # Was: Pass
+runtime_checks/covariant_generic_parameter_in_interface_super_mixin: TextSerializationFailure # Was: Pass
+runtime_checks/covariant_generic_parameter_tear_off: TextSerializationFailure # Was: Pass
+runtime_checks/covariant_keyword: TextSerializationFailure # Was: Pass
+runtime_checks/covariant_keyword_field: TextSerializationFailure # Was: Pass
+runtime_checks/covariant_keyword_field_inherited_by_setter: TextSerializationFailure # Was: Pass
+runtime_checks/covariant_keyword_setter: TextSerializationFailure # Was: Pass
+runtime_checks/covariant_keyword_setter_inherited_by_field: TextSerializationFailure # Was: Pass
+runtime_checks/covariant_setter: TextSerializationFailure # Was: Pass
+runtime_checks/dynamic_invocation: TextSerializationFailure # Was: Pass
+runtime_checks/dynamic_invocation_generic: TextSerializationFailure # Was: Pass
+runtime_checks/dynamic_invocation_of_getter: TextSerializationFailure # Was: Pass
+runtime_checks/field_forwarding_stub_generic_covariant: ExpectationFileMismatch
+runtime_checks/field_forwarding_stub_generic_covariant: TextSerializationFailure # Was: Pass
+runtime_checks/forwarding_stub_with_default_values: TextSerializationFailure # Was: Pass
+runtime_checks/forwarding_stub_with_non_covariant_param: TextSerializationFailure # Was: Pass
+runtime_checks/generic_covariance_inheritance_setter_field: TextSerializationFailure # Was: Pass
+runtime_checks/generic_vs_explicit_covariance: TextSerializationFailure # Was: Pass
+runtime_checks/implicit_downcast_assert_initializer: TextSerializationFailure # Was: Pass
+runtime_checks/implicit_downcast_assert_statement: TextSerializationFailure # Was: Pass
+runtime_checks/implicit_downcast_constructor_initializer: TextSerializationFailure # Was: Pass
+runtime_checks/implicit_downcast_do: TextSerializationFailure # Was: Pass
+runtime_checks/implicit_downcast_for_condition: TextSerializationFailure # Was: Pass
+runtime_checks/implicit_downcast_if: TextSerializationFailure # Was: Pass
+runtime_checks/implicit_downcast_not: TextSerializationFailure # Was: Pass
+runtime_checks/implicit_downcast_while: TextSerializationFailure # Was: Pass
 runtime_checks_new/abstract_override_becomes_forwarding_stub: ExpectationFileMismatch
 runtime_checks_new/abstract_override_becomes_forwarding_stub: TextSerializationFailure # Was: Pass
 runtime_checks_new/call_through_this: TextSerializationFailure # Was: Pass
@@ -1623,56 +1638,12 @@ runtime_checks_new/mixin_forwarding_stub_setter: ExpectationFileMismatch
 runtime_checks_new/mixin_forwarding_stub_setter: TypeCheckError
 runtime_checks_new/stub_checked_via_target: TextSerializationFailure # Was: Pass
 runtime_checks_new/stub_from_interface_contravariant_from_class: TextSerializationFailure # Was: Pass
-runtime_checks_new/stub_from_interface_covariant_from_interface: TextSerializationFailure # Was: Pass
-runtime_checks_new/stub_from_interface_covariant_from_super: TextSerializationFailure # Was: Pass
 runtime_checks_new/stub_from_interface_covariantImpl_from_class: TextSerializationFailure # Was: Pass
 runtime_checks_new/stub_from_interface_covariantImpl_from_interface: TextSerializationFailure # Was: Pass
 runtime_checks_new/stub_from_interface_covariantImpl_from_super: TextSerializationFailure # Was: Pass
 runtime_checks_new/stub_from_interface_covariantInterface_from_class: TextSerializationFailure # Was: Pass
-runtime_checks/call_kinds_get: TextSerializationFailure # Was: Pass
-runtime_checks/call_kinds_set: TextSerializationFailure # Was: Pass
-runtime_checks/call_kinds: TextSerializationFailure # Was: Pass
-runtime_checks/call_method_implicit_tear_off_future_or: TextSerializationFailure # Was: Pass
-runtime_checks/call_method_implicit_tear_off: TextSerializationFailure # Was: Pass
-runtime_checks/contravariant_field: TextSerializationFailure # Was: Pass
-runtime_checks/contravariant_generic_method_type_parameter: TextSerializationFailure # Was: Pass
-runtime_checks/contravariant_generic_return_null_aware: TextSerializationFailure # Was: Pass
-runtime_checks/contravariant_generic_return_tear_off: TextSerializationFailure # Was: Pass
-runtime_checks/contravariant_generic_return: TextSerializationFailure # Was: Pass
-runtime_checks/contravariant_getter_return_null_aware: TextSerializationFailure # Was: Pass
-runtime_checks/contravariant_getter_return: TextSerializationFailure # Was: Pass
-runtime_checks/contravariant_getter: TextSerializationFailure # Was: Pass
-runtime_checks/covariant_generic_method_type_parameter: TextSerializationFailure # Was: Pass
-runtime_checks/covariant_generic_parameter_complex: TextSerializationFailure # Was: Pass
-runtime_checks/covariant_generic_parameter_in_interface_mixin: TextSerializationFailure # Was: Pass
-runtime_checks/covariant_generic_parameter_in_interface_super_mixin: TextSerializationFailure # Was: Pass
-runtime_checks/covariant_generic_parameter_in_interface_super: TextSerializationFailure # Was: Pass
-runtime_checks/covariant_generic_parameter_in_interface: TextSerializationFailure # Was: Pass
-runtime_checks/covariant_generic_parameter_tear_off: TextSerializationFailure # Was: Pass
-runtime_checks/covariant_generic_parameter: TextSerializationFailure # Was: Pass
-runtime_checks/covariant_keyword_field_inherited_by_setter: TextSerializationFailure # Was: Pass
-runtime_checks/covariant_keyword_field: TextSerializationFailure # Was: Pass
-runtime_checks/covariant_keyword_setter_inherited_by_field: TextSerializationFailure # Was: Pass
-runtime_checks/covariant_keyword_setter: TextSerializationFailure # Was: Pass
-runtime_checks/covariant_keyword: TextSerializationFailure # Was: Pass
-runtime_checks/covariant_setter: TextSerializationFailure # Was: Pass
-runtime_checks/dynamic_invocation_generic: TextSerializationFailure # Was: Pass
-runtime_checks/dynamic_invocation_of_getter: TextSerializationFailure # Was: Pass
-runtime_checks/dynamic_invocation: TextSerializationFailure # Was: Pass
-runtime_checks/field_forwarding_stub_generic_covariant: ExpectationFileMismatch
-runtime_checks/field_forwarding_stub_generic_covariant: TextSerializationFailure # Was: Pass
-runtime_checks/forwarding_stub_with_default_values: TextSerializationFailure # Was: Pass
-runtime_checks/forwarding_stub_with_non_covariant_param: TextSerializationFailure # Was: Pass
-runtime_checks/generic_covariance_inheritance_setter_field: TextSerializationFailure # Was: Pass
-runtime_checks/generic_vs_explicit_covariance: TextSerializationFailure # Was: Pass
-runtime_checks/implicit_downcast_assert_initializer: TextSerializationFailure # Was: Pass
-runtime_checks/implicit_downcast_assert_statement: TextSerializationFailure # Was: Pass
-runtime_checks/implicit_downcast_constructor_initializer: TextSerializationFailure # Was: Pass
-runtime_checks/implicit_downcast_do: TextSerializationFailure # Was: Pass
-runtime_checks/implicit_downcast_for_condition: TextSerializationFailure # Was: Pass
-runtime_checks/implicit_downcast_if: TextSerializationFailure # Was: Pass
-runtime_checks/implicit_downcast_not: TextSerializationFailure # Was: Pass
-runtime_checks/implicit_downcast_while: TextSerializationFailure # Was: Pass
+runtime_checks_new/stub_from_interface_covariant_from_interface: TextSerializationFailure # Was: Pass
+runtime_checks_new/stub_from_interface_covariant_from_super: TextSerializationFailure # Was: Pass
 set_literals/disambiguation_rule: TextSerializationFailure # Was: RuntimeError
 top_level_variance_test: TextSerializationFailure
 triple_shift/invalid_operator: TextSerializationFailure
