@@ -238,6 +238,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   }
 
   void DonateTLABs() {
+    MutexLocker ml(&scavenger_->space_lock_);
     // NOTE: We could make all [labs_] re-usable after a scavenge if we remember
     // the promotion pointer of each TLAB.
     const auto& lab = labs_[producer_index_];

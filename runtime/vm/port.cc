@@ -224,12 +224,17 @@ Isolate* PortMap::GetIsolate(Dart_Port id) {
 }
 
 void PortMap::Init() {
+  // TODO(bkonyi): don't keep ports_ after Dart_Cleanup.
   if (mutex_ == NULL) {
     mutex_ = new Mutex();
   }
   ASSERT(mutex_ != NULL);
-  prng_ = new Random();
-  ports_ = new PortSet<Entry>();
+  if (prng_ == nullptr) {
+    prng_ = new Random();
+  }
+  if (ports_ == nullptr) {
+    ports_ = new PortSet<Entry>();
+  }
 }
 
 void PortMap::Cleanup() {
