@@ -242,40 +242,59 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
       {bool addTypes: false}) {
     StringBuffer sb = new StringBuffer();
     Token token = firstToken;
-    bool printed = false;
-    int endOfLast = -1;
-    int lineStartsIteratorLine = 1;
-    Iterator<int> lineStartsIterator = lineStarts.iterator;
-    lineStartsIterator.moveNext();
-    lineStartsIterator.moveNext();
-    lineStartsIteratorLine++;
-    while (token != null) {
-      int prevLine = lineStartsIteratorLine;
-      while (token.offset >= lineStartsIterator.current &&
-          lineStartsIterator.moveNext()) {
-        lineStartsIteratorLine++;
-      }
-      if (printed &&
-          (token.offset > endOfLast || prevLine < lineStartsIteratorLine)) {
-        if (prevLine < lineStartsIteratorLine) {
-          for (int i = prevLine; i < lineStartsIteratorLine; i++) {
-            sb.write("\n");
-          }
-        } else {
-          sb.write(" ");
+
+    Token process(Token token, bool errorTokens) {
+      bool printed = false;
+      int endOfLast = -1;
+      int lineStartsIteratorLine = 1;
+      Iterator<int> lineStartsIterator = lineStarts.iterator;
+      lineStartsIterator.moveNext();
+      lineStartsIterator.moveNext();
+      lineStartsIteratorLine++;
+
+      while (token != null) {
+        if (errorTokens && token is! ErrorToken) return token;
+        if (!errorTokens && token is ErrorToken) {
+          if (token == token.next) break;
+          token = token.next;
+          continue;
         }
+
+        int prevLine = lineStartsIteratorLine;
+        while (token.offset >= lineStartsIterator.current &&
+            lineStartsIterator.moveNext()) {
+          lineStartsIteratorLine++;
+        }
+        if (printed &&
+            (token.offset > endOfLast || prevLine < lineStartsIteratorLine)) {
+          if (prevLine < lineStartsIteratorLine) {
+            for (int i = prevLine; i < lineStartsIteratorLine; i++) {
+              sb.write("\n");
+            }
+          } else {
+            sb.write(" ");
+          }
+        }
+        if (token is! ErrorToken) {
+          sb.write(token.lexeme);
+        }
+        if (addTypes) {
+          sb.write("[${token.runtimeType}]");
+        }
+        printed = true;
+        endOfLast = token.end;
+        if (token == token.next) break;
+        token = token.next;
       }
-      if (token is! ErrorToken) {
-        sb.write(token.lexeme);
-      }
-      if (addTypes) {
-        sb.write("[${token.runtimeType}]");
-      }
-      printed = true;
-      endOfLast = token.end;
-      if (token == token.next) break;
-      token = token.next;
+
+      return token;
     }
+
+    if (addTypes) {
+      token = process(token, true);
+    }
+    token = process(token, false);
+
     return sb;
   }
 }
