@@ -185,6 +185,10 @@ class InfoBuilder {
         edits.add(_removeHint('Remove /*!*/ hint'));
         edits.add(_changeHint('Change to /*?*/ hint', '/*?*/'));
         break;
+      case NullabilityFixKind.addLate:
+        // We could add an edit to add a `/*?*/` hint, but the offset is a
+        // little tricky.
+        break;
       case NullabilityFixKind.nullAwarenessUnnecessaryInStrongMode:
       case NullabilityFixKind.conditionTrueInStrongMode:
       case NullabilityFixKind.conditionFalseInStrongMode:

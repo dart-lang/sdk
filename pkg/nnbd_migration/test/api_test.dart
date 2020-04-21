@@ -1898,6 +1898,30 @@ void g() => f(null);
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_field_final_uninitalized_used() async {
+    var content = '''
+class C {
+  final String s;
+
+  f() {
+    g(s);
+  }
+}
+g(String /*!*/ s) {}
+''';
+    var expected = '''
+class C {
+  late final String s;
+
+  f() {
+    g(s);
+  }
+}
+g(String s) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_field_formal_param_typed() async {
     var content = '''
 class C {
@@ -2256,6 +2280,54 @@ class C {
     x = f();
   }
 }
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_field_uninitalized_used() async {
+    var content = '''
+class C {
+  String s;
+
+  f() {
+    g(s);
+  }
+}
+g(String /*!*/ s) {}
+''';
+    var expected = '''
+class C {
+  late String s;
+
+  f() {
+    g(s);
+  }
+}
+g(String s) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_field_uninitalized_used_hint() async {
+    var content = '''
+class C {
+  String /*?*/ s;
+
+  f() {
+    g(s);
+  }
+}
+g(String /*!*/ s) {}
+''';
+    var expected = '''
+class C {
+  String? s;
+
+  f() {
+    g(s!);
+  }
+}
+g(String s) {}
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -3387,14 +3459,14 @@ int f() {
 ''';
     var expected = '''
 int f() {
-  int? i;
+  late int i;
   g(int j) {
     i = 1;
   };
   ((int j) {
     i = 1;
   });
-  return i! + 1;
+  return i + 1;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -3415,6 +3487,113 @@ int? f() => null;
 void main() {
   int? x = 1;
   x = f();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_localVariable_uninitalized_assigned_non_nullable() async {
+    var content = '''
+f() {
+  String s;
+  if (1 == 2) s = g();
+  h(s);
+}
+String /*!*/ g() => "Hello";
+h(String /*!*/ s) {}
+''';
+    var expected = '''
+f() {
+  late String s;
+  if (1 == 2) s = g();
+  h(s);
+}
+String g() => "Hello";
+h(String s) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_localVariable_uninitalized_used() async {
+    var content = '''
+f() {
+  String s;
+  if (1 == 2) s = "Hello";
+  g(s);
+}
+g(String /*!*/ s) {}
+''';
+    var expected = '''
+f() {
+  late String s;
+  if (1 == 2) s = "Hello";
+  g(s);
+}
+g(String s) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_localVariable_uninitalized_usedInComparison() async {
+    var content = '''
+f() {
+  String s;
+  if (s == null) {}
+}
+''';
+    var expected = '''
+f() {
+  String? s;
+  if (s == null) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_localVariable_uninitalized_usedInExpressionStatement() async {
+    var content = '''
+f() {
+  String s;
+  s;
+}
+''';
+    var expected = '''
+f() {
+  String? s;
+  s;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_localVariable_uninitalized_usedInForUpdaters() async {
+    var content = '''
+f() {
+  String s;
+  for (s;;) {}
+}
+''';
+    var expected = '''
+f() {
+  String? s;
+  for (s;;) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_localVariable_uninitalized_usedInForVariable() async {
+    var content = '''
+f() {
+  String s;
+  for (;; s) {}
+}
+''';
+    var expected = '''
+f() {
+  String? s;
+  for (;; s) {}
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -4841,6 +5020,24 @@ int? x = 1;
 void main() {
   x = f();
 }
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_topLevelVariable_uninitalized_used() async {
+    var content = '''
+String s;
+f() {
+  g(s);
+}
+g(String /*!*/ s) {}
+''';
+    var expected = '''
+late String s;
+f() {
+  g(s);
+}
+g(String s) {}
 ''';
     await _checkSingleFileChanges(content, expected);
   }

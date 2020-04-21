@@ -684,6 +684,24 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
         }
       }
     }
+
+    // Check if the nullability node for a single variable declaration has been
+    // declared to be late.
+    var lateNeeded = false;
+    if (node.variables.length == 1) {
+      var variableElement = node.variables.single.declaredElement;
+      if (_fixBuilder._variables
+          .decoratedElementType(variableElement)
+          .node
+          .isLate) {
+        lateNeeded = true;
+      }
+    }
+    if (lateNeeded) {
+      (_fixBuilder._getChange(node) as NodeChangeForVariableDeclarationList)
+          .addLate = true;
+    }
+
     var lateHint = _fixBuilder._variables.getLateHint(source, node);
     if (lateHint != null) {
       (_fixBuilder._getChange(node) as NodeChangeForVariableDeclarationList)

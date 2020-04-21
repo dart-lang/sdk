@@ -258,6 +258,36 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
         .toList();
   }
 
+  Future<void> test_addLate() async {
+    var content = '''
+f() {
+  String s;
+  if (1 == 2) s = "Hello";
+  g(s);
+}
+g(String /*!*/ s) {}
+''';
+    var migratedContent = '''
+f() {
+  late String  s;
+  if (1 == 2) s = "Hello";
+  g(s);
+}
+g(String /*!*/ s) {}
+''';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    var region = regions[0];
+    assertRegion(
+        region: region,
+        offset: 8,
+        length: 4,
+        explanation: 'Added a late keyword',
+        kind: NullabilityFixKind.addLate);
+  }
+
   Future<void> test_addLate_dueToHint() async {
     var content = '/*late*/ int x = 0;';
     var migratedContent = '/*late*/ int  x = 0;';

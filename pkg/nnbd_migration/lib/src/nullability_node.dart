@@ -86,6 +86,9 @@ class NullabilityEdge implements EdgeInfo {
 
   final String description;
 
+  /// Whether this edge is the result of an uninitialized variable declaration.
+  final bool isUninit;
+
   NullabilityEdge.fromJson(
       dynamic json, NullabilityGraphDeserializer deserializer)
       : destinationNode = deserializer.nodeForId(json['dest'] as int),
@@ -93,7 +96,8 @@ class NullabilityEdge implements EdgeInfo {
         _kind = _deserializeKind(json['kind']),
         codeReference =
             json['code'] == null ? null : CodeReference.fromJson(json['code']),
-        description = json['description'] as String {
+        description = json['description'] as String,
+        isUninit = json['isUninit'] as bool {
     deserializer.defer(() {
       for (var id in json['us'] as List<dynamic>) {
         upstreamNodes.add(deserializer.nodeForId(id as int));
@@ -103,7 +107,7 @@ class NullabilityEdge implements EdgeInfo {
 
   NullabilityEdge._(
       this.destinationNode, this.upstreamNodes, this._kind, this.description,
-      {this.codeReference});
+      {this.codeReference, this.isUninit});
 
   @override
   Iterable<NullabilityNode> get guards => upstreamNodes.skip(1);
@@ -440,9 +444,12 @@ class NullabilityGraph {
       NullabilityNode destinationNode,
       _NullabilityEdgeKind kind,
       EdgeOrigin origin) {
+    var isUninit = origin?.kind == EdgeOriginKind.fieldNotInitialized ||
+        origin?.kind == EdgeOriginKind.implicitNullInitializer ||
+        origin?.kind == EdgeOriginKind.uninitializedRead;
     var edge = NullabilityEdge._(
         destinationNode, upstreamNodes, kind, origin?.description,
-        codeReference: origin?.codeReference);
+        codeReference: origin?.codeReference, isUninit: isUninit);
     instrumentation?.graphEdge(edge, origin);
     for (var upstreamNode in upstreamNodes) {
       _connectDownstream(upstreamNode, edge);
@@ -666,6 +673,8 @@ class NullabilityGraphSerializer {
 /// variables.  Over time this will be replaced by a first class representation
 /// of the nullability inference graph.
 abstract class NullabilityNode implements NullabilityNodeInfo {
+  bool _isLate = false;
+
   bool _isPossiblyOptional = false;
 
   /// List of [NullabilityEdge] objects describing this node's relationship to
@@ -766,6 +775,10 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   /// the type associated with this node should be considered "exact nullable".
   @visibleForTesting
   bool get isExactNullable;
+
+  /// Indicates whether this node is associated with a variable declaration
+  /// which should be annotated with "late".
+  bool get isLate => _isLate;
 
   /// After nullability propagation, this getter can be used to query whether
   /// the type associated with this node should be considered nullable.
@@ -1401,11 +1414,32 @@ class _PropagationState {
             continue;
           }
         }
+        if (edge.isUninit) {
+          // This is an edge from always to an uninitialized variable
+          // declaration.
+
+          // Whether all downstream edges go to nodes with non-null intent.
+          var allDownstreamHaveNonNullIntent = false;
+          if (node.downstreamEdges.isNotEmpty) {
+            allDownstreamHaveNonNullIntent = node.downstreamEdges.every((e) {
+              var destination = e.destinationNode;
+              return destination is NullabilityNode &&
+                  destination.nonNullIntent.isPresent;
+            });
+          }
+          if (allDownstreamHaveNonNullIntent) {
+            if (!node.isNullable) {
+              node._isLate = true;
+            }
+            continue;
+          }
+        }
         if (node is NullabilityNodeMutable && !node.isNullable) {
           assert(step.targetNode == null);
           step.targetNode = node;
           step.newState = Nullability.ordinaryNullable;
           _setNullable(step);
+          node._isLate = false;
         }
       }
       if (_pendingSubstitutions.isEmpty) break;

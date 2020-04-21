@@ -35,6 +35,7 @@ class UnitRenderer {
     NullabilityFixKind.addType,
     NullabilityFixKind.replaceVar,
     NullabilityFixKind.removeAs,
+    NullabilityFixKind.addLate,
     NullabilityFixKind.addLateDueToHint,
     NullabilityFixKind.checkExpressionDueToHint,
     NullabilityFixKind.makeTypeNullableDueToHint,
@@ -245,6 +246,8 @@ class UnitRenderer {
     var s = count == 1 ? '' : 's';
     var es = count == 1 ? '' : 'es';
     switch (kind) {
+      case NullabilityFixKind.addLate:
+        return '$count late keyword$s added';
       case NullabilityFixKind.addLateDueToHint:
         return '$count late hint$s converted to late keyword$s';
       case NullabilityFixKind.addRequired:
