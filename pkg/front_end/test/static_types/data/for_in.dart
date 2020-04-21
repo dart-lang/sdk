@@ -29,7 +29,8 @@ forInInt(List<int> list) {
   for (var e in
       /*cfe.List<int>*/
       /*cfe:nnbd.List<int!>!*/ list) {
-    /*int*/
+    /*cfe.int*/
+    /*cfe:nnbd.int!*/
     e;
   }
 }
@@ -72,7 +73,8 @@ asyncForInInt(Stream<int> stream) async {
       /*cfe.Stream<int>*/
       /*cfe:nnbd.Stream<int!>!*/
       stream) {
-    /*int*/
+    /*cfe.int*/
+    /*cfe:nnbd.int!*/
     e;
   }
 }

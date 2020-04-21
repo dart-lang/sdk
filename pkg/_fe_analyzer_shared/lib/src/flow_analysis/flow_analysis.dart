@@ -1423,8 +1423,9 @@ class FlowModel<Variable, Type> {
     VariableModel<Type> infoForVar = variableInfo[variable];
     if (infoForVar == null) return this;
 
+    Type declaredType = typeOperations.variableType(variable);
     VariableModel<Type> newInfoForVar =
-        infoForVar.write(writtenType, typeOperations);
+        infoForVar.write(declaredType, writtenType, typeOperations);
     if (identical(newInfoForVar, infoForVar)) return this;
 
     return _updateVariableInfo(variable, newInfoForVar);
@@ -1756,8 +1757,8 @@ class VariableModel<Type> {
 
   /// Returns a new [VariableModel] reflecting the fact that the variable was
   /// just written to.
-  VariableModel<Type> write(
-      Type writtenType, TypeOperations<Object, Type> typeOperations) {
+  VariableModel<Type> write(Type declaredType, Type writtenType,
+      TypeOperations<Object, Type> typeOperations) {
     List<Type> newPromotedTypes;
     if (promotedTypes == null) {
       newPromotedTypes = null;
@@ -1779,7 +1780,7 @@ class VariableModel<Type> {
       }
     }
     newPromotedTypes = _tryPromoteToTypeOfInterest(
-        typeOperations, newPromotedTypes, writtenType);
+        typeOperations, declaredType, newPromotedTypes, writtenType);
     if (identical(promotedTypes, newPromotedTypes) && assigned) return this;
     List<Type> newTested;
     if (newPromotedTypes == null && promotedTypes != null) {
@@ -1806,8 +1807,14 @@ class VariableModel<Type> {
   /// is required, a new promotion chain will be created and returned.
   List<Type> _tryPromoteToTypeOfInterest(
       TypeOperations<Object, Type> typeOperations,
+      Type declaredType,
       List<Type> promotedTypes,
       Type writtenType) {
+    if (writeCaptured) {
+      assert(promotedTypes == null);
+      return promotedTypes;
+    }
+
     // Figure out if we have any promotion candidates (types that are a
     // supertype of writtenType and a proper subtype of the currently-promoted
     // type).  If at any point we find an exact match, we take it immediately.
@@ -1849,6 +1856,16 @@ class VariableModel<Type> {
       }
     }
 
+    // The declared type is always a type of interest, but we never promote
+    // to the declared type. So, try NonNull of it.
+    Type declaredTypeNonNull = typeOperations.promoteToNonNull(declaredType);
+    if (!typeOperations.isSameType(declaredTypeNonNull, declaredType)) {
+      handleTypeOfInterest(declaredTypeNonNull);
+      if (result != null) {
+        return result;
+      }
+    }
+
     for (int i = 0; i < tested.length; i++) {
       Type type = tested[i];
 
@@ -1857,7 +1874,7 @@ class VariableModel<Type> {
         return result;
       }
 
-      var typeNonNull = typeOperations.promoteToNonNull(type);
+      Type typeNonNull = typeOperations.promoteToNonNull(type);
       if (!typeOperations.isSameType(typeNonNull, type)) {
         handleTypeOfInterest(typeNonNull);
         if (result != null) {

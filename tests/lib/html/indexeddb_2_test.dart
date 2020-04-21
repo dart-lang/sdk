@@ -32,7 +32,7 @@ testReadWrite(key, value, check,
     db = await html.window.indexedDB!
         .open(dbName, version: version, onUpgradeNeeded: createObjectStore);
 
-    idb.Transaction transaction = db!.transactionList([storeName], 'readwrite');
+    idb.Transaction transaction = db.transactionList([storeName], 'readwrite');
     transaction.objectStore(storeName).put(value, key);
 
     db = await transaction.completed;
