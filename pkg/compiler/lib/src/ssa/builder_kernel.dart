@@ -705,22 +705,29 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     for (TypeVariableType typeVariable
         in _elementEnvironment.getFunctionTypeVariables(function)) {
       HInstruction param;
+      bool erased = false;
       if (elideTypeParameters) {
         // Add elided type parameters.
         param = _computeTypeArgumentDefaultValue(function, typeVariable);
+        erased = true;
       } else if (needsTypeArguments) {
         param = addParameter(
             typeVariable.element, _abstractValueDomain.nonNullType);
       } else {
-        // Unused, so bind to `dynamic`.
-        param = graph.addConstantNull(closedWorld);
+        // Unused, so bind to bound.
+        param = _computeTypeArgumentDefaultValue(function, typeVariable);
+        erased = true;
       }
       Local local = localsHandler.getTypeVariableAsLocal(typeVariable);
       localsHandler.directLocals[local] = param;
-      _functionTypeParameterLocals.add(local);
+      if (!erased) {
+        _functionTypeParameterLocals.add(local);
+      }
     }
   }
 
+  // Locals for function type parameters that can be forwarded, in argument
+  // position order.
   List<Local> _functionTypeParameterLocals = <Local>[];
 
   /// Builds a generative constructor.
@@ -1392,6 +1399,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     DartType elementType = _elementEnvironment.getAsyncOrSyncStarElementType(
         function.asyncMarker, _returnType);
 
+    // TODO(sra): [elementType] can contain free type variables that are erased
+    // due to no rtiNeed. We will get getter code if these type variables are
+    // substituted with an <any> or <erased> type.
     if (elementType.containsFreeTypeVariables) {
       // Type must be computed in the entry function, where the type variables
       // are in scope, and passed to the body function.
