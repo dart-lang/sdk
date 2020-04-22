@@ -12,6 +12,84 @@ extensions/instance_access_of_static: RuntimeError
 extensions/invalid_explicit_access: RuntimeError
 extensions/issue40713: TypeCheckError
 extensions/static_access_of_instance: RuntimeError
+general/abstract_members: TypeCheckError
+general/accessors: RuntimeError
+general/ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
+general/await_in_non_async: RuntimeError # Expected.
+general/bug21938: TypeCheckError
+general/bug30695: TypeCheckError
+general/bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
+general/call: TypeCheckError
+general/candidate_found: TypeCheckError
+general/cascade: RuntimeError
+general/constructor_initializer_invalid: RuntimeError # Fails execution after recovery
+general/covariant_generic: RuntimeError
+general/duplicated_declarations: TypeCheckError
+general/duplicated_field_initializer: RuntimeError
+general/error_locations/error_location_01: RuntimeError
+general/error_locations/error_location_02: RuntimeError
+general/error_locations/error_location_03: RuntimeError
+general/error_locations/error_location_05: RuntimeError
+general/error_locations/error_location_06: RuntimeError
+general/error_recovery/await_not_in_async: RuntimeError
+general/error_recovery/constructor_recovery_bad_name_general.crash: RuntimeError
+general/error_recovery/constructor_recovery_bad_name_get.crash: RuntimeError
+general/error_recovery/constructor_recovery_bad_name_return_type.crash: RuntimeError
+general/error_recovery/constructor_recovery_bad_name_set.crash: RuntimeError
+general/error_recovery/constructor_recovery_get: RuntimeError
+general/error_recovery/constructor_recovery_ok: RuntimeError
+general/error_recovery/constructor_recovery_operator.crash: RuntimeError
+general/error_recovery/constructor_recovery_return_type: RuntimeError
+general/error_recovery/constructor_recovery_set: RuntimeError
+general/error_recovery/empty_await_for: RuntimeError
+general/error_recovery/empty_for: RuntimeError
+general/error_recovery/issue_38415.crash: RuntimeError
+general/error_recovery/issue_39024.crash: RuntimeError
+general/error_recovery/issue_39026.crash: RuntimeError
+general/error_recovery/issue_39026_prime.crash: RuntimeError
+general/error_recovery/issue_39033.crash: RuntimeError
+general/error_recovery/issue_39058.crash: RuntimeError
+general/error_recovery/issue_39058_prime.crash: RuntimeError
+general/error_recovery/issue_39202.crash: RuntimeError
+general/error_recovery/issue_39230.crash: RuntimeError
+general/error_recovery/issue_39958_01: RuntimeError
+general/error_recovery/issue_39958_02: RuntimeError
+general/error_recovery/issue_39958_03: RuntimeError
+general/error_recovery/issue_39958_04: RuntimeError
+general/error_recovery/yield_not_in_generator: RuntimeError
+general/expressions: RuntimeError
+general/external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
+general/incomplete_field_formal_parameter: RuntimeError
+general/infer_field_from_multiple: TypeCheckError
+general/invalid_operator: TypeCheckError
+general/invocations: RuntimeError
+general/issue37776: RuntimeError
+general/issue38938: RuntimeError # no main and compile time errors.
+general/issue38944: RuntimeError # no main and compile time errors.
+general/issue38961: RuntimeError # no main and compile time errors.
+general/issue41210a: TypeCheckError
+general/issue41210b/issue41210: TypeCheckError
+general/micro: RuntimeError
+general/mixin_application_override: ExpectationFileMismatch # Too many errors.
+general/mixin_application_override: TypeCheckError
+general/mixin_constructors_with_default_values: RuntimeError # Expected
+general/operator_method_not_found: RuntimeError # Expected
+general/optional: TypeCheckError
+general/override_check_accessor_after_inference: TypeCheckError # Issue #31620
+general/override_check_accessor_basic: TypeCheckError # Issue #31620
+general/override_check_accessor_with_covariant_modifier: TypeCheckError # Issue #31620
+general/override_check_after_inference: TypeCheckError # Issue #31620
+general/override_check_basic: TypeCheckError # Issue #31620
+general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
+general/override_setter_with_field: TypeCheckError
+general/reject_generic_function_types_in_bounds: RuntimeError # Expected
+general/spread_collection: RuntimeError
+general/statements: Crash
+general/type_parameter_type_named_int: RuntimeError # Expected
+general/type_variable_as_super: RuntimeError
+general/type_variable_bound_access: TypeCheckError
+general/unsound_promotion: TypeCheckError
+general/void_methods: RuntimeError
 general_nnbd_opt_out/abstract_members: TypeCheckError
 general_nnbd_opt_out/accessors: RuntimeError
 general_nnbd_opt_out/ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
@@ -60,95 +138,12 @@ general_nnbd_opt_out/type_variable_as_super: RuntimeError
 general_nnbd_opt_out/type_variable_bound_access: TypeCheckError
 general_nnbd_opt_out/unsound_promotion: TypeCheckError
 general_nnbd_opt_out/void_methods: RuntimeError
-general/abstract_members: TypeCheckError
-general/accessors: RuntimeError
-general/ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
-general/await_in_non_async: RuntimeError # Expected.
-general/bug21938: TypeCheckError
-general/bug30695: TypeCheckError
-general/bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
-general/call: TypeCheckError
-general/candidate_found: TypeCheckError
-general/cascade: RuntimeError
-general/constructor_initializer_invalid: RuntimeError # Fails execution after recovery
-general/covariant_generic: RuntimeError
-general/duplicated_declarations: TypeCheckError
-general/duplicated_field_initializer: RuntimeError
-general/error_locations/error_location_01: RuntimeError
-general/error_locations/error_location_02: RuntimeError
-general/error_locations/error_location_03: RuntimeError
-general/error_locations/error_location_05: RuntimeError
-general/error_locations/error_location_06: RuntimeError
-general/error_recovery/await_not_in_async: RuntimeError
-general/error_recovery/constructor_recovery_bad_name_general.crash: RuntimeError
-general/error_recovery/constructor_recovery_bad_name_get.crash: RuntimeError
-general/error_recovery/constructor_recovery_bad_name_return_type.crash: RuntimeError
-general/error_recovery/constructor_recovery_bad_name_set.crash: RuntimeError
-general/error_recovery/constructor_recovery_get: RuntimeError
-general/error_recovery/constructor_recovery_ok: RuntimeError
-general/error_recovery/constructor_recovery_operator.crash: RuntimeError
-general/error_recovery/constructor_recovery_return_type: RuntimeError
-general/error_recovery/constructor_recovery_set: RuntimeError
-general/error_recovery/empty_await_for: RuntimeError
-general/error_recovery/empty_for: RuntimeError
-general/error_recovery/issue_38415.crash: RuntimeError
-general/error_recovery/issue_39024.crash: RuntimeError
-general/error_recovery/issue_39026_prime.crash: RuntimeError
-general/error_recovery/issue_39026.crash: RuntimeError
-general/error_recovery/issue_39033.crash: RuntimeError
-general/error_recovery/issue_39058_prime.crash: RuntimeError
-general/error_recovery/issue_39058.crash: RuntimeError
-general/error_recovery/issue_39202.crash: RuntimeError
-general/error_recovery/issue_39230.crash: RuntimeError
-general/error_recovery/issue_39958_01: RuntimeError
-general/error_recovery/issue_39958_02: RuntimeError
-general/error_recovery/issue_39958_03: RuntimeError
-general/error_recovery/issue_39958_04: RuntimeError
-general/error_recovery/yield_not_in_generator: RuntimeError
-general/expressions: RuntimeError
-general/external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
-general/incomplete_field_formal_parameter: RuntimeError
-general/infer_field_from_multiple: TypeCheckError
-general/invalid_operator: TypeCheckError
-general/invocations: RuntimeError
-general/issue37776: RuntimeError
-general/issue38938: RuntimeError # no main and compile time errors.
-general/issue38944: RuntimeError # no main and compile time errors.
-general/issue38961: RuntimeError # no main and compile time errors.
-general/issue41210a: TypeCheckError
-general/issue41210b/issue41210: TypeCheckError
-general/micro: RuntimeError
-general/mixin_application_override: ExpectationFileMismatch # Too many errors.
-general/mixin_application_override: TypeCheckError
-general/mixin_constructors_with_default_values: RuntimeError # Expected
-general/operator_method_not_found: RuntimeError # Expected
-general/optional: TypeCheckError
-general/override_check_accessor_after_inference: TypeCheckError # Issue #31620
-general/override_check_accessor_basic: TypeCheckError # Issue #31620
-general/override_check_accessor_with_covariant_modifier: TypeCheckError # Issue #31620
-general/override_check_after_inference: TypeCheckError # Issue #31620
-general/override_check_basic: TypeCheckError # Issue #31620
-general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
-general/override_setter_with_field: TypeCheckError
-general/reject_generic_function_types_in_bounds: RuntimeError # Expected
-general/spread_collection: RuntimeError
-general/statements: Crash
-general/type_parameter_type_named_int: RuntimeError # Expected
-general/type_variable_as_super: RuntimeError
-general/type_variable_bound_access: TypeCheckError
-general/unsound_promotion: TypeCheckError
-general/void_methods: RuntimeError
-inference_new/infer_assign_to_index_super_upwards: TypeCheckError
-inference_new/infer_assign_to_index_this_upwards: TypeCheckError
-inference_new/infer_assign_to_index_upwards: TypeCheckError
-inference_new/infer_assign_to_property_custom: TypeCheckError
-inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
 inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
 inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError
 inference/downwards_inference_for_each: RuntimeError # Issue #36382
 inference/downwards_inference_on_list_literals_infer_downwards: RuntimeError
-inference/future_then_upwards_2: RuntimeError
 inference/future_then_upwards: RuntimeError
+inference/future_then_upwards_2: RuntimeError
 inference/generic_methods_correctly_recognize_generic_upper_bound: TypeCheckError
 inference/generic_methods_do_not_infer_invalid_override_of_generic_method: TypeCheckError
 inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheckError
@@ -163,6 +158,11 @@ inference/mixin_inference_outwards_4: TypeCheckError
 inference/mixin_inference_unification_1: TypeCheckError
 inference/mixin_inference_unification_2: TypeCheckError
 inference/override_equals: RuntimeError
+inference_new/infer_assign_to_index_super_upwards: TypeCheckError
+inference_new/infer_assign_to_index_this_upwards: TypeCheckError
+inference_new/infer_assign_to_index_upwards: TypeCheckError
+inference_new/infer_assign_to_property_custom: TypeCheckError
+inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
 instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError # Expected
 instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError # Expected
 nnbd/inheritance_from_opt_in: TypeCheckError
@@ -205,16 +205,16 @@ rasta/mixin_library: TypeCheckError
 rasta/native_is_illegal: RuntimeError
 rasta/parser_error: RuntimeError
 rasta/static: RuntimeError
+rasta/super: TypeCheckError
 rasta/super_initializer: RuntimeError
 rasta/super_mixin: TypeCheckError
 rasta/super_operator: TypeCheckError
-rasta/super: TypeCheckError
 rasta/type_literals: RuntimeError
 rasta/typedef: RuntimeError
+rasta/unresolved: RuntimeError
 rasta/unresolved_constructor: RuntimeError
 rasta/unresolved_for_in: RuntimeError
 rasta/unresolved_recovery: TypeCheckError
-rasta/unresolved: RuntimeError
 regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_29982: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_30836: RuntimeError # Issue 30836.
@@ -229,8 +229,8 @@ regress/issue_35259: RuntimeError # Expected
 regress/issue_35260: RuntimeError # Expected
 regress/issue_35266: RuntimeError # Expected
 regress/issue_36400: RuntimeError
-regress/issue_36647_2: RuntimeError # Expected
 regress/issue_36647: RuntimeError # Expected
+regress/issue_36647_2: RuntimeError # Expected
 regress/issue_36669: RuntimeError
 regress/issue_37285: RuntimeError
 regress/issue_39035.crash: RuntimeError
