@@ -152,8 +152,11 @@ class FileState {
   }
 
   void refresh() {
-    _digest = utf8.encode(_fsState.getFileDigest(path));
-    _exists = _digest.isNotEmpty;
+    _fsState.timers.digest.run(() {
+      _digest = utf8.encode(_fsState.getFileDigest(path));
+      _exists = _digest.isNotEmpty;
+    });
+
     String unlinkedKey = path;
 
     // Prepare bytes of the unlinked bundle - existing or new.
@@ -171,16 +174,22 @@ class FileState {
       }
 
       if (bytes == null || bytes.isEmpty) {
-        var content = getContent();
-        var unit = parse(AnalysisErrorListener.NULL_LISTENER, content);
-        _fsState._logger.run('Create unlinked for $path', () {
+        var content = _fsState.timers.read.run(() {
+          return getContent();
+        });
+        var unit = _fsState.timers.parse.run(() {
+          return parse(AnalysisErrorListener.NULL_LISTENER, content);
+        });
+        _fsState.timers.unlinked.run(() {
           var unlinkedBuilder = serializeAstCiderUnlinked(_digest, unit);
           bytes = unlinkedBuilder.toBuffer();
           _fsState._byteStore.put(unlinkedKey, bytes);
         });
 
-        unlinked2 = CiderUnlinkedUnit.fromBuffer(bytes).unlinkedUnit;
-        _prefetchDirectReferences(unlinked2);
+        _fsState.timers.prefetch.run(() {
+          unlinked2 = CiderUnlinkedUnit.fromBuffer(bytes).unlinkedUnit;
+          _prefetchDirectReferences(unlinked2);
+        });
       }
     }
 
@@ -359,6 +368,8 @@ class FileSystemState {
    */
   FileState _unresolvedFile;
 
+  final FileSystemStateTimers timers = FileSystemStateTimers();
+
   FileSystemState(
     this._logger,
     this._resourceProvider,
@@ -425,6 +436,56 @@ class FileSystemState {
       return null;
     }
     return source.fullName;
+  }
+
+  void logStatistics() {
+    _logger.writeln(
+      '[files: ${_pathToFile.length}]'
+      '[digest: ${timers.digest.timer.elapsedMilliseconds} ms]'
+      '[read: ${timers.read.timer.elapsedMilliseconds} ms]'
+      '[parse: ${timers.parse.timer.elapsedMilliseconds} ms]'
+      '[unlinked: ${timers.unlinked.timer.elapsedMilliseconds} ms]'
+      '[prefetch: ${timers.prefetch.timer.elapsedMilliseconds} ms]',
+    );
+    timers.reset();
+  }
+}
+
+class FileSystemStateTimer {
+  final Stopwatch timer = Stopwatch();
+
+  T run<T>(T Function() f) {
+    timer.start();
+    try {
+      return f();
+    } finally {
+      timer.stop();
+    }
+  }
+
+  Future<T> runAsync<T>(T Function() f) async {
+    timer.start();
+    try {
+      return f();
+    } finally {
+      timer.stop();
+    }
+  }
+}
+
+class FileSystemStateTimers {
+  final FileSystemStateTimer digest = FileSystemStateTimer();
+  final FileSystemStateTimer read = FileSystemStateTimer();
+  final FileSystemStateTimer parse = FileSystemStateTimer();
+  final FileSystemStateTimer unlinked = FileSystemStateTimer();
+  final FileSystemStateTimer prefetch = FileSystemStateTimer();
+
+  void reset() {
+    digest.timer.reset();
+    read.timer.reset();
+    parse.timer.reset();
+    unlinked.timer.reset();
+    prefetch.timer.reset();
   }
 }
 

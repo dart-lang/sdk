@@ -89,9 +89,7 @@ class FileResolver {
     _throwIfNotAbsoluteNormalizedPath(path);
 
     return logger.run('Get errors for $path', () {
-      var fileContext = logger.run('Get file $path', () {
-        return getFileContext(path);
-      });
+      var fileContext = getFileContext(path, withLog: true);
       var file = fileContext.file;
 
       var errorsSignatureBuilder = ApiSignature();
@@ -134,13 +132,27 @@ class FileResolver {
     });
   }
 
-  FileContext getFileContext(String path) {
-    var analysisOptions = _getAnalysisOptions(path);
+  FileContext getFileContext(String path, {bool withLog = false}) {
+    FileContext perform() {
+      var analysisOptions = _getAnalysisOptions(path);
 
-    _createContext(analysisOptions);
+      _createContext(analysisOptions);
 
-    var file = fsState.getFileForPath(path);
-    return FileContext(analysisOptions, file);
+      var file = fsState.getFileForPath(path);
+      return FileContext(analysisOptions, file);
+    }
+
+    if (withLog) {
+      return logger.run('Get file $path', () {
+        try {
+          return getFileContext(path);
+        } finally {
+          fsState.logStatistics();
+        }
+      });
+    } else {
+      return perform();
+    }
   }
 
   String getLibraryLinkedSignature(String path) {
@@ -155,9 +167,7 @@ class FileResolver {
     _throwIfNotAbsoluteNormalizedPath(path);
 
     return logger.run('Resolve $path', () {
-      var fileContext = logger.run('Get file $path', () {
-        return getFileContext(path);
-      });
+      var fileContext = getFileContext(path, withLog: true);
       var file = fileContext.file;
 
       libraryContext.load2(file);
