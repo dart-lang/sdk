@@ -177,49 +177,30 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void>
 
   final bool typesOnly;
 
-  final bool instCreation;
-
-  LibraryElementSuggestionBuilder(this.request, this.suggestionBuilder,
-      this.kind, this.typesOnly, this.instCreation);
+  LibraryElementSuggestionBuilder(
+      this.request, this.suggestionBuilder, this.kind, this.typesOnly);
 
   @override
   LibraryElement get containingLibrary => request.libraryElement;
 
   @override
   void visitClassElement(ClassElement element) {
-    if (instCreation) {
-      element.visitChildren(this);
-    } else {
-      // TODO(brianwilkerson) Determine whether this should be based on features
-      //  (such as the kind of the element) or a constant.
-      var relevance = request.useNewRelevance
-          ? 750
-          : (element.hasDeprecated
-              ? DART_RELEVANCE_LOW
-              : DART_RELEVANCE_DEFAULT);
-      addSuggestion(element, relevance: relevance);
-    }
-  }
-
-  @override
-  void visitConstructorElement(ConstructorElement element) {
-    if (instCreation && !element.isPrivate) {
-      suggestionBuilder.suggestConstructor(element, kind: kind);
-    }
+    // TODO(brianwilkerson) Determine whether this should be based on features
+    //  (such as the kind of the element) or a constant.
+    var relevance = request.useNewRelevance
+        ? 750
+        : (element.hasDeprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT);
+    addSuggestion(element, relevance: relevance);
   }
 
   @override
   void visitExtensionElement(ExtensionElement element) {
-    if (!instCreation) {
-      // TODO(brianwilkerson) Determine whether this should be based on features
-      //  (such as the kind of the element) or a constant.
-      var relevance = request.useNewRelevance
-          ? 750
-          : (element.hasDeprecated
-              ? DART_RELEVANCE_LOW
-              : DART_RELEVANCE_DEFAULT);
-      addSuggestion(element, relevance: relevance);
-    }
+    // TODO(brianwilkerson) Determine whether this should be based on features
+    //  (such as the kind of the element) or a constant.
+    var relevance = request.useNewRelevance
+        ? 750
+        : (element.hasDeprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT);
+    addSuggestion(element, relevance: relevance);
   }
 
   @override
@@ -243,16 +224,12 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void>
 
   @override
   void visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    if (!instCreation) {
-      // TODO(brianwilkerson) Determine whether this should be based on features
-      //  (such as the kind of the element) or a constant.
-      var relevance = request.useNewRelevance
-          ? 750
-          : (element.hasDeprecated
-              ? DART_RELEVANCE_LOW
-              : DART_RELEVANCE_DEFAULT);
-      addSuggestion(element, relevance: relevance);
-    }
+    // TODO(brianwilkerson) Determine whether this should be based on features
+    //  (such as the kind of the element) or a constant.
+    var relevance = request.useNewRelevance
+        ? 750
+        : (element.hasDeprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT);
+    addSuggestion(element, relevance: relevance);
   }
 
   @override

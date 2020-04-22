@@ -26,8 +26,8 @@ class CombinatorContributor extends DartCompletionContributor {
     if (directive is NamespaceDirective) {
       var library = directive.uriElement as LibraryElement;
       if (library != null) {
-        var elementBuilder = LibraryElementSuggestionBuilder(request, builder,
-            CompletionSuggestionKind.IDENTIFIER, false, false);
+        var elementBuilder = LibraryElementSuggestionBuilder(
+            request, builder, CompletionSuggestionKind.IDENTIFIER, false);
         for (var element in library.exportNamespace.definedNames.values) {
           element.accept(elementBuilder);
         }

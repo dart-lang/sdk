@@ -45,11 +45,31 @@ class LibraryMemberContributor extends DartCompletionContributor {
       PrefixElement elem,
       List<ImportElement> imports) {
     var parent = request.target.containingNode.parent;
-    var isConstructor = parent.parent is ConstructorName;
     var typesOnly = parent is TypeName;
-    var instCreation = typesOnly && isConstructor;
-    var elementBuilder = LibraryElementSuggestionBuilder(request, builder,
-        CompletionSuggestionKind.INVOCATION, typesOnly, instCreation);
+    var isConstructor = parent.parent is ConstructorName;
+    if (typesOnly && isConstructor) {
+      // Suggest constructors from the imported libraries.
+      for (var importElem in imports) {
+        if (importElem.prefix?.name == elem.name) {
+          var library = importElem.importedLibrary;
+          if (library != null) {
+            for (var element in importElem.namespace.definedNames.values) {
+              if (element is ClassElement) {
+                for (var constructor in element.constructors) {
+                  if (!constructor.isPrivate) {
+                    builder.suggestConstructor(constructor,
+                        kind: CompletionSuggestionKind.INVOCATION);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      return const <CompletionSuggestion>[];
+    }
+    var elementBuilder = LibraryElementSuggestionBuilder(
+        request, builder, CompletionSuggestionKind.INVOCATION, typesOnly);
     for (var importElem in imports) {
       if (importElem.prefix?.name == elem.name) {
         var library = importElem.importedLibrary;
