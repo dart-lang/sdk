@@ -87,8 +87,31 @@ class FileState {
 
   LineInfo get lineInfo => LineInfo(unlinked2.lineStarts);
 
+  /// The resolved signature of the file, that depends on the [libraryCycle]
+  /// signature, and the content of the file.
+  String get resolvedSignature {
+    var signatureBuilder = ApiSignature();
+    signatureBuilder.addString(path);
+    signatureBuilder.addBytes(libraryCycle.signature);
+
+    var content = getContent();
+    signatureBuilder.addString(content);
+
+    return signatureBuilder.toHex();
+  }
+
   /// Return the [uri] string.
   String get uriStr => uri.toString();
+
+  /// Return the content of the file, the empty string if cannot be read.
+  String getContent() {
+    try {
+      var resource = _fsState._resourceProvider.getFile(path);
+      return resource.readAsStringSync();
+    } catch (_) {
+      return '';
+    }
+  }
 
   void internal_setLibraryCycle(LibraryCycle cycle, String signature) {
     _libraryCycle = cycle;
@@ -148,12 +171,7 @@ class FileState {
       }
 
       if (bytes == null || bytes.isEmpty) {
-        String content;
-        try {
-          content = _fsState._resourceProvider.getFile(path).readAsStringSync();
-        } catch (_) {
-          content = '';
-        }
+        var content = getContent();
         var unit = parse(AnalysisErrorListener.NULL_LISTENER, content);
         _fsState._logger.run('Create unlinked for $path', () {
           var unlinkedBuilder = serializeAstCiderUnlinked(_digest, unit);

@@ -41,6 +41,13 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
+class FileContext {
+  final AnalysisOptionsImpl analysisOptions;
+  final FileState file;
+
+  FileContext(this.analysisOptions, this.file);
+}
+
 class FileResolver {
   final PerformanceLog logger;
   final ResourceProvider resourceProvider;
@@ -83,7 +90,7 @@ class FileResolver {
 
     return logger.run('Get errors for $path', () {
       var fileContext = logger.run('Get file $path', () {
-        return _createFileContext(path);
+        return getFileContext(path);
       });
       var file = fileContext.file;
 
@@ -127,10 +134,19 @@ class FileResolver {
     });
   }
 
+  FileContext getFileContext(String path) {
+    var analysisOptions = _getAnalysisOptions(path);
+
+    _createContext(analysisOptions);
+
+    var file = fsState.getFileForPath(path);
+    return FileContext(analysisOptions, file);
+  }
+
   String getLibraryLinkedSignature(String path) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
-    var fileContext = _createFileContext(path);
+    var fileContext = getFileContext(path);
     var file = fileContext.file;
     return file.libraryCycle.signatureStr;
   }
@@ -140,7 +156,7 @@ class FileResolver {
 
     return logger.run('Resolve $path', () {
       var fileContext = logger.run('Get file $path', () {
-        return _createFileContext(path);
+        return getFileContext(path);
       });
       var file = fileContext.file;
 
@@ -234,22 +250,20 @@ class FileResolver {
     }
 
     if (analysisContext == null) {
-      logger.run('Create AnalysisContext', () {
-        var root = ContextRootImpl(
-          resourceProvider,
-          resourceProvider.getFolder(workspace.root),
-        );
+      var root = ContextRootImpl(
+        resourceProvider,
+        resourceProvider.getFolder(workspace.root),
+      );
 
-        analysisContext = MicroAnalysisContextImpl(
-          this,
-          root,
-          analysisOptions,
-          DeclaredVariables(),
-          sourceFactory,
-          resourceProvider,
-          workspace: workspace,
-        );
-      });
+      analysisContext = MicroAnalysisContextImpl(
+        this,
+        root,
+        analysisOptions,
+        DeclaredVariables(),
+        sourceFactory,
+        resourceProvider,
+        workspace: workspace,
+      );
     }
 
     if (libraryContext == null) {
@@ -263,15 +277,6 @@ class FileResolver {
         analysisContext.declaredVariables,
       );
     }
-  }
-
-  _FileContext _createFileContext(String path) {
-    var analysisOptions = _getAnalysisOptions(path);
-
-    _createContext(analysisOptions);
-
-    var file = fsState.getFileForPath(path);
-    return _FileContext(analysisOptions, file);
   }
 
   File _findOptionsFile(Folder folder) {
@@ -357,13 +362,6 @@ class FileResolverTestView {
   void addResolvedFile(String path) {
     resolvedFiles.add(path);
   }
-}
-
-class _FileContext {
-  final AnalysisOptionsImpl analysisOptions;
-  final FileState file;
-
-  _FileContext(this.analysisOptions, this.file);
 }
 
 class _LibraryContext {

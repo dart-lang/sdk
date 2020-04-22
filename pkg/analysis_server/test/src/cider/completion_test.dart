@@ -22,6 +22,7 @@ void main() {
 class CiderCompletionComputerTest extends CiderServiceTest {
   final CiderCompletionCache _completionCache = CiderCompletionCache();
 
+  CiderCompletionComputer _computer;
   CiderCompletionResult _completionResult;
   List<CompletionSuggestion> _suggestions;
 
@@ -76,6 +77,22 @@ main(int b) {
     _assertHasClass(text: 'String');
 
     _assertNoClass(text: 'Random');
+  }
+
+  Future<void> test_compute2_sameSignature_sameResult() async {
+    _createFileResolver();
+    await _compute2(r'''
+var a = ^;
+''');
+    var lastResult = _completionResult;
+
+    // Ask for completion using new resolver and computer.
+    // But the file signature is the same, so the same result.
+    _createFileResolver();
+    await _compute2(r'''
+var a = ^;
+''');
+    expect(_completionResult, same(lastResult));
   }
 
   Future<void> test_compute2_updateImportedLibrary() async {
@@ -142,7 +159,7 @@ var a = ^;
   void _assertComputedImportedLibraries(List<String> expected) {
     expected = expected.map(convertPath).toList();
     expect(
-      _completionResult.computedImportedLibraries,
+      _computer.computedImportedLibraries,
       unorderedEquals(expected),
     );
   }
@@ -174,7 +191,7 @@ var a = ^;
     _completionResult = await _newComputer().compute2(
       path: testPath,
       line: context.line,
-      character: context.character,
+      column: context.character,
     );
     _suggestions = _completionResult.suggestions;
   }
@@ -202,7 +219,11 @@ var a = ^;
   }
 
   CiderCompletionComputer _newComputer() {
-    return CiderCompletionComputer(logger, _completionCache, fileResolver);
+    return _computer = CiderCompletionComputer(
+      logger,
+      _completionCache,
+      fileResolver,
+    );
   }
 
   _CompletionContext _updateFile(String content) {
