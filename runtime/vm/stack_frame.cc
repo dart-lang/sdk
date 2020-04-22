@@ -106,28 +106,17 @@ void FrameLayout::Init() {
 #endif
 }
 
-Isolate* StackFrame::IsolateOfBareInstructionsFrame(bool needed_for_gc) const {
-  Isolate* isolate = Dart::vm_isolate();
-  if (isolate->object_store()->code_order_table() != Object::null()) {
-    auto rct = isolate->reverse_pc_lookup_cache();
-    if (rct->Contains(pc())) return isolate;
+IsolateGroup* StackFrame::IsolateGroupOfBareInstructionsFrame() const {
+  IsolateGroup* isolate_group = Dart::vm_isolate()->group();
+  if (isolate_group->object_store()->code_order_table() != Object::null()) {
+    auto rct = isolate_group->reverse_pc_lookup_cache();
+    if (rct->Contains(pc())) return isolate_group;
   }
 
-  isolate = this->isolate();
-  // The active isolate is null only during GC, in which case it does not matter
-  // which isolate we use for the reverse-pc lookup table, since the metadata
-  // is the same across all isolates.
-  // TODO(dartbug.com/36097): Avoid having the [ReversePcLookupTable]
-  // per-isolate.  Right now we still need it per-isolate for non-GC cases, e.g.
-  // for stack walking code which relies on finding owner functions of code
-  // objects.
-  if (isolate == nullptr) {
-    ASSERT(needed_for_gc);
-    isolate = isolate_group()->isolates_.First();
-  }
-  if (isolate->object_store()->code_order_table() != Object::null()) {
-    auto rct = isolate->reverse_pc_lookup_cache();
-    if (rct->Contains(pc())) return isolate;
+  isolate_group = this->isolate_group();
+  if (isolate_group->object_store()->code_order_table() != Object::null()) {
+    auto rct = isolate_group->reverse_pc_lookup_cache();
+    if (rct->Contains(pc())) return isolate_group;
   }
 
   return nullptr;
@@ -136,9 +125,9 @@ Isolate* StackFrame::IsolateOfBareInstructionsFrame(bool needed_for_gc) const {
 bool StackFrame::IsBareInstructionsDartFrame() const {
   NoSafepointScope no_safepoint;
 
-  if (auto isolate = IsolateOfBareInstructionsFrame(/*needed_for_gc=*/true)) {
+  if (auto isolate_group = IsolateGroupOfBareInstructionsFrame()) {
     Code code;
-    auto rct = isolate->reverse_pc_lookup_cache();
+    auto rct = isolate_group->reverse_pc_lookup_cache();
     code = rct->Lookup(pc(), /*is_return_address=*/true);
 
     auto const cid = code.OwnerClassId();
@@ -151,9 +140,9 @@ bool StackFrame::IsBareInstructionsDartFrame() const {
 bool StackFrame::IsBareInstructionsStubFrame() const {
   NoSafepointScope no_safepoint;
 
-  if (auto isolate = IsolateOfBareInstructionsFrame(/*needed_for_gc=*/true)) {
+  if (auto isolate_group = IsolateGroupOfBareInstructionsFrame()) {
     Code code;
-    auto rct = isolate->reverse_pc_lookup_cache();
+    auto rct = isolate_group->reverse_pc_lookup_cache();
     code = rct->Lookup(pc(), /*is_return_address=*/true);
 
     auto const cid = code.OwnerClassId();
@@ -163,7 +152,7 @@ bool StackFrame::IsBareInstructionsStubFrame() const {
   return false;
 }
 
-bool StackFrame::IsStubFrame(bool needed_for_gc) const {
+bool StackFrame::IsStubFrame() const {
   if (is_interpreted()) {
     return false;
   }
@@ -179,7 +168,7 @@ bool StackFrame::IsStubFrame(bool needed_for_gc) const {
   NoSafepointScope no_safepoint;
 #endif
 
-  RawCode* code = GetCodeObject(needed_for_gc);
+  RawCode* code = GetCodeObject();
   ASSERT(code != Object::null());
   auto const cid = Code::OwnerClassIdOf(code);
   ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
@@ -262,8 +251,8 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   NoSafepointScope no_safepoint;
   Code code;
 
-  if (auto isolate = IsolateOfBareInstructionsFrame(/*needed_for_gc=*/true)) {
-    auto const rct = isolate->reverse_pc_lookup_cache();
+  if (auto isolate_group = IsolateGroupOfBareInstructionsFrame()) {
+    auto const rct = isolate_group->reverse_pc_lookup_cache();
     code = rct->Lookup(pc(), /*is_return_address=*/true);
   } else {
     RawObject* pc_marker = *(reinterpret_cast<RawObject**>(
@@ -405,8 +394,8 @@ RawCode* StackFrame::LookupDartCode() const {
   // where Thread::Current() is NULL, so we cannot create a NoSafepointScope.
   NoSafepointScope no_safepoint;
 #endif
-  if (auto isolate = IsolateOfBareInstructionsFrame(/*needed_for_gc=*/false)) {
-    auto const rct = isolate->reverse_pc_lookup_cache();
+  if (auto isolate_group = IsolateGroupOfBareInstructionsFrame()) {
+    auto const rct = isolate_group->reverse_pc_lookup_cache();
     return rct->Lookup(pc(), /*is_return_address=*/true);
   }
 
@@ -417,10 +406,10 @@ RawCode* StackFrame::LookupDartCode() const {
   return Code::null();
 }
 
-RawCode* StackFrame::GetCodeObject(bool needed_for_gc) const {
+RawCode* StackFrame::GetCodeObject() const {
   ASSERT(!is_interpreted());
-  if (auto isolate = IsolateOfBareInstructionsFrame(needed_for_gc)) {
-    auto const rct = isolate->reverse_pc_lookup_cache();
+  if (auto isolate_group = IsolateGroupOfBareInstructionsFrame()) {
+    auto const rct = isolate_group->reverse_pc_lookup_cache();
     return rct->Lookup(pc(), /*is_return_address=*/true);
   } else {
     RawObject* pc_marker = *(reinterpret_cast<RawObject**>(
@@ -545,8 +534,8 @@ TokenPosition StackFrame::GetTokenPos() const {
   return TokenPosition::kNoSource;
 }
 
-bool StackFrame::IsValid(bool needed_for_gc) const {
-  if (IsEntryFrame() || IsExitFrame() || IsStubFrame(needed_for_gc)) {
+bool StackFrame::IsValid() const {
+  if (IsEntryFrame() || IsExitFrame() || IsStubFrame()) {
     return true;
   }
   if (is_interpreted()) {

@@ -813,7 +813,7 @@ void Thread::RestoreWriteBarrierInvariant(RestoreWriteBarrierInvariantOp op) {
        frame = frames_iterator.NextFrame()) {
     if (frame->IsExitFrame()) {
       scan_next_dart_frame = true;
-    } else if (frame->IsDartFrame(/*validate=*/false, /*needed_for_gc=*/true)) {
+    } else if (frame->IsDartFrame(/*validate=*/false)) {
       if (scan_next_dart_frame) {
         frame->VisitObjectPointers(&visitor);
       }

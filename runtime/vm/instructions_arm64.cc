@@ -459,11 +459,11 @@ BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc, const Code& code)
 
 RawCode* BareSwitchableCallPattern::target() const {
   const uword pc = object_pool_.RawValueAt(target_pool_index_);
-  auto rct = Isolate::Current()->reverse_pc_lookup_cache();
+  auto rct = IsolateGroup::Current()->reverse_pc_lookup_cache();
   if (rct->Contains(pc)) {
     return rct->Lookup(pc);
   }
-  rct = Dart::vm_isolate()->reverse_pc_lookup_cache();
+  rct = Dart::vm_isolate()->group()->reverse_pc_lookup_cache();
   if (rct->Contains(pc)) {
     return rct->Lookup(pc);
   }

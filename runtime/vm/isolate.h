@@ -505,7 +505,19 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   RawArray* saved_unlinked_calls() const { return saved_unlinked_calls_; }
   void set_saved_unlinked_calls(const Array& saved_unlinked_calls);
 
+  // Returns the pc -> code lookup cache object for this isolate.
+  ReversePcLookupCache* reverse_pc_lookup_cache() const {
+    return reverse_pc_lookup_cache_;
+  }
+
+  // Sets the pc -> code lookup cache object for this isolate.
+  void set_reverse_pc_lookup_cache(ReversePcLookupCache* table) {
+    ASSERT(reverse_pc_lookup_cache_ == nullptr);
+    reverse_pc_lookup_cache_ = table;
+  }
+
  private:
+  friend class Dart;  // For `object_store_ = ` in Dart::Init
   friend class Heap;
   friend class StackFrame;  // For `[isolates_].First()`.
   // For `object_store_shared_ptr()`, `class_table_shared_ptr()`
@@ -584,6 +596,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::unique_ptr<StoreBuffer> store_buffer_;
   std::unique_ptr<Heap> heap_;
   std::unique_ptr<DispatchTable> dispatch_table_;
+  ReversePcLookupCache* reverse_pc_lookup_cache_ = nullptr;
   RawArray* saved_unlinked_calls_;
 
   IdleTimeHandler idle_time_handler_;
@@ -1119,17 +1132,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return group()->dispatch_table();
   }
 
-  // Returns the pc -> code lookup cache object for this isolate.
-  ReversePcLookupCache* reverse_pc_lookup_cache() const {
-    return reverse_pc_lookup_cache_;
-  }
-
-  // Sets the pc -> code lookup cache object for this isolate.
-  void set_reverse_pc_lookup_cache(ReversePcLookupCache* table) {
-    ASSERT(reverse_pc_lookup_cache_ == nullptr);
-    reverse_pc_lookup_cache_ = table;
-  }
-
   // Isolate-specific flag handling.
   static void FlagsInitialize(Dart_IsolateFlags* api_flags);
   void FlagsCopyTo(Dart_IsolateFlags* api_flags) const;
@@ -1451,7 +1453,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   const char** obfuscation_map_ = nullptr;
 
   DispatchTable* dispatch_table_ = nullptr;
-  ReversePcLookupCache* reverse_pc_lookup_cache_ = nullptr;
 
   // Used during message sending of messages between isolates.
   std::unique_ptr<WeakTable> forward_table_new_;

@@ -269,6 +269,8 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     Object::InitNullAndBool(vm_isolate_);
     vm_isolate_->set_object_store(new ObjectStore());
     vm_isolate_->isolate_object_store()->Init();
+    vm_isolate_->isolate_group_->object_store_ =
+        vm_isolate_->object_store_shared_ptr_;
     TargetCPUFeatures::Init();
     Object::Init(vm_isolate_);
     ArgumentsDescriptor::Init();
@@ -314,7 +316,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
         return strdup(error.ToErrorCString());
       }
 
-      ReversePcLookupCache::BuildAndAttachToIsolate(vm_isolate_);
+      ReversePcLookupCache::BuildAndAttachToIsolateGroup(vm_isolate_->group());
 
       Object::FinishInit(vm_isolate_);
 #if defined(SUPPORT_TIMELINE)
@@ -674,7 +676,6 @@ static bool CloneIntoChildIsolateAOT(Thread* T,
   I->set_saved_initial_field_table(
       donor_isolate->saved_initial_field_table_shareable());
 
-  ReversePcLookupCache::BuildAndAttachToIsolate(I);
   return true;
 }
 #endif
@@ -718,7 +719,7 @@ RawError* Dart::InitIsolateFromSnapshot(Thread* T,
       return error.raw();
     }
 
-    ReversePcLookupCache::BuildAndAttachToIsolate(I);
+    ReversePcLookupCache::BuildAndAttachToIsolateGroup(I->group());
 
 #if defined(SUPPORT_TIMELINE)
     if (tbes.enabled()) {

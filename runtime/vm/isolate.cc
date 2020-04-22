@@ -274,6 +274,9 @@ IsolateGroup::~IsolateGroup() {
   // Ensure we destroy the heap before the other members.
   heap_ = nullptr;
   ASSERT(marking_stack_ == nullptr);
+
+  delete reverse_pc_lookup_cache_;
+  reverse_pc_lookup_cache_ = nullptr;
 }
 
 void IsolateGroup::RegisterIsolate(Isolate* isolate) {
@@ -1451,9 +1454,6 @@ Isolate::~Isolate() {
   // TODO(32796): Re-enable assertion.
   // RELEASE_ASSERT(reload_context_ == NULL);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
-  delete reverse_pc_lookup_cache_;
-  reverse_pc_lookup_cache_ = nullptr;
 
   if (FLAG_enable_interpreter) {
     delete background_compiler_;
