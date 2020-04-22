@@ -822,7 +822,7 @@ dart_ci_builder(
     execution_timeout=time.duration(15 * 60 * 1000),
     recipe="forward_branch",
     schedule="with 10m interval",
-    notifies="infra")
+    notifies=None)
 dart_ci_builder(
     "chocolatey", recipe="chocolatey", enabled=False, dimensions=windows())
 dart_ci_builder("co19-roller", recipe="package_co19", enabled=False)
