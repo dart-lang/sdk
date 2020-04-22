@@ -18,14 +18,13 @@ import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:meta/meta.dart';
 
-/// Return a suggestion based upon the given element or `null` if a suggestion
+/// Return a suggestion based on the given [element], or `null` if a suggestion
 /// is not appropriate for the given element.
 CompletionSuggestion createSuggestion(
     DartCompletionRequest request, Element element,
     {String completion,
     CompletionSuggestionKind kind,
-    int relevance = DART_RELEVANCE_DEFAULT,
-    bool useNewRelevance = false}) {
+    int relevance = DART_RELEVANCE_DEFAULT}) {
   if (element == null) {
     return null;
   }
@@ -35,12 +34,8 @@ CompletionSuggestion createSuggestion(
   }
   completion ??= element.displayName;
   kind ??= CompletionSuggestionKind.INVOCATION;
-  var isDeprecated = element.hasDeprecated;
-  if (!useNewRelevance && isDeprecated) {
-    relevance = DART_RELEVANCE_LOW;
-  }
-  var suggestion = CompletionSuggestion(
-      kind, relevance, completion, completion.length, 0, isDeprecated, false);
+  var suggestion = CompletionSuggestion(kind, relevance, completion,
+      completion.length, 0, element.hasDeprecated, false);
 
   // Attach docs.
   var doc = DartUnitHoverComputer.computeDocumentation(
@@ -108,7 +103,6 @@ mixin ElementSuggestionBuilder {
   CompletionSuggestion addSuggestion(Element element,
       {String prefix,
       int relevance = DART_RELEVANCE_DEFAULT,
-      bool useNewRelevance = false,
       String elementCompletion}) {
     if (element.isPrivate) {
       if (element.library != containingLibrary) {
@@ -127,10 +121,7 @@ mixin ElementSuggestionBuilder {
       return null;
     }
     var suggestion = createSuggestion(request, element,
-        completion: completion,
-        kind: kind,
-        relevance: relevance,
-        useNewRelevance: useNewRelevance);
+        completion: completion, kind: kind, relevance: relevance);
     if (suggestion != null) {
       if (element.isSynthetic && element is PropertyAccessorElement) {
         String cacheKey;
@@ -186,12 +177,8 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void>
 
   final bool instCreation;
 
-  /// Return `true` if the new relevance scores should be produced.
-  final bool useNewRelevance;
-
   LibraryElementSuggestionBuilder(
-      this.request, this.kind, this.typesOnly, this.instCreation)
-      : useNewRelevance = request.useNewRelevance;
+      this.request, this.kind, this.typesOnly, this.instCreation);
 
   @override
   LibraryElement get containingLibrary => request.libraryElement;
@@ -203,9 +190,12 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void>
     } else {
       // TODO(brianwilkerson) Determine whether this should be based on features
       //  (such as the kind of the element) or a constant.
-      var relevance = useNewRelevance ? 750 : DART_RELEVANCE_DEFAULT;
-      addSuggestion(element,
-          relevance: relevance, useNewRelevance: useNewRelevance);
+      var relevance = request.useNewRelevance
+          ? 750
+          : (element.hasDeprecated
+              ? DART_RELEVANCE_LOW
+              : DART_RELEVANCE_DEFAULT);
+      addSuggestion(element, relevance: relevance);
     }
   }
 
@@ -218,11 +208,12 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void>
         if (prefix != null && prefix.isNotEmpty) {
           // TODO(brianwilkerson) Determine whether this should be based on features
           //  (such as the kind of the element) or a constant.
-          var relevance = useNewRelevance ? 750 : DART_RELEVANCE_DEFAULT;
-          addSuggestion(element,
-              prefix: prefix,
-              relevance: relevance,
-              useNewRelevance: useNewRelevance);
+          var relevance = request.useNewRelevance
+              ? 750
+              : (element.hasDeprecated
+                  ? DART_RELEVANCE_LOW
+                  : DART_RELEVANCE_DEFAULT);
+          addSuggestion(element, prefix: prefix, relevance: relevance);
         }
       }
     }
@@ -233,9 +224,12 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void>
     if (!instCreation) {
       // TODO(brianwilkerson) Determine whether this should be based on features
       //  (such as the kind of the element) or a constant.
-      var relevance = useNewRelevance ? 750 : DART_RELEVANCE_DEFAULT;
-      addSuggestion(element,
-          relevance: relevance, useNewRelevance: useNewRelevance);
+      var relevance = request.useNewRelevance
+          ? 750
+          : (element.hasDeprecated
+              ? DART_RELEVANCE_LOW
+              : DART_RELEVANCE_DEFAULT);
+      addSuggestion(element, relevance: relevance);
     }
   }
 
@@ -243,17 +237,18 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void>
   void visitFunctionElement(FunctionElement element) {
     if (!typesOnly) {
       int relevance;
-      if (useNewRelevance) {
+      if (request.useNewRelevance) {
         // TODO(brianwilkerson) Determine whether this should be based on
         //  features (such as the kind of the element) or a constant.
         relevance = element.library == containingLibrary ? 800 : 750;
       } else {
-        relevance = element.library == containingLibrary
-            ? DART_RELEVANCE_LOCAL_FUNCTION
-            : DART_RELEVANCE_DEFAULT;
+        relevance = element.hasDeprecated
+            ? DART_RELEVANCE_LOW
+            : (element.library == containingLibrary
+                ? DART_RELEVANCE_LOCAL_FUNCTION
+                : DART_RELEVANCE_DEFAULT);
       }
-      addSuggestion(element,
-          relevance: relevance, useNewRelevance: useNewRelevance);
+      addSuggestion(element, relevance: relevance);
     }
   }
 
@@ -262,9 +257,12 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void>
     if (!instCreation) {
       // TODO(brianwilkerson) Determine whether this should be based on features
       //  (such as the kind of the element) or a constant.
-      var relevance = useNewRelevance ? 750 : DART_RELEVANCE_DEFAULT;
-      addSuggestion(element,
-          relevance: relevance, useNewRelevance: useNewRelevance);
+      var relevance = request.useNewRelevance
+          ? 750
+          : (element.hasDeprecated
+              ? DART_RELEVANCE_LOW
+              : DART_RELEVANCE_DEFAULT);
+      addSuggestion(element, relevance: relevance);
     }
   }
 
@@ -273,17 +271,18 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void>
     if (!typesOnly) {
       var variable = element.variable;
       int relevance;
-      if (useNewRelevance) {
+      if (request.useNewRelevance) {
         // TODO(brianwilkerson) Determine whether this should be based on
         //  features (such as the kind of the element) or a constant.
         relevance = variable.library == containingLibrary ? 800 : 750;
       } else {
-        relevance = variable.library == containingLibrary
-            ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
-            : DART_RELEVANCE_DEFAULT;
+        relevance = element.hasDeprecated
+            ? DART_RELEVANCE_LOW
+            : (variable.library == containingLibrary
+                ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
+                : DART_RELEVANCE_DEFAULT);
       }
-      addSuggestion(variable,
-          relevance: relevance, useNewRelevance: useNewRelevance);
+      addSuggestion(variable, relevance: relevance);
     }
   }
 }
@@ -361,8 +360,7 @@ class MemberSuggestionBuilder {
       if (accessor.isGetter) {
         var variable = accessor.variable;
         int relevance;
-        var useNewRelevance = request.useNewRelevance;
-        if (useNewRelevance) {
+        if (request.useNewRelevance) {
           var featureComputer = request.featureComputer;
           var contextType = featureComputer.contextTypeFeature(
               request.contextType, variable.type);
@@ -380,14 +378,13 @@ class MemberSuggestionBuilder {
         } else {
           relevance = oldRelevance();
         }
-        return _addSuggestion(variable, relevance, useNewRelevance);
+        return _addSuggestion(variable, relevance);
       }
     } else {
       var type =
           accessor.isGetter ? accessor.returnType : accessor.parameters[0].type;
       int relevance;
-      var useNewRelevance = request.useNewRelevance;
-      if (useNewRelevance) {
+      if (request.useNewRelevance) {
         var featureComputer = request.featureComputer;
         var contextType =
             featureComputer.contextTypeFeature(request.contextType, type);
@@ -405,7 +402,7 @@ class MemberSuggestionBuilder {
       } else {
         relevance = oldRelevance();
       }
-      return _addSuggestion(accessor, relevance, useNewRelevance);
+      return _addSuggestion(accessor, relevance);
     }
     return null;
   }
@@ -438,8 +435,7 @@ class MemberSuggestionBuilder {
       return null;
     }
     int relevance;
-    var useNewRelevance = request.useNewRelevance;
-    if (useNewRelevance) {
+    if (request.useNewRelevance) {
       var featureComputer = request.featureComputer;
       var contextType = featureComputer.contextTypeFeature(
           request.contextType, method.returnType);
@@ -457,13 +453,12 @@ class MemberSuggestionBuilder {
     } else {
       relevance = oldRelevance();
     }
-    return _addSuggestion(method, relevance, useNewRelevance, kind: kind);
+    return _addSuggestion(method, relevance, kind: kind);
   }
 
   /// Add a suggestion for the given [element] with the given [relevance],
   /// provided that it is not shadowed by a previously added suggestion.
-  CompletionSuggestion _addSuggestion(
-      Element element, int relevance, bool useNewRelevance,
+  CompletionSuggestion _addSuggestion(Element element, int relevance,
       {CompletionSuggestionKind kind}) {
     var identifier = element.displayName;
 
@@ -503,8 +498,8 @@ class MemberSuggestionBuilder {
       assert(false);
       return null;
     }
-    var suggestion = createSuggestion(request, element,
-        kind: kind, relevance: relevance, useNewRelevance: useNewRelevance);
+    var suggestion =
+        createSuggestion(request, element, kind: kind, relevance: relevance);
     if (suggestion != null) {
       addCompletionSuggestion(suggestion);
     }

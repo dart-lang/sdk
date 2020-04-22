@@ -107,9 +107,8 @@ class _SuggestionBuilder extends SimpleElementVisitor<void> {
     if (completion == null || completion.isEmpty) {
       return;
     }
-    var relevance = DART_RELEVANCE_DEFAULT;
-    var useNewRelevance = request.useNewRelevance;
-    if (useNewRelevance) {
+    var relevance;
+    if (request.useNewRelevance) {
       var contextType = request.featureComputer
           .contextTypeFeature(request.contextType, elementType);
       var elementKind = request.featureComputer
@@ -119,11 +118,12 @@ class _SuggestionBuilder extends SimpleElementVisitor<void> {
           contextType: contextType,
           elementKind: elementKind,
           hasDeprecated: hasDeprecated);
+    } else {
+      relevance =
+          element.hasDeprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT;
     }
     var suggestion = createSuggestion(request, element,
-        completion: completion,
-        relevance: relevance,
-        useNewRelevance: useNewRelevance);
+        completion: completion, relevance: relevance);
     if (suggestion != null) {
       suggestions.add(suggestion);
     }

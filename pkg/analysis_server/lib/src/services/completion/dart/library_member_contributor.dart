@@ -58,12 +58,13 @@ class LibraryMemberContributor extends DartCompletionContributor {
           // If the import is 'deferred' then suggest 'loadLibrary'.
           if (importElem.isDeferred) {
             var function = library.loadLibraryFunction;
-            var useNewRelevance = request.useNewRelevance;
-            var relevance = useNewRelevance
+            var relevance = request.useNewRelevance
                 ? Relevance.loadLibrary
-                : DART_RELEVANCE_DEFAULT;
-            builder.suggestions.add(createSuggestion(request, function,
-                relevance: relevance, useNewRelevance: useNewRelevance));
+                : (function.hasDeprecated
+                    ? DART_RELEVANCE_LOW
+                    : DART_RELEVANCE_DEFAULT);
+            builder.suggestions
+                .add(createSuggestion(request, function, relevance: relevance));
           }
         }
       }
