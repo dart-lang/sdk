@@ -7,6 +7,7 @@
 library compiler_helper;
 
 import 'dart:async';
+import 'dart:io';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common_elements.dart';
@@ -237,3 +238,6 @@ checkerForAbsentPresent(String test) {
 RegExp _directivePattern = new RegExp(
     //      \1                     \2        \3
     r'''// *(present|absent): *(?:"([^"]*)"|'([^'']*)')''', multiLine: true);
+
+bool isDart2jsNnbd =
+    Platform.environment['DART_CONFIGURATION'] == 'ReleaseX64NNBD';
