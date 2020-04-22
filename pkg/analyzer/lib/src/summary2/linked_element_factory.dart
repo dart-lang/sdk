@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -18,7 +18,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 
 class LinkedElementFactory {
   final AnalysisContextImpl analysisContext;
-  final AnalysisSession analysisSession;
+  final AnalysisSessionImpl analysisSession;
   final Reference rootReference;
   final Map<String, LinkedLibraryContext> libraryMap = {};
 
@@ -154,6 +154,9 @@ class LinkedElementFactory {
       libraryMap.remove(uriStr);
       rootReference.removeChild(uriStr);
     }
+
+    var classHierarchy = analysisSession.classHierarchy;
+    classHierarchy.removeOfLibraries(context.libraryMap.keys);
   }
 
   /// Set optional informative data for the unit.
