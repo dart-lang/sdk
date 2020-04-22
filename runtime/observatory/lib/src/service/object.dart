@@ -2206,6 +2206,8 @@ class ServiceEvent extends ServiceObject {
   static const kExtension = 'Extension';
   static const kServiceRegistered = 'ServiceRegistered';
   static const kServiceUnregistered = 'ServiceUnregistered';
+  static const kDartDevelopmentServiceConnected =
+      'DartDevelopmentServiceConnected';
 
   ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -2242,6 +2244,8 @@ class ServiceEvent extends ServiceObject {
   String method;
   String service;
   String alias;
+  String message;
+  Uri uri;
 
   bool lastChunk;
 
@@ -2344,6 +2348,12 @@ class ServiceEvent extends ServiceObject {
     }
     if (map['newValue'] != null) {
       newValue = map['newValue'];
+    }
+    if (map['message'] != null) {
+      message = map['message'];
+    }
+    if (map['uri'] != null) {
+      uri = Uri.parse(map['uri']);
     }
   }
 

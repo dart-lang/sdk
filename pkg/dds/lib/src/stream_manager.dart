@@ -88,7 +88,11 @@ class _StreamManager {
   /// Cleanup stream subscriptions for `client` when it has disconnected.
   void clientDisconnect(_DartDevelopmentServiceClient client) {
     for (final streamId in streamListeners.keys.toList()) {
-      streamCancel(client, streamId);
+      streamCancel(client, streamId).catchError(
+        (_) => null,
+        // Ignore 'stream not subscribed' errors.
+        test: (e) => e is json_rpc.RpcException,
+      );
     }
   }
 

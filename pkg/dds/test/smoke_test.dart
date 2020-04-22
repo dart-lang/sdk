@@ -41,35 +41,78 @@ Future<Process> spawnDartProcess(String script) async {
 }
 
 void main() {
-  test('DDS Smoke Test', () async {
-    final process = await spawnDartProcess('smoke.dart');
-    final dds = await DartDevelopmentService.startDartDevelopmentService(
-      remoteVmServiceUri,
-    );
-    expect(dds.isRunning, true);
+  group('DDS', () {
+    Process process;
+    DartDevelopmentService dds;
 
-    // Ensure basic websocket requests are forwarded correctly to the VM service.
-    final service = await vmServiceConnectUri(dds.wsUri.toString());
-    final version = await service.getVersion();
-    expect(version.major > 0, true);
-    expect(version.minor > 0, true);
+    setUp(() async {
+      process = await spawnDartProcess('smoke.dart');
+    });
 
-    // Ensure we can still make requests of the VM service via HTTP.
-    HttpClient client = HttpClient();
-    final request = await client.getUrl(remoteVmServiceUri.replace(
-      pathSegments: [
-        remoteVmServiceUri.pathSegments.first,
-        'getVersion',
-      ],
-    ));
-    final response = await request.close();
-    final Map<String, dynamic> jsonResponse =
-        (await response.transform(utf8.decoder).transform(json.decoder).single);
-    expect(jsonResponse['result']['type'], 'Version');
-    expect(jsonResponse['result']['major'] > 0, true);
-    expect(jsonResponse['result']['minor'] > 0, true);
-    await dds.shutdown();
-    process.kill();
+    tearDown(() async {
+      await dds?.shutdown();
+      process?.kill();
+      dds = null;
+      process = null;
+    });
+
+    test('Smoke Test', () async {
+      dds = await DartDevelopmentService.startDartDevelopmentService(
+        remoteVmServiceUri,
+      );
+      expect(dds.isRunning, true);
+
+      // Ensure basic websocket requests are forwarded correctly to the VM service.
+      final service = await vmServiceConnectUri(dds.wsUri.toString());
+      final version = await service.getVersion();
+      expect(version.major > 0, true);
+      expect(version.minor > 0, true);
+
+      // Ensure we can still make requests of the VM service via HTTP.
+      HttpClient client = HttpClient();
+      final request = await client.getUrl(remoteVmServiceUri.replace(
+        pathSegments: [
+          if (remoteVmServiceUri.pathSegments.isNotEmpty)
+            remoteVmServiceUri.pathSegments.first,
+          'getVersion',
+        ],
+      ));
+      final response = await request.close();
+      final Map<String, dynamic> jsonResponse = (await response
+          .transform(utf8.decoder)
+          .transform(json.decoder)
+          .single);
+      expect(jsonResponse['result']['type'], 'Version');
+      expect(jsonResponse['result']['major'] > 0, true);
+      expect(jsonResponse['result']['minor'] > 0, true);
+    });
+
+    test('startup fails when VM service has existing clients', () async {
+      Uri httpToWebSocketUri(Uri httpUri) {
+        final segments = (httpUri.pathSegments.isNotEmpty)
+            ? (httpUri.pathSegments.toList()..removeLast())
+            : <String>[];
+        segments.add('ws');
+        return httpUri.replace(
+          scheme: 'ws',
+          pathSegments: segments,
+        );
+      }
+
+      final _ = await vmServiceConnectUri(
+        httpToWebSocketUri(remoteVmServiceUri).toString(),
+      );
+      try {
+        dds = await DartDevelopmentService.startDartDevelopmentService(
+          remoteVmServiceUri,
+        );
+        fail(
+            'DDS startup should fail if there are existing VM service clients.');
+      } on DartDevelopmentServiceException catch (e) {
+        expect(e.message,
+            'Existing VM service clients prevent DDS from taking control.');
+      }
+    });
   });
 
   test('Invalid args test', () async {

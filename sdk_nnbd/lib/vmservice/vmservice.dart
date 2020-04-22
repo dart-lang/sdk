@@ -169,6 +169,10 @@ typedef Uri? ServerInformationCallback();
 /// Called when we want to [enable] or disable the web server.
 typedef Future<Uri?> WebServerControlCallback(bool enable);
 
+/// Called when we want to [enable] or disable new websocket connections to the
+/// server.
+typedef void WebServerAcceptNewWebSocketConnectionsCallback(bool enable);
+
 /// Hooks that are setup by the embedder.
 class VMServiceEmbedderHooks {
   static ServerStartCallback? serverStart;
@@ -182,6 +186,8 @@ class VMServiceEmbedderHooks {
   static ListFilesCallback? listFiles;
   static ServerInformationCallback? serverInformation;
   static WebServerControlCallback? webServerControl;
+  static WebServerAcceptNewWebSocketConnectionsCallback?
+      acceptNewWebSocketConnections;
 }
 
 class _ClientResumePermissions {
@@ -212,6 +218,33 @@ class VMService extends MessageRouter {
   final RawReceivePort eventPort;
 
   final devfs = DevFS();
+
+  Uri get ddsUri => _ddsUri!;
+  Uri? _ddsUri;
+
+  Future<String> _yieldControlToDDS(Message message) async {
+    final acceptNewWebSocketConnections =
+        VMServiceEmbedderHooks.acceptNewWebSocketConnections;
+    if (acceptNewWebSocketConnections == null) {
+      return encodeRpcError(message, kFeatureDisabled,
+          details:
+              'Embedder does not support yielding to a VM service intermediary.');
+    }
+    final uri = message.params['uri'];
+    if (uri == null) {
+      return encodeMissingParamError(message, 'uri');
+    }
+    // DDS can only take control if there is no other clients connected
+    // directly to the VM service.
+    if (clients.length > 1) {
+      return encodeRpcError(message, kFeatureDisabled,
+          details:
+              'Existing VM service clients prevent DDS from taking control.');
+    }
+    acceptNewWebSocketConnections(false);
+    _ddsUri = Uri.parse(uri);
+    return encodeSuccess(message);
+  }
 
   void _clearClientName(Client client) {
     final name = client.name;
@@ -350,6 +383,16 @@ class VMService extends MessageRouter {
     // Complete all requests as failed
     for (final handle in client.serviceHandles.values) {
       handle(null);
+    }
+    if (clients.isEmpty) {
+      // If DDS was connected, we are in single client mode and need to
+      // allow for new websocket connections.
+      final acceptNewWebSocketConnections =
+          VMServiceEmbedderHooks.acceptNewWebSocketConnections;
+      if (_ddsUri != null && acceptNewWebSocketConnections != null) {
+        acceptNewWebSocketConnections(true);
+        _ddsUri = null;
+      }
     }
   }
 
@@ -716,6 +759,9 @@ class VMService extends MessageRouter {
     try {
       if (message.completed) {
         return await message.response;
+      }
+      if (message.method == '_yieldControlToDDS') {
+        return await _yieldControlToDDS(message);
       }
       if (message.method == 'streamListen') {
         return await _streamListen(message);

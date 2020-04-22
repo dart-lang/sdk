@@ -7,11 +7,8 @@
 library vmservice_io;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
-import 'dart:typed_data';
 import 'dart:_vmservice';
 
 part 'vmservice_server.dart';
@@ -209,6 +206,11 @@ Future<Uri> webServerControlCallback(bool enable) async {
   }
 }
 
+void webServerAcceptNewWebSocketConnections(bool enable) {
+  _lazyServerBoot();
+  server.acceptNewWebSocketConnections = enable;
+}
+
 Null _clearFuture(_) {
   serverFuture = null;
 }
@@ -254,6 +256,8 @@ main() {
   VMServiceEmbedderHooks.listFiles = listFilesCallback;
   VMServiceEmbedderHooks.serverInformation = serverInformationCallback;
   VMServiceEmbedderHooks.webServerControl = webServerControlCallback;
+  VMServiceEmbedderHooks.acceptNewWebSocketConnections =
+      webServerAcceptNewWebSocketConnections;
   // Always instantiate the vmservice object so that the exit message
   // can be delivered and waiting loaders can be cancelled.
   new VMService();

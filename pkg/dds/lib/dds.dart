@@ -33,7 +33,8 @@ part 'src/stream_manager.dart';
 /// for details.
 abstract class DartDevelopmentService {
   /// Creates a [DartDevelopmentService] instance which will communicate with a
-  /// VM service.
+  /// VM service. Requires the target VM service to have no other connected
+  /// clients.
   ///
   /// [remoteVmServiceUri] is the address of the VM service that this
   /// development service will communicate with.
@@ -93,4 +94,12 @@ abstract class DartDevelopmentService {
   /// Set to `true` if this instance of [DartDevelopmentService] is accepting
   /// requests.
   bool get isRunning;
+}
+
+class DartDevelopmentServiceException implements Exception {
+  DartDevelopmentServiceException._(this.message);
+
+  String toString() => 'DartDevelopmentServiceException: $message';
+
+  final String message;
 }

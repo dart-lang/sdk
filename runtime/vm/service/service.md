@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.30
+# Dart VM Service Protocol 3.31
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.30_ of the Dart VM Service Protocol. This
+This document describes of _version 3.31_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -27,6 +27,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
 - [IDs and Names](#ids-and-names)
 - [Versioning](#versioning)
 - [Private RPCs, Types, and Properties](#private-rpcs-types-and-properties)
+- [Single Client Mode](#single-client-mode)
 - [Public RPCs](#public-rpcs)
   - [addBreakpoint](#addbreakpoint)
   - [addBreakpointWithScriptUri](#addbreakpointwithscripturi)
@@ -404,6 +405,17 @@ private RPCs which may, over time, migrate to the public api as they
 become stable. Some private types and properties expose VM specific
 implementation state and will never be appropriate to add to
 the public api.
+
+## Single Client Mode
+
+The VM service allows for an extended feature set via the Dart Development
+Service (DDS) that forward all core VM service RPCs described in this
+document to the true VM service.
+
+When DDS connects to the VM service, the VM service enters single client
+mode and will no longer accept incoming web socket connections. If DDS
+disconnects from the VM service, the VM service will once again start accepting
+incoming web socket connections.
 
 ## Public RPCs
 
@@ -2135,18 +2147,18 @@ enum EventKind {
   Inspect,
 
   // Event from dart:developer.postEvent.
-  Extension
+  Extension,
 
   // Event from dart:developer.log.
-  Logging
+  Logging,
 
-   // Notification that a Service has been registered into the Service Protocol
+  // Notification that a Service has been registered into the Service Protocol
   // from another client.
   ServiceRegistered,
 
   // Notification that a Service has been removed from the Service Protocol
   // from another client.
-  ServiceUnregistered
+  ServiceUnregistered,
 }
 ```
 
@@ -3727,5 +3739,7 @@ version | comments
 3.28 | TODO(aam): document changes from 3.28
 3.29 | Add `getClientName`, `setClientName`, `requireResumeApproval`
 3.30 | Updated return types of RPCs which require an `isolateId` to allow for `Sentinel` results if the target isolate has shutdown.
+3.31 | Added single client mode, which allows for the Dart Development Service (DDS) to become the sole client of
+the VM service.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss
