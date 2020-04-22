@@ -12,6 +12,7 @@ import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_field_formal_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
@@ -632,9 +633,6 @@ class FixProcessor extends BaseProcessor {
       if (name == LintNames.curly_braces_in_flow_control_structures) {
         await _addFix_addCurlyBraces();
       }
-      if (name == LintNames.diagnostic_describe_all_properties) {
-        await _addFix_addDiagnosticPropertyReference();
-      }
       if (name == LintNames.directives_ordering) {
         await _addFix_sortDirectives();
       }
@@ -830,12 +828,6 @@ class FixProcessor extends BaseProcessor {
   Future<void> _addFix_addCurlyBraces() async {
     final changeBuilder = await createBuilder_useCurlyBraces();
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_CURLY_BRACES);
-  }
-
-  Future<void> _addFix_addDiagnosticPropertyReference() async {
-    final changeBuilder = await createBuilder_addDiagnosticPropertyReference();
-    _addFixFromBuilder(
-        changeBuilder, DartFixKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE);
   }
 
   Future<void> _addFix_addExplicitCast() async {
@@ -4536,6 +4528,8 @@ class FixProcessor extends BaseProcessor {
         await compute(InlineTypedef());
       } else if (name == LintNames.avoid_returning_null_for_future) {
         await compute(WrapInFuture());
+      } else if (name == LintNames.diagnostic_describe_all_properties) {
+        await compute(AddDiagnosticPropertyReference());
       } else if (name == LintNames.prefer_collection_literals) {
         await compute(ConvertToListLiteral());
         await compute(ConvertToMapLiteral());

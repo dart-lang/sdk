@@ -11,6 +11,7 @@ import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
@@ -157,11 +158,6 @@ class AssistProcessor extends BaseProcessor {
     )) {
       await _addProposal_useCurlyBraces();
     }
-    if (!_containsErrorCode(
-      {LintNames.diagnostic_describe_all_properties},
-    )) {
-      await _addProposal_addDiagnosticPropertyReference();
-    }
     if (experimentStatus.control_flow_collections) {
       if (!_containsErrorCode(
         {LintNames.prefer_if_elements_to_conditional_expressions},
@@ -270,6 +266,8 @@ class AssistProcessor extends BaseProcessor {
       AddReturnType(),
       {LintNames.always_declare_return_types},
     );
+    await computeIfNotErrorCode(AddDiagnosticPropertyReference(),
+        {LintNames.diagnostic_describe_all_properties});
     await computeIfNotErrorCode(
       ConvertToListLiteral(),
       {LintNames.prefer_collection_literals},
@@ -289,12 +287,6 @@ class AssistProcessor extends BaseProcessor {
     await compute(ExchangeOperands());
     await compute(ShadowField());
     await compute(SplitAndCondition());
-  }
-
-  Future<void> _addProposal_addDiagnosticPropertyReference() async {
-    final changeBuilder = await createBuilder_addDiagnosticPropertyReference();
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE);
   }
 
   Future<void> _addProposal_addNotNullAssert() async {
