@@ -414,7 +414,6 @@ class Primitives {
     int digitsIndex = 1;
     int hexIndex = 2;
     int decimalIndex = 3;
-    int nonDecimalHexIndex = 4;
     if (match == null) {
       // TODO(sra): It might be that the match failed due to unrecognized U+0085
       // spaces.  We could replace them with U+0020 spaces and try matching
