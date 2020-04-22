@@ -32667,8 +32667,6 @@ class Window extends EventTarget
   @Returns('Window|=Object')
   dynamic get _get_top native;
 
-  VisualViewport get visualViewport native;
-
   /**
    * The current window.
    *
@@ -33556,6 +33554,8 @@ class Window extends EventTarget
   int get scrollY => JS<bool>('bool', '("scrollY" in #)', this)
       ? JS<num>('num', '#.scrollY', this).round()
       : document.documentElement.scrollTop;
+
+  VisualViewport get visualViewport native;
 }
 
 class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {

@@ -32714,8 +32714,6 @@ class Window extends EventTarget
   @Returns('Window|=Object')
   dynamic get _get_top native;
 
-  VisualViewport get visualViewport native;
-
   /**
    * The current window.
    *
@@ -33604,6 +33602,12 @@ class Window extends EventTarget
   int get scrollY => JS<bool>('bool', '("scrollY" in #)', this)
       ? JS<num>('num', '#.scrollY', this).round()
       : document.documentElement!.scrollTop;
+
+  // visualViewport is allowed to be nullable on Firefox.
+  // TODO(41616): Temporary workaround. dart.idl doesn't differentiate
+  // attributes with changes in nullability. This should be removed once it's
+  // supported.
+  VisualViewport? get visualViewport native;
 }
 
 class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
