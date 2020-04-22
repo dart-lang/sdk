@@ -438,6 +438,75 @@ int f() => 0;
 ''');
   }
 
+  test_flowEnd_forStatement() async {
+    await assertErrorsInCode(r'''
+main() {
+  for (var v in [0, 1, 2]) {
+    v;
+    return;
+    1;
+  }
+  2;
+}
+''', [
+      error(HintCode.DEAD_CODE, 61, 2),
+    ]);
+  }
+
+  test_flowEnd_ifStatement() async {
+    await assertErrorsInCode(r'''
+main(bool a) {
+  if (a) {
+    return;
+    1;
+  }
+  2;
+}
+''', [
+      error(HintCode.DEAD_CODE, 42, 2),
+    ]);
+  }
+
+  test_flowEnd_tryStatement_catchClause() async {
+    await assertErrorsInCode(r'''
+main() {
+  try {
+    1;
+  } catch (_) {
+    return;
+    2;
+  }
+  3;
+}
+''', [
+      error(HintCode.DEAD_CODE, 56, 2),
+    ]);
+  }
+
+  test_flowEnd_tryStatement_finally() async {
+    var expectedErrors = expectedErrorsByNullability(
+      nullable: [
+        error(HintCode.DEAD_CODE, 61, 11),
+      ],
+      legacy: [
+        error(HintCode.DEAD_CODE, 61, 2),
+        error(HintCode.DEAD_CODE, 70, 2),
+      ],
+    );
+    await assertErrorsInCode(r'''
+main() {
+  try {
+    1;
+  } finally {
+    2;
+    return;
+    3;
+  }
+  4;
+}
+''', expectedErrors);
+  }
+
   test_statementAfterAlwaysThrowsFunction() async {
     addMetaPackage();
     await assertErrorsInCode(r'''
@@ -740,6 +809,50 @@ f() {
 
 @reflectiveTest
 class DeadCodeWithNullSafetyTest extends DeadCodeTest with WithNullSafetyMixin {
+  test_flowEnd_tryStatement_body() async {
+    await assertErrorsInCode(r'''
+Never foo() => throw 0;
+
+main() {
+  try {
+    foo();
+    1;
+  } catch (_) {
+    2;
+  }
+  3;
+}
+''', [
+      error(HintCode.DEAD_CODE, 57, 2),
+    ]);
+  }
+
+  test_returnTypeNever_function() async {
+    await assertErrorsInCode(r'''
+Never foo() => throw 0;
+
+main() {
+  foo();
+  1;
+}
+''', [
+      error(HintCode.DEAD_CODE, 45, 2),
+    ]);
+  }
+
+  test_returnTypeNever_getter() async {
+    await assertErrorsInCode(r'''
+Never get foo => throw 0;
+
+main() {
+  foo;
+  2;
+}
+''', [
+      error(HintCode.DEAD_CODE, 45, 2),
+    ]);
+  }
+
   @FailingTest(reason: '@alwaysThrows is not supported in flow analysis')
   @override
   test_statementAfterAlwaysThrowsFunction() async {
