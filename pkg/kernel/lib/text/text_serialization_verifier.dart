@@ -55,21 +55,188 @@ class TextRoundTripFailure extends TextSerializationVerificationFailure {
 }
 
 class VerificationStatus {
+  final VerificationStatus parent;
+
   final Node node;
-  int childrenCount = 0;
-  final List<Node> supportedChildren = [];
 
-  VerificationStatus(this.node);
+  bool allChildrenAreSupported = true;
+  final List<Node> roundTripReadyNodes = [];
 
-  bool isFullySupported(TextSerializationVerifier verifier) {
-    return verifier.isSupported(node) &&
-        childrenCount == supportedChildren.length;
+  final Set<VariableDeclaration> variableDeclarations =
+      new Set<VariableDeclaration>.identity();
+  final Set<TypeParameter> typeParameters = new Set<TypeParameter>.identity();
+
+  final Set<VariableDeclaration> usedVariables =
+      new Set<VariableDeclaration>.identity();
+  final Set<TypeParameter> usedTypeParameters =
+      new Set<TypeParameter>.identity();
+
+  VerificationStatus(this.parent, this.node);
+
+  bool get isRoot => parent == null;
+
+  bool get isFullySupported => isSupported(node) && allChildrenAreSupported;
+
+  bool get hasSufficientScope {
+    return usedVariables.every((v) => variableDeclarations.contains(v)) &&
+        usedTypeParameters.every((p) => typeParameters.contains(p));
   }
 
-  void addChild(Node child, bool isSupported) {
-    ++childrenCount;
-    if (isSupported) supportedChildren.add(child);
+  bool get isRoundTripReady => isFullySupported && hasSufficientScope;
+
+  bool isVariableDeclared(VariableDeclaration node) {
+    return variableDeclarations.contains(node) ||
+        !isRoot && parent.isVariableDeclared(node);
   }
+
+  bool isTypeParameterDeclared(TypeParameter node) {
+    return typeParameters.contains(node) ||
+        !isRoot && parent.isTypeParameterDeclared(node);
+  }
+
+  void handleChild(VerificationStatus childStatus) {
+    allChildrenAreSupported =
+        allChildrenAreSupported && childStatus.isFullySupported;
+  }
+
+  void handleDeclarations() {
+    Node node = this.node;
+    if (node is VariableDeclaration) {
+      parent.variableDeclarations.add(node);
+    }
+    if (node is TypeParameter) {
+      parent.typeParameters.add(node);
+    }
+    if (node is VariableGet) {
+      usedVariables.add(node.variable);
+    }
+    if (node is VariableSet) {
+      usedVariables.add(node.variable);
+    }
+    if (node is TypeParameterType) {
+      usedTypeParameters.add(node.parameter);
+    }
+  }
+
+  /// Computes round-trip ready nodes or propagates them further in the stack.
+  ///
+  /// The returned nodes are the roots of maximal-by-inclusion subtrees that are
+  /// ready for the round-trip textual serialization.
+  List<Node> takeRoundTripReadyNodes() {
+    if (isRoot) {
+      // If the node is the root of the AST and is round-trip ready, return just
+      // the root because it's maximal-by-inclusion.
+      // Otherwise, return the nodes collected so far.
+      List<Node> result =
+          isRoundTripReady ? <Node>[node] : roundTripReadyNodes.toList();
+      roundTripReadyNodes.clear();
+      return result;
+    }
+
+    // The algorithm in this branch is based on the following observations:
+    //   - The isFullySupported property is monotonous.  That is, when traveling
+    //     from a leaf to the root, the property may only change its value from
+    //     true to false.
+    //   - The isRoundTripReady property is not monotonous because the sub-tree
+    //     that is ready for the round trip shouldn't contain free variables or
+    //     free type parameters.
+    //   - The isRoundTripReady property implies the isFullySupported property.
+
+    if (!isFullySupported) {
+      // We're out of the isFullySupported sub-tree, run the round trip on the
+      // nodes that are ready for it so far -- they are maximal-by-inclusion by
+      // construction.
+      List<Node> result = roundTripReadyNodes.toList();
+      roundTripReadyNodes.clear();
+      return result;
+    } else {
+      // We're still in the isFullySupported sub-tree.  It's to early to decide
+      // if the collected sub-trees or the node itself are maximal-by-inclusion.
+      // The decision should be made in one of the parent nodes.  So, we just
+      // propagate the information to the parent, returning an empty list for
+      // the current node.
+      if (isRoundTripReady) {
+        // The current tree is ready for the round trip.  Its sub-trees, which
+        // are also round-trip ready, are not maximal-by-inclusion.  So only the
+        // node itself is passed to the parent.
+        parent.roundTripReadyNodes.add(node);
+      } else {
+        // The node is not round-trip ready.  The round-trip ready sub-trees
+        // collected so far remain the candidates for being
+        // maximal-by-inclusion.
+        parent.roundTripReadyNodes.addAll(roundTripReadyNodes);
+      }
+      return const <Node>[];
+    }
+  }
+
+  /// Passes the necessary information to the parent when popped from the stack.
+  void mergeToParent() {
+    // Pass the free occurrences of variables and type parameters to the parent.
+    if (parent != null) {
+      parent.usedVariables
+          .addAll(usedVariables.difference(variableDeclarations));
+      parent.usedTypeParameters
+          .addAll(usedTypeParameters.difference(typeParameters));
+      parent.handleChild(this);
+    }
+  }
+
+  static bool isDartTypeSupported(DartType node) =>
+      node is InvalidType ||
+      node is DynamicType ||
+      node is VoidType ||
+      node is BottomType ||
+      node is FunctionType ||
+      node is TypeParameterType;
+
+  static bool isExpressionSupported(Expression node) =>
+      node is StringLiteral ||
+      node is SymbolLiteral ||
+      node is IntLiteral ||
+      node is DoubleLiteral ||
+      node is BoolLiteral ||
+      node is NullLiteral ||
+      node is ListLiteral ||
+      node is SetLiteral ||
+      node is MapLiteral ||
+      node is TypeLiteral ||
+      node is InvalidExpression ||
+      node is Not ||
+      node is LogicalExpression ||
+      node is StringConcatenation ||
+      node is ThisExpression ||
+      node is Rethrow ||
+      node is Throw ||
+      node is AwaitExpression ||
+      node is ConditionalExpression ||
+      node is IsExpression ||
+      node is AsExpression ||
+      node is Let ||
+      node is PropertyGet ||
+      node is PropertySet ||
+      node is SuperPropertyGet ||
+      node is SuperPropertySet ||
+      node is MethodInvocation ||
+      node is SuperMethodInvocation ||
+      node is VariableGet ||
+      node is VariableSet ||
+      node is StaticGet ||
+      node is StaticSet ||
+      node is DirectPropertyGet ||
+      node is DirectPropertySet ||
+      node is StaticInvocation ||
+      node is DirectMethodInvocation ||
+      node is ConstructorInvocation ||
+      node is FunctionExpression;
+
+  static bool isStatementSupported(Statement node) =>
+      node is ExpressionStatement || node is ReturnStatement;
+
+  static bool isSupported(Node node) =>
+      node is DartType && isDartTypeSupported(node) ||
+      node is Expression && isExpressionSupported(node) ||
+      node is Statement && isStatementSupported(node);
 }
 
 class TextSerializationVerifier extends RecursiveVisitor<void> {
@@ -87,61 +254,52 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
 
   int lastSeenOffset = noOffset;
 
-  List<VerificationStatus> _statusStack = [];
+  VerificationStatus _statusStackTop;
 
   TextSerializationVerifier({CanonicalName root})
       : root = root ?? new CanonicalName.root() {
     initializeSerializers();
   }
 
-  bool get isRoot => _statusStack.isEmpty;
+  VerificationStatus get currentStatus => _statusStackTop;
 
-  VerificationStatus get currentStatus => _statusStack.last;
-
-  void pushStatus(VerificationStatus status) {
-    _statusStack.add(status);
+  void pushStatusFor(Node node) {
+    _statusStackTop = new VerificationStatus(_statusStackTop, node);
   }
 
-  VerificationStatus popStatus() {
-    return _statusStack.removeLast();
+  void dropStatus() {
+    if (_statusStackTop == null) {
+      throw new StateError(
+          "Attempting to remove a status from an empty status stack.");
+    }
+    _statusStackTop = _statusStackTop.parent;
   }
 
-  void verify(Node node) {}
+  void verify(Node node) => node.accept(this);
 
   void defaultNode(Node node) {
     enterNode(node);
     node.visitChildren(this);
-    bool isFullySupported = exitNode(node);
-    if (isFullySupported) {
-      if (node is DartType) {
-        makeRoundTrip<DartType>(node, dartTypeSerializer);
-      } else if (node is Expression) {
-        makeRoundTrip<Expression>(node, expressionSerializer);
-      } else if (node is Statement) {
-        makeRoundTrip<Statement>(node, statementSerializer);
-      } else {
-        throw new StateError(
-            "Don't know how to make a round trip for a supported node '${node.runtimeType}'");
-      }
-    }
+    exitNode(node);
   }
 
   void enterNode(node) {
     storeLastSeenUriAndOffset(node);
-    pushStatus(new VerificationStatus(node));
+    pushStatusFor(node);
+    currentStatus.handleDeclarations();
   }
 
-  bool exitNode(node) {
+  void exitNode(node) {
     if (!identical(node, currentStatus.node)) {
       throw new StateError("Trying to remove node '${node}' from the stack, "
           "while another node '${currentStatus.node}' is on the top of it.");
     }
-    VerificationStatus status = popStatus();
-    bool isFullySupported = status.isFullySupported(this);
-    if (!isRoot) {
-      currentStatus.addChild(node, isFullySupported);
+    List<Node> roundTripReadyNodes = currentStatus.takeRoundTripReadyNodes();
+    for (Node node in roundTripReadyNodes) {
+      makeRoundTripDispatch(node);
     }
-    return isFullySupported;
+    currentStatus.mergeToParent();
+    dropStatus();
   }
 
   void storeLastSeenUriAndOffset(Node node) {
@@ -193,14 +351,30 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
     return buffer.toString();
   }
 
-  void makeRoundTrip<T extends Node>(T node, TextSerializer<T> serializer) {
+  RoundTripStatus makeRoundTripDispatch(Node node) {
+    if (node is DartType) {
+      return makeRoundTrip<DartType>(node, dartTypeSerializer);
+    } else if (node is Expression) {
+      return makeRoundTrip<Expression>(node, expressionSerializer);
+    } else if (node is Statement) {
+      return makeRoundTrip<Statement>(node, statementSerializer);
+    } else {
+      throw new StateError(
+          "Don't know how to make a round trip for a supported node '${node.runtimeType}'");
+    }
+  }
+
+  RoundTripStatus makeRoundTrip<T extends Node>(
+      T node, TextSerializer<T> serializer) {
     String initial = writeNode(node, serializer, lastSeenUri, lastSeenOffset);
 
     // Do the round trip.
     T deserialized = readNode(initial, serializer, lastSeenUri, lastSeenOffset);
 
     // The error is reported elsewhere for the case of null.
-    if (deserialized == null) return;
+    if (deserialized == null) {
+      return new RoundTripStatus(false, initial);
+    }
 
     String serialized =
         writeNode(deserialized, serializer, lastSeenUri, lastSeenOffset);
@@ -208,62 +382,15 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
     if (initial != serialized) {
       failures.add(new TextRoundTripFailure(
           initial, serialized, lastSeenUri, lastSeenOffset));
+      return new RoundTripStatus(false, initial);
     }
+    return new RoundTripStatus(true, initial);
   }
+}
 
-  bool isDartTypeSupported(DartType node) =>
-      node is InvalidType ||
-      node is DynamicType ||
-      node is VoidType ||
-      node is BottomType ||
-      node is FunctionType ||
-      node is TypeParameterType;
+class RoundTripStatus {
+  final bool successful;
+  final String serialized;
 
-  bool isExpressionSupported(Expression node) =>
-      node is StringLiteral ||
-      node is SymbolLiteral ||
-      node is IntLiteral ||
-      node is DoubleLiteral ||
-      node is BoolLiteral ||
-      node is NullLiteral ||
-      node is ListLiteral ||
-      node is SetLiteral ||
-      node is MapLiteral ||
-      node is TypeLiteral ||
-      node is InvalidExpression ||
-      node is Not ||
-      node is LogicalExpression ||
-      node is StringConcatenation ||
-      node is ThisExpression ||
-      node is Rethrow ||
-      node is Throw ||
-      node is AwaitExpression ||
-      node is ConditionalExpression ||
-      node is IsExpression ||
-      node is AsExpression ||
-      node is Let ||
-      node is PropertyGet ||
-      node is PropertySet ||
-      node is SuperPropertyGet ||
-      node is SuperPropertySet ||
-      node is MethodInvocation ||
-      node is SuperMethodInvocation ||
-      node is VariableGet ||
-      node is VariableSet ||
-      node is StaticGet ||
-      node is StaticSet ||
-      node is DirectPropertyGet ||
-      node is DirectPropertySet ||
-      node is StaticInvocation ||
-      node is DirectMethodInvocation ||
-      node is ConstructorInvocation ||
-      node is FunctionExpression;
-
-  bool isStatementSupported(Statement node) =>
-      node is ExpressionStatement || node is ReturnStatement;
-
-  bool isSupported(Node node) =>
-      node is DartType && isDartTypeSupported(node) ||
-      node is Expression && isExpressionSupported(node) ||
-      node is Statement && isStatementSupported(node);
+  RoundTripStatus(this.successful, this.serialized);
 }

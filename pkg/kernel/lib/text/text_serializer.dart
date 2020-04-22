@@ -37,7 +37,7 @@ Tuple2<String, String> unwrapPrivateName(Name name) {
 Name wrapPrivateName(Tuple2<String, String> tuple) {
   // We need a map from import URI to libraries.  More generally, we will need
   // a way to map any 'named' node to the node's reference.
-  throw UnimplementedError('deserialization of private names');
+  throw UnimplementedError('Deserialization of private names.');
 }
 
 TextSerializer<Name> nameSerializer = new Case(
@@ -738,8 +738,8 @@ class VariableDeclarationTagger implements Tagger<VariableDeclaration> {
   const VariableDeclarationTagger();
 
   String tag(VariableDeclaration decl) {
-    if (decl.isCovariant) throw UnimplementedError("covariant declaration");
-    if (decl.isFieldFormal) throw UnimplementedError("initializing formal");
+    if (decl.isCovariant) throw UnimplementedError("Covariant declaration.");
+    if (decl.isFieldFormal) throw UnimplementedError("Initializing formal.");
     if (decl.isConst) {
       // It's not clear what invariants we assume about const/final.  For now
       // throw if we have both.
