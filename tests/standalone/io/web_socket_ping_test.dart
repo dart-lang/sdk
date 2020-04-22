@@ -11,12 +11,11 @@
 
 library dart._http;
 
+import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 import "dart:math";
 import "dart:typed_data";
-
-import "package:expect/expect.dart";
 
 part "../../../sdk/lib/_http/crypto.dart";
 
@@ -24,6 +23,7 @@ const String webSocketGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 void testPing(int totalConnections) {
   HttpServer.bind('localhost', 0).then((server) {
+    int closed = 0;
     server.listen((request) {
       var response = request.response;
       response.statusCode = HttpStatus.switchingProtocols;
@@ -35,8 +35,7 @@ void testPing(int totalConnections) {
       String accept = _CryptoUtils.bytesToBase64(sha1.close());
       response.headers.add("Sec-WebSocket-Accept", accept);
       response.headers.contentLength = 0;
-      response.detachSocket().then((socket) async {
-        await Future.delayed(Duration(seconds: 1));
+      response.detachSocket().then((socket) {
         socket.destroy();
       });
     });
@@ -48,8 +47,6 @@ void testPing(int totalConnections) {
         webSocket.listen((message) {
           Expect.fail("unexpected message");
         }, onDone: () {
-          Expect.equals(WebSocket.closed, webSocket.readyState);
-          Expect.equals(WebSocketStatus.goingAway, webSocket.closeCode);
           closeCount++;
           if (closeCount == totalConnections) {
             server.close();
