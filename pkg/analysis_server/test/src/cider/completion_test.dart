@@ -45,7 +45,7 @@ main(int b) {
 
     // ignore: deprecated_member_use_from_same_package
     _suggestions = await _newComputer().compute(
-      testPath,
+      convertPath(testPath),
       context.offset,
     );
 
@@ -189,7 +189,7 @@ var a = ^;
     var context = _updateFile(content);
 
     _completionResult = await _newComputer().compute2(
-      path: testPath,
+      path: convertPath(testPath),
       line: context.line,
       column: context.character,
     );
