@@ -16,6 +16,20 @@
 *   Class `OSError` now implements `Exception`. This change means `OSError` will
     now be caught in catch clauses catching `Exception`s.
 
+### Tools
+
+#### Linter
+
+Updated the Linter to `0.1.115`, which includes:
+
+* Updated `avoid_types_as_parameter_names` to check catch-clauses.
+* Fixed `unsafe_html` to check attributes and methods on extensions.
+* Extended `unsafe_html` to include `Window.open`, `Element.html` and
+  `DocumentFragment.html` in unsafe API checks.
+* Improved docs for `sort_child_properties_last`.
+* (internal) `package:analyzer` API updates.
+* New lint: `sized_box_for_whitespace`.
+
 ### Dart VM
 
 
