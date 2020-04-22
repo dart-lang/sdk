@@ -1146,7 +1146,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
         _controller.add(data);
       }
     }, onError: (error, stackTrace) {
-      if (_closeTimer != null) _closeTimer.cancel();
+      _closeTimer?.cancel();
       if (error is FormatException) {
         _close(WebSocketStatus.invalidFramePayloadData);
       } else {
@@ -1157,7 +1157,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
       _closeReason = _outCloseReason;
       _controller.close();
     }, onDone: () {
-      if (_closeTimer != null) _closeTimer.cancel();
+      _closeTimer?.cancel();
       if (_readyState == WebSocket.open) {
         _readyState = WebSocket.closing;
         if (!_isReservedStatusCode(transformer.closeCode)) {
@@ -1206,8 +1206,12 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
       _consumer.add(new _WebSocketPing());
       _pingTimer = new Timer(_pingInterval, () {
         _closeTimer?.cancel();
-        // No pong received.
-        _close(WebSocketStatus.goingAway);
+        if (_readyState == WebSocket.open) {
+          _readyState = WebSocket.closing;
+          // No pong received.
+          _close(WebSocketStatus.goingAway);
+          _readyState = WebSocket.closed;
+        }
         _closeCode = _outCloseCode;
         _closeReason = _outCloseReason;
         _controller.close();

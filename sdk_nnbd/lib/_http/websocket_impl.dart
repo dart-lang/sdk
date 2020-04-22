@@ -1204,8 +1204,12 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
       _consumer.add(new _WebSocketPing());
       _pingTimer = new Timer(interval, () {
         _closeTimer?.cancel();
-        // No pong received.
-        _close(WebSocketStatus.goingAway);
+        if (_readyState == WebSocket.open) {
+          _readyState = WebSocket.closing;
+          // No pong received.
+          _close(WebSocketStatus.goingAway);
+          _readyState = WebSocket.closed;
+        }
         _closeCode = _outCloseCode;
         _closeReason = _outCloseReason;
         _controller.close();
