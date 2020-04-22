@@ -31,7 +31,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
         if (containingLibrary != null) {
           var imports = containingLibrary.imports;
           if (imports != null) {
-            return _buildSuggestions(request, elem, imports);
+            return _buildSuggestions(request, builder, elem, imports);
           }
         }
       }
@@ -39,21 +39,24 @@ class LibraryMemberContributor extends DartCompletionContributor {
     return const <CompletionSuggestion>[];
   }
 
-  List<CompletionSuggestion> _buildSuggestions(DartCompletionRequest request,
-      PrefixElement elem, List<ImportElement> imports) {
+  List<CompletionSuggestion> _buildSuggestions(
+      DartCompletionRequest request,
+      SuggestionBuilder builder,
+      PrefixElement elem,
+      List<ImportElement> imports) {
     var parent = request.target.containingNode.parent;
     var isConstructor = parent.parent is ConstructorName;
     var typesOnly = parent is TypeName;
     var instCreation = typesOnly && isConstructor;
-    var builder = LibraryElementSuggestionBuilder(
-        request, CompletionSuggestionKind.INVOCATION, typesOnly, instCreation);
+    var elementBuilder = LibraryElementSuggestionBuilder(request, builder,
+        CompletionSuggestionKind.INVOCATION, typesOnly, instCreation);
     for (var importElem in imports) {
       if (importElem.prefix?.name == elem.name) {
         var library = importElem.importedLibrary;
         if (library != null) {
           // Suggest elements from the imported library.
           for (var element in importElem.namespace.definedNames.values) {
-            element.accept(builder);
+            element.accept(elementBuilder);
           }
           // If the import is 'deferred' then suggest 'loadLibrary'.
           if (importElem.isDeferred) {
@@ -63,12 +66,12 @@ class LibraryMemberContributor extends DartCompletionContributor {
                 : (function.hasDeprecated
                     ? DART_RELEVANCE_LOW
                     : DART_RELEVANCE_DEFAULT);
-            builder.suggestions
+            elementBuilder.suggestions
                 .add(createSuggestion(request, function, relevance: relevance));
           }
         }
       }
     }
-    return builder.suggestions;
+    return elementBuilder.suggestions;
   }
 }

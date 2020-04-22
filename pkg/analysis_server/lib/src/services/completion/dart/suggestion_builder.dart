@@ -170,6 +170,8 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void>
   @override
   final DartCompletionRequest request;
 
+  final SuggestionBuilder suggestionBuilder;
+
   @override
   final CompletionSuggestionKind kind;
 
@@ -177,8 +179,8 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void>
 
   final bool instCreation;
 
-  LibraryElementSuggestionBuilder(
-      this.request, this.kind, this.typesOnly, this.instCreation);
+  LibraryElementSuggestionBuilder(this.request, this.suggestionBuilder,
+      this.kind, this.typesOnly, this.instCreation);
 
   @override
   LibraryElement get containingLibrary => request.libraryElement;
@@ -201,21 +203,8 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void>
 
   @override
   void visitConstructorElement(ConstructorElement element) {
-    if (instCreation) {
-      var classElem = element.enclosingElement;
-      if (classElem != null) {
-        var prefix = classElem.name;
-        if (prefix != null && prefix.isNotEmpty) {
-          // TODO(brianwilkerson) Determine whether this should be based on features
-          //  (such as the kind of the element) or a constant.
-          var relevance = request.useNewRelevance
-              ? 750
-              : (element.hasDeprecated
-                  ? DART_RELEVANCE_LOW
-                  : DART_RELEVANCE_DEFAULT);
-          addSuggestion(element, prefix: prefix, relevance: relevance);
-        }
-      }
+    if (instCreation && !element.isPrivate) {
+      suggestionBuilder.suggestConstructor(element, kind: kind);
     }
   }
 
@@ -551,4 +540,48 @@ class SuggestionBuilder {
   /// Initialize a newly created suggestion builder to build suggestions for the
   /// given [request].
   SuggestionBuilder(this.request);
+
+  /// Add a suggestion for the constructor [element]. If a [kind] is provided
+  /// it will be used as the kind for the suggestion.
+  void suggestConstructor(ConstructorElement element,
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
+    var classElement = element.enclosingElement;
+    if (classElement == null) {
+      return;
+    }
+    var prefix = classElement.name;
+    // TODO(brianwilkerson) It shouldn't be necessary to test for an empty
+    //  prefix.
+    if (prefix == null || prefix.isEmpty) {
+      return;
+    }
+
+    var completion = element.displayName;
+    if (prefix != null && prefix.isNotEmpty) {
+      if (completion == null || completion.isEmpty) {
+        completion = prefix;
+      } else {
+        completion = '$prefix.$completion';
+      }
+    }
+    if (completion == null || completion.isEmpty) {
+      return null;
+    }
+
+    int relevance;
+    if (request.useNewRelevance) {
+      var featureComputer = request.featureComputer;
+      var elementKind = featureComputer.elementKindFeature(
+          element, request.opType.completionLocation);
+      var hasDeprecated = featureComputer.hasDeprecatedFeature(element);
+      relevance = toRelevance(
+          weightedAverage([elementKind, hasDeprecated], [0.8, 0.2]), 800);
+    } else {
+      relevance =
+          element.hasDeprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT;
+    }
+
+    suggestions.add(createSuggestion(request, element,
+        completion: completion, kind: kind, relevance: relevance));
+  }
 }
