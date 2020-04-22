@@ -68,12 +68,12 @@ type Pair<T0, T1> {
 ```
 
 A string table consists of an array of end offsets and a payload array of
-strings encoded as UTF-8.  The array of end offsets maps a string index to the
+strings encoded as WTF-8.  The array of end offsets maps a string index to the
 offset of the _next_ string in the table or the offset of the end of the array
 for the last string.  These offsets are relative to the string payload array.
-Thus, string number 0 consists of the UTF-8 encoded string stretching from
+Thus, string number 0 consists of the WTF-8 encoded string stretching from
 offset 0 (inclusive) to endOffset[0] (exclusive); and string number N for N > 0
-consists of the UTF-8 encoded string stretching from offset endOffset[N-1]
+consists of the WTF-8 encoded string stretching from offset endOffset[N-1]
 (inclusive) to endOffset[N] (exclusive).
 
 ``` scala

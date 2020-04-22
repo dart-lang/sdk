@@ -1707,6 +1707,7 @@ logger
 logging
 logic
 logical
+lone
 long
 longer
 longest
@@ -3023,6 +3024,8 @@ true
 truly
 truncate
 truncating
+trust
+trusts
 truth
 try
 trying
