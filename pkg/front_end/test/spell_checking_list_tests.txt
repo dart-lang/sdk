@@ -27,8 +27,10 @@ anon
 aoo
 approval
 approximation
+arbitrarily
 asdf
 asserter
+assure
 auth
 authority
 auto
@@ -279,6 +281,7 @@ issue41436c
 issue41496b
 issue41498b
 issue41499b
+it'll
 iter
 joo
 jumped
@@ -340,6 +343,7 @@ metric
 metrics
 mf
 micro
+minimize
 minutes
 mismatched
 misnamed
@@ -365,6 +369,7 @@ observatory
 oh
 okay
 ooo
+operate
 ops
 optimal
 oracle
