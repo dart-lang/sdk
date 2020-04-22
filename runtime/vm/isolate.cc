@@ -2390,8 +2390,9 @@ void Isolate::Shutdown() {
   LowLevelShutdown();
 
   if (bequest_.get() != nullptr) {
-    PortMap::PostMessage(Message::New(
-        bequest_->beneficiary(), bequest_.release(), Message::kNormalPriority));
+    auto beneficiary = bequest_->beneficiary();
+    PortMap::PostMessage(Message::New(beneficiary, bequest_.release(),
+                                      Message::kNormalPriority));
   }
 
   // Now we can unregister from the thread, invoke cleanup callback, delete the
