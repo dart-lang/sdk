@@ -223,6 +223,14 @@ Isolate* PortMap::GetIsolate(Dart_Port id) {
   return handler->isolate();
 }
 
+bool PortMap::IsReceiverInThisIsolateGroup(Dart_Port receiver,
+                                           IsolateGroup* group) {
+  MutexLocker ml(mutex_);
+  auto it = ports_->TryLookup(receiver);
+  if (it == ports_->end()) return false;
+  return (*it).handler->isolate()->group() == group;
+}
+
 void PortMap::Init() {
   // TODO(bkonyi): don't keep ports_ after Dart_Cleanup.
   if (mutex_ == NULL) {

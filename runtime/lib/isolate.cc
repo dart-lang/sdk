@@ -15,6 +15,7 @@
 #include "vm/dart_api_message.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
+#include "vm/hash_table.h"
 #include "vm/lockers.h"
 #include "vm/longjump.h"
 #include "vm/message_handler.h"
@@ -105,6 +106,153 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 0, 2) {
     PortMap::PostMessage(writer.WriteMessage(obj, destination_port_id,
                                              Message::kNormalPriority));
   }
+  return Object::null();
+}
+
+class RawObjectPtrSetTraits {
+ public:
+  static bool ReportStats() { return false; }
+  static const char* Name() { return "RawObjectPtrSetTraits"; }
+
+  static bool IsMatch(const RawObject* a, const RawObject* b) { return a == b; }
+
+  static uword Hash(const RawObject* obj) {
+    return reinterpret_cast<uword>(obj);
+  }
+};
+
+static RawObject* ValidateMessageObject(Zone* zone,
+                                        Isolate* isolate,
+                                        const Object& obj) {
+  TIMELINE_DURATION(Thread::Current(), Isolate, "ValidateMessageObject");
+
+  class SendMessageValidator : public ObjectPointerVisitor {
+   public:
+    SendMessageValidator(IsolateGroup* isolate_group,
+                         WeakTable* visited,
+                         MallocGrowableArray<RawObject*>* const working_set)
+        : ObjectPointerVisitor(isolate_group),
+          visited_(visited),
+          working_set_(working_set) {}
+
+   private:
+    void VisitPointers(RawObject** from, RawObject** to) {
+      for (RawObject** raw = from; raw <= to; raw++) {
+        if (!(*raw)->IsHeapObject() || (*raw)->IsCanonical()) {
+          continue;
+        }
+        if (visited_->GetValueExclusive(*raw) == 1) {
+          continue;
+        }
+        visited_->SetValueExclusive(*raw, 1);
+        working_set_->Add(*raw);
+      }
+    }
+
+    WeakTable* visited_;
+    MallocGrowableArray<RawObject*>* const working_set_;
+  };
+  if (!obj.raw()->IsHeapObject() || obj.raw()->IsCanonical()) {
+    return obj.raw();
+  }
+  ClassTable* class_table = isolate->class_table();
+
+  Class& klass = Class::Handle(zone);
+  Closure& closure = Closure::Handle(zone);
+
+  MallocGrowableArray<RawObject*> working_set;
+  std::unique_ptr<WeakTable> visited(new WeakTable());
+
+  NoSafepointScope no_safepoint;
+  SendMessageValidator visitor(isolate->group(), visited.get(), &working_set);
+
+  visited->SetValueExclusive(obj.raw(), 1);
+  working_set.Add(obj.raw());
+
+  while (!working_set.is_empty()) {
+    RawObject* raw = working_set.RemoveLast();
+
+    if (visited->GetValueExclusive(raw) > 0) {
+      continue;
+    }
+    visited->SetValueExclusive(raw, 1);
+
+    const intptr_t cid = raw->GetClassId();
+    switch (cid) {
+      // List below matches the one in raw_object_snapshot.cc
+#define MESSAGE_SNAPSHOT_ILLEGAL(type)                                         \
+  return Exceptions::CreateUnhandledException(                                 \
+      zone, Exceptions::kArgumentValue,                                        \
+      "Illegal argument in isolate message : (object is a " #type ")");        \
+  break;
+
+      MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
+      MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
+      MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
+      MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
+      MESSAGE_SNAPSHOT_ILLEGAL(RegExp);
+      MESSAGE_SNAPSHOT_ILLEGAL(StackTrace);
+      MESSAGE_SNAPSHOT_ILLEGAL(UserTag);
+
+      case kClosureCid: {
+        closure = Closure::RawCast(raw);
+        RawFunction* func = closure.function();
+        // We only allow closure of top level methods or static functions in a
+        // class to be sent in isolate messages.
+        if (!Function::IsImplicitStaticClosureFunction(func)) {
+          return Exceptions::CreateUnhandledException(
+              zone, Exceptions::kArgumentValue, "Closures are not allowed");
+        }
+        break;
+      }
+      default:
+        if (cid >= kNumPredefinedCids) {
+          klass = class_table->At(cid);
+          if (klass.num_native_fields() != 0) {
+            return Exceptions::CreateUnhandledException(
+                zone, Exceptions::kArgumentValue,
+                "Objects that extend NativeWrapper are not allowed");
+          }
+        }
+    }
+    raw->VisitPointers(&visitor);
+  }
+  isolate->set_forward_table_new(nullptr);
+  return obj.raw();
+}
+
+DEFINE_NATIVE_ENTRY(SendPortImpl_sendAndExitInternal_, 0, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
+  if (!PortMap::IsReceiverInThisIsolateGroup(port.Id(), isolate->group())) {
+    const auto& error =
+        String::Handle(String::New("sendAndExit is only supported across "
+                                   "isolates spawned via spawnFunction."));
+    Exceptions::ThrowArgumentError(error);
+    UNREACHABLE();
+  }
+
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
+
+  Object& validated_result = Object::Handle(zone);
+  Object& msg_obj = Object::Handle(zone, obj.raw());
+  validated_result = ValidateMessageObject(zone, isolate, msg_obj);
+  if (validated_result.IsUnhandledException()) {
+    Exceptions::PropagateError(Error::Cast(validated_result));
+    UNREACHABLE();
+  }
+  PersistentHandle* handle =
+      isolate->group()->api_state()->AllocatePersistentHandle();
+  handle->set_raw(msg_obj);
+  isolate->bequeath(std::unique_ptr<Bequest>(new Bequest(handle, port.Id())));
+  // TODO(aam): Ensure there are no dart api calls after this point as we want
+  // to ensure that validated message won't get tampered with.
+  Isolate::KillIfExists(isolate, Isolate::LibMsgId::kKillMsg);
+  // Drain interrupts before running so any IMMEDIATE operations on the current
+  // isolate happen synchronously.
+  const Error& error = Error::Handle(thread->HandleInterrupts());
+  RELEASE_ASSERT(error.IsUnwindError());
+  Exceptions::PropagateError(error);
+  // We will never execute dart code again in this isolate.
   return Object::null();
 }
 

@@ -871,6 +871,8 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
       return "low memory";
     case kDebugging:
       return "debugging";
+    case kSendAndExit:
+      return "send_and_exit";
     default:
       UNREACHABLE();
       return "";

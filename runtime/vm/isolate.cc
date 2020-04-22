@@ -648,6 +648,15 @@ NoReloadScope::~NoReloadScope() {
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
+Bequest::~Bequest() {
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  CHECK_ISOLATE_GROUP(isolate_group);
+  NoSafepointScope no_safepoint_scope;
+  ApiState* state = isolate_group->api_state();
+  ASSERT(state != nullptr);
+  state->FreePersistentHandle(handle_);
+}
+
 void Isolate::RegisterClass(const Class& cls) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (group()->IsReloading()) {
@@ -1042,6 +1051,11 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     msg_obj = message->raw_obj();
     // We should only be sending RawObjects that can be converted to CObjects.
     ASSERT(ApiObjectConverter::CanConvert(msg_obj.raw()));
+  } else if (message->IsBequest()) {
+    Bequest* bequest = message->bequest();
+    PersistentHandle* handle = bequest->handle();
+    const Object& obj = Object::Handle(zone, handle->raw());
+    msg_obj = obj.raw();
   } else {
     MessageSnapshotReader reader(message.get(), thread);
     msg_obj = reader.ReadObject();
@@ -2374,6 +2388,11 @@ void Isolate::Shutdown() {
   // Then, proceed with low-level teardown.
   Isolate::UnMarkIsolateReady(this);
   LowLevelShutdown();
+
+  if (bequest_.get() != nullptr) {
+    PortMap::PostMessage(Message::New(
+        bequest_->beneficiary(), bequest_.release(), Message::kNormalPriority));
+  }
 
   // Now we can unregister from the thread, invoke cleanup callback, delete the
   // isolate (and possibly the isolate group).

@@ -23,6 +23,7 @@ class RawInstance;
 class RawObject;
 class RawScript;
 class RawStackTrace;
+class RawUnhandledException;
 class ReadStream;
 class WriteStream;
 class String;
@@ -91,6 +92,12 @@ class Exceptions : AllStatic {
   // Returns a RawInstance if the exception is successfully created,
   // otherwise returns a RawError.
   static RawObject* Create(ExceptionType type, const Array& arguments);
+
+  // Returns RawUnhandledException that wraps exception of type [type] with
+  // [msg] as a single argument.
+  static RawUnhandledException* CreateUnhandledException(Zone* zone,
+                                                         ExceptionType type,
+                                                         const char* msg);
 
   DART_NORETURN static void JumpToFrame(Thread* thread,
                                         uword program_counter,

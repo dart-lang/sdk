@@ -55,15 +55,16 @@ class Heap {
   };
 
   enum GCReason {
-    kNewSpace,   // New space is full.
-    kPromotion,  // Old space limit crossed after a scavenge.
-    kOldSpace,   // Old space limit crossed.
-    kFinalize,   // Concurrent marking finished.
-    kFull,       // Heap::CollectAllGarbage
-    kExternal,   // Dart_NewWeakPersistentHandle
-    kIdle,       // Dart_NotifyIdle
-    kLowMemory,  // Dart_NotifyLowMemory
-    kDebugging,  // service request, etc.
+    kNewSpace,     // New space is full.
+    kPromotion,    // Old space limit crossed after a scavenge.
+    kOldSpace,     // Old space limit crossed.
+    kFinalize,     // Concurrent marking finished.
+    kFull,         // Heap::CollectAllGarbage
+    kExternal,     // Dart_NewWeakPersistentHandle
+    kIdle,         // Dart_NotifyIdle
+    kLowMemory,    // Dart_NotifyLowMemory
+    kDebugging,    // service request, etc.
+    kSendAndExit,  // SendPort.sendAndExit
   };
 
   // Pattern for unused new space and swept old space.

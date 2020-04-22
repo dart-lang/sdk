@@ -18,8 +18,13 @@ typedef int64_t Dart_Port;
 
 namespace dart {
 
+class Bequest;
 class JSONStream;
 class RawObject;
+class PersistentHandle;
+class HeapPage;
+class WeakTable;
+class FreeList;
 
 class Message {
  public:
@@ -62,6 +67,11 @@ class Message {
           Priority priority,
           Dart_Port delivery_failure_port = kIllegalPort);
 
+  Message(Dart_Port dest_port,
+          Bequest* bequest,
+          Priority priority,
+          Dart_Port delivery_failure_port = kIllegalPort);
+
   ~Message();
 
   template <typename... Args>
@@ -72,8 +82,8 @@ class Message {
   Dart_Port dest_port() const { return dest_port_; }
 
   uint8_t* snapshot() const {
-    ASSERT(!IsRaw());
-    return snapshot_;
+    ASSERT(IsSnapshot());
+    return payload_.snapshot_;
   }
   intptr_t snapshot_length() const { return snapshot_length_; }
 
@@ -89,12 +99,23 @@ class Message {
 
   RawObject* raw_obj() const {
     ASSERT(IsRaw());
-    return reinterpret_cast<RawObject*>(snapshot_);
+    return payload_.raw_obj_;
+  }
+  Bequest* bequest() const {
+    ASSERT(IsBequest());
+    return payload_.bequest_;
   }
   Priority priority() const { return priority_; }
 
+  // A message processed at any interrupt point (stack overflow check) instead
+  // of at the top of the message loop. Control messages from dart:isolate or
+  // vm-service requests.
   bool IsOOB() const { return priority_ == Message::kOOBPriority; }
+  bool IsSnapshot() const { return !IsRaw() && !IsBequest(); }
+  // A message whose object is an immortal object from the vm-isolate's heap.
   bool IsRaw() const { return snapshot_length_ == 0; }
+  // A message sent from sendAndExit.
+  bool IsBequest() const { return snapshot_length_ == -1; }
 
   bool RedirectToDeliveryFailurePort();
 
@@ -114,7 +135,15 @@ class Message {
   Message* next_;
   Dart_Port dest_port_;
   Dart_Port delivery_failure_port_;
-  uint8_t* snapshot_;
+  union Payload {
+    Payload(uint8_t* snapshot) : snapshot_(snapshot) {}
+    Payload(RawObject* raw_obj) : raw_obj_(raw_obj) {}
+    Payload(Bequest* bequest) : bequest_(bequest) {}
+
+    uint8_t* snapshot_;
+    RawObject* raw_obj_;
+    Bequest* bequest_;
+  } payload_;
   intptr_t snapshot_length_;
   MessageFinalizableData* finalizable_data_;
   Priority priority_;

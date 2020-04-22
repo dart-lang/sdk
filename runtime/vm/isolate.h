@@ -71,6 +71,7 @@ class Object;
 class ObjectIdRing;
 class ObjectPointerVisitor;
 class ObjectStore;
+class PersistentHandle;
 class RawInstance;
 class RawArray;
 class RawContext;
@@ -603,6 +604,22 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   uint32_t isolate_group_flags_ = 0;
 };
 
+// When an isolate sends-and-exits this class represent things that it passed
+// to the beneficiary.
+class Bequest {
+ public:
+  Bequest(PersistentHandle* handle, Dart_Port beneficiary)
+      : handle_(handle), beneficiary_(beneficiary) {}
+  ~Bequest();
+
+  PersistentHandle* handle() { return handle_; }
+  Dart_Port beneficiary() { return beneficiary_; }
+
+ private:
+  PersistentHandle* handle_;
+  Dart_Port beneficiary_;
+};
+
 class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
  public:
   // Keep both these enums in sync with isolate_patch.dart.
@@ -718,6 +735,10 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   void set_message_notify_callback(Dart_MessageNotifyCallback value) {
     message_notify_callback_ = value;
+  }
+
+  void bequeath(std::unique_ptr<Bequest> bequest) {
+    bequest_ = std::move(bequest);
   }
 
   IsolateGroupSource* source() const { return isolate_group_->source(); }
@@ -1435,6 +1456,9 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   RawGrowableObjectArray* deoptimized_code_array_;
 
   RawError* sticky_error_;
+
+  std::unique_ptr<Bequest> bequest_;
+  Dart_Port beneficiary_ = 0;
 
   // Protect access to boxed_field_list_.
   Mutex field_list_mutex_;
