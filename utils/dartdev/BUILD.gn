@@ -18,15 +18,8 @@ dartfix_files = exec_script("../../tools/list_dart_files.py",
                             ],
                             "list lines")
 
-copy("dartdev") {
-  deps = [ ":dartdev_snapshot" ]
-  sources = [ "$root_gen_dir/dartdev.dart.snapshot" ]
-  outputs = [ "$root_out_dir/dartdev.dart.snapshot" ]
-}
-
-application_snapshot("dartdev_snapshot") {
+application_snapshot("dartdev") {
   main_dart = "../../pkg/dartdev/bin/dartdev.dart"
   training_args = [ "--help" ]
   inputs = dartdev_files + dartfix_files
-  output = "$root_gen_dir/dartdev.dart.snapshot"
 }
