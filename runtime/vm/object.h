@@ -448,7 +448,6 @@ class Object {
   V(Array, vm_isolate_snapshot_object_table)                                   \
   V(Type, dynamic_type)                                                        \
   V(Type, void_type)                                                           \
-  V(Type, never_type)                                                          \
   V(AbstractType, null_abstract_type)
 
 #define DEFINE_SHARED_READONLY_HANDLE_GETTER(Type, name)                       \
@@ -464,7 +463,6 @@ class Object {
   static RawClass* class_class() { return class_class_; }
   static RawClass* dynamic_class() { return dynamic_class_; }
   static RawClass* void_class() { return void_class_; }
-  static RawClass* never_class() { return never_class_; }
   static RawClass* type_arguments_class() { return type_arguments_class_; }
   static RawClass* patch_class_class() { return patch_class_class_; }
   static RawClass* function_class() { return function_class_; }
@@ -758,7 +756,6 @@ class Object {
   static RawClass* class_class_;           // Class of the Class vm object.
   static RawClass* dynamic_class_;         // Class of the 'dynamic' type.
   static RawClass* void_class_;            // Class of the 'void' type.
-  static RawClass* never_class_;           // Class of the 'Never' type.
   static RawClass* type_arguments_class_;  // Class of TypeArguments vm object.
   static RawClass* patch_class_class_;     // Class of the PatchClass vm object.
   static RawClass* function_class_;        // Class of the Function vm object.

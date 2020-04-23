@@ -2885,9 +2885,11 @@ void TypeTranslator::BuildTypeInternal() {
       break;
     case kNeverType: {
       const Nullability nullability = helper_->ReadNullability();
-      result_ = Object::never_type().ToNullability(nullability, Heap::kOld);
-      if (apply_legacy_erasure_ && result_.IsNeverType()) {
+      if (apply_legacy_erasure_) {
         result_ = I->object_store()->null_type();
+      } else {
+        result_ = Type::Handle(Z, I->object_store()->never_type())
+                      .ToNullability(nullability, Heap::kOld);
       }
       break;
     }

@@ -34,7 +34,7 @@ static bool IsSingletonClassId(intptr_t class_id) {
   // Check if this is a singleton object class which is shared by all isolates.
   return ((class_id >= kClassCid && class_id <= kUnwindErrorCid) ||
           (class_id == kTypeArgumentsCid) ||
-          (class_id >= kNullCid && class_id <= kNeverCid));
+          (class_id >= kNullCid && class_id <= kVoidCid));
 }
 
 static bool IsBootstrapedClassId(intptr_t class_id) {
@@ -45,7 +45,7 @@ static bool IsBootstrapedClassId(intptr_t class_id) {
           IsStringClassId(class_id) || IsTypedDataClassId(class_id) ||
           IsExternalTypedDataClassId(class_id) ||
           IsTypedDataViewClassId(class_id) || class_id == kNullCid ||
-          class_id == kTransferableTypedDataCid);
+          class_id == kNeverCid || class_id == kTransferableTypedDataCid);
 }
 
 static bool IsObjectStoreTypeId(intptr_t index) {
@@ -83,6 +83,8 @@ static RawObject* GetType(ObjectStore* object_store, intptr_t index) {
       return object_store->nullable_object_type();
     case kNullType:
       return object_store->null_type();
+    case kNeverType:
+      return object_store->never_type();
     case kLegacyFunctionType:
       return object_store->legacy_function_type();
     case kLegacyNumberType:
@@ -155,6 +157,8 @@ static intptr_t GetTypeIndex(ObjectStore* object_store,
     return kLegacyObjectType;
   } else if (raw_type == object_store->null_type()) {
     return kNullType;
+  } else if (raw_type == object_store->never_type()) {
+    return kNeverType;
   } else if (raw_type == object_store->legacy_function_type()) {
     return kLegacyFunctionType;
   } else if (raw_type == object_store->legacy_number_type()) {
@@ -791,7 +795,6 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   READ_VM_SINGLETON_OBJ(kZeroArrayObject, Object::zero_array().raw());
   READ_VM_SINGLETON_OBJ(kDynamicType, Object::dynamic_type().raw());
   READ_VM_SINGLETON_OBJ(kVoidType, Object::void_type().raw());
-  READ_VM_SINGLETON_OBJ(kNeverType, Object::never_type().raw());
   READ_VM_SINGLETON_OBJ(kEmptyTypeArguments,
                         Object::empty_type_arguments().raw());
   READ_VM_SINGLETON_OBJ(kTrueValue, Bool::True().raw());
@@ -949,7 +952,6 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
   WRITE_VM_SINGLETON_OBJ(Object::zero_array().raw(), kZeroArrayObject);
   WRITE_VM_SINGLETON_OBJ(Object::dynamic_type().raw(), kDynamicType);
   WRITE_VM_SINGLETON_OBJ(Object::void_type().raw(), kVoidType);
-  WRITE_VM_SINGLETON_OBJ(Object::never_type().raw(), kNeverType);
   WRITE_VM_SINGLETON_OBJ(Object::empty_type_arguments().raw(),
                          kEmptyTypeArguments);
   WRITE_VM_SINGLETON_OBJ(Bool::True().raw(), kTrueValue);

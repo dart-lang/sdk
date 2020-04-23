@@ -138,7 +138,6 @@ RawBool* Object::false_ = reinterpret_cast<RawBool*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-RawClass* Object::never_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::type_arguments_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::patch_class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::function_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -762,6 +761,14 @@ void Object::Init(Isolate* isolate) {
   cls.set_num_type_arguments(0);
   isolate->object_store()->set_null_class(cls);
 
+  // Allocate and initialize Never class.
+  cls = Class::New<Instance, RTN::Instance>(kNeverCid, isolate);
+  cls.set_num_type_arguments(0);
+  cls.set_is_finalized();
+  cls.set_is_declaration_loaded();
+  cls.set_is_type_finalized();
+  isolate->object_store()->set_never_class(cls);
+
   // Allocate and initialize the free list element class.
   cls =
       Class::New<FreeListElement::FakeInstance,
@@ -1071,13 +1078,6 @@ void Object::Init(Isolate* isolate) {
   cls.set_is_type_finalized();
   void_class_ = cls.raw();
 
-  cls = Class::New<Instance, RTN::Instance>(kNeverCid, isolate);
-  cls.set_num_type_arguments(0);
-  cls.set_is_finalized();
-  cls.set_is_declaration_loaded();
-  cls.set_is_type_finalized();
-  never_class_ = cls.raw();
-
   cls = Class::New<Type, RTN::Type>(isolate);
   cls.set_is_finalized();
   cls.set_is_declaration_loaded();
@@ -1096,9 +1096,6 @@ void Object::Init(Isolate* isolate) {
   void_type_->SetIsFinalized();
   void_type_->ComputeHash();
   void_type_->SetCanonical();
-
-  cls = never_class_;
-  *never_type_ = Type::NewNonParameterizedType(cls);
 
   // Since TypeArguments objects are passed as function arguments, make them
   // behave as Dart instances, although they are just VM objects.
@@ -1249,7 +1246,7 @@ void Object::Init(Isolate* isolate) {
 
 void Object::FinishInit(Isolate* isolate) {
   // The type testing stubs we initialize in AbstractType objects for the
-  // canonical type of kDynamicCid/kVoidCid/kNeverCid need to be set in this
+  // canonical type of kDynamicCid/kVoidCid need to be set in this
   // method, which is called after StubCode::InitOnce().
   Code& code = Code::Handle();
 
@@ -1258,9 +1255,6 @@ void Object::FinishInit(Isolate* isolate) {
 
   code = TypeTestingStubGenerator::DefaultCodeForType(*void_type_);
   void_type_->SetTypeTestingStub(code);
-
-  code = TypeTestingStubGenerator::DefaultCodeForType(*never_type_);
-  never_type_->SetTypeTestingStub(code);
 }
 
 void Object::Cleanup() {
@@ -1270,7 +1264,6 @@ void Object::Cleanup() {
   class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-  never_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   type_arguments_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   patch_class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   function_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -1373,7 +1366,6 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(class, Class);
   SET_CLASS_NAME(dynamic, Dynamic);
   SET_CLASS_NAME(void, Void);
-  SET_CLASS_NAME(never, Never);
   SET_CLASS_NAME(type_arguments, TypeArguments);
   SET_CLASS_NAME(patch_class, PatchClass);
   SET_CLASS_NAME(function, Function);
@@ -1410,12 +1402,13 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(unhandled_exception, UnhandledException);
   SET_CLASS_NAME(unwind_error, UnwindError);
 
-  // Set up names for object array and one byte string class which are
-  // pre-allocated in the vm isolate also.
+  // Set up names for classes which are also pre-allocated in the vm isolate.
   cls = isolate->object_store()->array_class();
   cls.set_name(Symbols::_List());
   cls = isolate->object_store()->one_byte_string_class();
   cls.set_name(Symbols::OneByteString());
+  cls = isolate->object_store()->never_class();
+  cls.set_name(Symbols::Never());
 
   // Set up names for the pseudo-classes for free list elements and forwarding
   // corpses. Mainly this makes VM debugging easier.
@@ -1852,6 +1845,14 @@ RawError* Object::Init(Isolate* isolate,
     RegisterClass(cls, Symbols::Null(), core_lib);
     pending_classes.Add(cls);
 
+    cls = Class::New<Instance, RTN::Instance>(kNeverCid, isolate);
+    cls.set_num_type_arguments(0);
+    cls.set_is_finalized();
+    cls.set_is_declaration_loaded();
+    cls.set_is_type_finalized();
+    cls.set_name(Symbols::Never());
+    object_store->set_never_class(cls);
+
     ASSERT(!library_prefix_cls.IsNull());
     RegisterPrivateClass(library_prefix_cls, Symbols::_LibraryPrefix(),
                          core_lib);
@@ -2191,6 +2192,13 @@ RawError* Object::Init(Isolate* isolate,
     type = object_store->object_type();
     cls.set_super_type(type);
 
+    cls = object_store->never_class();
+    type = Type::New(cls, Object::null_type_arguments(),
+                     TokenPosition::kNoSource, Nullability::kNonNullable);
+    type.SetIsFinalized();
+    type ^= type.Canonicalize();
+    object_store->set_never_type(type);
+
     // Create and cache commonly used type arguments <int>, <double>,
     // <String>, <String, dynamic> and <String, String>.
     type_args = TypeArguments::New(1);
@@ -2487,6 +2495,9 @@ RawError* Object::Init(Isolate* isolate,
 
     cls = Class::New<Instance, RTN::Instance>(kNullCid, isolate);
     object_store->set_null_class(cls);
+
+    cls = Class::New<Instance, RTN::Instance>(kNeverCid, isolate);
+    object_store->set_never_class(cls);
 
     cls = Class::New<Capability, RTN::Capability>(isolate);
     cls = Class::New<ReceivePort, RTN::ReceivePort>(isolate);
@@ -18348,7 +18359,7 @@ RawAbstractType* AbstractType::NormalizeFutureOrType(Heap::Space space) const {
           ASSERT(!cls.IsNull());
           const TypeArguments& type_args =
               TypeArguments::Handle(TypeArguments::New(1));
-          type_args.SetTypeAt(0, never_type());
+          type_args.SetTypeAt(0, Type::Handle(object_store->never_type()));
           Type& type =
               Type::Handle(Type::New(cls, type_args, TokenPosition::kNoSource,
                                      Nullability::kNonNullable));
@@ -18957,8 +18968,7 @@ void AbstractType::SetTypeTestingStub(const Code& stub) const {
   if (stub.IsNull()) {
     // This only happens during bootstrapping when creating Type objects before
     // we have the instructions.
-    ASSERT(type_class_id() == kDynamicCid || type_class_id() == kVoidCid ||
-           type_class_id() == kNeverCid);
+    ASSERT(type_class_id() == kDynamicCid || type_class_id() == kVoidCid);
     StoreNonPointer(&raw_ptr()->type_test_stub_entry_point_, 0);
   } else {
     StoreNonPointer(&raw_ptr()->type_test_stub_entry_point_, stub.EntryPoint());
@@ -18979,7 +18989,7 @@ RawType* Type::VoidType() {
 }
 
 RawType* Type::NeverType() {
-  return Object::never_type().raw();
+  return Isolate::Current()->object_store()->never_type();
 }
 
 RawType* Type::ObjectType() {
@@ -19628,9 +19638,7 @@ bool Type::CheckIsCanonical(Thread* thread) const {
 #endif  // DEBUG
 
 void Type::EnumerateURIs(URIs* uris) const {
-  // N.B. Not all types with kNeverCid answer true to IsNeverType, but none of
-  // them have a URI.
-  if (IsDynamicType() || IsVoidType() || (type_class_id() == kNeverCid)) {
+  if (IsDynamicType() || IsVoidType() || IsNeverType()) {
     return;
   }
   Thread* thread = Thread::Current();

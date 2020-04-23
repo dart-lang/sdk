@@ -5444,7 +5444,6 @@ void Serializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::zero_array().raw(), "Array", "<zero_array>");
   AddBaseObject(Object::dynamic_type().raw(), "Type", "<dynamic type>");
   AddBaseObject(Object::void_type().raw(), "Type", "<void type>");
-  AddBaseObject(Object::never_type().raw(), "Type", "<never type>");
   AddBaseObject(Object::empty_type_arguments().raw(), "TypeArguments", "[]");
   AddBaseObject(Bool::True().raw(), "bool", "true");
   AddBaseObject(Bool::False().raw(), "bool", "false");
@@ -5498,7 +5497,6 @@ void Serializer::AddVMIsolateBaseObjects() {
   }
   AddBaseObject(table->At(kDynamicCid), "Class");
   AddBaseObject(table->At(kVoidCid), "Class");
-  AddBaseObject(table->At(kNeverCid), "Class");
 
   if (!Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
@@ -6129,7 +6127,6 @@ void Deserializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::zero_array().raw());
   AddBaseObject(Object::dynamic_type().raw());
   AddBaseObject(Object::void_type().raw());
-  AddBaseObject(Object::never_type().raw());
   AddBaseObject(Object::empty_type_arguments().raw());
   AddBaseObject(Bool::True().raw());
   AddBaseObject(Bool::False().raw());
@@ -6168,7 +6165,6 @@ void Deserializer::AddVMIsolateBaseObjects() {
   }
   AddBaseObject(table->At(kDynamicCid));
   AddBaseObject(table->At(kVoidCid));
-  AddBaseObject(table->At(kNeverCid));
 
   if (!Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {

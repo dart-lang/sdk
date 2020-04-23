@@ -102,7 +102,7 @@ RawCode* TypeTestingStubGenerator::DefaultCodeForType(
   if (!StubCode::HasBeenInitialized()) {
     ASSERT(type.IsType());
     const classid_t cid = type.type_class_id();
-    ASSERT(cid == kDynamicCid || cid == kVoidCid || cid == kNeverCid);
+    ASSERT(cid == kDynamicCid || cid == kVoidCid);
     return Code::null();
   }
 

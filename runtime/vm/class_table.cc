@@ -47,7 +47,6 @@ SharedClassTable::SharedClassTable()
     table[kForwardingCorpse] = vm_shared_class_table->SizeAt(kForwardingCorpse);
     table[kDynamicCid] = vm_shared_class_table->SizeAt(kDynamicCid);
     table[kVoidCid] = vm_shared_class_table->SizeAt(kVoidCid);
-    table[kNeverCid] = vm_shared_class_table->SizeAt(kNeverCid);
     table_.store(table);
   }
 #if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
@@ -110,7 +109,6 @@ ClassTable::ClassTable(SharedClassTable* shared_class_table)
     table[kForwardingCorpse] = vm_class_table->At(kForwardingCorpse);
     table[kDynamicCid] = vm_class_table->At(kDynamicCid);
     table[kVoidCid] = vm_class_table->At(kVoidCid);
-    table[kNeverCid] = vm_class_table->At(kNeverCid);
     // Don't use set_table because caller is supposed to set up isolates
     // cached copy when constructing ClassTable. Isolate::Current might not
     // be available at this point yet.

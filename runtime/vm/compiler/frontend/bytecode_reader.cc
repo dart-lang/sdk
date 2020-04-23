@@ -1683,7 +1683,8 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag,
     case kVoid:
       return AbstractType::void_type().raw();
     case kNever:
-      return AbstractType::never_type().ToNullability(nullability, Heap::kOld);
+      return Type::Handle(Z, Type::NeverType())
+          .ToNullability(nullability, Heap::kOld);
     case kSimpleType: {
       const Class& cls = Class::CheckedHandle(Z, ReadObject());
       if (!cls.is_declaration_loaded()) {
