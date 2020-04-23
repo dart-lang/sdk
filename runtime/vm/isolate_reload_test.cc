@@ -4516,7 +4516,7 @@ TEST_CASE(IsolateReload_StaticTargetArityChange) {
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
   EXPECT_ERROR(SimpleInvokeError(lib, "main"),
-               "Unimplemented handling of static target arity change");
+               "Static call with invalid arguments");
 }
 
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
