@@ -4,6 +4,7 @@
 
 #include "vm/image_snapshot.h"
 
+#include "include/dart_api.h"
 #include "platform/assert.h"
 #include "vm/class_id.h"
 #include "vm/compiler/runtime_api.h"
@@ -624,8 +625,8 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   }
 #endif
 
-  const char* instructions_symbol =
-      vm ? "_kDartVmSnapshotInstructions" : "_kDartIsolateSnapshotInstructions";
+  const char* instructions_symbol = vm ? kVmSnapshotInstructionsAsmSymbol
+                                       : kIsolateSnapshotInstructionsAsmSymbol;
   assembly_stream_.Print(".text\n");
   assembly_stream_.Print(".globl %s\n", instructions_symbol);
 
@@ -1067,8 +1068,8 @@ intptr_t BlobImageWriter::WriteByteSequence(uword start, uword end) {
 void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   const bool bare_instruction_payloads =
       FLAG_precompiled_mode && FLAG_use_bare_instructions;
-  const char* instructions_symbol =
-      vm ? "_kDartVmSnapshotInstructions" : "_kDartIsolateSnapshotInstructions";
+  const char* instructions_symbol = vm ? kVmSnapshotInstructionsAsmSymbol
+                                       : kIsolateSnapshotInstructionsAsmSymbol;
   auto const zone = Thread::Current()->zone();
 
 #if defined(DART_PRECOMPILER)

@@ -28,7 +28,10 @@ dart/emit_aot_size_info_flag_test: SkipByDesign # The test itself cannot determi
 dart/bytecode_with_ast_in_aot_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
 
 [ $builder_tag == obfuscated ]
-dart/causal_stacks/*: SkipByDesign # Asserts exact stacktrace output.
+dart/causal_stacks/async_throws_stack_lazy_test: SkipByDesign # Asserts exact stacktrace output.
+dart/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # Asserts exact stacktrace output.
+dart/causal_stacks/async_throws_stack_test: SkipByDesign # Asserts exact stacktrace output.
+dart/causal_stacks/sync_async_start_pkg_test_test: SkipByDesign # Asserts exact stacktrace output.
 
 [ $builder_tag == optimization_counter_threshold ]
 cc/*: Skip # Many tests want see unoptimized code running

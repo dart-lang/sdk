@@ -33,6 +33,7 @@
 #include "vm/heap/become.h"
 #include "vm/heap/heap.h"
 #include "vm/heap/weak_code.h"
+#include "vm/image_snapshot.h"
 #include "vm/isolate_reload.h"
 #include "vm/kernel.h"
 #include "vm/kernel_binary.h"
@@ -23548,40 +23549,45 @@ RawStackTrace* StackTrace::New(const Array& code_array,
   return result.raw();
 }
 
-#if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
-static void PrintStackTraceFrameBodyFromDSO(ZoneTextBuffer* buffer,
-                                            uword call_addr) {
-  uword dso_base;
-  char* dso_name;
-  if (NativeSymbolResolver::LookupSharedObject(call_addr, &dso_base,
-                                               &dso_name)) {
-    uword symbol_start;
-    if (auto const symbol_name =
-            NativeSymbolResolver::LookupSymbolName(call_addr, &symbol_start)) {
-      uword symbol_offset = call_addr - symbol_start;
-      buffer->Printf(" %s+0x%" Px "", symbol_name, symbol_offset);
-      NativeSymbolResolver::FreeSymbolName(symbol_name);
-    } else {
-      buffer->Printf(" %s", dso_name);
-    }
-    NativeSymbolResolver::FreeSymbolName(dso_name);
+#if defined(DART_PRECOMPILED_RUNTIME)
+static void PrintNonSymbolicStackFrameBody(ZoneTextBuffer* buffer,
+                                           uword call_addr,
+                                           uword isolate_instructions,
+                                           uword vm_instructions) {
+  const word vm_offset = call_addr - vm_instructions;
+  const word isolate_offset = call_addr - isolate_instructions;
+  // Pick the closest instructions section start before the call address.
+  if (vm_offset > 0 && (isolate_offset < 0 || vm_offset < isolate_offset)) {
+    buffer->Printf(" %s+0x%" Px "", kVmSnapshotInstructionsAsmSymbol,
+                   vm_offset);
+  } else if (isolate_offset > 0) {
+    buffer->Printf(" %s+0x%" Px "", kIsolateSnapshotInstructionsAsmSymbol,
+                   isolate_offset);
   } else {
-    buffer->Printf(" <unknown>");
+    uword dso_base;
+    char* dso_name;
+    if (NativeSymbolResolver::LookupSharedObject(call_addr, &dso_base,
+                                                 &dso_name)) {
+      buffer->Printf(" %s", dso_name);
+      NativeSymbolResolver::FreeSymbolName(dso_name);
+    } else {
+      buffer->Printf(" <unknown>");
+    }
   }
   buffer->Printf("\n");
 }
 #endif
 
-static void PrintStackTraceFrameIndex(ZoneTextBuffer* buffer,
-                                      intptr_t frame_index) {
+static void PrintSymbolicStackFrameIndex(ZoneTextBuffer* buffer,
+                                         intptr_t frame_index) {
   buffer->Printf("#%-6" Pd "", frame_index);
 }
 
-static void PrintStackTraceFrameBody(ZoneTextBuffer* buffer,
-                                     const char* function_name,
-                                     const char* url,
-                                     intptr_t line = -1,
-                                     intptr_t column = -1) {
+static void PrintSymbolicStackFrameBody(ZoneTextBuffer* buffer,
+                                        const char* function_name,
+                                        const char* url,
+                                        intptr_t line = -1,
+                                        intptr_t column = -1) {
   buffer->Printf(" %s (%s", function_name, url);
   if (line >= 0) {
     buffer->Printf(":%" Pd "", line);
@@ -23592,11 +23598,11 @@ static void PrintStackTraceFrameBody(ZoneTextBuffer* buffer,
   buffer->Printf(")\n");
 }
 
-static void PrintStackTraceFrame(Zone* zone,
-                                 ZoneTextBuffer* buffer,
-                                 const Function& function,
-                                 TokenPosition token_pos,
-                                 intptr_t frame_index) {
+static void PrintSymbolicStackFrame(Zone* zone,
+                                    ZoneTextBuffer* buffer,
+                                    const Function& function,
+                                    TokenPosition token_pos,
+                                    intptr_t frame_index) {
   ASSERT(!function.IsNull());
   const auto& script = Script::Handle(zone, function.script());
   auto& handle = String::Handle(zone, function.QualifiedUserVisibleName());
@@ -23619,13 +23625,14 @@ static void PrintStackTraceFrame(Zone* zone,
     script.GetTokenLocation(token_pos.SourcePosition(), &line, &column);
   }
 
-  PrintStackTraceFrameIndex(buffer, frame_index);
-  PrintStackTraceFrameBody(buffer, function_name, url, line, column);
+  PrintSymbolicStackFrameIndex(buffer, frame_index);
+  PrintSymbolicStackFrameBody(buffer, function_name, url, line, column);
 }
 
-const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
-  auto const zone = Thread::Current()->zone();
-  auto& stack_trace = StackTrace::Handle(zone, stack_trace_in.raw());
+const char* StackTrace::ToCString() const {
+  auto const T = Thread::Current();
+  auto const zone = T->zone();
+  auto& stack_trace = StackTrace::Handle(zone, this->raw());
   auto& function = Function::Handle(zone);
   auto& code_object = Object::Handle(zone);
   auto& code = Code::Handle(zone);
@@ -23634,6 +23641,30 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
   GrowableArray<const Function*> inlined_functions;
   GrowableArray<TokenPosition> inlined_token_positions;
   ZoneTextBuffer buffer(zone, 1024);
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  auto const isolate_instructions = reinterpret_cast<uword>(
+      T->isolate_group()->source()->snapshot_instructions);
+  auto const vm_instructions = reinterpret_cast<uword>(
+      Dart::vm_isolate()->group()->source()->snapshot_instructions);
+  if (FLAG_dwarf_stack_traces_mode) {
+    // The Dart standard requires the output of StackTrace.toString to include
+    // all pending activations with precise source locations (i.e., to expand
+    // inlined frames and provide line and column numbers).
+    buffer.Printf(
+        "Warning: This VM has been configured to produce stack traces "
+        "that violate the Dart standard.\n");
+    // This prologue imitates Android's debuggerd to make it possible to paste
+    // the stack trace into ndk-stack.
+    buffer.Printf(
+        "*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***\n");
+    OSThread* thread = OSThread::Current();
+    buffer.Printf("pid: %" Pd ", tid: %" Pd ", name %s\n", OS::ProcessId(),
+                  OSThread::ThreadIdToIntPtr(thread->id()), thread->name());
+    buffer.Printf("isolate_instructions: %" Px "", isolate_instructions);
+    buffer.Printf(" vm_instructions: %" Px "\n", vm_instructions);
+  }
+#endif
 
   // Iterate through the stack frames and create C string description
   // for each frame.
@@ -23661,15 +23692,45 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
           ASSERT(code.IsFunctionCode());
           function = code.function();
           const uword pc = code.PayloadStart() + pc_offset;
-          if (function.IsNull()) {
 #if defined(DART_PRECOMPILED_RUNTIME)
-            PrintStackTraceFrameIndex(&buffer, frame_index);
-            PrintStackTraceFrameBodyFromDSO(&buffer, pc - 1);
+          // When printing non-symbolic frames, we normally print call
+          // addresses, not return addresses, by subtracting one from the PC to
+          // get an address within the preceding instruction.
+          //
+          // The one exception is a normal closure registered as a listener on a
+          // future. In this case, the returned pc_offset is 0, as the closure
+          // is invoked with the value of the resolved future. Thus, we must
+          // report the return address, as returning a value before the closure
+          // payload will cause failures to decode the frame using DWARF info.
+          const bool is_future_listener = pc_offset == 0;
+          const uword call_addr = is_future_listener ? pc : pc - 1;
+          if (FLAG_dwarf_stack_traces_mode) {
+            // If we have access to the owning function and it would be
+            // invisible in a symbolic stack trace, don't show this frame.
+            // (We can't do the same for inlined functions, though.)
+            if (!FLAG_show_invisible_frames && !function.IsNull() &&
+                !function.is_visible()) {
+              continue;
+            }
+            // This output is formatted like Android's debuggerd. Note debuggerd
+            // prints call addresses instead of return addresses.
+            buffer.Printf("    #%02" Pd " abs %" Pp "", frame_index, call_addr);
+            PrintNonSymbolicStackFrameBody(
+                &buffer, call_addr, isolate_instructions, vm_instructions);
             frame_index++;
-#else
-            UNREACHABLE();
+            continue;
+          } else if (function.IsNull()) {
+            // We can't print the symbolic information since the owner was not
+            // retained, so instead print the static symbol + offset like the
+            // non-symbolic stack traces.
+            PrintSymbolicStackFrameIndex(&buffer, frame_index);
+            PrintNonSymbolicStackFrameBody(
+                &buffer, call_addr, isolate_instructions, vm_instructions);
+            frame_index++;
+            continue;
+          }
 #endif
-          } else if (code.is_optimized() && stack_trace.expand_inlined()) {
+          if (code.is_optimized() && stack_trace.expand_inlined()) {
             code.GetInlinedFunctionsAtReturnAddress(
                 pc_offset, &inlined_functions, &inlined_token_positions);
             ASSERT(inlined_functions.length() >= 1);
@@ -23677,13 +23738,14 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
               const auto& inlined = *inlined_functions[j];
               auto const pos = inlined_token_positions[j];
               if (FLAG_show_invisible_frames || function.is_visible()) {
-                PrintStackTraceFrame(zone, &buffer, inlined, pos, frame_index);
+                PrintSymbolicStackFrame(zone, &buffer, inlined, pos,
+                                        frame_index);
                 frame_index++;
               }
             }
           } else if (FLAG_show_invisible_frames || function.is_visible()) {
             auto const pos = code.GetTokenIndexOfPC(pc);
-            PrintStackTraceFrame(zone, &buffer, function, pos, frame_index);
+            PrintSymbolicStackFrame(zone, &buffer, function, pos, frame_index);
             frame_index++;
           }
         } else {
@@ -23693,7 +23755,7 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
           if (FLAG_show_invisible_frames || function.is_visible()) {
             uword pc = bytecode.PayloadStart() + pc_offset;
             auto const pos = bytecode.GetTokenIndexOfPC(pc);
-            PrintStackTraceFrame(zone, &buffer, function, pos, frame_index);
+            PrintSymbolicStackFrame(zone, &buffer, function, pos, frame_index);
             frame_index++;
           }
         }
@@ -23707,83 +23769,6 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
   } while (!stack_trace.IsNull());
 
   return buffer.buffer();
-}
-
-const char* StackTrace::ToDwarfCString(const StackTrace& stack_trace_in) {
-#if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
-  auto const T = Thread::Current();
-  auto const zone = T->zone();
-  auto& stack_trace = StackTrace::Handle(zone, stack_trace_in.raw());
-  auto& code = Object::Handle(zone);
-  ZoneTextBuffer buffer(zone, 1024);
-
-  // The Dart standard requires the output of StackTrace.toString to include
-  // all pending activations with precise source locations (i.e., to expand
-  // inlined frames and provide line and column numbers).
-  buffer.Printf(
-      "Warning: This VM has been configured to produce stack traces "
-      "that violate the Dart standard.\n");
-  // This prologue imitates Android's debuggerd to make it possible to paste
-  // the stack trace into ndk-stack.
-  buffer.Printf(
-      "*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***\n");
-  OSThread* thread = OSThread::Current();
-  buffer.Printf("pid: %" Pd ", tid: %" Pd ", name %s\n", OS::ProcessId(),
-                OSThread::ThreadIdToIntPtr(thread->id()), thread->name());
-  auto const isolate_instructions =
-      T->isolate_group()->source()->snapshot_instructions;
-  auto const vm_instructions =
-      Dart::vm_isolate()->group()->source()->snapshot_instructions;
-  buffer.Printf("isolate_instructions: %" Px "",
-                reinterpret_cast<uintptr_t>(isolate_instructions));
-  buffer.Printf(" vm_instructions: %" Px "\n",
-                reinterpret_cast<uintptr_t>(vm_instructions));
-  intptr_t frame_index = 0;
-  uint32_t frame_skip = 0;
-  do {
-    for (intptr_t i = frame_skip; i < stack_trace.Length(); i++) {
-      code = stack_trace.CodeAtFrame(i);
-      if (code.IsNull()) {
-        // Check for a null function, which indicates a gap in a StackOverflow
-        // or OutOfMemory trace.
-        if ((i < (stack_trace.Length() - 1)) &&
-            (stack_trace.CodeAtFrame(i + 1) != Code::null())) {
-          buffer.AddString("...\n...\n");
-          ASSERT(stack_trace.PcOffsetAtFrame(i) != Smi::null());
-          // To account for gap frames.
-          frame_index += Smi::Value(stack_trace.PcOffsetAtFrame(i));
-        }
-      } else if (code.raw() == StubCode::AsynchronousGapMarker().raw()) {
-        buffer.AddString("<asynchronous suspension>\n");
-        // The frame immediately after the asynchronous gap marker is the
-        // identical to the frame above the marker. Skip the frame to enhance
-        // the readability of the trace.
-        i++;
-      } else {
-        intptr_t pc_offset = Smi::Value(stack_trace.PcOffsetAtFrame(i));
-        // This output is formatted like Android's debuggerd. Note debuggerd
-        // prints call addresses instead of return addresses.
-        uword start = code.IsBytecode() ? Bytecode::Cast(code).PayloadStart()
-                                        : Code::Cast(code).PayloadStart();
-        uword return_addr = start + pc_offset;
-        uword call_addr = return_addr - 1;
-        buffer.Printf("    #%02" Pd " abs %" Pp "", frame_index, call_addr);
-        PrintStackTraceFrameBodyFromDSO(&buffer, call_addr);
-        frame_index++;
-      }
-    }
-    // Follow the link.
-    frame_skip = stack_trace.skip_sync_start_in_parent_stack()
-                     ? StackTrace::kSyncAsyncCroppedFrames
-                     : 0;
-    stack_trace = stack_trace.async_link();
-  } while (!stack_trace.IsNull());
-
-  return buffer.buffer();
-#else
-  UNREACHABLE();
-  return NULL;
-#endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
 }
 
 static void DwarfStackTracesHandler(bool value) {
@@ -23803,15 +23788,6 @@ DEFINE_FLAG_HANDLER(DwarfStackTracesHandler,
                     dwarf_stack_traces,
                     "Omit CodeSourceMaps in precompiled snapshots and don't "
                     "symbolize stack traces in the precompiled runtime.");
-
-const char* StackTrace::ToCString() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_dwarf_stack_traces_mode) {
-    return ToDwarfCString(*this);
-  }
-#endif
-  return ToDartCString(*this);
-}
 
 void RegExp::set_pattern(const String& pattern) const {
   StorePointer(&raw_ptr()->pattern_, pattern.raw());

@@ -719,7 +719,7 @@ class Symbol {
 /// A table of (static or dynamic) [Symbol]s.
 class SymbolTable extends Section {
   final List<Symbol> _entries;
-  final _nameCache;
+  final Map<String, Symbol> _nameCache;
 
   SymbolTable._(SectionHeaderEntry entry, this._entries)
       : _nameCache = {},

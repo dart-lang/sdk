@@ -401,13 +401,15 @@ void StackTraceUtils::CollectFramesLazy(
     if (frame->is_interpreted()) {
       code_array.Add(bytecode);
       const intptr_t pc_offset = frame->pc() - bytecode.PayloadStart();
-      ASSERT(pc_offset >= 0 && pc_offset <= bytecode.Size());
+      ASSERT(pc_offset > 0 && pc_offset <= bytecode.Size());
       offset = Smi::New(pc_offset);
     } else {
       code = frame->LookupDartCode();
       ASSERT(function.raw() == code.function());
       code_array.Add(code);
-      offset = Smi::New(frame->pc() - code.PayloadStart());
+      const intptr_t pc_offset = frame->pc() - code.PayloadStart();
+      ASSERT(pc_offset > 0 && pc_offset <= code.Size());
+      offset = Smi::New(pc_offset);
     }
     pc_offset_array.Add(offset);
     if (on_sync_frames != nullptr) {
@@ -466,6 +468,8 @@ void StackTraceUtils::CollectFramesLazy(
         } else {
           UNREACHABLE();
         }
+        // Unlike other sources of PC offsets, the offset may be 0 here if we
+        // reach a non-async closure receiving the yielded value.
         ASSERT(offset.Value() >= 0);
         pc_offset_array.Add(offset);
 
@@ -513,12 +517,13 @@ intptr_t StackTraceUtils::CountFrames(Thread* thread,
     if (frame->is_interpreted()) {
       bytecode = frame->LookupDartBytecode();
       function = bytecode.function();
+      if (function.IsNull()) continue;
     } else {
       code = frame->LookupDartCode();
       function = code.function();
     }
-    if (function.IsNull()) continue;
-    if (sync_async_gap_frames > 0) {
+    const bool function_is_null = function.IsNull();
+    if (!function_is_null && sync_async_gap_frames > 0) {
       function_name = function.QualifiedScrubbedName();
       if (!CheckAndSkipAsync(&sync_async_gap_frames, function_name)) {
         *sync_async_end = false;
@@ -527,7 +532,7 @@ intptr_t StackTraceUtils::CountFrames(Thread* thread,
     } else {
       frame_count++;
     }
-    if (!async_function_is_null &&
+    if (!async_function_is_null && !function_is_null &&
         (async_function.raw() == function.parent_function())) {
       sync_async_gap_frames = kSyncAsyncFrameGap;
     }

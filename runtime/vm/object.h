@@ -10497,9 +10497,6 @@ class StackTrace : public Instance {
                             Heap::Space space = Heap::kNew);
 
  private:
-  static const char* ToDartCString(const StackTrace& stack_trace_in);
-  static const char* ToDwarfCString(const StackTrace& stack_trace_in);
-
   void set_code_array(const Array& code_array) const;
   void set_pc_offset_array(const Array& pc_offset_array) const;
   bool expand_inlined() const;

@@ -1058,7 +1058,7 @@ class DartCallInfo extends CallInfo {
   DartCallInfo({this.inlined = false, this.function, this.filename, this.line});
 
   @override
-  bool get isInternal => line <= 0;
+  bool get isInternal => false;
 
   @override
   int get hashCode => _hashFinish(_hashCombine(
@@ -1079,8 +1079,7 @@ class DartCallInfo extends CallInfo {
   }
 
   @override
-  String toString() =>
-      "${function} (${filename}:${isInternal ? "??" : line.toString()})";
+  String toString() => "${function} (${filename}${line <= 0 ? '' : ':$line'})";
 }
 
 /// Represents the information for a call site located in a Dart stub.
@@ -1225,10 +1224,7 @@ class Dwarf {
       {bool includeInternalFrames = false}) {
     var calls = _debugInfo.callInfo(_lineNumberInfo, address);
     if (calls == null) {
-      // Since we're dealing with return addresses in stack frames, subtract
-      // one in case the return address is just off the end of the stub (since
-      // the calling instruction is before the return address).
-      final symbol = _elf.staticSymbolAt(address - 1);
+      final symbol = _elf.staticSymbolAt(address);
       if (symbol != null) {
         final offset = address - symbol.value;
         calls = <CallInfo>[StubCallInfo(name: symbol.name, offset: offset)];
