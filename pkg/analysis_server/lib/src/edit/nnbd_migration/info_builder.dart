@@ -7,7 +7,6 @@ import 'dart:collection';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
-import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_information.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
@@ -38,9 +37,6 @@ class InfoBuilder {
   /// The listener used to gather the changes to be applied.
   final DartFixListener listener;
 
-  /// The dartfix adapter, which can be used to report exceptions that occur.
-  final NullabilityMigrationAdapter adapter;
-
   /// The [NullabilityMigration] instance for this migration.
   final NullabilityMigration migration;
 
@@ -50,7 +46,7 @@ class InfoBuilder {
 
   /// Initialize a newly created builder.
   InfoBuilder(this.provider, this.includedPath, this.info, this.listener,
-      this.adapter, this.migration);
+      this.migration);
 
   /// The analysis server used to get information about libraries.
   AnalysisServer get server => listener.server;

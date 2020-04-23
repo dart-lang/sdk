@@ -92,7 +92,7 @@ class NonNullableFix extends FixCodeTask {
   @override
   Future<void> finish() async {
     final state = MigrationState(
-        migration, includedRoot, listener, instrumentationListener, adapter);
+        migration, includedRoot, listener, instrumentationListener);
     await state.refresh();
 
     if (server == null) {
@@ -240,7 +240,7 @@ environment:
     reset();
     await rerunFunction(changedPaths);
     final state = MigrationState(
-        migration, includedRoot, listener, instrumentationListener, adapter);
+        migration, includedRoot, listener, instrumentationListener);
     await state.refresh();
     return state;
   }

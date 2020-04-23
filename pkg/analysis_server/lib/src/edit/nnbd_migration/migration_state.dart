@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
-import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/info_builder.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_listener.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
@@ -16,9 +15,6 @@ class MigrationState {
 
   /// The migration associated with the state.
   final NullabilityMigration migration;
-
-  /// The adapter to dartfix for this migration.
-  final NullabilityMigrationAdapter adapter;
 
   /// The root directory that contains all of the files that were migrated.
   final String includedRoot;
@@ -40,7 +36,7 @@ class MigrationState {
 
   /// Initialize a newly created migration state with the given values.
   MigrationState(this.migration, this.includedRoot, this.listener,
-      this.instrumentationListener, this.adapter);
+      this.instrumentationListener);
 
   /// If the migration has been applied to disk.
   bool get hasBeenApplied => _hasBeenApplied;
@@ -56,7 +52,7 @@ class MigrationState {
     assert(!hasBeenApplied);
     var provider = listener.server.resourceProvider;
     var infoBuilder = InfoBuilder(provider, includedRoot,
-        instrumentationListener.data, listener, adapter, migration);
+        instrumentationListener.data, listener, migration);
     var unitInfos = await infoBuilder.explainMigration();
     var pathContext = provider.pathContext;
     migrationInfo = MigrationInfo(
