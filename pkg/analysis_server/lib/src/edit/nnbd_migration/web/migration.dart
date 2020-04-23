@@ -62,6 +62,12 @@ void main() {
         document.body.classes.remove('rerunning');
       }
     });
+
+    final reportProblemButton = document.querySelector('.report-problem');
+    reportProblemButton.onClick.listen((_) {
+      window.open('https://goo.gle/dart-null-safety-migration-tool-issue',
+          'report-problem');
+    });
   });
 
   window.addEventListener('popstate', (event) {

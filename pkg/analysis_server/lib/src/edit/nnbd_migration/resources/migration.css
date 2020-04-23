@@ -65,6 +65,11 @@ header .apply-migration, .rerun-migration {
   margin: 10px;
 }
 
+footer .report-problem {
+  right: 0px;
+  margin: 4px 8px;
+}
+
 .rerun-migration .required {
   display: none;
 }
@@ -113,7 +118,7 @@ footer {
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding: 8px 24px;
+  padding: 8px 0 8px 24px;
 }
 
 footer .wide {
