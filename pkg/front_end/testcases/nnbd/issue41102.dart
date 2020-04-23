@@ -38,7 +38,7 @@ final s9 = s7[0] = 0;
 
 final s10 = s7.length;
 
-final s11 = s5.length = 0;
+final s11 = s7.length = 0;
 
 final s12 = -s5;
 

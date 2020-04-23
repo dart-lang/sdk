@@ -23,6 +23,14 @@ extension _extension#1 on core::num* {
 extension _extension#2 on core::String* {
   get call = self::_extension#2|get#call;
 }
+static field core::String* topLevel1;
+static field core::String* topLevel2;
+static field core::String* topLevel3;
+static field core::String* topLevel4;
+static field self::A* a;
+static field core::String* topLevel5;
+static field self::B* b;
+static field core::String* topLevel6;
 static method _extension#0|get#call(final core::int* #this) → core::String*
   ;
 static method _extension#1|get#call(final core::num* #this) → core::String*

@@ -2967,7 +2967,8 @@ class TypeInferrerImpl implements TypeInferrer {
     FunctionType functionType = getFunctionTypeForImplicitCall(calleeType);
 
     List<VariableDeclaration> locallyHoistedExpressions;
-    if (hoistedExpressions == null) {
+    if (hoistedExpressions == null && !isTopLevel) {
+      // We don't hoist in top-level inference.
       hoistedExpressions = locallyHoistedExpressions = <VariableDeclaration>[];
     }
     if (arguments.positional.isNotEmpty || arguments.named.isNotEmpty) {
@@ -3006,7 +3007,7 @@ class TypeInferrerImpl implements TypeInferrer {
         isImplicitCall: true,
         implicitInvocationPropertyName: getter.name);
 
-    if (isExpressionInvocation) {
+    if (!isTopLevel && isExpressionInvocation) {
       Expression error = helper.buildProblem(
           templateImplicitCallOfNonMethod.withArguments(
               receiverType, isNonNullableByDefault),
@@ -3080,7 +3081,8 @@ class TypeInferrerImpl implements TypeInferrer {
     FunctionType functionType = getFunctionTypeForImplicitCall(calleeType);
 
     List<VariableDeclaration> locallyHoistedExpressions;
-    if (hoistedExpressions == null) {
+    if (hoistedExpressions == null && !isTopLevel) {
+      // We don't hoist in top-level inference.
       hoistedExpressions = locallyHoistedExpressions = <VariableDeclaration>[];
     }
     if (arguments.positional.isNotEmpty || arguments.named.isNotEmpty) {
@@ -3120,7 +3122,7 @@ class TypeInferrerImpl implements TypeInferrer {
         hoistedExpressions: hoistedExpressions,
         implicitInvocationPropertyName: field.name);
 
-    if (isExpressionInvocation) {
+    if (!isTopLevel && isExpressionInvocation) {
       Expression error = helper.buildProblem(
           templateImplicitCallOfNonMethod.withArguments(
               receiverType, isNonNullableByDefault),

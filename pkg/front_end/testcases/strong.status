@@ -170,6 +170,7 @@ nnbd/issue41180: RuntimeError # Strong mode runtime checking fails due to mixed 
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
 nnbd/never_opt_out: TypeCheckError
+nnbd/potentially_nullable_access: TypeCheckError
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError
