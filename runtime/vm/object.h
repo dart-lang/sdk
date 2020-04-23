@@ -8038,7 +8038,7 @@ class TypeRef : public AbstractType {
     const AbstractType& ref_type = AbstractType::Handle(type());
     return !ref_type.IsNull() && ref_type.IsFunctionType();
   }
-  virtual RawTypeRef* InstantiateFrom(
+  virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,

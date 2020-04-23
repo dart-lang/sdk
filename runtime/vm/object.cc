@@ -19814,7 +19814,7 @@ bool TypeRef::IsEquivalent(const Instance& other,
   return !ref_type.IsNull() && ref_type.IsEquivalent(other, kind, trail);
 }
 
-RawTypeRef* TypeRef::InstantiateFrom(
+RawAbstractType* TypeRef::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
     intptr_t num_free_fun_type_params,
