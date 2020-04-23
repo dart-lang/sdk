@@ -1070,6 +1070,19 @@ main() {new core.String.from^CharCodes([]);}
         completionLocation: 'ExtensionDeclaration_member', typeNames: true);
   }
 
+  Future<void> test_extensionOverride_argumentList() async {
+    // ExtensionDeclaration  CompilationUnit
+    addTestSource('''
+extension E on int {}
+int x = E(^);
+''');
+    await assertOpType(
+        completionLocation: 'ArgumentList_extensionOverride_unnamed',
+        constructors: true,
+        returnValue: true,
+        typeNames: true);
+  }
+
   Future<void> test_fieldDeclaration_name_typed() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // FieldDeclaration

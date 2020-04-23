@@ -1210,30 +1210,34 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   String _argumentListContext(AstNode node) {
     if (node is ArgumentList) {
       var parent = node.parent;
-      if (parent is InstanceCreationExpression) {
+      if (parent is Annotation) {
+        return 'annotation';
+      } else if (parent is ExtensionOverride) {
+        return 'extensionOverride';
+      } else if (parent is FunctionExpressionInvocation) {
+        return 'function';
+      } else if (parent is InstanceCreationExpression) {
         if (flutter.isWidgetType(parent.staticType)) {
           return 'widgetConstructor';
         }
         return 'constructor';
       } else if (parent is MethodInvocation) {
         return 'method';
-      } else if (parent is FunctionExpressionInvocation) {
-        return 'function';
-      } else if (parent is SuperConstructorInvocation ||
-          parent is RedirectingConstructorInvocation) {
+      } else if (parent is RedirectingConstructorInvocation) {
         return 'constructorRedirect';
-      } else if (parent is Annotation) {
-        return 'annotation';
+      } else if (parent is SuperConstructorInvocation) {
+        return 'constructorRedirect';
       }
-    } else if (node is IndexExpression) {
-      return 'index';
     } else if (node is AssignmentExpression ||
         node is BinaryExpression ||
         node is PrefixExpression ||
         node is PostfixExpression) {
       return 'operator';
+    } else if (node is IndexExpression) {
+      return 'index';
     }
-    throw ArgumentError('Unknown parent of ${node.runtimeType}');
+    throw ArgumentError(
+        'Unknown parent of ${node.runtimeType}: ${node.parent.runtimeType}');
   }
 
   /// Return the first child of the [node] that is neither a comment nor an
