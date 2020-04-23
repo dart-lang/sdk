@@ -94,6 +94,15 @@ class PreviewSite extends Site
     return ExceptionPage(this, path, message, stackTrace);
   }
 
+  /// Return a page used to display an exception that occurred while attempting
+  /// to render another page. The [path] is the path to the page that was being
+  /// rendered when the exception was thrown. The [message] and [stackTrace] are
+  /// those from the exception.
+  Page createJsonExceptionResponse(
+      String path, String message, StackTrace stackTrace) {
+    return ExceptionPage(this, path, message, stackTrace);
+  }
+
   Page createUnauthorizedPage(String unauthorizedPath) {
     return UnauthorizedPage(this, unauthorizedPath.substring(1));
   }
@@ -310,6 +319,16 @@ class PreviewSite extends Site
   Future<void> _respondInternalError(HttpRequest request, String path,
       dynamic exception, StackTrace stackTrace) async {
     try {
+      if (request.headers.contentType.subType == 'json') {
+        return await respondJson(
+            request,
+            {
+              'success': false,
+              'exception': exception.toString(),
+              'stackTrace': stackTrace.toString(),
+            },
+            HttpStatus.internalServerError);
+      }
       await respond(
           request,
           createExceptionPageWithPath(path, '$exception', stackTrace),

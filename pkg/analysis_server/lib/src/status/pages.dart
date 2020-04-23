@@ -204,10 +204,26 @@ abstract class Site {
     await response.close();
   }
 
+  Future<void> respondJson(
+    HttpRequest request,
+    Map<String, Object> json, [
+    int code = HttpStatus.ok,
+  ]) async {
+    var response = request.response;
+    response.statusCode = code;
+    response.headers.contentType = ContentType.json;
+    response.write(jsonEncode(json));
+    await response.close();
+  }
+
   Future<void> respondOk(
     HttpRequest request, {
     int code = HttpStatus.ok,
   }) async {
+    if (request.headers.contentType == ContentType.json) {
+      return respondJson(request, {"success": true}, code);
+    }
+
     var response = request.response;
     response.statusCode = code;
     await response.close();
