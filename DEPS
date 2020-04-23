@@ -67,7 +67,7 @@ vars = {
   "chrome_rev" : "19997",
   "cli_util_rev" : "4ad7ccbe3195fd2583b30f86a86697ef61e80f41",
   "collection_tag": "7be42e03d427cc19571cd7f9fc628a5913a6b757",
-  "convert_tag": "2.0.2",
+  "convert_tag": "49bde5b371eb5c2c8e721557cf762f17c75e49fc",
   "crypto_tag" : "2.0.6",
   "csslib_tag" : "0.15.0",
   "dart2js_info_tag" : "0.6.0",
