@@ -60,7 +60,7 @@ vars = {
   "async_tag": "2.4.1",
   "bazel_worker_tag": "v0.1.22",
   "benchmark_harness_tag": "81641290dea44c34138a109a37e215482f405f81",
-  "boolean_selector_tag" : "1.0.4",
+  "boolean_selector_tag": "1309eabed510cc3b7536fd4367d39b97ebee3d69",
   "boringssl_gen_rev": "b9e27cff1ff0803e97ab1f88764a83be4aa94a6d",
   "boringssl_rev" : "4dfd5af70191b068aebe567b8e29ce108cee85ce",
   "charcode_tag": "v1.1.2",
