@@ -1092,6 +1092,8 @@ abstract class VMKernelCompilerMixin {
 
     var dillFile = tempKernelFile(tempDir);
 
+    var isProductMode = _configuration.configuration.mode == Mode.product;
+
     var causalAsyncStacks = !arguments.any(noCausalAsyncStacksRegExp.hasMatch);
 
     var args = [
@@ -1104,6 +1106,7 @@ abstract class VMKernelCompilerMixin {
           name.startsWith('-D') ||
           name.startsWith('--packages=') ||
           name.startsWith('--enable-experiment=')),
+      '-Ddart.vm.product=$isProductMode',
       '-Ddart.developer.causal_async_stacks=$causalAsyncStacks',
       if (_enableAsserts ||
           arguments.contains('--enable-asserts') ||
