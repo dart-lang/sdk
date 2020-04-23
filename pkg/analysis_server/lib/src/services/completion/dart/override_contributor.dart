@@ -10,6 +10,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol
     hide CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -34,7 +35,7 @@ class OverrideContributor implements DartCompletionContributor {
     if (classDecl == null) {
       return const <CompletionSuggestion>[];
     }
-    if (_inClassMemberBody(containingNode)) {
+    if (containingNode.inClassMemberBody) {
       return const <CompletionSuggestion>[];
     }
 
@@ -215,21 +216,5 @@ class OverrideContributor implements DartCompletionContributor {
       typeArguments: typeArguments,
       nullabilitySuffix: NullabilitySuffix.none,
     );
-  }
-
-  static bool _inClassMemberBody(AstNode node) {
-    /// TODO(jwren) this method was copied from keyword_contributor.dart, all
-    ///  related methods should be moved into a superclass or mixin
-    while (true) {
-      var body = node.thisOrAncestorOfType<FunctionBody>();
-      if (body == null) {
-        return false;
-      }
-      var parent = body.parent;
-      if (parent is ConstructorDeclaration || parent is MethodDeclaration) {
-        return true;
-      }
-      node = parent;
-    }
   }
 }
