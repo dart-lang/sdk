@@ -285,6 +285,24 @@ method() {
         selectionLength: 22);
   }
 
+  Future<void> test_no_target_inClass_of_interface() async {
+    addTestSource('''
+class A {
+  void foo() {}
+}
+
+class B implements A {
+  ^
+}
+''');
+    await computeSuggestions();
+    _assertOverride('''
+@override
+  void foo() {
+    // TODO: implement foo
+  }''', displayText: 'foo() { … }', selectionOffset: 51, selectionLength: 0);
+  }
+
   Future<void> test_outsideOfWorkspace() async {
     testFile = convertPath('/home/other/lib/a.dart');
     addTestSource('''
