@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor {
       } else if (param.isRequiredPositional) {
         break;
       }
-      final value = param.constantValue;
+      final value = param.computeConstantValue();
       if (value != null) {
         if (arg is NamedExpression) {
           arg = (arg as NamedExpression).expression;
