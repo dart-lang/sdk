@@ -1,8 +1,9 @@
 # Changelog
 
-## Unreleased
+## 4.0.2
 - Fixed issue where RPC format did not conform to the JSON-RPC 2.0
   specification.
+- Added `getClassList` RPC.
 
 ## 4.0.1
 - Improved documentation.

@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.31
+# Dart VM Service Protocol 3.32
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.31_ of the Dart VM Service Protocol. This
+This document describes of _version 3.32_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -709,6 +709,20 @@ collection will be actually be performed.
 
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
+
+### getClassList
+
+```
+ClassList|Sentinel getClassList(string isolateId)
+```
+
+The _getClassList_ RPC is used to retrieve a _ClassList_ containing all
+classes for an isolate based on the isolate's _isolateId_.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+See [ClassList](#classlist).
 
 ### getClientName
 
@@ -3741,5 +3755,6 @@ version | comments
 3.30 | Updated return types of RPCs which require an `isolateId` to allow for `Sentinel` results if the target isolate has shutdown.
 3.31 | Added single client mode, which allows for the Dart Development Service (DDS) to become the sole client of
 the VM service.
+3.32 | Added `getClassList` RPC and `ClassList` object.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss
