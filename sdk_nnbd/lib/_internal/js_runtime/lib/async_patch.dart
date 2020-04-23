@@ -578,9 +578,9 @@ class _SyncStarIterator<T> implements Iterator<T> {
 
   T get current {
     var nested = _nestedIterator;
-    if (nested == null) return _current as T;
-    // Don't merge this with above 'as T', the one above can be optimized.
-    return nested.current as T;
+    if (nested == null) return _current as dynamic; // implicit: as T;
+    // Don't merge this return with above, the cast above can be optimized.
+    return nested.current as dynamic; // implict: as T;
   }
 
   _runBody() {
