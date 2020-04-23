@@ -196,10 +196,19 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
   _AsyncAwaitCompleter() : isSync = false;
 
   void complete([FutureOr<T>? value]) {
-    if (!isSync || value is Future<T>) {
-      _future._asyncComplete(value as FutureOr<T>);
+    // All paths require that if value is null, null as T succeeds.
+    value = (value == null) ? value as T : value;
+    if (!isSync) {
+      _future._asyncComplete(value);
+    } else if (value is Future<T>) {
+      assert(!_future._isComplete);
+      _future._chainFuture(value);
     } else {
-      _future._completeWithValue(value as T);
+      // TODO(40014): Remove cast when type promotion works.
+      // This would normally be `as T` but we use `as dynamic` to make the
+      // unneeded check be implict to match dart2js unsound optimizations in the
+      // user code.
+      _future._completeWithValue(value as dynamic);
     }
   }
 
@@ -566,9 +575,7 @@ class _SyncStarIterator<T> implements Iterator<T> {
   T? _current = null;
 
   // This is the nested iterator when iterating a yield* of a non-sync iterator.
-  // TODO(32956): In strong-mode, yield* takes an Iterable<T> (possibly checked
-  // with an implicit downcast), so change type to Iterator<T>.
-  Iterator? _nestedIterator = null;
+  Iterator<T>? _nestedIterator = null;
 
   // Stack of suspended state machines when iterating a yield* of a sync*
   // iterator.
@@ -579,8 +586,7 @@ class _SyncStarIterator<T> implements Iterator<T> {
   T get current {
     var nested = _nestedIterator;
     if (nested == null) return _current as dynamic; // implicit: as T;
-    // Don't merge this return with above, the cast above can be optimized.
-    return nested.current as dynamic; // implict: as T;
+    return nested.current;
   }
 
   _runBody() {
@@ -637,8 +643,8 @@ class _SyncStarIterator<T> implements Iterator<T> {
           JS('', 'throw #', value.value);
         } else {
           assert(state == _IterationMarker.YIELD_STAR);
-          Iterator inner = value.value.iterator;
-          if (inner is _SyncStarIterator) {
+          Iterator<T> inner = value.value.iterator;
+          if (inner is _SyncStarIterator<T>) {
             // Suspend the current state machine and start acting on behalf of
             // the nested state machine.
             //

@@ -10,6 +10,12 @@ import 'dart:_interceptors' show JSArray;
 import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
 
 @patch
+bool typeAcceptsNull<T>() {
+  const isLegacySubtyping = <Null>[] is List<int>;
+  return isLegacySubtyping || null is T;
+}
+
+@patch
 class Symbol implements core.Symbol {
   @patch
   const Symbol(String name) : this._name = name;

@@ -11,6 +11,12 @@ import 'dart:_foreign_helper' show JS;
 import 'dart:_runtime' as dart;
 
 @patch
+bool typeAcceptsNull<T>() {
+  const isLegacySubtyping = <Null>[] is List<int>;
+  return isLegacySubtyping || null is T;
+}
+
+@patch
 class Symbol implements core.Symbol {
   @patch
   const Symbol(String name) : this._name = name;

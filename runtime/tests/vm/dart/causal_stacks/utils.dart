@@ -444,7 +444,7 @@ Future<void> doTestsCausal([String debugInfoFilename]) async {
     r'^#4      Future._propagateToListeners.handleValueCallback ',
     r'^#5      Future._propagateToListeners ',
     r'^#6      Future._completeWithValue ',
-    r'^#7      Future._asyncComplete.<anonymous closure> ',
+    r'^#7      Future._asyncCompleteWithValue.<anonymous closure> ',
     r'^#8      _microtaskLoop ',
     r'^#9      _startMicrotaskLoop ',
     r'^#10     _runPendingImmediateCallback ',

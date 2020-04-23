@@ -17,6 +17,12 @@ import "dart:typed_data" show Int32List;
 // part "print_patch.dart";
 // part "symbol_patch.dart";
 
+// On the VM, we don't make the entire legacy weak mode check
+// const to avoid having a constant in the platform libraries
+// which evaluates differently in weak vs strong mode.
+@patch
+bool typeAcceptsNull<T>() => (const <Null>[]) is List<int> || null is T;
+
 @patch
 List<T> makeListFixedLength<T>(List<T> growableList)
     native "Internal_makeListFixedLength";

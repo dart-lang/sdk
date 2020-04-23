@@ -28,9 +28,15 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
 
   @pragma("vm:entry-point")
   void complete([FutureOr<T>? value]) {
-    if (!isSync || value is Future<T>) {
-      _future._asyncComplete(value as FutureOr<T>);
+    // All paths require that if value is null, null as T succeeds.
+    value = (value == null) ? value as T : value;
+    if (!isSync) {
+      _future._asyncComplete(value);
+    } else if (value is Future<T>) {
+      assert(!_future._isComplete);
+      _future._chainFuture(value);
     } else {
+      // TODO(40014): Remove cast when type promotion works.
       _future._completeWithValue(value as T);
     }
   }

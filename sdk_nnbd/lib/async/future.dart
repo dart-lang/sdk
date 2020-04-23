@@ -258,7 +258,7 @@ abstract class Future<T> {
    */
   @pragma("vm:entry-point")
   factory Future.value([FutureOr<T>? value]) {
-    return new _Future<T>.immediate(value as FutureOr<T>);
+    return new _Future<T>.immediate(value == null ? value as dynamic : value);
   }
 
   /**
@@ -311,7 +311,7 @@ abstract class Future<T> {
    * later time that isn't necessarily after a known fixed duration.
    */
   factory Future.delayed(Duration duration, [FutureOr<T> computation()?]) {
-    if (computation == null && const <Null>[] is! List<T>) {
+    if (computation == null && !typeAcceptsNull<T>()) {
       throw ArgumentError.value(
           null, "computation", "The type parameter is not nullable");
     }
@@ -559,6 +559,7 @@ abstract class Future<T> {
           result.then(nextIteration, onError: doneSignal._completeError);
           return;
         }
+        // TODO(40014): Remove cast when type promotion works.
         keepGoing = result as bool;
       }
       doneSignal._complete(null);

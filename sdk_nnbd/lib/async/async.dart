@@ -102,7 +102,8 @@ import "dart:_internal"
         IterableElementError,
         printToZone,
         printToConsole,
-        Since;
+        Since,
+        typeAcceptsNull;
 
 part 'async_error.dart';
 part 'broadcast_stream_controller.dart';

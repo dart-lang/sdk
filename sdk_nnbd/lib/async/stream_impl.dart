@@ -213,26 +213,31 @@ class _BufferingStreamSubscription<T>
   }
 
   Future<E> asFuture<E>([E? futureValue]) {
-    if (futureValue is E) {
-      // Overwrite the onDone and onError handlers.
-      _Future<E> result = new _Future<E>();
-      E resultValue = futureValue;
-      _onDone = () {
-        result._complete(resultValue);
-      };
-      _onError = (Object error, StackTrace stackTrace) {
-        Future cancelFuture = cancel();
-        if (!identical(cancelFuture, Future._nullFuture)) {
-          cancelFuture.whenComplete(() {
-            result._completeError(error, stackTrace);
-          });
-        } else {
-          result._completeError(error, stackTrace);
-        }
-      };
-      return result;
+    E resultValue;
+    if (futureValue == null) {
+      if (!typeAcceptsNull<E>()) {
+        throw ArgumentError.notNull("futureValue");
+      }
+      resultValue = futureValue as dynamic;
+    } else {
+      resultValue = futureValue;
     }
-    throw ArgumentError.notNull("futureValue");
+    // Overwrite the onDone and onError handlers.
+    _Future<E> result = new _Future<E>();
+    _onDone = () {
+      result._complete(resultValue);
+    };
+    _onError = (Object error, StackTrace stackTrace) {
+      Future cancelFuture = cancel();
+      if (!identical(cancelFuture, Future._nullFuture)) {
+        cancelFuture.whenComplete(() {
+          result._completeError(error, stackTrace);
+        });
+      } else {
+        result._completeError(error, stackTrace);
+      }
+    };
+    return result;
   }
 
   // State management.
@@ -329,7 +334,9 @@ class _BufferingStreamSubscription<T>
    * of pending events later (if necessary).
    */
   void _addPending(_DelayedEvent event) {
-    var pending = (_pending ??= _StreamImplEvents<T>()) as _StreamImplEvents<T>;
+    _StreamImplEvents<T>? pending = _pending as dynamic;
+    pending ??= _StreamImplEvents<T>();
+    _pending = pending;
     pending.add(event);
     if (!_hasPending) {
       _state |= _STATE_HAS_PENDING;
@@ -368,7 +375,7 @@ class _BufferingStreamSubscription<T>
       if (onError is void Function(Object, StackTrace)) {
         _zone.runBinaryGuarded<Object, StackTrace>(onError, error, stackTrace);
       } else {
-        _zone.runUnaryGuarded<Object>(_onError as void Function(Object), error);
+        _zone.runUnaryGuarded<Object>(_onError as dynamic, error);
       }
       _state &= ~_STATE_IN_CALLBACK;
     }
@@ -780,15 +787,20 @@ class _DoneStreamSubscription<T> implements StreamSubscription<T> {
   Future cancel() => Future._nullFuture;
 
   Future<E> asFuture<E>([E? futureValue]) {
-    if (futureValue is E) {
-      _Future<E> result = new _Future<E>();
-      E resultValue = futureValue;
-      _onDone = () {
-        result._completeWithValue(resultValue);
-      };
-      return result;
+    E resultValue;
+    if (futureValue == null) {
+      if (!typeAcceptsNull<E>()) {
+        throw ArgumentError.notNull("futureValue");
+      }
+      resultValue = futureValue as dynamic;
+    } else {
+      resultValue = futureValue;
     }
-    throw ArgumentError.notNull("futureValue");
+    _Future<E> result = new _Future<E>();
+    _onDone = () {
+      result._completeWithValue(resultValue);
+    };
+    return result;
   }
 
   void _sendDone() {
@@ -806,7 +818,7 @@ class _AsBroadcastStream<T> extends Stream<T> {
   final _BroadcastCallback<T>? _onCancelHandler;
   final Zone _zone;
 
-  late _AsBroadcastStreamController<T>? _controller;
+  _AsBroadcastStreamController<T>? _controller;
   StreamSubscription<T>? _subscription;
 
   _AsBroadcastStream(
@@ -996,9 +1008,9 @@ class _StreamIterator<T> implements StreamIterator<T> {
 
   T get current {
     if (_subscription != null && _isPaused) {
-      return _stateData as T;
+      return _stateData as dynamic;
     }
-    return null as T;
+    return null as dynamic;
   }
 
   Future<bool> moveNext() {
@@ -1025,7 +1037,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
     assert(_subscription == null);
     var stateData = _stateData;
     if (stateData != null) {
-      var stream = stateData as Stream<T>;
+      Stream<T> stream = stateData as dynamic;
       _subscription = stream.listen(_onData,
           onError: _onError, onDone: _onDone, cancelOnError: true);
       var future = new _Future<bool>();
@@ -1042,7 +1054,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
     if (subscription != null) {
       _subscription = null;
       if (!_isPaused) {
-        var future = stateData as _Future<bool>;
+        _Future<bool> future = stateData as dynamic;
         future._asyncComplete(false);
       }
       return subscription.cancel();
@@ -1052,7 +1064,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
 
   void _onData(T data) {
     assert(_subscription != null && !_isPaused);
-    var moveNextFuture = _stateData as _Future<bool>;
+    _Future<bool> moveNextFuture = _stateData as dynamic;
     _stateData = data;
     _isPaused = true;
     moveNextFuture._complete(true);
@@ -1061,7 +1073,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
 
   void _onError(Object error, StackTrace stackTrace) {
     assert(_subscription != null && !_isPaused);
-    var moveNextFuture = _stateData as _Future<bool>;
+    _Future<bool> moveNextFuture = _stateData as dynamic;
     _subscription = null;
     _stateData = null;
     moveNextFuture._completeError(error, stackTrace);
@@ -1069,7 +1081,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
 
   void _onDone() {
     assert(_subscription != null && !_isPaused);
-    var moveNextFuture = _stateData as _Future<bool>;
+    _Future<bool> moveNextFuture = _stateData as dynamic;
     _subscription = null;
     _stateData = null;
     moveNextFuture._complete(false);
