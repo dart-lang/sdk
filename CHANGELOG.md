@@ -709,6 +709,13 @@ The Linter was updated to `0.1.101`, which includes:
 * new lint: `avoid_web_libraries_in_flutter` (experimental)
 * (internal) prepare `unnecessary_lambdas` for coming `MethodInvocation` vs. `FunctionExpressionInvocation` changes
 
+## 2.5.2 - 2019-10-08
+
+This is a patch release with properly signed binaries required for macOS
+Catalina (Issue [38765][]).
+
+[38765]: https://github.com/dart-lang/sdk/issues/38765
+
 ## 2.5.1 - 2019-09-27
 
 This is a patch release that prevents type inference failures in the analyzer
