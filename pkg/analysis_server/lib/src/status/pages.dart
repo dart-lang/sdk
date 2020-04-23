@@ -220,7 +220,7 @@ abstract class Site {
     HttpRequest request, {
     int code = HttpStatus.ok,
   }) async {
-    if (request.headers.contentType == ContentType.json) {
+    if (request.headers.contentType.subType == 'json') {
       return respondJson(request, {"success": true}, code);
     }
 
