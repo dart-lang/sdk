@@ -69,7 +69,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
       return const <CompletionSuggestion>[];
     }
     var elementBuilder = LibraryElementSuggestionBuilder(
-        request, builder, CompletionSuggestionKind.INVOCATION, typesOnly);
+        builder, CompletionSuggestionKind.INVOCATION, typesOnly);
     for (var importElem in imports) {
       if (importElem.prefix?.name == elem.name) {
         var library = importElem.importedLibrary;
@@ -78,20 +78,13 @@ class LibraryMemberContributor extends DartCompletionContributor {
           for (var element in importElem.namespace.definedNames.values) {
             element.accept(elementBuilder);
           }
-          // If the import is 'deferred' then suggest 'loadLibrary'.
+          // If the import is `deferred` then suggest `loadLibrary`.
           if (importElem.isDeferred) {
-            var function = library.loadLibraryFunction;
-            var relevance = request.useNewRelevance
-                ? Relevance.loadLibrary
-                : (function.hasDeprecated
-                    ? DART_RELEVANCE_LOW
-                    : DART_RELEVANCE_DEFAULT);
-            elementBuilder.suggestions
-                .add(createSuggestion(request, function, relevance: relevance));
+            builder.suggestLoadLibraryFunction(library.loadLibraryFunction);
           }
         }
       }
     }
-    return elementBuilder.suggestions;
+    return const <CompletionSuggestion>[];
   }
 }

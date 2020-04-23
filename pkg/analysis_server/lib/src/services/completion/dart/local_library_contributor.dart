@@ -236,15 +236,14 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
         continue;
       }
 
-      var suggestion =
-          createSuggestion(request, constructor, relevance: relevance);
+      var completion = constructor.displayName;
+      completion = completion.isNotEmpty ? '$className.$completion' : className;
+      if (prefix != null && prefix.isNotEmpty) {
+        completion = '$prefix.$completion';
+      }
+      var suggestion = createSuggestion(request, constructor,
+          completion: completion, relevance: relevance);
       if (suggestion != null) {
-        var name = suggestion.completion;
-        name = name.isNotEmpty ? '$className.$name' : className;
-        if (prefix != null && prefix.isNotEmpty) {
-          name = '$prefix.$name';
-        }
-        suggestion.completion = name;
         suggestion.selectionOffset = suggestion.completion.length;
         suggestions.add(suggestion);
       }

@@ -33,6 +33,9 @@ CompletionSuggestion createSuggestion(
     return null;
   }
   completion ??= element.displayName;
+  if (completion == null || completion.isEmpty) {
+    return null;
+  }
   kind ??= CompletionSuggestionKind.INVOCATION;
   var suggestion = CompletionSuggestion(kind, relevance, completion,
       completion.length, 0, element.hasDeprecated, false);
@@ -165,90 +168,46 @@ mixin ElementSuggestionBuilder {
 }
 
 /// This class creates suggestions based on top-level elements.
-class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void>
-    with ElementSuggestionBuilder {
-  @override
-  final DartCompletionRequest request;
-
+class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void> {
+  /// The suggestion builder that will be used to create all of the suggestions.
   final SuggestionBuilder suggestionBuilder;
 
-  @override
+  /// The kind of completions to be built.
   final CompletionSuggestionKind kind;
 
+  /// A flag indicating whether only types should have suggestions created for
+  /// them.
   final bool typesOnly;
 
   LibraryElementSuggestionBuilder(
-      this.request, this.suggestionBuilder, this.kind, this.typesOnly);
-
-  @override
-  LibraryElement get containingLibrary => request.libraryElement;
+      this.suggestionBuilder, this.kind, this.typesOnly);
 
   @override
   void visitClassElement(ClassElement element) {
-    // TODO(brianwilkerson) Determine whether this should be based on features
-    //  (such as the kind of the element) or a constant.
-    var relevance = request.useNewRelevance
-        ? 750
-        : (element.hasDeprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT);
-    addSuggestion(element, relevance: relevance);
+    suggestionBuilder.suggestClass(element, kind: kind);
   }
 
   @override
   void visitExtensionElement(ExtensionElement element) {
-    // TODO(brianwilkerson) Determine whether this should be based on features
-    //  (such as the kind of the element) or a constant.
-    var relevance = request.useNewRelevance
-        ? 750
-        : (element.hasDeprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT);
-    addSuggestion(element, relevance: relevance);
+    suggestionBuilder.suggestExtension(element, kind: kind);
   }
 
   @override
   void visitFunctionElement(FunctionElement element) {
     if (!typesOnly) {
-      int relevance;
-      if (request.useNewRelevance) {
-        // TODO(brianwilkerson) Determine whether this should be based on
-        //  features (such as the kind of the element) or a constant.
-        relevance = element.library == containingLibrary ? 800 : 750;
-      } else {
-        relevance = element.hasDeprecated
-            ? DART_RELEVANCE_LOW
-            : (element.library == containingLibrary
-                ? DART_RELEVANCE_LOCAL_FUNCTION
-                : DART_RELEVANCE_DEFAULT);
-      }
-      addSuggestion(element, relevance: relevance);
+      suggestionBuilder.suggestTopLevelFunction(element, kind: kind);
     }
   }
 
   @override
   void visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    // TODO(brianwilkerson) Determine whether this should be based on features
-    //  (such as the kind of the element) or a constant.
-    var relevance = request.useNewRelevance
-        ? 750
-        : (element.hasDeprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT);
-    addSuggestion(element, relevance: relevance);
+    suggestionBuilder.suggestFunctionTypeAlias(element, kind: kind);
   }
 
   @override
   void visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (!typesOnly) {
-      var variable = element.variable;
-      int relevance;
-      if (request.useNewRelevance) {
-        // TODO(brianwilkerson) Determine whether this should be based on
-        //  features (such as the kind of the element) or a constant.
-        relevance = variable.library == containingLibrary ? 800 : 750;
-      } else {
-        relevance = element.hasDeprecated
-            ? DART_RELEVANCE_LOW
-            : (variable.library == containingLibrary
-                ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
-                : DART_RELEVANCE_DEFAULT);
-      }
-      addSuggestion(variable, relevance: relevance);
+      suggestionBuilder.suggestTopLevelPropertyAccessor(element, kind: kind);
     }
   }
 }
@@ -518,11 +477,27 @@ class SuggestionBuilder {
   /// given [request].
   SuggestionBuilder(this.request);
 
-  /// Add a suggestion for the constructor [element]. If a [kind] is provided
-  /// it will be used as the kind for the suggestion.
-  void suggestConstructor(ConstructorElement element,
+  /// Add a suggestion for the [classElement].
+  void suggestClass(ClassElement classElement,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
-    var classElement = element.enclosingElement;
+    int relevance;
+    if (request.useNewRelevance) {
+      relevance = _computeTopLevelRelevance(classElement);
+    } else {
+      relevance = classElement.hasDeprecated
+          ? DART_RELEVANCE_LOW
+          : DART_RELEVANCE_DEFAULT;
+    }
+
+    suggestions.add(createSuggestion(request, classElement,
+        kind: kind, relevance: relevance));
+  }
+
+  /// Add a suggestion for the [constructor]. If a [kind] is provided
+  /// it will be used as the kind for the suggestion.
+  void suggestConstructor(ConstructorElement constructor,
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
+    var classElement = constructor.enclosingElement;
     if (classElement == null) {
       return;
     }
@@ -533,7 +508,7 @@ class SuggestionBuilder {
       return;
     }
 
-    var completion = element.displayName;
+    var completion = constructor.displayName;
     if (prefix != null && prefix.isNotEmpty) {
       if (completion == null || completion.isEmpty) {
         completion = prefix;
@@ -547,18 +522,121 @@ class SuggestionBuilder {
 
     int relevance;
     if (request.useNewRelevance) {
-      var featureComputer = request.featureComputer;
-      var elementKind = featureComputer.elementKindFeature(
-          element, request.opType.completionLocation);
-      var hasDeprecated = featureComputer.hasDeprecatedFeature(element);
-      relevance = toRelevance(
-          weightedAverage([elementKind, hasDeprecated], [0.8, 0.2]), 800);
+      relevance = _computeTopLevelRelevance(constructor);
     } else {
-      relevance =
-          element.hasDeprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT;
+      relevance = constructor.hasDeprecated
+          ? DART_RELEVANCE_LOW
+          : DART_RELEVANCE_DEFAULT;
     }
 
-    suggestions.add(createSuggestion(request, element,
+    suggestions.add(createSuggestion(request, constructor,
         completion: completion, kind: kind, relevance: relevance));
+  }
+
+  /// Add a suggestion for the [extension].
+  void suggestExtension(ExtensionElement extension,
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
+    int relevance;
+    if (request.useNewRelevance) {
+      relevance = _computeTopLevelRelevance(extension);
+    } else {
+      relevance =
+          extension.hasDeprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT;
+    }
+
+    suggestions.add(
+        createSuggestion(request, extension, kind: kind, relevance: relevance));
+  }
+
+  /// Add a suggestion for the [functionTypeAlias].
+  void suggestFunctionTypeAlias(FunctionTypeAliasElement functionTypeAlias,
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
+    int relevance;
+    if (request.useNewRelevance) {
+      relevance =
+          _computeTopLevelRelevance(functionTypeAlias, defaultRelevance: 750);
+    } else {
+      relevance = functionTypeAlias.hasDeprecated
+          ? DART_RELEVANCE_LOW
+          : DART_RELEVANCE_DEFAULT;
+    }
+    suggestions.add(createSuggestion(request, functionTypeAlias,
+        kind: kind, relevance: relevance));
+  }
+
+  /// Add a suggestion for the `loadLibrary` [function] associated with a
+  /// prefix.
+  void suggestLoadLibraryFunction(FunctionElement function) {
+    int relevance;
+    if (request.useNewRelevance) {
+      relevance = Relevance.loadLibrary;
+    } else {
+      relevance =
+          function.hasDeprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT;
+    }
+
+    suggestions.add(createSuggestion(request, function, relevance: relevance));
+  }
+
+  /// Add a suggestion for the top-level [function].
+  void suggestTopLevelFunction(FunctionElement function,
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
+    int relevance;
+    if (request.useNewRelevance) {
+      relevance = _computeTopLevelRelevance(function);
+    } else {
+      relevance = function.hasDeprecated
+          ? DART_RELEVANCE_LOW
+          : (function.library == request.libraryElement
+              ? DART_RELEVANCE_LOCAL_FUNCTION
+              : DART_RELEVANCE_DEFAULT);
+    }
+
+    suggestions.add(
+        createSuggestion(request, function, kind: kind, relevance: relevance));
+  }
+
+  /// Add a suggestion for the top-level property [accessor].
+  void suggestTopLevelPropertyAccessor(PropertyAccessorElement accessor,
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
+    if (accessor.isSetter && accessor.isSynthetic) {
+      // TODO(brianwilkerson) Only discard the setter if a suggestion is built
+      //  for the corresponding getter. Currently that's always the case.
+      //  Handling this more generally will require the ability to build
+      //  suggestions for setters and then remove them later when the
+      //  corresponding getter is found.
+      return;
+    }
+    // TODO(brianwilkerson) Should we use the variable only when the [element]
+    //  is synthetic?
+    var variable = accessor.variable;
+    int relevance;
+    if (request.useNewRelevance) {
+      relevance = _computeTopLevelRelevance(variable);
+    } else {
+      relevance = accessor.hasDeprecated
+          ? DART_RELEVANCE_LOW
+          : (variable.library == request.libraryElement
+              ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
+              : DART_RELEVANCE_DEFAULT);
+    }
+
+    suggestions.add(
+        createSuggestion(request, variable, kind: kind, relevance: relevance));
+  }
+
+  /// Return the relevance score for a top-level [element].
+  int _computeTopLevelRelevance(Element element, {int defaultRelevance = 800}) {
+    // TODO(brianwilkerson) The old relevance computation used a signal based
+    //  on whether the element being suggested was from the same library in
+    //  which completion is being performed. Explore whether that's a useful
+    //  signal.
+    var featureComputer = request.featureComputer;
+    var elementKind = featureComputer.elementKindFeature(
+        element, request.opType.completionLocation);
+    var hasDeprecated = featureComputer.hasDeprecatedFeature(element);
+    return toRelevance(
+        weightedAverage([elementKind, hasDeprecated], [0.8, 0.2]),
+        defaultRelevance);
   }
 }
