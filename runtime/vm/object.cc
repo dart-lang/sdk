@@ -12133,8 +12133,6 @@ RawLibrary* Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   // Force the url to have a hash code.
   url.Hash();
   const bool dart_scheme = url.StartsWith(Symbols::DartScheme());
-  const bool dart_private_scheme =
-      dart_scheme && url.StartsWith(Symbols::DartSchemePrivate());
   const Library& result = Library::Handle(zone, Library::New());
   result.StorePointer(&result.raw_ptr()->name_, Symbols::Empty().raw());
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
@@ -12156,10 +12154,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.set_flags(0);
   result.set_is_in_fullsnapshot(false);
   result.set_is_nnbd(false);
-  if (dart_private_scheme) {
-    // Never debug dart:_ libraries.
-    result.set_debuggable(false);
-  } else if (dart_scheme) {
+  if (dart_scheme) {
     // Only debug dart: libraries if we have been requested to show invisible
     // frames.
     result.set_debuggable(FLAG_show_invisible_frames);
