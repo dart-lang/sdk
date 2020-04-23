@@ -6,36 +6,25 @@
 # the round trip for Kernel textual serialization where the initial binary
 # Kernel files are produced by compiling Dart code via Fasta.
 
-expression/eval: TextSerializationFailure # Was: Pass
-expression/main: TextSerializationFailure # Was: Pass
 extensions/call_methods: TypeCheckError
-extensions/extension_setter: TextSerializationFailure
 extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError
 extensions/invalid_explicit_access: RuntimeError
 extensions/issue40713: TypeCheckError
 extensions/static_access_of_instance: RuntimeError
 general/abstract_members: TypeCheckError
-general/accessors: RuntimeError # Was: RuntimeError
+general/accessors: RuntimeError
 general/ambiguous_exports: RuntimeError
 general/await_in_non_async: RuntimeError
-general/await_in_non_async: TextSerializationFailure
 general/bug21938: TypeCheckError
 general/bug30695: TypeCheckError
 general/bug31124: RuntimeError
 general/call: TypeCheckError
 general/candidate_found: TypeCheckError
-general/cascade: RuntimeError # Was: RuntimeError
-general/constant_truncate: TextSerializationFailure
-general/constructor_initializer_invalid: RuntimeError # Was: RuntimeError # Fails execution after recovery
-general/continue_inference_after_error_lib: TextSerializationFailure # Was: Pass
-general/covariant_generic: RuntimeError # Was: RuntimeError
-general/deferred_lib: TextSerializationFailure # Was: Pass
-general/duplicated_bad_prefix_lib1: TextSerializationFailure # Was: Pass
-general/duplicated_bad_prefix_lib2: TextSerializationFailure # Was: Pass
+general/cascade: RuntimeError
+general/constructor_initializer_invalid: RuntimeError
+general/covariant_generic: RuntimeError
 general/duplicated_declarations: TypeCheckError
-general/duplicated_declarations_lib: TextSerializationFailure # Was: Pass
-general/duplicated_declarations_part: TextSerializationFailure # Was: Pass
 general/duplicated_field_initializer: RuntimeError
 general/error_locations/error_location_01: RuntimeError
 general/error_locations/error_location_02: RuntimeError
@@ -55,7 +44,6 @@ general/error_recovery/constructor_recovery_set: RuntimeError
 general/error_recovery/empty_await_for: RuntimeError
 general/error_recovery/empty_for: RuntimeError
 general/error_recovery/issue_38415.crash: RuntimeError
-general/error_recovery/issue_38415.crash: TextSerializationFailure
 general/error_recovery/issue_39024.crash: RuntimeError
 general/error_recovery/issue_39026.crash: RuntimeError
 general/error_recovery/issue_39026_prime.crash: RuntimeError
@@ -63,20 +51,14 @@ general/error_recovery/issue_39033.crash: RuntimeError
 general/error_recovery/issue_39058.crash: RuntimeError
 general/error_recovery/issue_39058_prime.crash: RuntimeError
 general/error_recovery/issue_39202.crash: RuntimeError
-general/error_recovery/issue_39202.crash: TextSerializationFailure
 general/error_recovery/issue_39230.crash: RuntimeError
 general/error_recovery/issue_39958_01: RuntimeError
-general/error_recovery/issue_39958_01: TextSerializationFailure
 general/error_recovery/issue_39958_02: RuntimeError
-general/error_recovery/issue_39958_02: TextSerializationFailure
 general/error_recovery/issue_39958_03: RuntimeError
-general/error_recovery/issue_39958_03: TextSerializationFailure
 general/error_recovery/issue_39958_04: RuntimeError
-general/error_recovery/issue_39958_04: TextSerializationFailure
 general/error_recovery/yield_not_in_generator: RuntimeError
-general/expressions: RuntimeError # Was: RuntimeError
+general/expressions: RuntimeError
 general/external_import: RuntimeError
-general/fallthrough: TextSerializationFailure
 general/incomplete_field_formal_parameter: RuntimeError
 general/infer_field_from_multiple: TypeCheckError
 general/invalid_operator: TypeCheckError
@@ -85,15 +67,11 @@ general/issue37776: RuntimeError
 general/issue38938: RuntimeError
 general/issue38944: RuntimeError
 general/issue38961: RuntimeError
-general/issue39344: TextSerializationFailure
 general/issue41210a: TypeCheckError
 general/issue41210b/issue41210: TypeCheckError
-general/micro: RuntimeError # Was: RuntimeError
-general/mixin_application_override: ExpectationFileMismatch
+general/micro: RuntimeError
 general/mixin_application_override: TypeCheckError
-general/mixin_constructors_with_default_values: RuntimeError # Was: Pass
-general/no_such_method_private_setter: TextSerializationFailure # Was: Pass
-general/no_such_method_private_setter_lib: TextSerializationFailure # Was: Pass
+general/mixin_constructors_with_default_values: RuntimeError
 general/operator_method_not_found: RuntimeError
 general/optional: TypeCheckError
 general/override_check_accessor_after_inference: TypeCheckError # Issue #31620
@@ -103,62 +81,44 @@ general/override_check_after_inference: TypeCheckError # Issue #31620
 general/override_check_basic: TypeCheckError # Issue #31620
 general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 general/override_setter_with_field: TypeCheckError
-general/part_as_entry_point_lib: TextSerializationFailure # Was: Pass
-general/private_method_tearoff_lib: TextSerializationFailure # Was: Pass
-general/public_method_tearoff_lib: TextSerializationFailure # Was: Pass
-general/qualified_lib: TextSerializationFailure # Was: Pass
-general/qualified_part: TextSerializationFailure # Was: Pass
-general/reject_generic_function_types_in_bounds: RuntimeError # Was: RuntimeError # Expected
+general/reject_generic_function_types_in_bounds: RuntimeError
 general/spread_collection: RuntimeError # Should be fixed as part of implementing spread collection support
 general/statements: Crash
-general/top_level_accessors_part: TextSerializationFailure # Was: Pass
 general/type_parameter_type_named_int: RuntimeError
-general/type_variable_as_super: RuntimeError # Was: RuntimeError
+general/type_variable_as_super: RuntimeError
 general/type_variable_bound_access: TypeCheckError
 general/unsound_promotion: TypeCheckError
 general/void_methods: RuntimeError
 general_nnbd_opt_out/abstract_members: TypeCheckError
-general_nnbd_opt_out/accessors: RuntimeError # Was: RuntimeError
+general_nnbd_opt_out/accessors: RuntimeError
 general_nnbd_opt_out/ambiguous_exports: RuntimeError
 general_nnbd_opt_out/await_in_non_async: RuntimeError
-general_nnbd_opt_out/await_in_non_async: TextSerializationFailure
 general_nnbd_opt_out/bug21938: TypeCheckError
 general_nnbd_opt_out/bug30695: TypeCheckError
 general_nnbd_opt_out/bug31124: RuntimeError
 general_nnbd_opt_out/call: TypeCheckError
 general_nnbd_opt_out/candidate_found: TypeCheckError
-general_nnbd_opt_out/cascade: RuntimeError # Was: RuntimeError
-general_nnbd_opt_out/constructor_initializer_invalid: RuntimeError # Was: RuntimeError # Fails execution after recovery
-general_nnbd_opt_out/continue_inference_after_error_lib: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/covariant_generic: RuntimeError # Was: RuntimeError
-general_nnbd_opt_out/deferred_lib: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/duplicated_bad_prefix_lib1: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/duplicated_bad_prefix_lib2: TextSerializationFailure # Was: Pass
+general_nnbd_opt_out/cascade: RuntimeError
+general_nnbd_opt_out/constructor_initializer_invalid: RuntimeError
+general_nnbd_opt_out/covariant_generic: RuntimeError
 general_nnbd_opt_out/duplicated_declarations: TypeCheckError
-general_nnbd_opt_out/duplicated_declarations_lib: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/duplicated_declarations_part: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/duplicated_field_initializer: RuntimeError
 general_nnbd_opt_out/error_locations/error_location_01: RuntimeError
 general_nnbd_opt_out/error_locations/error_location_02: RuntimeError
 general_nnbd_opt_out/error_locations/error_location_03: RuntimeError
 general_nnbd_opt_out/error_locations/error_location_05: RuntimeError
 general_nnbd_opt_out/error_locations/error_location_06: RuntimeError
-general_nnbd_opt_out/expressions: RuntimeError # Was: RuntimeError
+general_nnbd_opt_out/expressions: RuntimeError
 general_nnbd_opt_out/external_import: RuntimeError
-general_nnbd_opt_out/fallthrough: TextSerializationFailure
 general_nnbd_opt_out/incomplete_field_formal_parameter: RuntimeError
 general_nnbd_opt_out/invocations: RuntimeError
 general_nnbd_opt_out/issue37776: RuntimeError
 general_nnbd_opt_out/issue38938: RuntimeError
 general_nnbd_opt_out/issue38944: RuntimeError
 general_nnbd_opt_out/issue38961: RuntimeError
-general_nnbd_opt_out/issue39344: TextSerializationFailure
-general_nnbd_opt_out/micro: RuntimeError # Was: RuntimeError
-general_nnbd_opt_out/mixin_application_override: ExpectationFileMismatch
+general_nnbd_opt_out/micro: RuntimeError
 general_nnbd_opt_out/mixin_application_override: TypeCheckError
-general_nnbd_opt_out/mixin_constructors_with_default_values: RuntimeError # Was: Pass
-general_nnbd_opt_out/no_such_method_private_setter: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/no_such_method_private_setter_lib: TextSerializationFailure # Was: Pass
+general_nnbd_opt_out/mixin_constructors_with_default_values: RuntimeError
 general_nnbd_opt_out/operator_method_not_found: RuntimeError
 general_nnbd_opt_out/optional: TypeCheckError
 general_nnbd_opt_out/override_check_accessor_after_inference: TypeCheckError # Issue #31620
@@ -168,79 +128,46 @@ general_nnbd_opt_out/override_check_after_inference: TypeCheckError # Issue #316
 general_nnbd_opt_out/override_check_basic: TypeCheckError # Issue #31620
 general_nnbd_opt_out/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 general_nnbd_opt_out/override_setter_with_field: TypeCheckError
-general_nnbd_opt_out/part_as_entry_point_lib: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/private_method_tearoff_lib: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/public_method_tearoff_lib: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/qualified_lib: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/qualified_part: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/reject_generic_function_types_in_bounds: RuntimeError # Was: RuntimeError # Expected
+general_nnbd_opt_out/reject_generic_function_types_in_bounds: RuntimeError
 general_nnbd_opt_out/spread_collection: RuntimeError # Should be fixed as part of implementing spread collection support
 general_nnbd_opt_out/statements: Crash
-general_nnbd_opt_out/top_level_accessors_part: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/type_parameter_type_named_int: RuntimeError
-general_nnbd_opt_out/type_variable_as_super: RuntimeError # Was: RuntimeError
+general_nnbd_opt_out/type_variable_as_super: RuntimeError
 general_nnbd_opt_out/type_variable_bound_access: TypeCheckError
 general_nnbd_opt_out/unsound_promotion: TypeCheckError
 general_nnbd_opt_out/void_methods: RuntimeError
-inference/block_bodied_lambdas_returns: TextSerializationFailure # Was: Pass
 inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
 inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError
-inference/downwards_inference_for_each: RuntimeError # Was: Pass
+inference/downwards_inference_for_each: RuntimeError
 inference/downwards_inference_on_list_literals_infer_downwards: RuntimeError
-inference/future_then_upwards: RuntimeError # Was: RuntimeError
-inference/future_then_upwards_2: RuntimeError # Was: RuntimeError
+inference/future_then_upwards: RuntimeError
+inference/future_then_upwards_2: RuntimeError
 inference/generic_methods_correctly_recognize_generic_upper_bound: TypeCheckError
 inference/generic_methods_do_not_infer_invalid_override_of_generic_method: TypeCheckError
 inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheckError
-inference/infer_method_missing_params: ExpectationFileMismatch
 inference/infer_method_missing_params: TypeCheckError
 inference/infer_type_regardless_of_declaration_order_or_cycles: RuntimeError
-inference/infer_types_on_generic_instantiations_4: RuntimeError # Was: RuntimeError
+inference/infer_types_on_generic_instantiations_4: RuntimeError
 inference/infer_types_on_generic_instantiations_infer: TypeCheckError
 inference/instantiate_tearoff_of_call: TypeCheckError # Issue #31746
 inference/instantiate_to_bounds_generic_has_bound_defined_after transform: RuntimeError
-inference/lambda_does_not_have_propagated_type_hint: TextSerializationFailure # Was: Pass
 inference/mixin_inference_outwards_3: TypeCheckError
 inference/mixin_inference_outwards_4: TypeCheckError
 inference/mixin_inference_unification_1: TypeCheckError
 inference/mixin_inference_unification_2: TypeCheckError
-inference/override_equals: RuntimeError # Was: RuntimeError
+inference/override_equals: RuntimeError
 inference_new/infer_assign_to_index_super_upwards: TypeCheckError
 inference_new/infer_assign_to_index_this_upwards: TypeCheckError
 inference_new/infer_assign_to_index_upwards: TypeCheckError
 inference_new/infer_assign_to_property_custom: TypeCheckError
 inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
-instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError # Was: RuntimeError # Expected
-instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError # Was: RuntimeError # Expected
-instantiate_to_bound/non_simple_many_libs_same_name_cycle_lib: TextSerializationFailure # Was: Pass
-late_lowering/initializer_rewrite: TextSerializationFailure
-late_lowering/instance_field_without_initializer: TextSerializationFailure
-late_lowering/instance_final_field_without_initializer: TextSerializationFailure
-late_lowering/instance_nullable_field_without_initializer: TextSerializationFailure
-late_lowering/instance_nullable_final_field_without_initializer: TextSerializationFailure
-late_lowering/late_field_without_initializer: TextSerializationFailure
-late_lowering/late_final_field_without_initializer: TextSerializationFailure
-late_lowering/late_final_local_without_initializer: TextSerializationFailure
-late_lowering/late_final_nullable_field_without_initializer: TextSerializationFailure
-late_lowering/late_final_nullable_local_without_initializer: TextSerializationFailure
-late_lowering/late_local_without_initializer: TextSerializationFailure
-late_lowering/late_nullable_field_without_initializer: TextSerializationFailure
-late_lowering/late_nullable_local_without_initializer: TextSerializationFailure
-late_lowering/override: TextSerializationFailure
-late_lowering/override_getter_setter: TextSerializationFailure
+instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError
+instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError
 nnbd/inheritance_from_opt_in: TypeCheckError
 nnbd/issue41180: RuntimeError
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
 nnbd/never_opt_out: TypeCheckError
-nnbd/no_null_shorting: TextSerializationFailure
-nnbd/no_null_shorting_explicit_extension: TextSerializationFailure
-nnbd/no_null_shorting_extension: TextSerializationFailure
-nnbd/null_shorting: TextSerializationFailure
-nnbd/null_shorting_explicit_extension: TextSerializationFailure
-nnbd/null_shorting_extension: TextSerializationFailure
-nnbd/nullable_access: TextSerializationFailure
-nnbd/shorting_stop: TextSerializationFailure
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError
@@ -248,87 +175,67 @@ rasta/bad_default_constructor: RuntimeError
 rasta/bad_explicit_super_constructor: RuntimeError
 rasta/bad_implicit_super_constructor: RuntimeError
 rasta/bad_interpolation: RuntimeError
-rasta/bad_interpolation: TextSerializationFailure # Was: RuntimeError
 rasta/bad_redirection: RuntimeError
 rasta/bad_setter_initializer: RuntimeError
 rasta/breaking_bad: RuntimeError
 rasta/class_hierarchy: RuntimeError
 rasta/class_member: RuntimeError
 rasta/constant_get_and_invoke: RuntimeError
-rasta/deferred_lib: TextSerializationFailure # Was: Pass
 rasta/duplicated_mixin: RuntimeError
 rasta/export: RuntimeError
-rasta/export: TextSerializationFailure # Was: RuntimeError # Expected, this file has no main method.
 rasta/foo: RuntimeError
-rasta/foo: TextSerializationFailure # Was: RuntimeError # Expected, this file has no main method.
-rasta/generic_factory: RuntimeError # Was: RuntimeError
+rasta/generic_factory: RuntimeError
 rasta/issue_000001: RuntimeError
-rasta/issue_000031: RuntimeError # Was: RuntimeError
+rasta/issue_000031: RuntimeError
 rasta/issue_000032: RuntimeError
 rasta/issue_000034: RuntimeError
 rasta/issue_000036: RuntimeError
-rasta/issue_000036: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000039: RuntimeError
 rasta/issue_000041: RuntimeError
 rasta/issue_000042: RuntimeError
 rasta/issue_000043: RuntimeError
 rasta/issue_000044: RuntimeError
 rasta/issue_000046: RuntimeError
-rasta/issue_000081: RuntimeError # Was: RuntimeError
+rasta/issue_000081: RuntimeError
 rasta/malformed_const_constructor: RuntimeError
 rasta/malformed_function: RuntimeError
-rasta/malformed_function: TextSerializationFailure # Was: RuntimeError
 rasta/mixin_library: TypeCheckError
 rasta/native_is_illegal: RuntimeError
-rasta/parser_error: RuntimeError # Was: RuntimeError
-rasta/static: RuntimeError # Was: RuntimeError
+rasta/parser_error: RuntimeError
+rasta/static: RuntimeError
 rasta/super: TypeCheckError
-rasta/super_initializer: RuntimeError # Was: RuntimeError
+rasta/super_initializer: RuntimeError
 rasta/super_mixin: TypeCheckError
 rasta/super_operator: TypeCheckError
 rasta/type_literals: RuntimeError
 rasta/typedef: RuntimeError
-rasta/typedef: TextSerializationFailure
 rasta/unresolved: RuntimeError
-rasta/unresolved: TextSerializationFailure # Was: RuntimeError
 rasta/unresolved_constructor: RuntimeError
-rasta/unresolved_for_in: RuntimeError # Was: RuntimeError
+rasta/unresolved_for_in: RuntimeError
 rasta/unresolved_recovery: TypeCheckError
 regress/issue_29976: RuntimeError
-regress/issue_29976: TextSerializationFailure # Was:  RuntimeError # Tests runtime behavior of error recovery.
-regress/issue_29982: RuntimeError # Was: RuntimeError # Tests runtime behavior of error recovery.
+regress/issue_29982: RuntimeError
 regress/issue_30836: RuntimeError
 regress/issue_31299: TypeCheckError
 regress/issue_32972: TypeCheckError
-regress/issue_33452: RuntimeError # Was: RuntimeError # Test has an intentional error
-regress/issue_34225: RuntimeError # Was: RuntimeError
-regress/issue_34291_lib: TextSerializationFailure # Was: Pass
-regress/issue_34403_lib: TextSerializationFailure # Was: Pass
-regress/issue_34498_lib: TextSerializationFailure # Was: Pass
+regress/issue_33452: RuntimeError
+regress/issue_34225: RuntimeError
 regress/issue_34563: RuntimeError
-regress/issue_35177: RuntimeError # Was: RuntimeError
+regress/issue_35177: RuntimeError
 regress/issue_35258: RuntimeError
 regress/issue_35259: RuntimeError
 regress/issue_35260: RuntimeError
-regress/issue_35266: RuntimeError # Was: RuntimeError # Expected
+regress/issue_35266: RuntimeError
 regress/issue_36400: RuntimeError
 regress/issue_36647: RuntimeError
 regress/issue_36647_2: RuntimeError
 regress/issue_36669: RuntimeError
 regress/issue_37285: RuntimeError
 regress/issue_39035.crash: RuntimeError
-regress/issue_39035.crash: TextSerializationFailure
 regress/issue_39091_1: RuntimeError
 regress/issue_39091_2: RuntimeError
-regress/issue_39091_2: TextSerializationFailure
 regress/utf_16_le_content.crash: Crash
-runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError # Was: RuntimeError
-runtime_checks_new/mixin_forwarding_stub_field: ExpectationFileMismatch
+runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
 runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
-runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
-runtime_checks_new/mixin_forwarding_stub_setter: ExpectationFileMismatch
 runtime_checks_new/mixin_forwarding_stub_setter: TypeCheckError
-runtime_checks_new/stub_from_interface_contravariant_from_class: TextSerializationFailure # Was: Pass
-runtime_checks_new/stub_from_interface_covariantImpl_from_class: TextSerializationFailure # Was: Pass
-runtime_checks_new/stub_from_interface_covariantInterface_from_class: TextSerializationFailure # Was: Pass
-set_literals/disambiguation_rule: RuntimeError # Was: RuntimeError
+set_literals/disambiguation_rule: RuntimeError

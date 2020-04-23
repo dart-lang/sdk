@@ -231,7 +231,8 @@ class VerificationStatus {
       node is FunctionExpression;
 
   static bool isStatementSupported(Statement node) =>
-      node is ExpressionStatement || node is ReturnStatement;
+      node is ExpressionStatement ||
+      node is ReturnStatement && node.expression != null;
 
   static bool isSupported(Node node) =>
       node is DartType && isDartTypeSupported(node) ||
