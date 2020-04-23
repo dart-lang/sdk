@@ -14,7 +14,6 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:meta/meta.dart';
 
@@ -164,51 +163,6 @@ mixin ElementSuggestionBuilder {
       }
     }
     return suggestion;
-  }
-}
-
-/// This class creates suggestions based on top-level elements.
-class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void> {
-  /// The suggestion builder that will be used to create all of the suggestions.
-  final SuggestionBuilder suggestionBuilder;
-
-  /// The kind of completions to be built.
-  final CompletionSuggestionKind kind;
-
-  /// A flag indicating whether only types should have suggestions created for
-  /// them.
-  final bool typesOnly;
-
-  LibraryElementSuggestionBuilder(
-      this.suggestionBuilder, this.kind, this.typesOnly);
-
-  @override
-  void visitClassElement(ClassElement element) {
-    suggestionBuilder.suggestClass(element, kind: kind);
-  }
-
-  @override
-  void visitExtensionElement(ExtensionElement element) {
-    suggestionBuilder.suggestExtension(element, kind: kind);
-  }
-
-  @override
-  void visitFunctionElement(FunctionElement element) {
-    if (!typesOnly) {
-      suggestionBuilder.suggestTopLevelFunction(element, kind: kind);
-    }
-  }
-
-  @override
-  void visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    suggestionBuilder.suggestFunctionTypeAlias(element, kind: kind);
-  }
-
-  @override
-  void visitPropertyAccessorElement(PropertyAccessorElement element) {
-    if (!typesOnly) {
-      suggestionBuilder.suggestTopLevelPropertyAccessor(element, kind: kind);
-    }
   }
 }
 
@@ -531,6 +485,28 @@ class SuggestionBuilder {
 
     suggestions.add(createSuggestion(request, constructor,
         completion: completion, kind: kind, relevance: relevance));
+  }
+
+  /// Add a suggestion for the [element].
+  void suggestElement(Element element,
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
+    if (element is ClassElement) {
+      suggestClass(element, kind: kind);
+    } else if (element is ConstructorElement) {
+      suggestConstructor(element, kind: kind);
+    } else if (element is ExtensionElement) {
+      suggestExtension(element, kind: kind);
+    } else if (element is FunctionElement &&
+        element.enclosingElement is CompilationUnitElement) {
+      suggestTopLevelFunction(element, kind: kind);
+    } else if (element is FunctionTypeAliasElement) {
+      suggestFunctionTypeAlias(element, kind: kind);
+    } else if (element is PropertyAccessorElement &&
+        element.enclosingElement is CompilationUnitElement) {
+      suggestTopLevelPropertyAccessor(element, kind: kind);
+    } else {
+      throw ArgumentError('Cannot suggest a ${element.runtimeType}');
+    }
   }
 
   /// Add a suggestion for the [extension].

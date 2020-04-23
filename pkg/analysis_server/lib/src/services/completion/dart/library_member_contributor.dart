@@ -47,13 +47,13 @@ class LibraryMemberContributor extends DartCompletionContributor {
     var parent = request.target.containingNode.parent;
     var typesOnly = parent is TypeName;
     var isConstructor = parent.parent is ConstructorName;
-    if (typesOnly && isConstructor) {
-      // Suggest constructors from the imported libraries.
-      for (var importElem in imports) {
-        if (importElem.prefix?.name == elem.name) {
-          var library = importElem.importedLibrary;
-          if (library != null) {
-            for (var element in importElem.namespace.definedNames.values) {
+    for (var importElem in imports) {
+      if (importElem.prefix?.name == elem.name) {
+        var library = importElem.importedLibrary;
+        if (library != null) {
+          for (var element in importElem.namespace.definedNames.values) {
+            if (typesOnly && isConstructor) {
+              // Suggest constructors from the imported libraries.
               if (element is ClassElement) {
                 for (var constructor in element.constructors) {
                   if (!constructor.isPrivate) {
@@ -62,24 +62,22 @@ class LibraryMemberContributor extends DartCompletionContributor {
                   }
                 }
               }
+            } else {
+              if (element is ClassElement ||
+                  element is ExtensionElement ||
+                  element is FunctionTypeAliasElement) {
+                builder.suggestElement(element,
+                    kind: CompletionSuggestionKind.INVOCATION);
+              } else if (!typesOnly &&
+                  (element is FunctionElement ||
+                      element is PropertyAccessorElement)) {
+                builder.suggestElement(element,
+                    kind: CompletionSuggestionKind.INVOCATION);
+              }
             }
           }
-        }
-      }
-      return const <CompletionSuggestion>[];
-    }
-    var elementBuilder = LibraryElementSuggestionBuilder(
-        builder, CompletionSuggestionKind.INVOCATION, typesOnly);
-    for (var importElem in imports) {
-      if (importElem.prefix?.name == elem.name) {
-        var library = importElem.importedLibrary;
-        if (library != null) {
-          // Suggest elements from the imported library.
-          for (var element in importElem.namespace.definedNames.values) {
-            element.accept(elementBuilder);
-          }
           // If the import is `deferred` then suggest `loadLibrary`.
-          if (importElem.isDeferred) {
+          if (!typesOnly && importElem.isDeferred) {
             builder.suggestLoadLibraryFunction(library.loadLibraryFunction);
           }
         }
